@@ -24,6 +24,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -120,6 +121,16 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   @Override
   protected void incrementBytesReadMetric(int bytes) {
     Metrics.BYTES_READ_LOCAL.inc(bytes);
+  }
+
+  @Override
+  public InetSocketAddress location() {
+    return mBlockWorkerClient.getDataServerAddress();
+  }
+
+  @Override
+  public boolean isLocal() {
+    return true;
   }
 
   /**

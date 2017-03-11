@@ -22,6 +22,7 @@ import alluxio.client.Cancelable;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
@@ -44,6 +45,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -540,11 +543,28 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     try {
-      WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-          mBlockStore.getWorkerInfoList(), getBlockSizeAllocation(mPos));
-      // If we reach here, we need to cache.
-      mCurrentCacheStream =
-          mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
+      List<BlockWorkerInfo> workers = mBlockStore.getWorkerInfoList();
+      // If we are reading a block from a remote worker, we shouldn't cache back to it.
+      if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
+        InetSocketAddress address = ((RemoteBlockInStream) mCurrentBlockInStream).location();
+        BlockWorkerInfo remoteWorker = null;
+        for (BlockWorkerInfo worker: workers) {
+          if (worker.getNetAddress().getHost().equals(address.getHostString()) &&
+              worker.getNetAddress().getDataPort() == address.getPort()) {
+            remoteWorker = worker;
+          }
+        }
+        if (remoteWorker != null) {
+          workers.remove(remoteWorker);
+        }
+      }
+      if (!workers.isEmpty()) {
+        WorkerNetAddress address =
+            mLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
+        // If we reach here, we need to cache.
+        mCurrentCacheStream =
+            mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
+      }
     } catch (IOException e) {
       handleCacheStreamIOException(e);
     } catch (AlluxioException e) {

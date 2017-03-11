@@ -168,6 +168,16 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     return toRead;
   }
 
+  @Override
+  public InetSocketAddress location() {
+    return mBlockWorkerClient.getDataServerAddress();
+  }
+
+  @Override
+  public boolean isLocal() {
+    return false;
+  }
+
   /**
    * Class that contains metrics about RemoteBlockInStream.
    */
