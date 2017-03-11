@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -547,15 +548,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // If we are reading a block from a remote worker, we shouldn't cache back to it.
       if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
         InetSocketAddress address = ((RemoteBlockInStream) mCurrentBlockInStream).location();
-        BlockWorkerInfo remoteWorker = null;
-        for (BlockWorkerInfo worker : workers) {
+        Iterator<BlockWorkerInfo> it = workers.iterator();
+        while (it.hasNext()) {
+          BlockWorkerInfo worker = it.next();
           if (worker.getNetAddress().getHost().equals(address.getHostString())
               && worker.getNetAddress().getDataPort() == address.getPort()) {
-            remoteWorker = worker;
+            it.remove();
           }
-        }
-        if (remoteWorker != null) {
-          workers.remove(remoteWorker);
         }
       }
       if (!workers.isEmpty()) {
