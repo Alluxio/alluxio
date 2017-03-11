@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.client.Locatable;
 import alluxio.client.RemoteBlockReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -34,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * through an Alluxio worker's dataserver to the client.
  */
 @NotThreadSafe
-public final class RemoteBlockInStream extends BufferedBlockInStream {
+public final class RemoteBlockInStream extends BufferedBlockInStream implements Locatable {
   /** Used to manage closeable resources. */
   private final Closer mCloser;
   /** The address of the worker to read the data from. */

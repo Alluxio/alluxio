@@ -13,7 +13,6 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.Locatable;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -34,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio Stream interfaces.
  */
 @NotThreadSafe
-public abstract class BufferedBlockInStream extends BlockInStream implements Locatable {
+public abstract class BufferedBlockInStream extends BlockInStream {
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
   /** Flag indicating if the buffer has valid data. */

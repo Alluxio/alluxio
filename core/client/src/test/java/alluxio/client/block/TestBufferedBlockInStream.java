@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
 /**
  * Mock of {@link BufferedBlockInStream} to creates a BlockInStream on a single block. The
@@ -47,14 +46,4 @@ public class TestBufferedBlockInStream extends BufferedBlockInStream {
 
   @Override
   protected void incrementBytesReadMetric(int bytes) {}
-
-  @Override
-  public InetSocketAddress location() {
-    return null;
-  }
-
-  @Override
-  public boolean isLocal() {
-    return true;
-  }
 }
