@@ -16,6 +16,7 @@ import com.google.common.base.Preconditions;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * This is the base class for all workers, and contains common functionality.
  */

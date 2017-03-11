@@ -38,7 +38,7 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 ### 构建及布置Alluxio客户端Jar包
 
-为了与Alluxio通信，需要提供带有Alluxio核心客户端Jar包的Flink程序。要构建与Flink兼容的客户端Jar包，需在Alluxio工程根目录下指定Flink选项构建整个工程：
+为了与Alluxio通信，需要提供带有Alluxio核心客户端Jar包的Flink程序。要构建与Flink兼容的客户端Jar包，需在Alluxio工程根目录下构建整个工程：
 
 {% include Running-Flink-on-Alluxio/flink-profile-build.md %}
 
