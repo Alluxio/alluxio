@@ -15,11 +15,6 @@
   </Match>
 
   <Match>
-    <Class name="alluxio.master.MasterRegistry$Value"/>
-    <Bug code="IS"/>
-  </Match>
-
-  <Match>
     <!--
 	DC: Possible double check of field
 	DE: Method might ignore exception

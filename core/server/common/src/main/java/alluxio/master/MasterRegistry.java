@@ -116,13 +116,9 @@ public final class MasterRegistry {
      *
      * @return the typed value
      */
-    public T get() {
+    public synchronized T get() {
       if (mMaster == null) {
-        synchronized (this) {
-          if (mMaster == null) {
-            mMaster = MasterRegistry.this.get(mName, mClass);
-          }
-        }
+        mMaster = MasterRegistry.this.get(mName, mClass);
       }
       return mMaster;
     }
