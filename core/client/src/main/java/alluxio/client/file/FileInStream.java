@@ -342,6 +342,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /**
    * Creates and returns a {@link InputStream} for the UFS.
    *
+   * @param blockId the block ID
    * @param blockStart the offset to start the block from
    * @param length the length of the block
    * @param path the UFS path
@@ -616,8 +617,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         throw e;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
-      return createUnderStoreBlockInStream(blockId, blockStart, getBlockSize(blockStart),
-          mStatus.getUfsPath());
+      try {
+        return createUnderStoreBlockInStream(blockId, blockStart, getBlockSize(blockStart),
+            mStatus.getUfsPath());
+      } catch (IOException e2) {
+        LOG.debug("Failed to read from UFS after failing to read from Alluxio", e2);
+        // UFS read failed; throw the original exception
+        throw e;
+      }
     }
   }
 
