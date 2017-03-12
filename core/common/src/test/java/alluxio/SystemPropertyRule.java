@@ -11,8 +11,6 @@
 
 package alluxio;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,10 +33,11 @@ public final class SystemPropertyRule extends AbstractSetAndRestoreRule {
 
   /**
    * @param propertyName the name of the property to set
-   * @param value the value to set it to
+   * @param value the value to set it to, if null un-setting the propertyName
    */
   public SystemPropertyRule(String propertyName, String value) {
-    this(ImmutableMap.of(propertyName, value));
+    mProperties = new HashMap<>();
+    mProperties.put(propertyName, value);
   }
 
   @Override

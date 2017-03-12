@@ -43,8 +43,8 @@ public final class AuthenticatedUserRule extends AbstractSetAndRestoreRule {
   @Override
   protected void restore() throws Exception {
     if (mPreviousUser == null) {
-        AuthenticatedClientUser.remove();
-      } else {
+      AuthenticatedClientUser.remove();
+    } else {
       AuthenticatedClientUser.set(mPreviousUser.getName());
     }
   }

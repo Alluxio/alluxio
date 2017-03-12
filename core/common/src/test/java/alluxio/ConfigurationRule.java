@@ -12,9 +12,6 @@
 package alluxio;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 
 import java.util.HashMap;
 import java.util.HashSet;
