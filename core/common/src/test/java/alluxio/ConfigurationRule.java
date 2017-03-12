@@ -11,17 +11,23 @@
 
 package alluxio;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A rule for modifying Alluxio configuration during a test suite.
  */
-public final class ConfigurationRule implements TestRule {
+public final class ConfigurationRule extends AbstractSetAndRestoreRule {
   private final Map<PropertyKey, String> mKeyValuePairs;
+  private final Map<PropertyKey, String> mOriginalValues = new HashMap<>();
+  private final Set<PropertyKey> mOriginalNullKeys = new HashSet<>();
 
   /**
    * @param keyValuePairs map from configuration keys to the values to set them to
@@ -30,15 +36,35 @@ public final class ConfigurationRule implements TestRule {
     mKeyValuePairs = keyValuePairs;
   }
 
+  /**
+   * @param key the key of the configuration property to set
+   * @param value the value to set it to
+   */
+  public ConfigurationRule(PropertyKey key, String value) {
+    this(ImmutableMap.of(key, value));
+  }
+
   @Override
-  public Statement apply(final Statement statement, Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        try (SetAndRestoreConfiguration conf = new SetAndRestoreConfiguration(mKeyValuePairs)) {
-          statement.evaluate();
-        }
+  public void set() {
+    for (Map.Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
+      PropertyKey key = entry.getKey();
+      String value = entry.getValue();
+      if (Configuration.containsKey(key)) {
+        mOriginalValues.put(key, Configuration.get(key));
+      } else {
+        mOriginalNullKeys.add(key);
       }
-    };
+      Configuration.set(key, value);
+    }
+  }
+
+  @Override
+  public void restore() throws Exception {
+    for (Map.Entry<PropertyKey, String> entry : mOriginalValues.entrySet()) {
+      Configuration.set(entry.getKey(), entry.getValue());
+    }
+    for (PropertyKey key : mOriginalNullKeys) {
+      Configuration.unset(key);
+    }
   }
 }

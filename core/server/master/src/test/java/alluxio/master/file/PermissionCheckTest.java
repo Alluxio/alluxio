@@ -17,7 +17,6 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
-import alluxio.SetAndRestoreConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -583,8 +582,8 @@ public final class PermissionCheckTest {
   @Test
   public void readNotExecuteDir() throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033").toResource()) {
       String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
       // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
       verifyCreateDirectory(TEST_USER_1, dir, false);
@@ -599,8 +598,8 @@ public final class PermissionCheckTest {
 
   private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
       String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
       if (isFile) {
         // create file "/testDir/onlyReadByUser1" [user1, group1, -rw-------]
@@ -650,8 +649,8 @@ public final class PermissionCheckTest {
   @Test
   public void setStateSuccess() throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
       verifyCreateFile(TEST_USER_1, file, false);
       SetAttributeOptions expect = getNonDefaultSetState();
@@ -666,8 +665,8 @@ public final class PermissionCheckTest {
   @Test
   public void setStateFail() throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
       verifyCreateFile(TEST_USER_1, file, false);
       SetAttributeOptions expect = getNonDefaultSetState();
@@ -701,8 +700,8 @@ public final class PermissionCheckTest {
   @Test
   public void completeFileSuccess() throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
       verifyCreateFile(TEST_USER_1, file, false);
       CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
@@ -713,8 +712,8 @@ public final class PermissionCheckTest {
   @Test
   public void completeFileFail() throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
       verifyCreateFile(TEST_USER_1, file, false);
       CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
@@ -760,8 +759,8 @@ public final class PermissionCheckTest {
   @Test
   public void freeFileFail() throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testComplete1");
       verifyCreateFile(TEST_USER_1, file, false);
 
@@ -775,8 +774,8 @@ public final class PermissionCheckTest {
   @Test
   public void freeNonNullDirectoryFail() throws Exception {
     // set unmask
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066")) {
+    try (AutoCloseable c = new ConfigurationRule(
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
       verifyCreateFile(TEST_USER_1, file, false);
 
