@@ -79,8 +79,8 @@ public final class CpCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-    if ((dstPath.getScheme() == null || "alluxio".equals(dstPath.getScheme()))
-        && "file".equals(srcPath.getScheme())) {
+    if ((dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))
+        && isFile(srcPath.getScheme())) {
       List<File> srcFiles = AlluxioShellUtils.getFiles(srcPath.getPath());
       if (srcFiles.size() == 0) {
         throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
@@ -90,8 +90,8 @@ public final class CpCommand extends AbstractShellCommand {
       } else {
         copyFromLocal(new File(srcPath.getPath()), dstPath);
       }
-    } else if ((srcPath.getScheme() == null || "alluxio".equals(srcPath.getScheme()))
-        && "file".equals(dstPath.getScheme())) {
+    } else if ((srcPath.getScheme() == null || isAlluxio(srcPath.getScheme()))
+        && isFile(dstPath.getScheme())) {
       File dstFile = new File(dstPath.getPath());
       List<AlluxioURI> srcPaths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, srcPath);
       if (srcPaths.size() == 0) {
@@ -102,8 +102,8 @@ public final class CpCommand extends AbstractShellCommand {
       } else {
         copyToLocal(srcPath, dstFile);
       }
-    } else if ((srcPath.getScheme() == null || "alluxio".equals(srcPath.getScheme()))
-        && (dstPath.getScheme() == null || "alluxio".equals(dstPath.getScheme()))) {
+    } else if ((srcPath.getScheme() == null || isAlluxio(srcPath.getScheme()))
+        && (dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))) {
       List<AlluxioURI> srcPaths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, srcPath);
       if (srcPaths.size() == 0) {
         throw new FileDoesNotExistException(
@@ -115,8 +115,8 @@ public final class CpCommand extends AbstractShellCommand {
         copy(srcPath, dstPath, cl.hasOption("R"));
       }
     } else {
-      System.out.println("Schemes must be either file or alluxio, "
-          + "and at most one file scheme is allowed.");
+      throw new InvalidPathException(
+          "Schemes must be either file or alluxio, and at most one file scheme is allowed.");
     }
   }
 
@@ -568,5 +568,13 @@ public final class CpCommand extends AbstractShellCommand {
     return "Copies a file or a directory in the Alluxio filesystem or between local filesystem "
         + "and Alluxio filesystem. The -R flag is needed to copy directories in the Alluxio "
         + "filesystem. Local Path with schema \"file\".";
+  }
+
+  private static boolean isAlluxio(String scheme) {
+    return Constants.SCHEME.equals(scheme);
+  }
+
+  private static boolean isFile(String scheme) {
+    return "file".equals(scheme);
   }
 }
