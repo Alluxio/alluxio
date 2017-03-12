@@ -56,9 +56,8 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean acl, boolean isFolder, String permission,
-                                      String userName, String groupName, long size,
-                                      long createTimeMs, boolean inMemory,
-                                      String path) {
+      String userName, String groupName, long size, long createTimeMs, boolean inMemory,
+      String path) {
     String memoryState;
     if (isFolder) {
       memoryState = STATE_FOLDER;
@@ -67,11 +66,11 @@ public final class LsCommand extends WithWildCardPathCommand {
     }
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
-              FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
-              memoryState, path);
+          FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
+          memoryState, path);
     } else {
       return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
-              CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
+          CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
     }
   }
 
@@ -98,10 +97,10 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   protected Options getOptions() {
     return new Options()
-            .addOption(RECURSIVE_OPTION)
-            .addOption(FORCE_OPTION)
-            .addOption(LIST_DIR_AS_FILE_OPTION)
-            .addOption(LIST_PINNED_FILES_OPTION);
+        .addOption(RECURSIVE_OPTION)
+        .addOption(FORCE_OPTION)
+        .addOption(LIST_DIR_AS_FILE_OPTION)
+        .addOption(LIST_PINNED_FILES_OPTION);
   }
 
   /**
@@ -114,8 +113,7 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @throws IOException      when non-Alluxio exception occurs
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean pinnedMetadata)
-          throws AlluxioException, IOException {
+      boolean pinnedMetadata) throws AlluxioException, IOException {
     if (dirAsFile) {
       URIStatus status = mFileSystem.getStatus(path);
       boolean isPinned = status.isPinned();
@@ -125,9 +123,9 @@ public final class LsCommand extends WithWildCardPathCommand {
         }
       }
       System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
-              FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-              status.getOwner(), status.getGroup(), status.getLength(),
-              status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
+          FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
+          status.getOwner(), status.getGroup(), status.getLength(),
+          status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
       return;
     }
 
@@ -140,28 +138,27 @@ public final class LsCommand extends WithWildCardPathCommand {
       if (pinnedMetadata) {
         if (status.isPinned()) {
           System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
-                  FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-                  status.getOwner(), status.getGroup(), status.getLength(),
-                  status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(),
-                  status.getPath()));
+              FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
+              status.getOwner(), status.getGroup(), status.getLength(),
+              status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(),
+              status.getPath()));
         }
       } else {
         System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
-                FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-                status.getOwner(),
-                status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-                100 == status.getInMemoryPercentage(), status.getPath()));
+            FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
+            status.getOwner(),
+            status.getGroup(), status.getLength(), status.getCreationTimeMs(),
+            100 == status.getInMemoryPercentage(), status.getPath()));
       }
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-                forceLoadMetadata, false, pinnedMetadata);
+            forceLoadMetadata, false, pinnedMetadata);
       }
     }
   }
 
   private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path,
-                                                                   ListStatusOptions options)
-          throws AlluxioException, IOException {
+      ListStatusOptions options) throws AlluxioException, IOException {
     List<URIStatus> statuses = mFileSystem.listStatus(path, options);
     Collections.sort(statuses, new Comparator<URIStatus>() {
       @Override
@@ -193,9 +190,9 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   public String getDescription() {
     return "Displays information for all files and directories directly under the specified path."
-            + " Specify -R to display files and directories recursively."
-            + " Specify -d to list directories as plain files."
-            + " Specify -f to force loading files in the directory."
-            + "Specify -p to list all the pinned files in the specified path";
+        + " Specify -R to display files and directories recursively."
+        + " Specify -d to list directories as plain files."
+        + " Specify -f to force loading files in the directory."
+        + " Specify -p to list all the pinned files in the specified path";
   }
 }
