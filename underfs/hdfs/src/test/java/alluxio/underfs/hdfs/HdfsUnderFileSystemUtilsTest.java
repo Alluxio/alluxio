@@ -12,6 +12,7 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 
@@ -43,9 +44,11 @@ public final class HdfsUnderFileSystemUtilsTest {
   public void addKeyFromSystemProperty() throws Exception {
     PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    try (AutoCloseable c = new SystemPropertyRule(key.toString(), "systemKey").toResource()) {
+    try (AutoCloseable p = new SystemPropertyRule(key.toString(), "systemKey").toResource()) {
+      ConfigurationTestUtils.resetConfiguration();  // ensure system property change take effect
       HdfsUnderFileSystemUtils.addKey(conf, key);
       Assert.assertEquals("systemKey", conf.get(key.toString()));
+      ConfigurationTestUtils.resetConfiguration();
     }
   }
 }
