@@ -432,26 +432,23 @@ public final class TieredBlockStore implements BlockStore {
    */
   private void abortBlockInternal(long sessionId, long blockId) throws BlockDoesNotExistException,
       BlockAlreadyExistsException, InvalidWorkerStateException, IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-    try {
-      String path;
-      TempBlockMeta tempBlockMeta;
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
-        checkTempBlockOwnedBySession(sessionId, blockId);
-        tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-        path = tempBlockMeta.getPath();
-      }
 
-      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      Files.delete(Paths.get(path));
+    String path;
+    TempBlockMeta tempBlockMeta;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      checkTempBlockOwnedBySession(sessionId, blockId);
+      tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+      path = tempBlockMeta.getPath();
+    }
 
-      try (LockResource r = new LockResource(mMetadataWriteLock)) {
-        mMetaManager.abortTempBlockMeta(tempBlockMeta);
-      } catch (BlockDoesNotExistException e) {
-        throw Throwables.propagate(e); // We shall never reach here
-      }
-    } finally {
-      mLockManager.unlockBlock(lockId);
+    // The metadata lock is released during heavy IO. The temp block is private to one session, so
+    // we do not lock it.
+    Files.delete(Paths.get(path));
+
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      mMetaManager.abortTempBlockMeta(tempBlockMeta);
+    } catch (BlockDoesNotExistException e) {
+      throw Throwables.propagate(e); // We shall never reach here
     }
   }
 
