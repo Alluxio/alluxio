@@ -408,10 +408,9 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     byte[] toWrite = BufferUtils.getIncreasingByteArray(SIZE_BYTES);
     fos.write(toWrite);
     fos.close();
-    mFsShell.run("cp", "file://" +  testFile.getAbsolutePath(), "/testFile");
-    Assert.assertEquals(
-        getCommandOutput(new String[] {"cp", testFile.getAbsolutePath(), "/testFile"}),
-        mOutput.toString());
+    String[] cmd = new String[]{"cp", "file://" +  testFile.getAbsolutePath(), "/testFile"};
+    mFsShell.run(cmd);
+    Assert.assertEquals(getCommandOutput(cmd), mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertNotNull(status);
@@ -437,8 +436,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     // Write the first file
     String[] cmd1 = {"cp", "file://" +  testFile1.getPath(), alluxioFilePath.getPath()};
     mFsShell.run(cmd1);
-    Assert.assertEquals(getCommandOutput(
-        new String[]{"cp", testFile1.getPath(), alluxioFilePath.getPath()}), mOutput.toString());
+    Assert.assertEquals(getCommandOutput(cmd1), mOutput.toString());
     mOutput.reset();
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
@@ -462,11 +460,9 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
         generateFileContent("/testDir/testFile", BufferUtils.getIncreasingByteArray(10));
     generateFileContent("/testDir/testDirInner/testFile2",
         BufferUtils.getIncreasingByteArray(10, 20));
-
-    mFsShell.run("cp", "file://" + testFile.getParent(), "/testDir");
-    Assert.assertEquals(
-        getCommandOutput(new String[]{"cp", testFile.getParent(), "/testDir"}),
-        mOutput.toString());
+    String[] cmd = new String[]{"cp", "file://" + testFile.getParent(), "/testDir"};
+    mFsShell.run(cmd);
+    Assert.assertEquals(getCommandOutput(cmd), mOutput.toString());
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
     URIStatus status1 = mFileSystem.getStatus(uri1);
@@ -486,10 +482,10 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     File testFile = generateFileContent("/srcFileURI", BufferUtils.getIncreasingByteArray(10));
     String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getHostname() + ":"
         + mLocalAlluxioCluster.getMasterRpcPort() + "/destFileURI";
+    String[] cmd = new String[]{"cp", "file://" + testFile.getPath(), alluxioURI};
     // when
-    mFsShell.run("cp", "file://" + testFile.getPath(), alluxioURI);
-    String cmdOut =
-        getCommandOutput(new String[]{"cp", testFile.getPath(), alluxioURI});
+    mFsShell.run(cmd);
+    String cmdOut = getCommandOutput(cmd);
     // then
     Assert.assertEquals(cmdOut, mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/destFileURI");
@@ -613,10 +609,10 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
 
   protected void copyToLocalWithBytes(int bytes) throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
-    mFsShell.run("cp", "/testFile",
-        "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
-    Assert.assertEquals(getCommandOutput(new String[] {"cp", "/testFile",
-        mLocalAlluxioCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
+    String[] cmd = new String[] {"cp", "/testFile",
+        "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile"};
+    mFsShell.run(cmd);
+    Assert.assertEquals(getCommandOutput(cmd), mOutput.toString());
     fileReadTest("/testFile", 10);
   }
 }

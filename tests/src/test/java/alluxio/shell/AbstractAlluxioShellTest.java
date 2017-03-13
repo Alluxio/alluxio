@@ -131,9 +131,9 @@ public abstract class AbstractAlluxioShellTest {
         case "mv":
           return "Renamed " + command[1] + " to " + command[2] + "\n";
         case "copyFromLocal":
-          return "Copied " + command[1] + " to " + command[2] + "\n";
+          return "Copied " + "file://" + command[1] + " to " + command[2] + "\n";
         case "copyToLocal":
-          return "Copied " + command[1] + " to " + command[2] + "\n";
+          return "Copied " + command[1] + " to " + "file://" + command[2] + "\n";
         case "cp":
           return "Copied " + command[1] + " to " + command[2] + "\n";
         default:
