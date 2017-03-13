@@ -11,7 +11,9 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
 
@@ -23,6 +25,9 @@ import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 final class WebUtils {
+
+  private static final DateFormat FORMATTER =
+      new SimpleDateFormat(Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
 
   /**
    * Converts a byte array to string.
@@ -65,8 +70,7 @@ final class WebUtils {
    * @return input encoded as date
    */
   public static String convertMsToDate(long millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
-    return formatter.format(new Date(millis));
+    return FORMATTER.format(new Date(millis));
   }
 
   /**
