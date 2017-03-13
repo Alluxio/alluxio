@@ -300,7 +300,7 @@ public final class CpCommand extends AbstractShellCommand {
   }
 
   /**
-   * Copies a list of files or directories specified by srcFiles from the local filesystem to
+   * Copies a list of files or directories specified by srcPaths from the local filesystem to
    * dstPath in the Alluxio filesystem space. This method is used when the input path contains
    * wildcards.
    *
@@ -471,9 +471,9 @@ public final class CpCommand extends AbstractShellCommand {
     }
     if (!dstFile.exists()) {
       if (!dstFile.mkdirs()) {
-        throw new IOException("Fail to create directory: " + dstFile.getPath());
+        throw new IOException("Fail to create directory: " + dstPath);
       } else {
-        System.out.println("Create directory: " + dstFile.getPath());
+        System.out.println("Create directory: " + dstPath);
       }
     }
     List<String> errorMessages = new ArrayList<>();
@@ -507,9 +507,9 @@ public final class CpCommand extends AbstractShellCommand {
       // make a local directory
       if (!dstFile.exists()) {
         if (!dstFile.mkdirs()) {
-          throw new IOException("mkdir failure for directory: " + dstFile.getAbsolutePath());
+          throw new IOException("mkdir failure for directory: " + dstPath);
         } else {
-          System.out.println("Create directory: " + dstFile.getAbsolutePath());
+          System.out.println("Create directory: " + dstPath);
         }
       }
 
@@ -568,7 +568,7 @@ public final class CpCommand extends AbstractShellCommand {
       }
       if (!tmpDst.renameTo(dstFile)) {
         throw new IOException(
-            "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
+            "Failed to rename " + tmpDst.getPath() + " to destination " + dstPath);
       }
       System.out.println("Copied " + srcPath + " to " + dstPath);
     } finally {
