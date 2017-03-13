@@ -148,7 +148,7 @@ For example, if data files are stored by their date, `count` can be used to dete
 
 {% include Command-Line-Interface/count.md %}
 
-## cp
+### cp
 
 The `cp` command copies a file or directory in the Alluxio file system or between local file system 
 and Alluxio file system.
