@@ -90,7 +90,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsNoAcl() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
-    mFsShell.run("ls", "/testRoot");
+    mFsShell.run("ls", "-h", "/testRoot");
     String expected = "";
     expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
@@ -110,7 +110,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsDirectoryAsPlainFileNoAcl() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
-    mFsShell.run("ls", "-d", "/testRoot");
+    mFsShell.run("ls", "-h", "-d", "/testRoot");
     URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/testRoot/"));
     String expected = "";
     expected += getLsNoAclResultStr("/testRoot", dirStatus.getCreationTimeMs(),
@@ -126,7 +126,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsRootNoAcl() throws IOException, AlluxioException {
-    mFsShell.run("ls", "-d", "/");
+    mFsShell.run("ls",  "-h", "-d", "/");
     URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/"));
     String expected = "";
     expected += getLsNoAclResultStr("/", dirStatus.getCreationTimeMs(), 0, LsCommand.STATE_FOLDER);
@@ -147,7 +147,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     String testUser = "test_user_ls";
     clearAndLogin(testUser);
     URIStatus[] files = createFiles();
-    mFsShell.run("ls", "/testRoot");
+    mFsShell.run("ls",  "-h", "/testRoot");
     String expected = "";
     expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getMode(),
@@ -178,7 +178,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
         LsCommand.STATE_FILE_IN_MEMORY);
     expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20,
         LsCommand.STATE_FILE_IN_MEMORY);
-    mFsShell.run("ls", testDir + "/*/foo*");
+    mFsShell.run("ls", "-h", testDir + "/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
     expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30,
@@ -189,7 +189,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
         LsCommand.STATE_FILE_IN_MEMORY);
     expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foobar4"), 40,
         LsCommand.STATE_FILE_IN_MEMORY);
-    mFsShell.run("ls", testDir + "/*");
+    mFsShell.run("ls", "-h", testDir + "/*");
     Assert.assertEquals(expect, mOutput.toString());
   }
 
@@ -214,14 +214,14 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30, testUser, testUser);
     expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10, testUser, testUser);
     expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20, testUser, testUser);
-    mFsShell.run("ls", testDir + "/*/foo*");
+    mFsShell.run("ls", "-h", testDir + "/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
     expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30, testUser, testUser);
     expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10, testUser, testUser);
     expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20, testUser, testUser);
     expect += getLsResultStr(new AlluxioURI(testDir + "/foobar4"), 40, testUser, testUser);
-    mFsShell.run("ls", testDir + "/*");
+    mFsShell.run("ls", "-h", testDir + "/*");
     Assert.assertEquals(expect, mOutput.toString());
   }
 
@@ -234,7 +234,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsrNoAcl() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
-    mFsShell.run("lsr", "/testRoot");
+    mFsShell.run("lsr", "-h", "/testRoot");
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
     expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
@@ -264,7 +264,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     clearAndLogin(testUser);
 
     URIStatus[] files = createFiles();
-    mFsShell.run("lsr", "/testRoot");
+    mFsShell.run("lsr", "-h", "/testRoot");
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
     expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
@@ -293,7 +293,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     String fileName = "/localhost%2C61764%2C1476207067267..meta.1476207073442.meta";
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
     URIStatus file = mFileSystem.getStatus(new AlluxioURI(fileName));
-    mFsShell.run("ls", "/");
+    mFsShell.run("ls",  "-h", "/");
     String expected = getLsNoAclResultStr(fileName, file.getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
