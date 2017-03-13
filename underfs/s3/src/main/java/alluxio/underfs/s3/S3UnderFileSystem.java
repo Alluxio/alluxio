@@ -49,7 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class S3UnderFileSystem extends ObjectUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(S3UnderFileSystem.class);
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";

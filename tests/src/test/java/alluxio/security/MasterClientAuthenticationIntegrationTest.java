@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 
 import org.junit.After;
@@ -86,8 +87,8 @@ public final class MasterClientAuthenticationIntegrationTest {
   public void customAuthenticationDenyConnect() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
 
-    try (FileSystemMasterClient masterClient = new FileSystemMasterClient(
-        mLocalAlluxioClusterResource.get().getMaster().getAddress())) {
+    try (FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");
@@ -103,8 +104,8 @@ public final class MasterClientAuthenticationIntegrationTest {
    * @throws Exception if a {@link FileSystemMasterClient} operation fails
    */
   private void authenticationOperationTest(String filename) throws Exception {
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
@@ -118,6 +119,9 @@ public final class MasterClientAuthenticationIntegrationTest {
     LoginUserTestUtils.resetLoginUser();
   }
 
+  /**
+   * An authentication provider for {@link AuthType#CUSTOM}.
+   */
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     // The fullly qualified class name of this authentication provider. This is needed to configure
     // the alluxio cluster

@@ -5,7 +5,7 @@ nickname: 开发者向导
 group: Resources
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 感谢您对Alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。
@@ -82,7 +82,7 @@ group: Resources
 
 #### 编码风格
 
--   请遵循已有代码的风格。具体地，我们使用[Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html)风格，但有以下不同：
+-   请遵循已有代码的风格。具体地，我们使用[Google Java style](https://google.github.io/styleguide/javaguide.html)风格，但有以下不同：
     -  每行最多**100**个字符
     -  第三方导入被整理到一起以使得IDE格式化起来更简单
     -  类成员变量要使用`m`前缀，例如`private WorkerClient mWorkerClient;`

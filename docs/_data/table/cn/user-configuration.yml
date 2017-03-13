@@ -43,6 +43,8 @@ alluxio.user.file.seek.buffer.size.bytes:
   在文件seek操作中使用的缓存大小。这个选项只在 `alluxio.user.file.cache.partially.read.block` 打开的时候有效。
 alluxio.user.heartbeat.interval.ms:
   Alluxio worker的心跳时间间隔（单位：毫秒）。
+alluxio.user.hostname:
+  给alluxio客户端使用的主机名。
 alluxio.user.lineage.enabled:
   是否启用lineage。
 alluxio.user.lineage.master.client.threads:
@@ -69,3 +71,10 @@ alluxio.user.ufs.file.writer.class:
   选择通过worker的data server向底层文件系统写入数据的client所使用的网络栈。目前只支持 `alluxio.client.netty.NettyUnderFileSystemFileWriter` （远程读取使用netty）
 alluxio.user.packet.streaming.enabled:
   是否使用流行数据传输机制。流行数据传输是一个实验功能，它会提高数据传输效率。
+alluxio.user.rpc.retry.base.sleep.ms:
+  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个指数级重试的基数。
+alluxio.user.rpc.retry.max.sleep.ms:
+  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个重试延迟的最大值。
+alluxio.user.rpc.retry.max.num.retry:
+  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了重试的最大次数。
+

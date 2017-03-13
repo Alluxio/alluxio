@@ -59,6 +59,8 @@ alluxio.user.file.seek.buffer.size.bytes:
   The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.
 alluxio.user.heartbeat.interval.ms:
   The interval (in milliseconds) between Alluxio worker's heartbeats
+alluxio.user.hostname:
+  The hostname to use for the client.
 alluxio.user.lineage.enabled:
   Flag to enable lineage feature.
 alluxio.user.lineage.master.client.threads:
@@ -98,3 +100,12 @@ alluxio.user.ufs.file.writer.class:
 alluxio.user.packet.streaming.enabled:
   If set to true, the packet streaming data transfer protocol is used. Packet streaming is an experimental feature. It
   provides a more efficient data transfer mechanism.
+alluxio.user.rpc.retry.base.sleep.ms:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the base time in milliseconds in the exponential backoff.
+alluxio.user.rpc.retry.max.sleep.ms:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the maximum wait time in milliseconds in the backoff.
+alluxio.user.rpc.retry.max.num.retry:
+  Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
+  the maximum number of retries.

@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -46,10 +45,11 @@ import java.util.Map.Entry;
  * running locally.
  */
 public final class AlluxioFrameworkIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioFrameworkIntegrationTest.class);
+
   private static final String JDK_URL =
       "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz";
   private static final String JDK_PATH = "jdk1.7.0_79.jdk/Contents/Home";
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Parameter(names = {"-m", "--mesos"}, required = true,
       description = "Address for locally-running Mesos, e.g. localhost:5050")
@@ -103,8 +103,7 @@ public final class AlluxioFrameworkIntegrationTest {
       String masterHostName = NetworkAddressUtils.getLocalHostName();
       int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
       InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
-      try (final BlockMasterClient client = new RetryHandlingBlockMasterClient(null,
-          masterAddress)) {
+      try (final BlockMasterClient client = BlockMasterClient.Factory.create(masterAddress)) {
         CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override

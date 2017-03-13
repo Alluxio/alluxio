@@ -11,7 +11,6 @@
 
 package alluxio.client.netty;
 
-import alluxio.Constants;
 import alluxio.client.RemoteBlockWriter;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
@@ -42,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyRemoteBlockWriter.class);
 
   private FileSystemContext mContext;
   private boolean mOpen;

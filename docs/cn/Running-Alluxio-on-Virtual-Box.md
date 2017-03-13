@@ -5,11 +5,15 @@ nickname: 在Virtual Box上运行Alluxio
 group: Deploying Alluxio
 priority: 2
 ---
+
+* 内容列表
+{:toc}
+
 通过Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)，你可以
 将Alluxio部署在本地机器上的[VirtualBox](https://www.virtualbox.org/)中。该脚本允许你创建，配置以及撤销
 集群，该集群自动配置了HDFS相关项。
 
-# 前期准备
+## 前期准备
 
 **安装VirtualBox**
 
@@ -37,7 +41,7 @@ priority: 2
 
 {% include Running-Alluxio-on-Virtual-Box/install-pip.md %}
 
-# 启动集群
+## 启动集群
 
 现在你可以以Hadoop2.4.1为底层文件系统启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
@@ -45,7 +49,7 @@ priority: 2
 
 集群中的每个节点运行一个Alluxio worker，`AlluxioMaster`节点上运行Alluxio master.
 
-# 访问cluster
+## 访问cluster
 
 **通过Web UI访问**
 
@@ -84,7 +88,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 {% include Running-Alluxio-on-Virtual-Box/ssh-other-node.md %}
 
-# 撤销集群
+## 撤销集群
 
 在`deploy/vagrant`目录下运行：
 

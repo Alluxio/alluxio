@@ -6,7 +6,7 @@ group: Deploying Alluxio
 priority: 1
 ---
 
-# 单机上独立运行Alluxio
+# 前提条件
 
 这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 7或更高版本)。
 
@@ -14,22 +14,58 @@ priority: 1
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-执行Alluxio运行脚本前，需要创建Alluxio环境配置`conf/alluxio-env.sh`。默认的配置可以通过下面方式自引导生成：
+在独立模式下运行，需要确保：
 
-{% include Running-Alluxio-Locally/bootstrap.md %}
+* 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`(即`alluxio.master.hostname=localhost`)。
 
-在独立模式下运行，确保：
+* 将`conf/alluxio-site.properties`中的`alluxio.underfs.address`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.underfs.address=/tmp`）。
 
-* `conf/alluxio-env.sh`中的`ALLUXIO_UNDERFS_ADDRESS`设置成本地文件系统的临时目录：（例如，`export ALLUXIO_UNDERFS_ADDRESS=/tmp`）。
+* 开启远程登录服务，确保`ssh localhost`能成功。为了避免重复输入密码，你可以将本机的ssh公钥添加到`~/.ssh/authorized_keys`文件中。更多细节请参考[该指南](http://www.linuxproblem.org/art_9.html)。
 
-* 远程登录服务开启，`ssh localhost`能成功。
+# 格式化Alluxio文件系统
 
-接着，格式化Alluxio文件系统并启动。*注意：因为Alluxio需要创建
-[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)，启动
-Alluxio会要求用户输入root密码。如果不想重复输入root密码，将主机的公开ssh key添加
-到`~/.ssh/authorized_keys`。访问[该指南](http://www.linuxproblem.org/art_9.html)获取更多信息。*
+> 这个步骤只有在第一次运行Alluxio系统时才需要执行。
+> 当前服务器上之前保存的Alluxio文件系统的所有数据和元数据都会被清除。
 
-{% include Running-Alluxio-Locally/Alluxio-format-start.md %}
+```bash
+$ ./bin/alluxio format
+```
+
+# 本地启动Alluxio文件系统
+
+## 以sudo权限启动Alluxio
+
+默认情况下，Alluxio在启动时会创建一个[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)作为自己的内存数据存储。
+这个步骤需要sudo权限来执行“mount”，“umount”，“mkdir”和“chmod”等操作。有两种方式来实现：
+
+* 以超级用户的身份启动Alluxio，或者
+* 给运行Alluxio的用户（例如“alluxio”）有限的sudo权限。在Linux系统上，可以向`/etc/sudoers`文件添加如下的一行内容来实现：
+`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
+这将允许Linux用户“alluxio”以sudo权限进行mount，umount，在具体路径`/mnt/ramdisk`上执行chmod等操作（假设操作命令在 `/bin/`目录下）而不需要输入密码，但并不给“alluxio”用户赋予其他的sudo权限。
+更详细的解释可以参考[Sudoer用户技术说明](https://help.ubuntu.com/community/Sudoers#User_Specifications)。
+
+以适当的用户身份，运行如下的命令来启动Alluxio文件系统。
+
+```bash
+$ ./bin/alluxio-start.sh local
+```
+
+## 不带sudo权限启动Alluxio
+
+或者，如果一个RAMFS（例如`/path/to/ramdisk`）已经被系统管理员挂载，你可以在`conf/alluxio-site.properties`文件中指定该路径：
+
+```
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
+```
+
+然后在不需要请求root权限的情况下启动Alluxio：
+
+```bash
+$ ./bin/alluxio-start.sh local NoMount
+```
+
+## 验证Alluxio是否运行
 
 验证Alluxio是否运行，访问**[http://localhost:19999](http://localhost:19999)**，或查看`logs`文件夹下的
 日志。也可以运行一个样例程序：

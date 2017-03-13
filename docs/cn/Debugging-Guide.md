@@ -4,7 +4,7 @@ title: 调试指南
 group: Resources
 ---
 
-* Table of Contents
+* 内容列表
 {:toc}
 
 本页面主要是关于Alluxio使用过程中的一些指导和提示，方便用户能够更快的解决使用过程遇到的问题。

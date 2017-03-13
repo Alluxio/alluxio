@@ -13,7 +13,6 @@ package alluxio.util.network;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.MasterInquireClient;
 import alluxio.PropertyKey;
 import alluxio.exception.PreconditionMessage;
@@ -47,13 +46,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class NetworkAddressUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(NetworkAddressUtils.class);
+
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
 
   /**
    * Checks if the underlying OS is Windows.
    */
   public static final boolean WINDOWS = OSUtils.isWindows();
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
   private static String sLocalIP;
@@ -296,7 +296,20 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local host name for the host this JVM is running on.
+   * Gets the local hostname to be used by the client. If this isn't configured, a non-loopback
+   * local hostname will be looked up.
+   *
+   * @return the local hostname for the client
+   */
+  public static String getClientHostName() {
+    if (Configuration.containsKey(PropertyKey.USER_HOSTNAME)) {
+      return Configuration.get(PropertyKey.USER_HOSTNAME);
+    }
+    return getLocalHostName();
+  }
+
+  /**
+   * Gets a local hostname for the host this JVM is running on.
    *
    * @return the local host name, which is not based on a loopback ip address
    */
@@ -555,13 +568,9 @@ public final class NetworkAddressUtils {
    * @return InetSocketAddress
    */
   public static InetSocketAddress getRpcPortSocketAddress(WorkerNetAddress netAddress) {
-    try {
-      String host = getFqdnHost(netAddress);
-      int port = netAddress.getRpcPort();
-      return new InetSocketAddress(host, port);
-    } catch (UnknownHostException e) {
-      throw Throwables.propagate(e);
-    }
+    String host = netAddress.getHost();
+    int port = netAddress.getRpcPort();
+    return new InetSocketAddress(host, port);
   }
 
   /**
@@ -571,13 +580,9 @@ public final class NetworkAddressUtils {
    * @return InetSocketAddress
    */
   public static InetSocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress) {
-    try {
-      String host = getFqdnHost(netAddress);
-      int port = netAddress.getDataPort();
-      return new InetSocketAddress(host, port);
-    } catch (UnknownHostException e) {
-      throw Throwables.propagate(e);
-    }
+    String host = netAddress.getHost();
+    int port = netAddress.getDataPort();
+    return new InetSocketAddress(host, port);
   }
 
   /**

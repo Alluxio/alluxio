@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
@@ -32,7 +31,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -61,7 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @NotThreadSafe
 public class FileOutStream extends AbstractOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(FileOutStream.class);
 
   /** Used to manage closeable resources. */
   private final Closer mCloser;
@@ -139,9 +137,9 @@ public class FileOutStream extends AbstractOutStream {
         mUfsPath = options.getUfsPath();
         if (mUfsDelegation) {
           mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
-          Permission perm = options.getPermission();
           mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-              CreateUfsFileOptions.defaults().setPermission(perm));
+              CreateUfsFileOptions.defaults().setOwner(options.getOwner())
+                  .setGroup(options.getGroup()).setMode(options.getMode()));
           mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
               .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
         } else {
@@ -150,7 +148,8 @@ public class FileOutStream extends AbstractOutStream {
           // Parent directory creation in ufs is not required as FileSystemMaster will create any
           // required directories as part of inode creation if sync persist = true
           CreateOptions createOptions =
-              CreateOptions.defaults().setPermission(options.getPermission());
+              CreateOptions.defaults().setOwner(options.getOwner()).setGroup(options.getGroup())
+                  .setMode(options.getMode());
           mUnderStorageOutputStream = mCloser.register(ufs.create(mUfsPath, createOptions));
 
           // Set delegation related vars to null as we are not using worker delegation for ufs ops

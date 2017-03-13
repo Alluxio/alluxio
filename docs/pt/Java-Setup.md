@@ -3,7 +3,10 @@ layout: global
 title: Configuração Java
 ---
 
-# Mac OSX
+* Table of Contents
+{:toc}
+
+## Mac OSX
 
 1.  Baixar a última versão Java JDK do site
     [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
@@ -21,7 +24,7 @@ title: Configuração Java
 7.  O `software` está instalado e a tela de confirmação aparecerá. Clique no ReadMe para
     maiores informações sobre a instalação.
 
-# Linux
+## Linux
 
 1.  Baixar a última versão Java JDK do site
     [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)

@@ -23,6 +23,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
@@ -41,10 +42,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.ByteString;
 import org.apache.thrift.TProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +59,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final FileSystemMaster mFileSystemMaster;
 
   /** Map from file id of a complete store to the list of partitions in this store. */
@@ -292,7 +289,7 @@ public final class KeyValueMaster extends AbstractMaster {
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
-    mFileSystemMaster.delete(uri, true);
+    mFileSystemMaster.delete(uri, DeleteOptions.defaults().setRecursive(true));
     deleteStoreInternal(fileId);
     writeJournalEntry(newDeleteStoreEntry(fileId));
     flushJournal();
@@ -427,8 +424,8 @@ public final class KeyValueMaster extends AbstractMaster {
   private JournalEntry newCompletePartitionEntry(long fileId, PartitionInfo info) {
     CompletePartitionEntry completePartition =
         CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.getBlockId())
-            .setKeyStartBytes(ByteString.copyFrom(info.bufferForKeyStart()))
-            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit()))
+            .setKeyStart(new String(info.bufferForKeyStart().array()))
+            .setKeyLimit(new String(info.bufferForKeyLimit().array()))
             .setKeyCount(info.getKeyCount()).build();
     return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
   }

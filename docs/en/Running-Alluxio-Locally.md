@@ -6,7 +6,7 @@ group: Deploying Alluxio
 priority: 1
 ---
 
-# Run Alluxio Standalone on a Single Machine.
+# Requirement
 
 The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above).
 
@@ -14,26 +14,64 @@ Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-Before executing Alluxio run scripts, the Alluxio environment configuration `conf/alluxio-env.sh`
-needs to be created. The default configuration can be bootstrapped using:
-
-{% include Running-Alluxio-Locally/bootstrap.md %}
-
 To run in standalone mode, make sure that:
 
-* `ALLUXIO_UNDERFS_ADDRESS` in `conf/alluxio-env.sh` is set to a tmp directory in the local
-filesystem (e.g., `export ALLUXIO_UNDERFS_ADDRESS=/tmp`).
+* Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e., `alluxio.master.hostname=localhost`).
 
-* Remote login service is turned on so that `ssh localhost` can succeed.
+* Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
+filesystem (e.g., `alluxio.underfs.address=/tmp`).
 
-Then, you can format Alluxio FileSystem and start it. *Note: since Alluxio needs to setup
-[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt), starting a
-local system requires users to input their root password for Linux based users. To avoid the need to
-repeatedly input the root password, you can add the public ssh key for the host into
-`~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
-details.*
+* Remote login service is turned on so that `ssh localhost` can succeed. To avoid the need to
+repeatedly input the password, you can add the public ssh key for the host into
+`~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 
-{% include Running-Alluxio-Locally/Alluxio-format-start.md %}
+# Format Alluxio Filesystem
+
+> This step is only required when you run Alluxio for the first time.
+> All previously stored data and metadata in an Alluxio filesystem on this server will be erased.
+
+```bash
+$ ./bin/alluxio format
+```
+
+# Start Alluxio Filesystem Locally
+
+## Start Alluxio with sudo privileges
+
+By default, on startup Alluxio will create a
+[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage.
+This step requires sudo privileges to perform "mount", "umount", "mkdir" and "chmod" operations. There are two approaches to achieve this:
+
+* Start Alluxio by a superuser, or
+* Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to `/etc/sudoers` on Linux:
+`alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
+This allows Linux user "alluxio" to mount, umount, mkdir and chmod (assume they are in `/bin/`) a specific path `/mnt/ramdisk`
+with sudo privileges without typing the password, but nothing else.
+See more detailed explanation about [Sudoer User Specifications](https://help.ubuntu.com/community/Sudoers#User_Specifications).
+
+With the proper user, run the following command to start Alluxio filesystem.
+
+```bash
+$ ./bin/alluxio-start.sh local
+```
+
+## Start Alluxio without sudo privileges
+
+Alternatively, if a RAMFS (e.g., `/path/to/ramdisk`) is already mounted by the system admin, you can specify the path in
+`conf/alluxio-site.properties`:
+
+```
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
+```
+
+and start Alluxio without requiring sudo privileges:
+
+```bash
+$ ./bin/alluxio-start.sh local NoMount
+```
+
+## Verify Alluxio is running
 
 To verify that Alluxio is running, you can visit
 **[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder. You can

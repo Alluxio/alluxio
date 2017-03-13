@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 
@@ -59,10 +59,10 @@ public final class UnderFileSystemUtils {
         if (curDirStatus.isMountPoint()) {
           throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(curUfsPath));
         }
-        Permission perm = new Permission(curDirStatus.getOwner(), curDirStatus.getGroup(),
-            (short) curDirStatus.getMode());
         ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-            MkdirsOptions.defaults().setCreateParent(false).setPermission(perm)));
+            MkdirsOptions.defaults().setCreateParent(false).setOwner(curDirStatus.getOwner())
+                .setGroup(curDirStatus.getGroup())
+                .setMode(new Mode((short) curDirStatus.getMode()))));
         curAlluxioPath = curAlluxioPath.getParent();
         curUfsPath = curUfsPath.getParent();
       }

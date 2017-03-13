@@ -23,22 +23,25 @@
   <description>Client of Alluxio core</description>
 
   <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.core.client</shading.prefix>
   </properties>
 
   <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
@@ -53,10 +56,20 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-    <!-- Other Alluxio dependencies -->
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-protobuf</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-gcs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!--Add Alluxio underfs modules so by including the client uber jar, application can talk to different underfs.-->
@@ -92,30 +105,18 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-gcs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-   <dependency>
-      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-swift</artifactId>
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Dependency for findbugs (SuppressFBWarnings) -->
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-    </dependency>
-
-    <!-- Test Dependencies -->
+    <!-- External test dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava-testlib</artifactId>
-      <version>19.0</version>
       <scope>test</scope>
     </dependency>
 
-    <!-- Other projects' test-jars -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -126,89 +127,58 @@
   </dependencies>
 
   <profiles>
-    <!-- build profile for Apache flink -->
-    <!-- Profile used to build alluxio client jar used for Apache Flink. This will be activated by using -Pflink -->
-    <!-- in the maven command line. -->
-    <profile>
-      <id>flink</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <!-- The dependencies are the same as the default dependencies, except jboss netty is excluded as it is provided by Apache Flink runtime. -->
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-      </dependencies>
-    </profile>
-
     <!-- build profile for Apache Spark -->
     <!-- Profile used to build alluxio client jar used for Apache Spark. This will be activated by using -Pspark-->
     <!-- in the maven command line. -->
     <profile>
       <id>spark</id>
       <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
-      <!-- curator-recipies and hadoop-client are in scope provided, as they are provided by Apache Spark runtime. -->
+      <!-- curator-recipes and hadoop-client are in scope provided, as they are provided by Apache Spark runtime and -->
+      <!-- jackson-core and jackson-databind are in scope provided to let Spark use its version of these dependencies. -->
       <dependencies>
         <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
           <scope>provided</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava</artifactId>
-            </exclusion>
-          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+          <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-client</artifactId>
-          <version>${apache.curator.version}</version>
           <scope>provided</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava</artifactId>
-            </exclusion>
-          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-recipes</artifactId>
-          <version>${apache.curator.version}</version>
           <scope>provided</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava</artifactId>
-            </exclusion>
-          </exclusions>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- build profile for Facebook Presto -->
+    <!-- Profile used to build alluxio client jar used for Facebook Presto. This will be activated by using -Ppresto-->
+    <!-- in the maven command line. -->
+    <profile>
+      <id>presto</id>
+      <!-- We are excluding guava, jackson-databind and jackson-core are in scope provided, as they are provided by Presto runtime. -->
+      <dependencies>
+        <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
           <scope>provided</scope>
         </dependency>
         <dependency>
@@ -227,14 +197,12 @@
     </profile>
   </profiles>
 
-
   <build>
     <plugins>
       <!-- Export test classes in a test-jar so that other projects can use them for testing -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
         <executions>
           <execution>
             <goals>
@@ -252,7 +220,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
         <executions>
           <execution>
             <id>uber-jar</id>
@@ -265,7 +232,7 @@
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>shaded.alluxio.org.apache.thrift</shadedPattern>
+                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>

@@ -1,1 +1,3 @@
-    -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
+```properties
+-Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
+```

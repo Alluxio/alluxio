@@ -29,7 +29,9 @@ public final class LoginUserTestUtils {
    * Resets the singleton {@link LoginUser} to null.
    */
   public static void resetLoginUser() {
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    synchronized (LoginUser.class) {
+      Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    }
   }
 
   /**

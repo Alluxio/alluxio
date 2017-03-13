@@ -89,6 +89,30 @@ public final class UnderFileSystemUtils {
   }
 
   /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is a Google cloud store implementation
+   */
+  public static boolean isGcs(UnderFileSystem ufs) {
+    return "gcs".equals(ufs.getUnderFSType());
+  }
+
+  /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is a local file system implementation
+   */
+  public static boolean isLocal(UnderFileSystem ufs) {
+    return "local".equals(ufs.getUnderFSType());
+  }
+
+  /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is a Hadoop distributed file system implementation
+   */
+  public static boolean isHdfs(UnderFileSystem ufs) {
+    return "hdfs".equals(ufs.getUnderFSType());
+  }
+
+  /**
    * Returns whether the given ufs address indicates a object storage ufs.
    * @param ufsAddress the ufs address
    * @return true if the under file system is a object storage; false otherwise
@@ -100,6 +124,38 @@ public final class UnderFileSystemUtils {
         || ufsAddress.startsWith(Constants.HEADER_GCS)
         || ufsAddress.startsWith(Constants.HEADER_SWIFT)
         || ufsAddress.startsWith(Constants.HEADER_OSS);
+  }
+
+  /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is an object storage implementation
+   */
+  public static boolean isObjectStorage(UnderFileSystem ufs) {
+    return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
+  }
+
+  /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is an Object storage service implementation
+   */
+  public static boolean isOss(UnderFileSystem ufs) {
+    return "oss".equals(ufs.getUnderFSType());
+  }
+
+  /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is an S3 implementation
+   */
+  public static boolean isS3(UnderFileSystem ufs) {
+    return "s3".equals(ufs.getUnderFSType()) || "s3a".equals(ufs.getUnderFSType());
+  }
+
+  /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is a Swift storage implementation
+   */
+  public static boolean isSwift(UnderFileSystem ufs) {
+    return "swift".equals(ufs.getUnderFSType());
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation

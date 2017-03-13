@@ -47,7 +47,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -184,8 +183,7 @@ public class FileOutStreamTest {
     when(mUnderFileSystem.isDirectory(anyString())).thenReturn(true);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-        .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults())
-        .setUfsPath(FILE_NAME.getPath());
+        .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -282,8 +280,7 @@ public class FileOutStreamTest {
   public void cancelWithoutDelegation() throws Exception {
     Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, false);
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-        .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults())
-        .setUfsPath(FILE_NAME.getPath());
+        .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();

@@ -13,11 +13,9 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authorization.Permission;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
@@ -59,7 +57,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class HdfsUnderFileSystem extends BaseUnderFileSystem
     implements AtomicFileOutputStreamCallback {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
+
   private static final int MAX_TRY = 5;
   // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
@@ -149,13 +148,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    Permission perm = options.getPermission();
     while (retryPolicy.attemptRetry()) {
       try {
-        LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
+        LOG.debug("Creating HDFS file at {} with owner {}, group {}, mode {}", path,
+            options.getOwner(), options.getGroup(), options.getMode());
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         return FileSystem.create(mFileSystem, new Path(path),
-            new FsPermission(perm.getMode().toShort()));
+            new FsPermission(options.getMode().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
@@ -355,15 +354,14 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         while (!dirsToMake.empty()) {
           Path dirToMake = dirsToMake.pop();
           if (!FileSystem.mkdirs(mFileSystem, dirToMake,
-              new FsPermission(options.getPermission().getMode().toShort()))) {
+              new FsPermission(options.getMode().toShort()))) {
             return false;
           }
           // Set the owner to the Alluxio client user to achieve permission delegation.
           // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
           // proceeds with mkdirs and print out an warning message.
           try {
-            setOwner(dirToMake.toString(), options.getPermission().getOwner(),
-                options.getPermission().getGroup());
+            setOwner(dirToMake.toString(), options.getOwner(), options.getGroup());
           } catch (IOException e) {
             LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
           }

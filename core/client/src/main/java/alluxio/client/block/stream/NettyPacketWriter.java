@@ -12,18 +12,17 @@
 package alluxio.client.block.stream;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -57,7 +56,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class NettyPacketWriter implements PacketWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyPacketWriter.class);
 
   private static final long PACKET_SIZE =
       Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
@@ -173,7 +172,7 @@ public final class NettyPacketWriter implements PacketWriter {
         Protocol.WriteRequest.newBuilder().setId(mId).setOffset(offset).setSessionId(mSessionId)
             .setTier(mTier).setType(mRequestType).build();
     DataBuffer dataBuffer = new DataNettyBufferV2(buf);
-    mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, dataBuffer))
+    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
         .addListener(new WriteListener(offset + len));
   }
 
@@ -293,7 +292,7 @@ public final class NettyPacketWriter implements PacketWriter {
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
             .setTier(mTier).setType(mRequestType).build();
-    mChannel.writeAndFlush(new RPCProtoMessage(writeRequest, null))
+    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
@@ -315,7 +314,7 @@ public final class NettyPacketWriter implements PacketWriter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
       RPCProtoMessage response = (RPCProtoMessage) msg;
-      Protocol.Status status = ((Protocol.Response) response.getMessage()).getStatus();
+      Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
 
       if (!Status.isOk(status)) {
         throw new IOException(String
@@ -370,8 +369,7 @@ public final class NettyPacketWriter implements PacketWriter {
      */
     private boolean acceptMessage(Object msg) {
       if (msg instanceof RPCProtoMessage) {
-        MessageLite header = ((RPCProtoMessage) msg).getMessage();
-        return header instanceof Protocol.Response;
+        return ((RPCProtoMessage) msg).getMessage().getType() == ProtoMessage.Type.RESPONSE;
       }
       return false;
     }

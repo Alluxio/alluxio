@@ -3,7 +3,10 @@ layout: global
 title: Thrift
 ---
 
-# Mac OS X
+* 内容列表
+{:toc}
+
+## Mac OS X
 
 在安装[Apache Thift](http://thrift.apache.org)之前，你首先需要有命令行支持。为此，你需要：
 
@@ -11,7 +14,7 @@ title: Thrift
 
 启动Xcode，打开Preferences，选择Downloads，安装“Command Line Tools for Xcode”组件。
 
-## Homebrew
+### Homebrew
 
 这一部分介绍如何通过[Homebrew](http://brew.sh/)安装Apache Thrift。
 
@@ -33,7 +36,7 @@ title: Thrift
 
 {% include Thrift/install-Thrift-brew.md %}
 
-## MacPorts
+### MacPorts
 
 这一部分介绍如何用[MacPorts](http://macports.org)安装Apache Thrift。
 
@@ -63,11 +66,11 @@ title: Thrift
 
 你可以更改CXXFLAGS。这里我们是通过port，在Mavericks上为`std::tr1`添加`/usr/include/4.2.1`，并将`/opt/local/lib`添加到库中。如果没有`-I`，安装可能因为`tr1/functional not found`失败。没有`-L`则可能会在连接过程中失败。
 
-# Linux
+## Linux
 
 [参考](http://thrift.apache.org/docs/install/)
 
-## Debian/Ubuntu
+### Debian/Ubuntu
 
 下面的命令会安装所有需要的工具包和软件库，以用于在Debian/Ubuntu系统上构建和安装Apache Thrift编译器。
 
@@ -87,7 +90,7 @@ Debian Lenny用户需要一些来自backports的包：
 
 {% include Thrift/build-Thrift-ubuntu.md %}
 
-## CentOS
+### CentOS
 
 下面的步骤用于在CentOS 6.4系统上安装。
 
@@ -103,7 +106,7 @@ Debian Lenny用户需要一些来自backports的包：
 
 {% include Thrift/download-install-Thrift.md %}
 
-# 利用Thrift生成Java文件
+## 利用Thrift生成Java文件
 
 Alluxio利用thrift文件定义了其RPC服务，该文件位于：
 

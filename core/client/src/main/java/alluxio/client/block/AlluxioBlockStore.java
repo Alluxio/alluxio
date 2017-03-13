@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -46,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AlluxioBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioBlockStore.class);
 
   private final FileSystemContext mContext;
   private String mLocalHostName;
@@ -59,7 +58,7 @@ public final class AlluxioBlockStore {
    */
   public static AlluxioBlockStore create() {
     return new AlluxioBlockStore(FileSystemContext.INSTANCE,
-        NetworkAddressUtils.getLocalHostName());
+        NetworkAddressUtils.getClientHostName());
   }
 
   /**
@@ -69,7 +68,7 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create(FileSystemContext context) {
-    return new AlluxioBlockStore(context, NetworkAddressUtils.getLocalHostName());
+    return new AlluxioBlockStore(context, NetworkAddressUtils.getClientHostName());
   }
 
   /**

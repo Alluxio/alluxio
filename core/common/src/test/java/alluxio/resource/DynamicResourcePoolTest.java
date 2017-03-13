@@ -28,21 +28,39 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class DynamicResourcePoolTest {
+
+  /**
+   * Resource class used to test {@link DynamicResourcePool}.
+   */
   private static final class Resource {
     private Integer mInteger = 0;
     // Threshold for invalid resource.
     private static final int INVALID_RESOURCE = 10;
 
+    /**
+     * Constructor of Resource class.
+     *
+     * @param i the number represents the current capacity of Resource
+     */
     public Resource(Integer i) {
       mInteger = i;
     }
 
+    /**
+     * Sets the the number representing current capacity of Resource and returns Resource Object.
+     *
+     * @param i the value of member variable represents the current capacity of Resource
+     * @return the Resource object
+     */
     public Resource setInteger(Integer i) {
       mInteger = i;
       return this;
     }
   }
 
+  /**
+   * The subclass of DynamicResourcePool to be tested.
+   */
   private static final class TestPool extends DynamicResourcePool<Resource> {
     private int mGcThresholdInSecs = 120;
     private int mCounter = 0;
@@ -50,11 +68,22 @@ public final class DynamicResourcePoolTest {
     private static final ScheduledExecutorService GC_EXECUTOR =
         new ScheduledThreadPoolExecutor(5, ThreadFactoryUtils.build("TestPool-%d", true));
 
+    /**
+     * Constructor of TestPool class.
+     *
+     * @param options the Options object to set ScheduledExecutorService object
+     * @param clock the object of Clock class
+     */
     public TestPool(Options options, ManualClock clock) {
       super(options.setGcExecutor(GC_EXECUTOR));
       mClock = clock;
     }
 
+    /**
+     * Constructor of TestPool class.
+     *
+     * @param options the Options object to set ScheduledExecutorService object
+     */
     public TestPool(Options options) {
       super(options.setGcExecutor(GC_EXECUTOR));
     }
@@ -85,6 +114,11 @@ public final class DynamicResourcePoolTest {
       return new Resource(mCounter++);
     }
 
+    /**
+     * Set the value representing the max value of Interval, managing when should Gc.
+     *
+     * @param gcThresholdInSecs the value of Gc Threshold Interval
+     */
     public void setGcThresholdInSecs(int gcThresholdInSecs) {
       mGcThresholdInSecs = gcThresholdInSecs;
     }
