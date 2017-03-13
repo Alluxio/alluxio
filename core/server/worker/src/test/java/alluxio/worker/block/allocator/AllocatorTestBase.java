@@ -76,8 +76,6 @@ public class AllocatorTestBase {
 
   /**
    * Resets the manager view configured by the parameters in this base class.
-   *
-   * @throws Exception when error happens during creating temporary folder
    */
   protected void resetManagerView() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
@@ -94,7 +92,6 @@ public class AllocatorTestBase {
    * @param location the location in block store
    * @param blockSize the size of block in bytes
    * @param avail the block should be successfully allocated or not
-   * @throws IOException if an IO error happens
    */
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       long blockSize, boolean avail) throws IOException {
@@ -122,7 +119,6 @@ public class AllocatorTestBase {
    * @param avail the block should be successfully allocated or not
    * @param tierAlias the block should be allocated at this tier
    * @param dirIndex  the block should be allocated at this dir
-   * @throws Exception when fail to create this block
    */
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       int blockSize, boolean avail, String tierAlias, int dirIndex) throws Exception {
@@ -150,9 +146,6 @@ public class AllocatorTestBase {
     }
   }
 
-  /**
-   * @return the block metadata managerView
-   */
   protected BlockMetadataManagerView getManagerView() {
     return new BlockMetadataManagerView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
