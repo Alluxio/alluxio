@@ -87,7 +87,7 @@ public final class CpCommand extends AbstractShellCommand {
       }
       if (srcPath.containsWildcard()) {
         List<AlluxioURI> srcPaths = new ArrayList<>();
-        for (File srcFile : srcFiles) {
+        for (File srcFile : srcFiles){
           srcPaths.add(
               new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()));
         }
@@ -168,7 +168,7 @@ public final class CpCommand extends AbstractShellCommand {
    * Copies a file or a directory in the Alluxio filesystem.
    *
    * @param srcPath the source {@link AlluxioURI} (could be a file or a directory)
-   * @param dstPath the destination path in the Alluxio filesystem
+   * @param dstPath the {@link AlluxioURI} of the destination path in the Alluxio filesystem
    * @param recursive indicates whether directories should be copied recursively
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
@@ -257,7 +257,7 @@ public final class CpCommand extends AbstractShellCommand {
    * Copies a directory from local to Alluxio filesystem. The destination directory structure
    * maintained as local directory. This method is used when input path is a directory.
    *
-   * @param srcPath the source {@link AlluxioURI} directory in the local filesystem
+   * @param srcPath the {@link AlluxioURI} of the source directory in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
@@ -304,7 +304,7 @@ public final class CpCommand extends AbstractShellCommand {
    * dstPath in the Alluxio filesystem space. This method is used when the input path contains
    * wildcards.
    *
-   * @param srcPaths a list of source file in the local filesystem
+   * @param srcPaths a list of files or directories in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
@@ -383,7 +383,7 @@ public final class CpCommand extends AbstractShellCommand {
    * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
    * Alluxio filesystem space.
    *
-   * @param srcPath the source file in the local filesystem
+   * @param srcPath the {@link AlluxioURI} of the source file in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
@@ -459,7 +459,7 @@ public final class CpCommand extends AbstractShellCommand {
    * dstPath in the local filesystem. This method is used when the input path contains wildcards.
    *
    * @param srcPaths the list of files in the Alluxio filesystem
-   * @param dstPath the {@link AlluxioURI} of the destination
+   * @param dstPath the {@link AlluxioURI} of the destination directory in the local filesystem
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
@@ -495,7 +495,7 @@ public final class CpCommand extends AbstractShellCommand {
    * Copies a file or a directory from the Alluxio filesystem to the local filesystem.
    *
    * @param srcPath the source {@link AlluxioURI} (could be a file or a directory)
-   * @param dstPath the destination {@link AlluxioURI} in the local filesystem
+   * @param dstPath the {@link AlluxioURI} of the destination in the local filesystem
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
@@ -545,7 +545,7 @@ public final class CpCommand extends AbstractShellCommand {
    * utility function.
    *
    * @param srcPath The source {@link AlluxioURI} (has to be a file)
-   * @param dstPath The destination {@link AlluxioURI} in the local filesystem
+   * @param dstPath The {@link AlluxioURI} of the destination in the local filesystem
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
