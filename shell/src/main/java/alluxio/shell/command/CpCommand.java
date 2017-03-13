@@ -87,7 +87,7 @@ public final class CpCommand extends AbstractShellCommand {
       }
       if (srcPath.containsWildcard()) {
         List<AlluxioURI> srcPaths = new ArrayList<>();
-        for (File srcFile : srcFiles){
+        for (File srcFile : srcFiles) {
           srcPaths.add(
               new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()));
         }
