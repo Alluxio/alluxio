@@ -69,6 +69,8 @@ public enum PreconditionMessage {
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
   URI_KEY_VALUE_STORE_NULL("URI of key-value store must not be null"),
+  NOT_ENOUGH_BYTES_READ(
+      "Not enough bytes have been read [bytesRead: %d, bytesToRead: %d] from the UFS file: %s."),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
