@@ -155,6 +155,7 @@ and Alluxio file system.
 
 Scheme `file` indicates the local file system and scheme `alluxio` or no scheme indicates
 the Alluxio file system.
+
 If the `-R` option is used and the source designates a directory, cp copies the entire subtree at source to the destination.
 
 For example, `cp` can be used to copy files between Under file systems.
