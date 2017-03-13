@@ -45,8 +45,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -532,11 +530,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
 
-    // If this block is read from a remote worker but we don't have a local worker, don't cache
-    if (isReadingFromRemoteBlockWorker() && !mContext.hasLocalWorker()) {
-      return;
-    }
-
     // Unlike updateBlockInStream below, we never start a block cache stream if mPos is in the
     // middle of a block.
     if (mPos % mBlockSize != 0) {
@@ -544,26 +537,22 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     try {
-      List<BlockWorkerInfo> workers = mBlockStore.getWorkerInfoList();
-      // If we are reading a block from a remote worker, we shouldn't cache back to it.
-      if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
-        InetSocketAddress address = ((RemoteBlockInStream) mCurrentBlockInStream).location();
-        Iterator<BlockWorkerInfo> it = workers.iterator();
-        while (it.hasNext()) {
-          BlockWorkerInfo worker = it.next();
-          if (worker.getNetAddress().getHost().equals(address.getHostString())
-              && worker.getNetAddress().getDataPort() == address.getPort()) {
-            it.remove();
-          }
+      // If this block is read from a remote worker, we should never cache except to a local worker.
+      if (isReadingFromLocalBlockWorker()) {
+        WorkerNetAddress localWorker = mContext.getLocalWorker();
+        if (localWorker != null) {
+          mCurrentCacheStream =
+              mBlockStore.getOutStream(blockId, getBlockSize(mPos), localWorker, mOutStreamOptions);
         }
+        return;
       }
-      if (!workers.isEmpty()) {
-        WorkerNetAddress address =
-            mLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
-        // If we reach here, we need to cache.
-        mCurrentCacheStream =
-            mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
-      }
+
+      List<BlockWorkerInfo> workers = mBlockStore.getWorkerInfoList();
+      WorkerNetAddress address =
+          mLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
+      // If we reach here, we need to cache.
+      mCurrentCacheStream =
+          mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
     } catch (IOException e) {
       handleCacheStreamIOException(e);
     } catch (AlluxioException e) {

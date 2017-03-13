@@ -96,11 +96,16 @@ public final class FileSystemContext implements Closeable {
   private List<WorkerNetAddress> mWorkerAddresses;
 
   /**
-   * Indicates whether there is any Alluxio worker running in the local machine. This is initialized
-   * lazily.
+   * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
    */
   @GuardedBy("this")
-  private Boolean mHasLocalWorker;
+  private boolean mLocalWorkerInitialized;
+
+  /**
+   * The address of any Alluxio worker running on the local machine. This is initialized lazily.
+   */
+  @GuardedBy("this")
+  private WorkerNetAddress mLocalWorker;
 
   /** The parent user associated with the {@link FileSystemContext}. */
   private final Subject mParentSubject;
@@ -184,7 +189,8 @@ public final class FileSystemContext implements Closeable {
     synchronized (this) {
       mMasterAddress = null;
       mWorkerAddresses = null;
-      mHasLocalWorker = null;
+      mLocalWorkerInitialized = false;
+      mLocalWorker = null;
     }
   }
 
@@ -395,16 +401,31 @@ public final class FileSystemContext implements Closeable {
    * @throws IOException if it fails to get the workers
    */
   public synchronized boolean hasLocalWorker() throws IOException {
-    if (mHasLocalWorker == null) {
-      List<WorkerNetAddress> addresses = getWorkerAddresses();
-      if (!addresses.isEmpty()) {
-        mHasLocalWorker =
-            addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName());
-      } else {
-        mHasLocalWorker = false;
+    if (!mLocalWorkerInitialized) {
+      initializeLocalWorker();
+    }
+    return mLocalWorker != null;
+  }
+
+  /**
+   * @return a local worker running the same machine, or null if none is found
+   * @throws IOException if it fails to get the workers
+   */
+  public synchronized WorkerNetAddress getLocalWorker() throws IOException {
+    if (!mLocalWorkerInitialized) {
+      initializeLocalWorker();
+    }
+    return mLocalWorker;
+  }
+
+  private void initializeLocalWorker() throws IOException {
+    List<WorkerNetAddress> addresses = getWorkerAddresses();
+    if (!addresses.isEmpty()) {
+      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName())) {
+        mLocalWorker = addresses.get(0);
       }
     }
-    return mHasLocalWorker;
+    mLocalWorkerInitialized = true;
   }
 
   /**
