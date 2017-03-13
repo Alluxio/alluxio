@@ -538,7 +538,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     try {
       // If this block is read from a remote worker, we should never cache except to a local worker.
-      if (isReadingFromLocalBlockWorker()) {
+      if (isReadingFromRemoteBlockWorker()) {
         WorkerNetAddress localWorker = mContext.getLocalWorker();
         if (localWorker != null) {
           mCurrentCacheStream =
@@ -550,7 +550,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       List<BlockWorkerInfo> workers = mBlockStore.getWorkerInfoList();
       WorkerNetAddress address =
           mLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
-      // If we reach here, we need to cache.
       mCurrentCacheStream =
           mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
     } catch (IOException e) {
