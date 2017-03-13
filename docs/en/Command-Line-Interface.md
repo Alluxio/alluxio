@@ -166,10 +166,10 @@ data files and their total size for any date, month, or year.
 
 ## cp
 
-The `cp` command copies a file or directory in the Alluxio filesystem or between local filesystem 
-and Alluxio filesystem.
+The `cp` command copies a file or directory in the Alluxio file system or between local file system 
+and Alluxio file system.
 
-Scheme `file` indicate the local file system and scheme `alluxio` or no scheme indicate
+Scheme `file` indicates the local file system and scheme `alluxio` or no scheme indicates
 the Alluxio file system.
 
 If the `-R` option is used and the source designates a directory, cp copies the entire subtree at
