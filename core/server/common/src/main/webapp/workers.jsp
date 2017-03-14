@@ -35,6 +35,7 @@
             <table class="table table-hover table-condensed">
               <thead>
                 <th>Node Name</th>
+                <th>Worker Id</th>
                 <% if ((Boolean) request.getAttribute("debug")) { %>
                   <th>[D]Uptime</th>
                 <% } %>
@@ -48,6 +49,7 @@
                 <% for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("normalNodeInfos"))) { %>
                   <tr>
                     <th><a href="http://<%= nodeInfo.getHost() %>:<%= nodeInfo.getWebPort() %>"><%= nodeInfo.getHost() %></a></th>
+                    <th><%= nodeInfo.getWorkerId() %></th>
                     <% if ((Boolean) request.getAttribute("debug")) { %>
                       <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <% } %>
