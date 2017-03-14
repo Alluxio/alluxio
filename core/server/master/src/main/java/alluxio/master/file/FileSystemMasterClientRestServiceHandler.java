@@ -25,6 +25,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.util.IdUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -248,20 +249,33 @@ public final class FileSystemMasterClientRestServiceHandler {
       }
     });
   }
+
   /**
    * @summary get a file descriptor for a path
    * @param path the file path
+   * @param blockId the block id
    * @return the response object
    */
   @GET
   @Path(GET_STATUS)
   @ReturnType("alluxio.wire.FileInfo")
-  public Response getStatus(@QueryParam("path") final String path) {
+  public Response getStatus(@QueryParam("path") final String path,
+                            @QueryParam("blockId") final Long blockId) {
     return RestUtils.call(new RestUtils.RestCallable<FileInfo>() {
       @Override
       public FileInfo call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        return mFileSystemMaster.getFileInfo(new AlluxioURI(path));
+        boolean missAllArgument = (path == null) && (blockId == null);
+        Preconditions.checkState(
+            !missAllArgument, "'path' and 'blockId' parameter are all missing");
+        boolean moreThanOneArgument = (path != null) && (blockId != null);
+        Preconditions.checkState(
+            !moreThanOneArgument,
+            "only support one of the 'path' and 'blockId' parameter");
+        if (path != null) {
+          return mFileSystemMaster.getFileInfo(new AlluxioURI(path));
+        } else {
+          return mFileSystemMaster.getFileInfo(IdUtils.fileIdFromBlockId(blockId));
+        }
       }
     });
   }
