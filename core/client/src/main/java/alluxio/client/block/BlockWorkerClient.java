@@ -11,9 +11,10 @@
 
 package alluxio.client.block;
 
+import alluxio.client.block.options.LockBlockOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.retry.RetryPolicy;
-import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.Closeable;
@@ -96,11 +97,27 @@ public interface BlockWorkerClient extends Closeable {
    * unlocked.
    *
    * @param blockId the ID of the block
-   * @return the path of the block file locked
+   * @param options the lock block options
+   * @return the lock block result
    * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  LockBlockResult lockBlock(final long blockId) throws IOException, AlluxioException;
+  LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException;
+
+  /**
+   * A wrapper over {@link BlockWorkerClient#lockBlock(long, LockBlockOptions)} to lock a block
+   * that is not in Alluxio but in UFS. It retries if it fails to lock because of contention for
+   * the block on the worker.
+   *
+   * @param blockId the block ID
+   * @param options the lock block options
+   * @return the lock block result
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio error occurs
+   */
+  LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException;
 
   /**
    * Promotes block back to the top StorageTier.
