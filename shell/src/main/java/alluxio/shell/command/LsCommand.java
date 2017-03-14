@@ -66,12 +66,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     } else {
       memoryState = inMemory ? STATE_FILE_IN_MEMORY : STATE_FILE_NOT_IN_MEMORY;
     }
-    String sizeStr = "";
-    if (humanReadable) {
-      sizeStr = FormatUtils.getSizeFromBytes(size);
-    } else {
-      sizeStr = String.valueOf(size);
-    }
+    String sizeStr = humanReadable ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
           sizeStr, CommandUtils.convertMsToDate(createTimeMs),
