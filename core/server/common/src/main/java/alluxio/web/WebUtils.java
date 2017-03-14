@@ -26,8 +26,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 final class WebUtils {
 
-  private static final DateFormat FORMATTER =
-      new SimpleDateFormat(Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+  private static final String DATE_FORMAT_PATTERN =
+      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
 
   /**
    * Converts a byte array to string.
@@ -70,7 +70,8 @@ final class WebUtils {
    * @return input encoded as date
    */
   public static String convertMsToDate(long millis) {
-    return FORMATTER.format(new Date(millis));
+    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+    return dateFormat.format(new Date(millis));
   }
 
   /**

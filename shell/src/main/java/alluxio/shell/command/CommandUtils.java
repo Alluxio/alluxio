@@ -33,8 +33,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CommandUtils {
 
-  private static final DateFormat FORMATTER =
-      new SimpleDateFormat(Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+  private static final String DATE_FORMAT_PATTERN =
+      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
 
   private CommandUtils() {} // prevent instantiation
 
@@ -64,7 +64,8 @@ public final class CommandUtils {
    * @return formatted date String
    */
   public static String convertMsToDate(long millis) {
-    return FORMATTER.format(new Date(millis));
+    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+    return dateFormat.format(new Date(millis));
   }
 
   /**
