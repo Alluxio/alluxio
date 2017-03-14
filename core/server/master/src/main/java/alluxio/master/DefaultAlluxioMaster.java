@@ -109,8 +109,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   private long mStartTimeMs = -1;
 
   /**
-   * Creates a {@link DefaultAlluxioMaster} by the classes in the same packet of {@link DefaultAlluxioMaster} or
-   * the subclasses of {@link DefaultAlluxioMaster} .
+   * Creates a {@link DefaultAlluxioMaster} by the classes in the same packet of
+   * {@link DefaultAlluxioMaster} or the subclasses of {@link DefaultAlluxioMaster}.
    */
   protected DefaultAlluxioMaster() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
