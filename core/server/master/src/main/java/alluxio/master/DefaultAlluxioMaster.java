@@ -259,6 +259,12 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
+  /**
+   * Starts all Masters, including block master, FileSystem master, lineage master and additional
+   * masters.
+   *
+   * @param isLeader if the Master is leader
+   */
   protected void startMasters(boolean isLeader) {
     try {
       connectToUFS();
