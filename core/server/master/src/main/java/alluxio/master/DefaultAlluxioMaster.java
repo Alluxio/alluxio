@@ -108,6 +108,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 
+  /**
+   * Creates a {@link DefaultAlluxioMaster} by the classes in the same packet of {@link DefaultAlluxioMaster} or
+   * the subclasses of {@link DefaultAlluxioMaster} .
+   */
   protected DefaultAlluxioMaster() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
