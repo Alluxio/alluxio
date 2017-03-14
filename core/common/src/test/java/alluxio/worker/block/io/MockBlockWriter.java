@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -42,6 +44,11 @@ public final class MockBlockWriter implements BlockWriter {
     inputBuf.get(bytes);
     mOutputStream.write(bytes);
     return bytes.length;
+  }
+
+  @Override
+  public int transferFrom(ByteBuf buf) throws IOException {
+    return buf.readBytes(getChannel(), buf.readableBytes());
   }
 
   @Override
