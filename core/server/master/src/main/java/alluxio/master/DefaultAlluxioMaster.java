@@ -260,7 +260,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   /**
-   * First establish a connection to the under file system from master, then starts all Masters,
+   * First establish a connection to the under file system from master, then starts all masters,
    * including block master, FileSystem master, lineage master and additional masters.
    *
    * @param isLeader if the Master is leader
@@ -284,6 +284,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
+  /**
+   * Stops all masters, including lineage master, block master and fileSystem master and
+   * additional masters.
+   */
   protected void stopMasters() {
     try {
       if (LineageUtils.isLineageEnabled()) {
