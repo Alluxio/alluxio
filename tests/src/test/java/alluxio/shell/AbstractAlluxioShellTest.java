@@ -82,7 +82,7 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   /**
-   * Tests the "copyToLocal" {@link AlluxioShell} command request.
+   * Tests the "copyToLocal" {@link AlluxioShell} command.
    *
    * @param bytes file size
    */
@@ -96,7 +96,7 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   /**
-   * Reads the local file copied from Alluxio and tests whether its size is equal to {@code size}.
+   * Reads the local file copied from Alluxio and checks all the data.
    *
    * @param fileName file name
    * @param size file size
