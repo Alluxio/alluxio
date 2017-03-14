@@ -18,19 +18,18 @@ import org.junit.runners.model.Statement;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A rule for login an Alluxio user during a test suite.
- * It sets {@link alluxio.security.authentication.AuthenticatedClientUser}
- * to the specified user name during the lifetime
- * of this rule. Note: setting the user only takes effect within the caller thread.
+ * A rule for login an Alluxio user during a test suite. It sets
+ * {@link PropertyKey#SECURITY_LOGIN_USERNAME} to the specified user name during the lifetime
+ * of this rule.
  */
 @NotThreadSafe
-public final class AuthenticatedUserRule implements TestRule {
+public final class LoginUserRule implements TestRule {
   private final String mUser;
 
   /**
    * @param user the user name to set as authenticated user
    */
-  public AuthenticatedUserRule(String user) {
+  public LoginUserRule(String user) {
     mUser = user;
   }
 
@@ -39,7 +38,7 @@ public final class AuthenticatedUserRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        try (SetAndRestoreAuthenticatedUser user = new SetAndRestoreAuthenticatedUser(mUser)) {
+        try (SetAndRestoreLoginUser user = new SetAndRestoreLoginUser(mUser)) {
           statement.evaluate();
         }
       }
