@@ -321,6 +321,7 @@ public enum PropertyKey {
   USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20),
   USER_DATE_FORMAT_PATTERN(Name.USER_DATE_FORMAT_PATTERN, "MM-dd-yyyy HH:mm:ss:SSS"),
   USER_FILE_PASSIVE_CACHE_ENABLED(Name.USER_FILE_PASSIVE_CACHE_ENABLED, true),
+  
   //
   // FUSE integration related properties
   //
@@ -794,6 +795,7 @@ public enum PropertyKey {
         "alluxio.user.date.format.pattern";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
+    
     //
     // FUSE integration related properties
     //
