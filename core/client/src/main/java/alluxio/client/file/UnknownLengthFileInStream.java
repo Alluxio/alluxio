@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -34,7 +33,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * TODO(gpang): This class should probably not implement BoundedStream, since remaining() does
  * not make sense for a file of unknown length. Investigate an alternative class hierarchy.
  */
-@PublicApi
 @NotThreadSafe
 public final class UnknownLengthFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(UnknownLengthFileInStream.class);
