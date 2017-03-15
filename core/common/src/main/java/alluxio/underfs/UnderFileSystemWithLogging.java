@@ -45,7 +45,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    * @param ufs the implementation which will handle all the calls
    */
-  public UnderFileSystemWithLogging(UnderFileSystem ufs) {
+  UnderFileSystemWithLogging(UnderFileSystem ufs) {
     mUnderFileSystem = ufs;
   }
 
