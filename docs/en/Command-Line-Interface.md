@@ -243,7 +243,7 @@ The `ls` command will also load the metadata for any file or directory from the 
 
 Adding `-f` option forces loading metadata for immediate children in a directory. By default, it loads metadata only at the first time at which a directory is listed.
 
-Adding `-h` option to display human readable sizes, e.g., 1K 234M 2G.
+Adding `-raw` option to display raw sizes.
 
 For example, `ls` can be used to browse the file system.
 
