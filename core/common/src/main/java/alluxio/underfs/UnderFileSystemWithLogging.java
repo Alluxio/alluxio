@@ -560,6 +560,15 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   /**
+   * This is only used in the test.
+   *
+   * @return the underlying {@link UnderFileSystem}
+   */
+  public UnderFileSystem getUnderFileSystem() {
+    return mUnderFileSystem;
+  }
+
+  /**
    * Interface representing a callable to the under storage system which throws an
    * {@link IOException} if an error occurs during the external communication.
    *
