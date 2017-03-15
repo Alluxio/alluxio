@@ -150,7 +150,11 @@ For example, if data files are stored by their date, `count` can be used to dete
 
 ### cp
 
-The `cp` command copies a file or directory in the Alluxio filesystem.
+The `cp` command copies a file or directory in the Alluxio file system or between local file system 
+and Alluxio file system.
+
+Scheme `file` indicates the local file system and scheme `alluxio` or no scheme indicates
+the Alluxio file system.
 
 If the `-R` option is used and the source designates a directory, cp copies the entire subtree at source to the destination.
 

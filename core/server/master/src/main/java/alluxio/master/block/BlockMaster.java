@@ -305,7 +305,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   /**
-   * @return a set of {@link WorkerInfo}s of lost workers
+   * @return a list of {@link WorkerInfo}s of lost workers
    */
   public List<WorkerInfo> getLostWorkersInfoList() {
     List<WorkerInfo> ret = new ArrayList<>(mLostWorkers.size());
