@@ -45,6 +45,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    * @param ufs the implementation which will handle all the calls
    */
+  // TODO(adit): Remove this method. ALLUXIO-2643.
   UnderFileSystemWithLogging(UnderFileSystem ufs) {
     mUnderFileSystem = ufs;
   }
