@@ -20,6 +20,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [EMC](https://www.emc.com/)
 * [GBICC](http://www.gbicc.net/)
 * [Huawei](http://www.huawei.com/)
+* [IBM](http://www.ibm.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
 * [JD](http://www.jd.com/)
