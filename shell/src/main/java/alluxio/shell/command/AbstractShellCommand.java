@@ -75,11 +75,11 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("repair inconsistent files")
           .build();
-  protected static final Option LIST_HUMAN_READABLE_OPTION =
-      Option.builder("h")
+  protected static final Option LIST_RAW_SIZE_OPTION =
+      Option.builder("raw")
           .required(false)
           .hasArg(false)
-          .desc("print human readable sizes. (e.g., 1K 234M 2G)")
+          .desc("print raw sizes.")
           .build();
 
   protected AbstractShellCommand(FileSystem fs) {

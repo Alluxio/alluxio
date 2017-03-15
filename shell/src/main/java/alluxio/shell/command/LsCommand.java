@@ -44,7 +44,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   /**
    * Formats the ls result string.
    *
-   * @param humanReadable print human readable sizes. (e.g., 1K 234M 2G)
+   * @param rawSize print raw sizes
    * @param acl whether security is enabled
    * @param isFolder whether this path is a file or a folder
    * @param permission permission string
@@ -56,7 +56,7 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
    */
-  public static String formatLsString(boolean humanReadable, boolean acl, boolean isFolder, String
+  public static String formatLsString(boolean rawSize, boolean acl, boolean isFolder, String
       permission,
       String userName, String groupName, long size, long createTimeMs, boolean inMemory,
       String path) {
@@ -66,7 +66,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     } else {
       memoryState = inMemory ? STATE_FILE_IN_MEMORY : STATE_FILE_NOT_IN_MEMORY;
     }
-    String sizeStr = humanReadable ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
+    String sizeStr = rawSize ? String.valueOf(size) : FormatUtils.getSizeFromBytes(size);
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
           sizeStr, CommandUtils.convertMsToDate(createTimeMs),
@@ -103,7 +103,7 @@ public final class LsCommand extends WithWildCardPathCommand {
         .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
         .addOption(LIST_DIR_AS_FILE_OPTION)
-        .addOption(LIST_HUMAN_READABLE_OPTION);
+        .addOption(LIST_RAW_SIZE_OPTION);
   }
 
   /**
@@ -112,17 +112,17 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param recursive Whether list the path recursively
    * @param dirAsFile list the directory status as a plain file
-   * @param humanReadable print human readable sizes. (e.g., 1K 234M 2G)
+   * @param rawSize print raw sizes
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean humanReadable)
+                  boolean rawSize)
       throws AlluxioException, IOException {
     if (dirAsFile) {
       URIStatus status = mFileSystem.getStatus(path);
       System.out.print(
-          formatLsString(humanReadable, SecurityUtils.isSecurityEnabled(), status.isFolder(),
+          formatLsString(rawSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
           FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
           status.getGroup(), status.getLength(), status.getCreationTimeMs(),
           100 == status.getInMemoryPercentage(), status.getPath()));
@@ -136,13 +136,13 @@ public final class LsCommand extends WithWildCardPathCommand {
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
       System.out.print(
-          formatLsString(humanReadable, SecurityUtils.isSecurityEnabled(), status.isFolder(),
+          formatLsString(rawSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
           FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
           status.getGroup(), status.getLength(), status.getCreationTimeMs(),
           100 == status.getInMemoryPercentage(), status.getPath()));
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, humanReadable);
+            forceLoadMetadata, false, rawSize);
       }
     }
   }
@@ -170,13 +170,12 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"),
-        cl.hasOption("h"));
+    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("raw"));
   }
 
   @Override
   public String getUsage() {
-    return "ls [-R|-d|-f|-h] <path>";
+    return "ls [-R|-d|-f|-raw] <path>";
   }
 
   @Override
@@ -185,6 +184,6 @@ public final class LsCommand extends WithWildCardPathCommand {
         + " Specify -R to display files and directories recursively."
         + " Specify -d to list directories as plain files."
         + " Specify -f to force loading files in the directory."
-        + " Specify -h to print human readable sizes.";
+        + " Specify -raw to print raw sizes.";
   }
 }
