@@ -36,7 +36,7 @@
               <thead>
                 <th>Node Name</th>
                 <% if ((Boolean) request.getAttribute("debug")) { %>
-                  <th>Worker Id</th>
+                  <th>[D]Worker Id</th>
                   <th>[D]Uptime</th>
                 <% } %>
                 <th>Last Heartbeat</th>
@@ -94,7 +94,7 @@
               <thead>
                 <th>Node Name</th>
                 <% if ((Boolean) request.getAttribute("debug")) { %>
-                  <th>Worker Id</th>
+                  <th>[D]Worker Id</th>
                   <th>[D]Uptime</th>
                 <% } %>
                 <th>Last Heartbeat</th>
