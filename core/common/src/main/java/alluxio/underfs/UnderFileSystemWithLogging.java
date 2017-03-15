@@ -45,7 +45,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    * @param ufs the implementation which will handle all the calls
    */
-  public UnderFileSystemWithLogging(UnderFileSystem ufs) {
+  // TODO(adit): Remove this method. ALLUXIO-2643.
+  UnderFileSystemWithLogging(UnderFileSystem ufs) {
     mUnderFileSystem = ufs;
   }
 
@@ -557,6 +558,15 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   @Override
   public boolean supportsFlush() {
     return mUnderFileSystem.supportsFlush();
+  }
+
+  /**
+   * This is only used in the test.
+   *
+   * @return the underlying {@link UnderFileSystem}
+   */
+  public UnderFileSystem getUnderFileSystem() {
+    return mUnderFileSystem;
   }
 
   /**
