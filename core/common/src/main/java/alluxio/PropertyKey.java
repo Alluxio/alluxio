@@ -795,7 +795,7 @@ public enum PropertyKey {
         "alluxio.user.date.format.pattern";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
-  
+
     //
     // FUSE integration related properties
     //
