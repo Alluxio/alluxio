@@ -11,7 +11,8 @@
 
 package alluxio;
 
-import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.LoginUser;
+import alluxio.security.LoginUserTestUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -19,9 +20,9 @@ import org.junit.Test;
 import org.junit.runners.model.Statement;
 
 /**
- * Unit tests for {@link AuthenticatedUserRule}.
+ * Unit tests for {@link ConfigurationRule}.
  */
-public final class AuthenticatedUserRuleTest {
+public final class LoginUserRuleTest {
   private static final String TESTCASE_USER = "testcase-user";
   private static final String RULE_USER = "rule-user";
   private static final String OUTSIDE_RULE_USER = "outside-rule-user";
@@ -29,28 +30,29 @@ public final class AuthenticatedUserRuleTest {
   private final Statement mStatement = new Statement() {
     @Override
     public void evaluate() throws Throwable {
-      Assert.assertEquals(RULE_USER, AuthenticatedClientUser.get().getName());
-      AuthenticatedClientUser.set(TESTCASE_USER);
-      Assert.assertEquals(TESTCASE_USER, AuthenticatedClientUser.get().getName());
+      Assert.assertEquals(RULE_USER, LoginUser.get().getName());
+      LoginUserTestUtils.resetLoginUser(TESTCASE_USER);
+      Assert.assertEquals(TESTCASE_USER, LoginUser.get().getName());
     }
   };
 
   @After
   public void after() throws Exception {
-    AuthenticatedClientUser.remove();
+    LoginUserTestUtils.resetLoginUser();
   }
 
   @Test
   public void userSetBeforeRule() throws Throwable {
-    AuthenticatedClientUser.set(OUTSIDE_RULE_USER);
-    new AuthenticatedUserRule(RULE_USER).apply(mStatement, null).evaluate();
-    Assert.assertEquals(OUTSIDE_RULE_USER, AuthenticatedClientUser.get().getName());
+    LoginUserTestUtils.resetLoginUser(OUTSIDE_RULE_USER);
+    new LoginUserRule(RULE_USER).apply(mStatement, null).evaluate();
+    Assert.assertEquals(OUTSIDE_RULE_USER, LoginUser.get().getName());
   }
 
   @Test
   public void noUserBeforeRule() throws Throwable {
-    AuthenticatedClientUser.remove();
-    new AuthenticatedUserRule(RULE_USER).apply(mStatement, null).evaluate();
-    Assert.assertEquals(null, AuthenticatedClientUser.get());
+    LoginUserTestUtils.resetLoginUser();
+    String user = LoginUser.get().getName();
+    new LoginUserRule(RULE_USER).apply(mStatement, null).evaluate();
+    Assert.assertEquals(user, LoginUser.get().getName());
   }
 }

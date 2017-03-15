@@ -16,6 +16,7 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -42,7 +43,6 @@ import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -114,6 +114,9 @@ public final class FileSystemMasterTest {
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
 
+  @Rule
+  public LoginUserRule mLoginUser = new LoginUserRule(TEST_USER);
+
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.MASTER_LOST_FILES_DETECTION);
@@ -127,9 +130,7 @@ public final class FileSystemMasterTest {
    */
   @Before
   public void before() throws Exception {
-    LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
     // Set umask "000" to make default directory permission 0777 and default file permission 0666.
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
