@@ -68,10 +68,23 @@ message WriteRequest {
   // The block ID or UFS file ID.
   optional int64 id = 2;
   optional int64 offset = 3;
-
-  // These are only applicable for block write.
   optional int64 session_id = 4;
+
+  // This is only applicable for block write.
   optional int32 tier = 5;
+
+  optional CreateUfsFileOptions create_ufs_file_options = 6;
+
+  optional bool eof = 7;
+  optional bool cancel = 8;
+}
+
+message CreateUfsFileOptions {
+  optional string path = 1;
+  optional string owner = 2;
+  optional string group = 3;
+  // Only the last least significant 2 bytes are used.
+  optional int32 mode = 4;
 }
 
 // The response.
@@ -79,16 +92,3 @@ message Response {
   optional Status status = 1;
 }
 
-// The netty data server version.
-enum DataServerVersion {
-  V0 = 0; // Pre-proto version.
-  V1 = 1; // Proto version.
-}
-
-message VersionRequest {
-}
-
-message VersionResponse {
-  optional DataServerVersion version = 1 [default = V1];
-  optional Status status = 2;
-}
