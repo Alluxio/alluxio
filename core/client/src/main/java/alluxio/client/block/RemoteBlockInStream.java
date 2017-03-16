@@ -26,6 +26,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
