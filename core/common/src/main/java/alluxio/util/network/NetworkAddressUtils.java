@@ -568,13 +568,9 @@ public final class NetworkAddressUtils {
    * @return InetSocketAddress
    */
   public static InetSocketAddress getRpcPortSocketAddress(WorkerNetAddress netAddress) {
-    try {
-      String host = getFqdnHost(netAddress);
-      int port = netAddress.getRpcPort();
-      return new InetSocketAddress(host, port);
-    } catch (UnknownHostException e) {
-      throw Throwables.propagate(e);
-    }
+    String host = netAddress.getHost();
+    int port = netAddress.getRpcPort();
+    return new InetSocketAddress(host, port);
   }
 
   /**
@@ -584,13 +580,9 @@ public final class NetworkAddressUtils {
    * @return InetSocketAddress
    */
   public static InetSocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress) {
-    try {
-      String host = getFqdnHost(netAddress);
-      int port = netAddress.getDataPort();
-      return new InetSocketAddress(host, port);
-    } catch (UnknownHostException e) {
-      throw Throwables.propagate(e);
-    }
+    String host = netAddress.getHost();
+    int port = netAddress.getDataPort();
+    return new InetSocketAddress(host, port);
   }
 
   /**

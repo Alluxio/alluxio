@@ -29,6 +29,9 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+/**
+ * Unit tests for {@link DataServerWriteHandler}.
+ */
 public abstract class DataServerWriteHandlerTest {
   protected static final int PACKET_SIZE = 1024;
 

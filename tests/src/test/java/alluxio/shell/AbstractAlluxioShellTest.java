@@ -81,6 +81,11 @@ public abstract class AbstractAlluxioShellTest {
     System.setOut(mNewOutput);
   }
 
+  /**
+   * Tests the "copyToLocal" {@link AlluxioShell} command.
+   *
+   * @param bytes file size
+   */
   protected void copyToLocalWithBytes(int bytes) throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
@@ -90,6 +95,12 @@ public abstract class AbstractAlluxioShellTest {
     fileReadTest("/testFile", 10);
   }
 
+  /**
+   * Reads the local file copied from Alluxio and checks all the data.
+   *
+   * @param fileName file name
+   * @param size file size
+   */
   protected void fileReadTest(String fileName, int size) throws IOException {
     File testFile = new File(PathUtils.concatPath(mLocalAlluxioCluster.getAlluxioHome(), fileName));
     FileInputStream fis = new FileInputStream(testFile);
@@ -109,6 +120,12 @@ public abstract class AbstractAlluxioShellTest {
     return testFile;
   }
 
+  /**
+   * Get an output string displayed in shell according to the command.
+   *
+   * @param command a shell command
+   * @return the output string
+   */
   protected String getCommandOutput(String[] command) {
     String cmd = command[0];
     if (command.length == 2) {
@@ -131,8 +148,10 @@ public abstract class AbstractAlluxioShellTest {
         case "mv":
           return "Renamed " + command[1] + " to " + command[2] + "\n";
         case "copyFromLocal":
-          return "Copied " + command[1] + " to " + command[2] + "\n";
+          return "Copied " + "file://" + command[1] + " to " + command[2] + "\n";
         case "copyToLocal":
+          return "Copied " + command[1] + " to " + "file://" + command[2] + "\n";
+        case "cp":
           return "Copied " + command[1] + " to " + command[2] + "\n";
         default:
           return null;

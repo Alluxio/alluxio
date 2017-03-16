@@ -52,6 +52,7 @@ public class LockBlockResultTest {
 
     result.setLockId(lockId);
     result.setBlockPath(blockPath);
+    result.setLockBlockStatus(LockBlockResult.LockBlockStatus.ALLUXIO_BLOCK_LOCKED);
 
     return result;
   }
