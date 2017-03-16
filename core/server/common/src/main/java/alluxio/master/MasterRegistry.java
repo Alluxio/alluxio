@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.resource.LockResource;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,30 +64,31 @@ public final class MasterRegistry {
    */
   public <T> T get(Class<T> clazz) {
     Master master;
-    mLock.lock();
-    while (true) {
-       master = mRegistry.get(clazz);
-      if (master != null) {
-        break;
+    try (LockResource r = new LockResource(mLock)) {
+      while (true) {
+        master = mRegistry.get(clazz);
+        if (master != null) {
+          break;
+        }
+        mCondition.awaitUninterruptibly();
       }
-      mCondition.awaitUninterruptibly();
+      if (!(clazz.isInstance(master))) {
+        return null;
+      }
+      return clazz.cast(master);
     }
-    mLock.unlock();
-    if (!(clazz.isInstance(master))) {
-      return null;
-    }
-    return clazz.cast(master);
   }
 
   /**
    * @param clazz the class of the master to get
    * @param master the master to register
+   * @param <T> the type of the master to get
    */
   public <T> void put(Class<T> clazz, Master master) {
-    mLock.lock();
-    mRegistry.put(clazz, master);
-    mCondition.signalAll();
-    mLock.unlock();
+    try (LockResource r = new LockResource(mLock)) {
+      mRegistry.put(clazz, master);
+      mCondition.signalAll();
+    }
   }
 
   /**

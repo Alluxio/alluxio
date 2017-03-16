@@ -12,7 +12,6 @@
 package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
