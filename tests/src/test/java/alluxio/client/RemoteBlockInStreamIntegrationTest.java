@@ -92,6 +92,7 @@ public class RemoteBlockInStreamIntegrationTest {
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
         .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100")
+        .setProperty(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX, 2)
         .build();
   }
 
@@ -131,9 +132,9 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
-        Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
       } else {
-        Assert.assertFalse(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertNotEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
       }
 
       is = mFileSystem.openFile(uri, mReadCache);
@@ -149,7 +150,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
 
       is = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
@@ -164,7 +165,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
     }
   }
 
@@ -256,7 +257,7 @@ public class RemoteBlockInStreamIntegrationTest {
       AlluxioBlockStore blockStore = AlluxioBlockStore.create();
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
           workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
@@ -287,7 +288,7 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
           workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int start = 0;
@@ -314,7 +315,7 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
           workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
       int start = 0;
@@ -424,7 +425,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(k / 2, is.skip(k / 2));
       Assert.assertEquals(k / 2, is.read());
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
 
       if (k >= 3) {
         is = mFileSystem.openFile(uri, mReadCache);
@@ -534,7 +535,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
           workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
@@ -551,7 +552,7 @@ public class RemoteBlockInStreamIntegrationTest {
       // Try to create an in stream again, and it should fail.
       RemoteBlockInStream is2 = null;
       try {
-        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+        is2 = RemoteBlockInStream.create(info.getBlockId(), info.getLength(), workerAddr,
             FileSystemContext.INSTANCE, InStreamOptions.defaults());
       } catch (IOException e) {
         Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
