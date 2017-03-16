@@ -60,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
-  private final MasterRegistry.Value<FileSystemMaster> mFileSystemMaster;
+  private final FileSystemMaster mFileSystemMaster;
 
   /** Map from file id of a complete store to the list of partitions in this store. */
   private final Map<Long, List<PartitionInfo>> mCompleteStoreToPartitions;
@@ -77,11 +77,10 @@ public final class KeyValueMaster extends AbstractMaster {
   public KeyValueMaster(MasterRegistry registry, Journal journal) {
     super(journal, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
-    mFileSystemMaster =
-        registry.new Value<>(Constants.FILE_SYSTEM_MASTER_NAME, FileSystemMaster.class);
+    mFileSystemMaster = registry.get(FileSystemMaster.class);
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
-    registry.put(getName(), this);
+    registry.put(KeyValueMaster.class, this);
   }
 
   @Override
@@ -158,7 +157,7 @@ public final class KeyValueMaster extends AbstractMaster {
    */
   public synchronized void completePartition(AlluxioURI path, PartitionInfo info)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
-    final long fileId = mFileSystemMaster.get().getFileId(path);
+    final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
           String.format("Failed to completePartition: path %s does not exist", path));
@@ -200,7 +199,7 @@ public final class KeyValueMaster extends AbstractMaster {
    */
   public synchronized void completeStore(AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    final long fileId = mFileSystemMaster.get().getFileId(path);
+    final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
           String.format("Failed to completeStore: path %s does not exist", path));
@@ -238,7 +237,7 @@ public final class KeyValueMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
-      mFileSystemMaster.get()
+      mFileSystemMaster
           .createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
     } catch (IOException e) {
       // TODO(binfan): Investigate why {@link FileSystemMaster#createDirectory} throws IOException
@@ -248,7 +247,7 @@ public final class KeyValueMaster extends AbstractMaster {
       // This should be impossible since we pass the recursive option into mkdir
       throw Throwables.propagate(e);
     }
-    long fileId = mFileSystemMaster.get().getFileId(path);
+    long fileId = mFileSystemMaster.getFileId(path);
     Preconditions.checkState(fileId != IdUtils.INVALID_FILE_ID);
 
     createStoreInternal(fileId);
@@ -284,7 +283,7 @@ public final class KeyValueMaster extends AbstractMaster {
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
-    mFileSystemMaster.get().delete(uri, DeleteOptions.defaults().setRecursive(true));
+    mFileSystemMaster.delete(uri, DeleteOptions.defaults().setRecursive(true));
     deleteStoreInternal(fileId);
     writeJournalEntry(newDeleteStoreEntry(fileId));
     flushJournal();
@@ -302,7 +301,7 @@ public final class KeyValueMaster extends AbstractMaster {
 
   private long getFileId(AlluxioURI uri)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
-    long fileId = mFileSystemMaster.get().getFileId(uri);
+    long fileId = mFileSystemMaster.getFileId(uri);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
     }
@@ -328,13 +327,13 @@ public final class KeyValueMaster extends AbstractMaster {
     long oldFileId = getFileId(oldUri);
     checkIsCompletePartition(oldFileId, oldUri);
     try {
-      mFileSystemMaster.get().rename(oldUri, newUri, RenameOptions.defaults());
+      mFileSystemMaster.rename(oldUri, newUri, RenameOptions.defaults());
     } catch (FileAlreadyExistsException e) {
       throw new FileAlreadyExistsException(
           String.format("failed to rename store:the path %s has been used", newUri), e);
     }
 
-    final long newFileId = mFileSystemMaster.get().getFileId(newUri);
+    final long newFileId = mFileSystemMaster.getFileId(newUri);
     Preconditions.checkState(newFileId != IdUtils.INVALID_FILE_ID);
     renameStoreInternal(oldFileId, newFileId);
 
@@ -371,7 +370,7 @@ public final class KeyValueMaster extends AbstractMaster {
 
     // Rename fromUri to "toUri/%s-%s" % (last component of fromUri, UUID).
     // NOTE: rename does not change the existing block IDs.
-    mFileSystemMaster.get().rename(fromUri, new AlluxioURI(PathUtils.concatPath(toUri.toString(),
+    mFileSystemMaster.rename(fromUri, new AlluxioURI(PathUtils.concatPath(toUri.toString(),
         String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))),
         RenameOptions.defaults());
     mergeStoreInternal(fromFileId, toFileId);

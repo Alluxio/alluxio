@@ -11,9 +11,16 @@
 
 package alluxio.master;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -23,15 +30,25 @@ import javax.annotation.concurrent.ThreadSafe;
  * instance of this class. The registry is passed as an argument to constructors of individual
  * masters who are expected to add themselves to the registry. The reason for using an instance
  * as opposed to a static class is to enable dependency injection in tests.
- *
- * To prevent race conditions, the contract for this class is that all masters need to be
- * registered (e.g. in constructors) before the registry is used for looking up values. See the
- * {@link MasterRegistry.Value} class for an example on how to perform lazy initialization of
- * variables that need to reference a master.
  */
+// TODO(jiri): Detect deadlocks.
 @ThreadSafe
 public final class MasterRegistry {
-  private final Map<String, Master> mRegistry = new HashMap<>();
+  /**
+   * Used for enforcing the order in which masters are iterated over. Currently, the only
+   * requirement is that block master appears before file system master and the comparator thus
+   * uses alphabetical ordering.
+   */
+  private static final Comparator<Master> COMPARATOR = new Comparator<Master>() {
+    @Override
+    public int compare(Master left, Master right) {
+      return left.getName().compareTo(right.getName());
+    }
+  };
+
+  private final Map<Class<?>, Master> mRegistry = new HashMap<>();
+  private final Lock mLock = new ReentrantLock();
+  private final Condition mCondition = mLock.newCondition();
 
   /**
    * Creates a new instance of {@link MasterRegistry}.
@@ -39,16 +56,21 @@ public final class MasterRegistry {
   public MasterRegistry() {}
 
   /**
-   * @param name the name of the master to get
    * @param clazz the class of the master to get
    * @param <T> the type of the master to get
    * @return the master instance, or null if it does not exist or a type mismatch occurs
    */
-  public synchronized <T> T get(String name, Class<T> clazz) {
-    Master master = mRegistry.get(name);
-    if (master == null) {
-      return null;
+  public <T> T get(Class<T> clazz) {
+    Master master;
+    mLock.lock();
+    while (true) {
+       master = mRegistry.get(clazz);
+      if (master != null) {
+        break;
+      }
+      mCondition.awaitUninterruptibly();
     }
+    mLock.unlock();
     if (!(clazz.isInstance(master))) {
       return null;
     }
@@ -56,71 +78,22 @@ public final class MasterRegistry {
   }
 
   /**
-   * @param name the name of the master to register
+   * @param clazz the class of the master to get
    * @param master the master to register
    */
-  public synchronized void put(String name, Master master) {
-    mRegistry.put(name, master);
+  public <T> void put(Class<T> clazz, Master master) {
+    mLock.lock();
+    mRegistry.put(clazz, master);
+    mCondition.signalAll();
+    mLock.unlock();
   }
 
   /**
    * @return a collection of all the registered masters
    */
   public synchronized Collection<Master> getMasters() {
-    return mRegistry.values();
-  }
-
-  /**
-   * The purpose of this class is to enable lazy initialization of variables that store a
-   * master reference. The intended use is to define these variables in a constructor, but
-   * only initialize them when their value is actually needed.
-   *
-   * For instance, if master A needs a reference to master B, use the following pattern:
-   *
-   * public class MasterB {
-   *   private MasterRegistry.Value<MasterA> mMasterA;
-   *
-   *   public MasterB(MasterRegistry registry) {
-   *     ...
-   *     mMasterA = registry.new Value<MasterA>("MasterA", MasterA.class);
-   *     ...
-   *   }
-   *
-   *   public void foo() {
-   *     // MasterA reference can be obtained here using mMasterA.get()
-   *     ...
-   *   }
-   * }
-   *
-   * @param <T> the type of the value stored in the class
-   */
-  @ThreadSafe
-  public class Value<T> {
-    private Class<T> mClass;
-    private T mMaster;
-    private String mName;
-
-    /**
-     * Creates a new instance of {@link Value} given the master name and type for the value.
-     *
-     * @param name the master name
-     * @param clazz the master class
-     */
-    public Value(String name, Class<T> clazz) {
-      mName = name;
-      mClass = clazz;
-    }
-
-    /**
-     * Performs lazy initialization of the value (if needed) and then returns the typed value.
-     *
-     * @return the typed value
-     */
-    public synchronized T get() {
-      if (mMaster == null) {
-        mMaster = MasterRegistry.this.get(mName, mClass);
-      }
-      return mMaster;
-    }
+    List<Master> masters = new ArrayList<>(mRegistry.values());
+    Collections.sort(masters, COMPARATOR);
+    return masters;
   }
 }

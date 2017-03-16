@@ -75,7 +75,7 @@ public final class LineageMaster extends AbstractMaster {
 
   private final LineageStore mLineageStore;
   private final LineageIdGenerator mLineageIdGenerator;
-  private final MasterRegistry.Value<FileSystemMaster> mFileSystemMaster;
+  private final FileSystemMaster mFileSystemMaster;
 
   /**
    * Creates a new instance of {@link LineageMaster}.
@@ -102,9 +102,8 @@ public final class LineageMaster extends AbstractMaster {
         executorServiceFactory);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
-    mFileSystemMaster =
-        registry.new Value<>(Constants.FILE_SYSTEM_MASTER_NAME, FileSystemMaster.class);
-    registry.put(getName(), this);
+    mFileSystemMaster = registry.get(FileSystemMaster.class);
+    registry.put(LineageMaster.class, this);
   }
 
   @Override
@@ -138,11 +137,11 @@ public final class LineageMaster extends AbstractMaster {
     super.start(isLeader);
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
-          new CheckpointSchedulingExecutor(this, mFileSystemMaster.get()),
+          new CheckpointSchedulingExecutor(this, mFileSystemMaster),
           Configuration.getInt(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
-          new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster.get()),
-              mFileSystemMaster.get()),
+          new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
+              mFileSystemMaster),
           Configuration.getInt(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
@@ -181,7 +180,7 @@ public final class LineageMaster extends AbstractMaster {
     List<Long> inputAlluxioFiles = new ArrayList<>();
     for (AlluxioURI inputFile : inputFiles) {
       long fileId;
-      fileId = mFileSystemMaster.get().getFileId(inputFile);
+      fileId = mFileSystemMaster.getFileId(inputFile);
       if (fileId == IdUtils.INVALID_FILE_ID) {
         throw new FileDoesNotExistException(
             ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage(inputFile));
@@ -196,7 +195,7 @@ public final class LineageMaster extends AbstractMaster {
       // Create the file initialized with block size 1KB as placeholder.
       CreateFileOptions options =
           CreateFileOptions.defaults().setRecursive(true).setBlockSizeBytes(Constants.KB);
-      fileId = mFileSystemMaster.get().createFile(outputFile, options);
+      fileId = mFileSystemMaster.createFile(outputFile, options);
       outputAlluxioFiles.add(fileId);
     }
 
@@ -273,13 +272,13 @@ public final class LineageMaster extends AbstractMaster {
       TtlAction ttlAction)
       throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
       FileDoesNotExistException {
-    long fileId = mFileSystemMaster.get().getFileId(new AlluxioURI(path));
+    long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     FileInfo fileInfo;
     try {
-      fileInfo = mFileSystemMaster.get().getFileInfo(fileId);
-      if (!fileInfo.isCompleted() || mFileSystemMaster.get().getLostFiles().contains(fileId)) {
+      fileInfo = mFileSystemMaster.getFileInfo(fileId);
+      if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
         LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-        return mFileSystemMaster.get()
+        return mFileSystemMaster
             .reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl, ttlAction);
       }
     } catch (FileDoesNotExistException e) {
@@ -313,12 +312,12 @@ public final class LineageMaster extends AbstractMaster {
       info.setId(lineage.getId());
       List<String> inputFiles = new ArrayList<>();
       for (long inputFileId : lineage.getInputFiles()) {
-        inputFiles.add(mFileSystemMaster.get().getPath(inputFileId).toString());
+        inputFiles.add(mFileSystemMaster.getPath(inputFileId).toString());
       }
       info.setInputFiles(inputFiles);
       List<String> outputFiles = new ArrayList<>();
       for (long outputFileId : lineage.getOutputFiles()) {
-        outputFiles.add(mFileSystemMaster.get().getPath(outputFileId).toString());
+        outputFiles.add(mFileSystemMaster.getPath(outputFileId).toString());
       }
       info.setOutputFiles(outputFiles);
       info.setCreationTimeMs(lineage.getCreationTime());
@@ -340,7 +339,7 @@ public final class LineageMaster extends AbstractMaster {
       // schedule the lineage file for persistence
       for (long file : lineage.getOutputFiles()) {
         try {
-          mFileSystemMaster.get().scheduleAsyncPersistence(mFileSystemMaster.get().getPath(file));
+          mFileSystemMaster.scheduleAsyncPersistence(mFileSystemMaster.getPath(file));
         } catch (AlluxioException e) {
           LOG.error("Failed to persist the file {}.", file, e);
         }
@@ -358,7 +357,7 @@ public final class LineageMaster extends AbstractMaster {
    */
   public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
       AccessControlException, InvalidPathException {
-    long fileId = mFileSystemMaster.get().getFileId(new AlluxioURI(path));
-    mFileSystemMaster.get().reportLostFile(fileId);
+    long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
+    mFileSystemMaster.reportLostFile(fileId);
   }
 }

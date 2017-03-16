@@ -49,7 +49,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -153,26 +158,38 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /**
    * @param journalFactory the factory to use for creating journals
    */
-  protected void createMasters(JournalFactory journalFactory) {
+  protected void createMasters(final JournalFactory journalFactory) {
     mRegistry = new MasterRegistry();
-    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
-      factory.create(mRegistry, journalFactory);
+    List<Callable<Void>> callables = new ArrayList<>();
+    for (final MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
+      callables.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          factory.create(mRegistry, journalFactory);
+          return null;
+        }
+      });
+    }
+    try {
+      Executors.newCachedThreadPool().invokeAll(callables, 10, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 
   @Override
   public BlockMaster getBlockMaster() {
-    return mRegistry.get(Constants.BLOCK_MASTER_NAME, BlockMaster.class);
+    return mRegistry.get(BlockMaster.class);
   }
 
   @Override
   public FileSystemMaster getFileSystemMaster() {
-    return mRegistry.get(Constants.FILE_SYSTEM_MASTER_NAME, FileSystemMaster.class);
+    return mRegistry.get(FileSystemMaster.class);
   }
 
   @Override
   public LineageMaster getLineageMaster() {
-    return mRegistry.get(Constants.LINEAGE_MASTER_NAME, LineageMaster.class);
+    return mRegistry.get(LineageMaster.class);
   }
 
   @Override

@@ -162,9 +162,9 @@ public final class PermissionCheckerTest {
         new JournalFactory.ReadWrite(sTestFolder.newFolder().getAbsolutePath());
 
     BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
-    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(registry);
+    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
-    sTree = new InodeTree(registry, directoryIdGenerator, mountTable);
+    sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     blockMaster.start(true);
 

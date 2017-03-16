@@ -84,9 +84,9 @@ public final class InodeTreeTest {
         new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
 
     BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
-    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(registry);
+    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
-    mTree = new InodeTree(registry, directoryIdGenerator, mountTable);
+    mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     blockMaster.start(true);
 

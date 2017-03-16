@@ -233,7 +233,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
 
   /** Handle to the block master. */
-  private final MasterRegistry.Value<BlockMaster> mBlockMaster;
+  private final BlockMaster mBlockMaster;
 
   /** This manages the file system inode structure. This must be journaled. */
   private final InodeTree mInodeTree;
@@ -295,10 +295,10 @@ public final class FileSystemMaster extends AbstractMaster {
     super(journalFactory.get(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
 
-    mBlockMaster = registry.new Value<>(Constants.BLOCK_MASTER_NAME, BlockMaster.class);
-    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(registry);
+    mBlockMaster = registry.get(BlockMaster.class);
+    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mMountTable = new MountTable();
-    mInodeTree = new InodeTree(registry, mDirectoryIdGenerator, mMountTable);
+    mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
@@ -306,7 +306,7 @@ public final class FileSystemMaster extends AbstractMaster {
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
 
-    registry.put(getName(), this);
+    registry.put(FileSystemMaster.class, this);
     Metrics.registerGauges(this);
   }
 
@@ -993,7 +993,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
     InodeFile fileInode = (InodeFile) inode;
     List<Long> blockIdList = fileInode.getBlockIds();
-    List<BlockInfo> blockInfoList = mBlockMaster.get().getBlockInfoList(blockIdList);
+    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
     if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
       throw new BlockInfoException("Cannot complete a file without all the blocks committed");
     }
@@ -1048,7 +1048,7 @@ public final class FileSystemMaster extends AbstractMaster {
       long currLength = length;
       for (long blockId : inode.getBlockIds()) {
         long blockSize = Math.min(currLength, inode.getBlockSizeBytes());
-        mBlockMaster.get().commitBlockInUFS(blockId, blockSize);
+        mBlockMaster.commitBlockInUFS(blockId, blockSize);
         currLength -= blockSize;
       }
     }
@@ -1423,7 +1423,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
         if (delInode.isFile()) {
           // Remove corresponding blocks from workers and delete metadata in master.
-          mBlockMaster.get().removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
+          mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
         }
 
         mInodeTree.deleteInode(tempInodePath, opTimeMs);
@@ -1465,7 +1465,7 @@ public final class FileSystemMaster extends AbstractMaster {
   private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
-    List<BlockInfo> blockInfoList = mBlockMaster.get().getBlockInfoList(file.getBlockIds());
+    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
     List<FileBlockInfo> ret = new ArrayList<>();
     for (BlockInfo blockInfo : blockInfoList) {
@@ -1594,7 +1594,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     long inMemoryLength = 0;
-    for (BlockInfo info : mBlockMaster.get().getBlockInfoList(inodeFile.getBlockIds())) {
+    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
       if (isInTopStorageTier(info)) {
         inMemoryLength += info.getLength();
       }
@@ -1607,7 +1607,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private boolean isInTopStorageTier(BlockInfo blockInfo) {
     for (BlockLocation location : blockInfo.getLocations()) {
-      if (mBlockMaster.get().getGlobalStorageTierAssoc().getOrdinal(location.getTierAlias()) == 0) {
+      if (mBlockMaster.getGlobalStorageTierAssoc().getOrdinal(location.getTierAlias()) == 0) {
         return true;
       }
     }
@@ -2162,8 +2162,7 @@ public final class FileSystemMaster extends AbstractMaster {
             journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions, journalContext);
           }
           // Remove corresponding blocks from workers.
-          mBlockMaster.get()
-              .removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
+          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
         }
       }
     }
@@ -2213,7 +2212,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public List<Long> getLostFiles() {
     Set<Long> lostFiles = new HashSet<>();
-    for (long blockId : mBlockMaster.get().getLostBlocks()) {
+    for (long blockId : mBlockMaster.getLostBlocks()) {
       // the file id is the container id of the block id
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
@@ -2247,7 +2246,7 @@ public final class FileSystemMaster extends AbstractMaster {
       } catch (InvalidPathException e) {
         LOG.info("Failed to get file info {}", fileId, e);
       }
-      mBlockMaster.get().reportLostBlocks(blockIds);
+      mBlockMaster.reportLostBlocks(blockIds);
       LOG.info("Reported file loss of blocks {}. Alluxio will recompute it: {}", blockIds, fileId);
     }
   }
@@ -3036,7 +3035,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
   public List<WorkerInfo> getWorkerInfoList() {
-    return mBlockMaster.get().getWorkerInfoList();
+    return mBlockMaster.getWorkerInfoList();
   }
 
   /**
