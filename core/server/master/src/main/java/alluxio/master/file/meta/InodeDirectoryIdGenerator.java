@@ -11,13 +11,13 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockId;
-import alluxio.master.block.BlockMaster;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,10 +35,10 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
   private long mSequenceNumber;
 
   /**
-   * @param blockMaster the block master
+   * @param containerIdGenerator the container id generator to use
    */
-  public InodeDirectoryIdGenerator(BlockMaster blockMaster) {
-    mContainerIdGenerator = blockMaster;
+  public InodeDirectoryIdGenerator(ContainerIdGenerable containerIdGenerator) {
+    mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
   }
 
   synchronized long getNewDirectoryId() {

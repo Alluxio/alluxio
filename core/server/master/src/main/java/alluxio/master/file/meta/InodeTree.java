@@ -24,8 +24,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.MasterRegistry;
-import alluxio.master.block.BlockMaster;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -105,7 +103,6 @@ public class InodeTree implements JournalCheckpointStreamable {
 
   /** Use UniqueFieldIndex directly for ID index rather than using IndexedSet. */
   private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
-
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
@@ -128,13 +125,13 @@ public class InodeTree implements JournalCheckpointStreamable {
   private InodeDirectory mCachedInode;
 
   /**
-   * @param blockMaster the block master
+   * @param containerIdGenerator the container id generator to use to get new container ids
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
    * @param mountTable the mount table to manage the file system mount points
    */
-  public InodeTree(BlockMaster blockMaster, InodeDirectoryIdGenerator directoryIdGenerator,
-      MountTable mountTable) {
-    mContainerIdGenerator = blockMaster;
+  public InodeTree(ContainerIdGenerable containerIdGenerator,
+      InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
+    mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
   }
