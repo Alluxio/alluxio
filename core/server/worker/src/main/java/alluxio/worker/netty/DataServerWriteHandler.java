@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -231,7 +230,8 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
           .format("Offsets do not match [received: %d, expected: %d].", request.getOffset(),
               mPosToQueue);
     }
-    if (msg.getPayloadDataBuffer().getLength() > 0 && (request.getCancel() || request.getEof())) {
+    if (msg.getPayloadDataBuffer() != null && msg.getPayloadDataBuffer().getLength() > 0 && (
+        request.getCancel() || request.getEof())) {
       return String.format("Found data in a cancel/eof message.");
     }
     return "";
@@ -250,7 +250,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
   /**
    * Aborts the write abnormally due to some error. Called after the channel is closed.
    *
-   * @throws IOException
+   * @throws IOException if an I/O error occur
    */
   private void abortAbnormally() throws IOException {
     mLock.lock();
@@ -267,7 +267,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
     if (request != null) {
       request.cancel();
     }
- }
+  }
 
   /**
    * A runnable that polls from the packets queue and writes to the block worker.
@@ -313,8 +313,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
             break;
           }
           if (!tooManyPacketsInFlight()) {
-            mCtx.channel().config().setAutoRead(true);
-            mCtx.read();
+            NettyUtils.enableAutoRead(mCtx.channel());
           }
         } finally {
           mLock.unlock();
@@ -323,9 +322,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
         try {
           // NOTE: We must break if it is EOF or CANCEL to maintain the invariant
           // that whenever mPacketWriterActive is false, no one should be polling from
-          // mPackets.
-          // Without breaking here, the following corner case can happen:
-          // t1:
+          // mPackets afterwards.
           if (buf == EOF) {
             complete();
             replySuccess(mCtx.channel());

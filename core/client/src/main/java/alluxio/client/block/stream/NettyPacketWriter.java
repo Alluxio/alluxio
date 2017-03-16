@@ -49,9 +49,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    buffer is full, resumes if the buffer is not full.
  * 2. The server reads packets from the channel and writes them to the block worker. See the server
  *    side implementation for details.
- * 3. When all the packets are sent, the client closes the reader by sending an empty packet to
- *    the server to signify the end of the block. The client must wait the response from the server
- *    to make sure everything has been written to the block worker.
+ * 3. The client can either send an EOF packet or a CANCEL packet to end the write request. The
+ *    client has to wait for the response from the data server for the EOF or CANCEL packet to make
+ *    sure that the server has cleaned its states.
  * 4. To make it simple to handle errors, the channel is closed if any error occurs.
  *
  * NOTE: this class is NOT threadsafe. Do not call cancel/close while some other threads are
@@ -95,7 +95,7 @@ public final class NettyPacketWriter implements PacketWriter {
   private boolean mDone = false;
   @GuardedBy("mLock")
   private boolean mEOFSent = false;
-  @GuardedBy(("mLock"))
+  @GuardedBy("mLock")
   private boolean mCancelSent = false;
   /** This condition is met if mPacketWriteException != null or mDone = true. */
   private Condition mDoneOrFailed = mLock.newCondition();

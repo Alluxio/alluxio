@@ -109,7 +109,7 @@ public final class NettyUtils {
   }
 
   /**
-   * Disables auto read for a netty channel
+   * Disables auto read for a netty channel.
    *
    * @param channel the netty channel
    */

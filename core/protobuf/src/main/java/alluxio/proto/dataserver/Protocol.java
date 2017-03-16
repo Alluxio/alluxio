@@ -926,37 +926,37 @@ public final class Protocol {
        */
       OK(0, 0),
       /**
+       * <code>CANCELLED = 1;</code>
+       */
+      CANCELLED(1, 1),
+      /**
+       * <code>UNKNOWN = 2;</code>
+       */
+      UNKNOWN(2, 2),
+      /**
        * <code>INVALID_ARGUMENT = 3;</code>
        */
-      INVALID_ARGUMENT(1, 3),
+      INVALID_ARGUMENT(3, 3),
+      /**
+       * <code>PERMISSION_DENIED = 6;</code>
+       */
+      PERMISSION_DENIED(4, 6),
       /**
        * <code>INTERNAL = 13;</code>
        */
-      INTERNAL(2, 13),
+      INTERNAL(5, 13),
       /**
-       * <code>CANCELLED = 1;</code>
+       * <code>NOT_FOUND = 4;</code>
        *
        * <pre>
        * The following are unused for now.
        * </pre>
        */
-      CANCELLED(3, 1),
-      /**
-       * <code>UNKNOWN = 2;</code>
-       */
-      UNKNOWN(4, 2),
-      /**
-       * <code>NOT_FOUND = 4;</code>
-       */
-      NOT_FOUND(5, 4),
+      NOT_FOUND(6, 4),
       /**
        * <code>ALREADY_EXISTS = 5;</code>
        */
-      ALREADY_EXISTS(6, 5),
-      /**
-       * <code>PERMISSION_DENIED = 6;</code>
-       */
-      PERMISSION_DENIED(7, 6),
+      ALREADY_EXISTS(7, 5),
       /**
        * <code>UNAUTHENTICATED = 7;</code>
        */
@@ -1000,19 +1000,7 @@ public final class Protocol {
        */
       public static final int OK_VALUE = 0;
       /**
-       * <code>INVALID_ARGUMENT = 3;</code>
-       */
-      public static final int INVALID_ARGUMENT_VALUE = 3;
-      /**
-       * <code>INTERNAL = 13;</code>
-       */
-      public static final int INTERNAL_VALUE = 13;
-      /**
        * <code>CANCELLED = 1;</code>
-       *
-       * <pre>
-       * The following are unused for now.
-       * </pre>
        */
       public static final int CANCELLED_VALUE = 1;
       /**
@@ -1020,17 +1008,29 @@ public final class Protocol {
        */
       public static final int UNKNOWN_VALUE = 2;
       /**
+       * <code>INVALID_ARGUMENT = 3;</code>
+       */
+      public static final int INVALID_ARGUMENT_VALUE = 3;
+      /**
+       * <code>PERMISSION_DENIED = 6;</code>
+       */
+      public static final int PERMISSION_DENIED_VALUE = 6;
+      /**
+       * <code>INTERNAL = 13;</code>
+       */
+      public static final int INTERNAL_VALUE = 13;
+      /**
        * <code>NOT_FOUND = 4;</code>
+       *
+       * <pre>
+       * The following are unused for now.
+       * </pre>
        */
       public static final int NOT_FOUND_VALUE = 4;
       /**
        * <code>ALREADY_EXISTS = 5;</code>
        */
       public static final int ALREADY_EXISTS_VALUE = 5;
-      /**
-       * <code>PERMISSION_DENIED = 6;</code>
-       */
-      public static final int PERMISSION_DENIED_VALUE = 6;
       /**
        * <code>UNAUTHENTICATED = 7;</code>
        */
@@ -1074,13 +1074,13 @@ public final class Protocol {
       public static Code valueOf(int value) {
         switch (value) {
           case 0: return OK;
-          case 3: return INVALID_ARGUMENT;
-          case 13: return INTERNAL;
           case 1: return CANCELLED;
           case 2: return UNKNOWN;
+          case 3: return INVALID_ARGUMENT;
+          case 6: return PERMISSION_DENIED;
+          case 13: return INTERNAL;
           case 4: return NOT_FOUND;
           case 5: return ALREADY_EXISTS;
-          case 6: return PERMISSION_DENIED;
           case 7: return UNAUTHENTICATED;
           case 8: return RESOURCE_EXHAUSTED;
           case 9: return FAILED_PRECONDITION;
@@ -2926,37 +2926,23 @@ public final class Protocol {
      */
     int getTier();
 
-    // optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
+    // optional bool eof = 6;
     /**
-     * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-     */
-    boolean hasCreateUfsFileOptions();
-    /**
-     * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-     */
-    alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions();
-    /**
-     * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-     */
-    alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder();
-
-    // optional bool eof = 7;
-    /**
-     * <code>optional bool eof = 7;</code>
+     * <code>optional bool eof = 6;</code>
      */
     boolean hasEof();
     /**
-     * <code>optional bool eof = 7;</code>
+     * <code>optional bool eof = 6;</code>
      */
     boolean getEof();
 
-    // optional bool cancel = 8;
+    // optional bool cancel = 7;
     /**
-     * <code>optional bool cancel = 8;</code>
+     * <code>optional bool cancel = 7;</code>
      */
     boolean hasCancel();
     /**
-     * <code>optional bool cancel = 8;</code>
+     * <code>optional bool cancel = 7;</code>
      */
     boolean getCancel();
   }
@@ -3046,26 +3032,13 @@ public final class Protocol {
               tier_ = input.readInt32();
               break;
             }
-            case 50: {
-              alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000020) == 0x00000020)) {
-                subBuilder = createUfsFileOptions_.toBuilder();
-              }
-              createUfsFileOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(createUfsFileOptions_);
-                createUfsFileOptions_ = subBuilder.buildPartial();
-              }
+            case 48: {
               bitField0_ |= 0x00000020;
+              eof_ = input.readBool();
               break;
             }
             case 56: {
               bitField0_ |= 0x00000040;
-              eof_ = input.readBool();
-              break;
-            }
-            case 64: {
-              bitField0_ |= 0x00000080;
               cancel_ = input.readBool();
               break;
             }
@@ -3205,55 +3178,33 @@ public final class Protocol {
       return tier_;
     }
 
-    // optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
-    public static final int CREATE_UFS_FILE_OPTIONS_FIELD_NUMBER = 6;
-    private alluxio.proto.dataserver.Protocol.CreateUfsFileOptions createUfsFileOptions_;
+    // optional bool eof = 6;
+    public static final int EOF_FIELD_NUMBER = 6;
+    private boolean eof_;
     /**
-     * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+     * <code>optional bool eof = 6;</code>
      */
-    public boolean hasCreateUfsFileOptions() {
+    public boolean hasEof() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
-     * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-     */
-    public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
-      return createUfsFileOptions_;
-    }
-    /**
-     * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-     */
-    public alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder() {
-      return createUfsFileOptions_;
-    }
-
-    // optional bool eof = 7;
-    public static final int EOF_FIELD_NUMBER = 7;
-    private boolean eof_;
-    /**
-     * <code>optional bool eof = 7;</code>
-     */
-    public boolean hasEof() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
-    }
-    /**
-     * <code>optional bool eof = 7;</code>
+     * <code>optional bool eof = 6;</code>
      */
     public boolean getEof() {
       return eof_;
     }
 
-    // optional bool cancel = 8;
-    public static final int CANCEL_FIELD_NUMBER = 8;
+    // optional bool cancel = 7;
+    public static final int CANCEL_FIELD_NUMBER = 7;
     private boolean cancel_;
     /**
-     * <code>optional bool cancel = 8;</code>
+     * <code>optional bool cancel = 7;</code>
      */
     public boolean hasCancel() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional bool cancel = 8;</code>
+     * <code>optional bool cancel = 7;</code>
      */
     public boolean getCancel() {
       return cancel_;
@@ -3265,7 +3216,6 @@ public final class Protocol {
       offset_ = 0L;
       sessionId_ = 0L;
       tier_ = 0;
-      createUfsFileOptions_ = alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance();
       eof_ = false;
       cancel_ = false;
     }
@@ -3297,13 +3247,10 @@ public final class Protocol {
         output.writeInt32(5, tier_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeMessage(6, createUfsFileOptions_);
+        output.writeBool(6, eof_);
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        output.writeBool(7, eof_);
-      }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeBool(8, cancel_);
+        output.writeBool(7, cancel_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3336,15 +3283,11 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, createUfsFileOptions_);
+          .computeBoolSize(6, eof_);
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(7, eof_);
-      }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(8, cancel_);
+          .computeBoolSize(7, cancel_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3458,7 +3401,6 @@ public final class Protocol {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-          getCreateUfsFileOptionsFieldBuilder();
         }
       }
       private static Builder create() {
@@ -3477,16 +3419,10 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000008);
         tier_ = 0;
         bitField0_ = (bitField0_ & ~0x00000010);
-        if (createUfsFileOptionsBuilder_ == null) {
-          createUfsFileOptions_ = alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance();
-        } else {
-          createUfsFileOptionsBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000020);
         eof_ = false;
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         cancel_ = false;
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
 
@@ -3538,17 +3474,9 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000020;
         }
-        if (createUfsFileOptionsBuilder_ == null) {
-          result.createUfsFileOptions_ = createUfsFileOptions_;
-        } else {
-          result.createUfsFileOptions_ = createUfsFileOptionsBuilder_.build();
-        }
+        result.eof_ = eof_;
         if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
           to_bitField0_ |= 0x00000040;
-        }
-        result.eof_ = eof_;
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-          to_bitField0_ |= 0x00000080;
         }
         result.cancel_ = cancel_;
         result.bitField0_ = to_bitField0_;
@@ -3581,9 +3509,6 @@ public final class Protocol {
         }
         if (other.hasTier()) {
           setTier(other.getTier());
-        }
-        if (other.hasCreateUfsFileOptions()) {
-          mergeCreateUfsFileOptions(other.getCreateUfsFileOptions());
         }
         if (other.hasEof()) {
           setEof(other.getEof());
@@ -3818,184 +3743,67 @@ public final class Protocol {
         return this;
       }
 
-      // optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
-      private alluxio.proto.dataserver.Protocol.CreateUfsFileOptions createUfsFileOptions_ = alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance();
-      private com.google.protobuf.SingleFieldBuilder<
-          alluxio.proto.dataserver.Protocol.CreateUfsFileOptions, alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder, alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder> createUfsFileOptionsBuilder_;
+      // optional bool eof = 6;
+      private boolean eof_ ;
       /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+       * <code>optional bool eof = 6;</code>
        */
-      public boolean hasCreateUfsFileOptions() {
+      public boolean hasEof() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
-        if (createUfsFileOptionsBuilder_ == null) {
-          return createUfsFileOptions_;
-        } else {
-          return createUfsFileOptionsBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      public Builder setCreateUfsFileOptions(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions value) {
-        if (createUfsFileOptionsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          createUfsFileOptions_ = value;
-          onChanged();
-        } else {
-          createUfsFileOptionsBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000020;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      public Builder setCreateUfsFileOptions(
-          alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder builderForValue) {
-        if (createUfsFileOptionsBuilder_ == null) {
-          createUfsFileOptions_ = builderForValue.build();
-          onChanged();
-        } else {
-          createUfsFileOptionsBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000020;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      public Builder mergeCreateUfsFileOptions(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions value) {
-        if (createUfsFileOptionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020) &&
-              createUfsFileOptions_ != alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance()) {
-            createUfsFileOptions_ =
-              alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.newBuilder(createUfsFileOptions_).mergeFrom(value).buildPartial();
-          } else {
-            createUfsFileOptions_ = value;
-          }
-          onChanged();
-        } else {
-          createUfsFileOptionsBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000020;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      public Builder clearCreateUfsFileOptions() {
-        if (createUfsFileOptionsBuilder_ == null) {
-          createUfsFileOptions_ = alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance();
-          onChanged();
-        } else {
-          createUfsFileOptionsBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000020);
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder getCreateUfsFileOptionsBuilder() {
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return getCreateUfsFileOptionsFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder() {
-        if (createUfsFileOptionsBuilder_ != null) {
-          return createUfsFileOptionsBuilder_.getMessageOrBuilder();
-        } else {
-          return createUfsFileOptions_;
-        }
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          alluxio.proto.dataserver.Protocol.CreateUfsFileOptions, alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder, alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder> 
-          getCreateUfsFileOptionsFieldBuilder() {
-        if (createUfsFileOptionsBuilder_ == null) {
-          createUfsFileOptionsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              alluxio.proto.dataserver.Protocol.CreateUfsFileOptions, alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder, alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder>(
-                  createUfsFileOptions_,
-                  getParentForChildren(),
-                  isClean());
-          createUfsFileOptions_ = null;
-        }
-        return createUfsFileOptionsBuilder_;
-      }
-
-      // optional bool eof = 7;
-      private boolean eof_ ;
-      /**
-       * <code>optional bool eof = 7;</code>
-       */
-      public boolean hasEof() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
-      }
-      /**
-       * <code>optional bool eof = 7;</code>
+       * <code>optional bool eof = 6;</code>
        */
       public boolean getEof() {
         return eof_;
       }
       /**
-       * <code>optional bool eof = 7;</code>
+       * <code>optional bool eof = 6;</code>
        */
       public Builder setEof(boolean value) {
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
         eof_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional bool eof = 7;</code>
+       * <code>optional bool eof = 6;</code>
        */
       public Builder clearEof() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         eof_ = false;
         onChanged();
         return this;
       }
 
-      // optional bool cancel = 8;
+      // optional bool cancel = 7;
       private boolean cancel_ ;
       /**
-       * <code>optional bool cancel = 8;</code>
+       * <code>optional bool cancel = 7;</code>
        */
       public boolean hasCancel() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
+        return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       /**
-       * <code>optional bool cancel = 8;</code>
+       * <code>optional bool cancel = 7;</code>
        */
       public boolean getCancel() {
         return cancel_;
       }
       /**
-       * <code>optional bool cancel = 8;</code>
+       * <code>optional bool cancel = 7;</code>
        */
       public Builder setCancel(boolean value) {
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000040;
         cancel_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional bool cancel = 8;</code>
+       * <code>optional bool cancel = 7;</code>
        */
       public Builder clearCancel() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000040);
         cancel_ = false;
         onChanged();
         return this;
@@ -4010,902 +3818,6 @@ public final class Protocol {
     }
 
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.WriteRequest)
-  }
-
-  public interface CreateUfsFileOptionsOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-
-    // optional string path = 1;
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    boolean hasPath();
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    java.lang.String getPath();
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    com.google.protobuf.ByteString
-        getPathBytes();
-
-    // optional string owner = 2;
-    /**
-     * <code>optional string owner = 2;</code>
-     */
-    boolean hasOwner();
-    /**
-     * <code>optional string owner = 2;</code>
-     */
-    java.lang.String getOwner();
-    /**
-     * <code>optional string owner = 2;</code>
-     */
-    com.google.protobuf.ByteString
-        getOwnerBytes();
-
-    // optional string group = 3;
-    /**
-     * <code>optional string group = 3;</code>
-     */
-    boolean hasGroup();
-    /**
-     * <code>optional string group = 3;</code>
-     */
-    java.lang.String getGroup();
-    /**
-     * <code>optional string group = 3;</code>
-     */
-    com.google.protobuf.ByteString
-        getGroupBytes();
-
-    // optional int32 mode = 4;
-    /**
-     * <code>optional int32 mode = 4;</code>
-     *
-     * <pre>
-     * Only the last least significant 2 bytes are used.
-     * </pre>
-     */
-    boolean hasMode();
-    /**
-     * <code>optional int32 mode = 4;</code>
-     *
-     * <pre>
-     * Only the last least significant 2 bytes are used.
-     * </pre>
-     */
-    int getMode();
-  }
-  /**
-   * Protobuf type {@code alluxio.proto.dataserver.CreateUfsFileOptions}
-   */
-  public static final class CreateUfsFileOptions extends
-      com.google.protobuf.GeneratedMessage
-      implements CreateUfsFileOptionsOrBuilder {
-    // Use CreateUfsFileOptions.newBuilder() to construct.
-    private CreateUfsFileOptions(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-      this.unknownFields = builder.getUnknownFields();
-    }
-    private CreateUfsFileOptions(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final CreateUfsFileOptions defaultInstance;
-    public static CreateUfsFileOptions getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public CreateUfsFileOptions getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-      return this.unknownFields;
-    }
-    private CreateUfsFileOptions(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              path_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              owner_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              group_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              mode_ = input.readInt32();
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.class, alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder.class);
-    }
-
-    public static com.google.protobuf.Parser<CreateUfsFileOptions> PARSER =
-        new com.google.protobuf.AbstractParser<CreateUfsFileOptions>() {
-      public CreateUfsFileOptions parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new CreateUfsFileOptions(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CreateUfsFileOptions> getParserForType() {
-      return PARSER;
-    }
-
-    private int bitField0_;
-    // optional string path = 1;
-    public static final int PATH_FIELD_NUMBER = 1;
-    private java.lang.Object path_;
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    public boolean hasPath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    public java.lang.String getPath() {
-      java.lang.Object ref = path_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          path_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getPathBytes() {
-      java.lang.Object ref = path_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        path_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    // optional string owner = 2;
-    public static final int OWNER_FIELD_NUMBER = 2;
-    private java.lang.Object owner_;
-    /**
-     * <code>optional string owner = 2;</code>
-     */
-    public boolean hasOwner() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string owner = 2;</code>
-     */
-    public java.lang.String getOwner() {
-      java.lang.Object ref = owner_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          owner_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string owner = 2;</code>
-     */
-    public com.google.protobuf.ByteString
-        getOwnerBytes() {
-      java.lang.Object ref = owner_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        owner_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    // optional string group = 3;
-    public static final int GROUP_FIELD_NUMBER = 3;
-    private java.lang.Object group_;
-    /**
-     * <code>optional string group = 3;</code>
-     */
-    public boolean hasGroup() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional string group = 3;</code>
-     */
-    public java.lang.String getGroup() {
-      java.lang.Object ref = group_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          group_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string group = 3;</code>
-     */
-    public com.google.protobuf.ByteString
-        getGroupBytes() {
-      java.lang.Object ref = group_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        group_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    // optional int32 mode = 4;
-    public static final int MODE_FIELD_NUMBER = 4;
-    private int mode_;
-    /**
-     * <code>optional int32 mode = 4;</code>
-     *
-     * <pre>
-     * Only the last least significant 2 bytes are used.
-     * </pre>
-     */
-    public boolean hasMode() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional int32 mode = 4;</code>
-     *
-     * <pre>
-     * Only the last least significant 2 bytes are used.
-     * </pre>
-     */
-    public int getMode() {
-      return mode_;
-    }
-
-    private void initFields() {
-      path_ = "";
-      owner_ = "";
-      group_ = "";
-      mode_ = 0;
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getPathBytes());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getOwnerBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getGroupBytes());
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt32(4, mode_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getPathBytes());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getOwnerBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getGroupBytes());
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(4, mode_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code alluxio.proto.dataserver.CreateUfsFileOptions}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.class, alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder.class);
-      }
-
-      // Construct using alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-
-      public Builder clear() {
-        super.clear();
-        path_ = "";
-        bitField0_ = (bitField0_ & ~0x00000001);
-        owner_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
-        group_ = "";
-        bitField0_ = (bitField0_ & ~0x00000004);
-        mode_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000008);
-        return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor;
-      }
-
-      public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getDefaultInstanceForType() {
-        return alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance();
-      }
-
-      public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions build() {
-        alluxio.proto.dataserver.Protocol.CreateUfsFileOptions result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions buildPartial() {
-        alluxio.proto.dataserver.Protocol.CreateUfsFileOptions result = new alluxio.proto.dataserver.Protocol.CreateUfsFileOptions(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.path_ = path_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.owner_ = owner_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        result.group_ = group_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
-        result.mode_ = mode_;
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof alluxio.proto.dataserver.Protocol.CreateUfsFileOptions) {
-          return mergeFrom((alluxio.proto.dataserver.Protocol.CreateUfsFileOptions)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions other) {
-        if (other == alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance()) return this;
-        if (other.hasPath()) {
-          bitField0_ |= 0x00000001;
-          path_ = other.path_;
-          onChanged();
-        }
-        if (other.hasOwner()) {
-          bitField0_ |= 0x00000002;
-          owner_ = other.owner_;
-          onChanged();
-        }
-        if (other.hasGroup()) {
-          bitField0_ |= 0x00000004;
-          group_ = other.group_;
-          onChanged();
-        }
-        if (other.hasMode()) {
-          setMode(other.getMode());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        alluxio.proto.dataserver.Protocol.CreateUfsFileOptions parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (alluxio.proto.dataserver.Protocol.CreateUfsFileOptions) e.getUnfinishedMessage();
-          throw e;
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      // optional string path = 1;
-      private java.lang.Object path_ = "";
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public boolean hasPath() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public java.lang.String getPath() {
-        java.lang.Object ref = path_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          path_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public com.google.protobuf.ByteString
-          getPathBytes() {
-        java.lang.Object ref = path_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          path_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public Builder setPath(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        path_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public Builder clearPath() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        path_ = getDefaultInstance().getPath();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public Builder setPathBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        path_ = value;
-        onChanged();
-        return this;
-      }
-
-      // optional string owner = 2;
-      private java.lang.Object owner_ = "";
-      /**
-       * <code>optional string owner = 2;</code>
-       */
-      public boolean hasOwner() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional string owner = 2;</code>
-       */
-      public java.lang.String getOwner() {
-        java.lang.Object ref = owner_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          owner_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string owner = 2;</code>
-       */
-      public com.google.protobuf.ByteString
-          getOwnerBytes() {
-        java.lang.Object ref = owner_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          owner_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string owner = 2;</code>
-       */
-      public Builder setOwner(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        owner_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string owner = 2;</code>
-       */
-      public Builder clearOwner() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        owner_ = getDefaultInstance().getOwner();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string owner = 2;</code>
-       */
-      public Builder setOwnerBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        owner_ = value;
-        onChanged();
-        return this;
-      }
-
-      // optional string group = 3;
-      private java.lang.Object group_ = "";
-      /**
-       * <code>optional string group = 3;</code>
-       */
-      public boolean hasGroup() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <code>optional string group = 3;</code>
-       */
-      public java.lang.String getGroup() {
-        java.lang.Object ref = group_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          group_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string group = 3;</code>
-       */
-      public com.google.protobuf.ByteString
-          getGroupBytes() {
-        java.lang.Object ref = group_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          group_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string group = 3;</code>
-       */
-      public Builder setGroup(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-        group_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string group = 3;</code>
-       */
-      public Builder clearGroup() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        group_ = getDefaultInstance().getGroup();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string group = 3;</code>
-       */
-      public Builder setGroupBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-        group_ = value;
-        onChanged();
-        return this;
-      }
-
-      // optional int32 mode = 4;
-      private int mode_ ;
-      /**
-       * <code>optional int32 mode = 4;</code>
-       *
-       * <pre>
-       * Only the last least significant 2 bytes are used.
-       * </pre>
-       */
-      public boolean hasMode() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional int32 mode = 4;</code>
-       *
-       * <pre>
-       * Only the last least significant 2 bytes are used.
-       * </pre>
-       */
-      public int getMode() {
-        return mode_;
-      }
-      /**
-       * <code>optional int32 mode = 4;</code>
-       *
-       * <pre>
-       * Only the last least significant 2 bytes are used.
-       * </pre>
-       */
-      public Builder setMode(int value) {
-        bitField0_ |= 0x00000008;
-        mode_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int32 mode = 4;</code>
-       *
-       * <pre>
-       * Only the last least significant 2 bytes are used.
-       * </pre>
-       */
-      public Builder clearMode() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        mode_ = 0;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.CreateUfsFileOptions)
-    }
-
-    static {
-      defaultInstance = new CreateUfsFileOptions(true);
-      defaultInstance.initFields();
-    }
-
-    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.CreateUfsFileOptions)
   }
 
   public interface ResponseOrBuilder
@@ -5444,11 +4356,6 @@ public final class Protocol {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_Response_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -5468,10 +4375,10 @@ public final class Protocol {
       "alluxio.proto.dataserver.Status.Code:\002OK" +
       "\022\017\n\007message\030\002 \001(\t\0222\n\005cause\030\003 \001(\0132#.allux" +
       "io.proto.dataserver.Exception\"\260\002\n\004Code\022\006" +
-      "\n\002OK\020\000\022\024\n\020INVALID_ARGUMENT\020\003\022\014\n\010INTERNAL" +
-      "\020\r\022\r\n\tCANCELLED\020\001\022\013\n\007UNKNOWN\020\002\022\r\n\tNOT_FO" +
-      "UND\020\004\022\022\n\016ALREADY_EXISTS\020\005\022\025\n\021PERMISSION_" +
-      "DENIED\020\006\022\023\n\017UNAUTHENTICATED\020\007\022\026\n\022RESOURC",
+      "\n\002OK\020\000\022\r\n\tCANCELLED\020\001\022\013\n\007UNKNOWN\020\002\022\024\n\020IN" +
+      "VALID_ARGUMENT\020\003\022\025\n\021PERMISSION_DENIED\020\006\022" +
+      "\014\n\010INTERNAL\020\r\022\r\n\tNOT_FOUND\020\004\022\022\n\016ALREADY_" +
+      "EXISTS\020\005\022\023\n\017UNAUTHENTICATED\020\007\022\026\n\022RESOURC",
       "E_EXHAUSTED\020\010\022\027\n\023FAILED_PRECONDITION\020\t\022\013" +
       "\n\007ABORTED\020\n\022\020\n\014OUT_OF_RANGE\020\013\022\021\n\rUNIMPLE" +
       "MENTED\020\014\022\017\n\013UNAVAILABLE\020\016\022\r\n\tDATA_LOSS\020\017" +
@@ -5480,18 +4387,14 @@ public final class Protocol {
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
       "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\"\357\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
+      "\"\236\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
       "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001",
       "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
-      "\n\004tier\030\005 \001(\005\022O\n\027create_ufs_file_options\030" +
-      "\006 \001(\0132..alluxio.proto.dataserver.CreateU" +
-      "fsFileOptions\022\013\n\003eof\030\007 \001(\010\022\016\n\006cancel\030\010 \001" +
-      "(\010\"P\n\024CreateUfsFileOptions\022\014\n\004path\030\001 \001(\t" +
-      "\022\r\n\005owner\030\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mode\030\004" +
-      " \001(\005\"<\n\010Response\0220\n\006status\030\001 \001(\0132 .allux" +
-      "io.proto.dataserver.Status*=\n\013RequestTyp" +
-      "e\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUF" +
-      "S_BLOCK\020\002"
+      "\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(" +
+      "\010\"<\n\010Response\0220\n\006status\030\001 \001(\0132 .alluxio." +
+      "proto.dataserver.Status*=\n\013RequestType\022\021" +
+      "\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_B" +
+      "LOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5521,15 +4424,9 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "CreateUfsFileOptions", "Eof", "Cancel", });
-          internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor =
-            getDescriptor().getMessageTypes().get(4);
-          internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor,
-              new java.lang.String[] { "Path", "Owner", "Group", "Mode", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
-            getDescriptor().getMessageTypes().get(5);
+            getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Response_descriptor,
