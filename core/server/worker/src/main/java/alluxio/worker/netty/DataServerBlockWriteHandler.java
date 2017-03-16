@@ -51,6 +51,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
 
     public BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId(), request.getSessionId());
+      Preconditions.checkState(request.getOffset() == 0);
       mWorker.createBlockRemote(request.getSessionId(), request.getId(),
           mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
       mBytesReserved = FILE_BUFFER_SIZE;
