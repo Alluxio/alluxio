@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface Journal {
 
   /**
-   * A factory which creates read-write journals.
+   * A {@link Journal} factory.
    */
   @ThreadSafe
   final class Factory {
@@ -36,7 +36,7 @@ public interface Journal {
     private final boolean mMutable;
 
     /**
-     * Creates a journal factory with the specified base location. When journals are
+     * Creates a read-only journal factory with the specified base location. When journals are
      * created, their names are appended to the base path.
      *
      * @param base the base location for journals created by this factory
@@ -58,7 +58,7 @@ public interface Journal {
     }
 
     /**
-     * Creates a new instance of {@link Journal} using the given journal name.
+     * Creates a new journal using the given name.
      *
      * @param name the journal name
      * @return a new instance of {@link Journal}
@@ -76,7 +76,7 @@ public interface Journal {
     }
 
     /**
-     * Creates a new instance of {@link Journal} using the given journal location.
+     * Creates a new read-only journal using the given location.
      *
      * @param location the journal location
      * @return a new instance of {@link Journal}
@@ -86,7 +86,7 @@ public interface Journal {
     }
 
     /**
-     * Creates a new instance of {@link Journal} using the given journal location.
+     * Creates a new journal using the given journal location.
      *
      * @param location the journal location
      * @oaram mutable whether the journal is mutable or not

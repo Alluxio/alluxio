@@ -145,16 +145,20 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Check that the journal has been formatted.
-      URI location = getJournalLocation();
-      Journal journal = MutableJournal.Factory.create(location);
-      if (!journal.isFormatted()) {
-        throw new RuntimeException(
-            String.format("Alluxio master folder %s has not been formatted!", location));
-      }
-      // Create the masters.
-      createMasters(new Journal.Factory(location, true));
+      checkJournalFormatted();
+      // Create masters.
+      createMasters(new Journal.Factory(getJournalLocation(), true));
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  protected void checkJournalFormatted() throws IOException {
+    URI location = getJournalLocation();
+    Journal journal = MutableJournal.Factory.create(location);
+    if (!journal.isFormatted()) {
+      throw new RuntimeException(
+          String.format("Alluxio master folder %s has not been formatted!", location));
     }
   }
 

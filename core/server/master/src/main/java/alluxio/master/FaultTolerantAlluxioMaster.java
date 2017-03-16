@@ -57,14 +57,9 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
 
       // Check that the journal has been formatted.
-      URI location = getJournalLocation();
-      Journal journal = Journal.Factory.create(location);
-      if (!journal.isFormatted()) {
-        throw new RuntimeException(
-            String.format("Alluxio master folder %s has not been formatted!", location));
-      }
+      checkJournalFormatted();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -74,7 +69,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
       mLeaderSelectorClient.start();
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
 
     Thread currentThread = Thread.currentThread();
