@@ -138,7 +138,7 @@ public final class BlockLockManager {
    * @return whether the specified session holds a lock on the specified block
    */
   private boolean sessionHoldsLock(long sessionId, long blockId) {
-    synchronized(mSharedMapsLock) {
+    synchronized (mSharedMapsLock) {
       Set<Long> sessionLocks = mSessionIdToLockIdsMap.get(sessionId);
       if (sessionLocks == null) {
         return false;
