@@ -38,7 +38,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,7 +152,7 @@ public final class RetryHandlingBlockWorkerClient
     try {
       return mClientPool.acquire();
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

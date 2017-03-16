@@ -153,7 +153,7 @@ public final class AlluxioBlockStore {
               .createLocalBlockInStream(mContext, blockId, blockInfo.getLength(), workerNetAddress,
                   options);
         } catch (IOException e) {
-          LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
+          LOG.warn("Failed to open local stream for block {}: {}", blockId, e.getMessage());
           // Getting a local stream failed, do not try again
           break;
         }

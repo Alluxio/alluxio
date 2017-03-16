@@ -38,12 +38,15 @@ public final class DataServerUFSFileWriteHandler extends DataServerWriteHandler 
     public OutputStream mOutputStream;
 
     public FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      mOutputStream = mWorker.getUfsOutputStream(request.getId());
-      mId = request.getId();
+      super(request.getId(), -1);
+      mOutputStream = mWorker.getUfsOutputStream(mId);
     }
 
     @Override
     public void close() throws IOException {}
+
+    @Override
+    public void cancel() throws IOException {}
   }
 
   /**
