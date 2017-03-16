@@ -103,7 +103,7 @@ public final class LineageMaster extends AbstractMaster {
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
     mFileSystemMaster = registry.get(FileSystemMaster.class);
-    registry.put(LineageMaster.class, this);
+    registry.add(LineageMaster.class, this);
   }
 
   @Override

@@ -80,7 +80,7 @@ public final class KeyValueMaster extends AbstractMaster {
     mFileSystemMaster = registry.get(FileSystemMaster.class);
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
-    registry.put(KeyValueMaster.class, this);
+    registry.add(KeyValueMaster.class, this);
   }
 
   @Override

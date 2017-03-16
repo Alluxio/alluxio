@@ -182,7 +182,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   public BlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.get(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
-    registry.put(BlockMaster.class, this);
+    registry.add(BlockMaster.class, this);
     Metrics.registerGauges(this);
   }
 
