@@ -74,6 +74,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </li>
  * <li>Method {@link #createBlockMeta} does not acquire the block lock, because it only creates a
  * temp block which is only visible to its writer before committed (thus no concurrent access).</li>
+ * <li>Method {@link #abortBlock(long, long)} does not acquire the block lock, because only
+ * temporary blocks can be aborted, and they are only visible to their writers (thus no concurrent
+ * access).
  * <li>Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
