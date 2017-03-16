@@ -11,13 +11,15 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,35 +43,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MasterRegistry {
   /**
-   * Used for enforcing the order in which masters are iterated over. If there is a known
-   * dependency between the masters, then the comparator respects the dependency. Otherwise, it
-   * uses alphabetical ordering.
-   */
-  private static final Comparator<Master> COMPARATOR = new Comparator<Master>() {
-    @Override
-    public int compare(Master left, Master right) {
-      Set<String> deps = DEPS.get(left.getName());
-      if (deps != null && deps.contains(right.getName())) {
-        return -1;
-      }
-      return left.getName().compareTo(right.getName());
-    }
-  };
-
-  /**
    * Records dependencies between masters stored in the registry. In particular, DEPS[x] records
    * the set of masters that the master X depends on. The dependencies are respected by
    * {@link #getMasters()} which determines the order in which masters are iterated over.
    */
-  private static final Map<String, Set<String>> DEPS = new HashMap<>();
-
-  static {
-    // The block master depends on the file system master.
-    Set<String> blockMasterDeps = new HashSet<>();
-    blockMasterDeps.add(Constants.FILE_SYSTEM_MASTER_NAME);
-    DEPS.put(Constants.BLOCK_MASTER_NAME, blockMasterDeps);
-  }
-
+  private final Map<Class<?>, Set<Class<?>>> mDeps = new HashMap<>();
   private final Map<Class<?>, Master> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
   private final Condition mCondition = mLock.newCondition();
@@ -108,6 +86,7 @@ public final class MasterRegistry {
    */
   public <T> void add(Class<T> clazz, Master master) {
     try (LockResource r = new LockResource(mLock)) {
+      mDeps.put(clazz, master.getDependencies());
       mRegistry.put(clazz, master);
       mCondition.signalAll();
     }
@@ -116,9 +95,56 @@ public final class MasterRegistry {
   /**
    * @return a collection of all the registered masters
    */
-  public synchronized Collection<Master> getMasters() {
-    List<Master> masters = new ArrayList<>(mRegistry.values());
-    Collections.sort(masters, COMPARATOR);
+  public Collection<Master> getMasters() {
+    List<Map.Entry<Class<?>, Master>> entries = new ArrayList<>(mRegistry.entrySet());
+    Collections.sort(entries, new DependencyComparator());
+    List<Master> masters = new ArrayList<>();
+    for (Map.Entry<Class<?>, Master> entry : entries) {
+      masters.add(entry.getValue());
+    }
     return masters;
+  }
+
+  private Set<Class<?>> getTransitiveDeps(Class<?> clazz) {
+    Set<Class<?>> result = new HashSet<>();
+    Set<Class<?>> visited = new HashSet<>();
+    Deque<Class<?>> queue = new ArrayDeque<>();
+    queue.add(clazz);
+    while (!queue.isEmpty()) {
+      Class<?> c = queue.pop();
+      visited.add(c);
+      Set<Class<?>> deps = mDeps.get(c);
+      if (deps == null) {
+        continue;
+      }
+      for (Class<?> dep : deps) {
+        if (dep.equals(clazz)) {
+          throw new RuntimeException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
+        }
+        result.add(dep);
+        if (visited.contains(dep)) {
+          continue;
+        }
+        queue.add(dep);
+      }
+    }
+    return result;
+  }
+
+  private final class DependencyComparator implements Comparator<Map.Entry<Class<?>, Master>> {
+    public DependencyComparator() {}
+
+    @Override
+    public int compare(Map.Entry<Class<?>, Master> left, Map.Entry<Class<?>, Master> right) {
+      Set<Class<?>> leftDeps = getTransitiveDeps(left.getKey());
+      Set<Class<?>> rightDeps = getTransitiveDeps(right.getKey());
+      if (leftDeps.contains(right.getKey())) {
+        return 1;
+      }
+      if (rightDeps.contains(left.getKey())) {
+        return -1;
+      }
+      return left.getValue().getName().compareTo(right.getValue().getName());
+    }
   }
 }

@@ -13,8 +13,6 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource.Config;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
@@ -72,7 +70,6 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void createLineage() throws Exception {
     mLineageClient.createFile(new AlluxioURI("/input")).close();
 
@@ -87,7 +84,6 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void deleteLineage() throws Exception {
     LineageMaster lineageMaster = mMaster.getLineageMaster();
     long lineageId = lineageMaster.createLineage(new ArrayList<AlluxioURI>(),
@@ -102,7 +98,6 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void getLineageInfoList() throws Exception {
     AlluxioURI input = new AlluxioURI("/input");
     AlluxioURI output = new AlluxioURI("/output");
@@ -123,7 +118,6 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void reinitializeFile() throws Exception {
     mLineageClient.createFile(new AlluxioURI("/test")).close();
 
@@ -139,7 +133,6 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void reportLostFile() throws Exception {
     mLineageClient.createFile(new AlluxioURI("/test")).close();
 

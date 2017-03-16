@@ -34,6 +34,7 @@ public abstract class RestApiTest {
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
       .setProperty(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "true")
+      .setProperty(PropertyKey.USER_LINEAGE_ENABLED, "true")
       .build();
 
   protected String getEndpoint(String suffix) {

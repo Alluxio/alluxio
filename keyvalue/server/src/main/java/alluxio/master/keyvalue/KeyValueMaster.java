@@ -48,8 +48,10 @@ import org.apache.thrift.TProcessor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,6 +62,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
+  private static final Set<Class<?>> DEPS = new HashSet<>();
+
+  static {
+    DEPS.add(FileSystemMaster.class);
+  }
+
   private final FileSystemMaster mFileSystemMaster;
 
   /** Map from file id of a complete store to the list of partitions in this store. */
@@ -94,6 +102,11 @@ public final class KeyValueMaster extends AbstractMaster {
   @Override
   public String getName() {
     return Constants.KEY_VALUE_MASTER_NAME;
+  }
+
+  @Override
+  public Set<Class<?>> getDependencies() {
+    return DEPS;
   }
 
   @Override

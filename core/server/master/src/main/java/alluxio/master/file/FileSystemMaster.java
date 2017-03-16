@@ -142,6 +142,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class FileSystemMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMaster.class);
+  private static final Set<Class<?>> DEPS = new HashSet<>();
+
+  static {
+    DEPS.add(BlockMaster.class);
+  }
 
   /**
    * Locking in the FileSystemMaster
@@ -325,6 +330,11 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public String getName() {
     return Constants.FILE_SYSTEM_MASTER_NAME;
+  }
+
+  @Override
+  public Set<Class<?>> getDependencies() {
+    return DEPS;
   }
 
   @Override

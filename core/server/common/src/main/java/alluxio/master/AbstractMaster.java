@@ -47,8 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractMaster.class);
-
-  public static final long INVALID_FLUSH_COUNTER = -1;
+  private static final long INVALID_FLUSH_COUNTER = -1;
   private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
   private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);

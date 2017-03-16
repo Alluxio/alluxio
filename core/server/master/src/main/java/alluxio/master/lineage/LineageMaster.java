@@ -60,8 +60,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -72,10 +74,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(LineageMaster.class);
+  private static final Set<Class<?>> DEPS = new HashSet<>();
 
+  static {
+    DEPS.add(FileSystemMaster.class);
+  }
+
+  private final FileSystemMaster mFileSystemMaster;
   private final LineageStore mLineageStore;
   private final LineageIdGenerator mLineageIdGenerator;
-  private final FileSystemMaster mFileSystemMaster;
 
   /**
    * Creates a new instance of {@link LineageMaster}.
@@ -117,6 +124,11 @@ public final class LineageMaster extends AbstractMaster {
   @Override
   public String getName() {
     return Constants.LINEAGE_MASTER_NAME;
+  }
+
+  @Override
+  public Set<Class<?>> getDependencies() {
+    return DEPS;
   }
 
   @Override

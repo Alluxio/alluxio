@@ -31,6 +31,7 @@ public enum ExceptionMessage {
   PATH_MUST_BE_FILE("Path {0} must be a file"),
   PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
   PATH_INVALID("Path {0} is invalid"),
+  DEPENDENCY_CYCLE("Dependency cycle encountered"),
 
   // general block
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
