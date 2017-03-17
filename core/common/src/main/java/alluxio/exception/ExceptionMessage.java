@@ -97,6 +97,14 @@ public enum ExceptionMessage {
       "Temp blockId {0,number,#} is not available, because it is already committed"),
   TEMP_BLOCK_ID_EXISTS("Temp blockId {0,number,#} is not available, because it already exists"),
 
+  // ufsBlockStore
+  UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION(
+      "UFS block {0,number,#} from UFS file {1} exists for session {2,number,#}"),
+  UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE(
+      "Failed to acquire an access token for the UFS block {0,number,#} (filename: {1})."),
+  UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION(
+      "UFS block {0,number,#} does not exist for session {1,number,#}"),
+
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
   UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),

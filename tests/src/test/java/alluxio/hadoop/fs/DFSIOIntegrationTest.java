@@ -133,6 +133,9 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
+  /**
+   * Represents for 5 multiple bytes unit.
+   */
   enum ByteMultiple {
     B(1L), KB(0x400L), MB(0x100000L), GB(0x40000000L), TB(0x10000000000L);
 

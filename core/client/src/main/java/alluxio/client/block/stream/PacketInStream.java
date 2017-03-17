@@ -76,14 +76,15 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * @param lockId the lock ID (set to -1 if not applicable)
    * @param sessionId the session ID (set to -1 if not applicable)
    * @param length the block or file length
+   * @param noCache do not cache the block to the Alluxio worker if read from UFS when this is set
    * @param type the read request type (either block read or UFS file read)
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
       InetSocketAddress address, long id, long lockId, long sessionId, long length,
-      Protocol.RequestType type) {
+      boolean noCache, Protocol.RequestType type) {
     PacketReader.Factory factory =
-        new NettyPacketReader.Factory(context, address, id, lockId, sessionId, type);
+        new NettyPacketReader.Factory(context, address, id, lockId, sessionId, noCache, type);
     return new PacketInStream(factory, id, length);
   }
 

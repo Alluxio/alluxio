@@ -253,14 +253,9 @@ public final class StorageDir {
    *
    * @param blockId the block id
    * @return {@link TempBlockMeta} of the given block or null
-   * @throws BlockDoesNotExistException if no temp block is found
    */
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
-    TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.get(blockId);
-    if (tempBlockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
-    }
-    return tempBlockMeta;
+  public TempBlockMeta getTempBlockMeta(long blockId) {
+    return mBlockIdToTempBlockMap.get(blockId);
   }
 
   /**
