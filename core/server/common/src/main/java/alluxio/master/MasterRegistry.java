@@ -42,11 +42,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MasterRegistry {
-  /**
-   * Records dependencies between masters stored in the registry. In particular, DEPS[x] records
-   * the set of masters that the master X depends on. The dependencies are respected by
-   * {@link #getMasters()} which determines the order in which masters are iterated over.
-   */
   private final Map<Class<?>, Master> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
   private final Condition mCondition = mLock.newCondition();
@@ -99,6 +94,12 @@ public final class MasterRegistry {
     return masters;
   }
 
+  /**
+   * Computes a transitive closure of the master dependencies.
+   *
+   * @param master the master to compute transitive dependencies for
+   * @return the transitive dependencies
+   */
   private Set<Master> getTransitiveDeps(Master master) {
     Set<Master> result = new HashSet<>();
     Deque<Master> queue = new ArrayDeque<>();
@@ -126,7 +127,13 @@ public final class MasterRegistry {
     return result;
   }
 
+  /**
+   * Used for computing topological sort of masters with respect to the dependency relation.
+   */
   private final class DependencyComparator implements Comparator<Master> {
+    /**
+     * Creates a new instance of {@link DependencyComparator}.
+     */
     public DependencyComparator() {}
 
     @Override
