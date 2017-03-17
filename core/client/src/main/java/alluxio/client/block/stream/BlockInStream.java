@@ -163,7 +163,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       PacketInStream inStream;
       if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
-            .equals(NetworkAddressUtils.getLocalHostName());
+            .equals(NetworkAddressUtils.getClientHostName());
         if (local) {
           inStream = closer.register(PacketInStream
               .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
