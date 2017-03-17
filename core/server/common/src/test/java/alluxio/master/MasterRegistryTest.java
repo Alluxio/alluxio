@@ -128,7 +128,6 @@ public class MasterRegistryTest {
     List<Master> masters = ImmutableList.<Master>of(new MasterC(), new MasterB(), new MasterA());
     List<Master[]> permutations = new ArrayList<>();
     computePermutations(masters.toArray(new Master[masters.size()]), 0, permutations);
-
     // Make sure that the registry orders the masters independently of the order in which they
     // are registered.
     for (Master[] permutation : permutations) {
@@ -147,12 +146,22 @@ public class MasterRegistryTest {
     registry.add(MasterB.class, new MasterB());
     registry.add(MasterC.class, new MasterC());
     registry.add(MasterC.class, new MasterD());
-
     try {
       registry.getMasters();
       Assert.fail("Control flow should not reach here.");
     } catch (Exception e) {
       Assert.assertEquals(e.getMessage(), ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
+    }
+  }
+
+  @Test
+  public void unavailable() {
+    MasterRegistry registry = new MasterRegistry();
+    try {
+      registry.get(MasterB.class);
+      Assert.fail("Control flow should not reach here.");
+    } catch (Exception e) {
+      Assert.assertEquals(e.getMessage(), ExceptionMessage.RESOURCE_UNAVAILABLE.getMessage());
     }
   }
 

@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
+import alluxio.retry.CountingRetry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,6 +44,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MasterRegistry {
+  private static final int TIMEOUT_SECONDS = 1;
+  private static final int RETRY_COUNT = 5;
+
   private final Map<Class<?>, Master> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
   private final Condition mCondition = mLock.newCondition();
@@ -52,6 +57,9 @@ public final class MasterRegistry {
   public MasterRegistry() {}
 
   /**
+   * Attempts to lookup the master for the given class. Because masters can be looked up and
+   * added to the registry in parallel, the looked up is retried several times before giving up.
+   *
    * @param clazz the class of the master to get
    * @param <T> the type of the master to get
    * @return the master instance, or null if a type mismatch occurs
@@ -59,18 +67,25 @@ public final class MasterRegistry {
   public <T> T get(Class<T> clazz) {
     Master master;
     try (LockResource r = new LockResource(mLock)) {
-      while (true) {
+      CountingRetry retry = new CountingRetry(RETRY_COUNT);
+      while (retry.attemptRetry()) {
         master = mRegistry.get(clazz);
         if (master != null) {
-          break;
+          if (!(clazz.isInstance(master))) {
+            return null;
+          }
+          return clazz.cast(master);
         }
-        mCondition.awaitUninterruptibly();
+        if (mCondition.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+          // Restart the retry counter when someone woke us up.
+          retry = new CountingRetry(RETRY_COUNT);
+        }
       }
-      if (!(clazz.isInstance(master))) {
-        return null;
-      }
-      return clazz.cast(master);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
+    // TODO(jiri): Convert this to a checked exception when exception story is finalized
+    throw new RuntimeException(ExceptionMessage.RESOURCE_UNAVAILABLE.getMessage());
   }
 
   /**
