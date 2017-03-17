@@ -16,6 +16,7 @@ import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.Journal;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.thrift.TProcessor;
 import org.junit.Assert;
 import org.junit.Test;
@@ -124,9 +125,9 @@ public class MasterRegistryTest {
 
   @Test
   public void registry() {
-    Master[] masters = {new MasterC(), new MasterB(), new MasterA()};
+    List<Master> masters = ImmutableList.<Master>of(new MasterC(), new MasterB(), new MasterA());
     List<Master[]> permutations = new ArrayList<>();
-    computePermutations(masters, 0, permutations);
+    computePermutations(masters.toArray(new Master[masters.size()]), 0, permutations);
 
     // Make sure that the registry orders the masters independently of the order in which they
     // are registered.
@@ -135,10 +136,7 @@ public class MasterRegistryTest {
       for (int i = 0; i < permutation.length; i++) {
         registry.add(permutation[i].getClass(), permutation[i]);
       }
-      int i = 0;
-      for (Master master : registry.getMasters()) {
-        Assert.assertEquals(master.getName(), masters[i++].getName());
-      }
+      Assert.assertEquals(masters, registry.getMasters());
     }
   }
 

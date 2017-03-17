@@ -53,6 +53,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,11 +74,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(LineageMaster.class);
-  private static final Set<Class<?>> DEPS = new HashSet<>();
-
-  static {
-    DEPS.add(FileSystemMaster.class);
-  }
+  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);;
 
   private final FileSystemMaster mFileSystemMaster;
   private final LineageStore mLineageStore;
