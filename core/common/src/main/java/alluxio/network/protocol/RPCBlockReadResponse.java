@@ -24,6 +24,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This represents the response of a {@link RPCBlockReadRequest}.
+ *
+ * Since 1.5.0, this also represents the response of a {@link RPCUnderFileSystemBlockReadRequest}.
  */
 @ThreadSafe
 public final class RPCBlockReadResponse extends RPCResponse {
@@ -34,7 +36,8 @@ public final class RPCBlockReadResponse extends RPCResponse {
   private final Status mStatus;
 
   /**
-   * Constructs a new RPC response of a {@link RPCBlockReadRequest}.
+   * Constructs a new RPC response of a {@link RPCBlockReadRequest} or a
+   * {@link RPCUnderFileSystemBlockReadRequest}.
    *
    * @param blockId the id of the block
    * @param offset the block offset that the read began at
@@ -67,6 +70,22 @@ public final class RPCBlockReadResponse extends RPCResponse {
    */
   public static RPCBlockReadResponse createErrorResponse(final RPCBlockReadRequest request,
       final Status status) {
+    Preconditions.checkArgument(status != Status.SUCCESS);
+    // The response has no payload, so length must be 0.
+    return new RPCBlockReadResponse(request.getBlockId(), request.getOffset(), 0, null, status);
+  }
+
+  /**
+   * Creates a {@link RPCBlockReadResponse} object that indicates an error for the given
+   * {@link RPCUnderFileSystemBlockReadRequest}.
+   *
+   * @param request the {@link RPCUnderFileSystemBlockReadRequest} to generate
+   *        the {@link RPCBlockReadResponse} for
+   * @param status the {@link alluxio.network.protocol.RPCResponse.Status} for the response
+   * @return The generated {@link RPCBlockReadResponse} object
+   */
+  public static RPCBlockReadResponse createErrorResponse(
+      final RPCUnderFileSystemBlockReadRequest request, final Status status) {
     Preconditions.checkArgument(status != Status.SUCCESS);
     // The response has no payload, so length must be 0.
     return new RPCBlockReadResponse(request.getBlockId(), request.getOffset(), 0, null, status);

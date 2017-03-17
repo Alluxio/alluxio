@@ -32,6 +32,9 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Random;
 
+/**
+ * Unit tests for {@link DataServerUFSFileWriteHandler}.
+ */
 public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 

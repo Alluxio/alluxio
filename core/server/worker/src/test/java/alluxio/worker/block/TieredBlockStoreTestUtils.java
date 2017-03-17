@@ -97,7 +97,7 @@ public class TieredBlockStoreTestUtils {
    * by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
    * sets up the tierBlockStore with default values.
    *
-   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
+   * This method modifies the configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for all the paths of directories in the tiered
    *        storage; when specified, the directory needs to exist before calling this method
@@ -267,7 +267,7 @@ public class TieredBlockStoreTestUtils {
    */
   public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
       BlockStoreLocation location) throws Exception {
-    TempBlockMeta tempBlockMeta = blockStore.createBlockMeta(sessionId, blockId, location, bytes);
+    TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, location, bytes);
     // write data
     FileUtils.createFile(tempBlockMeta.getPath());
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
