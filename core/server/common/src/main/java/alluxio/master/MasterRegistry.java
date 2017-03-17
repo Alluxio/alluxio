@@ -107,13 +107,10 @@ public final class MasterRegistry {
 
   private Set<Class<?>> getTransitiveDeps(Class<?> clazz) {
     Set<Class<?>> result = new HashSet<>();
-    Set<Class<?>> visited = new HashSet<>();
     Deque<Class<?>> queue = new ArrayDeque<>();
     queue.add(clazz);
     while (!queue.isEmpty()) {
-      Class<?> c = queue.pop();
-      visited.add(c);
-      Set<Class<?>> deps = mDeps.get(c);
+      Set<Class<?>> deps = mDeps.get(queue.pop());
       if (deps == null) {
         continue;
       }
@@ -121,11 +118,11 @@ public final class MasterRegistry {
         if (dep.equals(clazz)) {
           throw new RuntimeException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
         }
-        result.add(dep);
-        if (visited.contains(dep)) {
+        if (result.contains(dep)) {
           continue;
         }
         queue.add(dep);
+        result.add(dep);
       }
     }
     return result;

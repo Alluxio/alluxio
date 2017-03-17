@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.SystemPropertyRule;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
@@ -21,7 +22,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -122,77 +126,20 @@ public class MasterRegistryTest {
 
   @Test
   public void registry() {
-    String[] expectedNames = {"C", "B", "A"};
+    Master[] masters = {new MasterC(), new MasterB(), new MasterA()};
+    List<Master[]> permutations = new ArrayList<>();
+    computePermutations(masters, 0, permutations);
 
-    {
+    // Make sure that the registry orders the masters independently of the order in which they
+    // are registered.
+    for (Master[] permutation : permutations) {
       MasterRegistry registry = new MasterRegistry();
-      registry.add(MasterA.class, new MasterA());
-      registry.add(MasterB.class, new MasterB());
-      registry.add(MasterC.class, new MasterC());
-
-      int i = 0;
-      for (Master master : registry.getMasters()) {
-        Assert.assertEquals(master.getName(), expectedNames[i++]);
+      for (int i = 0; i < permutation.length; i++) {
+        registry.add(permutation[i].getClass(), permutation[i]);
       }
-    }
-
-    {
-      MasterRegistry registry = new MasterRegistry();
-      registry.add(MasterA.class, new MasterA());
-      registry.add(MasterC.class, new MasterC());
-      registry.add(MasterB.class, new MasterB());
-
       int i = 0;
       for (Master master : registry.getMasters()) {
-        Assert.assertEquals(master.getName(), expectedNames[i++]);
-      }
-    }
-
-    {
-      MasterRegistry registry = new MasterRegistry();
-      registry.add(MasterB.class, new MasterB());
-      registry.add(MasterA.class, new MasterA());
-      registry.add(MasterC.class, new MasterC());
-
-      int i = 0;
-      for (Master master : registry.getMasters()) {
-        Assert.assertEquals(master.getName(), expectedNames[i++]);
-      }
-    }
-
-    {
-      MasterRegistry registry = new MasterRegistry();
-      registry.add(MasterB.class, new MasterB());
-      registry.add(MasterC.class, new MasterC());
-      registry.add(MasterA.class, new MasterA());
-
-      int i = 0;
-      for (Master master : registry.getMasters()) {
-        Assert.assertEquals(master.getName(), expectedNames[i++]);
-      }
-    }
-
-    {
-      MasterRegistry registry = new MasterRegistry();
-      registry.add(MasterC.class, new MasterC());
-      registry.add(MasterA.class, new MasterA());
-      registry.add(MasterB.class, new MasterB());
-
-      int i = 0;
-      for (Master master : registry.getMasters()) {
-        Assert.assertEquals(master.getName(), expectedNames[i++]);
-      }
-    }
-
-    {
-      MasterRegistry registry = new MasterRegistry();
-      registry.add(MasterC.class, new MasterC());
-      registry.add(MasterB.class, new MasterB());
-      registry.add(MasterA.class, new MasterA());
-
-      int i = 0;
-      for (Master master : registry.getMasters()) {
-        Assert.assertEquals(master.getName(), expectedNames[i++]);
+        Assert.assertEquals(master.getName(), masters[i++].getName());
       }
     }
   }
@@ -210,6 +157,20 @@ public class MasterRegistryTest {
       Assert.fail("Control flow should not reach here.");
     } catch (Exception e) {
       Assert.assertEquals(e.getMessage(), ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
+    }
+  }
+
+  private void computePermutations(Master[] input, int index, List<Master[]> permutations) {
+    if (index == input.length) {
+      permutations.add(input.clone());
+    }
+    for (int i = index; i < input.length; i++) {
+      Master tmp = input[i];
+      input[i] = input[index];
+      input[index] = tmp;
+      computePermutations(input, index+1, permutations);
+      input[index] = input[i];
+      input[i] = tmp;
     }
   }
 }

@@ -80,7 +80,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class BlockMaster extends AbstractMaster implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMaster.class);
-  private static final Set<Class<?>> DEPS = new HashSet<>();
 
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
@@ -201,11 +200,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   @Override
   public String getName() {
     return Constants.BLOCK_MASTER_NAME;
-  }
-
-  @Override
-  public Set<Class<?>> getDependencies() {
-    return DEPS;
   }
 
   @Override
