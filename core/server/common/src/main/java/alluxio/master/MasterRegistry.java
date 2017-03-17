@@ -47,7 +47,6 @@ public final class MasterRegistry {
    * the set of masters that the master X depends on. The dependencies are respected by
    * {@link #getMasters()} which determines the order in which masters are iterated over.
    */
-  private final Map<Class<?>, Set<Class<?>>> mDeps = new HashMap<>();
   private final Map<Class<?>, Master> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
   private final Condition mCondition = mLock.newCondition();
@@ -86,7 +85,6 @@ public final class MasterRegistry {
    */
   public <T> void add(Class<T> clazz, Master master) {
     try (LockResource r = new LockResource(mLock)) {
-      mDeps.put(clazz, master.getDependencies());
       mRegistry.put(clazz, master);
       mCondition.signalAll();
     }
@@ -96,26 +94,26 @@ public final class MasterRegistry {
    * @return a collection of all the registered masters
    */
   public Collection<Master> getMasters() {
-    List<Map.Entry<Class<?>, Master>> entries = new ArrayList<>(mRegistry.entrySet());
-    Collections.sort(entries, new DependencyComparator());
-    List<Master> masters = new ArrayList<>();
-    for (Map.Entry<Class<?>, Master> entry : entries) {
-      masters.add(entry.getValue());
-    }
+    List<Master> masters = new ArrayList<>(mRegistry.values());
+    Collections.sort(masters, new DependencyComparator());
     return masters;
   }
 
-  private Set<Class<?>> getTransitiveDeps(Class<?> clazz) {
-    Set<Class<?>> result = new HashSet<>();
-    Deque<Class<?>> queue = new ArrayDeque<>();
-    queue.add(clazz);
+  private Set<Master> getTransitiveDeps(Master master) {
+    Set<Master> result = new HashSet<>();
+    Deque<Master> queue = new ArrayDeque<>();
+    queue.add(master);
     while (!queue.isEmpty()) {
-      Set<Class<?>> deps = mDeps.get(queue.pop());
+      Set<Class<?>> deps = queue.pop().getDependencies();
       if (deps == null) {
         continue;
       }
-      for (Class<?> dep : deps) {
-        if (dep.equals(clazz)) {
+      for (Class<?> clazz : deps) {
+        Master dep = mRegistry.get(clazz);
+        if (dep == null) {
+          continue;
+        }
+        if (dep.equals(master)) {
           throw new RuntimeException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
         }
         if (result.contains(dep)) {
@@ -128,20 +126,20 @@ public final class MasterRegistry {
     return result;
   }
 
-  private final class DependencyComparator implements Comparator<Map.Entry<Class<?>, Master>> {
+  private final class DependencyComparator implements Comparator<Master> {
     public DependencyComparator() {}
 
     @Override
-    public int compare(Map.Entry<Class<?>, Master> left, Map.Entry<Class<?>, Master> right) {
-      Set<Class<?>> leftDeps = getTransitiveDeps(left.getKey());
-      Set<Class<?>> rightDeps = getTransitiveDeps(right.getKey());
-      if (leftDeps.contains(right.getKey())) {
+    public int compare(Master left, Master right) {
+      Set<Master> leftDeps = getTransitiveDeps(left);
+      Set<Master> rightDeps = getTransitiveDeps(right);
+      if (leftDeps.contains(right)) {
         return 1;
       }
-      if (rightDeps.contains(left.getKey())) {
+      if (rightDeps.contains(left)) {
         return -1;
       }
-      return left.getValue().getName().compareTo(right.getValue().getName());
+      return left.getName().compareTo(right.getName());
     }
   }
 }
