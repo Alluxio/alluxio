@@ -12,7 +12,9 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -30,6 +32,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CommandUtils {
+
+  private static final String DATE_FORMAT_PATTERN =
+      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
 
   private CommandUtils() {} // prevent instantiation
 
@@ -59,8 +64,8 @@ public final class CommandUtils {
    * @return formatted date String
    */
   public static String convertMsToDate(long millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
-    return formatter.format(new Date(millis));
+    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+    return dateFormat.format(new Date(millis));
   }
 
   /**
