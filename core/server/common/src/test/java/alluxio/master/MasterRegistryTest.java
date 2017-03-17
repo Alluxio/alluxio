@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.SystemPropertyRule;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
@@ -23,7 +22,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -168,7 +166,7 @@ public class MasterRegistryTest {
       Master tmp = input[i];
       input[i] = input[index];
       input[index] = tmp;
-      computePermutations(input, index+1, permutations);
+      computePermutations(input, index + 1, permutations);
       input[index] = input[i];
       input[i] = tmp;
     }
