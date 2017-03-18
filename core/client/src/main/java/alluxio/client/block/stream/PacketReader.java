@@ -49,7 +49,7 @@ public interface PacketReader extends Closeable {
     PacketReader create(long offset, long len) throws IOException;
 
     /**
-     * @return whether this factory generates packet readers which perform local reads.
+     * @return whether this factory generates packet readers which perform local reads
      */
     boolean isLocal();
   }
