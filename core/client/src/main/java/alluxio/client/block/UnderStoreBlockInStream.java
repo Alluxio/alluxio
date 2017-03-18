@@ -224,6 +224,11 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     return mFileBlockSize;
   }
 
+  @Override
+  public boolean isLocal() {
+    return false;
+  }
+
   /**
    * Class that contains metrics about {@link UnderStoreBlockInStream}.
    */

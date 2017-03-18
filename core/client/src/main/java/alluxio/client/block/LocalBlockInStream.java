@@ -158,6 +158,11 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     Metrics.BYTES_READ_LOCAL.inc(bytes);
   }
 
+  @Override
+  boolean isLocal() {
+    return true;
+  }
+
   /**
    * Class that contains metrics about LocalBlockInStream.
    */

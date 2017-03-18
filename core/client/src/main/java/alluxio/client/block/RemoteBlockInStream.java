@@ -163,6 +163,11 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     Metrics.BYTES_READ_REMOTE.inc(bytes);
   }
 
+  @Override
+  boolean isLocal() {
+    return false;
+  }
+
   /**
    * @return the {@link WorkerNetAddress} from which this RemoteBlockInStream is reading
    */

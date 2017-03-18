@@ -11,8 +11,8 @@
 
 package alluxio.client.block;
 
-import alluxio.client.BoundedStream;
 import alluxio.Seekable;
+import alluxio.client.BoundedStream;
 
 import java.io.InputStream;
 
@@ -26,5 +26,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 // TODO(calvin): Resolve the confusion between Alluxio BufferedBlockInStream and BlockInStream.
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
-
+  /**
+   * @return whether the stream is reading from a local file.
+   */
+  abstract boolean isLocal();
 }
