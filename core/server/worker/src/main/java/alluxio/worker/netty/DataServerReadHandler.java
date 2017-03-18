@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 3. The channel is closed if there is any exception during the packet read/write.
  */
 @NotThreadSafe
-public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
+abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerReadHandler.class);
 
   private static final long PACKET_SIZE =
@@ -55,13 +55,13 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
   private static final long MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
 
-  /** The executor to run {@link PacketReader}s.*/
+  /** The executor to run {@link PacketReader}. */
   private final ExecutorService mPacketReaderExecutor;
 
   private final ReentrantLock mLock = new ReentrantLock();
   /** Set to true if the packet reader is active .*/
   @GuardedBy("mLock")
-  private boolean mPacketReaderActive = false;
+  private boolean mPacketReaderActive;
   /**
    * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the bytes that are
    * in netty buffer.
@@ -82,21 +82,27 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    * netty channel handlers are executed in the event loop. The packet reader is not executed in
    * the event loop thread.
    */
-  protected volatile ReadRequestInternal mRequest = null;
+  protected volatile ReadRequestInternal mRequest;
 
-  protected abstract class ReadRequestInternal implements Closeable {
+  abstract class ReadRequestInternal implements Closeable {
     // This ID can either be block ID or temp UFS file ID.
-    public long mId = -1;
-    public long mStart = -1;
-    public long mEnd = -1;
+    final long mId;
+    final long mStart;
+    final long mEnd;
     // The position at which the read request is cancelled. If this is no smaller than mEnd,
     // the cancel request does nothing.
-    public long mCancelled = Long.MAX_VALUE;
+    volatile long mCancelled = Long.MAX_VALUE;
+
+    ReadRequestInternal(long id, long start, long end) {
+      mId = id;
+      mStart = start;
+      mEnd = end;
+    }
 
     /**
      * @return the effective end of the stream
      */
-    public long end() {
+    long end() {
       return Math.min(mEnd, mCancelled);
     }
 
@@ -114,7 +120,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
    *
    * @param executorService the executor service to run {@link PacketReader}s
    */
-  public DataServerReadHandler(ExecutorService executorService) {
+  DataServerReadHandler(ExecutorService executorService) {
     mPacketReaderExecutor = executorService;
   }
 
@@ -334,7 +340,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
      *
      * @param posToWriteUncommitted the position to commit (i.e. update mPosToWrite)
      */
-    public WriteListener(long posToWriteUncommitted) {
+    WriteListener(long posToWriteUncommitted) {
       mPosToWriteUncommitted = posToWriteUncommitted;
     }
 
@@ -377,7 +383,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
      *
      * @param channel the channel
      */
-    public PacketReader(Channel channel) {
+    PacketReader(Channel channel) {
       mChannel = channel;
     }
 

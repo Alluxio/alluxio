@@ -317,7 +317,7 @@ public final class NettyPacketWriter implements PacketWriter {
     /**
      * Default constructor.
      */
-    public PacketWriteHandler() {}
+    PacketWriteHandler() {}
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
@@ -393,7 +393,7 @@ public final class NettyPacketWriter implements PacketWriter {
     /**
      * @param posToWriteUncommitted the pos to commit (i.e. update mPosToWrite)
      */
-    public WriteListener(long posToWriteUncommitted) {
+    WriteListener(long posToWriteUncommitted) {
       mPosToWriteUncommitted = posToWriteUncommitted;
     }
 
