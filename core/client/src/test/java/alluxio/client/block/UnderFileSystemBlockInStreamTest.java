@@ -28,21 +28,29 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 
 /**
  * Unit tests for {@link UnderFileSystemBlockInStream}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, LockBlockResource.class})
+@PrepareForTest({FileSystemContext.class})
 public final class UnderFileSystemBlockInStreamTest {
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
   @Test
   public void readFromLocal() throws Exception {
+    File blockFile = mFolder.newFile();
+    blockFile.createNewFile();
     String clientHostname = "clientHostname";
     try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
         ImmutableMap.<PropertyKey, String>of(PropertyKey.USER_HOSTNAME, clientHostname))) {
@@ -53,7 +61,8 @@ public final class UnderFileSystemBlockInStreamTest {
           .thenReturn(blockWorkerClient);
       // Mock the lock result to show that the block is locked in Alluxio storage.
       LockBlockResult lockResult =
-          new LockBlockResult().setLockBlockStatus(LockBlockStatus.ALLUXIO_BLOCK_LOCKED);
+          new LockBlockResult().setLockBlockStatus(LockBlockStatus.ALLUXIO_BLOCK_LOCKED)
+              .setBlockPath(blockFile.getAbsolutePath());
       LockBlockResource lockResource =
           new LockBlockResource(blockWorkerClient, lockResult, blockId);
       when(blockWorkerClient.lockUfsBlock(eq(blockId), any(LockBlockOptions.class)))

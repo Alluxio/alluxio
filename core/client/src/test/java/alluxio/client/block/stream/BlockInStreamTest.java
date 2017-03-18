@@ -40,7 +40,7 @@ import java.net.InetSocketAddress;
  * Unit tests for {@link BlockInStream}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, LockBlockResource.class})
+@PrepareForTest({FileSystemContext.class})
 public final class BlockInStreamTest {
   @Test
   public void readFromLocal() throws Exception {
