@@ -241,7 +241,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   }
 
   /**
-   * Close the current packet reader.
+   * Closes the current packet reader.
    */
   private void closePacketReader() throws IOException {
     if (mCurrentPacket != null) {
