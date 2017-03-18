@@ -36,7 +36,7 @@ public enum ExceptionMessage {
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
-  NO_WORKER_AVAILABLE("No available Alluxio worker found"),
+  NO_WORKER_AVAILABLE("there is no worker with enough space for a new block of size ${blocksize}"),
 
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
