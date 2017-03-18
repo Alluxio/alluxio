@@ -17,7 +17,6 @@ import alluxio.retry.CountingRetry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
@@ -58,7 +57,7 @@ public final class MasterRegistry {
 
   /**
    * Attempts to lookup the master for the given class. Because masters can be looked up and
-   * added to the registry in parallel, the looked up is retried several times before giving up.
+   * added to the registry in parallel, the lookeup is retried several times before giving up.
    *
    * @param clazz the class of the master to get
    * @param <T> the type of the master to get
@@ -101,9 +100,9 @@ public final class MasterRegistry {
   }
 
   /**
-   * @return a collection of all the registered masters
+   * @return a list of all the registered masters, order by dependency relation
    */
-  public Collection<Master> getMasters() {
+  public List<Master> getMasters() {
     List<Master> masters = new ArrayList<>(mRegistry.values());
     Collections.sort(masters, new DependencyComparator());
     return masters;
