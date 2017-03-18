@@ -11,12 +11,12 @@
 
 package alluxio.client.file.options;
 
-import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -63,7 +63,7 @@ public class OutStreamOptionsTest {
   ));
 
   @Rule
-  public AuthenticatedUserRule mRule = new AuthenticatedUserRule("test_user");
+  public LoginUserRule mRule = new LoginUserRule("test_user");
 
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.

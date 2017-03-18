@@ -55,7 +55,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
   private String mUnderfsAddress = null;
-  private UnderFileSystem mUfs = null;
+  private UnderFileSystemWithLogging mUfs = null;
 
   /**
    * The exception expected to be thrown.
@@ -68,7 +68,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.Factory.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
+    mUfs = (UnderFileSystemWithLogging) UnderFileSystem.Factory
+        .get(mUnderfsAddress + AlluxioURI.SEPARATOR);
   }
 
   @After
@@ -590,7 +591,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // Only run test for an object store
     Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs.getUnderFileSystem();
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
@@ -611,7 +612,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // Only run test for an object store
     Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs.getUnderFileSystem();
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
@@ -651,7 +652,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // Only run test for an object store
     Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs.getUnderFileSystem();
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
@@ -705,7 +706,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // Only run test for an object store
     Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
 
-    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs.getUnderFileSystem();
     ObjectStorePreConfig config = prepareObjectStore(ufs);
     String baseDirectoryName = config.getBaseDirectoryPath()
         .substring(PathUtils.normalizePath(mUnderfsAddress, "/").length());

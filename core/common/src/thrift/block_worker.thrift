@@ -6,6 +6,23 @@ include "exception.thrift"
 struct LockBlockResult {
   1: i64 lockId
   2: string blockPath
+  3: LockBlockStatus lockBlockStatus
+}
+
+enum LockBlockStatus {
+   /** The Alluxio block is acquired. */
+   ALLUXIO_BLOCK_LOCKED = 1,
+   /** The block is not in Alluxio but a UFS access token is acquired for this block. */
+   UFS_TOKEN_ACQUIRED = 2,
+   /** The block is not in Alluxio and a UFS access token is not acquired. */
+   UFS_TOKEN_NOT_ACQUIRED = 3,
+}
+
+struct LockBlockTOptions {
+  1: string ufsPath
+  2: i64 offset
+  3: i64 blockSize
+  4: i32 maxUfsReadConcurrency
 }
 
 service BlockWorkerClientService extends common.AlluxioService {
@@ -47,6 +64,7 @@ service BlockWorkerClientService extends common.AlluxioService {
   LockBlockResult lockBlock(
     /** the id of the block being accessed */ 1: i64 blockId,
     /** the id of the current session */ 2: i64 sessionId,
+    /** the lock block options */ 3: LockBlockTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
@@ -113,5 +131,5 @@ service BlockWorkerClientService extends common.AlluxioService {
     /** the id of the block being accessed */ 1: i64 blockId,
     /** the id of the current session */ 2: i64 sessionId,
     )
-    throws (1: exception.AlluxioTException e)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 }

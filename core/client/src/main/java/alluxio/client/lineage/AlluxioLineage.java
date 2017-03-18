@@ -56,6 +56,11 @@ public final class AlluxioLineage extends AbstractLineageClient {
     return new AlluxioLineage(context);
   }
 
+  /**
+   * Internal constructor that constructs a new instance with a {@link LineageContext}.
+   *
+   * @param context lineage context
+   */
   protected AlluxioLineage(LineageContext context) {
     super(context);
   }

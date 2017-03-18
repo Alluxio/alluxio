@@ -44,6 +44,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   /**
    * Formats the ls result string.
    *
+   * @param rawSize print raw sizes
    * @param acl whether security is enabled
    * @param isFolder whether this path is a file or a folder
    * @param permission permission string
@@ -55,7 +56,8 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
    */
-  public static String formatLsString(boolean acl, boolean isFolder, String permission,
+  public static String formatLsString(boolean rawSize, boolean acl, boolean isFolder, String
+      permission,
       String userName, String groupName, long size, long createTimeMs, boolean inMemory,
       String path) {
     String memoryState;
@@ -64,20 +66,21 @@ public final class LsCommand extends WithWildCardPathCommand {
     } else {
       memoryState = inMemory ? STATE_FILE_IN_MEMORY : STATE_FILE_NOT_IN_MEMORY;
     }
+    String sizeStr = rawSize ? String.valueOf(size) : FormatUtils.getSizeFromBytes(size);
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
-          FormatUtils.getSizeFromBytes(size), CommandUtils.convertMsToDate(createTimeMs),
+          sizeStr, CommandUtils.convertMsToDate(createTimeMs),
           memoryState, path);
     } else {
-      return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
+      return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
           CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
     }
   }
 
-  private void printLsString(URIStatus status) {
-    System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
-        FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
-        status.getGroup(), status.getLength(), status.getCreationTimeMs(),
+  private void printLsString(URIStatus status, ListStatusOptions options) {
+    System.out.print(formatLsString(options.ismRawSize(), SecurityUtils.isSecurityEnabled(),
+        status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
+        status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
         100 == status.getInMemoryPercentage(), status.getPath()));
   }
 
@@ -107,7 +110,8 @@ public final class LsCommand extends WithWildCardPathCommand {
         .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
         .addOption(LIST_DIR_AS_FILE_OPTION)
-        .addOption(LIST_PINNED_FILES_OPTION);
+        .addOption(LIST_PINNED_FILES_OPTION)
+        .addOption(LIST_RAW_SIZE_OPTION);
   }
 
   /**
@@ -127,7 +131,7 @@ public final class LsCommand extends WithWildCardPathCommand {
           return;
         }
       }
-      printLsString(status);
+      printLsString(status, options);
       return;
     }
 
@@ -135,10 +139,10 @@ public final class LsCommand extends WithWildCardPathCommand {
     for (URIStatus status : statuses) {
       if (options.ismPinned()) {
         if (status.isPinned()) {
-          printLsString(status);
+          printLsString(status, options);
         }
       } else {
-        printLsString(status);
+        printLsString(status, options);
       }
       if (options.ismRecursive() && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), options);
@@ -176,12 +180,13 @@ public final class LsCommand extends WithWildCardPathCommand {
     listStatusOptions.setmRecursive(cl.hasOption("R"));
     listStatusOptions.setmDirAsFile(cl.hasOption("d"));
     listStatusOptions.setmPinned(cl.hasOption("p"));
+    listStatusOptions.setmRawSize(cl.hasOption("raw"));
     ls(path, listStatusOptions);
   }
 
   @Override
   public String getUsage() {
-    return "ls [-R] [-d] [-f] <path>";
+    return "ls [-R|-d|-f|-raw|-p] <path>";
   }
 
   @Override
@@ -190,6 +195,7 @@ public final class LsCommand extends WithWildCardPathCommand {
         + " Specify -R to display files and directories recursively."
         + " Specify -d to list directories as plain files."
         + " Specify -f to force loading files in the directory."
+        + " Specify -raw to print raw sizes."
         + " Specify -p to list all the pinned files.";
   }
 }

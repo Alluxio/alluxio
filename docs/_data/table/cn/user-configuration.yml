@@ -77,4 +77,5 @@ alluxio.user.rpc.retry.max.sleep.ms:
   在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个重试延迟的最大值。
 alluxio.user.rpc.retry.max.num.retry:
   在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了重试的最大次数。
-
+alluxio.user.date.format.pattern:
+  以指定的日期格式，在Cli命令和Web页面中显示日期。

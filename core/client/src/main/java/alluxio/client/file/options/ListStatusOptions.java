@@ -33,6 +33,7 @@ public final class ListStatusOptions {
   private boolean mForceLoadMetaData;
   private boolean mDirAsFile;
   private boolean mPinned;
+  private boolean mRawSize;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -47,6 +48,7 @@ public final class ListStatusOptions {
     mForceLoadMetaData = false;
     mDirAsFile = false;
     mPinned = false;
+    mRawSize = false;
   }
 
   /**
@@ -67,7 +69,21 @@ public final class ListStatusOptions {
   }
 
   /**
-   * @return the recursive. It specifies whether the path has to be traversed recursively
+   * @return raw size option. It specifies whether to print raw sizes
+   */
+  public boolean ismRawSize() {
+    return mRawSize;
+  }
+
+  /**
+   * @param rawSize Raw Size Option
+   */
+  public void setmRawSize(boolean rawSize) {
+    mRawSize = rawSize;
+  }
+
+  /**
+   * @return the recursive option. It specifies whether the path has to be traversed recursively
    */
   public boolean ismRecursive() {
     return mRecursive;
@@ -136,12 +152,14 @@ public final class ListStatusOptions {
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mForceLoadMetaData, that.mForceLoadMetaData)
         && Objects.equal(mDirAsFile, that.mDirAsFile)
-        && Objects.equal(mPinned, that.mPinned);
+        && Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mRawSize, that.mRawSize);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType, mRecursive, mForceLoadMetaData, mDirAsFile, mPinned);
+    return Objects.hashCode(mLoadMetadataType, mRecursive, mForceLoadMetaData, mDirAsFile, mPinned,
+        mRawSize);
   }
 
   @Override
