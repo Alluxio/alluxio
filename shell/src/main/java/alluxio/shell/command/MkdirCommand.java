@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Creates a new directory specified by the path in args, including any parent folders that are
- * required. This command fails if a directory or file with the same path already exists.
+ * required. This command  fails if a directory or file with the same path already exists.
  */
 @ThreadSafe
 public final class MkdirCommand extends AbstractShellCommand {
