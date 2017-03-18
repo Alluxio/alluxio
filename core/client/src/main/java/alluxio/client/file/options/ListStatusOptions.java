@@ -29,6 +29,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @JsonInclude(Include.NON_EMPTY)
 public final class ListStatusOptions {
   private LoadMetadataType mLoadMetadataType;
+  private boolean mRecursive;
+  private boolean mForceLoadMetaData;
+  private boolean mDirAsFile;
+  private boolean mPinned;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -39,6 +43,10 @@ public final class ListStatusOptions {
 
   private ListStatusOptions() {
     mLoadMetadataType = LoadMetadataType.Once;
+    mRecursive = false;
+    mForceLoadMetaData = false;
+    mDirAsFile = false;
+    mPinned = false;
   }
 
   /**
@@ -50,12 +58,69 @@ public final class ListStatusOptions {
   }
 
   /**
-   * @param loadMetadataType the loadMetataType
+   * @param loadMetadataType the loadMetadataType
    * @return the updated options
    */
   public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
     return this;
+  }
+
+  /**
+   * @return the recursive. It specifies whether the path has to be traversed recursively
+   */
+  public boolean ismRecursive() {
+    return mRecursive;
+  }
+
+  /**
+   * @param recursive Recursive option. It specifies whether to display directories recursively
+   */
+  public void setmRecursive(boolean recursive) {
+    mRecursive = recursive;
+  }
+
+  /**
+   * @return Force Load Metadata Option. It specifies whether to force loading files in the
+   *         directory.
+   */
+  public boolean ismForceLoadMetaData() {
+    return mForceLoadMetaData;
+  }
+
+  /**
+   * @param forceLoadMetaData Option to force loading files in the directory
+   */
+  public void setmForceLoadMetaData(boolean forceLoadMetaData) {
+    mForceLoadMetaData = forceLoadMetaData;
+  }
+
+  /**
+   * @return Directory As File Option. It specifies whether to list directories as plain files
+   */
+  public boolean ismDirAsFile() {
+    return mDirAsFile;
+  }
+
+  /**
+   * @param dirAsFile Option to list directories as plain files
+   */
+  public void setmDirAsFile(boolean dirAsFile) {
+    mDirAsFile = dirAsFile;
+  }
+
+  /**
+   * @return IsPinned Option. It specifies whether to list all the pinned files
+   */
+  public boolean ismPinned() {
+    return mPinned;
+  }
+
+  /**
+   * @param pinned Option to list all the pinned files
+   */
+  public void setmPinned(boolean pinned) {
+    mPinned = pinned;
   }
 
   @Override
@@ -67,12 +132,16 @@ public final class ListStatusOptions {
       return false;
     }
     ListStatusOptions that = (ListStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
+    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
+        && Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mForceLoadMetaData, that.mForceLoadMetaData)
+        && Objects.equal(mDirAsFile, that.mDirAsFile)
+        && Objects.equal(mPinned, that.mPinned);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return Objects.hashCode(mLoadMetadataType, mRecursive, mForceLoadMetaData, mDirAsFile, mPinned);
   }
 
   @Override

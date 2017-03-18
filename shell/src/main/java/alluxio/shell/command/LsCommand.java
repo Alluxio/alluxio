@@ -44,15 +44,15 @@ public final class LsCommand extends WithWildCardPathCommand {
   /**
    * Formats the ls result string.
    *
-   * @param acl          whether security is enabled
-   * @param isFolder     whether this path is a file or a folder
-   * @param permission   permission string
-   * @param userName     user name
-   * @param groupName    group name
-   * @param size         size of the file in bytes
+   * @param acl whether security is enabled
+   * @param isFolder whether this path is a file or a folder
+   * @param permission permission string
+   * @param userName user name
+   * @param groupName group name
+   * @param size size of the file in bytes
    * @param createTimeMs the epoch time in ms when the path is created
-   * @param inMemory     whether the file is in memory
-   * @param path         path of the file or folder
+   * @param inMemory whether the file is in memory
+   * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean acl, boolean isFolder, String permission,
@@ -72,6 +72,13 @@ public final class LsCommand extends WithWildCardPathCommand {
       return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
           CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
     }
+  }
+
+  private void printLsString(URIStatus status) {
+    System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
+        FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
+        status.getGroup(), status.getLength(), status.getCreationTimeMs(),
+        100 == status.getInMemoryPercentage(), status.getPath()));
   }
 
   /**
@@ -106,53 +113,35 @@ public final class LsCommand extends WithWildCardPathCommand {
   /**
    * Displays information for all directories and files directly under the path specified in args.
    *
-   * @param path      The {@link AlluxioURI} path as the input of the command
-   * @param recursive Whether list the path recursively
-   * @param dirAsFile list the directory status as a plain file
+   * @param path The {@link AlluxioURI} path as the input of the command
+   * @param options ListStatusOptions for the given path
    * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException      when non-Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-      boolean pinnedMetadata) throws AlluxioException, IOException {
-    if (dirAsFile) {
+  private void ls(AlluxioURI path, ListStatusOptions options) throws AlluxioException, IOException {
+    if (options.ismDirAsFile()) {
       URIStatus status = mFileSystem.getStatus(path);
       boolean isPinned = status.isPinned();
-      if (pinnedMetadata) {
+      if (options.ismPinned()) {
         if (!isPinned) {
           return;
         }
       }
-      System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
-          FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-          status.getOwner(), status.getGroup(), status.getLength(),
-          status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
+      printLsString(status);
       return;
     }
 
-    ListStatusOptions options = ListStatusOptions.defaults();
-    if (forceLoadMetadata) {
-      options.setLoadMetadataType(LoadMetadataType.Always);
-    }
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
-      if (pinnedMetadata) {
+      if (options.ismPinned()) {
         if (status.isPinned()) {
-          System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
-              FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-              status.getOwner(), status.getGroup(), status.getLength(),
-              status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(),
-              status.getPath()));
+          printLsString(status);
         }
       } else {
-        System.out.print(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
-            FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-            status.getOwner(),
-            status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-            100 == status.getInMemoryPercentage(), status.getPath()));
+        printLsString(status);
       }
-      if (recursive && status.isFolder()) {
-        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, pinnedMetadata);
+      if (options.ismRecursive() && status.isFolder()) {
+        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), options);
       }
     }
   }
@@ -179,7 +168,15 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("p"));
+    ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+    if (cl.hasOption("f")) {
+      listStatusOptions.setLoadMetadataType(LoadMetadataType.Always);
+      listStatusOptions.setmForceLoadMetaData(true);
+    }
+    listStatusOptions.setmRecursive(cl.hasOption("R"));
+    listStatusOptions.setmDirAsFile(cl.hasOption("d"));
+    listStatusOptions.setmPinned(cl.hasOption("p"));
+    ls(path, listStatusOptions);
   }
 
   @Override
@@ -193,6 +190,6 @@ public final class LsCommand extends WithWildCardPathCommand {
         + " Specify -R to display files and directories recursively."
         + " Specify -d to list directories as plain files."
         + " Specify -f to force loading files in the directory."
-        + " Specify -p to list all the pinned files in the specified path";
+        + " Specify -p to list all the pinned files.";
   }
 }
