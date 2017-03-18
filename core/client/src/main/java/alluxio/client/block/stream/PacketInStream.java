@@ -255,7 +255,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   }
 
   /**
-   * Convenience method to ensure the stream is not closed.
+   * Checks if the stream is closed.
    */
   private void checkIfClosed() {
     Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
