@@ -680,6 +680,11 @@
           <version>2.9</version>
         </plugin>
         <plugin>
+          <groupId>com.qmino</groupId>
+          <artifactId>miredot-plugin</artifactId>
+          <version>2.0</version>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.3</version>
@@ -804,6 +809,8 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Javadoc -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -980,6 +987,7 @@
         </executions>
       </plugin>
 
+      <!-- Prevent Windows line endings -->
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
@@ -996,6 +1004,59 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- REST API documentation -->
+      <plugin>
+        <groupId>com.qmino</groupId>
+        <artifactId>miredot-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>restdoc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- This following license only works for groupId org.alluxio and artifactId alluxio-core-server, it expires on 2018/04/24 -->
+          <license>
+            cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyfDIwMTgtMDQtMjh8dHJ1ZXwtMSNNQ3dDRkFFM0JGSnAwZ1FRNFFaNDd5SnlRd0x3ZGhmQUFoUU1ZMkJpWWVOamhOZndvQmU3UldMRVFzZnNGUT09
+          </license>
+          <output>
+            <html>
+              <intro>${project.basedir}/src/main/resources/intro.html</intro>
+              <title>Alluxio ${project.version} REST API</title>
+              <baseUrl>http://host:port/api/v1</baseUrl>
+            </html>
+          </output>
+          <restModel>
+            <httpStatusCodes>
+              <httpStatusCode>
+                <httpCode>200</httpCode>
+                <document>always</document>
+                <defaultMessage>The service call has completed successfully.</defaultMessage>
+              </httpStatusCode>
+              <httpStatusCode>
+                <httpCode>412</httpCode>
+                <document>put,post</document>
+                <defaultMessage>Invalid JSON/XML input.</defaultMessage>
+              </httpStatusCode>
+              <httpStatusCode>
+                <httpCode>500</httpCode>
+                <document>always</document>
+                <defaultMessage>The service call has not succeeded.</defaultMessage>
+                <sticky>true</sticky> <!-- Document always, even if there is an @statuscode tag -->
+              </httpStatusCode>
+            </httpStatusCodes>
+          </restModel>
+          <analysis>
+            <checks>
+              <JAVADOC_MISSING_INTERFACEDOCUMENTATION>ignore</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
+              <JAVADOC_MISSING_AUTHORS>ignore</JAVADOC_MISSING_AUTHORS>
+            </checks>
+          </analysis>
+          <!-- insert other configuration here (optional) -->
+        </configuration>
       </plugin>
     </plugins>
   </build>
