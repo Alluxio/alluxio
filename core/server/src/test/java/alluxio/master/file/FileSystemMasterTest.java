@@ -769,7 +769,7 @@ public final class FileSystemMasterTest {
    * to 0.
    */
   @Test
-  public void setTtlForFileWithFreeOperationTest() throws Exception {
+  public void setTtlForFileWithFreeOperation() throws Exception {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation
