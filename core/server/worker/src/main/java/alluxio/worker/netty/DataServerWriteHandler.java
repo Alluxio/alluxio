@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -53,7 +52,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 3. An EOF or CANCEL message signifies the completion of this request.
  * 4. When an error occurs, the channel is closed.
  *
- * Thread model:
+ * Threading model:
  * Only two threads are involved at a given point of time: netty I/O thread, packet writer thread.
  * 1. The netty I/O thread reads packets from the wire and pushes them to the buffer if there is
  *    no error seen so far. This packet reading can be ended by an EOF packet, a CANCEL packet or
@@ -186,7 +185,8 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     // Validate msg and return error if invalid. Init variables if necessary.
     String error = validateRequest(msg);
     if (!error.isEmpty()) {
-      pushAbortPacket(ctx, new Error(null, true, Protocol.Status.Code.INVALID_ARGUMENT));
+      pushAbortPacket(ctx.channel(), new Error(new IllegalArgumentException(error), true,
+          Protocol.Status.Code.INVALID_ARGUMENT));
       return;
     }
 
@@ -216,7 +216,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       }
       if (!mPacketWriterActive) {
         mPacketWriterActive = true;
-        mPacketWriterExecutor.submit(new PacketWriter(ctx));
+        mPacketWriterExecutor.submit(new PacketWriter(ctx.channel()));
       }
       mPackets.offer(buf);
       if (tooManyPacketsInFlight()) {
@@ -230,12 +230,12 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Failed to write block.", cause);
-    pushAbortPacket(ctx, new Error(cause, true, Protocol.Status.Code.INTERNAL));
+    pushAbortPacket(ctx.channel(), new Error(cause, true, Protocol.Status.Code.INTERNAL));
   }
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    pushAbortPacket(ctx, new Error(null, false, Protocol.Status.Code.INTERNAL));
+    pushAbortPacket(ctx.channel(), new Error(null, false, Protocol.Status.Code.INTERNAL));
     ctx.fireChannelUnregistered();
   }
 
@@ -271,15 +271,15 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    * A runnable that polls from the packets queue and writes to the block worker.
    */
   private final class PacketWriter implements Runnable {
-    private ChannelHandlerContext mCtx;
+    private Channel mChannel;
 
     /**
      * Creates an instance of {@link PacketWriter}.
      *
-     * @param ctx the netty channel handler context
+     * @param channel the netty channel
      */
-    PacketWriter(ChannelHandlerContext ctx) {
-      mCtx = ctx;
+    PacketWriter(Channel channel) {
+      mChannel = channel;
     }
 
     @Override
@@ -293,9 +293,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       }
     }
 
-    /**
-     * The actual implementation of the runnable.
-     */
     private void runInternal() {
       boolean eof;
       boolean cancel;
@@ -309,7 +306,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           if (buf == null || buf == EOF || buf == CANCEL || buf == ABORT) {
             eof = buf == EOF;
             cancel = buf == CANCEL;
-            abort = buf == ABORT;
+            abort = (buf == ABORT || mError != null);
             mPacketWriterActive = false;
             break;
           }
@@ -318,7 +315,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
             continue;
           }
           if (!tooManyPacketsInFlight()) {
-            NettyUtils.enableAutoRead(mCtx.channel());
+            NettyUtils.enableAutoRead(mChannel);
           }
         } finally {
           mLock.unlock();
@@ -330,29 +327,34 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
-          pushAbortPacket(mCtx, new Error(e, true, Protocol.Status.Code.INTERNAL));
+          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
         } finally {
           release(buf);
         }
       }
 
-      try {
-        if (abort) {
+      if (abort) {
+        try {
           cancel();
-          replyError(mCtx.channel());
+        } catch (IOException e) {
+          LOG.warn("Failed to abort, cancel or complete the write request with error {}.",
+              e.getMessage());
         }
-        if (cancel) {
+        replyError();
+      } else if (cancel || eof) {
+        try {
           cancel();
-          replyCancel(mCtx.channel());
+          replyCancel();
+        } catch (IOException e) {
+          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
         }
-        if (eof) {
+      } else if (eof) {
+        try {
           complete();
-          replySuccess(mCtx.channel());
+          replySuccess();
+        } catch (IOException e) {
+          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
         }
-      } catch (IOException e) {
-        LOG.warn("Failed to abort, cancel or complete the write request with error {}.",
-            e.getMessage());
-        mCtx.close();
       }
     }
 
@@ -384,32 +386,26 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * Writes a response to signify the success of the write request.
-     *
-     * @param channel the channel
      */
-    private void replySuccess(Channel channel) {
-      channel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
+    private void replySuccess() {
+      NettyUtils.enableAutoRead(mChannel);
+      mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
-      NettyUtils.enableAutoRead(channel);
     }
 
     /**
      * Writes a response to signify the successful cancellation of the write request.
-     *
-     * @param channel the channel
      */
-    private void replyCancel(Channel channel) {
-      channel.writeAndFlush(RPCProtoMessage.createCancelResponse())
+    private void replyCancel() {
+      NettyUtils.enableAutoRead(mChannel);
+      mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
-      NettyUtils.enableAutoRead(channel);
     }
 
     /**
      * Writes an error response to the channel and closes the channel after that.
-     *
-     * @param channel the channel
      */
-    private void replyError(Channel channel) {
+    private void replyError() {
       Error error;
       mLock.lock();
       try {
@@ -419,7 +415,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       }
 
       if (error.mNotifyClient) {
-        channel
+        mChannel
             .writeAndFlush(RPCProtoMessage.createResponse(error.mErrorCode, "", error.mCause, null))
             .addListener(ChannelFutureListener.CLOSE);
       }
@@ -429,20 +425,20 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   /**
    * Pushes {@link DataServerWriteHandler#ABORT} to the buffer if there has been no error so far.
    *
-   * @param ctx the channel context
+   * @param channel the channel
    * @param error the error
    */
-  private void pushAbortPacket(ChannelHandlerContext ctx, Error error) {
+  private void pushAbortPacket(Channel channel, Error error) {
     mLock.lock();
-    if (mError != null) {
-      return;
-    }
-    mError = error;
     try {
+      if (mError != null) {
+        return;
+      }
+      mError = error;
       mPackets.offer(ABORT);
       if (!mPacketWriterActive) {
         mPacketWriterActive = true;
-        mPacketWriterExecutor.submit(new PacketWriter(ctx));
+        mPacketWriterExecutor.submit(new PacketWriter(channel));
       }
     } finally {
       mLock.unlock();

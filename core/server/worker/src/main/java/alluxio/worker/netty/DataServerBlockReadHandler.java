@@ -67,13 +67,9 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     }
 
     @Override
-    public void close() {
-      if (mBlockReader != null)  {
-        try {
-          mBlockReader.close();
-        } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {}.", mId);
-        }
+    public void close() throws IOException {
+      if (mBlockReader != null) {
+        mBlockReader.close();
       }
     }
   }
