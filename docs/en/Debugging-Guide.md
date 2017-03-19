@@ -27,13 +27,16 @@ in case the problem has been discussed before.
 
 Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify the code and trigger new deployment, which is not allowed in some time.
 
-Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append the remote debugging parameters, the most convenient way is to modify the `alluxio-env.sh`, add the following configuration properties.
+Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append the remote debugging parameters, you can export the properties in shell or `alluxi-env.sh`, add the following configuration properties.
 
-```properties
-ALLUXIO_MASTER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6600 $ALLUXIO_JAVA_OPTS"
-ALLUXIO_WORKER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6601 $ALLUXIO_JAVA_OPTS"
-ALLUXIO_PROXY_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6602 $ALLUXIO_JAVA_OPTS"
 ```
+export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6606"
+export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6607"
+export ALLUXIO_USER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
+```
+In most times, we do not want to stay in debug mode because it may be annoying. Therefore, exporting the properties in shell is recommended because you can unset the properties if you want to quit the debug mode. 
+
+Before you can go to the debug mode, you have to set the `alluxio.debug=true` in the `conf/alluxio-site.properties`. `${ALLUXIO_HOME}/conf/` is by default on the classpath of Alluxio master, woker and shell JVM processes, if the `conf` cannot be found, you can manually export the classpath to `${ALLUXIO_HOME}/conf/`.
 
 After start the master or worker, use eclipse or IntelliJ idea and other java ide, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
 
