@@ -124,7 +124,8 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
         releaseClient(client);
       }
     } while (retryPolicy.attemptRetry());
-    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    //LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    LOG.error("Failed after {} retries.", retryPolicy.getRetryCount());
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }
@@ -165,7 +166,8 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       }
     } while (retryPolicy.attemptRetry());
 
-    LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    //LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    LOG.error("Failed after {} retries.", retryPolicy.getRetryCount());
     Preconditions.checkNotNull(exception);
     throw new IOException(exception);
   }
