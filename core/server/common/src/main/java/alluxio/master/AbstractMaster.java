@@ -214,7 +214,7 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public void transitionToLeader() {
-    mJournal = Journal.Factory.create(mJournal.getLocation(), true);
+    mJournal = MutableJournal.Factory.create(mJournal.getLocation());
   }
 
   /**

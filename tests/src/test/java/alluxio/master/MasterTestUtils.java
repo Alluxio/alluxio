@@ -16,7 +16,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -33,7 +34,7 @@ public class MasterTestUtils {
    */
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    Journal.Factory factory = new Journal.Factory(new URI(masterJournal), true);
+    JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
     BlockMaster blockMaster = new BlockMaster(factory);
     FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, factory);
     blockMaster.start(true);
@@ -48,7 +49,7 @@ public class MasterTestUtils {
    */
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    Journal.Factory factory = new Journal.Factory(new URI(masterJournal), true);
+    JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
     BlockMaster blockMaster = new BlockMaster(factory);
     FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, factory);
     blockMaster.start(false);

@@ -25,8 +25,9 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.MutableJournal;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 
@@ -79,8 +80,8 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
-    Journal.Factory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()), true);
+    JournalFactory factory =
+        new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
 
     BlockMaster blockMaster = new BlockMaster(factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);

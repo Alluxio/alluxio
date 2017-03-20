@@ -11,7 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 
 import java.util.List;
 
@@ -36,5 +36,5 @@ public interface MasterFactory {
    *
    * @return a new {@link Master} instance or null if failed to launch the master
    */
-  Master create(List<? extends Master> masters, Journal.Factory factory);
+  Master create(List<? extends Master> masters, JournalFactory factory);
 }

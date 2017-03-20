@@ -11,6 +11,13 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.journal.ufs.UfsMutableJournal;
+import alluxio.util.URIUtils;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -18,6 +25,51 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface MutableJournal extends Journal {
+
+  /**
+   * A {@link MutableJournal} factory.
+   */
+  @ThreadSafe
+  final class Factory implements JournalFactory {
+    private final URI mBase;
+
+    /**
+     * Creates a read-write journal factory with the specified base location. When journals are
+     * created, their names are appended to the base path.
+     *
+     * @param base the base location for journals created by this factory
+     */
+    public Factory(URI base) {
+      mBase = base;
+    }
+
+    @Override
+    public MutableJournal create(String name) {
+      try {
+        return new UfsMutableJournal(URIUtils.appendPath(mBase, name));
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    /**
+     * Creates a new read-write journal using the given location.
+     *
+     * @param location the journal location
+     * @return a new instance of {@link Journal}
+     */
+    public static MutableJournal create(URI location) {
+      return new UfsMutableJournal(location);
+    }
+  }
+
+  /**
+   * Formats the journal.
+   *
+   * @return whether the format operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   */
+  void format() throws IOException;
 
   /**
    * @return the {@link JournalWriter} for this journal

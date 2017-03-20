@@ -17,6 +17,7 @@ import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.MutableJournal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -94,21 +95,14 @@ public final class Format {
   public static void format(String mode) throws IOException {
     if ("MASTER".equalsIgnoreCase(mode)) {
       String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-      Journal.Factory factory;
+      MutableJournal.Factory factory;
       try {
-        factory = new Journal.Factory(new URI(masterJournal));
+        factory = new MutableJournal.Factory(new URI(masterJournal));
       } catch (URISyntaxException e) {
         throw new IOException(e.getMessage());
       }
-      // This is a small hack to format the root journal folder.
-      if (!factory.create("").format()) {
-        throw new RuntimeException("Failed to format root journal folder");
-      }
       for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
-        if (!factory.create(masterServiceName).format()) {
-          throw new RuntimeException(
-              String.format("Failed to format %s journal folder", masterServiceName));
-        }
+        factory.create(masterServiceName).format();
       }
     } else if ("WORKER".equalsIgnoreCase(mode)) {
       String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
@@ -135,5 +129,5 @@ public final class Format {
     }
   }
 
-  private Format() {}  // prevent instantiation
+  private Format() {} // prevent instantiation
 }

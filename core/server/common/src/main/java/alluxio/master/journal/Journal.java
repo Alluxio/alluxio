@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsMutableJournal;
 import alluxio.util.URIUtils;
 
 import java.io.IOException;
@@ -31,45 +30,23 @@ public interface Journal {
    * A {@link Journal} factory.
    */
   @ThreadSafe
-  final class Factory {
+  final class Factory implements JournalFactory {
     private final URI mBase;
-    private final boolean mMutable;
 
     /**
      * Creates a read-only journal factory with the specified base location. When journals are
-     * created, their names are appended to the base path.
+     * created, their names are appended to the base location.
      *
      * @param base the base location for journals created by this factory
      */
     public Factory(URI base) {
-      this(base, false);
-    }
-
-    /**
-     * Creates a journal factory with the specified base location. When journals are
-     * created, their names are appended to the base path.
-     *
-     * @param base the base location for journals created by this factory
-     * @param mutable whether the journal is mutable or not
-     */
-    public Factory(URI base, boolean mutable) {
       mBase = base;
-      mMutable = mutable;
     }
 
-    /**
-     * Creates a new journal using the given name.
-     *
-     * @param name the journal name
-     * @return a new instance of {@link Journal}
-     */
+    @Override
     public Journal create(String name) {
       try {
-        if (!mMutable) {
-          return new UfsJournal(URIUtils.appendPath(mBase, name));
-        } else {
-          return new UfsMutableJournal(URIUtils.appendPath(mBase, name));
-        }
+        return new UfsJournal(URIUtils.appendPath(mBase, name));
       } catch (URISyntaxException e) {
         throw new RuntimeException(e);
       }
@@ -82,32 +59,9 @@ public interface Journal {
      * @return a new instance of {@link Journal}
      */
     public static Journal create(URI location) {
-      return create(location, false);
-    }
-
-    /**
-     * Creates a new journal using the given journal location.
-     *
-     * @param location the journal location
-     * @oaram mutable whether the journal is mutable or not
-     * @return a new instance of {@link Journal}
-     */
-    public static Journal create(URI location, boolean mutable) {
-      if (!mutable) {
-        return new UfsJournal(location);
-      } else {
-        return new UfsMutableJournal(location);
-      }
+      return new UfsJournal(location);
     }
   }
-
-  /**
-   * Formats the journal.
-   *
-   * @return whether the format operation succeeded or not
-   * @throws IOException if an I/O error occurs
-   */
-  boolean format() throws IOException;
 
   /**
    * @return the journal location

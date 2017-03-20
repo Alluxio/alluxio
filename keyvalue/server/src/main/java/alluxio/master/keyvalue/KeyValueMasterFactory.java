@@ -18,6 +18,7 @@ import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public KeyValueMaster create(List<? extends Master> masters, Journal.Factory journalFactory) {
+  public KeyValueMaster create(List<? extends Master> masters, JournalFactory journalFactory) {
     if (!isEnabled()) {
       return null;
     }

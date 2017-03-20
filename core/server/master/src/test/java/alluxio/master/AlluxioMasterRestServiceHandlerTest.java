@@ -28,7 +28,8 @@ import alluxio.RuntimeConstants;
 import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -109,8 +110,8 @@ public class AlluxioMasterRestServiceHandlerTest {
   public void before() throws Exception {
     mMaster = mock(AlluxioMasterService.class);
     mContext = mock(ServletContext.class);
-    Journal.Factory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()), true);
+    JournalFactory factory =
+        new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));

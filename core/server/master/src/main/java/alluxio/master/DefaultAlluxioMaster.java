@@ -20,6 +20,7 @@ import alluxio.ServerUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.MutableJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
@@ -144,21 +145,23 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Check that the journal has been formatted.
+      // Check that journals of each service have been formatted.
       checkJournalFormatted();
       // Create masters.
-      createMasters(new Journal.Factory(getJournalLocation(), true));
+      createMasters(new MutableJournal.Factory(getJournalLocation()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   protected void checkJournalFormatted() throws IOException {
-    URI location = getJournalLocation();
-    Journal journal = MutableJournal.Factory.create(location);
-    if (!journal.isFormatted()) {
-      throw new RuntimeException(
-          String.format("Alluxio master folder %s has not been formatted!", location));
+    Journal.Factory factory = new Journal.Factory(getJournalLocation());
+    for (String name : ServerUtils.getMasterServiceNames()) {
+      Journal journal = factory.create(name);
+      if (!journal.isFormatted()) {
+        throw new RuntimeException(
+            String.format("Journal %s has not been formatted!", journal.getLocation()));
+      }
     }
   }
 
@@ -174,10 +177,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
-  /**
-   * @param journalFactory the factory to use for creating journals
-   */
-  protected void createMasters(MutableJournal.Factory journalFactory) {
+  protected void createMasters(JournalFactory journalFactory) {
     mBlockMaster = new BlockMaster(journalFactory);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
     if (LineageUtils.isLineageEnabled()) {
@@ -186,8 +186,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
     mAdditionalMasters = new ArrayList<>();
     List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
-      Master master = factory.create(masters, journalFactory);
+    for (MasterFactory masterFactory : ServerUtils.getMasterServiceLoader()) {
+      Master master = masterFactory.create(masters, journalFactory);
       if (master != null) {
         mAdditionalMasters.add(master);
       }

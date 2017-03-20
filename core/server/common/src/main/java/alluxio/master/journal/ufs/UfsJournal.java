@@ -57,7 +57,7 @@ public class UfsJournal implements Journal {
   /** The base of the entry log file names, without the file extension. */
   private static final String ENTRY_LOG_FILENAME_BASE = "log";
   /** The location where this journal is stored. */
-  private final URI mLocation;
+  protected final URI mLocation;
   /** The formatter for this journal. */
   private final JournalFormatter mJournalFormatter;
 
@@ -69,46 +69,6 @@ public class UfsJournal implements Journal {
   public UfsJournal(URI location) {
     mLocation = location;
     mJournalFormatter = JournalFormatter.Factory.create();
-  }
-
-  @Override
-  public boolean format() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
-    if (ufs.isDirectory(mLocation.toString())) {
-      for (UnderFileStatus p : ufs.listStatus(mLocation.toString())) {
-        URI childPath;
-        try {
-          childPath = URIUtils.appendPath(mLocation, p.getName());
-        } catch (URISyntaxException e) {
-          throw new RuntimeException(e.getMessage());
-        }
-        boolean failedToDelete;
-        if (p.isDirectory()) {
-          failedToDelete = !ufs.deleteDirectory(childPath.toString(),
-              DeleteOptions.defaults().setRecursive(true));
-        } else {
-          failedToDelete = !ufs.deleteFile(childPath.toString());
-        }
-        if (failedToDelete) {
-          LOG.info("Failed to delete {}", childPath);
-          return false;
-        }
-      }
-    } else if (!ufs.mkdirs(mLocation.toString())) {
-      LOG.info("Failed to create {}", mLocation);
-      return false;
-    }
-
-    // Create a breadcrumb that indicates that the journal folder has been formatted.
-    try {
-      UnderFileSystemUtils.touch(URIUtils.appendPath(mLocation,
-          Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
-          .toString());
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e.getMessage());
-    }
-
-    return true;
   }
 
   /**

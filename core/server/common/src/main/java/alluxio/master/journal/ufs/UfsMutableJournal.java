@@ -11,10 +11,22 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.MutableJournal;
+import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.URIUtils;
+import alluxio.util.UnderFileSystemUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -23,11 +35,49 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class UfsMutableJournal extends UfsJournal implements MutableJournal {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsMutableJournal.class);
+
   /**
    * @param location the location for the journal
    */
   public UfsMutableJournal(URI location) {
     super(location);
+  }
+
+  @Override
+  public void format() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
+    if (ufs.isDirectory(mLocation.toString())) {
+      for (UnderFileStatus p : ufs.listStatus(mLocation.toString())) {
+        URI childPath;
+        try {
+          childPath = URIUtils.appendPath(mLocation, p.getName());
+        } catch (URISyntaxException e) {
+          throw new RuntimeException(e.getMessage());
+        }
+        boolean failedToDelete;
+        if (p.isDirectory()) {
+          failedToDelete = !ufs.deleteDirectory(childPath.toString(),
+              DeleteOptions.defaults().setRecursive(true));
+        } else {
+          failedToDelete = !ufs.deleteFile(childPath.toString());
+        }
+        if (failedToDelete) {
+          throw new IOException(String.format("Failed to delete %s", childPath));
+        }
+      }
+    } else if (!ufs.mkdirs(mLocation.toString())) {
+      throw new IOException(String.format("Failed to create %s", mLocation));
+    }
+
+    // Create a breadcrumb that indicates that the journal folder has been formatted.
+    try {
+      UnderFileSystemUtils.touch(URIUtils.appendPath(mLocation,
+          Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+          .toString());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e.getMessage());
+    }
   }
 
   @Override
