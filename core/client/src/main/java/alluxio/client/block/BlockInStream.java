@@ -26,4 +26,5 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 // TODO(calvin): Resolve the confusion between Alluxio BufferedBlockInStream and BlockInStream.
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
+
 }
