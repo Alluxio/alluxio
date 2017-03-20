@@ -62,4 +62,61 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- REST API documentation -->
+      <plugin>
+        <groupId>com.qmino</groupId>
+        <artifactId>miredot-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>restdoc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- This following license only works for groupId org.alluxio and artifactId alluxio-core-server-proxy -->
+          <license>
+            cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyLXByb3h5fDIwMTktMDMtMzF8dHJ1ZXwtMSNNQ3dDRkZHejBpT0t5UVdrbVJWUlNRWUNDQzVqemtIbUFoUUcrdktzSmg0WExsWGhWcTlzMDZ3MENkRHpBZz09
+          </license>
+          <output>
+            <html>
+              <intro>${project.basedir}/src/main/resources/intro.html</intro>
+              <title>Alluxio ${project.version} REST API</title>
+              <baseUrl>http://host:port/api/v1</baseUrl>
+            </html>
+          </output>
+          <restModel>
+            <httpStatusCodes>
+              <httpStatusCode>
+                <httpCode>200</httpCode>
+                <document>always</document>
+                <defaultMessage>The service call has completed successfully.</defaultMessage>
+              </httpStatusCode>
+              <httpStatusCode>
+                <httpCode>412</httpCode>
+                <document>put,post</document>
+                <defaultMessage>Invalid JSON/XML input.</defaultMessage>
+              </httpStatusCode>
+              <httpStatusCode>
+                <httpCode>500</httpCode>
+                <document>always</document>
+                <defaultMessage>The service call has not succeeded.</defaultMessage>
+                <sticky>true</sticky> <!-- Document always, even if there is an @statuscode tag -->
+              </httpStatusCode>
+            </httpStatusCodes>
+          </restModel>
+          <analysis>
+            <checks>
+              <JAVADOC_MISSING_INTERFACEDOCUMENTATION>ignore</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
+              <JAVADOC_MISSING_AUTHORS>ignore</JAVADOC_MISSING_AUTHORS>
+            </checks>
+          </analysis>
+          <!-- insert other configuration here (optional) -->
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
