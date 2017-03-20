@@ -33,6 +33,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
+
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -48,12 +49,12 @@ import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class encapsulates the different master services that are configured to run.
@@ -150,8 +151,6 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       throw Throwables.propagate(e);
     }
   }
-
-
 
   protected String getJournalDirectory() {
     String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
@@ -302,6 +301,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     startServing("", "");
   }
 
+  /**
+   * Starts serving, letting {@link MetricsSystem} start sink and starting the web ui server and
+   * RPC Server.
+   *
+   * @param startMessage empty string or the message that the master gain the leadership
+   * @param stopMessage empty string or the message that the master lost the leadership
+   */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
@@ -371,6 +377,12 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     mMasterServiceServer.serve();
   }
 
+  /**
+   * Stops serving, trying stop RPC server and web ui server and letting {@link MetricsSystem} stop
+   * all the sinks.
+   *
+   * @throws Exception if the underlying jetty server throws an exception
+   */
   protected void stopServing() throws Exception {
     if (mMasterServiceServer != null) {
       mMasterServiceServer.stop();
