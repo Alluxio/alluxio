@@ -38,7 +38,7 @@ In most times, we do not want to stay in debug mode because it may be annoying. 
 
 Before you can go to the debug mode, you have to set the `alluxio.debug=true` in the `conf/alluxio-site.properties`. `${ALLUXIO_HOME}/conf/` is by default on the classpath of Alluxio master, worker and shell JVM processes, if the `conf` cannot be found, you can manually export the classpath to `${ALLUXIO_HOME}/conf/`.
 
-After start the master or worker, use eclipse or IntelliJ idea and other java ide, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, trhe ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
+After start the master or worker, use eclipse or IntelliJ idea and other java ide, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
 
 ## Setup FAQ
 
