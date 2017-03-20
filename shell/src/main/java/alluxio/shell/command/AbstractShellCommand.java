@@ -75,6 +75,12 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("repair inconsistent files")
           .build();
+  protected static final Option LIST_RAW_SIZE_OPTION =
+      Option.builder("raw")
+          .required(false)
+          .hasArg(false)
+          .desc("print raw sizes.")
+          .build();
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;

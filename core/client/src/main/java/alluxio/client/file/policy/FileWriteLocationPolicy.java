@@ -32,6 +32,7 @@ import alluxio.wire.WorkerNetAddress;
  * </p>
  */
 @PublicApi
+// TODO(peis): Deprecate this and use BlockLocationPolicy in 2.0.
 public interface FileWriteLocationPolicy {
   /**
    * Gets the worker's host name for the next block to write to.

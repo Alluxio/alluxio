@@ -49,6 +49,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     private final int mFreePercent;
     private final int mUsedPercent;
     private final String mUptimeClockTime;
+    private final long mWorkerId;
 
     private NodeInfo(WorkerInfo workerInfo) {
       mHost = workerInfo.getAddress().getHost();
@@ -66,6 +67,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
       mUptimeClockTime =
           WebUtils.convertMsToShortClockTime(
               System.currentTimeMillis() - workerInfo.getStartTimeMs());
+      mWorkerId = workerInfo.getId();
     }
 
     /**
@@ -129,6 +131,13 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
      */
     public int getUsedSpacePercent() {
       return mUsedPercent;
+    }
+
+    /**
+     * @return the worker id
+     */
+    public long getWorkerId() {
+      return mWorkerId;
     }
 
     /**
