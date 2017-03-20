@@ -312,6 +312,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
         stopMessage);
   }
 
+  /**
+   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the
+   * web server and starting web ui.
+   */
   protected void startServingWebServer() {
     mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
         NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
