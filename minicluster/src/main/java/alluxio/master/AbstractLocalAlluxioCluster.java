@@ -23,7 +23,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.MutableJournal;
 import alluxio.proxy.AlluxioProxyService;
 import alluxio.security.GroupMappingServiceTestUtils;
