@@ -25,7 +25,7 @@ filesystem (e.g., `alluxio.underfs.address=/tmp`).
 repeatedly input the password, you can add the public ssh key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 
-# Format Alluxio Filesystem
+# Step 0: Format Alluxio Filesystem
 
 > This step is only required when you run Alluxio for the first time.
 > All previously stored data and metadata in an Alluxio filesystem on this server will be erased.
@@ -34,9 +34,9 @@ repeatedly input the password, you can add the public ssh key for the host into
 $ ./bin/alluxio format
 ```
 
-# Start Alluxio Filesystem Locally
+# Step 1: Start Alluxio Filesystem Locally
 
-## Start Alluxio with sudo privileges
+## Option1: if you have sudo privileges
 
 By default, on startup Alluxio will create a
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage.
@@ -55,9 +55,9 @@ With the proper user, run the following command to start Alluxio filesystem.
 $ ./bin/alluxio-start.sh local
 ```
 
-## Start Alluxio without sudo privileges
+## Option 2: If you do not have sudo privileges and a RAMFS (e.g., `/path/to/ramdisk`) is already mounted by the system admin
 
-Alternatively, if a RAMFS (e.g., `/path/to/ramdisk`) is already mounted by the system admin, you can specify the path in
+In this case you can specify the path in
 `conf/alluxio-site.properties`:
 
 ```
