@@ -552,7 +552,7 @@ public final class CpCommand extends AbstractShellCommand {
   private void copyFileToLocal(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
     File dstFile = new File(dstPath.getPath());
-    String fileName = srcPath.getPath().substring(srcPath.getPath().lastIndexOf("/"));
+    String fileName = srcPath.getName();
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
     File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
