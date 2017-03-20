@@ -222,10 +222,10 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   }
 
   /**
-   * @return whether the packet in stream is reading packets from a local file
+   * @return whether the packet in stream is reading packets directly from a local file
    */
-  public boolean isLocal() {
-    return mPacketReaderFactory.isLocal();
+  public boolean isShortCircuit() {
+    return mPacketReaderFactory.isShortCircuit();
   }
 
   /**

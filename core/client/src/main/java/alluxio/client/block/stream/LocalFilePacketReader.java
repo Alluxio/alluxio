@@ -91,7 +91,7 @@ public final class LocalFilePacketReader implements PacketReader {
     }
 
     @Override
-    public boolean isLocal() {
+    public boolean isShortCircuit() {
       return true;
     }
   }

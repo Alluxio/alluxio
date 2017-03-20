@@ -56,6 +56,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
   /** Helper to manage closeables. */
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
+  private final boolean mLocal;
   private final PacketInStream mInputStream;
 
   /**
@@ -214,7 +215,14 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
 
   @Override
   public boolean isLocal() {
-    return mInputStream.isLocal();
+    return mLocal;
+  }
+
+  /**
+   * @return whether this stream is reading directly from a local file
+   */
+  public boolean isShortCircuit() {
+    return mInputStream.isShortCircuit();
   }
 
   /**
@@ -235,5 +243,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
 
     mCloser = closer;
     mCloser.register(mInputStream);
+    mLocal = blockWorkerClient.getDataServerAddress().getHostName()
+        .equals(NetworkAddressUtils.getClientHostName());
   }
 }

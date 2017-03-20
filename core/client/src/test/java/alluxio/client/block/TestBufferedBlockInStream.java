@@ -46,9 +46,4 @@ public class TestBufferedBlockInStream extends BufferedBlockInStream {
 
   @Override
   protected void incrementBytesReadMetric(int bytes) {}
-
-  @Override
-  boolean isLocal() {
-    return true;
-  }
 }

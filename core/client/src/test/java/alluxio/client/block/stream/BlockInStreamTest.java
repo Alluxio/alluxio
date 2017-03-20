@@ -66,7 +66,7 @@ public final class BlockInStreamTest {
       BlockInStream stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
           0, new WorkerNetAddress(), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.
-      Assert.assertTrue(stream.isLocal());
+      Assert.assertTrue(stream.isShortCircuit());
 
       // Set the data server hostname to not match the client hostname.
       when(blockWorkerClient.getDataServerAddress())
@@ -74,7 +74,7 @@ public final class BlockInStreamTest {
       stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
           0, new WorkerNetAddress(), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.
-      Assert.assertFalse(stream.isLocal());
+      Assert.assertFalse(stream.isShortCircuit());
     }
   }
 }
