@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
-import alluxio.master.journal.Journal;
 import alluxio.master.journal.MutableJournal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;

@@ -66,7 +66,6 @@ public interface MutableJournal extends Journal {
   /**
    * Formats the journal.
    *
-   * @return whether the format operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
   void format() throws IOException;

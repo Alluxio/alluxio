@@ -18,9 +18,7 @@ import alluxio.master.journal.JournalFormatter;
 import alluxio.master.journal.JournalReader;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
-import alluxio.util.UnderFileSystemUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
