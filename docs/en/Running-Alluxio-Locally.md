@@ -36,7 +36,15 @@ $ ./bin/alluxio format
 
 # Step 1: Start Alluxio Filesystem Locally
 
-## Option1: if you have sudo privileges
+## Running Alluxio on a MacOS.
+
+Run the following command to start Alluxio filesystem.
+
+```bash
+$ ./bin/alluxio-start.sh local
+```
+
+## Running Alluxio on Linux with sudo privileges
 
 By default, on startup Alluxio will create a
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage.
@@ -55,8 +63,9 @@ With the proper user, run the following command to start Alluxio filesystem.
 $ ./bin/alluxio-start.sh local
 ```
 
-## Option 2: If you do not have sudo privileges and a RAMFS (e.g., `/path/to/ramdisk`) is already mounted by the system admin
+## Running Alluxio on Linux without sudo privileges 
 
+For this case to work, it requires a RAMFS (e.g., `/path/to/ramdisk`) already mounted by the system admin.
 In this case you can specify the path in
 `conf/alluxio-site.properties`:
 
