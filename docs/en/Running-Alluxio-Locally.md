@@ -36,19 +36,21 @@ $ ./bin/alluxio format
 
 # Step 1: Start Alluxio Filesystem Locally
 
-## Running Alluxio on a MacOS.
+By default, Alluxio Filesystem will create and use
+[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage.
+Depends on the operating systems and environment, it may require different privileges to complete this step.
 
-Run the following command to start Alluxio filesystem.
+## Running on MacOS
+
+Simply run the following command in terminal to start Alluxio filesystem.
 
 ```bash
 $ ./bin/alluxio-start.sh local
 ```
 
-## Running Alluxio on Linux with sudo privileges
+## Running on Linux with sudo privileges
 
-By default, on startup Alluxio will create a
-[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage.
-This step requires sudo privileges to perform "mount", "umount", "mkdir" and "chmod" operations. There are two approaches to achieve this:
+On Linux, this step requires sudo privileges to perform "mount", "umount", "mkdir" and "chmod" operations. There are two approaches to achieve this:
 
 * Start Alluxio by a superuser, or
 * Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to `/etc/sudoers` on Linux:
@@ -63,10 +65,9 @@ With the proper user, run the following command to start Alluxio filesystem.
 $ ./bin/alluxio-start.sh local
 ```
 
-## Running Alluxio on Linux without sudo privileges 
+## Running on Linux without sudo privileges 
 
-For this case to work, it requires a RAMFS (e.g., `/path/to/ramdisk`) already mounted by the system admin.
-In this case you can specify the path in
+If you have no sudo privileges on Linux, for Alluxio Filesystem to work, it requires a RAMFS (e.g., `/path/to/ramdisk`) already mounted by the system admin and accessible for read/write-operations by the user. In this case you can specify the path in
 `conf/alluxio-site.properties`:
 
 ```
@@ -74,7 +75,7 @@ alluxio.worker.tieredstore.level0.alias=MEM
 alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 ```
 
-and start Alluxio without requiring sudo privileges:
+and start Alluxio:
 
 ```bash
 $ ./bin/alluxio-start.sh local NoMount
