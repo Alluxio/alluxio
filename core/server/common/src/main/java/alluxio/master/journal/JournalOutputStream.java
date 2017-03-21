@@ -19,7 +19,7 @@ import java.io.IOException;
  * This output stream writes {@link JournalEntry} objects to the journal. This output stream can
  * write to both the journal checkpoint and the journal logs.
  */
-public interface JournalOutputStream {
+public interface JournalOutputStream extends AutoCloseable {
   /**
    * Writes a {@link JournalEntry} to the journal.
    *

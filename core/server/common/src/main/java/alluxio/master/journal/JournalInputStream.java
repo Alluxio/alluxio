@@ -18,7 +18,7 @@ import java.io.IOException;
 /**
  * This input stream retrieves {@link JournalEntry} from journal checkpoints and journal logs.
  */
-public interface JournalInputStream {
+public interface JournalInputStream extends AutoCloseable {
   /**
    * Reads the next journal entry.
    *

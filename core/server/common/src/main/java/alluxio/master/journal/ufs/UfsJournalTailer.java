@@ -77,15 +77,14 @@ public final class UfsJournalTailer implements JournalTailer {
     LOG.info("{}: Loading checkpoint.", mMaster.getName());
     // The checkpoint stream must be retrieved before retrieving any log streams, because the
     // journal reader verifies that the checkpoint was read before the log streams.
-    JournalInputStream is = mReader.getCheckpointInputStream();
-
-    if (applyToMaster) {
-      // Only apply the checkpoint to the master, if specified.
-      mMaster.processJournalCheckpoint(is);
+    try (JournalInputStream is = mReader.getCheckpointInputStream()) {
+      if (applyToMaster) {
+        // Only apply the checkpoint to the master, if specified.
+        mMaster.processJournalCheckpoint(is);
+      }
+      // update the latest sequence number seen.
+      mLatestSequenceNumber = is.getLatestSequenceNumber();
     }
-    // update the latest sequence number seen.
-    mLatestSequenceNumber = is.getLatestSequenceNumber();
-    is.close();
   }
 
   @Override

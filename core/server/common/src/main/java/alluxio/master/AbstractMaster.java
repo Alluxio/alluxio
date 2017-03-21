@@ -161,11 +161,11 @@ public abstract class AbstractMaster implements Master {
 
       // Phase 4: initialize the journal and write out the checkpoint (the state of all
       // completed logs).
-      JournalOutputStream checkpointStream =
-          mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
-      LOG.info("{}: start writing checkpoint.", getName());
-      streamToJournalCheckpoint(checkpointStream);
-      checkpointStream.close();
+      try (JournalOutputStream checkpointStream =
+          mJournalWriter.getCheckpointOutputStream(latestSequenceNumber)) {
+        LOG.info("{}: start writing checkpoint.", getName());
+        streamToJournalCheckpoint(checkpointStream);
+      }
       LOG.info("{}: done with writing checkpoint.", getName());
 
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
