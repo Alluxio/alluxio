@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.client.Locatable;
 import alluxio.client.RemoteBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
@@ -25,6 +26,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -35,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * through an Alluxio worker's dataserver to the client.
  */
 @NotThreadSafe
-public final class RemoteBlockInStream extends BufferedBlockInStream {
+public final class RemoteBlockInStream extends BufferedBlockInStream implements Locatable {
   /** Used to manage closeable resources. */
   private final Closer mCloser;
   /** The returned lock id after acquiring the block lock. */
@@ -200,6 +202,16 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
 
     return toRead;
+  }
+
+  @Override
+  public InetSocketAddress location() {
+    return mBlockWorkerClient.getDataServerAddress();
+  }
+
+  @Override
+  public boolean isLocal() {
+    return false;
   }
 
   /**

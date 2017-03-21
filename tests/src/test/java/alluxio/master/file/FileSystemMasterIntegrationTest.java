@@ -594,7 +594,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  public void ttlExpiredCreateFileWithFreeActionTest() throws Exception {
+  public void ttlExpiredCreateFileWithFreeAction() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
     CreateFileOptions options =
@@ -866,7 +866,8 @@ public class FileSystemMasterIntegrationTest {
       }
     }
   }
-  /*
+
+  /**
    * This class provides multiple concurrent threads to delete all files in one directory.
    */
   class ConcurrentDeleter implements Callable<Void> {
@@ -874,6 +875,13 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent deleter.
+     *
+     * @param depth the depth of files to be deleted in one directory
+     * @param concurrencyDepth the concurrency depth of files to be deleted in one directory
+     * @param initPath the directory of files to be deleted in
+     */
     ConcurrentDeleter(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
@@ -892,6 +900,14 @@ public class FileSystemMasterIntegrationTest {
       Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
+    /**
+     * Executes the process of deleting all files in one directory by multiple concurrent threads.
+     *
+     * @param depth the depth of files to be deleted in one directory
+     * @param concurrencyDepth the concurrency depth of files to be deleted in one directory
+     * @param path the directory of files to be deleted in
+     * @throws Exception if an exception occurs
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
