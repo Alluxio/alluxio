@@ -46,10 +46,10 @@ Simply run the following command to start Alluxio filesystem.
 ```bash
 $ ./bin/alluxio-start.sh local
 ```
+
 > NOTE: On Linux, this command may require to input password to get sudo privileges 
 > in order to setup RAMFS. If you do not want to type in the password every time, or you do 
-> not even have sudo privileges, please read the alternative approaches in [FQA](#faq).
-
+> not even have sudo privileges, please read the alternative approaches in [FAQ](#faq).
 
 ## Verify Alluxio is running
 
@@ -73,7 +73,10 @@ By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documenta
 
 ## Can I still try Alluxio on Linux without sudo privileges?
 
-If you have no sudo privileges on Linux, for Alluxio Filesystem to work, it requires a RAMFS (e.g., `/path/to/ramdisk`) already mounted by the system admin and accessible for read/write-operations by the user. In this case you can specify the path in
+If you have no sudo privileges on Linux, for Alluxio Filesystem to work, it requires a RAMFS (e.g., `/path/to/ramdisk`) already mounted
+by the system admin and accessible for read/write-operations by the user. Alternatively, you can also specify Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)  
+as the data storage. Tmpfs is a temporary file storage backed by memory (e.g., typically `/dev/shm` on Linux), but may use SWAP space and
+therefore provides less performance guarantees compared to ramfs. In this case you have can specify the path in
 `conf/alluxio-site.properties`:
 
 ```
@@ -81,11 +84,12 @@ alluxio.worker.tieredstore.level0.alias=MEM
 alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 ```
 
-and then start Alluxio:
+and then start Alluxio with `NoMount` option to use the above directory as its data storage:
 
 ```bash
 $ ./bin/alluxio-start.sh local NoMount
 ```
+
 
 ## How can I avoid typing the password to run sudo? 
 
