@@ -54,12 +54,12 @@ $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 To keep this guide simple, we will use the local filesystem for under storage. In a real deployment
 you would instead use something like HDFS or S3.
 
-Create an under storage folder
+Create an under storage folder on the host
 ```bash
 $ mkdir underStorage
 ```
 
-When we launch the master and worker containers, we will mount this directory with `-v /path/to/underStorage:/underStorage`.
+When we launch the master and worker containers, we will mount this directory with `-v /underStorage:/underStorage`.
 
 ### Set up ramdisk to enable short-circuit reads
 
@@ -99,7 +99,7 @@ $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
-             aee master
+             alluxio master
 ```
 
 ### Run the Alluxio worker
@@ -120,7 +120,7 @@ $ docker run -d --net=host \
              -e ALLUXIO_RAM_FOLDER=/mnt/ramdisk \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
-             aee worker
+             alluxio worker
 ```
 
 ### Test the cluster
@@ -158,7 +158,7 @@ $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
-             aee worker
+             alluxio worker
 ```
 
 ## Memory tier: ramfs vs Docker tmpfs
@@ -180,7 +180,7 @@ $ docker run -d --net=host --shm-size=1G \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
-             aee worker
+             alluxio worker
 ```
 
 To prevent clients from attempting and failing short-circuit reads, the client hostname must
