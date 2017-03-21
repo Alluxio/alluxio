@@ -165,6 +165,8 @@ public enum PropertyKey {
   WORKER_BIND_HOST(Name.WORKER_BIND_HOST, "0.0.0.0"),
   WORKER_BLOCK_HEARTBEAT_INTERVAL_MS(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 1000),
   WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 60000),
+  WORKER_BLOCK_LOCK_TIMEOUT(Name.WORKER_BLOCK_LOCK_TIMEOUT,
+      String.format("${%s}", Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS)),
   WORKER_BLOCK_THREADS_MAX(Name.WORKER_BLOCK_THREADS_MAX, 2048),
   WORKER_BLOCK_THREADS_MIN(Name.WORKER_BLOCK_THREADS_MIN, 256),
   WORKER_DATA_BIND_HOST(Name.WORKER_DATA_BIND_HOST, "0.0.0.0"),
@@ -582,6 +584,7 @@ public enum PropertyKey {
         "alluxio.worker.block.heartbeat.interval.ms";
     public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
         "alluxio.worker.block.heartbeat.timeout.ms";
+    public static final String WORKER_BLOCK_LOCK_TIMEOUT = "alluxio.worker.block.lock.timeout";
     public static final String WORKER_BLOCK_THREADS_MAX = "alluxio.worker.block.threads.max";
     public static final String WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";

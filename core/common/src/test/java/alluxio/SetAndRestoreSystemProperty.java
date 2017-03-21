@@ -23,13 +23,13 @@ public final class SetAndRestoreSystemProperty implements AutoCloseable {
    * @param propertyName the name of the property to set
    * @param value the value to set it to
    */
-  public SetAndRestoreSystemProperty(String propertyName, String value) {
+  public SetAndRestoreSystemProperty(String propertyName, Object value) {
     mPropertyName = propertyName;
     mPreviousValue = System.getProperty(propertyName);
     if (value == null) {
       System.clearProperty(mPropertyName);
     } else {
-      System.setProperty(mPropertyName, value);
+      System.setProperty(mPropertyName, value.toString());
     }
   }
 

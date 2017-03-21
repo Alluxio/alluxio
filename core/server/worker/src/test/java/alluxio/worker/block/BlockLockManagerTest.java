@@ -239,6 +239,22 @@ public final class BlockLockManagerTest {
     lockExpectingHang(manager, 2);
   }
 
+  @Test(timeout = 1000)
+  public void giveUpAfterConnectionTimeout() throws Exception {
+    Configuration.set(PropertyKey.WORKER_BLOCK_LOCK_TIMEOUT, 100);
+    try {
+      BlockLockManager manager = new BlockLockManager();
+      long session0 = 0;
+      long session1 = 1;
+      manager.lockBlock(session0, 1, BlockLockType.WRITE);
+      mThrown.expect(RuntimeException.class);
+      // This should time out after 100ms.
+      manager.lockBlock(session1, 1, BlockLockType.READ);
+    } finally {
+      ConfigurationTestUtils.resetConfiguration();
+    }
+  }
+
   /**
    * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and fails if it doesn't
    * hang.

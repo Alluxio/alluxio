@@ -23,6 +23,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Properties;
+import java.util.Random;
 
 /**
  * Unit tests for the {@link Configuration} class.
@@ -268,6 +269,16 @@ public class ConfigurationTest {
         new SetAndRestoreSystemProperty(PropertyKey.MASTER_HOSTNAME.toString(), "new_master")) {
       Configuration.defaultInit();
       Assert.assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    }
+  }
+
+  @Test
+  public void blockLockTimeoutDefaultsToSocketTimeout() throws Exception {
+    long v = new Random().nextInt();
+    try (SetAndRestoreSystemProperty c = new SetAndRestoreSystemProperty(
+        PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS.toString(), v)) {
+      Configuration.defaultInit();
+      Assert.assertEquals(v, Configuration.getInt(PropertyKey.WORKER_BLOCK_LOCK_TIMEOUT));
     }
   }
 
