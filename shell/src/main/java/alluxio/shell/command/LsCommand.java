@@ -125,15 +125,12 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @throws IOException when non-Alluxio exception occurs
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean rawSize, boolean pinned)
+                  boolean rawSize, boolean pinnedOnly)
       throws AlluxioException, IOException {
     if (dirAsFile) {
       URIStatus status = mFileSystem.getStatus(path);
-      boolean isPinned = status.isPinned();
-      if (pinned) {
-        if (!isPinned) {
-          return;
-        }
+      if (pinnedOnly && !status.isPinned()) {
+        return;
       }
       printLsString(status, rawSize);
       return;
@@ -145,16 +142,12 @@ public final class LsCommand extends WithWildCardPathCommand {
     }
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
-      if (pinned) {
-        if (status.isPinned()) {
-          printLsString(status, rawSize);
-        }
-      } else {
+      if (!pinnedOnly || status.isPinned()) {
         printLsString(status, rawSize);
       }
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, rawSize, pinned);
+            forceLoadMetadata, false, rawSize, pinnedOnly);
       }
     }
   }
@@ -193,10 +186,10 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   public String getDescription() {
     return "Displays information for all files and directories directly under the specified path."
-        + " Specify -R to display files and directories recursively."
         + " Specify -d to list directories as plain files."
         + " Specify -f to force loading files in the directory."
-        + " Specify -raw to print raw sizes."
-        + " Specify -p to list all the pinned files.";
+        + " Specify -p to list all the pinned files."
+        + " Specify -R to display files and directories recursively."
+        + " Specify -raw to print raw sizes.";
   }
 }
