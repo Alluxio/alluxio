@@ -478,7 +478,7 @@ public class JournalIntegrationTest {
    * @throws Exception on error
    */
   @Test
-  public void mountEntryCheckpointTest() throws Exception {
+  public void mountEntryCheckpoint() throws Exception {
     final AlluxioURI mountUri = new AlluxioURI("/local_mnt/");
     final AlluxioURI ufsUri = new AlluxioURI(mTestFolder.newFolder("test_ufs").getAbsolutePath());
 

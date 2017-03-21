@@ -123,9 +123,16 @@ public final class PermissionCheckerTest {
     }
   }
 
+  /**
+   * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
+   */
   public static class FakeUserGroupsMapping implements GroupMappingService {
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
+    /**
+     * Constructor of {@link FakeUserGroupsMapping} to put the user and groups in user-to-groups
+     * HashMap.
+     */
     public FakeUserGroupsMapping() {
       mUserGroups.put(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup());
       mUserGroups.put(TEST_USER_1.getUser(), TEST_USER_1.getGroup());

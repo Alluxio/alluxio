@@ -153,6 +153,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
+  /**
+   * Gets the path of journal directory.
+   *
+   * @return the Path of journal directory
+   */
   protected String getJournalDirectory() {
     String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
@@ -312,6 +317,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
         stopMessage);
   }
 
+  /**
+   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the
+   * web server and starting web ui.
+   */
   protected void startServingWebServer() {
     mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
         NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
