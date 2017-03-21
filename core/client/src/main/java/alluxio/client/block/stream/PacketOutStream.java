@@ -277,7 +277,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   }
 
   /**
-   * Release the current packet.
+   * Releases the current packet.
    */
   private void releaseCurrentPacket() {
     if (mCurrentPacket != null) {
