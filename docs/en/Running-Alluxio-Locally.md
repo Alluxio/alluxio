@@ -30,8 +30,10 @@ repeatedly input the password, you can add the public ssh key for the host into
 
 # Step 0: Format Alluxio Filesystem
 
-> This step is only required when you run Alluxio for the first time.
-> All previously stored data and metadata in an Alluxio filesystem on this server will be erased.
+> NOTE: This step is only required when you run Alluxio for the first time.
+> If you run this command for an existing Alluxio cluster, 
+> all previously stored data and metadata in Alluxio filesystem will be erased.
+> However, data in under storage will not be changed.
 
 ```bash
 $ ./bin/alluxio format
