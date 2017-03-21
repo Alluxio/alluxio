@@ -567,7 +567,7 @@ public final class CpCommand extends AbstractShellCommand {
         out.write(buf, 0, t);
         t = is.read(buf);
       }
-      File outputFile = new File(dstFile.getAbsolutePath() + "/" + fileName));
+      File outputFile = new File(dstFile.getAbsolutePath() + "/" + fileName);
       if (!tmpDst.renameTo(outputFile) {
         throw new IOException(
             "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
