@@ -27,6 +27,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.PropertyKey.Name;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
@@ -554,7 +555,7 @@ public final class CpCommand extends AbstractShellCommand {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
-    File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
+    File tmpDst = new File(Name.HOME + randomSuffix);
 
     try (Closer closer = Closer.create()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
