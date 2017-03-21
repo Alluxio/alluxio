@@ -41,7 +41,7 @@ public final class AsyncJournalWriter {
    */
   private final AtomicLong mWriteCounter;
   /** Maximum number of nanoseconds for a batch flush. */
-  private final long mFlushBatchTime;
+  private final long mFlushBatchTimeNs;
 
   /**
    * Use a {@link ReentrantLock} to guard the journal writing. Using the fairness policy seems to
@@ -61,7 +61,7 @@ public final class AsyncJournalWriter {
     mFlushCounter = new AtomicLong(0);
     mWriteCounter = new AtomicLong(0);
     // convert milliseconds to nanoseconds.
-    mFlushBatchTime =
+    mFlushBatchTimeNs =
         1000000L * Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
@@ -131,7 +131,7 @@ public final class AsyncJournalWriter {
           writeCounter = mWriteCounter.incrementAndGet();
 
           if (writeCounter >= targetCounter) {
-            if ((System.nanoTime() - startTime) >= mFlushBatchTime) {
+            if ((System.nanoTime() - startTime) >= mFlushBatchTimeNs) {
               // This thread has been writing to the journal for enough time. Break out of the
               // infinite for-loop.
               break;
