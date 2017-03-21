@@ -19,13 +19,14 @@ import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
-import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.LineageUtils;
@@ -51,6 +52,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -146,35 +149,41 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Create the journals.
-      createMasters(new JournalFactory.ReadWrite(getJournalDirectory()));
+      // Check that journals of each service have been formatted.
+      checkJournalFormatted();
+      // Create masters.
+      createMasters(new MutableJournal.Factory(getJournalLocation()));
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected void checkJournalFormatted() throws IOException {
+    Journal.Factory factory = new Journal.Factory(getJournalLocation());
+    for (String name : ServerUtils.getMasterServiceNames()) {
+      Journal journal = factory.create(name);
+      if (!journal.isFormatted()) {
+        throw new RuntimeException(
+            String.format("Journal %s has not been formatted!", journal.getLocation()));
+      }
     }
   }
 
   /**
-   * Gets the path of journal directory.
-   *
-   * @return the Path of journal directory
+   * @return the journal location
    */
-  protected String getJournalDirectory() {
+  protected URI getJournalLocation() {
     String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
       journalDirectory += AlluxioURI.SEPARATOR;
     }
     try {
-      Preconditions.checkState(isJournalFormatted(journalDirectory),
-          "Alluxio master was not formatted! The journal folder is %s", journalDirectory);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
+      return new URI(journalDirectory);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
     }
-    return journalDirectory;
   }
 
-  /**
-   * @param journalFactory the factory to use for creating journals
-   */
   protected void createMasters(JournalFactory journalFactory) {
     mBlockMaster = new BlockMaster(journalFactory);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
@@ -184,8 +193,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
     mAdditionalMasters = new ArrayList<>();
     List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
-      Master master = factory.create(masters, journalFactory);
+    for (MasterFactory masterFactory : ServerUtils.getMasterServiceLoader()) {
+      Master master = masterFactory.create(masters, journalFactory);
       if (master != null) {
         mAdditionalMasters.add(master);
       }
@@ -391,29 +400,6 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
     MetricsSystem.stopSinks();
     mIsServing = false;
-  }
-
-  /**
-   * Checks to see if the journal directory is formatted.
-   *
-   * @param journalDirectory the journal directory to check
-   * @return true if the journal directory was formatted previously, false otherwise
-   * @throws IOException if an I/O error occurs
-   */
-  private boolean isJournalFormatted(String journalDirectory) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(journalDirectory);
-    UnderFileStatus[] files = ufs.listStatus(journalDirectory);
-    if (files == null) {
-      return false;
-    }
-    // Search for the format file.
-    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
-    for (UnderFileStatus file : files) {
-      if (file.getName().startsWith(formatFilePrefix)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private void connectToUFS() throws IOException {

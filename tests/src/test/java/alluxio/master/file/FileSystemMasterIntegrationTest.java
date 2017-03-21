@@ -53,7 +53,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 import org.mockito.internal.util.reflection.Whitebox;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -158,7 +157,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
-  private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
+  private FileSystemMaster createFileSystemMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 

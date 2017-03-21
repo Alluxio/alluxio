@@ -70,19 +70,10 @@ public final class KeyValueMaster extends AbstractMaster {
   private final Map<Long, List<PartitionInfo>> mIncompleteStoreToPartitions;
 
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
-   */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.KEY_VALUE_MASTER_NAME);
-  }
-
-  /**
    * @param fileSystemMaster handler to a {@link FileSystemMaster} to use for filesystem operations
    * @param journal a {@link Journal} to write journal entries to
    */
-  public KeyValueMaster(FileSystemMaster fileSystemMaster,
-      Journal journal) {
+  public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
     mFileSystemMaster = fileSystemMaster;
@@ -132,18 +123,18 @@ public final class KeyValueMaster extends AbstractMaster {
     for (Map.Entry<Long, List<PartitionInfo>> entry : mCompleteStoreToPartitions.entrySet()) {
       long fileId = entry.getKey();
       List<PartitionInfo> partitions = entry.getValue();
-      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      outputStream.write(newCreateStoreEntry(fileId));
       for (PartitionInfo info : partitions) {
-        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+        outputStream.write(newCompletePartitionEntry(fileId, info));
       }
-      outputStream.writeEntry(newCompleteStoreEntry(fileId));
+      outputStream.write(newCompleteStoreEntry(fileId));
     }
     for (Map.Entry<Long, List<PartitionInfo>> entry : mIncompleteStoreToPartitions.entrySet()) {
       long fileId = entry.getKey();
       List<PartitionInfo> partitions = entry.getValue();
-      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      outputStream.write(newCreateStoreEntry(fileId));
       for (PartitionInfo info : partitions) {
-        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+        outputStream.write(newCompletePartitionEntry(fileId, info));
       }
     }
   }

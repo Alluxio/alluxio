@@ -829,7 +829,7 @@ public class InodeTree implements JournalCheckpointStreamable {
     inodes.add(mRoot);
     while (!inodes.isEmpty()) {
       Inode<?> inode = inodes.poll();
-      outputStream.writeEntry(inode.toJournalEntry());
+      outputStream.write(inode.toJournalEntry());
       if (inode.isDirectory()) {
         inodes.addAll(((InodeDirectory) inode).getChildren());
       }

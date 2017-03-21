@@ -23,6 +23,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.master.journal.MutableJournal;
 import alluxio.proxy.AlluxioProxyService;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
@@ -38,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -148,12 +151,15 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
 
     // Formats the journal
-    UnderFileSystemUtils.mkdirIfNotExists(journalFolder);
-    for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
-      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName));
+    MutableJournal.Factory factory;
+    try {
+      factory = new MutableJournal.Factory(new URI(journalFolder));
+    } catch (URISyntaxException e) {
+      throw new IOException(e.getMessage());
     }
-    UnderFileSystemUtils
-        .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()));
+    for (String name : ServerUtils.getMasterServiceNames()) {
+      factory.create(name).format();
+    }
 
     // If we are using anything except LocalFileSystemCluster as UnderFS,
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.

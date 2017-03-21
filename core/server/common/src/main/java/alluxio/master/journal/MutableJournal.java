@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsMutableJournal;
 import alluxio.util.URIUtils;
 
 import java.io.IOException;
@@ -21,21 +21,21 @@ import java.net.URISyntaxException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The read-only journal. It prevents access to a {@link JournalWriter}.
+ * The read-write journal. This allows both reads and writes to the journal.
  */
 @ThreadSafe
-public interface Journal {
+public interface MutableJournal extends Journal {
 
   /**
-   * A {@link Journal} factory.
+   * A {@link MutableJournal} factory.
    */
   @ThreadSafe
   final class Factory implements JournalFactory {
     private final URI mBase;
 
     /**
-     * Creates a read-only journal factory with the specified base location. When journals are
-     * created, their names are appended to the base location.
+     * Creates a read-write journal factory with the specified base location. When journals are
+     * created, their names are appended to the base path.
      *
      * @param base the base location for journals created by this factory
      */
@@ -44,38 +44,34 @@ public interface Journal {
     }
 
     @Override
-    public Journal create(String name) {
+    public MutableJournal create(String name) {
       try {
-        return new UfsJournal(URIUtils.appendPath(mBase, name));
+        return new UfsMutableJournal(URIUtils.appendPath(mBase, name));
       } catch (URISyntaxException e) {
         throw new RuntimeException(e);
       }
     }
 
     /**
-     * Creates a new read-only journal using the given location.
+     * Creates a new read-write journal using the given location.
      *
      * @param location the journal location
      * @return a new instance of {@link Journal}
      */
-    public static Journal create(URI location) {
-      return new UfsJournal(location);
+    public static MutableJournal create(URI location) {
+      return new UfsMutableJournal(location);
     }
   }
 
   /**
-   * @return the journal location
-   */
-  URI getLocation();
-
-  /**
-   * @return the {@link JournalReader} for this journal
-   */
-  JournalReader getReader();
-
-  /**
-   * @return whether the journal has been formatted
+   * Formats the journal.
+   *
    * @throws IOException if an I/O error occurs
    */
-  boolean isFormatted() throws IOException;
+  void format() throws IOException;
+
+  /**
+   * @return the {@link JournalWriter} for this journal
+   */
+  JournalWriter getWriter();
 }

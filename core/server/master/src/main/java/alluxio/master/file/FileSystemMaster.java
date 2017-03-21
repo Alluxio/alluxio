@@ -291,7 +291,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.get(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
+    super(journalFactory.create(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
     mBlockMaster = blockMaster;
 
@@ -417,7 +417,7 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     mInodeTree.streamToJournalCheckpoint(outputStream);
-    outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
+    outputStream.write(mDirectoryIdGenerator.toJournalEntry());
     // The mount table should be written to the checkpoint after the inodes are written, so that
     // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
     // entry traverses the inode tree.

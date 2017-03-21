@@ -11,12 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.underfs.UnderFileSystem;
-
-import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -24,109 +18,42 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class manages reading from the journal. The reading must occur in two phases:
  *
- * 1. First, the checkpoint file must be read.
+ * 1. First, the checkpoint must be read.
  *
- * 2. Afterwards, completed entries are read in order. Only completed logs are read, so the last log
- * currently being written is not read until it is marked as complete.
+ * 2. Afterwards, logs are read in order they were created. Only completed logs are read, so the
+ * last log currently being written is not read until it is marked as complete.
  */
 @NotThreadSafe
-public class JournalReader {
-  private static final Logger LOG = LoggerFactory.getLogger(JournalReader.class);
-
-  private final Journal mJournal;
-  /** The UFS where the journal is being written to. */
-  private final UnderFileSystem mUfs;
-  /** Absolute path for the journal checkpoint file. */
-  private final String mCheckpointPath;
-
-  /** true if the checkpoint has already been read. */
-  private boolean mCheckpointRead = false;
-  /** The modified time (in ms) for the opened checkpoint file. */
-  private long mCheckpointOpenedTime = -1;
-  /** The modified time (in ms) for the latest checkpoint file. */
-  private long mCheckpointLastModifiedTime = -1;
-  /** The log number for the completed log file. */
-  private long mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
-
-  /**
-   * Creates a new instance of {@link JournalReader}.
-   *
-   * @param journal the handle to the journal
-   */
-  JournalReader(Journal journal) {
-    mJournal = Preconditions.checkNotNull(journal, "journal");
-    mUfs = UnderFileSystem.Factory.get(mJournal.getDirectory());
-    mCheckpointPath = mJournal.getCheckpointFilePath();
-  }
+public interface JournalReader {
 
   /**
    * Checks to see if the journal checkpoint has not been updated. If it has been updated since the
    * creation of this reader, this reader is no longer valid.
    *
-   * @return true if the checkpoint file has not been modified
+   * @return true if the checkpoint has not been updated
    */
-  public boolean isValid() {
-    return mCheckpointRead && (mCheckpointOpenedTime == mCheckpointLastModifiedTime);
-  }
+  boolean isValid();
 
   /**
-   * Gets the {@link JournalInputStream} for the journal checkpoint file. This must be called before
+   * Gets the {@link JournalInputStream} for the journal checkpoint. This must be called before
    * calling {@link #getNextInputStream()}.
    *
-   * @return the {@link JournalInputStream} for the journal checkpoint file
-   * @throws IOException if the checkpoint file cannot be read, or was already read
+   * @return the {@link JournalInputStream} for the journal checkpoint
+   * @throws IOException if the checkpoint cannot be read, or was already read
    */
-  public JournalInputStream getCheckpointInputStream() throws IOException {
-    if (mCheckpointRead) {
-      throw new IOException("Checkpoint file has already been read.");
-    }
-    mCheckpointOpenedTime = getCheckpointLastModifiedTimeMs();
-
-    LOG.info("Opening journal checkpoint file: {}", mCheckpointPath);
-    JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(mUfs.open(mCheckpointPath));
-
-    mCheckpointRead = true;
-    return jis;
-  }
+  JournalInputStream getCheckpointInputStream() throws IOException;
 
   /**
-   * @return the input stream for the next completed log file. Will return null if the next
-   *         completed log file does not exist yet.
+   * @return the input stream for the next completed log. Will return null if the next
+   *         completed log does not exist yet.
    * @throws IOException if the reader is no longer valid or when trying to get an input stream
    *                     before a checkpoint was read
    */
-  public JournalInputStream getNextInputStream() throws IOException {
-    if (!mCheckpointRead) {
-      throw new IOException("Must read the checkpoint file before getting input stream.");
-    }
-    if (getCheckpointLastModifiedTimeMs() != mCheckpointOpenedTime) {
-      throw new IOException("Checkpoint file has been updated. This reader is no longer valid.");
-    }
-    String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
-    if (!mUfs.isFile(currentLogPath)) {
-      LOG.debug("Journal log file: {} does not exist yet.", currentLogPath);
-      return null;
-    }
-    // Open input stream from the current log file.
-    LOG.info("Opening journal log file: {}", currentLogPath);
-    JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(mUfs.open(currentLogPath));
-
-    // Increment the log file number.
-    mCurrentLogNumber++;
-    return jis;
-  }
+  JournalInputStream getNextInputStream() throws IOException;
 
   /**
-   * @return the last modified time of the checkpoint file in ms
+   * @return the last modified time of the checkpoint in ms
    * @throws IOException if the checkpoint does not exist
    */
-  public long getCheckpointLastModifiedTimeMs() throws IOException {
-    if (!mUfs.isFile(mCheckpointPath)) {
-      throw new IOException("Checkpoint file " + mCheckpointPath + " does not exist.");
-    }
-    mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpointPath);
-    return mCheckpointLastModifiedTime;
-  }
+  long getCheckpointLastModifiedTimeMs() throws IOException;
 }

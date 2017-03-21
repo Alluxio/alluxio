@@ -41,8 +41,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test master journal for cluster terminating. Assert that test can replay the editlog and
- * reproduce the correct state. Test both the single master(alluxio) and multi masters(alluxio-ft).
+ * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
+ * the correct state. Test both the single master (alluxio) and multi masters (alluxio-ft).
  */
 public class JournalShutdownIntegrationTest {
   @Rule
@@ -127,7 +127,7 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
-  private FileSystemMaster createFsMasterFromJournal() throws IOException {
+  private FileSystemMaster createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 

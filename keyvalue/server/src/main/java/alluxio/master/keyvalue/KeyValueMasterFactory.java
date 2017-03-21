@@ -58,7 +58,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
 
-    Journal journal = journalFactory.get(getName());
+    Journal journal = journalFactory.create(getName());
 
     for (Master master : masters) {
       if (master instanceof FileSystemMaster) {

@@ -27,6 +27,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.MutableJournal;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 
@@ -43,6 +44,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -78,10 +80,10 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+    JournalFactory factory =
+        new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
 
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
+    BlockMaster blockMaster = new BlockMaster(factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
@@ -661,7 +663,7 @@ public final class InodeTreeTest {
     JournalOutputStream mockOutputStream = Mockito.mock(JournalOutputStream.class);
     root.streamToJournalCheckpoint(mockOutputStream);
     for (Inode<?> node : journaled) {
-      Mockito.verify(mockOutputStream).writeEntry(node.toJournalEntry());
+      Mockito.verify(mockOutputStream).write(node.toJournalEntry());
     }
     Mockito.verifyNoMoreInteractions(mockOutputStream);
   }

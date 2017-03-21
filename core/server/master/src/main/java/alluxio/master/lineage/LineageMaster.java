@@ -98,7 +98,7 @@ public final class LineageMaster extends AbstractMaster {
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.get(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
+    super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
@@ -150,7 +150,7 @@ public final class LineageMaster extends AbstractMaster {
   public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
       throws IOException {
     mLineageStore.streamToJournalCheckpoint(outputStream);
-    outputStream.writeEntry(mLineageIdGenerator.toJournalEntry());
+    outputStream.write(mLineageIdGenerator.toJournalEntry());
   }
 
   /**

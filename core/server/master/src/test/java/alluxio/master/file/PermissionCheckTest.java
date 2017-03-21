@@ -38,6 +38,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -61,6 +62,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -170,10 +172,10 @@ public final class PermissionCheckTest {
   @Before
   public void before() throws Exception {
     GroupMappingServiceTestUtils.resetCache();
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
-    mBlockMaster = new BlockMaster(journalFactory);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
+    JournalFactory factory =
+        new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
+    mBlockMaster = new BlockMaster(factory);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, factory);
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 
