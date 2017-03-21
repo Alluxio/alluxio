@@ -12,10 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.annotation.PublicApi;
-import alluxio.client.block.BlockInStream;
-import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
@@ -34,7 +30,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * TODO(gpang): This class should probably not implement BoundedStream, since remaining() does
  * not make sense for a file of unknown length. Investigate an alternative class hierarchy.
  */
-@PublicApi
 @NotThreadSafe
 public final class UnknownLengthFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(UnknownLengthFileInStream.class);
@@ -100,13 +95,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
   protected long getBlockSizeAllocation(long pos) {
     // TODO(gpang): need a better way to handle unknown block size allocation
     return ALLOCATION_BLOCK_SIZE;
-  }
-
-  @Override
-  protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
-      throws IOException {
-    return new UnderStoreBlockInStream(mContext, blockStart, Constants.UNKNOWN_SIZE, length,
-        getUnderStoreStreamFactory(path, mContext));
   }
 
   @Override

@@ -63,7 +63,13 @@ For example, when trying out a new computation job, `cat` can be used as a quick
 
 The `checkConsistency` command compares Alluxio and under storage metadata for a given path. If the path is a directory, the entire subtree will be compared. The command returns a message listing each inconsistent file or directory. The system administrator should reconcile the differences of these files at their discretion. To avoid metadata inconsistencies between Alluxio and under storages, design your systems to modify files and directories through the Alluxio and avoid directly modifying state in the underlying storage.
 
-> NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates to files or directories in the subtree cannot be completed until this command completes.
+If the `-r` option is used, the checkConsistency command will repair all inconsistent files and directories
+under the given path. If an inconsistent file or directory exists only in under storage, its metadata will
+be added to Alluxio. If an inconsistent file exists in Alluxio and its data is fully present in Alluxio, its metadata
+will be loaded to Alluxio again.
+
+NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
+to files or directories in the subtree cannot be completed until this command completes.
 
 For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
 
@@ -144,7 +150,11 @@ For example, if data files are stored by their date, `count` can be used to dete
 
 ### cp
 
-The `cp` command copies a file or directory in the Alluxio filesystem.
+The `cp` command copies a file or directory in the Alluxio file system or between local file system 
+and Alluxio file system.
+
+Scheme `file` indicates the local file system and scheme `alluxio` or no scheme indicates
+the Alluxio file system.
 
 If the `-R` option is used and the source designates a directory, cp copies the entire subtree at source to the destination.
 
@@ -237,11 +247,23 @@ The `ls` command will also load the metadata for any file or directory from the 
 
 Adding `-f` option forces loading metadata for immediate children in a directory. By default, it loads metadata only at the first time at which a directory is listed.
 
+Adding `-raw` option to display raw sizes.
+
 For example, `ls` can be used to browse the file system.
 
 {% include Command-Line-Interface/ls.md %}
 
 `ls` loads the metadata for immedidate children of a directory.
+
+### masterInfo
+
+The `masterInfo` command prints information regarding master fault tolerance such as leader address, list of master addresses, and the configured Zookeeper address. If Alluxio is running in single
+master mode, `masterInfo` will print the master address. If Alluxio is running in fault tolerance mode,
+the leader address, list of master addresses and the configured Zookeeper address will be printed.
+
+For example, `masterInfo` can be used to print information regarding master fault tolerance.
+
+{% include Command-Line-Interface/masterInfo.md %}
 
 ### mkdir
 

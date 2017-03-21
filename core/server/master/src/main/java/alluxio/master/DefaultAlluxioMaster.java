@@ -108,6 +108,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 
+  /**
+   * Creates a {@link DefaultAlluxioMaster} by the classes in the same packet of
+   * {@link DefaultAlluxioMaster} or the subclasses of {@link DefaultAlluxioMaster}.
+   */
   protected DefaultAlluxioMaster() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
@@ -149,6 +153,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
+  /**
+   * Gets the path of journal directory.
+   *
+   * @return the Path of journal directory
+   */
   protected String getJournalDirectory() {
     String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
@@ -308,6 +317,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
         stopMessage);
   }
 
+  /**
+   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the
+   * web server and starting web ui.
+   */
   protected void startServingWebServer() {
     mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
         NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);

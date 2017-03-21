@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -46,4 +48,19 @@ public interface BlockReader extends Closeable {
    * @return channel
    */
   ReadableByteChannel getChannel();
+
+  /**
+   * Transfers data (up to buf.writableBytes()) from this reader to the buffer.
+   * This is only called by the netty data server.
+   *
+   * @param buf the byte buffer
+   * @return the number of bytes transferred, -1 if the end of the block is reached
+   * @throws IOException if any I/O errors occur
+   */
+  int transferTo(ByteBuf buf) throws IOException;
+
+  /**
+   * @return true if this reader is closed
+   */
+  boolean isClosed();
 }

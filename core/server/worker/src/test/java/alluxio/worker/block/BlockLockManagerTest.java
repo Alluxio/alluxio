@@ -84,15 +84,13 @@ public final class BlockLockManagerTest {
 
   /**
    * Tests that an exception is thrown when trying to unlock a block via
-   * {@link BlockLockManager#unlockBlock(long)} which is not locked.
+   * {@link BlockLockManager#unlockBlockNoException(long)} which is not locked.
    */
   @Test
   public void unlockNonExistingLock() throws Exception {
     long badLockId = 1;
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Unlock a non-existing lockId, expect to see IOException
-    mLockManager.unlockBlock(badLockId);
+    Assert.assertFalse(mLockManager.unlockBlockNoException(badLockId));
   }
 
   /**
@@ -172,6 +170,30 @@ public final class BlockLockManagerTest {
   }
 
   /**
+   * Tests that an exception is thrown when a session tries to acquire a write lock on a block that
+   * it currently has a read lock on.
+   */
+  @Test
+  public void lockAlreadyReadLockedBlock() {
+    BlockLockManager manager = new BlockLockManager();
+    manager.lockBlock(1, 1, BlockLockType.READ);
+    mThrown.expect(IllegalStateException.class);
+    manager.lockBlock(1, 1, BlockLockType.WRITE);
+  }
+
+  /**
+   * Tests that an exception is thrown when a session tries to acquire a write lock on a block that
+   * it currently has a write lock on.
+   */
+  @Test
+  public void lockAlreadyWriteLockedBlock() {
+    BlockLockManager manager = new BlockLockManager();
+    manager.lockBlock(1, 1, BlockLockType.WRITE);
+    mThrown.expect(IllegalStateException.class);
+    manager.lockBlock(1, 1, BlockLockType.WRITE);
+  }
+
+  /**
    * Tests that two sessions can both take a read lock on the same block.
    */
   @Test(timeout = 10000)
@@ -187,7 +209,7 @@ public final class BlockLockManagerTest {
   @Test(timeout = 10000)
   public void readBlocksWrite() throws Exception {
     BlockLockManager manager = new BlockLockManager();
-    manager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    manager.lockBlock(1, TEST_BLOCK_ID, BlockLockType.READ);
     lockExpectingHang(manager, TEST_BLOCK_ID);
   }
 
@@ -199,7 +221,8 @@ public final class BlockLockManagerTest {
     setMaxLocks(1);
     BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.WRITE);
-    manager.unlockBlock(lockId1); // Without this line the next lock would hang.
+    Assert.assertTrue(
+        manager.unlockBlockNoException(lockId1)); // Without this line the next lock would hang.
     manager.lockBlock(TEST_SESSION_ID, 2, BlockLockType.WRITE);
   }
 
@@ -212,7 +235,7 @@ public final class BlockLockManagerTest {
     final BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
     manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
-    manager.unlockBlock(lockId1);
+    Assert.assertTrue(manager.unlockBlockNoException(lockId1));
     lockExpectingHang(manager, 2);
   }
 
@@ -274,11 +297,7 @@ public final class BlockLockManagerTest {
             // Lock and unlock the block lockUnlocksPerThread times.
             for (int j = 0; j < lockUnlocksPerThread; j++) {
               long lockId = manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
-              try {
-                manager.unlockBlock(lockId);
-              } catch (BlockDoesNotExistException e) {
-                throw Throwables.propagate(e);
-              }
+              Assert.assertTrue(manager.unlockBlockNoException(lockId));
             }
             // Lock the block one last time.
             manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);

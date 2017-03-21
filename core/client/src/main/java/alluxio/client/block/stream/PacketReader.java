@@ -47,5 +47,10 @@ public interface PacketReader extends Closeable {
      * @throws IOException if it fails to create the object
      */
     PacketReader create(long offset, long len) throws IOException;
+
+    /**
+     * @return whether this factory generates packet readers which perform short-circuit reads
+     */
+    boolean isShortCircuit();
   }
 }

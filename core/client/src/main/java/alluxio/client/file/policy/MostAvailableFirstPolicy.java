@@ -12,6 +12,8 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -22,8 +24,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * A policy that returns the worker with the most available bytes. The policy returns null if no
  * worker is qualified.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
+public final class MostAvailableFirstPolicy
+    implements FileWriteLocationPolicy, BlockLocationPolicy {
 
   /**
    * Constructs a new {@link MostAvailableFirstPolicy}.
@@ -42,6 +46,11 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
       }
     }
     return result;
+  }
+
+  @Override
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   @Override

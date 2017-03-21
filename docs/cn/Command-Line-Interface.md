@@ -65,6 +65,9 @@ fs命令中的所有“路径”都应该以以下开头：
 
 `checkConsistency`命令会对比一给定路径下Alluxio以及底层存储系统的元数据，如果该路径是一个目录，那么其所有子内容都会被对比。该命令返回包含所有不一致的文件和目录的列表，系统管理员决定是否对这些不一致数据进行调整。为了防止Alluxio与底层存储系统的元数据不一致，应将你的系统设置为通过Alluxio来修改文件和目录，而不是直接访问底层存储系统进行修改。
 
+如果使用了`-r`选项，那么checkConsistency命令会去修复不一致的文件或目录，对于只存在底层存储的文件或者文件夹会从Alluxio中删除，对于在底层文件系统中，
+但是，文件内容发生变化的文件，该文件的元数据会重新load到Alluxio。
+
 注意：该命令需要请求将要被检查的目录子树的读锁，这意味着在该命令完成之前无法对该目录子树的文件或者目录进行写操作或者更新操作。
 
 例如，`checkConsistency`命令可以用来周期性地检查命名空间的完整性：
@@ -146,7 +149,9 @@ fs命令中的所有“路径”都应该以以下开头：
 
 ### cp
 
-`cp`命令拷贝Alluxio文件系统中的一个文件或者目录。
+`cp`命令拷贝Alluxio文件系统中的一个文件或者目录,也可以在本地文件系统和Alluxio文件系统之间相互拷贝。
+
+`file`scheme表示本地文件系统，`alluxio`scheme或不写scheme表示Alluxio文件系统。
 
 如果使用了`-R`选项，并且源路径是一个目录，`cp`将源路径下的整个子树拷贝到目标路径。
 
@@ -234,9 +239,19 @@ fs命令中的所有“路径”都应该以以下开头：
 加上`-f`选项可以强制访问本地文件系统, 创建子文件在Alluxio系统中的镜像。该命令只创建元数据, 例如文件名及文件大小，而不会传输数据。如果不加
 这个选项, 底层文件只会在第一次访问该文件夹的时候访问一次。
 
+加上`-raw`选项可以显示字节大小。
+
 使用举例：使用`ls`命令可以浏览文件系统。
 
 {% include Command-Line-Interface/ls.md %}
+
+### masterInfo
+
+`masterInfo`命令打印与Alluxio master容错相关的信息，例如leader的地址、所有master的地址列表以及配置的Zookeeper地址。如果Alluxio运行在单master模式下，`masterInfo`命令会打印出该master的地址；如果Alluxio运行在多master容错模式下，`masterInfo`命令会打印出当前的leader地址、所有master的地址列表以及Zookeeper的地址。
+
+使用举例：使用`masterInfo`命令可以打印与Alluxio master容错相关的信息。
+
+{% include Command-Line-Interface/masterInfo.md %}
 
 ### mkdir
 
