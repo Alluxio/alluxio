@@ -77,8 +77,8 @@ public final class LsCommand extends WithWildCardPathCommand {
     }
   }
 
-  private void printLsString(URIStatus status, ListStatusOptions options) {
-    System.out.print(formatLsString(options.ismRawSize(), SecurityUtils.isSecurityEnabled(),
+  private void printLsString(URIStatus status, boolean rawSize) {
+    System.out.print(formatLsString(rawSize, SecurityUtils.isSecurityEnabled(),
         status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
         status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
         100 == status.getInMemoryPercentage(), status.getPath()));
@@ -118,34 +118,43 @@ public final class LsCommand extends WithWildCardPathCommand {
    * Displays information for all directories and files directly under the path specified in args.
    *
    * @param path The {@link AlluxioURI} path as the input of the command
-   * @param options ListStatusOptions for the given path
+   * @param recursive Whether list the path recursively
+   * @param dirAsFile list the directory status as a plain file
+   * @param rawSize print raw sizes
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
-  private void ls(AlluxioURI path, ListStatusOptions options) throws AlluxioException, IOException {
-    if (options.ismDirAsFile()) {
+  private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
+                  boolean rawSize, boolean pinned)
+      throws AlluxioException, IOException {
+    if (dirAsFile) {
       URIStatus status = mFileSystem.getStatus(path);
       boolean isPinned = status.isPinned();
-      if (options.ismPinned()) {
+      if (pinned) {
         if (!isPinned) {
           return;
         }
       }
-      printLsString(status, options);
+      printLsString(status, rawSize);
       return;
     }
 
+    ListStatusOptions options = ListStatusOptions.defaults();
+    if (forceLoadMetadata) {
+      options.setLoadMetadataType(LoadMetadataType.Always);
+    }
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
-      if (options.ismPinned()) {
+      if (pinned) {
         if (status.isPinned()) {
-          printLsString(status, options);
+          printLsString(status, rawSize);
         }
       } else {
-        printLsString(status, options);
+        printLsString(status, rawSize);
       }
-      if (options.ismRecursive() && status.isFolder()) {
-        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), options);
+      if (recursive && status.isFolder()) {
+        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
+            forceLoadMetadata, false, rawSize, pinned);
       }
     }
   }
@@ -172,21 +181,13 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
-    if (cl.hasOption("f")) {
-      listStatusOptions.setLoadMetadataType(LoadMetadataType.Always);
-      listStatusOptions.setmForceLoadMetaData(true);
-    }
-    listStatusOptions.setmRecursive(cl.hasOption("R"));
-    listStatusOptions.setmDirAsFile(cl.hasOption("d"));
-    listStatusOptions.setmPinned(cl.hasOption("p"));
-    listStatusOptions.setmRawSize(cl.hasOption("raw"));
-    ls(path, listStatusOptions);
+    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("raw"),
+        cl.hasOption("p"));
   }
 
   @Override
   public String getUsage() {
-    return "ls [-R|-d|-f|-raw|-p] <path>";
+    return "ls [-d|-f|-p|-R|-raw] <path>";
   }
 
   @Override

@@ -15,8 +15,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.wire.LoadMetadataType;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -26,14 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-@JsonInclude(Include.NON_EMPTY)
 public final class ListStatusOptions {
   private LoadMetadataType mLoadMetadataType;
-  private boolean mRecursive;
-  private boolean mForceLoadMetaData;
-  private boolean mDirAsFile;
-  private boolean mPinned;
-  private boolean mRawSize;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -44,11 +36,6 @@ public final class ListStatusOptions {
 
   private ListStatusOptions() {
     mLoadMetadataType = LoadMetadataType.Once;
-    mRecursive = false;
-    mForceLoadMetaData = false;
-    mDirAsFile = false;
-    mPinned = false;
-    mRawSize = false;
   }
 
   /**
@@ -60,83 +47,12 @@ public final class ListStatusOptions {
   }
 
   /**
-   * @param loadMetadataType the loadMetadataType
+   * @param loadMetadataType the loadMetataType
    * @return the updated options
    */
   public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
     return this;
-  }
-
-  /**
-   * @return raw size option. It specifies whether to print raw sizes
-   */
-  public boolean ismRawSize() {
-    return mRawSize;
-  }
-
-  /**
-   * @param rawSize Raw Size Option
-   */
-  public void setmRawSize(boolean rawSize) {
-    mRawSize = rawSize;
-  }
-
-  /**
-   * @return the recursive option. It specifies whether the path has to be traversed recursively
-   */
-  public boolean ismRecursive() {
-    return mRecursive;
-  }
-
-  /**
-   * @param recursive Recursive option. It specifies whether to display directories recursively
-   */
-  public void setmRecursive(boolean recursive) {
-    mRecursive = recursive;
-  }
-
-  /**
-   * @return Force Load Metadata Option. It specifies whether to force loading files in the
-   *         directory.
-   */
-  public boolean ismForceLoadMetaData() {
-    return mForceLoadMetaData;
-  }
-
-  /**
-   * @param forceLoadMetaData Option to force loading files in the directory
-   */
-  public void setmForceLoadMetaData(boolean forceLoadMetaData) {
-    mForceLoadMetaData = forceLoadMetaData;
-  }
-
-  /**
-   * @return Directory As File Option. It specifies whether to list directories as plain files
-   */
-  public boolean ismDirAsFile() {
-    return mDirAsFile;
-  }
-
-  /**
-   * @param dirAsFile Option to list directories as plain files
-   */
-  public void setmDirAsFile(boolean dirAsFile) {
-    mDirAsFile = dirAsFile;
-  }
-
-  /**
-   * @return IsPinned Option. It specifies whether to list all the pinned files
-   */
-  public boolean ismPinned() {
-    return mPinned;
-  }
-
-  /**
-   * @param pinned Option to list all the pinned files
-   */
-  public void setmPinned(boolean pinned) {
-    mPinned = pinned;
   }
 
   @Override
@@ -148,18 +64,12 @@ public final class ListStatusOptions {
       return false;
     }
     ListStatusOptions that = (ListStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
-        && Objects.equal(mRecursive, that.mRecursive)
-        && Objects.equal(mForceLoadMetaData, that.mForceLoadMetaData)
-        && Objects.equal(mDirAsFile, that.mDirAsFile)
-        && Objects.equal(mPinned, that.mPinned)
-        && Objects.equal(mRawSize, that.mRawSize);
+    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType, mRecursive, mForceLoadMetaData, mDirAsFile, mPinned,
-        mRawSize);
+    return Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
