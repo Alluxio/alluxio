@@ -45,6 +45,10 @@ $ docker build -t alluxio .
 By default, this will build an image for the latest released version of Alluxio. To build
 from a local Alluxio tarball instead, you can use `--build-arg`
 
+```bash
+$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+```
+
 ### Set up under storage
 
 To keep this guide simple, we will use the local filesystem for under storage. In a real deployment
