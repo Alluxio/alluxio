@@ -221,8 +221,7 @@ public final class CpCommand extends AbstractShellCommand {
         try {
           copy(new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
               new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-                  PathUtils
-                          .concatPath(dstPath.getPath(), status.getName())), recursive);
+                  PathUtils.concatPath(dstPath.getPath(), status.getName())), recursive);
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
