@@ -555,7 +555,8 @@ public final class CpCommand extends AbstractShellCommand {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
-    File tmpDst = new File(Name.HOME + randomSuffix);
+    File tmpDst = new File(PathUtils.concatPath( dstFile.getAbsolutePath(),
+            srcPath.getName() + randomSuffix));
 
     try (Closer closer = Closer.create()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
