@@ -116,7 +116,7 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   /**
-   * Represents for different kinds of test types.
+   * Represents different types of tests.
    */
   private enum TestType {
     TEST_TYPE_READ("read"), TEST_TYPE_WRITE("write"), TEST_TYPE_CLEANUP("cleanup"),
