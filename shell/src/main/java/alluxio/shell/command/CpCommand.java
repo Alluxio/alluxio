@@ -221,7 +221,8 @@ public final class CpCommand extends AbstractShellCommand {
         try {
           copy(new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
               new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-                  PathUtils.concatPath(dstPath.getPath(), status.getName())), recursive);
+                  PathUtils
+                          .concatPath(dstPath.getPath(), status.getName())), recursive);
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
@@ -552,7 +553,6 @@ public final class CpCommand extends AbstractShellCommand {
   private void copyFileToLocal(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
     File dstFile = new File(dstPath.getPath());
-    String fileName = srcPath.getName();
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
     File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
@@ -567,8 +567,8 @@ public final class CpCommand extends AbstractShellCommand {
         out.write(buf, 0, t);
         t = is.read(buf);
       }
-      File outputFile = new File(dstFile.getAbsolutePath() + "/" + fileName);
-      if (!tmpDst.renameTo(outputFile) {
+      File outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(),srcPath.getName()));
+      if (!tmpDst.renameTo(outputFile)) {
         throw new IOException(
             "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
       }
