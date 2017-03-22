@@ -42,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,7 +83,8 @@ public final class CpCommand extends AbstractShellCommand {
     AlluxioURI dstPath = new AlluxioURI(args[1]);
     if ((dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))
         && isFile(srcPath.getScheme())) {
-      List<File> srcFiles = AlluxioShellUtils.getFiles(srcPath.getPath());
+      String path = srcPath.getPath();
+      List<File> srcFiles = AlluxioShellUtils.getFiles(path);
       if (srcFiles.size() == 0) {
         throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
       }
@@ -555,8 +557,20 @@ public final class CpCommand extends AbstractShellCommand {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
-    File tmpDst = new File(PathUtils.concatPath( dstFile.getAbsolutePath(),
-            srcPath.getName() + randomSuffix));
+    File tmpDst, outputFile;
+    String dstAbsolute = dstFile.getAbsolutePath();
+    if (new File (dstAbsolute).exists()) {
+      if (new File(dstAbsolute).isFile()) {
+        tmpDst = new File(dstAbsolute + randomSuffix);
+        outputFile = new File(dstAbsolute);
+      } else {
+        tmpDst = new File(PathUtils.concatPath(dstFile.getAbsolutePath(), srcPath.getName() + randomSuffix));
+        outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(),srcPath.getName()));
+      }
+    } else {
+      tmpDst = new File(dstFile.getParent(), srcPath.getName() + randomSuffix);
+      outputFile = new File(dstFile.getParent(), srcPath.getName());
+    }
 
     try (Closer closer = Closer.create()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
@@ -568,7 +582,6 @@ public final class CpCommand extends AbstractShellCommand {
         out.write(buf, 0, t);
         t = is.read(buf);
       }
-      File outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(),srcPath.getName()));
       if (!tmpDst.renameTo(outputFile)) {
         throw new IOException(
             "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
