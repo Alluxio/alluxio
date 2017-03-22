@@ -45,19 +45,10 @@ public interface AlluxioMasterService extends Server {
   }
 
   /**
-   * @return the block master for this Alluxio master
+   * @param <T> the type of the master to get
+   * @return the given master
    */
-  BlockMaster getBlockMaster();
-
-  /**
-   * @return the file system master for this Alluxio master
-   */
-  FileSystemMaster getFileSystemMaster();
-
-  /**
-   * @return the lineage master for this Alluxio master
-   */
-  LineageMaster getLineageMaster();
+  <T> T getMaster(Class<T> clazz);
 
   /**
    * @return this master's rpc address

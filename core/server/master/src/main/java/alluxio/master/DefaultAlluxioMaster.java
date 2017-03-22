@@ -200,18 +200,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   @Override
-  public BlockMaster getBlockMaster() {
-    return mRegistry.get(BlockMaster.class);
-  }
-
-  @Override
-  public FileSystemMaster getFileSystemMaster() {
-    return mRegistry.get(FileSystemMaster.class);
-  }
-
-  @Override
-  public LineageMaster getLineageMaster() {
-    return mRegistry.get(LineageMaster.class);
+  public <T> T getMaster(Class<T> clazz) {
+    return mRegistry.get(clazz);
   }
 
   @Override

@@ -119,7 +119,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     mBlockMaster = new BlockMaster(registry, factory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mBlockMaster.start(true);
-    when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
+    when(mMaster.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
     registerFileSystemMock();
