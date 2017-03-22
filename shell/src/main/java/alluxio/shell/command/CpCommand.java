@@ -555,19 +555,33 @@ public final class CpCommand extends AbstractShellCommand {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
-    File tmpDst, outputFile;
+    File tmpDst;
+    File outputFile;
     String dstAbsolute = dstFile.getAbsolutePath();
-    if (new File (dstAbsolute).exists()) {
+    String fileName;
+    if (dstPath.getPath().equals("")) {
+      // current directory
+      if (dstPath.getAuthority().equals(".")) {
+        fileName = srcPath.getName();
+      } else {
+        fileName = dstPath.getAuthority();
+      }
+    } else {
+      fileName = dstPath.getName();
+    }
+
+    if (new File(dstAbsolute).exists()) {
       if (new File(dstAbsolute).isFile()) {
         tmpDst = new File(dstAbsolute + randomSuffix);
         outputFile = new File(dstAbsolute);
       } else {
-        tmpDst = new File(PathUtils.concatPath(dstFile.getAbsolutePath(), srcPath.getName() + randomSuffix));
-        outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(),srcPath.getName()));
+        tmpDst = new File(PathUtils.concatPath(dstFile.getAbsolutePath(),
+                fileName + randomSuffix));
+        outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(), fileName));
       }
     } else {
-      tmpDst = new File(dstFile.getParent(), srcPath.getName() + randomSuffix);
-      outputFile = new File(dstFile.getParent(), srcPath.getName());
+      tmpDst = new File(dstFile.getParent(), fileName + randomSuffix);
+      outputFile = new File(dstFile.getParent(), fileName);
     }
 
     try (Closer closer = Closer.create()) {
