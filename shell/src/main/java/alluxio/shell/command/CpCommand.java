@@ -81,8 +81,7 @@ public final class CpCommand extends AbstractShellCommand {
     AlluxioURI dstPath = new AlluxioURI(args[1]);
     if ((dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))
         && isFile(srcPath.getScheme())) {
-      String path = srcPath.getPath();
-      List<File> srcFiles = AlluxioShellUtils.getFiles(path);
+      List<File> srcFiles = AlluxioShellUtils.getFiles(srcPath.getPath());
       if (srcFiles.size() == 0) {
         throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
       }
