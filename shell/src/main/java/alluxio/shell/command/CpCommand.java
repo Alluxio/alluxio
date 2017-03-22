@@ -27,7 +27,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.PropertyKey.Name;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
@@ -42,7 +41,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
