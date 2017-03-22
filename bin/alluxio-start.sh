@@ -146,7 +146,7 @@ start_master() {
   fi
 
   echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup ${JAVA} -cp ${CLASSPATH} \
+  (nohup "${JAVA}" -cp ${CLASSPATH} \
    ${ALLUXIO_MASTER_JAVA_OPTS} \
    alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
 }
@@ -157,7 +157,7 @@ start_proxy() {
   fi
 
   echo "Starting proxy @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup ${JAVA} -cp ${CLASSPATH} \
+  (nohup "${JAVA}" -cp ${CLASSPATH} \
    ${ALLUXIO_PROXY_JAVA_OPTS} \
    alluxio.proxy.AlluxioProxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
 }
@@ -174,7 +174,7 @@ start_worker() {
   fi
 
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (nohup ${JAVA} -cp ${CLASSPATH} \
+  (nohup "${JAVA}" -cp ${CLASSPATH} \
    ${ALLUXIO_WORKER_JAVA_OPTS} \
    alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
@@ -187,7 +187,7 @@ restart_worker() {
   RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7)
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${JAVA} -cp ${CLASSPATH} \
+    (nohup "${JAVA}" -cp ${CLASSPATH} \
      ${ALLUXIO_WORKER_JAVA_OPTS} \
      alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
