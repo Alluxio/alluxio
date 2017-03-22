@@ -14,9 +14,6 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.Server;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.lineage.LineageMaster;
 
 import java.net.InetSocketAddress;
 
@@ -45,19 +42,12 @@ public interface AlluxioMasterService extends Server {
   }
 
   /**
-   * @return the block master for this Alluxio master
-   */
-  BlockMaster getBlockMaster();
+   * @param clazz the class of the master to get
+   * @param <T> the type of the master to get
 
-  /**
-   * @return the file system master for this Alluxio master
+   * @return the given master
    */
-  FileSystemMaster getFileSystemMaster();
-
-  /**
-   * @return the lineage master for this Alluxio master
-   */
-  LineageMaster getLineageMaster();
+  <T> T getMaster(Class<T> clazz);
 
   /**
    * @return this master's rpc address

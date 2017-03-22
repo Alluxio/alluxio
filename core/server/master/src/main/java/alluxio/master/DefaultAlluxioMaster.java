@@ -17,12 +17,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.MutableJournal;
-import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
@@ -200,18 +197,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   @Override
-  public BlockMaster getBlockMaster() {
-    return mRegistry.get(BlockMaster.class);
-  }
-
-  @Override
-  public FileSystemMaster getFileSystemMaster() {
-    return mRegistry.get(FileSystemMaster.class);
-  }
-
-  @Override
-  public LineageMaster getLineageMaster() {
-    return mRegistry.get(LineageMaster.class);
+  public <T> T getMaster(Class<T> clazz) {
+    return mRegistry.get(clazz);
   }
 
   @Override

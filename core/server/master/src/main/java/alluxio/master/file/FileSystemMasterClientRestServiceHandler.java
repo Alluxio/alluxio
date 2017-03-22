@@ -89,7 +89,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     mFileSystemMaster = ((AlluxioMasterService) context
-        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getFileSystemMaster();
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
+        .getMaster(FileSystemMaster.class);
   }
 
   /**
