@@ -84,7 +84,7 @@ public final class Format {
       System.exit(-1);
     }
     try {
-      format(Mode.valueOf(args[0]));
+      format(Mode.valueOf(args[0].toUpperCase()));
     } catch (Exception e) {
       LOG.error("Failed to format", e);
       System.exit(-1);
