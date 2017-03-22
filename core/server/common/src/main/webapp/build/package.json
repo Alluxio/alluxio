@@ -1,0 +1,34 @@
+{
+
+  "name": "ui-grid",
+  "version": "4.0.2",
+  "description": "A data grid for Angular",
+  "directories": {
+    "test": "test"
+  },
+  "main": "index.js",
+  "scripts": {
+    "init": "validate-commit-msg",
+    "test": "grunt",
+    "commit": "git-cz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angular-ui/ui-grid.git"
+  },
+  "keywords": [
+    "angular",
+    "ng-grid",
+    "nggrid",
+    "grid",
+    "angularjs",
+    "slickgrid",
+    "kogrid",
+    "ui-grid",
+    "ui grid",
+    "data grid"
+  ],
+  "author": "UI Grid Team",
+  "license": "MIT",
+  "homepage": "https://github.com/angular-ui/ui-grid#readme"
+}

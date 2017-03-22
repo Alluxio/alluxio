@@ -1,3 +1,4 @@
+<!doctype html>
 <%--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0

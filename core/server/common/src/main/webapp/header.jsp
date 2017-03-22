@@ -22,7 +22,7 @@
       <ul class="nav nav-pills">
         <li id="home-li"><a href="./home">Overview</a></li>
         <% if (request.getAttribute("useWorkerHeader") == null) { %>
-          <li id="browse-li"><a href="./browse?path=/">Browse</a></li>
+          <li id="browse-li"><a href="./browse">Browse</a></li>
           <li id="configuration-li"><a href="./configuration">Configuration</a></li>
           <li id="workers-li"><a href="./workers">Workers</a></li>
           <li id="memory-li"><a href="./memory">In-Memory Data</a></li>

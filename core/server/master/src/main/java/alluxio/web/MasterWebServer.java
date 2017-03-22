@@ -51,7 +51,14 @@ public final class MasterWebServer extends WebServer {
     mWebAppContext.addServlet(new ServletHolder(
         new WebInterfaceConfigurationServlet(master.getFileSystemMaster())), "/configuration");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(master)), "/browse");
+    mWebAppContext.addServlet(new ServletHolder(
+        new WebInterfaceBrowseLogAjaxServlet()), "/browse/browseLog.ajax");
+    mWebAppContext.addServlet(new ServletHolder(
+        new WebInterfaceBrowseAjaxServlet(master)), "/browse/jumpPath.ajax");
+
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(master)), "/memory");
+    mWebAppContext.addServlet(new ServletHolder(
+        new WebInterfaceMemoryAjaxServlet(master)), "/memory/getFiles.ajax");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(master)),
         "/dependency");
     mWebAppContext.addServlet(new ServletHolder(

@@ -20,9 +20,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -39,12 +36,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
 
   private final String mBrowseJsp;
   private final String mViewJsp;
-  private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.toLowerCase().endsWith(".log");
-    }
-  };
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseLogsServlet}.
@@ -119,48 +110,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     String requestFile = request.getParameter("path");
 
     if (requestFile == null || requestFile.isEmpty()) {
-      // List all log files in the log/ directory.
-
-      List<UIFileInfo> fileInfos = new ArrayList<>();
-      File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
-      if (logFiles != null) {
-        for (File logFile : logFiles) {
-          String logFileName = logFile.getName();
-          fileInfos.add(new UIFileInfo(new UIFileInfo.LocalFileInfo(logFileName, logFileName,
-                  logFile.length(), UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME,
-                  logFile.lastModified(), logFile.isDirectory())));
-        }
-      }
-      Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
-      request.setAttribute("nTotalFile", fileInfos.size());
-
-      // URL can not determine offset and limit, let javascript in jsp determine and redirect
-      if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
-        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
-        return;
-      }
-
-      try {
-        int offset = Integer.parseInt(request.getParameter("offset"));
-        int limit = Integer.parseInt(request.getParameter("limit"));
-        List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
-        request.setAttribute("fileInfos", sub);
-      } catch (NumberFormatException e) {
-        request.setAttribute("fatalError",
-                "Error: offset or limit parse error, " + e.getLocalizedMessage());
-        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
-        return;
-      } catch (IndexOutOfBoundsException e) {
-        request.setAttribute("fatalError",
-                "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
-        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
-        return;
-      } catch (IllegalArgumentException e) {
-        request.setAttribute("fatalError", e.getLocalizedMessage());
-        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
-        return;
-      }
-
       getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
     } else {
       // Request a specific log file.

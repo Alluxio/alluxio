@@ -10,12 +10,13 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 --%>
+<!doctype html>
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.web.*" %>
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 <%@ page import="static java.net.URLEncoder.encode" %>
 
-<html>
+<html ng-app="app">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <jsp:include page="../header-links.jsp" />

@@ -10,6 +10,7 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 --%>
+<!doctype html>
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.web.*" %>
 
@@ -21,62 +22,29 @@
 <title>Alluxio</title>
 <body>
 <jsp:include page="header-scripts.jsp" />
+<link rel="stylesheet" href="build/node_modules/angular-ui-grid/ui-grid.min.css" type="text/css">
+<link rel="stylesheet" href="css/custom.ui-grid.css" type="text/css">
+<script src="build/node_modules/angular-ui-grid/node_modules/angular/angular.min.js"></script>
+<script src="build/node_modules/angular-ui-grid/ui-grid.min.js"></script>
+<script src="js/memory.js"></script>
 <div class="container-fluid">
   <jsp:include page="/header" />
-
   <div class="container-fluid">
     <div class="row-fluid">
       <div class="span12 well">
-          <h1 class="text-error">
-            <%= request.getAttribute("fatalError") %>
-          </h1>
-          <table class="table table-hover">
-          <thead>
-            <th>File Path</th>
-            <th>Size</th>
-            <th>Block Size</th>
-            <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-              <th>Permission</th>
-              <th>Owner</th>
-              <th>Group</th>
-            <% } %>
-            <th>Pin</th>
-            <th>Creation Time</th>
-            <th>Modification Time</th>
-          </thead>
-          <tbody>
-            <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
-                <tr>
-                  <th><%= fileInfo.getAbsolutePath() %></th>
-                  <th><%= fileInfo.getSize() %></th>
-                  <th><%= fileInfo.getBlockSizeBytes() %></th>
-                  <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-                    <th><%= fileInfo.getMode() %></th>
-                    <th><%= fileInfo.getOwner() %></th>
-                    <th><%= fileInfo.getGroup() %></th>
-                  <% } %>
-                  <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
-                  <th><%= fileInfo.getCreationTime() %></th>
-                  <th><%= fileInfo.getModificationTime() %></th>
-                </tr>
-              <% } %>
-            <% } %>
-          </tbody>
-        </table>
+        <h1 class="text-error">
+          <%= request.getAttribute("fatalError") %>
+        </h1>
 
-        <%@ include file="pagination-component.jsp" %>
-
+        <div ng-app="app" id="MainCtrl" ng-controller="MainCtrl">
+          <div id="grid1" ui-grid="gridOptions" ui-grid-pagination ui-grid-resize-columns ui-grid-move-columns class="grid"></div>
+          <button id='toggleFiltering' ng-click="toggleFiltering()" class="btn btn-success">Toggle Filtering</button>
+        </div>
       </div>
     </div>
   </div>
 
   <%@ include file="footer.jsp" %>
 </div>
-
-<!-- where the magic behind dynamic pagination happens -->
-<%@ include file="memory-pagination-header.jsp" %>
-<%@ include file="pagination-control.jsp" %>
-
 </body>
 </html>
