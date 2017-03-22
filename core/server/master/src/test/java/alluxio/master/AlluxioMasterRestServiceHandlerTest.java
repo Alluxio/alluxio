@@ -110,12 +110,13 @@ public class AlluxioMasterRestServiceHandlerTest {
   public void before() throws Exception {
     mMaster = mock(AlluxioMasterService.class);
     mContext = mock(ServletContext.class);
+    MasterRegistry registry = new MasterRegistry();
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new BlockMaster(factory, mClock,
+    mBlockMaster = new BlockMaster(registry, factory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mBlockMaster.start(true);
     when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);

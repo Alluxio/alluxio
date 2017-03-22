@@ -29,7 +29,6 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -57,6 +56,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -87,17 +89,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
-  /** The master managing all block metadata. */
-  protected BlockMaster mBlockMaster;
-
-  /** The master managing all file system related metadata. */
-  protected FileSystemMaster mFileSystemMaster;
-
-  /** The master managing all lineage related metadata. */
-  protected LineageMaster mLineageMaster;
-
-  /** A list of extra masters to launch based on service loader. */
-  protected List<Master> mAdditionalMasters;
+  /** The master registry. */
+  protected MasterRegistry mRegistry;
 
   /** The web ui server. */
   private WebServer mWebServer = null;
@@ -184,41 +177,41 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
-  protected void createMasters(JournalFactory journalFactory) {
-    mBlockMaster = new BlockMaster(journalFactory);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
-    if (LineageUtils.isLineageEnabled()) {
-      mLineageMaster = new LineageMaster(mFileSystemMaster, journalFactory);
+  /**
+   * @param journalFactory the factory to use for creating journals
+   */
+  protected void createMasters(final JournalFactory journalFactory) {
+    mRegistry = new MasterRegistry();
+    List<Callable<Void>> callables = new ArrayList<>();
+    for (final MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
+      callables.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          factory.create(mRegistry, journalFactory);
+          return null;
+        }
+      });
     }
-
-    mAdditionalMasters = new ArrayList<>();
-    List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-    for (MasterFactory masterFactory : ServerUtils.getMasterServiceLoader()) {
-      Master master = masterFactory.create(masters, journalFactory);
-      if (master != null) {
-        mAdditionalMasters.add(master);
-      }
+    try {
+      Executors.newCachedThreadPool().invokeAll(callables, 10, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
-  }
-
-  @Override
-  public List<Master> getAdditionalMasters() {
-    return mAdditionalMasters;
   }
 
   @Override
   public BlockMaster getBlockMaster() {
-    return mBlockMaster;
+    return mRegistry.get(BlockMaster.class);
   }
 
   @Override
   public FileSystemMaster getFileSystemMaster() {
-    return mFileSystemMaster;
+    return mRegistry.get(FileSystemMaster.class);
   }
 
   @Override
   public LineageMaster getLineageMaster() {
-    return mLineageMaster;
+    return mRegistry.get(LineageMaster.class);
   }
 
   @Override
@@ -280,17 +273,9 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected void startMasters(boolean isLeader) {
     try {
       connectToUFS();
-
-      mBlockMaster.start(isLeader);
-      mFileSystemMaster.start(isLeader);
-      if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster.start(isLeader);
-      }
-      // start additional masters
-      for (Master master : mAdditionalMasters) {
+      for (Master master : mRegistry.getMasters()) {
         master.start(isLeader);
       }
-
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
@@ -298,15 +283,9 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   protected void stopMasters() {
     try {
-      if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster.stop();
-      }
-      // stop additional masters
-      for (Master master : mAdditionalMasters) {
+      for (Master master : Lists.reverse(mRegistry.getMasters())) {
         master.stop();
       }
-      mBlockMaster.stop();
-      mFileSystemMaster.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
@@ -350,13 +329,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    registerServices(processor, mBlockMaster.getServices());
-    registerServices(processor, mFileSystemMaster.getServices());
-    if (LineageUtils.isLineageEnabled()) {
-      registerServices(processor, mLineageMaster.getServices());
-    }
-    // register additional masters for RPC service
-    for (Master master : mAdditionalMasters) {
+    // register master services
+    for (Master master : mRegistry.getMasters()) {
       registerServices(processor, master.getServices());
     }
     // register meta services

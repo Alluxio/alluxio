@@ -22,6 +22,7 @@ import alluxio.SetAndRestoreConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -172,10 +173,11 @@ public final class PermissionCheckTest {
   @Before
   public void before() throws Exception {
     GroupMappingServiceTestUtils.resetCache();
+    MasterRegistry registry = new MasterRegistry();
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMaster(factory);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, factory);
+    mBlockMaster = new BlockMaster(registry, factory);
+    mFileSystemMaster = new FileSystemMaster(registry, factory);
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 

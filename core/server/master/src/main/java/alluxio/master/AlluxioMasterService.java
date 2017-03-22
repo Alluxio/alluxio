@@ -19,7 +19,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.lineage.LineageMaster;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,11 +43,6 @@ public interface AlluxioMasterService extends Server {
 
     private Factory() {} // prevent instantiation
   }
-
-  /**
-   * @return the additional masters for this Alluxio master
-   */
-  List<Master> getAdditionalMasters();
 
   /**
    * @return the block master for this Alluxio master

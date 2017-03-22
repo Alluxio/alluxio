@@ -59,12 +59,14 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void serviceName() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_NAME),
         NO_PARAMS, HttpMethod.GET, Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
+  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void serviceVersion() throws Exception {
     new TestCase(mHostname, mPort,
         getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_VERSION), NO_PARAMS,

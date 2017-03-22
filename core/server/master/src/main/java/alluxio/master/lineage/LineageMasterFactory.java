@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.keyvalue;
+package alluxio.master.lineage;
 
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 
 import com.google.common.base.Preconditions;
@@ -27,25 +26,25 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link KeyValueMaster} instance.
+ * Factory to create a {@link LineageMaster} instance.
  */
 @ThreadSafe
-public final class KeyValueMasterFactory implements MasterFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(KeyValueMasterFactory.class);
+public final class LineageMasterFactory implements MasterFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(LineageMasterFactory.class);
 
   /**
-   * Constructs a new {@link KeyValueMasterFactory}.
+   * Constructs a new {@link LineageMasterFactory}.
    */
-  public KeyValueMasterFactory() {}
+  public LineageMasterFactory() {}
 
   @Override
   public boolean isEnabled() {
-    return Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
+    return Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED);
   }
 
   @Override
   public String getName() {
-    return Constants.KEY_VALUE_MASTER_NAME;
+    return Constants.LINEAGE_MASTER_NAME;
   }
 
   @Override
@@ -54,8 +53,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
       return null;
     }
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
-    LOG.info("Creating {} ", KeyValueMaster.class.getName());
-    Journal journal = journalFactory.create(getName());
-    return new KeyValueMaster(registry, journal);
+    LOG.info("Creating {} ", LineageMaster.class.getName());
+    return new LineageMaster(registry, journalFactory);
   }
 }
