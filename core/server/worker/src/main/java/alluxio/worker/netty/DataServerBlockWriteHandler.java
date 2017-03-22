@@ -59,13 +59,13 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     }
 
     @Override
-    public synchronized void close() throws IOException {
+    public void close() throws IOException {
       mBlockWriter.close();
       // TODO(peis): call mWorker.commitBlock() here.
     }
 
     @Override
-    synchronized void cancel() throws IOException {
+    void cancel() throws IOException {
       mBlockWriter.close();
       // TODO(peis): call mWorker.abortBlock() here.
     }
