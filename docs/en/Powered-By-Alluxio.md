@@ -32,6 +32,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Radicalbit](http://www.radicalbit.io)
 * [Samsung](http://www.samsung.com/us/)
 * [Talend](https://www.talend.com/)
+* [Tencent](https://www.tencent.com)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 
