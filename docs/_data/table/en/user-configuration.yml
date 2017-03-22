@@ -76,19 +76,12 @@ alluxio.user.network.netty.channel.pool.gc.threshold.ms:
   A netty channel is closed if it has been idle for more than this threshold.
 alluxio.user.network.netty.channel.pool.disabled:
   Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.
-alluxio.user.ufs.delegation.enabled:
-  Flag for delegating ufs data operations to the worker, enabled by default. When enabled, the
-  client does not require any under storage libraries. Set this to false to use the client to
-  directly communicate with the ufs, which requires the client to have the necessary under storage
-  system libraries.
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
   Size of the read buffer when reading from the ufs through the Alluxio worker. Each read request
-  will fetch at least this many bytes. This property has no effect if the delegation flag is turned
-  off.
+  will fetch at least this many bytes, unless the read reaches the end of the file.
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
   Size of the write buffer when writing to the ufs through the Alluxio worker. Each write request
-  will write at least this many bytes, unless the write is at the end of the file. This property
-  has no effect if the delegation flag is turned off.
+  will write at least this many bytes, unless the write is at the end of the file.
 alluxio.user.ufs.file.reader.class:
   Selects networking stack to run the client with for reading from under file system through a
   worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader`
