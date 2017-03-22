@@ -257,7 +257,6 @@ public class FileOutStreamTest {
    */
   @Test
   public void cancelWithDelegation() throws Exception {
-    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
@@ -267,29 +266,6 @@ public class FileOutStreamTest {
     // Don't persist or complete the file if the stream was canceled
     verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID, CompleteUfsFileOptions.defaults());
     verify(mWorkerClient).cancelUfsFile(eq(UFS_FILE_ID), any(CancelUfsFileOptions.class));
-  }
-
-  /**
-   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams, and
-   * delete from the under file system when the delegation flag is not set. Also makes sure that
-   * cancel() doesn't persist or complete the file.
-   */
-  @Test
-  public void cancelWithoutDelegation() throws Exception {
-    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, false);
-    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-        .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
-    mTestStream = createTestStream(FILE_NAME, options);
-    mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
-    mTestStream.cancel();
-    for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
-      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
-      Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
-    }
-    // Don't persist or complete the file if the stream was canceled
-    verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
-        CompleteFileOptions.defaults());
-    verify(mUnderFileSystem).deleteFile(anyString());
   }
 
   /**

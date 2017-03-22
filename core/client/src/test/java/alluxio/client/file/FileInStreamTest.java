@@ -74,8 +74,6 @@ public class FileInStreamTest {
 
   private FileInStream mTestStream;
 
-  private boolean mDelegateUfsOps;
-
   private long getBlockLength(int streamId) {
     return streamId == NUM_STREAMS - 1 ? 50 : BLOCK_LENGTH;
   }
@@ -89,7 +87,6 @@ public class FileInStreamTest {
   @Before
   public void before() throws Exception {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
-    mDelegateUfsOps = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
 
     ClientTestUtils.setSmallBufferSizes();
 
@@ -459,31 +456,19 @@ public class FileInStreamTest {
   public void failToUnderFs() throws AlluxioException, IOException {
     mInfo.setPersisted(true).setUfsPath("testUfsPath");
     mStatus = new URIStatus(mInfo);
-    mTestStream = new FileInStream(mStatus,
-        InStreamOptions.defaults().setCachePartiallyReadBlock(false), mContext);
+    mTestStream =
+        new FileInStream(mStatus, InStreamOptions.defaults().setCachePartiallyReadBlock(false),
+            mContext);
 
     Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
         .thenThrow(new IOException("test IOException"));
-    if (mDelegateUfsOps) {
-      UnderFileSystemBlockInStream inStream = PowerMockito.mock(UnderFileSystemBlockInStream.class);
-      PowerMockito.when(StreamFactory
-          .createUfsBlockInStream(Mockito.any(FileSystemContext.class), Mockito.anyString(),
-              Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),
-              Mockito.any(WorkerNetAddress.class), Mockito.any(InStreamOptions.class)))
-          .thenReturn(inStream);
-      mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
-    } else {
-      UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
-      InputStream stream = Mockito.mock(InputStream.class);
-      Mockito.when(ufs.open("testUfsPath")).thenReturn(stream);
-      Mockito.when(stream.skip(BLOCK_LENGTH)).thenReturn(BLOCK_LENGTH);
-      Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);
-
-      mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
-      Mockito.verify(ufs).open("testUfsPath");
-      Mockito.verify(stream).skip(100);
-      Mockito.verify(stream).skip(50);
-    }
+    UnderFileSystemBlockInStream inStream = PowerMockito.mock(UnderFileSystemBlockInStream.class);
+    PowerMockito.when(
+        StreamFactory.createUfsBlockInStream(Mockito.any(FileSystemContext.class),
+            Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),
+            Mockito.any(WorkerNetAddress.class), Mockito.any(InStreamOptions.class))).thenReturn(
+        inStream);
+    mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
   }
 
   /**
