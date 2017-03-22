@@ -11,8 +11,6 @@
 
 package alluxio.client.file;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -25,11 +23,9 @@ import alluxio.client.block.UnderFileSystemBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -47,7 +43,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,9 +51,8 @@ import java.util.List;
  * Tests for the {@link FileInStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(
-    {FileSystemContext.class, AlluxioBlockStore.class, UnderFileSystem.class, StreamFactory.class,
-        UnderFileSystemBlockInStream.class})
+@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, StreamFactory.class,
+    UnderFileSystemBlockInStream.class})
 public class FileInStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;

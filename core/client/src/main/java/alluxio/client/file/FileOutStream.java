@@ -31,8 +31,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
