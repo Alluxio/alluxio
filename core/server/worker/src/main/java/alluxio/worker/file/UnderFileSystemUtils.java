@@ -9,9 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file;
+package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -41,8 +43,8 @@ public final class UnderFileSystemUtils {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    * @throws IOException if folder creation fails
    */
-  public static void prepareFilePath(AlluxioURI alluxioPath, String ufsPath,
-      FileSystem fs, UnderFileSystem ufs) throws AlluxioException, IOException {
+  public static void prepareFilePath(AlluxioURI alluxioPath, String ufsPath, FileSystem fs,
+      UnderFileSystem ufs) throws AlluxioException, IOException {
     AlluxioURI dstPath = new AlluxioURI(ufsPath);
     String parentPath = dstPath.getParent().getPath();
     // creates the parent folder if it does not exist
