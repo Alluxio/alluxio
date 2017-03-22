@@ -343,15 +343,13 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
         replyError();
       } else if (cancel || eof) {
         try {
-          cancel();
-          replyCancel();
-        } catch (IOException e) {
-          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
-        }
-      } else if (eof) {
-        try {
-          complete();
-          replySuccess();
+          if (cancel) {
+            cancel();
+            replyCancel();
+          } else {
+            complete();
+            replySuccess();
+          }
         } catch (IOException e) {
           pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
         }

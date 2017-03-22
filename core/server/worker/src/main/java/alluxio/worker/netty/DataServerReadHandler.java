@@ -486,7 +486,10 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
 
       if (error != null) {
         try {
-          mRequest.close();
+          // mRequest is null if an exception is thrown when initializing mRequest.
+          if (mRequest != null) {
+            mRequest.close();
+          }
         } catch (IOException e) {
           LOG.error("Failed to close the request.", e);
         }
@@ -495,6 +498,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
         }
       } else if (eof || cancel) {
         try {
+          Preconditions.checkNotNull(mRequest);
           mRequest.close();
         } catch (IOException e) {
           setError(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
