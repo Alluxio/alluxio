@@ -74,9 +74,7 @@ By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documenta
 ## Can I still try Alluxio on Linux without sudo privileges?
 
 If you have no sudo privileges on Linux, for Alluxio Filesystem to work, it requires a RAMFS (e.g., `/path/to/ramdisk`) already mounted
-by the system admin and accessible for read/write-operations by the user. Alternatively, you can also specify Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)  
-as the data storage. Tmpfs is a temporary file storage backed by memory (e.g., typically `/dev/shm` on Linux), but may use SWAP space and
-therefore provides less performance guarantees compared to ramfs. In this case you have can specify the path in
+by the system admin and accessible for read/write-operations by the user. In this case you have can specify the path in
 `conf/alluxio-site.properties`:
 
 ```
@@ -90,6 +88,21 @@ and then start Alluxio with `NoMount` option to use the above directory as its d
 $ ./bin/alluxio-start.sh local NoMount
 ```
 
+Alternatively, you can also specify Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)  
+as the data storage. Tmpfs is a temporary file storage backed by memory (e.g., typically `/dev/shm` on Linux), but may use SWAP space and
+therefore provides less performance guarantees compared to ramfs. Similar to using a pre-mounted RAMFS, you can specify the tempfs path in
+`conf/alluxio-site.properties`:
+
+```
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
+```
+
+followed by:
+
+```bash
+$ ./bin/alluxio-start.sh local NoMount
+```
 
 ## How can I avoid typing the password to run sudo? 
 
