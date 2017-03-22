@@ -29,6 +29,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -47,6 +48,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -124,9 +126,16 @@ public final class PermissionCheckerTest {
     }
   }
 
+  /**
+   * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
+   */
   public static class FakeUserGroupsMapping implements GroupMappingService {
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
+    /**
+     * Constructor of {@link FakeUserGroupsMapping} to put the user and groups in user-to-groups
+     * HashMap.
+     */
     public FakeUserGroupsMapping() {
       mUserGroups.put(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup());
       mUserGroups.put(TEST_USER_1.getUser(), TEST_USER_1.getGroup());
@@ -158,10 +167,10 @@ public final class PermissionCheckerTest {
 
     // setup an InodeTree
     MasterRegistry registry = new MasterRegistry();
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(sTestFolder.newFolder().getAbsolutePath());
+    JournalFactory factory =
+        new MutableJournal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
 
-    BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
+    BlockMaster blockMaster = new BlockMaster(registry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);

@@ -403,7 +403,7 @@ public class IndexedSetConcurrencyTest {
    * index.
    */
   @Test
-  public void nonUniqueConcurrentUpdateTest() throws Exception {
+  public void nonUniqueConcurrentUpdate() throws Exception {
     mIndexedSet = new IndexedSet<>(mSizeIndex, mIdIndex);
     List<Future<?>> futures = new ArrayList<>();
     int[] tasksNumbers = new int[5];

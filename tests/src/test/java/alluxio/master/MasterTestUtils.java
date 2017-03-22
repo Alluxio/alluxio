@@ -17,28 +17,27 @@ import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 
-import java.io.IOException;
+import java.net.URI;
 
 public class MasterTestUtils {
 
   /**
    * Creates a new {@link FileSystemMaster} from journal.
    *
-   * @return a new FileSystemMaster
-   * @throws IOException
+   * @return a new {@link FileSystemMaster}
    */
-  public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
-      throws IOException {
+  public static FileSystemMaster createLeaderFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
-    BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
-    FileSystemMaster fsMaster = new FileSystemMaster(registry, journalFactory);
+    JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
+    BlockMaster blockMaster = new BlockMaster(registry, factory);
+    FileSystemMaster fsMaster = new FileSystemMaster(registry, factory);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;
@@ -47,16 +46,14 @@ public class MasterTestUtils {
   /**
    * Creates a new standby {@link FileSystemMaster} from journal.
    *
-   * @return a new FileSystemMaster
-   * @throws IOException
+   * @return a new {@link FileSystemMaster}
    */
-  public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
-      throws IOException {
+  public static FileSystemMaster createStandbyFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
-    BlockMaster blockMaster = new BlockMaster(registry, journalFactory);
-    FileSystemMaster fsMaster = new FileSystemMaster(registry, journalFactory);
+    JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
+    BlockMaster blockMaster = new BlockMaster(registry, factory);
+    FileSystemMaster fsMaster = new FileSystemMaster(registry, factory);
     blockMaster.start(false);
     fsMaster.start(false);
     return fsMaster;

@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.CompleteFileTOptions;
 
 import com.google.common.base.Objects;
@@ -21,7 +20,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Method options for completing a file.
  */
-@PublicApi
 @NotThreadSafe
 public final class CompleteFileOptions {
   private long mUfsLength;

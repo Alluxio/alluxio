@@ -31,9 +31,9 @@ public interface MasterFactory {
    * Factory method to create a new master instance.
    *
    * @param registry the master registry
-   * @param journalFactory a factory for creating the journal
+   * @param factory a factory for creating the journal
    *
    * @return a new {@link Master} instance or null if the master is not enabled
    */
-  Master create(MasterRegistry registry, JournalFactory journalFactory);
+  Master create(MasterRegistry registry, JournalFactory factory);
 }

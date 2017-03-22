@@ -94,7 +94,7 @@ public final class MountTable implements JournalCheckpointStreamable {
           .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
       Journal.JournalEntry journalEntry =
           Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
-      outputStream.writeEntry(journalEntry);
+      outputStream.write(journalEntry);
     }
   }
 

@@ -12,21 +12,22 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
+import alluxio.master.journal.MutableJournal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -92,24 +93,16 @@ public final class Format {
    */
   public static void format(String mode) throws IOException {
     if ("MASTER".equalsIgnoreCase(mode)) {
-      String masterJournal =
-          Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-      if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
-        throw new RuntimeException("Failed to format root journal folder");
+      String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+      MutableJournal.Factory factory;
+      try {
+        factory = new MutableJournal.Factory(new URI(masterJournal));
+      } catch (URISyntaxException e) {
+        throw new IOException(e.getMessage());
       }
-
       for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
-        String folderName = masterServiceName + "_JOURNAL_FOLDER";
-        if (!formatFolder(folderName,
-            PathUtils.concatPath(masterJournal, masterServiceName))) {
-          throw new RuntimeException(String.format("Failed to format %s", folderName));
-        }
+        factory.create(masterServiceName).format();
       }
-
-      // A journal folder is thought to be formatted only when a file with the specific name is
-      // present under the folder.
-      UnderFileSystemUtils.touch(PathUtils
-          .concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis()));
     } else if ("WORKER".equalsIgnoreCase(mode)) {
       String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
       int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
@@ -135,5 +128,5 @@ public final class Format {
     }
   }
 
-  private Format() {}  // prevent instantiation
+  private Format() {} // prevent instantiation
 }

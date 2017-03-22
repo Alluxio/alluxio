@@ -182,7 +182,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public BlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.get(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
+    super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     registry.add(BlockMaster.class, this);
     Metrics.registerGauges(this);
   }
@@ -232,12 +232,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(getContainerIdJournalEntry());
+    outputStream.write(getContainerIdJournalEntry());
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       BlockInfoEntry blockInfoEntry =
           BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
               .setLength(blockInfo.getLength()).build();
-      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
+      outputStream.write(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }
 

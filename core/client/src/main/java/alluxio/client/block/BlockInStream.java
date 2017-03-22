@@ -11,8 +11,8 @@
 
 package alluxio.client.block;
 
-import alluxio.client.BoundedStream;
 import alluxio.Seekable;
+import alluxio.client.BoundedStream;
 
 import java.io.InputStream;
 
