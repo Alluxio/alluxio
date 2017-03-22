@@ -82,7 +82,7 @@ public final class Format {
       LOG.error("Failed to format", e);
       System.exit(-1);
     }
-    LOG.info("Format completes");
+    LOG.info("Formatting complete");
     System.exit(0);
   }
 
