@@ -107,8 +107,8 @@ public class SpecificTierWriteIntegrationTest {
             .getMaster(BlockMaster.class).getUsedBytes());
 
     Map<String, Long> bytesOnTiers =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().
-            getMaster(BlockMaster.class).getUsedBytesOnTiers();
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+            .getMaster(BlockMaster.class).getUsedBytesOnTiers();
     Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
     Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());
     Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());

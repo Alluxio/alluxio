@@ -275,8 +275,8 @@ public class MasterFaultToleranceIntegrationTest {
       cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
 
       // Get the new block master, after the failover
-      BlockMaster blockMaster2 = cluster.getMaster().getInternalMaster().
-          getMaster(BlockMaster.class);
+      BlockMaster blockMaster2 = cluster.getMaster().getInternalMaster()
+          .getMaster(BlockMaster.class);
 
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       Assert.assertEquals(CommandType.Register, blockMaster2
