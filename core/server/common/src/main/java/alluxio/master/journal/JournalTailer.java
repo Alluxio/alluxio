@@ -78,4 +78,6 @@ public interface JournalTailer {
    * @throws IOException if an I/O error occurs
    */
   int processNextJournalLogs() throws IOException;
+
+  void processAndCompleteCurrentLog() throws IOException;
 }

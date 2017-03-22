@@ -52,7 +52,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
       for (UnderFileStatus p : ufs.listStatus(mLocation.toString())) {
         URI childPath;
         try {
-          childPath = URIUtils.appendPath(mLocation, p.getName());
+          childPath = URIUtils.appendPath(location, p.getName());
         } catch (URISyntaxException e) {
           throw new RuntimeException(e.getMessage());
         }
@@ -67,13 +67,13 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
           throw new IOException(String.format("Failed to delete %s", childPath));
         }
       }
-    } else if (!ufs.mkdirs(mLocation.toString())) {
-      throw new IOException(String.format("Failed to create %s", mLocation));
+    } else if (!ufs.mkdirs(location.toString())) {
+      throw new IOException(String.format("Failed to create %s", location));
     }
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     try {
-      UnderFileSystemUtils.touch(URIUtils.appendPath(mLocation,
+      UnderFileSystemUtils.touch(URIUtils.appendPath(location,
           Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
           .toString());
     } catch (URISyntaxException e) {

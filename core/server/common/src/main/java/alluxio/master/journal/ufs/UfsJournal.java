@@ -20,6 +20,9 @@ import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,18 +42,19 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class UfsJournal implements Journal {
-  /** The log number for the first completed log. */
-  protected static final long FIRST_COMPLETED_LOG_NUMBER = 1L;
+  private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
+
+  /** The journal version. */
+  private static final String VERSION = "v1";
+
   /** The folder for completed logs. */
-  private static final String COMPLETED_LOCATION = "completed";
-  /** The file extension for the current log file. */
-  private static final String CURRENT_LOG_EXTENSION = ".out";
-  /** The file name of the checkpoint file. */
-  private static final String CHECKPOINT_FILENAME = "checkpoint.data";
-  /** The base of the entry log file names, without the file extension. */
-  private static final String ENTRY_LOG_FILENAME_BASE = "log";
+  private static final String COMPLETED_LOG_DIRNAME = "logs";
+  private static final String CHECKPOINT_DIRNAME = "checkpoints";
+  private static final String TMP_DIRNAME = ".tmp";
+  private static final String CURRENT_LOG_FILENAME = "log.out";
+
   /** The location where this journal is stored. */
-  protected final URI mLocation;
+  private final URI mLocation;
   /** The formatter for this journal. */
   private final JournalFormatter mJournalFormatter;
 
@@ -60,51 +64,41 @@ public class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    mLocation = location;
+    try {
+      mLocation = URIUtils.appendPath(location, VERSION);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
     mJournalFormatter = JournalFormatter.Factory.create();
   }
 
-  /**
-   * @return the location of the completed logs
-   */
-  public URI getCompletedLocation() {
+  public URI getCompletedLogDirName() {
     try {
-      return URIUtils.appendPath(mLocation, COMPLETED_LOCATION);
+      return URIUtils.appendPath(mLocation, COMPLETED_LOG_DIRNAME);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
 
-  /**
-   * @return the location of the journal checkpoint
-   */
-  protected URI getCheckpoint() {
+  public URI getCheckpointDirName() {
     try {
-      return URIUtils.appendPath(mLocation, CHECKPOINT_FILENAME);
+      return URIUtils.appendPath(mLocation, CHECKPOINT_DIRNAME);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
 
-  /**
-   * @return the location of the current log
-   */
-  public URI getCurrentLog() {
+  public URI getTmpDirName() {
     try {
-      return URIUtils.appendPath(mLocation, ENTRY_LOG_FILENAME_BASE + CURRENT_LOG_EXTENSION);
+      return URIUtils.appendPath(mLocation, TMP_DIRNAME);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
 
-  /**
-   * @param logNumber the log number to get the path for
-   * @return the location of the completed log for a particular log number
-   */
-  protected URI getCompletedLog(long logNumber) {
+  public URI getCurrentLogFileName() {
     try {
-      return URIUtils.appendPath(getCompletedLocation(),
-          String.format("%s.%020d", ENTRY_LOG_FILENAME_BASE, logNumber));
+      return URIUtils.appendPath(mLocation, CURRENT_LOG_FILENAME);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }

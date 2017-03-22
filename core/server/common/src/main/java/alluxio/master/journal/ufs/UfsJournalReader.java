@@ -11,15 +11,22 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalReader;
+import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -34,17 +41,14 @@ public class UfsJournalReader implements JournalReader {
   private final UfsJournal mJournal;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
-  /** Absolute path for the journal checkpoint. */
-  private final URI mCheckpoint;
 
-  /** true if the checkpoint has already been read. */
-  private boolean mCheckpointRead = false;
-  /** The modified time (in ms) for the opened checkpoint file. */
-  private long mCheckpointOpenedTime = -1;
-  /** The modified time (in ms) for the latest checkpoint file. */
-  private long mCheckpointLastModifiedTime = -1;
-  /** The log number for the completed log file. */
-  private long mCurrentLogNumber = UfsJournal.FIRST_COMPLETED_LOG_NUMBER;
+  /** The next sequence number to read. */
+  private long mSequenceNumber;
+
+  private InputStream mInputStream;
+  private boolean isReadingFromInCompleteLog;
+
+  private final byte[] mBuffer = new byte[1024];
 
   /**
    * Creates a new instance of {@link UfsJournalReader}.
@@ -54,13 +58,74 @@ public class UfsJournalReader implements JournalReader {
   UfsJournalReader(UfsJournal journal) {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = UnderFileSystem.Factory.get(mJournal.getLocation().toString());
-    mCheckpoint = mJournal.getCheckpoint();
   }
 
   @Override
-  public boolean isValid() {
-    return mCheckpointRead && (mCheckpointOpenedTime == mCheckpointLastModifiedTime);
+  public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
+
   }
+
+  private Journal.JournalEntry readInternal() throws IOException, InvalidJournalEntryException {
+    updateInputStream();
+
+    int firstByte = mInputStream.read();
+    if (firstByte == -1) {
+      return null;
+    }
+    // All journal entries start with their size in bytes written as a varint.
+    int size;
+    try {
+      size = ProtoUtils.readRawVarint32(firstByte, mInputStream);
+    } catch (IOException e) {
+      LOG.warn("Journal entry was truncated in the size portion.");
+      if (isReadingFromInCompleteLog && ProtoUtils.isTruncatedMessageException(e)) {
+        return null;
+      }
+      throw e;
+    }
+    byte[] buffer = size <= mBuffer.length ? mBuffer : new byte[size];
+    // Total bytes read so far for journal entry.
+    int totalBytesRead = 0;
+    while (totalBytesRead < size) {
+      // Bytes read in last read request.
+      int latestBytesRead = mInputStream.read(buffer, totalBytesRead, size - totalBytesRead);
+      if (latestBytesRead < 0) {
+        break;
+      }
+      totalBytesRead += latestBytesRead;
+    }
+    if (totalBytesRead < size) {
+      LOG.warn("Journal entry was truncated. Expected to read " + size + " bytes but only got "
+          + totalBytesRead);
+      if (!isReadingFromInCompleteLog) {
+        throw new InvalidJournalEntryException(
+            ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mSequenceNumber);
+      }
+      return null;
+    }
+
+    Journal.JournalEntry
+        entry = Journal.JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
+    // TODO(peis): Check with Andrew to make sure this check is ok.
+    Preconditions.checkNotNull(entry);
+    if (mSequenceNumber != entry.getSequenceNumber()) {
+      throw new InvalidJournalEntryException(ExceptionMessage.JOURNAL_ENTRY_MISSING,
+          mSequenceNumber, entry.getSequenceNumber());
+    }
+    mSequenceNumber++;
+    return entry;
+  }
+
+  private void updateInputStream() throws IOException {
+
+  }
+
+  private class JournalInputStream {
+    public final InputStream mInputStream;
+    public final long mStart;
+    public final long mEnd;
+  }
+
 
   @Override
   public JournalInputStream getCheckpointInputStream() throws IOException {

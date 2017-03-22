@@ -62,23 +62,23 @@ public final class JournalTailerThread extends Thread {
   }
 
   /**
-   * Initiates the shutdown of this tailer thread.
-   */
-  public void shutdown() {
-    LOG.info("{}: Journal tailer shutdown has been initiated.", mMaster.getName());
-    mInitiateShutdown = true;
-  }
-
-  /**
    * Initiates the shutdown of this tailer thread, and also waits for it to finish.
    */
   public void shutdownAndJoin() {
-    shutdown();
+    LOG.info("{}: Journal tailer shutdown has been initiated.", mMaster.getName());
+    mInitiateShutdown = true;
+
     try {
       // Wait for the thread to finish.
       join();
     } catch (InterruptedException e) {
-      LOG.warn("{}: stopping the journal tailer caused an exception", mMaster.getName(), e);
+      LOG.error("{}: journal tailer shutdown is interrupted.", mMaster.getName(), e);
+      // Kills the master. This can happen in the following two scenarios:
+      // 1. The user Ctrl-C the server.
+      // 2. Zookeeper selects this master as standby before the master finishes the previous
+      //    standby->leader transition. It is safer to crash the server because the behavior is
+      //    undefined to have two journal tailer running concurrently.
+      throw new RuntimeException(e);
     }
   }
 
@@ -97,6 +97,11 @@ public final class JournalTailerThread extends Thread {
 
   @Override
   public void run() {
+    // 1. It waits for at least one checkpoint. Then process it.
+    // 2. Polls the journal to find new completed logs, updates the checkpointed SN.
+    // 3. If the tailer has processed enough log entries, build a checkpoint.
+    // NOTE: If any errors appears in the above process, start from scratch.
+
     LOG.info("{}: Journal tailer started.", mMaster.getName());
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
@@ -109,6 +114,8 @@ public final class JournalTailerThread extends Thread {
         LOG.info("{}: Waiting to load the checkpoint file.", mMaster.getName());
         mJournalTailer = JournalTailer.Factory.create(mMaster, mJournal);
         while (!mJournalTailer.checkpointExists()) {
+          LOG.info("{}: No checkpoint found. sleeping for {}ms.", mMaster.getName(),
+              mJournalTailerSleepTimeMs);
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           if (mInitiateShutdown) {
             LOG.info("Journal tailer has been shutdown while waiting to load the checkpoint file.");
@@ -139,7 +146,8 @@ public final class JournalTailerThread extends Thread {
               }
             }
             LOG.debug("{}: The next complete log file does not exist yet. "
-                + "Sleeping and checking again.", mMaster.getName());
+                    + "Sleeping {}ms and checking again.", mMaster.getName(),
+                mJournalTailerSleepTimeMs);
             CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           }
         }
