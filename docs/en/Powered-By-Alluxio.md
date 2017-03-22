@@ -19,6 +19,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Barclays](http://www.barclays.co.uk/)
 * [EMC](https://www.emc.com/)
 * [GBICC](http://www.gbicc.net/)
+* [Guardant Health](http://www.guardanthealth.com/)
 * [Huawei](http://www.huawei.com/)
 * [IBM](http://www.ibm.com/)
 * [IBM Research](http://www.research.ibm.com/)
