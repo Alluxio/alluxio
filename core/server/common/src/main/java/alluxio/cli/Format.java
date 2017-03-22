@@ -85,6 +85,10 @@ public final class Format {
     }
     try {
       format(Mode.valueOf(args[0].toUpperCase()));
+    } catch (IllegalArgumentException e) {
+      LOG.error("Unrecognized format mode: {}", args[0]);
+      LOG.error("Usage: {}", USAGE);
+      System.exit(-1);
     } catch (Exception e) {
       LOG.error("Failed to format", e);
       System.exit(-1);
@@ -134,7 +138,6 @@ public final class Format {
         }
         break;
       default:
-        LOG.info(USAGE);
         throw new RuntimeException(String.format("Unrecognized format mode: %s", mode));
     }
   }
