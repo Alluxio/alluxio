@@ -55,12 +55,12 @@ public final class Format {
           failedToDelete = !ufs.deleteFile(childPath);
         }
         if (failedToDelete) {
-          LOG.info("Failed to delete {}", childPath);
+          LOG.error("Failed to delete {}", childPath);
           return false;
         }
       }
     } else if (!ufs.mkdirs(folder)) {
-      LOG.info("Failed to create {}:{}", name, folder);
+      LOG.error("Failed to create {}:{}", name, folder);
       return false;
     }
     return true;
@@ -82,6 +82,7 @@ public final class Format {
       LOG.error("Failed to format", e);
       System.exit(-1);
     }
+    LOG.info("Format completes");
     System.exit(0);
   }
 
