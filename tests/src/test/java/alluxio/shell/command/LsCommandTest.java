@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
@@ -98,6 +99,28 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
         LsCommand.STATE_FOLDER);
     expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
         LsCommand.STATE_FILE_NOT_IN_MEMORY);
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  /**
+   * Tests ls -p command when security is not enabled.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsPinned() throws IOException, AlluxioException {
+    URIStatus[] files = createFiles();
+    mFileSystem.setAttribute(new AlluxioURI("/testRoot/testFileA"),
+        SetAttributeOptions.defaults().setPinned(true));
+    mFileSystem.setAttribute(new AlluxioURI("/testRoot/testDir/testFileB"),
+        SetAttributeOptions.defaults().setPinned(true));
+    mFsShell.run("ls", "-pR",  "/testRoot");
+    String expected = "";
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
+        LsCommand.STATE_FILE_IN_MEMORY);
+    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
+        LsCommand.STATE_FILE_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
 

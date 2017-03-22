@@ -77,6 +77,13 @@ public final class LsCommand extends WithWildCardPathCommand {
     }
   }
 
+  private void printLsString(URIStatus status, boolean rawSize) {
+    System.out.print(formatLsString(rawSize, SecurityUtils.isSecurityEnabled(),
+        status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
+        status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
+        100 == status.getInMemoryPercentage(), status.getPath()));
+  }
+
   /**
    * Constructs a new instance to display information for all directories and files directly under
    * the path specified in args.
@@ -103,6 +110,7 @@ public final class LsCommand extends WithWildCardPathCommand {
         .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
         .addOption(LIST_DIR_AS_FILE_OPTION)
+        .addOption(LIST_PINNED_FILES_OPTION)
         .addOption(LIST_RAW_SIZE_OPTION);
   }
 
@@ -117,15 +125,14 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @throws IOException when non-Alluxio exception occurs
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean rawSize)
+                  boolean rawSize, boolean pinnedOnly)
       throws AlluxioException, IOException {
     if (dirAsFile) {
       URIStatus status = mFileSystem.getStatus(path);
-      System.out.print(
-          formatLsString(rawSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
-          FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
-          status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-          100 == status.getInMemoryPercentage(), status.getPath()));
+      if (pinnedOnly && !status.isPinned()) {
+        return;
+      }
+      printLsString(status, rawSize);
       return;
     }
 
@@ -135,21 +142,18 @@ public final class LsCommand extends WithWildCardPathCommand {
     }
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
-      System.out.print(
-          formatLsString(rawSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
-          FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
-          status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-          100 == status.getInMemoryPercentage(), status.getPath()));
+      if (!pinnedOnly || status.isPinned()) {
+        printLsString(status, rawSize);
+      }
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, rawSize);
+            forceLoadMetadata, false, rawSize, pinnedOnly);
       }
     }
   }
 
   private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path,
-      ListStatusOptions options)
-      throws AlluxioException, IOException {
+      ListStatusOptions options) throws AlluxioException, IOException {
     List<URIStatus> statuses = mFileSystem.listStatus(path, options);
     Collections.sort(statuses, new Comparator<URIStatus>() {
       @Override
@@ -170,20 +174,22 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("raw"));
+    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("raw"),
+        cl.hasOption("p"));
   }
 
   @Override
   public String getUsage() {
-    return "ls [-R|-d|-f|-raw] <path>";
+    return "ls [-d|-f|-p|-R|-raw] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Displays information for all files and directories directly under the specified path."
-        + " Specify -R to display files and directories recursively."
         + " Specify -d to list directories as plain files."
         + " Specify -f to force loading files in the directory."
+        + " Specify -p to list all the pinned files."
+        + " Specify -R to display files and directories recursively."
         + " Specify -raw to print raw sizes.";
   }
 }
