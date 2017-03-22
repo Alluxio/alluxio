@@ -101,16 +101,15 @@ public abstract class UnderFileSystemCluster {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class)
                 .newInstance(baseDir);
-        LOG.info("Initialized under file system testing cluster of type {} for integration testing.",
-            ufsCluster.getClass().getCanonicalName());
+        LOG.info("Initialized ufs cluster {} for integration testing.", sUnderFSClass);
         return ufsCluster;
       } catch (Exception e) {
-        LOG.warn("Failed to initialize the ufsCluster of {} for integration test: {}",
+        LOG.warn("Failed to initialize the ufs cluster {} for integration testing: {}",
             sUnderFSClass, e.getMessage());
         throw Throwables.propagate(e);
       }
     }
-    LOG.info("Using default LocalFilesystemCluster for integration testing.");
+    LOG.info("Using default {} for integration testing.", LocalFileSystemCluster.class.getName());
     return new LocalFileSystemCluster(baseDir);
   }
 
