@@ -310,16 +310,14 @@ public final class FileInStreamIntegrationTest {
   }
 
   /**
-   * Tests when there are multiple writers writing to the same file concurrently with short circuit
-   * off. Set the block size to be much bigger than the file buffer size so that we can excise
-   * more code.
+   * Tests when there are multiple readers reading the same file that is in UFS.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240",
           PropertyKey.Name.USER_FILE_BUFFER_BYTES, "128"})
-  public void concurrentRemoteWrite() throws Exception {
+  public void concurrentRemoteRead() throws Exception {
     int blockSize = 10240;
     final int bufferSize = 128;
     final int length = blockSize * 2;
@@ -329,9 +327,10 @@ public final class FileInStreamIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, path,
         CreateFileOptions.defaults().setWriteType(WriteType.THROUGH), length);
 
+    final int concurrency = 10;
     final AtomicInteger count = new AtomicInteger(0);
-    ExecutorService service = Executors.newFixedThreadPool(20);
-    for (int i = 0; i < 10; ++i) {
+    ExecutorService service = Executors.newFixedThreadPool(concurrency * 2);
+    for (int i = 0; i < concurrency; ++i) {
       service.submit(new Runnable() {
         @Override
         public void run() {
@@ -368,6 +367,6 @@ public final class FileInStreamIntegrationTest {
     }
     service.shutdown();
     service.awaitTermination(Constants.MINUTE_MS, TimeUnit.MILLISECONDS);
-    Assert.assertEquals(20, count.get());
+    Assert.assertEquals(concurrency * 2, count.get());
   }
 }

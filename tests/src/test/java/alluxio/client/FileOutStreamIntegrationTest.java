@@ -11,12 +11,8 @@
 
 package alluxio.client;
 
-import static alluxio.client.AbstractFileOutStreamIntegrationTest.BUFFER_BYTES;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.CreateFileOptions;
@@ -24,17 +20,11 @@ import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream}, parameterized by the write
@@ -184,59 +174,4 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       checkFileInUnderStorage(filePath, length + 1);
     }
   }
-
-  /**
-   * Tests when there are multiple writers writing to the same file concurrently with short circuit
-   * off. Set the block size to be much bigger than the file buffer size so that we can excise
-   * more code.
-   */
-  /*
-  @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
-          PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240"})
-  public void concurrentRemoteWrite() throws Exception {
-    final AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    final int length =
-        (Configuration.getInt(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT) * 2) / BUFFER_BYTES
-            * BUFFER_BYTES;
-
-    final AtomicInteger count = new AtomicInteger(0);
-    ExecutorService service = Executors.newFixedThreadPool(20);
-    for (int i = 0; i < 1; ++i) {
-      service.submit(new Runnable() {
-        @Override
-        public void run() {
-          FileOutStream os;
-          if (i == 0) {
-
-          }
-          try (FileOutStream os = mFileSystem
-              .createFile(filePath, CreateFileOptions.defaults().setWriteType(mWriteType))) {
-            for (int i = 0; i < length / BUFFER_BYTES; ++i) {
-              os.write(BufferUtils.getIncreasingByteArray(i * BUFFER_BYTES, BUFFER_BYTES));
-            }
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-            // Ignore.
-          }
-          try {
-            if (mWriteType.getAlluxioStorageType().isStore()) {
-              checkFileInAlluxio(filePath, length);
-            }
-            if (mWriteType.getUnderStorageType().isSyncPersist()) {
-              checkFileInUnderStorage(filePath, length);
-            }
-            count.incrementAndGet();
-          } catch (Exception e) {
-            // Ignore.
-          }
-        }
-      });
-    }
-    service.shutdown();
-    service.awaitTermination(Constants.MINUTE_MS, TimeUnit.MILLISECONDS);
-    Assert.assertEquals(1, count.get());
-  }
-  */
 }
