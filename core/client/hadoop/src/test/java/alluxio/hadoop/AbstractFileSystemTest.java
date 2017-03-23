@@ -21,6 +21,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.lineage.LineageContext;
+import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.FileInfo;
 
@@ -98,7 +99,8 @@ public class AbstractFileSystemTest {
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
-    // TODO(calvin): Reset contexts and hadoop here
+    ClientTestUtils.resetClient();
+    HadoopClientTestUtils.resetHadoopClientContext();
   }
 
   /**
