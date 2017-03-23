@@ -41,7 +41,7 @@ public final class Format {
   private static final String USAGE = String.format("java -cp %s %s <MASTER/WORKER>",
       RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
-  private static boolean formatFolder(String name, String folder) throws IOException {
+  private static void formatFolder(String name, String folder) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.isDirectory(folder)) {
@@ -55,15 +55,12 @@ public final class Format {
           failedToDelete = !ufs.deleteFile(childPath);
         }
         if (failedToDelete) {
-          LOG.error("Failed to delete {}", childPath);
-          return false;
+          throw new IOException(String.format("Failed to delete %s", childPath));
         }
       }
     } else if (!ufs.mkdirs(folder)) {
-      LOG.error("Failed to create {}:{}", name, folder);
-      return false;
+      throw new IOException(String.format("Failed to create dir %s", folder));
     }
-    return true;
   }
 
   /**
@@ -116,9 +113,11 @@ public final class Format {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
           UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
           if (ufs.isDirectory(dirWorkerDataFolder)) {
-            if (!formatFolder(name, dirWorkerDataFolder)) {
-              throw new RuntimeException(String.format("Failed to format worker data folder %s",
-                  dirWorkerDataFolder));
+            try {
+              formatFolder(name, dirWorkerDataFolder);
+            } catch (IOException e) {
+              throw new RuntimeException(String.format("Failed to format worker data folder %s " +
+                  "due to %s", dirWorkerDataFolder, e.getMessage()));
             }
           }
         }
