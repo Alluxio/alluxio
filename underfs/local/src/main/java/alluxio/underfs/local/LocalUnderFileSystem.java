@@ -31,6 +31,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -326,10 +327,10 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public void setOwner(String path, String user, String group) throws IOException {
     path = stripPath(path);
     try {
-      if (user != null) {
+      if (!Strings.isNullOrEmpty(user)) {
         FileUtils.changeLocalFileUser(path, user);
       }
-      if (group != null) {
+      if (!Strings.isNullOrEmpty(group)) {
         FileUtils.changeLocalFileGroup(path, group);
       }
     } catch (IOException e) {

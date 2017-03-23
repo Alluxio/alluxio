@@ -196,7 +196,6 @@ function main {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   PARAMETER=""
-  ALLUXIO_SHELL_JAVA_OPTS=""
 
   case ${COMMAND} in
   "format")

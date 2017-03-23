@@ -378,7 +378,7 @@ public class IndexedSetConcurrencyTest {
   }
 
   @Test
-  public void concurrentAddTest() throws Exception {
+  public void concurrentAdd() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
