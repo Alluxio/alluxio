@@ -151,11 +151,13 @@ public interface BlockWorker extends Worker {
    * @param blockId the id of the block to be opened for writing
    * @return the block writer for the local block file
    * @throws BlockDoesNotExistException if the block cannot be found
+   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
    * @throws IOException if block cannot be created
    */
   BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException;
 
   /**
    * Gets a report for the periodic heartbeat to master. Contains the blocks added since the last

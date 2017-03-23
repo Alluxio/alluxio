@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.Locatable;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 
+import javax.annotation.PropertyKey;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -164,7 +166,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getClientHostName());
-        if (local) {
+        if (local && Configuration.getBoolean(alluxio.PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
           inStream = closer.register(PacketInStream
               .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
         } else {

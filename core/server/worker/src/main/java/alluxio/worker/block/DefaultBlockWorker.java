@@ -313,7 +313,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException {
     return mBlockStore.getBlockWriter(sessionId, blockId);
   }
 

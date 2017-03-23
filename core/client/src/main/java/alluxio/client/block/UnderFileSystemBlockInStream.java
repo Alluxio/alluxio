@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.Locatable;
 import alluxio.client.UnderFileSystemBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
@@ -93,7 +95,7 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
       if (result.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getClientHostName());
-        if (local) {
+        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
           LocalFileBlockReader reader =
               closer.register(new LocalFileBlockReader(result.getBlockPath()));
           return LocalBlockInStream
