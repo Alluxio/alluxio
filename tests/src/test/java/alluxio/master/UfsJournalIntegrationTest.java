@@ -75,9 +75,15 @@ public class UfsJournalIntegrationTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  private FileSystem mFileSystem = null;
+  private LocalAlluxioCluster mLocalAlluxioCluster;
+  private FileSystem mFileSystem;
   private AlluxioURI mRootUri = new AlluxioURI(AlluxioURI.SEPARATOR);
+
+  @Before
+  public final void before() throws Exception {
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mFileSystem = mLocalAlluxioCluster.getClient();
+  }
 
   /**
    * Tests adding a block.
@@ -94,17 +100,6 @@ public class UfsJournalIntegrationTest {
     URIStatus status = mFileSystem.getStatus(uri);
     mLocalAlluxioCluster.stopFS();
     addBlockTestUtil(status);
-  }
-
-  private FileSystemMaster createFsMasterFromJournal() throws Exception {
-    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-  }
-
-  private void deleteFsMasterJournalLogs() throws Exception {
-    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-    UfsJournal journal = new UfsMutableJournal(
-        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
-    UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLog().toString());
   }
 
   private void addBlockTestUtil(URIStatus status) throws Exception {
@@ -179,12 +174,6 @@ public class UfsJournalIntegrationTest {
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/xyz")));
     Assert.assertEquals(status, new URIStatus(fsMasterInfo));
     fsMaster.stop();
-  }
-
-  @Before
-  public final void before() throws Exception {
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mFileSystem = mLocalAlluxioCluster.getClient();
   }
 
   /**
@@ -671,6 +660,17 @@ public class UfsJournalIntegrationTest {
     Assert.assertEquals(status, new URIStatus(info));
 
     fsMaster.stop();
+  }
+
+  private FileSystemMaster createFsMasterFromJournal() throws Exception {
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+  }
+
+  private void deleteFsMasterJournalLogs() throws Exception {
+    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+    UfsJournal journal = new UfsMutableJournal(
+        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+    UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLog().toString());
   }
 
   /**

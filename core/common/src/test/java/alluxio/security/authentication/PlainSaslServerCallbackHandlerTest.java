@@ -31,7 +31,7 @@ import javax.security.sasl.AuthorizeCallback;
 /**
  * Tests the {@link PlainSaslServerCallbackHandler} class.
  */
-public class PlainSaslServerCallbackHandlerTest {
+public final class PlainSaslServerCallbackHandlerTest {
   private CallbackHandler mPlainServerCBHandler;
 
   /**
