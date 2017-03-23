@@ -168,7 +168,6 @@
   <modules>
     <module>underfs</module>
     <module>core</module>
-    <module>keyvalue</module>
     <module>shell</module>
     <module>examples</module>
     <module>tests</module>

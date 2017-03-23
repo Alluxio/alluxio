@@ -15,7 +15,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.underfs.local.LocalUnderFileInputStream;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.BufferUtils;
 
@@ -314,7 +313,8 @@ public class UnderStoreBlockInStreamTest {
             throw e;
           }
         }
-        return new LocalUnderFileInputStream(inputStream);
+        // TODO(calvin): Implement seekable
+        return inputStream;
       } catch (FileNotFoundException e) {
         throw Throwables.propagate(e);
       }
