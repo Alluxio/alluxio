@@ -19,7 +19,6 @@ import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
-import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -90,7 +89,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
         }
       });
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 }
