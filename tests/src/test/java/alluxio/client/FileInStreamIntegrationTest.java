@@ -349,11 +349,25 @@ public final class FileInStreamIntegrationTest {
             throw new RuntimeException(e);
             // Ignore.
           }
+          try (FileInStream is = mFileSystem
+              .openFile(path, OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
+            int start = 0;
+            while (start < length) {
+              byte[] buffer = new byte[bufferSize];
+              int bytesRead = is.read(buffer, 0, bufferSize);
+              Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, bytesRead, buffer));
+              start = bytesRead + start;
+            }
+            count.incrementAndGet();
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+            // Ignore.
+          }
         }
       });
     }
     service.shutdown();
     service.awaitTermination(Constants.MINUTE_MS, TimeUnit.MILLISECONDS);
-    Assert.assertEquals(10, count.get());
+    Assert.assertEquals(20, count.get());
   }
 }
