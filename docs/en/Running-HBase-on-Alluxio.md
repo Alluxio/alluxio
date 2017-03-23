@@ -10,7 +10,7 @@ priority: 2
 {:toc}
 
 This guide describes how to run [Apache HBase](http://hbase.apache.org/), so
-that you can easily store HBase tables into Alluxio at various storage level.
+that you can easily store HBase tables into Alluxio at various storage levels.
 
 ## Prerequisites
 
