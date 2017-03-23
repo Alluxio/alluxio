@@ -396,11 +396,10 @@ public interface BlockWorker extends Worker {
    *         because the block exists in the Alluxio block store
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    *         {@link UnderFileSystemBlockStore}
-   * @throws InvalidWorkerStateException the worker is not in a valid state
    * @throws IOException if any I/O related errors occur
    * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
    */
   void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
+      WorkerOutOfSpaceException;
 }
