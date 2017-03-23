@@ -62,6 +62,8 @@ public final class UfsJournalTailer implements JournalTailer {
       mReader.getCheckpointLastModifiedTimeMs();
       return true;
     } catch (IOException e) {
+      LOG.warn("Failed to check if checkpoint exists: {}", e.getMessage());
+      LOG.debug("Exception: ", e);
       return false;
     }
   }

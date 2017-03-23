@@ -43,8 +43,6 @@ public final class UfsJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalWriter.class);
 
   private final UfsJournal mJournal;
-  /** Location storing all of the journal data. */
-  private final URI mJournalLocation;
   /** Location storing all completed logs. */
   private final URI mCompletedLocation;
   /**
@@ -76,14 +74,13 @@ public final class UfsJournalWriter implements JournalWriter {
    */
   UfsJournalWriter(UfsJournal journal) {
     mJournal = Preconditions.checkNotNull(journal);
-    mJournalLocation = mJournal.getLocation();
     mCompletedLocation = mJournal.getCompletedLocation();
     try {
       mTempCheckpoint = new URI(mJournal.getCheckpoint() + ".tmp");
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    mUfs = UnderFileSystem.Factory.get(mJournalLocation.toString());
+    mUfs = UnderFileSystem.Factory.get(mJournal.getLocation().toString());
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 
@@ -107,9 +104,9 @@ public final class UfsJournalWriter implements JournalWriter {
     if (mCheckpointOutputStream == null) {
       mCheckpointManager.recover();
       LOG.info("Creating tmp checkpoint file: {}", mTempCheckpoint);
-      if (!mUfs.isDirectory(mJournalLocation.toString())) {
-        LOG.info("Creating journal folder: {}", mJournalLocation);
-        mUfs.mkdirs(mJournalLocation.toString());
+      if (!mUfs.isDirectory(mJournal.getLocation().toString())) {
+        LOG.info("Creating journal folder: {}", mJournal.getLocation());
+        mUfs.mkdirs(mJournal.getLocation().toString());
       }
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
