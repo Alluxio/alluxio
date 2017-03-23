@@ -20,9 +20,6 @@ import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,8 +39,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class UfsJournal implements Journal {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
-
   /** The log number for the first completed log. */
   protected static final long FIRST_COMPLETED_LOG_NUMBER = 1L;
   /** The folder for completed logs. */
