@@ -353,21 +353,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected InputStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
       String path) throws IOException {
-    if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
-      try {
-        WorkerNetAddress address = mUfsReadLocationPolicy.getWorker(
-            GetWorkerOptions.defaults()
-                .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
-                .setBlockSize(length));
-        return StreamFactory
-            .createUfsBlockInStream(mContext, path, blockId, length, blockStart, address,
-                mInStreamOptions);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
-    } else {
-      return new UnderStoreBlockInStream(mContext, blockStart, length, mBlockSize,
-          new DirectUnderStoreStreamFactory(path));
+    try {
+      WorkerNetAddress address =
+          mUfsReadLocationPolicy.getWorker(GetWorkerOptions.defaults()
+              .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
+              .setBlockSize(length));
+      return StreamFactory.createUfsBlockInStream(mContext, path, blockId, length, blockStart,
+          address, mInStreamOptions);
+    } catch (AlluxioException e) {
+      throw new IOException(e);
     }
   }
 

@@ -12,8 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
@@ -31,8 +29,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -71,8 +67,6 @@ public class FileOutStream extends AbstractOutStream {
   private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
-  /** Whether this stream should delegate operations to the ufs to a worker. */
-  private final boolean mUfsDelegation;
   /** The client to a file system worker, null if mUfsDelegation is false. */
   private final FileSystemWorkerClient mFileSystemWorkerClient;
   /** The worker file id for the ufs file, null if mUfsDelegation is false. */
@@ -122,7 +116,6 @@ public class FileOutStream extends AbstractOutStream {
     mBlockStore = AlluxioBlockStore.create(mContext);
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
-    mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
@@ -135,27 +128,12 @@ public class FileOutStream extends AbstractOutStream {
         mUfsFileId = null;
       } else {
         mUfsPath = options.getUfsPath();
-        if (mUfsDelegation) {
-          mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
-          mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-              CreateUfsFileOptions.defaults().setOwner(options.getOwner())
-                  .setGroup(options.getGroup()).setMode(options.getMode()));
-          mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
-              .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
-        } else {
-          UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
-          // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-          // Parent directory creation in ufs is not required as FileSystemMaster will create any
-          // required directories as part of inode creation if sync persist = true
-          CreateOptions createOptions =
-              CreateOptions.defaults().setOwner(options.getOwner()).setGroup(options.getGroup())
-                  .setMode(options.getMode());
-          mUnderStorageOutputStream = mCloser.register(ufs.create(mUfsPath, createOptions));
-
-          // Set delegation related vars to null as we are not using worker delegation for ufs ops
-          mFileSystemWorkerClient = null;
-          mUfsFileId = null;
-        }
+        mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
+        mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
+            CreateUfsFileOptions.defaults().setOwner(options.getOwner())
+                .setGroup(options.getGroup()).setMode(options.getMode()));
+        mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
+            .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
       }
     } catch (AlluxioException | IOException e) {
       mCloser.close();
@@ -182,26 +160,14 @@ public class FileOutStream extends AbstractOutStream {
 
       CompleteFileOptions options = CompleteFileOptions.defaults();
       if (mUnderStorageType.isSyncPersist()) {
-        if (mUfsDelegation) {
-          mUnderStorageOutputStream.close();
-          if (mCanceled) {
-            mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
-          } else {
-            long len = mFileSystemWorkerClient
-                .completeUfsFile(mUfsFileId, CompleteUfsFileOptions.defaults());
-            options.setUfsLength(len);
-          }
+        mUnderStorageOutputStream.close();
+        if (mCanceled) {
+          mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
         } else {
-          UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsPath);
-          if (mCanceled) {
-            // TODO(yupeng): Handle this special case in under storage integrations.
-            mUnderStorageOutputStream.close();
-            ufs.deleteFile(mUfsPath);
-          } else {
-            mUnderStorageOutputStream.flush();
-            mUnderStorageOutputStream.close();
-            options.setUfsLength(ufs.getFileSize(mUfsPath));
-          }
+          long len =
+              mFileSystemWorkerClient
+                  .completeUfsFile(mUfsFileId, CompleteUfsFileOptions.defaults());
+          options.setUfsLength(len);
         }
       }
 

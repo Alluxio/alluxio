@@ -9,9 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file;
+package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
