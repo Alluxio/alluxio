@@ -337,7 +337,6 @@ public final class FileInStreamIntegrationTest {
         public void run() {
           try (FileInStream is = mFileSystem
               .openFile(path, OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
-            Thread.sleep(10);
             int start = 0;
             while (start < length) {
               byte[] buffer = new byte[bufferSize];
