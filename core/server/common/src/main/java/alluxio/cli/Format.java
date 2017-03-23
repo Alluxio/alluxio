@@ -116,8 +116,8 @@ public final class Format {
             try {
               formatFolder(name, dirWorkerDataFolder);
             } catch (IOException e) {
-              throw new RuntimeException(String.format("Failed to format worker data folder %s " +
-                  "due to %s", dirWorkerDataFolder, e.getMessage()));
+              throw new RuntimeException(String.format("Failed to format worker data folder %s "
+                  + "due to %s", dirWorkerDataFolder, e.getMessage()));
             }
           }
         }
