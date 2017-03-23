@@ -351,8 +351,27 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the {@link InputStream} for the UFS
    * @throws IOException if the stream cannot be created
    */
+      
+  protected InputStream createUnderStoreBlockInStream(long blockStart, long length, String path)
+      throws IOException {
+    return new UnderStoreBlockInStream(mContext, blockStart, length, mBlockSize,
+        getUnderStoreStreamFactory(path, mContext));
+  }
+
+  /**
+   * Creates and returns a {@link UnderStoreStreamFactory} for the UFS.
+   *
+   * @param path the UFS path
+   * @param context file system context
+   * @return the {@link UnderStoreStreamFactory} for the UFS
+   * @throws IOException if the stream cannot be created
+   */
+  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path, FileSystemContext
+      context) throws IOException {
+
   protected InputStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
       String path) throws IOException {
+
     if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
       try {
         WorkerNetAddress address = mUfsReadLocationPolicy.getWorker(
