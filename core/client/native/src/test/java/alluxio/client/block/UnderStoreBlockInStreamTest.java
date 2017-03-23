@@ -317,7 +317,6 @@ public class UnderStoreBlockInStreamTest {
             throw e;
           }
         }
-        // TODO(calvin): Implement seekable
         return new SeekableFileInputStream(inputStream);
       } catch (FileNotFoundException e) {
         throw Throwables.propagate(e);
