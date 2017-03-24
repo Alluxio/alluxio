@@ -86,7 +86,7 @@ umount_fuse () {
 }
 
 fuse_stat() {
-  local fuse_pid=$("${JAVA_HOME}"/bin/jps | grep AlluxioFuse | awk -F' ' '{print $1}')
+  local fuse_pid=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse | awk -F' ' '{print $1}')
   if [[ -z ${fuse_pid} ]]; then
     if [[ $1 == "-v" ]]; then
       echo "AlluxioFuse: not running"
