@@ -349,7 +349,6 @@ public final class FileInStreamIntegrationTest {
             count.incrementAndGet();
           } catch (Exception e) {
             throw new RuntimeException(e);
-            // Ignore.
           }
           try (FileInStream is = mFileSystem
               .openFile(path, OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
@@ -363,7 +362,6 @@ public final class FileInStreamIntegrationTest {
             count.incrementAndGet();
           } catch (Exception e) {
             throw new RuntimeException(e);
-            // Ignore.
           }
         }
       });
