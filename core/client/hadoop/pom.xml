@@ -29,6 +29,8 @@
     <checkstyle.path>${project.parent.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.core.client.hadoop</shading.prefix>
   </properties>
 
   <dependencies>
@@ -168,6 +170,12 @@
           </execution>
         </executions>
       </plugin>
+      <!--In the uber client jar, both proto and thrift are shaded to avoid version conflicts due to external-->
+      <!--dependencies introduced by external applications. The protobuf dependency is shaded in the public client-->
+      <!--jar rather than in the uber client jar, this is because it is also depended by other libraries included in-->
+      <!--the uber jar, thus shading protobuf during the uber jar packaging will over-shade references of protobuf.-->
+      <!--Ideally, the thrift dependency should also be shaded in the public jar in the same way as shading protobuf,-->
+      <!--however, this will break compilation due to existing signatures referencing thrift shared among modules.-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -180,16 +188,21 @@
             </goals>
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.thrift</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
+                </relocation>
+              </relocations>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
               <filters>
                 <filter>
-                  <artifact>*:* </artifact>
+                  <artifact>*:*</artifact>
                   <excludes>
                     <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
