@@ -25,6 +25,13 @@ struct LockBlockTOptions {
   4: i32 maxUfsReadConcurrency
 }
 
+struct LockBlockTOptions {
+  1: string ufsPath
+  2: i64 offset
+  3: i64 blockSize
+  4: i32 maxUfsReadConcurrency
+}
+
 service BlockWorkerClientService extends common.AlluxioService {
 
   /**
