@@ -13,14 +13,12 @@ package alluxio.master.journal.ufs;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
-import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class UfsJournalReader implements JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalReader.class);
+  private static final long UNKNOWN_SEQUENCE_NUMBER = -1;
 
   private final UfsJournal mJournal;
   /** The UFS where the journal is being written to. */
@@ -45,10 +44,35 @@ public class UfsJournalReader implements JournalReader {
   /** The next sequence number to read. */
   private long mSequenceNumber;
 
-  private InputStream mInputStream;
-  private boolean isReadingFromInCompleteLog;
+  private JournalInputStream mInputStream;
 
   private final byte[] mBuffer = new byte[1024];
+
+  private class JournalInputStream {
+    /** The input stream that reads from a file. */
+    final InputStream mStream;
+    /** The start sequence number in the stream. */
+    final long mStart;
+    /**
+     * The largest sequence number in the stream + 1. It is set to
+     * {@link UfsJournalReader#UNKNOWN_SEQUENCE_NUMBER} for the incomplete log.
+     */
+    final long mEnd;
+
+    JournalInputStream(InputStream inputStream, long start, long end) {
+      mStream = inputStream;
+      mStart = start;
+      mEnd = end;
+    }
+
+    boolean isIncompleteLog() {
+      return mEnd == UNKNOWN_SEQUENCE_NUMBER;
+    }
+
+    boolean isDone() {
+      return mSequenceNumber == mEnd;
+    }
+  }
 
   /**
    * Creates a new instance of {@link UfsJournalReader}.
@@ -62,23 +86,27 @@ public class UfsJournalReader implements JournalReader {
 
   @Override
   public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
-
-  }
-
-  private Journal.JournalEntry readInternal() throws IOException, InvalidJournalEntryException {
     updateInputStream();
+    if (mInputStream == null) {
+      return null;
+    }
 
-    int firstByte = mInputStream.read();
+    // TODO(peis): We do not need this. Use CodedInputStream directly.
+    int firstByte = mInputStream.mStream.read();
     if (firstByte == -1) {
+      if (!mInputStream.isIncompleteLog()) {
+        throw new InvalidJournalEntryException(
+            ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mSequenceNumber);
+      }
       return null;
     }
     // All journal entries start with their size in bytes written as a varint.
     int size;
     try {
-      size = ProtoUtils.readRawVarint32(firstByte, mInputStream);
+      size = ProtoUtils.readRawVarint32(firstByte, mInputStream.mStream);
     } catch (IOException e) {
       LOG.warn("Journal entry was truncated in the size portion.");
-      if (isReadingFromInCompleteLog && ProtoUtils.isTruncatedMessageException(e)) {
+      if (mInputStream.isIncompleteLog() && ProtoUtils.isTruncatedMessageException(e)) {
         return null;
       }
       throw e;
@@ -88,7 +116,8 @@ public class UfsJournalReader implements JournalReader {
     int totalBytesRead = 0;
     while (totalBytesRead < size) {
       // Bytes read in last read request.
-      int latestBytesRead = mInputStream.read(buffer, totalBytesRead, size - totalBytesRead);
+      int latestBytesRead =
+          mInputStream.mStream.read(buffer, totalBytesRead, size - totalBytesRead);
       if (latestBytesRead < 0) {
         break;
       }
@@ -97,7 +126,7 @@ public class UfsJournalReader implements JournalReader {
     if (totalBytesRead < size) {
       LOG.warn("Journal entry was truncated. Expected to read " + size + " bytes but only got "
           + totalBytesRead);
-      if (!isReadingFromInCompleteLog) {
+      if (!mInputStream.isIncompleteLog()) {
         throw new InvalidJournalEntryException(
             ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mSequenceNumber);
       }
@@ -117,15 +146,12 @@ public class UfsJournalReader implements JournalReader {
   }
 
   private void updateInputStream() throws IOException {
+    if (mInputStream.isIncompleteLog() || !mInputStream.isDone()) {
+      return;
+    }
+
 
   }
-
-  private class JournalInputStream {
-    public final InputStream mInputStream;
-    public final long mStart;
-    public final long mEnd;
-  }
-
 
   @Override
   public JournalInputStream getCheckpointInputStream() throws IOException {

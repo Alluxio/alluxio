@@ -14,18 +14,18 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFormatter;
 import alluxio.master.journal.JournalReader;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -36,27 +36,74 @@ import javax.annotation.concurrent.ThreadSafe;
  * - The checkpoint: the full state of the master
  * - The entries: incremental entries to apply to the checkpoint.
  *
- * To construct the full state of the master, all the entries must be applied to the checkpoint in
- * order. The entry file most recently being written to is in the base journal folder, where the
- * completed entry files are in the "completed" folder.
+ * Journal file structure:
+ * journal_folder/version/logs/StartSequenceNumber-EndSequenceNumber
+ * journal_folder/version/checkpoints/0-EndSequenceNumber
+ * journal_folder/version/.tmp/master_id (master_id can be transformed(worker_rpc_net_address))
  */
 @ThreadSafe
 public class UfsJournal implements Journal {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
+  public static final long UNKNOWN_SEQUENCE_NUMBER = Long.MAX_VALUE;
 
   /** The journal version. */
   private static final String VERSION = "v1";
 
-  /** The folder for completed logs. */
-  private static final String COMPLETED_LOG_DIRNAME = "logs";
+  private static final String LOG_DIRNAME = "logs";
   private static final String CHECKPOINT_DIRNAME = "checkpoints";
   private static final String TMP_DIRNAME = ".tmp";
-  private static final String CURRENT_LOG_FILENAME = "log.out";
 
   /** The location where this journal is stored. */
   private final URI mLocation;
-  /** The formatter for this journal. */
-  private final JournalFormatter mJournalFormatter;
+  /** The UFS where the journal is being written to. */
+  private final UnderFileSystem mUfs;
+
+  static class JournalFile implements Comparable<JournalFile> {
+    /** The location of the file. */
+    final URI mLocation;
+    final long mStart;
+    final long mEnd;
+    final long mLastModifiedTime;
+
+    JournalFile(URI location, long start, long end, long lastModifiedTime) {
+      mLocation = location;
+      mStart = start;
+      mEnd = end;
+      mLastModifiedTime = lastModifiedTime;
+    }
+
+    @Override
+    public int compareTo(JournalFile other) {
+       long diff = mEnd - other.mEnd;
+      if (diff < 0) {
+        return -1;
+      } else if (diff == 0) {
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+  }
+
+  static class Snapshot {
+    final JournalFile mCheckpoint;
+    final List<JournalFile> mTemporaryCheckpoints;
+
+    final JournalFile mCurrentLog;
+    final List<JournalFile> mCompletedLogs;
+
+    Snapshot(JournalFile checkpoint, List<JournalFile> temporaryCheckpoints, JournalFile currentLog,
+        List<JournalFile> completedLogs) {
+      mCheckpoint = checkpoint;
+      mTemporaryCheckpoints = temporaryCheckpoints;
+      mCurrentLog = currentLog;
+      mCompletedLogs = completedLogs;
+    }
+  }
+
+  public Snapshot snapshot() {
+
+  }
 
   /**
    * Creates a new instance of {@link UfsJournal}.
@@ -64,51 +111,19 @@ public class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    try {
-      mLocation = URIUtils.appendPath(location, VERSION);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-    mJournalFormatter = JournalFormatter.Factory.create();
+    mLocation = URIUtils.appendPathOrDie(location, VERSION);
   }
 
-  public URI getCompletedLogDirName() {
-    try {
-      return URIUtils.appendPath(mLocation, COMPLETED_LOG_DIRNAME);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+  private URI getLogDirName() {
+    return URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
   }
 
-  public URI getCheckpointDirName() {
-    try {
-      return URIUtils.appendPath(mLocation, CHECKPOINT_DIRNAME);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+  private URI getCheckpointDirName() {
+    return URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
   }
 
-  public URI getTmpDirName() {
-    try {
-      return URIUtils.appendPath(mLocation, TMP_DIRNAME);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public URI getCurrentLogFileName() {
-    try {
-      return URIUtils.appendPath(mLocation, CURRENT_LOG_FILENAME);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * @return the {@link JournalFormatter} for this journal
-   */
-  protected JournalFormatter getJournalFormatter() {
-    return mJournalFormatter;
+  private URI getTmpDirName() {
+    return URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
   }
 
   @Override
@@ -136,5 +151,24 @@ public class UfsJournal implements Journal {
       }
     }
     return false;
+  }
+
+  private JournalFile parserCheckpointOrLogFile(String filename, long lastModificationTime,
+      boolean isCheckpoint) {
+    URI location =
+        URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDirName() : getLogDirName(), filename);
+    String[] parts = filename.split("-");
+    Preconditions.checkState(parts.length == 2);
+    long start = Long.decode(parts[0]);
+    long end = Long.decode(parts[1]);
+
+    return new JournalFile(location, start, end, lastModificationTime);
+  }
+
+  private JournalFile parseTmpFile(String filename, long lastModificationTime) {
+    URI location = URIUtils.appendPathOrDie(getTmpDirName(), filename);
+    long start = UNKNOWN_SEQUENCE_NUMBER;
+    long end = UNKNOWN_SEQUENCE_NUMBER;
+    return new JournalFile(location, start, end, lastModificationTime);
   }
 }
