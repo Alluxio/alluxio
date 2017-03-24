@@ -306,8 +306,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    * Starts serving, letting {@link MetricsSystem} start sink and starting the web ui server and
    * RPC Server.
    *
-   * @param startMessage empty string or the message that the master gain the leadership
-   * @param stopMessage empty string or the message that the master lost the leadership
+   * @param startMessage empty string or the message that the master gains the leadership
+   * @param stopMessage empty string or the message that the master loses the leadership
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
