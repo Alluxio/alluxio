@@ -104,3 +104,6 @@ alluxio.user.rpc.retry.max.num.retry:
   the maximum number of retries.
 alluxio.user.date.format.pattern:
   Display formatted date in cli command and web UI by given date format pattern.
+alluxio.user.short.circuit.enabled:
+  The short circuit read/write which allows the clients to read/write data without going through Alluxio
+  workers if the data is local is enabled if set to true.
