@@ -18,6 +18,8 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -28,7 +30,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class UnderFileSystemCluster {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemCluster.class);
+
   class ShutdownHook extends Thread {
+
     UnderFileSystemCluster mUFSCluster = null;
 
     public ShutdownHook(UnderFileSystemCluster ufsCluster) {
@@ -41,7 +46,7 @@ public abstract class UnderFileSystemCluster {
         try {
           mUFSCluster.shutdown();
         } catch (IOException e) {
-          System.out.println("Failed to shutdown underfs cluster: " + e);
+          LOG.warn("Failed to shutdown underfs cluster: {}" + e.getMessage());
         }
       }
     }
@@ -96,16 +101,15 @@ public abstract class UnderFileSystemCluster {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class)
                 .newInstance(baseDir);
-        System.out.println("Initialized under file system testing cluster of type "
-            + ufsCluster.getClass().getCanonicalName() + " for integration testing");
+        LOG.info("Initialized ufs cluster {} for integration testing.", sUnderFSClass);
         return ufsCluster;
       } catch (Exception e) {
-        System.err.println("Failed to initialize the ufsCluster of " + sUnderFSClass
-            + " for integration test.");
+        LOG.warn("Failed to initialize the ufs cluster {} for integration testing: {}",
+            sUnderFSClass, e.getMessage());
         throw Throwables.propagate(e);
       }
     }
-    System.out.println("Using default LocalFilesystemCluster for integration testing");
+    LOG.info("Using default {} for integration testing.", LocalFileSystemCluster.class.getName());
     return new LocalFileSystemCluster(baseDir);
   }
 

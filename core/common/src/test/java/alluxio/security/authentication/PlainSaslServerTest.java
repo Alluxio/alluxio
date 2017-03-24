@@ -28,7 +28,7 @@ import javax.security.sasl.SaslException;
 /**
  * Tests the {@link PlainSaslServer} class.
  */
-public class PlainSaslServerTest{
+public final class PlainSaslServerTest {
   private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>
   private PlainSaslServer mPlainSaslServer = null;
 

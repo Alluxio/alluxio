@@ -28,14 +28,11 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsMutableJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -58,6 +55,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +64,7 @@ import java.util.Map;
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
  * followed by the checkpoint.
  */
-public class JournalIntegrationTest {
+public class UfsJournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
@@ -77,9 +75,15 @@ public class JournalIntegrationTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  private FileSystem mFileSystem = null;
+  private LocalAlluxioCluster mLocalAlluxioCluster;
+  private FileSystem mFileSystem;
   private AlluxioURI mRootUri = new AlluxioURI(AlluxioURI.SEPARATOR);
+
+  @Before
+  public final void before() throws Exception {
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mFileSystem = mLocalAlluxioCluster.getClient();
+  }
 
   /**
    * Tests adding a block.
@@ -98,19 +102,7 @@ public class JournalIntegrationTest {
     addBlockTestUtil(status);
   }
 
-  private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-  }
-
-  private void deleteFsMasterJournalLogs() throws IOException {
-    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-    Journal journal = new ReadWriteJournal(
-        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
-    UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLogFilePath());
-  }
-
-  private void addBlockTestUtil(URIStatus status)
-      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
+  private void addBlockTestUtil(URIStatus status) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -137,16 +129,16 @@ public class JournalIntegrationTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
     try {
       String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-      ReadWriteJournal journal = new ReadWriteJournal(
-          PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
-      JournalWriter writer = journal.getNewWriter();
+      UfsMutableJournal journal = new UfsMutableJournal(
+          new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+      JournalWriter writer = journal.getWriter();
       writer.getCheckpointOutputStream(0).close();
       // Flush multiple times, without writing to the log.
-      writer.flushEntryStream();
-      writer.flushEntryStream();
-      writer.flushEntryStream();
+      writer.flush();
+      writer.flush();
+      writer.flush();
       UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
-          .listStatus(journal.getCompletedDirectory());
+          .listStatus(journal.getCompletedLocation().toString());
       // Make sure no new empty files were created.
       Assert.assertTrue(paths == null || paths.length == 0);
     } finally {
@@ -171,8 +163,7 @@ public class JournalIntegrationTest {
     loadMetadataTestUtil(status);
   }
 
-  private void loadMetadataTestUtil(URIStatus status)
-      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
+  private void loadMetadataTestUtil(URIStatus status) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -183,12 +174,6 @@ public class JournalIntegrationTest {
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/xyz")));
     Assert.assertEquals(status, new URIStatus(fsMasterInfo));
     fsMaster.stop();
-  }
-
-  @Before
-  public final void before() throws Exception {
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mFileSystem = mLocalAlluxioCluster.getClient();
   }
 
   /**
@@ -204,13 +189,13 @@ public class JournalIntegrationTest {
 
     String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
         Constants.FILE_SYSTEM_MASTER_NAME);
-    Journal journal = new ReadWriteJournal(journalFolder);
-    String completedPath = journal.getCompletedDirectory();
-    Assert.assertTrue(
-        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length > 1);
+    UfsJournal journal = new UfsMutableJournal(new URI(journalFolder));
+    URI completedLocation = journal.getCompletedLocation();
+    Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
+        .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(
-        UnderFileSystem.Factory.get(completedPath).listStatus(completedPath).length <= 1);
+    Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
+        .listStatus(completedLocation.toString()).length <= 1);
     multiEditLogTestUtil();
   }
 
@@ -317,8 +302,7 @@ public class JournalIntegrationTest {
     fileTestUtil(status);
   }
 
-  private void fileTestUtil(URIStatus status)
-      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
+  private void fileTestUtil(URIStatus status) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -360,8 +344,7 @@ public class JournalIntegrationTest {
     pinTestUtil(directoryStatus, file0Status, file1Status);
   }
 
-  private void pinTestUtil(URIStatus directory, URIStatus file0, URIStatus file1)
-      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
+  private void pinTestUtil(URIStatus directory, URIStatus file0, URIStatus file1) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/myFolder")));
@@ -393,8 +376,7 @@ public class JournalIntegrationTest {
     directoryTestUtil(status);
   }
 
-  private void directoryTestUtil(URIStatus status)
-      throws AccessControlException, IOException, InvalidPathException, FileDoesNotExistException {
+  private void directoryTestUtil(URIStatus status) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -478,7 +460,7 @@ public class JournalIntegrationTest {
    * @throws Exception on error
    */
   @Test
-  public void mountEntryCheckpointTest() throws Exception {
+  public void mountEntryCheckpoint() throws Exception {
     final AlluxioURI mountUri = new AlluxioURI("/local_mnt/");
     final AlluxioURI ufsUri = new AlluxioURI(mTestFolder.newFolder("test_ufs").getAbsolutePath());
 
@@ -680,6 +662,17 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
+  private FileSystemMaster createFsMasterFromJournal() throws Exception {
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+  }
+
+  private void deleteFsMasterJournalLogs() throws Exception {
+    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+    UfsJournal journal = new UfsMutableJournal(
+        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+    UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLog().toString());
+  }
+
   /**
    * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
    */
@@ -687,7 +680,7 @@ public class JournalIntegrationTest {
     // The fullly qualified class name of this group mapping service. This is needed to configure
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
-        "alluxio.master.JournalIntegrationTest$FakeUserGroupsMapping";
+        "alluxio.master.UfsJournalIntegrationTest$FakeUserGroupsMapping";
 
     private HashMap<String, String> mUserGroups = new HashMap<>();
 

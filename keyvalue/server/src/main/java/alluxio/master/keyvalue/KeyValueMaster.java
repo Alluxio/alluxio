@@ -21,6 +21,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
@@ -42,6 +43,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -49,6 +51,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -59,6 +62,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
+  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
+
   private final FileSystemMaster mFileSystemMaster;
 
   /** Map from file id of a complete store to the list of partitions in this store. */
@@ -70,24 +75,16 @@ public final class KeyValueMaster extends AbstractMaster {
   private final Map<Long, List<PartitionInfo>> mIncompleteStoreToPartitions;
 
   /**
-   * @param baseDirectory the base journal directory
-   * @return the journal directory for this master
-   */
-  public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.KEY_VALUE_MASTER_NAME);
-  }
-
-  /**
-   * @param fileSystemMaster handler to a {@link FileSystemMaster} to use for filesystem operations
+   * @param registry the master registry
    * @param journal a {@link Journal} to write journal entries to
    */
-  public KeyValueMaster(FileSystemMaster fileSystemMaster,
-      Journal journal) {
+  public KeyValueMaster(MasterRegistry registry, Journal journal) {
     super(journal, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
-    mFileSystemMaster = fileSystemMaster;
+    mFileSystemMaster = registry.get(FileSystemMaster.class);
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
+    registry.add(KeyValueMaster.class, this);
   }
 
   @Override
@@ -101,6 +98,11 @@ public final class KeyValueMaster extends AbstractMaster {
   @Override
   public String getName() {
     return Constants.KEY_VALUE_MASTER_NAME;
+  }
+
+  @Override
+  public Set<Class<?>> getDependencies() {
+    return DEPS;
   }
 
   @Override
@@ -132,18 +134,18 @@ public final class KeyValueMaster extends AbstractMaster {
     for (Map.Entry<Long, List<PartitionInfo>> entry : mCompleteStoreToPartitions.entrySet()) {
       long fileId = entry.getKey();
       List<PartitionInfo> partitions = entry.getValue();
-      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      outputStream.write(newCreateStoreEntry(fileId));
       for (PartitionInfo info : partitions) {
-        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+        outputStream.write(newCompletePartitionEntry(fileId, info));
       }
-      outputStream.writeEntry(newCompleteStoreEntry(fileId));
+      outputStream.write(newCompleteStoreEntry(fileId));
     }
     for (Map.Entry<Long, List<PartitionInfo>> entry : mIncompleteStoreToPartitions.entrySet()) {
       long fileId = entry.getKey();
       List<PartitionInfo> partitions = entry.getValue();
-      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      outputStream.write(newCreateStoreEntry(fileId));
       for (PartitionInfo info : partitions) {
-        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+        outputStream.write(newCompletePartitionEntry(fileId, info));
       }
     }
   }
@@ -244,9 +246,10 @@ public final class KeyValueMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
-      mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
+      mFileSystemMaster
+          .createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
     } catch (IOException e) {
-      // TODO(binfan): Investigate why {@link mFileSystemMaster.createDirectory} throws IOException
+      // TODO(binfan): Investigate why {@link FileSystemMaster#createDirectory} throws IOException
       throw new InvalidPathException(
           String.format("Failed to createStore: can not create path %s", path), e);
     } catch (FileDoesNotExistException e) {

@@ -17,18 +17,15 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.lineage.LineageMaster;
+import alluxio.master.journal.MutableJournal;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
-import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -51,9 +48,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -84,17 +88,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
-  /** The master managing all block metadata. */
-  protected BlockMaster mBlockMaster;
-
-  /** The master managing all file system related metadata. */
-  protected FileSystemMaster mFileSystemMaster;
-
-  /** The master managing all lineage related metadata. */
-  protected LineageMaster mLineageMaster;
-
-  /** A list of extra masters to launch based on service loader. */
-  protected List<Master> mAdditionalMasters;
+  /** The master registry. */
+  protected MasterRegistry mRegistry;
 
   /** The web ui server. */
   private WebServer mWebServer = null;
@@ -108,6 +103,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 
+  /**
+   * Creates a {@link DefaultAlluxioMaster} by the classes in the same packet of
+   * {@link DefaultAlluxioMaster} or the subclasses of {@link DefaultAlluxioMaster}.
+   */
   protected DefaultAlluxioMaster() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
@@ -142,65 +141,67 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Create the journals.
-      createMasters(new JournalFactory.ReadWrite(getJournalDirectory()));
+      // Check that journals of each service have been formatted.
+      checkJournalFormatted();
+      // Create masters.
+      createMasters(new MutableJournal.Factory(getJournalLocation()));
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
-  protected String getJournalDirectory() {
+
+  protected void checkJournalFormatted() throws IOException {
+    Journal.Factory factory = new Journal.Factory(getJournalLocation());
+    for (String name : ServerUtils.getMasterServiceNames()) {
+      Journal journal = factory.create(name);
+      if (!journal.isFormatted()) {
+        throw new RuntimeException(
+            String.format("Journal %s has not been formatted!", journal.getLocation()));
+      }
+    }
+  }
+
+  /**
+   * @return the journal location
+   */
+  protected URI getJournalLocation() {
     String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
       journalDirectory += AlluxioURI.SEPARATOR;
     }
     try {
-      Preconditions.checkState(isJournalFormatted(journalDirectory),
-          "Alluxio master was not formatted! The journal folder is %s", journalDirectory);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
+      return new URI(journalDirectory);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
     }
-    return journalDirectory;
   }
 
   /**
    * @param journalFactory the factory to use for creating journals
    */
-  protected void createMasters(JournalFactory journalFactory) {
-    mBlockMaster = new BlockMaster(journalFactory);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory);
-    if (LineageUtils.isLineageEnabled()) {
-      mLineageMaster = new LineageMaster(mFileSystemMaster, journalFactory);
+  protected void createMasters(final JournalFactory journalFactory) {
+    mRegistry = new MasterRegistry();
+    List<Callable<Void>> callables = new ArrayList<>();
+    for (final MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
+      callables.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          factory.create(mRegistry, journalFactory);
+          return null;
+        }
+      });
     }
-
-    mAdditionalMasters = new ArrayList<>();
-    List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
-    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
-      Master master = factory.create(masters, journalFactory);
-      if (master != null) {
-        mAdditionalMasters.add(master);
-      }
+    try {
+      Executors.newCachedThreadPool().invokeAll(callables, 10, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 
   @Override
-  public List<Master> getAdditionalMasters() {
-    return mAdditionalMasters;
-  }
-
-  @Override
-  public BlockMaster getBlockMaster() {
-    return mBlockMaster;
-  }
-
-  @Override
-  public FileSystemMaster getFileSystemMaster() {
-    return mFileSystemMaster;
-  }
-
-  @Override
-  public LineageMaster getLineageMaster() {
-    return mLineageMaster;
+  public <T> T getMaster(Class<T> clazz) {
+    return mRegistry.get(clazz);
   }
 
   @Override
@@ -268,17 +269,9 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected void startMasters(boolean isLeader) {
     try {
       connectToUFS();
-
-      mBlockMaster.start(isLeader);
-      mFileSystemMaster.start(isLeader);
-      if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster.start(isLeader);
-      }
-      // start additional masters
-      for (Master master : mAdditionalMasters) {
+      for (Master master : mRegistry.getMasters()) {
         master.start(isLeader);
       }
-
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
@@ -290,15 +283,9 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    */
   protected void stopMasters() {
     try {
-      if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster.stop();
-      }
-      // stop additional masters
-      for (Master master : mAdditionalMasters) {
+      for (Master master : Lists.reverse(mRegistry.getMasters())) {
         master.stop();
       }
-      mBlockMaster.stop();
-      mFileSystemMaster.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
@@ -318,6 +305,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
         stopMessage);
   }
 
+  /**
+   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the
+   * web server and starting web ui.
+   */
   protected void startServingWebServer() {
     mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
         NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
@@ -338,13 +329,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    registerServices(processor, mBlockMaster.getServices());
-    registerServices(processor, mFileSystemMaster.getServices());
-    if (LineageUtils.isLineageEnabled()) {
-      registerServices(processor, mLineageMaster.getServices());
-    }
-    // register additional masters for RPC service
-    for (Master master : mAdditionalMasters) {
+    // register master services
+    for (Master master : mRegistry.getMasters()) {
       registerServices(processor, master.getServices());
     }
     // register meta services
@@ -388,29 +374,6 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
     MetricsSystem.stopSinks();
     mIsServing = false;
-  }
-
-  /**
-   * Checks to see if the journal directory is formatted.
-   *
-   * @param journalDirectory the journal directory to check
-   * @return true if the journal directory was formatted previously, false otherwise
-   * @throws IOException if an I/O error occurs
-   */
-  private boolean isJournalFormatted(String journalDirectory) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(journalDirectory);
-    UnderFileStatus[] files = ufs.listStatus(journalDirectory);
-    if (files == null) {
-      return false;
-    }
-    // Search for the format file.
-    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
-    for (UnderFileStatus file : files) {
-      if (file.getName().startsWith(formatFilePrefix)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private void connectToUFS() throws IOException {

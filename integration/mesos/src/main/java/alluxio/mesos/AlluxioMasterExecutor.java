@@ -74,7 +74,7 @@ public class AlluxioMasterExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
-          Format.format("master");
+          Format.format(Format.Mode.MASTER);
           AlluxioMaster.main(new String[] {});
 
           status =

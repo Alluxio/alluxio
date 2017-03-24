@@ -46,10 +46,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLockManager.class);
 
+  /** Invalid lock ID. */
+  public static final long INVALID_LOCK_ID = -1;
+
   /** The unique id of each lock. */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
-  /** A pool of read write locks. */
+ /** A pool of read write locks. */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
       Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override
@@ -101,6 +104,12 @@ public final class BlockLockManager {
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
     } else {
+      // Make sure the session isn't already holding the block lock.
+      if (sessionHoldsLock(sessionId, blockId)) {
+        throw new IllegalStateException(String
+            .format("Session %s attempted to take a write lock on block %s, but the session already"
+                + " holds a lock on the block", sessionId, blockId));
+      }
       lock = blockLock.writeLock();
     }
     lock.lock();
@@ -120,6 +129,27 @@ public final class BlockLockManager {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
       throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @param sessionId the session id to check
+   * @param blockId the block id to check
+   * @return whether the specified session holds a lock on the specified block
+   */
+  private boolean sessionHoldsLock(long sessionId, long blockId) {
+    synchronized (mSharedMapsLock) {
+      Set<Long> sessionLocks = mSessionIdToLockIdsMap.get(sessionId);
+      if (sessionLocks == null) {
+        return false;
+      }
+      for (Long lockId : sessionLocks) {
+        LockRecord lockRecord = mLockIdToRecordMap.get(lockId);
+        if (lockRecord.getBlockId() == blockId) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 
@@ -169,16 +199,15 @@ public final class BlockLockManager {
    * Releases the lock with the specified lock id.
    *
    * @param lockId the id of the lock to release
-   * @throws BlockDoesNotExistException if lock id cannot be found
+   * @return whether the lock corresponding the lock ID has been successfully unlocked
    */
-  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+  public boolean unlockBlockNoException(long lockId) {
     Lock lock;
     LockRecord record;
     synchronized (mSharedMapsLock) {
       record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-            lockId);
+        return false;
       }
       long sessionId = record.getSessionId();
       lock = record.getLock();
@@ -190,6 +219,20 @@ public final class BlockLockManager {
       }
     }
     unlock(lock, record.getBlockId());
+    return true;
+  }
+
+  /**
+   * Releases the lock with the specified lock id.
+   *
+   * @param lockId the id of the lock to release
+   * @throws BlockDoesNotExistException if lock id cannot be found
+   */
+  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+    if (!unlockBlockNoException(lockId)) {
+      throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
+          lockId);
+    }
   }
 
   /**
@@ -197,22 +240,20 @@ public final class BlockLockManager {
    *
    * @param sessionId the session id
    * @param blockId the block id
-   * @throws BlockDoesNotExistException if the block id cannot be found
+   * @return whether the block has been successfully unlocked
    */
   // TODO(bin): Temporary, remove me later.
-  public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+  public boolean unlockBlock(long sessionId, long blockId) {
     synchronized (mSharedMapsLock) {
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       if (sessionLockIds == null) {
-        LOG.warn("Attempted to unlock block {} with session {}, but the session has not taken"
-            + " any block locks", blockId, sessionId);
-        return;
+        return false;
       }
       for (long lockId : sessionLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (record == null) {
-          throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-              lockId);
+          // TODO(peis): Should this be a check failure?
+          return false;
         }
         if (blockId == record.getBlockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -222,11 +263,10 @@ public final class BlockLockManager {
           }
           Lock lock = record.getLock();
           unlock(lock, blockId);
-          return;
+          return true;
         }
       }
-      throw new BlockDoesNotExistException(
-          ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION, blockId, sessionId);
+      return false;
     }
   }
 

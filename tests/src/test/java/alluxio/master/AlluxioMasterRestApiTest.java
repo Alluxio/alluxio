@@ -47,7 +47,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Before
   public void before() {
-    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mFileSystemMaster =
+        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;

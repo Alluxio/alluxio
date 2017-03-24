@@ -19,7 +19,9 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Barclays](http://www.barclays.co.uk/)
 * [EMC](https://www.emc.com/)
 * [GBICC](http://www.gbicc.net/)
+* [Guardant Health](http://www.guardanthealth.com/)
 * [Huawei](http://www.huawei.com/)
+* [IBM](http://www.ibm.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
 * [JD](http://www.jd.com/)
@@ -30,6 +32,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Radicalbit](http://www.radicalbit.io)
 * [Samsung](http://www.samsung.com/us/)
 * [Talend](https://www.talend.com/)
+* [Tencent](https://www.tencent.com)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 

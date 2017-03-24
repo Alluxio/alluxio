@@ -442,7 +442,7 @@ public class InodeTree implements JournalCheckpointStreamable {
    * Returns the path for a particular inode. The inode and the path to the inode must already be
    * locked.
    *
-   * @param inode the inode to get the path for
+   * @param inode the {@link Inode} to get the path for
    * @return the {@link AlluxioURI} for the path of the inode
    * @throws FileDoesNotExistException if the path does not exist
    */
@@ -829,7 +829,7 @@ public class InodeTree implements JournalCheckpointStreamable {
     inodes.add(mRoot);
     while (!inodes.isEmpty()) {
       Inode<?> inode = inodes.poll();
-      outputStream.writeEntry(inode.toJournalEntry());
+      outputStream.write(inode.toJournalEntry());
       if (inode.isDirectory()) {
         inodes.addAll(((InodeDirectory) inode).getChildren());
       }

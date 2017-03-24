@@ -112,7 +112,6 @@ public final class Constants {
   public static final String REST_API_PREFIX = "/api/v1";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
-  public static final String FORMAT_FILE_PREFIX = "_format_";
 
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";

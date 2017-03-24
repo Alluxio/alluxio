@@ -17,7 +17,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
-import alluxio.ServerUtils;
+import alluxio.cli.Format;
 import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -148,12 +148,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
 
     // Formats the journal
-    UnderFileSystemUtils.mkdirIfNotExists(journalFolder);
-    for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
-      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName));
-    }
-    UnderFileSystemUtils
-        .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()));
+    Format.format(Format.Mode.MASTER);
 
     // If we are using anything except LocalFileSystemCluster as UnderFS,
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.

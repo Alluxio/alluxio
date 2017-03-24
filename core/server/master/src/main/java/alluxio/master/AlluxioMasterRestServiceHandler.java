@@ -100,8 +100,8 @@ public final class AlluxioMasterRestServiceHandler {
     // Poor man's dependency injection through the Jersey application scope.
     mMaster = (AlluxioMasterService) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mBlockMaster = mMaster.getBlockMaster();
-    mFileSystemMaster = mMaster.getFileSystemMaster();
+    mBlockMaster = mMaster.getMaster(BlockMaster.class);
+    mFileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
   }
 
   /**

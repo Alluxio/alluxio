@@ -23,7 +23,7 @@ service=$1
 # --shm-size argument to docker run
 export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
 
-home=/opt/$(ls /opt | grep alluxio)
+home=/opt/alluxio
 cd ${home}
 
 # List of environment variables starting with ALLUXIO_ which
