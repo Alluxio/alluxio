@@ -136,11 +136,6 @@
       <!-- We are excluding guava, jackson-databind and jackson-core are in scope provided, as they are provided by Presto runtime. -->
       <dependencies>
         <dependency>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
           <version>2.6.6</version>
@@ -150,6 +145,18 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
           <version>2.6.6</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <!-- using older version to match dependency version from Hadoop -->
+        <dependency>
+          <groupId>com.google.inject</groupId>
+          <artifactId>guice</artifactId>
+          <version>3.0</version>
           <scope>provided</scope>
         </dependency>
       </dependencies>
