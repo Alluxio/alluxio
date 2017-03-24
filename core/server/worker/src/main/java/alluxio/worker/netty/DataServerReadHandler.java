@@ -232,8 +232,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Sets mError.
-   *
    * @param channel the channel
    * @param error the error
    */
@@ -255,8 +253,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Sets mEof.
-   *
    * @param channel the channel
    */
   private void setEof(Channel channel) {
@@ -276,8 +272,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Sets mCancel.
-   *
    * @param channel the channel
    */
   private void setCancel(Channel channel) {

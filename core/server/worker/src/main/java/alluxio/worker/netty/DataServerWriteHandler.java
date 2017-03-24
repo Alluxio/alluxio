@@ -130,7 +130,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    * from any thread (not such usage in the code now). It is destroyed when the write request is
    * done (complete or cancel) or an error is seen.
    */
-  protected volatile  WriteRequestInternal mRequest;
+  protected volatile WriteRequestInternal mRequest;
 
   abstract class WriteRequestInternal implements Closeable {
     /** This ID can either be block ID or temp UFS file ID. */
@@ -178,6 +178,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     RPCProtoMessage msg = (RPCProtoMessage) object;
     Protocol.WriteRequest writeRequest = msg.getMessage().getMessage();
+    // Only initialize (open the readers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
       initializeRequest(msg);
     }
@@ -306,10 +307,17 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           if (buf == null || buf == EOF || buf == CANCEL || buf == ABORT) {
             eof = buf == EOF;
             cancel = buf == CANCEL;
-            abort = (buf == ABORT || mError != null);
+            // mError is checked here so that we can override EOF and CANCEL if error happens
+            // after we receive EOF or CANCEL signal.
+            // TODO(peis): Move to the pattern used in DataServerReadHandler to avoid
+            // using special packets.
+            abort = mError != null;
             mPacketWriterActive = false;
             break;
           }
+          // Release all the packets if we have encountered an error. We guarantee that no more
+          // packets should be queued after we have received one of the done signals (EOF, CANCEL
+          // or ABORT).
           if (mError != null) {
             release(buf);
             continue;
@@ -335,7 +343,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
       if (abort) {
         try {
-          cancel();
+          completeOrCancel(false);
         } catch (IOException e) {
           LOG.warn("Failed to abort, cancel or complete the write request with error {}.",
               e.getMessage());
@@ -344,10 +352,10 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       } else if (cancel || eof) {
         try {
           if (cancel) {
-            cancel();
+            completeOrCancel(false);
             replyCancel();
           } else {
-            complete();
+            completeOrCancel(true);
             replySuccess();
           }
         } catch (IOException e) {
@@ -357,26 +365,18 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Completes this write.
+     * Completes or cancels this write.
      *
+     * @param isComplete whether it is to complete or cancel the write request
      * @throws IOException if I/O related errors occur
      */
-    private void complete() throws IOException {
+    private void completeOrCancel(boolean isComplete) throws IOException {
       if (mRequest != null) {
-        mRequest.close();
-        mRequest = null;
-      }
-      mPosToWrite = 0;
-    }
-
-    /**
-     * Cancels the write.
-     *
-     * @throws IOException if I/O related errors occur
-     */
-    private void cancel() throws IOException {
-      if (mRequest != null) {
-        mRequest.cancel();
+        if (isComplete) {
+          mRequest.close();
+        } else {
+          mRequest.cancel();
+        }
         mRequest = null;
       }
       mPosToWrite = 0;
@@ -449,7 +449,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    * @param buf the netty byte buffer
    */
   private static void release(ByteBuf buf) {
-    if (buf != null && buf != EOF && buf != CANCEL) {
+    if (buf != null && buf != EOF && buf != CANCEL && buf != ABORT) {
       buf.release();
     }
   }

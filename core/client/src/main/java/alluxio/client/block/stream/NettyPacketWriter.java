@@ -18,8 +18,8 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -186,7 +186,7 @@ public final class NettyPacketWriter implements PacketWriter {
     if (mClosed) {
       return;
     }
-    sendCancel();
+    sendEOFOrCancel(false);
   }
 
   @Override
@@ -220,7 +220,7 @@ public final class NettyPacketWriter implements PacketWriter {
       return;
     }
 
-    sendEOFIfNotCancelled();
+    sendEOFOrCancel(true);
     mLock.lock();
     try {
       while (true) {
@@ -260,16 +260,22 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   /**
-   * Sends an EOF packet to end the write request if the stream is not cancelled.
+   * Sends an EOF or a CANCEL packet to end the write request if the stream.
+   *
+   * @param isEof whether it is an EOF request or a CANCEL request
    */
-  private void sendEOFIfNotCancelled() {
+  private void sendEOFOrCancel(boolean isEof) {
     final long pos;
     mLock.lock();
     try {
       if (mEOFSent || mCancelSent) {
         return;
       }
-      mEOFSent = true;
+      if (isEof) {
+        mEOFSent = true;
+      } else {
+        mCancelSent = true;
+      }
       pos = mPosToQueue;
     } finally {
       mLock.unlock();
@@ -277,30 +283,7 @@ public final class NettyPacketWriter implements PacketWriter {
     // Write the EOF packet.
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
-            .setTier(mTier).setType(mRequestType).setEof(true).build();
-    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-  }
-
-  /**
-   * Sends a cancel packet. This is an no-op if EOF has sent.
-   */
-  private void sendCancel() {
-    final long pos;
-    mLock.lock();
-    try {
-      if (mEOFSent || mCancelSent) {
-        return;
-      }
-      mCancelSent = true;
-      pos = mPosToQueue;
-    } finally {
-      mLock.unlock();
-    }
-    // Write the cancel packet.
-    Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
-            .setTier(mTier).setType(mRequestType).setCancel(true).build();
+            .setTier(mTier).setType(mRequestType).setEof(isEof).setCancel(!isEof).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
@@ -430,7 +413,7 @@ public final class NettyPacketWriter implements PacketWriter {
         mLock.unlock();
       }
       if (shouldSendEOF) {
-        sendEOFIfNotCancelled();
+        sendEOFOrCancel(true);
       }
     }
   }

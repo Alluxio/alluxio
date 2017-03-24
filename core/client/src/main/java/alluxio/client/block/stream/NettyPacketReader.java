@@ -204,8 +204,8 @@ public final class NettyPacketReader implements PacketReader {
       try {
         readAndDiscardAll();
       } catch (IOException e) {
-        LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}).", mId, mAddress,
-            e);
+        LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}) with exception {}.",
+            mId, mAddress, e.getMessage());
         mChannel.close();
         return;
       }
@@ -310,14 +310,15 @@ public final class NettyPacketReader implements PacketReader {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-      LOG.error("Channel {} is closed while reading from {}.", mChannel, mId);
+      LOG.warn("Channel {} is closed while reading from {}.", mChannel, mId);
 
       // NOTE: The netty I/O thread associated with mChannel is the only thread that can update
       // mPacketReaderException and push to mPackets. So it is safe to do the following without
       // synchronization.
       // Make sure to set mPacketReaderException before pushing THROWABLE to mPackets.
       if (mPacketReaderException == null) {
-        mPacketReaderException = new IOException("ChannelClosed.");
+        mPacketReaderException =
+            new IOException(String.format("Channel %s is closed.", mChannel.toString()));
         mPackets.offer(THROWABLE);
       }
       ctx.fireChannelUnregistered();
