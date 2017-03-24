@@ -176,11 +176,13 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockWriter getBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, IOException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException {
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
     try (LockResource r = new LockResource(mMetadataReadLock)) {
+      checkTempBlockOwnedBySession(sessionId, blockId);
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       return new LocalFileBlockWriter(tempBlockMeta.getPath());
     }

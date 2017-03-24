@@ -300,7 +300,7 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS,
       16),
   USER_NETWORK_NETTY_READER_CANCEL_ENABLED(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true),
-  USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, false),
+  USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, true),
   USER_RPC_RETRY_BASE_SLEEP_MS(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50),
   USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20),
   USER_RPC_RETRY_MAX_SLEEP_MS(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000),
@@ -322,6 +322,7 @@ public enum PropertyKey {
   USER_UFS_BLOCK_READ_CONCURRENCY_MAX(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX,
       Integer.MAX_VALUE),
   USER_UFS_BLOCK_OPEN_TIMEOUT_MS(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000),
+  USER_SHORT_CIRCUIT_ENABLED(Name.USER_SHORT_CIRCUIT_ENABLED, true),
 
   //
   // FUSE integration related properties
@@ -795,6 +796,7 @@ public enum PropertyKey {
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.user.ufs.block.open.timeout.ms";
+    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.disabled";
 
     //
     // FUSE integration related properties

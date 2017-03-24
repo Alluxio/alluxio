@@ -187,9 +187,12 @@ interface BlockStore {
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
    * @throws BlockDoesNotExistException if the block can not be found
+   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
+   * @throws InvalidWorkerStateException if the worker state is invalid
    * @throws IOException if block can not be created
    */
-  BlockWriter getBlockWriter(long sessionId, long blockId) throws BlockDoesNotExistException,
+  BlockWriter getBlockWriter(long sessionId, long blockId)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
   /**

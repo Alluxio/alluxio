@@ -91,8 +91,8 @@ alluxio.user.ufs.file.writer.class:
   worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter`
   (remote write using netty) is valid.
 alluxio.user.packet.streaming.enabled:
-  If set to true, the packet streaming data transfer protocol is used. Packet streaming is an experimental feature. It
-  provides a more efficient data transfer mechanism.
+  The packet streaming data transfer protocol is enabled if set to true. Packet streaming provides a more efficient
+  data transfer mechanism.
 alluxio.user.rpc.retry.base.sleep.ms:
   Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
   the base time in milliseconds in the exponential backoff.
@@ -104,3 +104,6 @@ alluxio.user.rpc.retry.max.num.retry:
   the maximum number of retries.
 alluxio.user.date.format.pattern:
   Display formatted date in cli command and web UI by given date format pattern.
+alluxio.user.short.circuit.enabled:
+  The short circuit read/write which allows the clients to read/write data without going through Alluxio
+  workers if the data is local is enabled if set to true.
