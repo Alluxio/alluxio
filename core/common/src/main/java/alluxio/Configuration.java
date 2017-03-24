@@ -504,7 +504,7 @@ public final class Configuration {
     for (Map.Entry<String, String> entry : toMap().entrySet()) {
       String propertyName = entry.getKey();
       if (!PropertyKey.isValid(propertyName)) {
-        LOG.error("Unsupported property " + propertyName);
+        LOG.warn("Unsupported property {}" + propertyName);
         valid = false;
       }
     }
