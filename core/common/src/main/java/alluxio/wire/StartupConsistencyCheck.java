@@ -15,9 +15,12 @@ import com.google.common.base.Objects;
 
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * The startup consistency check information.
  */
+@NotThreadSafe
 public class StartupConsistencyCheck {
   private List<String> mInconsistentUris;
   private String mStatus;

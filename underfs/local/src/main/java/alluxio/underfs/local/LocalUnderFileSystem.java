@@ -31,6 +31,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,7 +203,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       case SPACE_USED:
         return file.getTotalSpace() - file.getFreeSpace();
       default:
-        throw new IOException("Unknown getSpace parameter: " + type);
+        throw new IOException("Unknown space type: " + type);
     }
   }
 
@@ -248,7 +249,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         try {
           setOwner(file.getPath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
-          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
+              e.getMessage());
         }
         return true;
       }
@@ -273,7 +275,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         try {
           setOwner(dirToMake.getAbsolutePath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
-          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
+              e.getMessage());
         }
       } else {
         return false;
@@ -301,7 +304,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     if (!isDirectory(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a file", src, dst);
+      LOG.warn("Unable to rename {} to {} because source does not exist or is a file.", src, dst);
       return false;
     }
     return rename(src, dst);
@@ -310,8 +313,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
     if (!isFile(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a directory",
-          src, dst);
+      LOG.warn("Unable to rename {} to {} because source does not exist or is a directory.", src,
+          dst);
       return false;
     }
     return rename(src, dst);
@@ -324,22 +327,22 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public void setOwner(String path, String user, String group) throws IOException {
     path = stripPath(path);
     try {
-      if (user != null) {
+      if (!Strings.isNullOrEmpty(user)) {
         FileUtils.changeLocalFileUser(path, user);
       }
-      if (group != null) {
+      if (!Strings.isNullOrEmpty(group)) {
         FileUtils.changeLocalFileGroup(path, group);
       }
     } catch (IOException e) {
-      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group);
+      LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
       LOG.debug("Exception: ", e);
-      LOG.warn("In order for Alluxio to set local files with the correct user and groups, "
-          + "Alluxio should be the local file system superusers.");
+      LOG.warn("In order for Alluxio to modify ownership of local files, "
+          + "Alluxio should be the local file system superuser.");
       if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
         throw e;
       } else {
-        LOG.warn("Proceeding... but this may cause permission inconsistency between Alluxio and "
-            + "local under file system.");
+        LOG.warn("Failure is ignored, which may cause permission inconsistency between "
+            + "Alluxio and local under file system.");
       }
     }
   }

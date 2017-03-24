@@ -69,6 +69,12 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("list directories as plain files")
           .build();
+  protected static final Option LIST_PINNED_FILES_OPTION =
+          Option.builder("p")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("list all pinned files")
+                  .build();
   protected static final Option FIX_INCONSISTENT_FILES =
       Option.builder("r")
           .required(false)

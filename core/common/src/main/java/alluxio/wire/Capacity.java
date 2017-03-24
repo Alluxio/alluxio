@@ -13,9 +13,12 @@ package alluxio.wire;
 
 import com.google.common.base.Objects;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Class that represents the available, free, and total capacity.
  */
+@NotThreadSafe
 public class Capacity {
   private long mTotal;
   private long mUsed;

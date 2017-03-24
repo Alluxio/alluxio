@@ -60,9 +60,6 @@ public final class ServerUtils {
    */
   public static List<String> getMasterServiceNames() {
     List<String> masterServiceNames = new ArrayList<>();
-    masterServiceNames.add(Constants.BLOCK_MASTER_NAME);
-    masterServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
-    masterServiceNames.add(Constants.LINEAGE_MASTER_NAME);
     for (MasterFactory factory : getMasterServiceLoader()) {
       if (factory.isEnabled()) {
         masterServiceNames.add(factory.getName());

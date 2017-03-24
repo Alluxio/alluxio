@@ -53,7 +53,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 import org.mockito.internal.util.reflection.Whitebox;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -111,8 +110,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFsMaster =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mFsMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        .getMaster(FileSystemMaster.class);
     AuthenticatedClientUser.set(TEST_USER);
     mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
   }
@@ -158,7 +157,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
-  private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
+  private FileSystemMaster createFileSystemMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -414,8 +413,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void getCapacityBytes() {
-    BlockMaster blockMaster =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
+    BlockMaster blockMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        .getMaster(BlockMaster.class);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
@@ -595,7 +594,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  public void ttlExpiredCreateFileWithFreeActionTest() throws Exception {
+  public void ttlExpiredCreateFileWithFreeAction() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
     CreateFileOptions options =

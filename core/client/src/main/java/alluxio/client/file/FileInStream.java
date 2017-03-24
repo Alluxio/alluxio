@@ -22,6 +22,7 @@ import alluxio.client.Cancelable;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.StreamFactory;
@@ -46,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -351,21 +353,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected InputStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
       String path) throws IOException {
-    if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
-      try {
-        WorkerNetAddress address = mUfsReadLocationPolicy.getWorker(
-            GetWorkerOptions.defaults()
-                .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
-                .setBlockSize(length));
-        return StreamFactory
-            .createUfsBlockInStream(mContext, path, blockId, length, blockStart, address,
-                mInStreamOptions);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
-    } else {
-      return new UnderStoreBlockInStream(mContext, blockStart, length, mBlockSize,
-          new DirectUnderStoreStreamFactory(path));
+    try {
+      WorkerNetAddress address =
+          mUfsReadLocationPolicy.getWorker(GetWorkerOptions.defaults()
+              .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
+              .setBlockSize(length));
+      return StreamFactory.createUfsBlockInStream(mContext, path, blockId, length, blockStart,
+          address, mInStreamOptions);
+    } catch (AlluxioException e) {
+      throw new IOException(e);
     }
   }
 
@@ -545,11 +541,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
 
-    // If this block is read from a remote worker but we don't have a local worker, don't cache
-    if (isReadingFromRemoteBlockWorker() && !mContext.hasLocalWorker()) {
-      return;
-    }
-
     // Unlike updateBlockInStream below, we never start a block cache stream if mPos is in the
     // middle of a block.
     if (mPos % mBlockSize != 0) {
@@ -557,9 +548,19 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     try {
-      WorkerNetAddress address = mCacheLocationPolicy.getWorkerForNextBlock(
-          mBlockStore.getWorkerInfoList(), getBlockSizeAllocation(mPos));
-      // If we reach here, we need to cache.
+      // If this block is read from a remote worker, we should never cache except to a local worker.
+      if (isReadingFromRemoteBlockWorker()) {
+        WorkerNetAddress localWorker = mContext.getLocalWorker();
+        if (localWorker != null) {
+          mCurrentCacheStream =
+              mBlockStore.getOutStream(blockId, getBlockSize(mPos), localWorker, mOutStreamOptions);
+        }
+        return;
+      }
+
+      List<BlockWorkerInfo> workers = mBlockStore.getWorkerInfoList();
+      WorkerNetAddress address =
+          mCacheLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
       mCurrentCacheStream =
           mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
     } catch (IOException e) {
