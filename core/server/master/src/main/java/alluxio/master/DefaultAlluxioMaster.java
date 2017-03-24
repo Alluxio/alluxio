@@ -150,7 +150,6 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
-
   protected void checkJournalFormatted() throws IOException {
     Journal.Factory factory = new Journal.Factory(getJournalLocation());
     for (String name : ServerUtils.getMasterServiceNames()) {
