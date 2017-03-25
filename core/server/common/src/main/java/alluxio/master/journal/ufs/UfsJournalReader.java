@@ -15,17 +15,19 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
+import org.eclipse.jetty.util.ArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.util.Collections;
+import java.util.Queue;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -35,42 +37,36 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class UfsJournalReader implements JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalReader.class);
-  private static final long UNKNOWN_SEQUENCE_NUMBER = -1;
 
   private final UfsJournal mJournal;
-  /** The UFS where the journal is being written to. */
-  private final UnderFileSystem mUfs;
 
   /** The next sequence number to read. */
   private long mSequenceNumber;
 
   private JournalInputStream mInputStream;
 
+  private final Queue<UfsJournal.JournalFile> mFilesToProcess;
+
   private final byte[] mBuffer = new byte[1024];
 
-  private class JournalInputStream {
+  private boolean mClosed;
+
+  private class JournalInputStream implements Closeable {
+    final UfsJournal.JournalFile mFile;
     /** The input stream that reads from a file. */
     final InputStream mStream;
-    /** The start sequence number in the stream. */
-    final long mStart;
-    /**
-     * The largest sequence number in the stream + 1. It is set to
-     * {@link UfsJournalReader#UNKNOWN_SEQUENCE_NUMBER} for the incomplete log.
-     */
-    final long mEnd;
 
-    JournalInputStream(InputStream inputStream, long start, long end) {
-      mStream = inputStream;
-      mStart = start;
-      mEnd = end;
-    }
-
-    boolean isIncompleteLog() {
-      return mEnd == UNKNOWN_SEQUENCE_NUMBER;
+    JournalInputStream(UfsJournal.JournalFile file) throws IOException {
+      mFile = file;
+      mStream = mJournal.getUfs().open(file.mLocation.toString());
     }
 
     boolean isDone() {
-      return mSequenceNumber == mEnd;
+      return mFile.mEnd == mSequenceNumber;
+    }
+
+    public void close() throws IOException {
+      mStream.close();
     }
   }
 
@@ -80,21 +76,66 @@ public class UfsJournalReader implements JournalReader {
    * @param journal the handle to the journal
    */
   UfsJournalReader(UfsJournal journal) {
+    mFilesToProcess = new ArrayQueue<>();
     mJournal = Preconditions.checkNotNull(journal, "journal");
-    mUfs = UnderFileSystem.Factory.get(mJournal.getLocation().toString());
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+    mInputStream.close();
+  }
+
+  @Override
+  public long getNextSequenceNumber() {
+    return mSequenceNumber;
   }
 
   @Override
   public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
+    while (true) {
+      Journal.JournalEntry entry = readInternal();
+      if (entry == null) {
+        return null;
+      }
+      if (entry.getSequenceNumber() == mSequenceNumber) {
+        mSequenceNumber++;
+        return entry;
+      }
+      if (entry.getSequenceNumber() < mSequenceNumber) {
+        // This can happen in the following two scenarios:
+        // 1. The primary master failed when renaming the current log to completed log which might
+        //    result in duplicate logs.
+        // 2. The first completed log after the checkpoint's last sequence number might contains
+        //    some duplicate entries with the checkpoint.
+        LOG.warn("Skipping duplicate log entry {}.", entry);
+      } else {
+        throw new InvalidJournalEntryException(ExceptionMessage.JOURNAL_ENTRY_MISSING,
+            mSequenceNumber, entry.getSequenceNumber());
+      }
+    }
+  }
+
+  /**
+   * Reads an entry without checking sequence number. It does not mutate sequence number.
+   * @return
+   * @throws IOException
+   * @throws InvalidJournalEntryException
+   */
+  private Journal.JournalEntry readInternal() throws IOException, InvalidJournalEntryException {
     updateInputStream();
     if (mInputStream == null) {
       return null;
     }
 
-    // TODO(peis): We do not need this. Use CodedInputStream directly.
+    // TODO(peis): We do not need this. Use CodedInputStream directly to efficient read from the
+    // file with proper buffering.
     int firstByte = mInputStream.mStream.read();
     if (firstByte == -1) {
-      if (!mInputStream.isIncompleteLog()) {
+      if (!mInputStream.mFile.isIncompleteLog()) {
         throw new InvalidJournalEntryException(
             ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mSequenceNumber);
       }
@@ -106,7 +147,7 @@ public class UfsJournalReader implements JournalReader {
       size = ProtoUtils.readRawVarint32(firstByte, mInputStream.mStream);
     } catch (IOException e) {
       LOG.warn("Journal entry was truncated in the size portion.");
-      if (mInputStream.isIncompleteLog() && ProtoUtils.isTruncatedMessageException(e)) {
+      if (mInputStream.mFile.isIncompleteLog() && ProtoUtils.isTruncatedMessageException(e)) {
         return null;
       }
       throw e;
@@ -126,77 +167,52 @@ public class UfsJournalReader implements JournalReader {
     if (totalBytesRead < size) {
       LOG.warn("Journal entry was truncated. Expected to read " + size + " bytes but only got "
           + totalBytesRead);
-      if (!mInputStream.isIncompleteLog()) {
+      if (!mInputStream.mFile.isIncompleteLog()) {
         throw new InvalidJournalEntryException(
             ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mSequenceNumber);
       }
       return null;
     }
 
-    Journal.JournalEntry
-        entry = Journal.JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
-    // TODO(peis): Check with Andrew to make sure this check is ok.
-    Preconditions.checkNotNull(entry);
-    if (mSequenceNumber != entry.getSequenceNumber()) {
-      throw new InvalidJournalEntryException(ExceptionMessage.JOURNAL_ENTRY_MISSING,
-          mSequenceNumber, entry.getSequenceNumber());
-    }
-    mSequenceNumber++;
+    Journal.JournalEntry entry =
+        Journal.JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
     return entry;
   }
 
   private void updateInputStream() throws IOException {
-    if (mInputStream.isIncompleteLog() || !mInputStream.isDone()) {
+    if (mInputStream != null && mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone()) {
       return;
     }
 
+    mInputStream.close();
+    mInputStream = null;
+    if (mFilesToProcess.isEmpty()) {
+      UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+      if (snapshot.mCheckpoints.isEmpty() && snapshot.mLogs.isEmpty()) {
+        return;
+      }
 
-  }
-
-  @Override
-  public JournalInputStream getCheckpointInputStream() throws IOException {
-    if (mCheckpointRead) {
-      throw new IOException("Checkpoint file has already been read.");
+      if (mSequenceNumber == 0) {
+        if (snapshot.mCheckpoints.isEmpty()) {
+          mFilesToProcess.addAll(snapshot.mLogs);
+        } else {
+          UfsJournal.JournalFile checkpoint =
+              snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
+          mFilesToProcess.add(checkpoint);
+          // index points to the log with mEnd >= checkpoint.mEnd.
+          int index = Collections.binarySearch(snapshot.mLogs, checkpoint);
+          if (index < snapshot.mLogs.size() && snapshot.mLogs.get(index).mEnd == checkpoint.mEnd) {
+            index++;
+          }
+          for (; index < snapshot.mLogs.size(); ++index) {
+            mFilesToProcess.add(snapshot.mLogs.get(index));
+          }
+        }
+      }
     }
-    mCheckpointOpenedTime = getCheckpointLastModifiedTimeMs();
 
-    LOG.info("Opening journal checkpoint file: {}", mCheckpoint);
-    JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(mUfs.open(mCheckpoint.toString()));
-
-    mCheckpointRead = true;
-    return jis;
-  }
-
-  @Override
-  public JournalInputStream getNextInputStream() throws IOException {
-    if (!mCheckpointRead) {
-      throw new IOException("Must read the checkpoint file before getting input stream.");
+    if (!mFilesToProcess.isEmpty()) {
+      mInputStream = new JournalInputStream(mFilesToProcess.poll());
     }
-    if (getCheckpointLastModifiedTimeMs() != mCheckpointOpenedTime) {
-      throw new IOException("Checkpoint file has been updated. This reader is no longer valid.");
-    }
-    URI currentLog = mJournal.getCompletedLog(mCurrentLogNumber);
-    if (!mUfs.isFile(currentLog.toString())) {
-      LOG.debug("Journal log file: {} does not exist yet.", currentLog);
-      return null;
-    }
-    // Open input stream from the current log file.
-    LOG.info("Opening journal log file: {}", currentLog);
-    JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(mUfs.open(currentLog.toString()));
-
-    // Increment the log file number.
-    mCurrentLogNumber++;
-    return jis;
-  }
-
-  @Override
-  public long getCheckpointLastModifiedTimeMs() throws IOException {
-    if (!mUfs.isFile(mCheckpoint.toString())) {
-      throw new IOException("Checkpoint file " + mCheckpoint + " does not exist.");
-    }
-    mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpoint.toString());
-    return mCheckpointLastModifiedTime;
   }
 }

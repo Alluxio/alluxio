@@ -9,18 +9,24 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journal.ufs;
 
-/**
- * Factory for creating named journals.
- */
-public interface JournalFactory {
-  /**
-   * Creates a new journal using the given name.
-   *
-   * @param name the journal name
-   * @param
-   * @return a new instance of {@link Journal}
-   */
-  Journal create(String name, Object options);
+public class CreateOptions {
+  private boolean mPrimary;
+
+
+  private CreateOptions() {} // prevent instantiation
+
+  public static CreateOptions defaults() {
+    return new CreateOptions();
+  }
+
+  public boolean getPrimary() {
+    return mPrimary;
+  }
+
+  public CreateOptions setPrimary(boolean primary) {
+    mPrimary = primary;
+    return this;
+  }
 }

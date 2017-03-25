@@ -14,6 +14,7 @@ package alluxio.master.journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.IOException;
+import java.net.URI;
 
 /**
  * This class manages all the writes to the journal. Journal writes happen in two phases:
@@ -27,26 +28,6 @@ import java.io.IOException;
  * completed logs and finally the current log.
  */
 public interface JournalWriter {
-
-  /**
-   * Marks all logs as completed.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void completeLogs() throws IOException;
-
-  /**
-   * Returns an output stream for the journal checkpoint. The returned output stream is a singleton
-   * for this writer.
-   *
-   * @param latestSequenceNumber the sequence number of the latest journal entry. This sequence
-   *        number will be used to determine the next sequence numbers for the subsequent journal
-   *        entries.
-   * @return the output stream for the journal checkpoint
-   * @throws IOException if an I/O error occurs
-   */
-  JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber) throws IOException;
-
   /**
    * Writes an entry to the current log stream. {@link #flush} should be called
    * afterward to ensure the entry is persisted.
@@ -64,34 +45,9 @@ public interface JournalWriter {
   void flush() throws IOException;
 
   /**
-   * @return the next sequence number
-   */
-  long getNextSequenceNumber();
-
-  /**
    * Closes the journal.
    *
    * @throws IOException if an I/O error occurs
    */
   void close() throws IOException;
-
-  /**
-   * Recovers the checkpoint in case the master crashed while updating it previously.
-   */
-  void recover();
-
-  /**
-   * Deletes all of the completed logs.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void deleteCompletedLogs() throws IOException;
-
-  /**
-   * Marks the current log as completed. If successful, the current log will no longer exist. The
-   * current log must be closed before this call.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void completeCurrentLog() throws IOException;
 }

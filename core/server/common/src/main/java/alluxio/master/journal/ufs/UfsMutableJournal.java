@@ -40,16 +40,17 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
   /**
    * @param location the location for the journal
    */
-  public UfsMutableJournal(URI location) {
-    super(location);
+  public UfsMutableJournal(URI location, CreateOptions options) {
+    super(location, options);
   }
 
   @Override
   public void format() throws IOException {
-    LOG.info("Formatting {}", mLocation);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
-    if (ufs.isDirectory(mLocation.toString())) {
-      for (UnderFileStatus p : ufs.listStatus(mLocation.toString())) {
+    URI location = getLocation();
+    LOG.info("Formatting {}", location);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(location.toString());
+    if (ufs.isDirectory(location.toString())) {
+      for (UnderFileStatus p : ufs.listStatus(location.toString())) {
         URI childPath;
         try {
           childPath = URIUtils.appendPath(location, p.getName());

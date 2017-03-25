@@ -11,12 +11,12 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.journal.ufs.CreateOptions;
 import alluxio.master.journal.ufs.UfsMutableJournal;
 import alluxio.util.URIUtils;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,12 +44,8 @@ public interface MutableJournal extends Journal {
     }
 
     @Override
-    public MutableJournal create(String name) {
-      try {
-        return new UfsMutableJournal(URIUtils.appendPath(mBase, name));
-      } catch (URISyntaxException e) {
-        throw new RuntimeException(e);
-      }
+    public MutableJournal create(String name, Object options) {
+      return new UfsMutableJournal(URIUtils.appendPathOrDie(mBase, name), (CreateOptions) options);
     }
 
     /**
@@ -58,8 +54,8 @@ public interface MutableJournal extends Journal {
      * @param location the journal location
      * @return a new instance of {@link Journal}
      */
-    public static MutableJournal create(URI location) {
-      return new UfsMutableJournal(location);
+    public static MutableJournal create(URI location, Object options) {
+      return new UfsMutableJournal(location, (CreateOptions) options);
     }
   }
 

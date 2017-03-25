@@ -31,4 +31,9 @@ public interface JournalReader extends Closeable {
    * @throws IOException if it failed to read an entry due to an I/O error
    */
   JournalEntry read() throws IOException, InvalidJournalEntryException;
+
+  /**
+   * @return the next sequence number, can be called after the reader is closed
+   */
+  long getNextSequenceNumber();
 }
