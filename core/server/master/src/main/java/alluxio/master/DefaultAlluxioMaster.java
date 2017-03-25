@@ -59,8 +59,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
  * This class encapsulates the different master services that are configured to run.
  */
