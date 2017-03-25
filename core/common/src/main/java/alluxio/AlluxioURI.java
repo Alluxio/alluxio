@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.annotation.PublicApi;
 import alluxio.util.URIUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -447,5 +448,19 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       sb.append(mUri.getQuery());
     }
     return sb.toString();
+  }
+
+  /**
+   * Gets the path component of the {@link AlluxioURI}.
+   *
+   * @return the absolute path
+   */
+  public String getAbsolutePath() {
+    if (mUri.getAuthority() != null) {
+      return PathUtils.concatPath(System.getProperty("user.dir"),
+              mUri.getAuthority().equals(".") ? mUri.getPath() : mUri.getAuthority());
+    } else {
+      return mUri.getPath();
+    }
   }
 }
