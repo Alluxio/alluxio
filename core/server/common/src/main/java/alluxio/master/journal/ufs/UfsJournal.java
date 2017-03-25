@@ -29,6 +29,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Journal file structure:
  * journal_folder/version/logs/StartSequenceNumber-EndSequenceNumber
  * journal_folder/version/checkpoints/0-EndSequenceNumber
- * journal_folder/version/.tmp/master_id (master_id can be transformed(worker_rpc_net_address))
+ * journal_folder/version/.tmp/random_id
  */
 @ThreadSafe
 public class UfsJournal implements Journal {
@@ -144,7 +145,7 @@ public class UfsJournal implements Journal {
     statuses = mUfs.listStatus(getTmpDir().toString());
     List<JournalFile> tmpCheckpoints = new ArrayList<>();
     for (UnderFileStatus status : statuses) {
-      tmpCheckpoints.add(decodeTmpFile(status.getName()));
+      tmpCheckpoints.add(decodeTemporaryCheckpointFile(status.getName()));
     }
 
     return new Snapshot(checkpoints, logs, tmpCheckpoints);
@@ -226,11 +227,15 @@ public class UfsJournal implements Journal {
     return false;
   }
 
-  public URI encodeCheckpointOrLogFileLocation(long start, long end, boolean isCheckpoint) {
+  public URI getCheckpointOrLogFileLocation(long start, long end, boolean isCheckpoint) {
     String filename = String.format("%0xd-%0xd", start, end);
     URI location =
         URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDir() : getLogDir(), filename);
     return location;
+  }
+
+  public URI getTemporaryCheckpointFileLocation() {
+    return URIUtils.appendPathOrDie(getTmpDir(), UUID.randomUUID().toString());
   }
 
   private JournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
@@ -248,7 +253,7 @@ public class UfsJournal implements Journal {
     }
   }
 
-  private JournalFile decodeTmpFile(String filename) {
+  private JournalFile decodeTemporaryCheckpointFile(String filename) {
     URI location = URIUtils.appendPathOrDie(getTmpDir(), filename);
     long start = UNKNOWN_SEQUENCE_NUMBER;
     long end = UNKNOWN_SEQUENCE_NUMBER;

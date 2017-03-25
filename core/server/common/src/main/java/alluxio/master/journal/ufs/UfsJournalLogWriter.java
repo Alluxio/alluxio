@@ -89,7 +89,7 @@ public final class UfsJournalLogWriter implements JournalWriter {
       }
 
       String dst =
-          mJournal.encodeCheckpointOrLogFileLocation(mCurrentLog.mStart, mSequenceNumber, false)
+          mJournal.getCheckpointOrLogFileLocation(mCurrentLog.mStart, mSequenceNumber, false)
               .toString();
       if (mJournal.getUfs().exists(dst.toString())) {
         LOG.warn("Deleting duplicate completed log {}.", dst);
@@ -152,7 +152,7 @@ public final class UfsJournalLogWriter implements JournalWriter {
     mJournalOutputStream = null;
 
     URI new_log = mJournal
-        .encodeCheckpointOrLogFileLocation(mSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
+        .getCheckpointOrLogFileLocation(mSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
             false  /* is_checkpoint */);
     UfsJournal.JournalFile currentLog =
         new UfsJournal.JournalFile(new_log, mSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);

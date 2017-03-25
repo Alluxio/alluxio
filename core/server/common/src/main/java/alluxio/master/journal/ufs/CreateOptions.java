@@ -14,7 +14,6 @@ package alluxio.master.journal.ufs;
 public class CreateOptions {
   private boolean mPrimary;
 
-
   private CreateOptions() {} // prevent instantiation
 
   public static CreateOptions defaults() {
