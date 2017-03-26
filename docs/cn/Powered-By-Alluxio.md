@@ -15,6 +15,7 @@ group: Resources
 * [Barclays](http://www.barclays.co.uk/)
 * [EMC](https://www.emc.com/)
 * [GBICC](http://www.gbicc.net/)
+* [Guardant Health](http://www.guardanthealth.com/)
 * [Huawei](http://www.huawei.com/)
 * [IBM](http://www.ibm.com/)
 * [IBM Research](http://www.research.ibm.com/)
@@ -27,6 +28,7 @@ group: Resources
 * [Radicalbit](http://www.radicalbit.io)
 * [Samsung](http://www.samsung.com/us/)
 * [Talend](https://www.talend.com/)
+* [Tencent](https://www.tencent.com)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 
