@@ -16,8 +16,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.SetAndRestoreConfiguration;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -52,8 +52,8 @@ public final class UnderFileSystemBlockInStreamTest {
     File blockFile = mFolder.newFile();
     blockFile.createNewFile();
     String clientHostname = "clientHostname";
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        ImmutableMap.<PropertyKey, String>of(PropertyKey.USER_HOSTNAME, clientHostname))) {
+    try (AutoCloseable c = new ConfigurationRule(
+        ImmutableMap.<PropertyKey, String>of(PropertyKey.USER_HOSTNAME, clientHostname)).toResource()) {
       long blockId = 0;
       FileSystemContext context = mock(FileSystemContext.class);
       BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
