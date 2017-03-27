@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * Tests for the {@link DeleteOptions} class.
  */
-public class DeleteOptionsTest {
+public final class DeleteOptionsTest {
   /**
    * Tests that building a {@link DeleteOptions} with the defaults works.
    */
