@@ -71,6 +71,7 @@ public class SpaceReserverTest {
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 400L, "HDD", 1000L);
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
+    Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(capacityBytesOnTiers);
 
     // Create two tiers named "MEM" and "HDD" with aliases 0 and 1.
     TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
