@@ -100,6 +100,7 @@ public class AbstractFileSystemTest {
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
+    HadoopClientTestUtils.resetHadoopClientContext();
   }
 
   /**

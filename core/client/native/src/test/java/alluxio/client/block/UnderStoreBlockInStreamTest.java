@@ -12,10 +12,11 @@
 package alluxio.client.block;
 
 import alluxio.ConfigurationTestUtils;
+import alluxio.Seekable;
 import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.underfs.local.LocalUnderFileInputStream;
+import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.BufferUtils;
 
@@ -31,8 +32,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.FileChannel;
 
 /**
  * Tests for the {@link UnderStoreBlockInStream} class.
@@ -314,7 +317,7 @@ public class UnderStoreBlockInStreamTest {
             throw e;
           }
         }
-        return new LocalUnderFileInputStream(inputStream);
+        return new SeekableFileInputStream(inputStream);
       } catch (FileNotFoundException e) {
         throw Throwables.propagate(e);
       }
@@ -323,6 +326,33 @@ public class UnderStoreBlockInStreamTest {
     @Override
     public void close() {
       // nothing to close
+    }
+  }
+
+  /**
+   * A wrapper around a file input stream which implements the {@link Seekable} interface. This
+   * is the same as the actual implementation of the under file system input stream for a local
+   * file system.
+   */
+  private final class SeekableFileInputStream extends FilterInputStream implements Seekable {
+    private final FileInputStream mInputStream;
+
+    public SeekableFileInputStream(FileInputStream in) {
+      super(in);
+      mInputStream = in;
+    }
+
+    public void seek(long position) throws IOException {
+      FileChannel channel = mInputStream.getChannel();
+      if (position > channel.size()) {
+        throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(position));
+      }
+      channel.position(position);
+    }
+
+    @Override
+    public int read() throws IOException {
+      return mInputStream.read();
     }
   }
 }
