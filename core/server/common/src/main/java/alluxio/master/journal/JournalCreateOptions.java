@@ -9,22 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.ufs;
+package alluxio.master.journal;
 
-public class CreateOptions {
+public class JournalCreateOptions {
   private boolean mPrimary;
 
-  private CreateOptions() {} // prevent instantiation
+  private JournalCreateOptions() {} // prevent instantiation
 
-  public static CreateOptions defaults() {
-    return new CreateOptions();
+  public static JournalCreateOptions defaults() {
+    return new JournalCreateOptions();
   }
 
   public boolean getPrimary() {
     return mPrimary;
   }
 
-  public CreateOptions setPrimary(boolean primary) {
+  public JournalCreateOptions setPrimary(boolean primary) {
     mPrimary = primary;
     return this;
   }

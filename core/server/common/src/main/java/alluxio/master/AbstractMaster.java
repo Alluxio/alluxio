@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
+import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.Journal;
@@ -91,18 +92,6 @@ public abstract class AbstractMaster implements Master {
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    JournalEntry entry;
-    try {
-      while ((entry = inputStream.read()) != null) {
-        processJournalEntry(entry);
-      }
-    } finally {
-      inputStream.close();
-    }
-  }
-
-  @Override
   public void start(boolean isLeader) throws IOException {
     Preconditions.checkState(mExecutorService == null);
     mExecutorService = mExecutorServiceFactory.create();
@@ -130,7 +119,7 @@ public abstract class AbstractMaster implements Master {
        */
 
       // Step 1.
-      JournalTailer catchupTailer;
+      JournalReader journalReader;
       if (mStandbyJournalTailer != null && mStandbyJournalTailer.getLatestJournalTailer() != null
           && mStandbyJournalTailer.getLatestJournalTailer().isValid()) {
         // This master was previously in standby mode, and processed some of the journal. Re-use the

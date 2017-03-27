@@ -41,28 +41,28 @@ public class UfsJournalReader implements JournalReader {
   private final UfsJournal mJournal;
 
   /** The next sequence number to read. */
-  private long mSequenceNumber;
+  private long mNextSequenceNumber;
 
   private JournalInputStream mInputStream;
 
-  private final Queue<UfsJournal.JournalFile> mFilesToProcess;
+  private final Queue<UfsJournalFile> mFilesToProcess;
 
   private final byte[] mBuffer = new byte[1024];
 
   private boolean mClosed;
 
   private class JournalInputStream implements Closeable {
-    final UfsJournal.JournalFile mFile;
+    final UfsJournalFile mFile;
     /** The input stream that reads from a file. */
     final InputStream mStream;
 
-    JournalInputStream(UfsJournal.JournalFile file) throws IOException {
+    JournalInputStream(UfsJournalFile file) throws IOException {
       mFile = file;
-      mStream = mJournal.getUfs().open(file.mLocation.toString());
+      mStream = mJournal.getUfs().open(file.getLocation().toString());
     }
 
     boolean isDone() {
-      return mFile.mEnd == mSequenceNumber;
+      return mFile.getEnd() == mNextSequenceNumber;
     }
 
     public void close() throws IOException {
@@ -91,7 +91,7 @@ public class UfsJournalReader implements JournalReader {
 
   @Override
   public long getNextSequenceNumber() {
-    return mSequenceNumber;
+    return mNextSequenceNumber;
   }
 
   @Override
@@ -101,11 +101,11 @@ public class UfsJournalReader implements JournalReader {
       if (entry == null) {
         return null;
       }
-      if (entry.getSequenceNumber() == mSequenceNumber) {
-        mSequenceNumber++;
+      if (entry.getSequenceNumber() == mNextSequenceNumber) {
+        mNextSequenceNumber++;
         return entry;
       }
-      if (entry.getSequenceNumber() < mSequenceNumber) {
+      if (entry.getSequenceNumber() < mNextSequenceNumber) {
         // This can happen in the following two scenarios:
         // 1. The primary master failed when renaming the current log to completed log which might
         //    result in duplicate logs.
@@ -114,7 +114,7 @@ public class UfsJournalReader implements JournalReader {
         LOG.warn("Skipping duplicate log entry {}.", entry);
       } else {
         throw new InvalidJournalEntryException(ExceptionMessage.JOURNAL_ENTRY_MISSING,
-            mSequenceNumber, entry.getSequenceNumber());
+            mNextSequenceNumber, entry.getSequenceNumber());
       }
     }
   }
@@ -131,13 +131,19 @@ public class UfsJournalReader implements JournalReader {
       return null;
     }
 
-    // TODO(peis): We do not need this. Use CodedInputStream directly to efficient read from the
-    // file with proper buffering.
     int firstByte = mInputStream.mStream.read();
     if (firstByte == -1) {
+      // If this is the checkpoint file, we need to reset the sequence number to update the stream
+      // because the sequence number in the checkpoint entries is not in the same space as the
+      // sequence number in the edit logs.
+      if (mInputStream.mFile.isCheckpoint()) {
+        mNextSequenceNumber = mInputStream.mFile.getEnd();
+        updateInputStream();
+      }
+
       if (!mInputStream.mFile.isIncompleteLog()) {
         throw new InvalidJournalEntryException(
-            ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mSequenceNumber);
+            ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mNextSequenceNumber);
       }
       return null;
     }
@@ -169,7 +175,7 @@ public class UfsJournalReader implements JournalReader {
           + totalBytesRead);
       if (!mInputStream.mFile.isIncompleteLog()) {
         throw new InvalidJournalEntryException(
-            ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mSequenceNumber);
+            ExceptionMessage.JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY, mNextSequenceNumber);
       }
       return null;
     }
@@ -192,16 +198,17 @@ public class UfsJournalReader implements JournalReader {
         return;
       }
 
-      if (mSequenceNumber == 0) {
+      if (mNextSequenceNumber == 0) {
         if (snapshot.mCheckpoints.isEmpty()) {
           mFilesToProcess.addAll(snapshot.mLogs);
         } else {
-          UfsJournal.JournalFile checkpoint =
+          UfsJournalFile checkpoint =
               snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
           mFilesToProcess.add(checkpoint);
           // index points to the log with mEnd >= checkpoint.mEnd.
           int index = Collections.binarySearch(snapshot.mLogs, checkpoint);
-          if (index < snapshot.mLogs.size() && snapshot.mLogs.get(index).mEnd == checkpoint.mEnd) {
+          if (index < snapshot.mLogs.size() && snapshot.mLogs.get(index).getEnd() == checkpoint
+              .getEnd()) {
             index++;
           }
           for (; index < snapshot.mLogs.size(); ++index) {

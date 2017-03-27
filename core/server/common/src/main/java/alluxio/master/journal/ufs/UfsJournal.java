@@ -14,18 +14,23 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalCreateOptions;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.JournalWriterCreateOptions;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
+import alluxio.util.UnderFileSystemUtils;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,59 +66,20 @@ public class UfsJournal implements Journal {
   private final URI mCheckpointDir;
   private final URI mTmpDir;
 
-  private final CreateOptions mOptions;
+  private final JournalCreateOptions mOptions;
 
   /** The location where this journal is stored. */
   private final URI mLocation;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
 
-  static class JournalFile implements Comparable<JournalFile> {
-    /** The location of the file. */
-    final URI mLocation;
-    final long mStart;
-    final long mEnd;
-
-    JournalFile(URI location, long start, long end) {
-      mLocation = location;
-      mStart = start;
-      mEnd = end;
-    }
-
-    boolean isIncompleteLog() {
-      return mStart != UNKNOWN_SEQUENCE_NUMBER && mEnd == UNKNOWN_SEQUENCE_NUMBER;
-    }
-
-    boolean isTmpCheckpoint() {
-      return mStart == UNKNOWN_SEQUENCE_NUMBER && mEnd == UNKNOWN_SEQUENCE_NUMBER;
-    }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper(this).add("location", mLocation).add("start", mStart)
-          .add("end", mEnd).toString();
-    }
-
-    @Override
-    public int compareTo(JournalFile other) {
-       long diff = mEnd - other.mEnd;
-      if (diff < 0) {
-        return -1;
-      } else if (diff == 0) {
-        return 0;
-      } else {
-        return 1;
-      }
-    }
-  }
-
   static class Snapshot {
-    final List<JournalFile> mCheckpoints;
-    final List<JournalFile> mLogs;
-    final List<JournalFile> mTemporaryCheckpoints;
+    final List<UfsJournalFile> mCheckpoints;
+    final List<UfsJournalFile> mLogs;
+    final List<UfsJournalFile> mTemporaryCheckpoints;
 
-    Snapshot(List<JournalFile> checkpoints, List<JournalFile> logs,
-        List<JournalFile> temporaryCheckpoints) {
+    Snapshot(List<UfsJournalFile> checkpoints, List<UfsJournalFile> logs,
+        List<UfsJournalFile> temporaryCheckpoints) {
       mCheckpoints = checkpoints;
       mLogs = logs;
       mTemporaryCheckpoints = temporaryCheckpoints;
@@ -123,14 +89,14 @@ public class UfsJournal implements Journal {
   public Snapshot getSnapshot() throws IOException {
     // Checkpoints.
     UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
-    List<JournalFile> checkpoints = new ArrayList<>();
+    List<UfsJournalFile> checkpoints = new ArrayList<>();
     for (UnderFileStatus status : statuses) {
       checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
     }
     Collections.sort(checkpoints);
 
     statuses = mUfs.listStatus(getLogDir().toString());
-    List<JournalFile> logs = new ArrayList<>();
+    List<UfsJournalFile> logs = new ArrayList<>();
     for (UnderFileStatus status : statuses) {
       logs.add(decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */));
     }
@@ -143,7 +109,7 @@ public class UfsJournal implements Journal {
     }
 
     statuses = mUfs.listStatus(getTmpDir().toString());
-    List<JournalFile> tmpCheckpoints = new ArrayList<>();
+    List<UfsJournalFile> tmpCheckpoints = new ArrayList<>();
     for (UnderFileStatus status : statuses) {
       tmpCheckpoints.add(decodeTemporaryCheckpointFile(status.getName()));
     }
@@ -151,13 +117,13 @@ public class UfsJournal implements Journal {
     return new Snapshot(checkpoints, logs, tmpCheckpoints);
   }
 
-  public JournalFile getCurrentLog() throws IOException {
+  public UfsJournalFile getCurrentLog() throws IOException {
     UnderFileStatus[] statuses = mUfs.listStatus(getLogDir().toString());
-    List<JournalFile> logs = new ArrayList<>();
+    List<UfsJournalFile> logs = new ArrayList<>();
     for (UnderFileStatus status : statuses) {
       logs.add(decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */));
     }
-    JournalFile file =  Collections.max(logs);
+    UfsJournalFile file =  Collections.max(logs);
     if (file.isIncompleteLog()) {
       return file;
     }
@@ -169,7 +135,7 @@ public class UfsJournal implements Journal {
    *
    * @param location the location for this journal
    */
-  public UfsJournal(URI location, CreateOptions options) {
+  public UfsJournal(URI location, JournalCreateOptions options) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
     mUfs = UnderFileSystem.Factory.get(mLocation.toString());
 
@@ -195,7 +161,7 @@ public class UfsJournal implements Journal {
     return mUfs;
   }
 
-  public CreateOptions getOptions() {
+  public JournalCreateOptions getOptions() {
     return mOptions;
   }
 
@@ -238,7 +204,7 @@ public class UfsJournal implements Journal {
     return URIUtils.appendPathOrDie(getTmpDir(), UUID.randomUUID().toString());
   }
 
-  private JournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
+  private UfsJournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
     URI location =
         URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDir() : getLogDir(), filename);
     try {
@@ -246,17 +212,67 @@ public class UfsJournal implements Journal {
       Preconditions.checkState(parts.length == 2);
       long start = Long.decode(parts[0]);
       long end = Long.decode(parts[1]);
-      return new JournalFile(location, start, end);
+      if (isCheckpoint) {
+        Preconditions.checkState(start == 0);
+        return UfsJournalFile.createCheckpointFile(location, end);
+      } else {
+        return UfsJournalFile.createLog(location, start, end);
+      }
     } catch (IllegalStateException | NumberFormatException e) {
       LOG.error("Illegal journal file {}.", location);
       throw e;
     }
   }
 
-  private JournalFile decodeTemporaryCheckpointFile(String filename) {
+  private UfsJournalFile decodeTemporaryCheckpointFile(String filename) {
     URI location = URIUtils.appendPathOrDie(getTmpDir(), filename);
-    long start = UNKNOWN_SEQUENCE_NUMBER;
-    long end = UNKNOWN_SEQUENCE_NUMBER;
-    return new JournalFile(location, start, end);
+    return UfsJournalFile.createTmpCheckpoint(location);
+  }
+
+  @Override
+  public void format() throws IOException {
+    URI location = getLocation();
+    LOG.info("Formatting {}", location);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(location.toString());
+    if (ufs.isDirectory(location.toString())) {
+      for (UnderFileStatus p : ufs.listStatus(location.toString())) {
+        URI childPath;
+        try {
+          childPath = URIUtils.appendPath(location, p.getName());
+        } catch (URISyntaxException e) {
+          throw new RuntimeException(e.getMessage());
+        }
+        boolean failedToDelete;
+        if (p.isDirectory()) {
+          failedToDelete = !ufs.deleteDirectory(childPath.toString(),
+              DeleteOptions.defaults().setRecursive(true));
+        } else {
+          failedToDelete = !ufs.deleteFile(childPath.toString());
+        }
+        if (failedToDelete) {
+          throw new IOException(String.format("Failed to delete %s", childPath));
+        }
+      }
+    } else if (!ufs.mkdirs(location.toString())) {
+      throw new IOException(String.format("Failed to create %s", location));
+    }
+
+    // Create a breadcrumb that indicates that the journal folder has been formatted.
+    try {
+      UnderFileSystemUtils.touch(URIUtils.appendPath(location,
+          Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+          .toString());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+
+  @Override
+  public JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException {
+    if (mOptions.getPrimary()) {
+      return new UfsJournalLogWriter(this, options);
+    } else {
+      return new UfsJournalCheckpointWriter(this, options);
+    }
   }
 }

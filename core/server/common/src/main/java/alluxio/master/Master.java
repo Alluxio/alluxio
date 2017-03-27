@@ -41,14 +41,6 @@ public interface Master extends JournalCheckpointStreamable {
   Set<Class<?>> getDependencies();
 
   /**
-   * Processes the journal checkpoint file and applies the entries to the master.
-   *
-   * @param inputStream the input stream for the journal checkpoint file
-   * @throws IOException if I/O error occurs
-   */
-  void processJournalCheckpoint(JournalInputStream inputStream) throws IOException;
-
-  /**
    * Processes a journal entry and applies it to the master. These entries follow the checkpoint
    * entries.
    *

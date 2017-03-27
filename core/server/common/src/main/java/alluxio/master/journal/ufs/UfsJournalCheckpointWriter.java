@@ -13,8 +13,8 @@ package alluxio.master.journal.ufs;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.JournalWriterCreateOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.util.URIUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -35,10 +35,11 @@ public final class UfsJournalCheckpointWriter implements JournalWriter {
 
   private final UfsJournal mJournal;
 
+  private final UfsJournalFile mCheckpointFile;
   private final OutputStream mTmpCheckpointStream;
   private final URI mTmpCheckpointFileLocation;
 
-  private long mSequenceNumber;
+  private long mNextSequenceNumber;
 
   private boolean mClosed;
 
@@ -47,11 +48,15 @@ public final class UfsJournalCheckpointWriter implements JournalWriter {
    *
    * @param journal the handle to the journal
    */
-  UfsJournalCheckpointWriter(UfsJournal journal) throws IOException {
+  UfsJournalCheckpointWriter(UfsJournal journal, JournalWriterCreateOptions options)
+      throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
 
     mTmpCheckpointFileLocation = mJournal.getTemporaryCheckpointFileLocation();
     mTmpCheckpointStream = mJournal.getUfs().create(mTmpCheckpointFileLocation.toString());
+    mCheckpointFile = UfsJournalFile.createCheckpointFile(
+        mJournal.getCheckpointOrLogFileLocation(0, options.getNextSequenceNumber(), true),
+        options.getNextSequenceNumber());
   }
 
   @Override
@@ -60,12 +65,12 @@ public final class UfsJournalCheckpointWriter implements JournalWriter {
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
     }
     try {
-      entry.toBuilder().setSequenceNumber(mSequenceNumber).build()
+      entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build()
           .writeDelimitedTo(mTmpCheckpointStream);
     } catch (IOException e) {
       throw e;
     }
-    mSequenceNumber++;
+    mNextSequenceNumber++;
   }
 
   @Override
@@ -84,20 +89,19 @@ public final class UfsJournalCheckpointWriter implements JournalWriter {
     // Delete the temporary checkpoint if there is a newer checkpoint committed.
     UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
     if (snapshot != null && !snapshot.mCheckpoints.isEmpty()) {
-      UfsJournal.JournalFile checkpoint =
+      UfsJournalFile checkpoint =
           snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
-      if (mSequenceNumber <= checkpoint.mEnd) {
+      if (mNextSequenceNumber <= checkpoint.getEnd()) {
         mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
         return;
       }
     }
 
-    URI dst =
-        URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), Long.toHexString(mSequenceNumber));
+    String dst = mCheckpointFile.getLocation().toString();
     try {
-      mJournal.getUfs().renameFile(mTmpCheckpointFileLocation.toString(), dst.toString());
+      mJournal.getUfs().renameFile(mTmpCheckpointFileLocation.toString(), dst);
     } catch (IOException e) {
-      if (!mJournal.getUfs().exists(dst.toString())) {
+      if (!mJournal.getUfs().exists(dst)) {
         LOG.warn("Failed to commit checkpoint from {} to {} with error {}.",
             mTmpCheckpointFileLocation, dst, e.getMessage());
       }
@@ -105,9 +109,22 @@ public final class UfsJournalCheckpointWriter implements JournalWriter {
         mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
       } catch (IOException ee) {
         LOG.warn("Failed to clean up temporary checkpoint {} at {}.", mTmpCheckpointFileLocation,
-            mSequenceNumber);
+            mNextSequenceNumber);
       }
       throw e;
+    }
+  }
+
+  @Override
+  public synchronized void cancel() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+
+    mTmpCheckpointStream.close();
+    if (mJournal.getUfs().exists(mTmpCheckpointFileLocation.toString())) {
+      mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
     }
   }
 }

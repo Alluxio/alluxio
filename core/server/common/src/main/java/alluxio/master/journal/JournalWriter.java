@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 
@@ -27,7 +28,7 @@ import java.net.URI;
  * The latest state can be reconstructed by reading the checkpoint, and applying all the
  * completed logs and finally the current log.
  */
-public interface JournalWriter {
+public interface JournalWriter extends Closeable {
   /**
    * Writes an entry to the current log stream. {@link #flush} should be called
    * afterward to ensure the entry is persisted.
@@ -44,10 +45,5 @@ public interface JournalWriter {
    */
   void flush() throws IOException;
 
-  /**
-   * Closes the journal.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void close() throws IOException;
+  void cancel() throws IOException;
 }

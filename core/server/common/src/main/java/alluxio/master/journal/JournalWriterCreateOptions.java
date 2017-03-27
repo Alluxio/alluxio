@@ -11,16 +11,21 @@
 
 package alluxio.master.journal;
 
-/**
- * Factory for creating named journals.
- */
-public interface JournalFactory {
-  /**
-   * Creates a new journal using the given name.
-   *
-   * @param name the journal name
-   * @param
-   * @return a new instance of {@link Journal}
-   */
-  Journal create(String name, JournalCreateOptions options);
+public class JournalWriterCreateOptions {
+  private long mNextSequenceNumber;
+
+  private JournalWriterCreateOptions() {} // prevent instantiation
+
+  public static JournalWriterCreateOptions defaults() {
+    return new JournalWriterCreateOptions();
+  }
+
+  public long getNextSequenceNumber() {
+    return mNextSequenceNumber;
+  }
+
+  public JournalWriterCreateOptions setNextSequenceNumber(long nextSequenceNumber) {
+    mNextSequenceNumber = nextSequenceNumber;
+    return this;
+  }
 }

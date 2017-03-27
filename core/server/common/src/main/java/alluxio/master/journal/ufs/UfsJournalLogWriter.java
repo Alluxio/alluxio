@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.JournalWriterCreateOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.options.CreateOptions;
 
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
@@ -40,7 +42,7 @@ public final class UfsJournalLogWriter implements JournalWriter {
   private final UfsJournal mJournal;
   private final long mMaxLogSize;
 
-  private long mSequenceNumber;
+  private long mNextSequenceNumber;
   /**
    * When mRotateForNextWrite is set to true, mJournalOutputStream must be closed
    * cleared before the next write.
@@ -49,16 +51,20 @@ public final class UfsJournalLogWriter implements JournalWriter {
   private JournalOutputStream mJournalOutputStream;
 
   private class JournalOutputStream implements Closeable {
-    final OutputStream mOutputStream;
-    final UfsJournal.JournalFile mCurrentLog;
+    final DataOutputStream mOutputStream;
+    final UfsJournalFile mCurrentLog;
 
-    JournalOutputStream(UfsJournal.JournalFile currentLog, OutputStream stream) {
-      mOutputStream = stream;
+    JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) {
+      if (stream instanceof DataOutputStream) {
+        mOutputStream = (DataOutputStream) stream;
+      } else {
+        mOutputStream = new DataOutputStream(stream);
+      }
       mCurrentLog = currentLog;
     }
 
     long bytesWritten() {
-      return mSequenceNumber - mCurrentLog.mStart;
+      return mOutputStream.size();
     }
 
     /**
@@ -72,26 +78,27 @@ public final class UfsJournalLogWriter implements JournalWriter {
       if (mOutputStream != null) {
         mOutputStream.close();
       }
-      LOG.info("Marking {} as complete with log entries within [{}, {}).", mCurrentLog.mLocation,
-          mCurrentLog.mStart, mSequenceNumber);
+      LOG.info("Marking {} as complete with log entries within [{}, {}).", mCurrentLog.getLocation(),
+          mCurrentLog.getStart(), mNextSequenceNumber);
 
-      // Delete the current log if it contains nothing.
-      if (mSequenceNumber == mCurrentLog.mStart) {
-        mJournal.getUfs().deleteFile(mCurrentLog.mLocation.toString());
-        return;
-      }
 
-      String src = mCurrentLog.mLocation.toString();
-      if (!mJournal.getUfs().exists(src)) {
+      String src = mCurrentLog.getLocation().toString();
+      if (!mJournal.getUfs().exists(src) && mNextSequenceNumber == mCurrentLog.getStart()) {
         // This can happen when there is any failures before creating a new log file after
         // committing last log file.
         return;
       }
 
+      // Delete the current log if it contains nothing.
+      if (mNextSequenceNumber == mCurrentLog.getStart()) {
+        mJournal.getUfs().deleteFile(src);
+        return;
+      }
+
       String dst =
-          mJournal.getCheckpointOrLogFileLocation(mCurrentLog.mStart, mSequenceNumber, false)
+          mJournal.getCheckpointOrLogFileLocation(mCurrentLog.getStart(), mNextSequenceNumber, false)
               .toString();
-      if (mJournal.getUfs().exists(dst.toString())) {
+      if (mJournal.getUfs().exists(dst)) {
         LOG.warn("Deleting duplicate completed log {}.", dst);
         // The dst can exist because of a master failure during commit. This can only happen
         // when the primary master starts. We can delete either the src or dst. We delete dst and
@@ -109,12 +116,12 @@ public final class UfsJournalLogWriter implements JournalWriter {
    *
    * @param journal the handle to the journal
    */
-  UfsJournalLogWriter(UfsJournal journal, long startSequenceNumber) throws IOException {
+  UfsJournalLogWriter(UfsJournal journal, JournalWriterCreateOptions options) throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
-    mSequenceNumber = startSequenceNumber;
+    mNextSequenceNumber = options.getNextSequenceNumber();
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
 
-    UfsJournal.JournalFile currentLog = mJournal.getCurrentLog();
+    UfsJournalFile currentLog = mJournal.getCurrentLog();
     if (currentLog != null) {
       mRotateLogForNextWrite = true;
       mJournalOutputStream = new JournalOutputStream(currentLog, null);
@@ -129,13 +136,13 @@ public final class UfsJournalLogWriter implements JournalWriter {
     maybeRotateLog();
 
     try {
-      entry.toBuilder().setSequenceNumber(mSequenceNumber).build()
+      entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build()
           .writeDelimitedTo(mJournalOutputStream.mOutputStream);
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
       throw e;
     }
-    mSequenceNumber++;
+    mNextSequenceNumber++;
   }
 
   /**
@@ -152,11 +159,11 @@ public final class UfsJournalLogWriter implements JournalWriter {
     mJournalOutputStream = null;
 
     URI new_log = mJournal
-        .getCheckpointOrLogFileLocation(mSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
+        .getCheckpointOrLogFileLocation(mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
             false  /* is_checkpoint */);
-    UfsJournal.JournalFile currentLog =
-        new UfsJournal.JournalFile(new_log, mSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
-    OutputStream outputStream = mJournal.getUfs().create(currentLog.mLocation.toString(),
+    UfsJournalFile currentLog =
+        UfsJournalFile.createLog(new_log, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
+    OutputStream outputStream = mJournal.getUfs().create(currentLog.getLocation().toString(),
         CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
     mJournalOutputStream = new JournalOutputStream(currentLog, outputStream);
     LOG.info("Opened current log file: {}", currentLog);
@@ -169,7 +176,7 @@ public final class UfsJournalLogWriter implements JournalWriter {
       // There is nothing to flush.
       return;
     }
-    OutputStream outputStream = mJournalOutputStream.mOutputStream;
+    DataOutputStream outputStream = mJournalOutputStream.mOutputStream;
     try {
       outputStream.flush();
       if (outputStream instanceof FSDataOutputStream) {
@@ -202,5 +209,10 @@ public final class UfsJournalLogWriter implements JournalWriter {
       mJournalOutputStream.close();
     }
     mClosed = true;
+  }
+
+  @Override
+  public synchronized void cancel() throws IOException {
+    throw new UnsupportedOperationException("UfsJournalLogWriter#cancel is not supported.");
   }
 }

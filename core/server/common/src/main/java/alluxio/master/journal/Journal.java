@@ -11,7 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.ufs.CreateOptions;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.util.URIUtils;
 
@@ -44,8 +43,8 @@ public interface Journal {
     }
 
     @Override
-    public Journal create(String name, Object options) {
-      return new UfsJournal(URIUtils.appendPathOrDie(mBase, name), (CreateOptions) options);
+    public Journal create(String name, JournalCreateOptions options) {
+      return new UfsJournal(URIUtils.appendPathOrDie(mBase, name), options);
     }
 
     /**
@@ -54,8 +53,8 @@ public interface Journal {
      * @param location the journal location
      * @return a new instance of {@link Journal}
      */
-    public static Journal create(URI location, Object options) {
-      return new UfsJournal(location, (CreateOptions) options);
+    public static Journal create(URI location, JournalCreateOptions options) {
+      return new UfsJournal(location, options);
     }
   }
 
@@ -74,4 +73,16 @@ public interface Journal {
    * @throws IOException if an I/O error occurs
    */
   boolean isFormatted() throws IOException;
+
+  /**
+   * Formats the journal.
+   *
+   * @throws IOException if an I/O error occurs
+   */
+  void format() throws IOException;
+
+  /**
+   * @return the {@link JournalWriter} for this journal
+   */
+  JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException;
 }

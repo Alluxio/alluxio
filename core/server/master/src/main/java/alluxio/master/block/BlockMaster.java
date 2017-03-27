@@ -203,14 +203,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    // clear state before processing checkpoint.
-    mBlocks.clear();
-    super.processJournalCheckpoint(inputStream);
-  }
-
-  @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      mBlocks.clear();
+    }
     // TODO(gene): A better way to process entries besides a huge switch?
     if (entry.hasBlockContainerIdGenerator()) {
       mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
