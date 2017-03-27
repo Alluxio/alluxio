@@ -11,12 +11,15 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.Configuration;
+import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.SystemPropertyRule;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.Closeable;
 
 /**
  * Tests {@link HdfsUnderFileSystemUtils}.
@@ -27,31 +30,27 @@ public final class HdfsUnderFileSystemUtilsTest {
    * Tests {@link HdfsUnderFileSystemUtils#addKey} method when a property is set in Alluxio.
    */
   @Test
-  public void addKeyFromAlluxioConf() {
+  public void addKeyFromAlluxioConf() throws Exception {
     PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    Configuration.set(key, "alluxioKey");
-
-    HdfsUnderFileSystemUtils.addKey(conf, key);
-    Assert.assertEquals("alluxioKey", conf.get(key.toString()));
-
-    ConfigurationTestUtils.resetConfiguration();
+    try (Closeable c = new ConfigurationRule(key, "alluxioKey").toResource()) {
+      HdfsUnderFileSystemUtils.addKey(conf, key);
+      Assert.assertEquals("alluxioKey", conf.get(key.toString()));
+    }
   }
 
   /**
    * Tests {@link HdfsUnderFileSystemUtils#addKey} method when a property is set in system property.
    */
   @Test
-  public void addKeyFromSystemProperty() {
+  public void addKeyFromSystemProperty() throws Exception {
     PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-
-    System.setProperty(key.toString(), "systemKey");
-    ConfigurationTestUtils.resetConfiguration();
-    HdfsUnderFileSystemUtils.addKey(conf, key);
-    Assert.assertEquals("systemKey", conf.get(key.toString()));
-
-    System.clearProperty(key.toString());
-    ConfigurationTestUtils.resetConfiguration();
+    try (Closeable p = new SystemPropertyRule(key.toString(), "systemKey").toResource()) {
+      ConfigurationTestUtils.resetConfiguration();  // ensure system property change take effect
+      HdfsUnderFileSystemUtils.addKey(conf, key);
+      Assert.assertEquals("systemKey", conf.get(key.toString()));
+      ConfigurationTestUtils.resetConfiguration();
+    }
   }
 }
