@@ -52,23 +52,6 @@ public final class UfsJournalTailer implements JournalTailer {
   }
 
   @Override
-  public boolean isValid() {
-    return mReader.isValid();
-  }
-
-  @Override
-  public boolean checkpointExists() {
-    try {
-      mReader.getCheckpointLastModifiedTimeMs();
-      return true;
-    } catch (IOException e) {
-      LOG.warn("Failed to check if checkpoint exists: {}", e.getMessage());
-      LOG.debug("Exception: ", e);
-      return false;
-    }
-  }
-
-  @Override
   public long getLatestSequenceNumber() {
     return mLatestSequenceNumber;
   }

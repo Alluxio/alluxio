@@ -43,8 +43,8 @@ public interface Journal {
     }
 
     @Override
-    public Journal create(String name, JournalCreateOptions options) {
-      return new UfsJournal(URIUtils.appendPathOrDie(mBase, name), options);
+    public Journal create(String name) {
+      return new UfsJournal(URIUtils.appendPathOrDie(mBase, name));
     }
 
     /**
@@ -53,8 +53,8 @@ public interface Journal {
      * @param location the journal location
      * @return a new instance of {@link Journal}
      */
-    public static Journal create(URI location, JournalCreateOptions options) {
-      return new UfsJournal(location, options);
+    public static Journal create(URI location) {
+      return new UfsJournal(location);
     }
   }
 
@@ -66,7 +66,7 @@ public interface Journal {
   /**
    * @return the {@link JournalReader} for this journal
    */
-  JournalReader getReader();
+  JournalReader getReader(JournalReaderCreateOptions options);
 
   /**
    * @return whether the journal has been formatted

@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalReaderCreateOptions;
 import alluxio.proto.journal.Journal;
 import alluxio.util.proto.ProtoUtils;
 
@@ -39,8 +40,12 @@ public class UfsJournalReader implements JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalReader.class);
 
   private final UfsJournal mJournal;
+  private final boolean mPrimary;
 
-  /** The next sequence number to read. */
+  /**
+   * The next edit log sequence number to read. This is not incremented when reading from
+   * checkpoint.
+   */
   private long mNextSequenceNumber;
 
   private JournalInputStream mInputStream;
@@ -75,9 +80,11 @@ public class UfsJournalReader implements JournalReader {
    *
    * @param journal the handle to the journal
    */
-  UfsJournalReader(UfsJournal journal) {
+  UfsJournalReader(UfsJournal journal, JournalReaderCreateOptions options) {
     mFilesToProcess = new ArrayQueue<>();
     mJournal = Preconditions.checkNotNull(journal, "journal");
+    mNextSequenceNumber = options.getNextSequenceNumber();
+    mPrimary = options.getPrimary();
   }
 
   @Override
@@ -100,6 +107,9 @@ public class UfsJournalReader implements JournalReader {
       Journal.JournalEntry entry = readInternal();
       if (entry == null) {
         return null;
+      }
+      if (mInputStream.mFile.isCheckpoint()) {
+        return entry;
       }
       if (entry.getSequenceNumber() == mNextSequenceNumber) {
         mNextSequenceNumber++;
@@ -194,27 +204,28 @@ public class UfsJournalReader implements JournalReader {
     mInputStream = null;
     if (mFilesToProcess.isEmpty()) {
       UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+      // Remove incomplete log if this is a secondary master.
       if (snapshot.mCheckpoints.isEmpty() && snapshot.mLogs.isEmpty()) {
         return;
       }
 
-      if (mNextSequenceNumber == 0) {
-        if (snapshot.mCheckpoints.isEmpty()) {
-          mFilesToProcess.addAll(snapshot.mLogs);
-        } else {
-          UfsJournalFile checkpoint =
-              snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
-          mFilesToProcess.add(checkpoint);
-          // index points to the log with mEnd >= checkpoint.mEnd.
-          int index = Collections.binarySearch(snapshot.mLogs, checkpoint);
-          if (index < snapshot.mLogs.size() && snapshot.mLogs.get(index).getEnd() == checkpoint
-              .getEnd()) {
-            index++;
-          }
-          for (; index < snapshot.mLogs.size(); ++index) {
-            mFilesToProcess.add(snapshot.mLogs.get(index));
-          }
+      int index = 0;
+      if (mNextSequenceNumber == 0 && !snapshot.mCheckpoints.isEmpty()) {
+        UfsJournalFile checkpoint = snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
+        mFilesToProcess.add(checkpoint);
+        // index points to the log with mEnd >= checkpoint.mEnd.
+        index = Collections.binarySearch(snapshot.mLogs, checkpoint);
+        if (index < snapshot.mLogs.size() && snapshot.mLogs.get(index).getEnd() == checkpoint
+            .getEnd()) {
+          index++;
         }
+      }
+      for (; index < snapshot.mLogs.size(); ++index) {
+        UfsJournalFile file = snapshot.mLogs.get(index);
+        if (mPrimary && file.isIncompleteLog()) {
+          continue;
+        }
+        mFilesToProcess.add(snapshot.mLogs.get(index));
       }
     }
 

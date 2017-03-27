@@ -11,8 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.master.journal.JournalCheckpointStreamable;
-import alluxio.master.journal.JournalInputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.thrift.TProcessor;
@@ -24,7 +22,7 @@ import java.util.Set;
 /**
  * This interface contains common operations for all masters.
  */
-public interface Master extends JournalCheckpointStreamable {
+public interface Master extends Iterable<JournalEntry> {
   /**
    * @return a map from service names to {@link TProcessor}s that serve RPCs for this master
    */

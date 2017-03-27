@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 public class JournalWriterCreateOptions {
   private long mNextSequenceNumber;
+  private boolean mPrimary;
 
   private JournalWriterCreateOptions() {} // prevent instantiation
 
@@ -24,8 +25,17 @@ public class JournalWriterCreateOptions {
     return mNextSequenceNumber;
   }
 
+  public boolean getPrimary() {
+    return mPrimary;
+  }
+
   public JournalWriterCreateOptions setNextSequenceNumber(long nextSequenceNumber) {
     mNextSequenceNumber = nextSequenceNumber;
+    return this;
+  }
+
+  public JournalWriterCreateOptions setPrimary(boolean primary) {
+    mPrimary = primary;
     return this;
   }
 }

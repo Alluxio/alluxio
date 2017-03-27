@@ -45,16 +45,6 @@ public interface JournalTailer {
   }
 
   /**
-   * @return true if this tailer is valid, false otherwise
-   */
-  boolean isValid();
-
-  /**
-   * @return true if the checkpoint exists
-   */
-  boolean checkpointExists();
-
-  /**
    * @return the sequence number of the latest entry in the journal read so far
    */
   long getLatestSequenceNumber();

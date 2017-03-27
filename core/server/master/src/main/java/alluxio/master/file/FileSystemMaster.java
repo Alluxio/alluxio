@@ -67,7 +67,6 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
@@ -95,6 +94,7 @@ import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -114,6 +114,7 @@ import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
@@ -125,6 +126,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -424,13 +426,13 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    mInodeTree.streamToJournalCheckpoint(outputStream);
-    outputStream.write(mDirectoryIdGenerator.toJournalEntry());
-    // The mount table should be written to the checkpoint after the inodes are written, so that
-    // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
-    // entry traverses the inode tree.
-    mMountTable.streamToJournalCheckpoint(outputStream);
+  public Iterator<JournalEntry> iterator() {
+    return Iterators.concat(mInodeTree.iterator(),
+        CommonUtils.singleElementIterator(mDirectoryIdGenerator.toJournalEntry()),
+        // The mount table should be written to the checkpoint after the inodes are written, so that
+        // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
+        // entry traverses the inode tree.
+        mMountTable.iterator());
   }
 
   @Override

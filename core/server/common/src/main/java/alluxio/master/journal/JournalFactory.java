@@ -22,5 +22,5 @@ public interface JournalFactory {
    * @param
    * @return a new instance of {@link Journal}
    */
-  Journal create(String name, JournalCreateOptions options);
+  Journal create(String name);
 }

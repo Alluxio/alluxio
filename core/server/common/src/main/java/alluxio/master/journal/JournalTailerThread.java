@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.Master;
 import alluxio.util.CommonUtils;
 
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -41,8 +43,8 @@ public final class JournalTailerThread extends Thread {
   /** This becomes true when the master initiates the shutdown. */
   private volatile boolean mInitiateShutdown = false;
 
-  /** The {@link JournalTailer} that this thread uses to continually tail the journal. */
-  private JournalTailer mJournalTailer = null;
+  private JournalReader mJournalReader;
+
   /** True if this thread is no longer running. */
   private boolean mStopped = false;
 
@@ -59,6 +61,7 @@ public final class JournalTailerThread extends Thread {
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
     mJournalTailerSleepTimeMs =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
+    mJournalReader = mJournal.getReader();
   }
 
   /**
@@ -95,11 +98,43 @@ public final class JournalTailerThread extends Thread {
     return null;
   }
 
+
+  private boolean shouldCheckpoint() {
+    return false;
+  }
+
+  void maybeCheckpoint() {
+    if (!shouldCheckpoint()) {
+      return;
+    }
+    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = mMaster.iterator();
+    JournalWriter journalWriter = null;
+    IOException exception = null;
+    try {
+      journalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(false));
+      while (it.hasNext() && !mInitiateShutdown) {
+        journalWriter.write(it.next());
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to checkpoint with error {}.", e.getMessage());
+      exception = e;
+    }
+
+    if (it.hasNext() || mInitiateShutdown || exception != null) {
+      if (journalWriter != null) {
+        try {
+          journalWriter.cancel();
+        } catch (IOException e) {
+          LOG.warn("Failed to cancel the checkpoint with error {}.", e.getMessage());
+        }
+      }
+    }
+  }
+
   @Override
   public void run() {
-    // 1. It waits for at least one checkpoint. Then process it.
-    // 2. Polls the journal to find new completed logs, updates the checkpointed SN.
-    // 3. If the tailer has processed enough log entries, build a checkpoint.
+    // 1. Reads the journal and replays the journal entries.
+    // 2. Checkpoint when some condition is met.
     // NOTE: If any errors appears in the above process, start from scratch.
 
     LOG.info("{}: Journal tailer started.", mMaster.getName());
@@ -110,11 +145,12 @@ public final class JournalTailerThread extends Thread {
         // The start time (ms) for the initiated shutdown.
         long waitForShutdownStart = -1;
 
-        // Load the checkpoint file.
         LOG.info("{}: Waiting to load the checkpoint file.", mMaster.getName());
-        mJournalTailer = JournalTailer.Factory.create(mMaster, mJournal);
-        while (!mJournalTailer.checkpointExists()) {
-          LOG.info("{}: No checkpoint found. sleeping for {}ms.", mMaster.getName(),
+        alluxio.proto.journal.Journal.JournalEntry entry = null;
+
+        while (entry == null) {
+          entry = mJournalReader.read();
+          LOG.info("{}: No journal entry found. sleeping for {}ms.", mMaster.getName(),
               mJournalTailerSleepTimeMs);
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           if (mInitiateShutdown) {
@@ -123,9 +159,8 @@ public final class JournalTailerThread extends Thread {
             return;
           }
         }
-        LOG.info("{}: Start loading the checkpoint file.", mMaster.getName());
-        mJournalTailer.processJournalCheckpoint(true);
-        LOG.info("{}: Checkpoint file has been loaded.", mMaster.getName());
+        mMaster.processJournalEntry(entry);
+        maybeCheckpoint();
 
         // Continually process completed log files.
         while (mJournalTailer.isValid()) {
@@ -157,6 +192,8 @@ public final class JournalTailerThread extends Thread {
       } catch (IOException e) {
         // Log the error and continue the loop.
         LOG.error("Error in journal tailer thread", e);
+      } catch (InvalidJournalEntryException e) {
+
       }
     }
     LOG.info("{}: Journal tailer has been shutdown.", mMaster.getName());

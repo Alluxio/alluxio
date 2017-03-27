@@ -14,8 +14,8 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalCreateOptions;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalReaderCreateOptions;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.JournalWriterCreateOptions;
 import alluxio.underfs.UnderFileStatus;
@@ -66,8 +66,6 @@ public class UfsJournal implements Journal {
   private final URI mCheckpointDir;
   private final URI mTmpDir;
 
-  private final JournalCreateOptions mOptions;
-
   /** The location where this journal is stored. */
   private final URI mLocation;
   /** The UFS where the journal is being written to. */
@@ -101,12 +99,6 @@ public class UfsJournal implements Journal {
       logs.add(decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */));
     }
     Collections.sort(logs);
-    // The secondary masters do not read incomplete logs.
-    if (!mOptions.getPrimary() && !logs.isEmpty()) {
-      if (logs.get(logs.size() - 1).isIncompleteLog()) {
-        logs.remove(logs.size() - 1);
-      }
-    }
 
     statuses = mUfs.listStatus(getTmpDir().toString());
     List<UfsJournalFile> tmpCheckpoints = new ArrayList<>();
@@ -135,14 +127,13 @@ public class UfsJournal implements Journal {
    *
    * @param location the location for this journal
    */
-  public UfsJournal(URI location, JournalCreateOptions options) {
+  public UfsJournal(URI location) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
     mUfs = UnderFileSystem.Factory.get(mLocation.toString());
 
     mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
-    mOptions = options;
   }
 
   public URI getLogDir() {
@@ -161,20 +152,15 @@ public class UfsJournal implements Journal {
     return mUfs;
   }
 
-  public JournalCreateOptions getOptions() {
-    return mOptions;
-  }
-
   @Override
   public URI getLocation() {
     return mLocation;
   }
 
   @Override
-  public JournalReader getReader() {
-    return new UfsJournalReader(this);
+  public JournalReader getReader(JournalReaderCreateOptions options) {
+    return new UfsJournalReader(this, options);
   }
-
 
   @Override
   public boolean isFormatted() throws IOException {
@@ -269,7 +255,7 @@ public class UfsJournal implements Journal {
 
   @Override
   public JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException {
-    if (mOptions.getPrimary()) {
+    if (options.getPrimary()) {
       return new UfsJournalLogWriter(this, options);
     } else {
       return new UfsJournalCheckpointWriter(this, options);

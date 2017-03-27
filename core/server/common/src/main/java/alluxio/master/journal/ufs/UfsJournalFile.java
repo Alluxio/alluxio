@@ -83,7 +83,7 @@ public class UfsJournalFile implements Comparable<UfsJournalFile> {
 
   @Override
   public int compareTo(UfsJournalFile other) {
-    long diff = mStart == other.mStart ? mEnd - other.mEnd: mStart - other.mStart;
+    long diff = mEnd== other.mEnd? mStart - other.mStart : mEnd - other.mEnd;
     if (diff < 0) {
       return -1;
     } else if (diff == 0) {
