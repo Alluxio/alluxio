@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
@@ -39,11 +40,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class SpaceReserver implements HeartbeatExecutor  {
   private static final Logger LOG = LoggerFactory.getLogger(SpaceReserver.class);
-
   private final BlockWorker mBlockWorker;
 
   /** Association between storage tier aliases and ordinals for the worker. */
   private final StorageTierAssoc mStorageTierAssoc;
+
+  /** Mapping from tier alias to high watermark in bytes. */
+  private final Map<String, Long> mHighWaterMarkInBytesOnTiers = new HashMap<>();
 
   /** Mapping from tier alias to space size to be reserved on the tier. */
   private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<>();
@@ -59,25 +62,38 @@ public class SpaceReserver implements HeartbeatExecutor  {
     Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
-      PropertyKey tierReservedSpaceProp =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(ordinal);
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
+      // HighWatemark defines when to start the space reserving process
+      PropertyKey tierHighWatermarkProp =
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(ordinal);
+      long highWatermarkInBytes =
+          (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierHighWatermarkProp));
+
+      // LowWatemark defines when to stop the space reserving process if started
+      PropertyKey tierLowWatermarkProp =
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(ordinal);
+      long capOnTier = capOnTiers.get(tierAlias);
       long reservedSpaceBytes =
-          (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
+          (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
+      mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
       mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedSpaceBytes;
     }
   }
 
   private void reserveSpace() {
+    Map<String, Long> usedBytesOnTiers = mBlockWorker.getStoreMeta().getUsedBytesOnTiers();
     for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
-      long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
-      try {
-        mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
-      } catch (WorkerOutOfSpaceException | BlockDoesNotExistException | BlockAlreadyExistsException
-              | InvalidWorkerStateException | IOException e) {
-        LOG.warn(e.getMessage());
+      long highWatermarkInBytes = mHighWaterMarkInBytesOnTiers.get(tierAlias);
+      if (highWatermarkInBytes > 0 && usedBytesOnTiers.get(tierAlias) >= highWatermarkInBytes) {
+        long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
+        try {
+          mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
+        } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
+            | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
+          LOG.warn(e.getMessage());
+        }
       }
     }
   }

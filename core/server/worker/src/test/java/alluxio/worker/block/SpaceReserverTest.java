@@ -78,12 +78,18 @@ public class SpaceReserverTest {
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
         new long[][]{new long[]{0}, new long[]{0}}, "/");
 
-    PropertyKey reserveRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(0);
-    Configuration.set(reserveRatioProp, "0.2");
-    reserveRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(1);
-    Configuration.set(reserveRatioProp, "0.3");
+    PropertyKey highWatermarkRatioProp =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
+    Configuration.set(highWatermarkRatioProp, "1");
+    PropertyKey lowWatermarkRatioProp =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(0);
+    Configuration.set(lowWatermarkRatioProp, "0.8");
+    highWatermarkRatioProp =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(1);
+    Configuration.set(highWatermarkRatioProp, "1");
+    lowWatermarkRatioProp =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(1);
+    Configuration.set(lowWatermarkRatioProp, "0.7");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
     mExecutorService.submit(

@@ -84,8 +84,6 @@ public final class TieredBlockStore implements BlockStore {
 
   private static final int MAX_RETRIES =
           Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
-  private static final float FREE_SPACE_RATIO =
-      Configuration.getFloat(PropertyKey.WORKER_TIERED_STORE_FREE_SPACE_RATIO);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -109,16 +107,11 @@ public final class TieredBlockStore implements BlockStore {
   /** Association between storage tier aliases and ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
-  /** Free bytes when worker space is full. */
-  private final long mFreeByteWhenFull;
-
   /**
    * Creates a new instance of {@link TieredBlockStore}.
    */
   public TieredBlockStore() {
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
-    mFreeByteWhenFull =
-        (long) (mMetaManager.getBlockStoreMeta().getCapacityBytes() * FREE_SPACE_RATIO);
     mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
@@ -601,13 +594,6 @@ public final class TieredBlockStore implements BlockStore {
       // Absent plan means failed to evict enough space.
       if (plan == null) {
         throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE);
-      }
-      if ((mFreeByteWhenFull > availableBytes) && !plan.toEvict().isEmpty()) {
-        plan = mEvictor.freeSpaceWithView(mFreeByteWhenFull, location, getUpdatedView());
-        // Absent plan means failed to evict enough space.
-        if (plan == null) {
-          throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE);
-        }
       }
     }
 
