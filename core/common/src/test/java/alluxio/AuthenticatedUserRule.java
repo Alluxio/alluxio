@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * of this rule. Note: setting the user only takes effect within the caller thread.
  */
 @NotThreadSafe
-public final class AuthenticatedUserRule extends AbstractSetAndRestoreRule {
+public final class AuthenticatedUserRule extends AbstractResourceRule {
   private final String mUser;
   private User mPreviousUser;
 
@@ -35,13 +35,13 @@ public final class AuthenticatedUserRule extends AbstractSetAndRestoreRule {
   }
 
   @Override
-  protected void set() throws Exception {
+  protected void before() throws Exception {
     mPreviousUser = AuthenticatedClientUser.get();
     AuthenticatedClientUser.set(mUser);
   }
 
   @Override
-  protected void restore() throws Exception {
+  protected void after() {
     if (mPreviousUser == null) {
       AuthenticatedClientUser.remove();
     } else {

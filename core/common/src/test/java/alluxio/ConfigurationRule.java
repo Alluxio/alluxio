@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * A rule for modifying Alluxio configuration during a test suite.
  */
-public final class ConfigurationRule extends AbstractSetAndRestoreRule {
+public final class ConfigurationRule extends AbstractResourceRule {
   private final Map<PropertyKey, String> mKeyValuePairs;
   private final Map<PropertyKey, String> mOriginalValues = new HashMap<>();
   private final Set<PropertyKey> mOriginalNullKeys = new HashSet<>();
@@ -42,7 +42,7 @@ public final class ConfigurationRule extends AbstractSetAndRestoreRule {
   }
 
   @Override
-  public void set() {
+  public void before() {
     for (Map.Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
       PropertyKey key = entry.getKey();
       String value = entry.getValue();
@@ -56,7 +56,7 @@ public final class ConfigurationRule extends AbstractSetAndRestoreRule {
   }
 
   @Override
-  public void restore() throws Exception {
+  public void after() {
     for (Map.Entry<PropertyKey, String> entry : mOriginalValues.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }

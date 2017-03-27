@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,7 +47,7 @@ public class StorageTierAssocTest {
    */
   @Test
   public void masterWorkerConfConstructor() throws Exception {
-    try (AutoCloseable c = new ConfigurationRule(ImmutableMap.of(
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, "3",
         PropertyKeyFormat.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT.format(2), "BOTTOM",
         PropertyKey.WORKER_TIERED_STORE_LEVELS, "2",

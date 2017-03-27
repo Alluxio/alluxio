@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * of this rule.
  */
 @NotThreadSafe
-public final class LoginUserRule extends AbstractSetAndRestoreRule {
+public final class LoginUserRule extends AbstractResourceRule {
   private final String mUser;
   private User mPreviousLoginUser = null;
 
@@ -35,17 +35,21 @@ public final class LoginUserRule extends AbstractSetAndRestoreRule {
   }
 
   @Override
-  public void set() throws Exception {
+  public void before() throws Exception {
     mPreviousLoginUser = LoginUser.get();
     LoginUserTestUtils.resetLoginUser(mUser);
   }
 
   @Override
-  public void restore() throws Exception {
-    if (mPreviousLoginUser != null) {
-      LoginUserTestUtils.resetLoginUser(mPreviousLoginUser.getName());
-    } else {
-      LoginUserTestUtils.resetLoginUser();
+  public void after() {
+    try {
+      if (mPreviousLoginUser != null) {
+        LoginUserTestUtils.resetLoginUser(mPreviousLoginUser.getName());
+      } else {
+        LoginUserTestUtils.resetLoginUser();
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 }

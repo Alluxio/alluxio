@@ -46,6 +46,7 @@ import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -113,7 +114,7 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
-    try (AutoCloseable c = new ConfigurationRule(ImmutableMap.of(
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, uri.getHost(),
         PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
         PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
@@ -133,7 +134,7 @@ public class AbstractFileSystemTest {
     }
 
     URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
-    try (AutoCloseable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true")
+    try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true")
         .toResource()) {
       final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
       Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
@@ -149,7 +150,7 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    try (AutoCloseable c = new ConfigurationRule(ImmutableMap.of(
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, uri.getHost(),
         PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
         PropertyKey.ZOOKEEPER_ENABLED, "false")).toResource()) {

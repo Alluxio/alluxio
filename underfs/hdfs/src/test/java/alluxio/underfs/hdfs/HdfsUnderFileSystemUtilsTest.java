@@ -19,6 +19,8 @@ import alluxio.SystemPropertyRule;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.Closeable;
+
 /**
  * Tests {@link HdfsUnderFileSystemUtils}.
  */
@@ -31,7 +33,7 @@ public final class HdfsUnderFileSystemUtilsTest {
   public void addKeyFromAlluxioConf() throws Exception {
     PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    try (AutoCloseable c = new ConfigurationRule(key, "alluxioKey").toResource()) {
+    try (Closeable c = new ConfigurationRule(key, "alluxioKey").toResource()) {
       HdfsUnderFileSystemUtils.addKey(conf, key);
       Assert.assertEquals("alluxioKey", conf.get(key.toString()));
     }
@@ -44,7 +46,7 @@ public final class HdfsUnderFileSystemUtilsTest {
   public void addKeyFromSystemProperty() throws Exception {
     PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    try (AutoCloseable p = new SystemPropertyRule(key.toString(), "systemKey").toResource()) {
+    try (Closeable p = new SystemPropertyRule(key.toString(), "systemKey").toResource()) {
       ConfigurationTestUtils.resetConfiguration();  // ensure system property change take effect
       HdfsUnderFileSystemUtils.addKey(conf, key);
       Assert.assertEquals("systemKey", conf.get(key.toString()));

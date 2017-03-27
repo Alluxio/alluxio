@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * A rule for setting a system property to a value and then restoring the property to its old value.
  */
-public final class SystemPropertyRule extends AbstractSetAndRestoreRule {
+public final class SystemPropertyRule extends AbstractResourceRule {
   private final Map<String, String> mProperties;
   private final Map<String, String> mOriginalProperties = new HashMap<>();
   private final Set<String> mOriginalNullProperties = new HashSet<>();
@@ -41,7 +41,7 @@ public final class SystemPropertyRule extends AbstractSetAndRestoreRule {
   }
 
   @Override
-  public void set() {
+  public void before() {
     for (Map.Entry<String, String> entry : mProperties.entrySet()) {
       String key = entry.getKey();
       String value = entry.getValue();
@@ -60,7 +60,7 @@ public final class SystemPropertyRule extends AbstractSetAndRestoreRule {
   }
 
   @Override
-  public void restore() {
+  public void after() {
     for (Map.Entry<String, String> entry : mOriginalProperties.entrySet()) {
       System.setProperty(entry.getKey(), entry.getValue());
     }

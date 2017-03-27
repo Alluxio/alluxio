@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.Closeable;
 import java.net.InetSocketAddress;
 
 /**
@@ -45,8 +46,8 @@ public final class BlockInStreamTest {
   @Test
   public void readFromLocal() throws Exception {
     String clientHostname = "clientHostname";
-    try (AutoCloseable c = new ConfigurationRule(
-        ImmutableMap.<PropertyKey, String>of(PropertyKey.USER_HOSTNAME, clientHostname)).toResource()) {
+    try (Closeable c = new ConfigurationRule(
+        ImmutableMap.of(PropertyKey.USER_HOSTNAME, clientHostname)).toResource()) {
       long blockId = 0;
       FileSystemContext context = mock(FileSystemContext.class);
       BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
