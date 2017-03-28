@@ -33,12 +33,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
   /** Filesystem worker which handles file level operations for the worker. */
   private final FileSystemWorker mWorker;
+  private static final long UNUSED_SESSION_ID = -1;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
     OutputStream mOutputStream;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      super(request.getId(), -1);
+      super(request.getId(), UNUSED_SESSION_ID);
       mOutputStream = mWorker.getUfsOutputStream(mId);
     }
 
