@@ -18,10 +18,10 @@ import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalCheckpointerThread;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalTailer;
-import alluxio.master.journal.JournalTailerThread;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.MutableJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -63,7 +63,7 @@ public abstract class AbstractMaster implements Master {
   /** true if this master is in leader mode, and not standby mode. */
   private boolean mIsLeader = false;
   /** The thread that tails the journal when the master is in standby mode. */
-  private JournalTailerThread mStandbyJournalTailer = null;
+  private JournalCheckpointerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
   /** The {@link AsyncJournalWriter} for async journal writes. */
@@ -158,7 +158,7 @@ public abstract class AbstractMaster implements Master {
       // standby mode, its RPC server is NOT serving. Therefore, the only thread modifying the
       // master is this journal tailer thread (no concurrent access).
       // This thread keeps picking up new completed logs and optionally building new checkpoints.
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer = new JournalCheckpointerThread(this, mJournal);
       mStandbyJournalTailer.start();
     }
   }

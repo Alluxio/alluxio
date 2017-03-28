@@ -122,6 +122,19 @@ public class UfsJournal implements Journal {
     return null;
   }
 
+  public long getNextLogSequenceToCheckpoint() throws IOException {
+    UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
+    List<UfsJournalFile> checkpoints = new ArrayList<>();
+    for (UnderFileStatus status : statuses) {
+      checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
+    }
+    Collections.sort(checkpoints);
+    if (checkpoints.isEmpty()) {
+      return 0;
+    }
+    return checkpoints.get(checkpoints.size() - 1).getEnd();
+  }
+
   /**
    * Creates a new instance of {@link UfsJournal}.
    *

@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
@@ -41,6 +43,7 @@ public class UfsJournalReader implements JournalReader {
 
   private final UfsJournal mJournal;
   private final boolean mPrimary;
+  private final long mCheckpointPeriodEntries;
 
   /**
    * The next edit log sequence number to read. This is not incremented when reading from
@@ -85,6 +88,8 @@ public class UfsJournalReader implements JournalReader {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mNextSequenceNumber = options.getNextSequenceNumber();
     mPrimary = options.getPrimary();
+    mCheckpointPeriodEntries = Configuration.getLong(
+        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
   }
 
   @Override
@@ -97,8 +102,15 @@ public class UfsJournalReader implements JournalReader {
   }
 
   @Override
-  public long getNextSequenceNumber() {
-    return mNextSequenceNumber;
+  public boolean shouldCheckpoint() throws IOException {
+    if (mPrimary) {
+      return false;
+    }
+    if (mNextSequenceNumber > mJournal.getNextLogSequenceToCheckpoint() &&
+        mNextSequenceNumber % mCheckpointPeriodEntries == 0) {
+      return true;
+    }
+    return false;
   }
 
   @Override
