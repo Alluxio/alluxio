@@ -44,10 +44,10 @@ Hive's Hadoop jobs will store its intermediate results in Alluxio. Please follow
 [running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop MapReduce can run with Alluxio.
 
 
-### Add additional Alluxio site properties to Hive
+### Add additional Alluxio site properties to Hadoop
 
-If there are any Alluxio site properties you want to specify for Hive, add those to `hive-site.xml`. For example,
-change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+If there are any Alluxio site properties you want to specify for Hive, add those to `core-site.xml` to Hadoop configuration
+ directory on each node. For example, change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
 
 ```xml
 <property>
