@@ -352,8 +352,8 @@ public final class UfsJournalWriter implements JournalWriter {
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
         throw new IOException(String
-            .format("Failed to write journal file %s. Please ensure there is enough space left",
-                mCurrentLog), e);
+            .format("Failed to write journal file %s. Please ensure there is enough space left: %s",
+                mCurrentLog, e.getMessage()), e);
       }
     }
 
@@ -388,8 +388,8 @@ public final class UfsJournalWriter implements JournalWriter {
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
         throw new IOException(String
-            .format("Failed to flush journal file %s. Please ensure there is enough space left",
-                mCurrentLog), e);
+            .format("Failed to flush journal file %s. Please ensure there is enough space left: %s",
+                mCurrentLog, e.getMessage()), e);
       }
       boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
       if (overSize || !mUfs.supportsFlush()) {
