@@ -187,7 +187,7 @@ public class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * @param uri the uri to get the inode for
+   * @param uri the {@link AlluxioURI} to check for existence
    * @return whether the inode exists
    */
   public boolean inodePathExists(AlluxioURI uri) {
