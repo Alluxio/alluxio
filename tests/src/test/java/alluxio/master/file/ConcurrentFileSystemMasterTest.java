@@ -19,6 +19,7 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.FileDoesNotExistException;
@@ -72,6 +73,8 @@ public class ConcurrentFileSystemMasterTest {
    */
   private static CreateFileOptions sCreatePersistedFileOptions =
       CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+  private static CreateDirectoryOptions sCreatePersistedDirOptions =
+      CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH);
 
   private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
 
@@ -204,6 +207,27 @@ public class ConcurrentFileSystemMasterTest {
   }
 
   /**
+   * Tests concurrent deletes within a folder do not block on each other.
+   */
+  @Test
+  public void folderConcurrentDelete() throws Exception {
+    final int numThreads = CONCURRENCY_FACTOR;
+    AlluxioURI[] paths = new AlluxioURI[numThreads];
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+
+    for (int i = 0; i < numThreads; i++) {
+      paths[i] = dir.join("/file" + i);
+      mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
+    }
+    int errors = concurrentDelete(paths);
+
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    List<URIStatus> files = mFileSystem.listStatus(dir);
+    Assert.assertEquals(0, files.size());
+  }
+
+  /**
    * Tests that many threads concurrently renaming the same file will only succeed once.
    */
   @Test
@@ -229,6 +253,28 @@ public class ConcurrentFileSystemMasterTest {
     // Only one renamed file should exist
     Assert.assertEquals(1, files.size());
     Assert.assertTrue(files.get(0).getName().startsWith("renamed"));
+  }
+
+  /**
+   * Tests that many threads concurrently deleting the same file will only succeed once.
+   */
+  @Test
+  public void sameFileConcurrentDelete() throws Exception {
+    int numThreads = CONCURRENCY_FACTOR;
+    final AlluxioURI[] paths = new AlluxioURI[numThreads];
+    for (int i = 0; i < numThreads; i++) {
+      paths[i] = new AlluxioURI("/file");
+    }
+    // Create the single file
+    mFileSystem.createFile(paths[0], sCreatePersistedFileOptions).close();
+
+    int errors = concurrentDelete(paths);
+
+    // We should get an error for all but 1 delete
+    Assert.assertEquals(numThreads - 1, errors);
+
+    List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
+    Assert.assertEquals(0, files.size());
   }
 
   /**
@@ -260,6 +306,27 @@ public class ConcurrentFileSystemMasterTest {
     List<URIStatus> dirChildren =
         mFileSystem.listStatus(new AlluxioURI(existingDirs.get(0).getPath()));
     Assert.assertEquals(1, dirChildren.size());
+  }
+
+  /**
+   * Tests that many threads concurrently deleting the same directory will only succeed once.
+   */
+  @Test
+  public void sameDirConcurrentDelete() throws Exception {
+    int numThreads = CONCURRENCY_FACTOR;
+    final AlluxioURI[] paths = new AlluxioURI[numThreads];
+    for (int i = 0; i < numThreads; i++) {
+      paths[i] = new AlluxioURI("/dir");
+    }
+    // Create the single directory
+    mFileSystem.createDirectory(paths[0], sCreatePersistedDirOptions);
+
+    int errors = concurrentDelete(paths);
+
+    // We should get an error for all but 1 delete
+    Assert.assertEquals(numThreads - 1, errors);
+    List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
+    Assert.assertEquals(0, dirs.size());
   }
 
   /**
