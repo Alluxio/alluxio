@@ -48,7 +48,7 @@ public class SpaceReserver implements HeartbeatExecutor  {
   private final Map<String, Long> mHighWaterMarkInBytesOnTiers = new HashMap<>();
 
   /** Mapping from tier alias to space size to be reserved on the tier. */
-  private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<>();
+  private final Map<String, Long> mLowWaterMarkInBytesOnTiers = new HashMap<>();
 
   /**
    * Creates a new instance of {@link SpaceReserver}.
@@ -72,11 +72,11 @@ public class SpaceReserver implements HeartbeatExecutor  {
       PropertyKey tierLowWatermarkProp =
           PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(ordinal);
       long capOnTier = capOnTiers.get(tierAlias);
-      long reservedSpaceBytes =
+      long lowWatermarkInBytes =
           (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
       mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
-      mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
-      lastTierReservedBytes += reservedSpaceBytes;
+      mLowWaterMarkInBytesOnTiers.put(tierAlias, lowWatermarkInBytes + lastTierReservedBytes);
+      lastTierReservedBytes += lowWatermarkInBytes;
     }
   }
 
@@ -86,9 +86,9 @@ public class SpaceReserver implements HeartbeatExecutor  {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long highWatermarkInBytes = mHighWaterMarkInBytesOnTiers.get(tierAlias);
       if (highWatermarkInBytes > 0 && usedBytesOnTiers.get(tierAlias) >= highWatermarkInBytes) {
-        long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
+        long lowWatermarkInBytes = mLowWaterMarkInBytesOnTiers.get(tierAlias);
         try {
-          mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
+          mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, lowWatermarkInBytes, tierAlias);
         } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
             | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
           LOG.warn(e.getMessage());
