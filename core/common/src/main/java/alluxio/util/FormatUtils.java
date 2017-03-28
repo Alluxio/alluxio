@@ -198,6 +198,30 @@ public final class FormatUtils {
   }
 
   /**
+   * Parses a time from millisecond to target unit
+   *
+   * @param unit the target unit set by user
+   * @param ori the original time value set in millisecond
+   * @return the time value transformed to target unit
+   */
+  public static double parseTimeUnit(String unit, String ori) {
+	double time = Double.parseDouble(ori);
+    if (unit.equals("MILLISECOND")|| unit.equals("MS")){
+      return time;
+    }else if (unit.equals("SECOND")|| unit.equals("SEC") || unit.equals("S") ){
+      return time/1000;
+    }else if (unit.equals("MINUTE")|| unit.equals("MIN")){
+      return time/60000;
+    }else if (unit.equals("HOUR")|| unit.equals("HR") || unit.equals("H") ){
+      return time/3600000;
+    }else if (unit.equals("DAY")|| unit.equals("D")){
+      return time/86400000;
+    }else{
+      throw new IllegalArgumentException("Fail to parse " + ori + " to target unit" + unit);
+    }
+  }
+
+  /**
    * Formats digital representation of a model as a human-readable string.
    *
    * @param mode file mode

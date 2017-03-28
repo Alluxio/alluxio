@@ -366,6 +366,24 @@ public final class Configuration {
   }
 
   /**
+   * Gets the time in the given key.
+   *
+   * @param targetUnit the target unit set by user
+   * @param key the key to get the value for
+   * @return the time transformed from milliseconds to the target unit
+   */
+  public static double getTime(String targetUnit, PropertyKey key) {
+    String rawValue = get(key);
+
+    try {
+      return FormatUtils.parseTimeUnit(targetUnit,rawValue);
+    } catch (Exception ex) {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_TIME.getMessage(key));
+    }
+  }
+
+
+  /**
    * Gets the value for the given key as a class.
    *
    * @param key the key to get the value for

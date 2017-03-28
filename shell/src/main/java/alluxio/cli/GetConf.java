@@ -114,10 +114,14 @@ public final class GetConf {
         } else {
           if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
-            Unit unit;
             try {
-              unit = Unit.valueOf(arg);
-              System.out.println(Configuration.getBytes(key) / unit.getValue());
+              if(arg.endsWith("B")){
+                Unit unit;
+                unit = Unit.valueOf(arg);
+                System.out.println(Configuration.getBytes(key) / unit.getValue());
+              }else{
+                System.out.println(Configuration.getTime(arg, key));
+              }
             } catch (IllegalArgumentException e) {
               printHelp(String.format("%s is not a valid unit", arg));
               return 1;

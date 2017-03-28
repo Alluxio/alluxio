@@ -174,6 +174,7 @@ public enum ExceptionMessage {
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
+  KEY_NOT_TIME("Configuration cannot evaluate key {0} as milliseconds"),
   KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
   KEY_NOT_FLOAT("Configuration cannot evaluate key {0} as float"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
