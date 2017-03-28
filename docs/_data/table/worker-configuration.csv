@@ -31,7 +31,8 @@ alluxio.worker.tieredstore.levels,1
 alluxio.worker.tieredstore.level0.alias,MEM
 alluxio.worker.tieredstore.level0.dirs.path,/mnt/ramdisk/
 alluxio.worker.tieredstore.level0.dirs.quota,${alluxio.worker.memory.size}
-alluxio.worker.tieredstore.level0.reserved.ratio,0.1
+alluxio.worker.tieredstore.level0.watermark.high.ratio,1.0
+alluxio.worker.tieredstore.level0.watermark.low.ratio,0.7
 alluxio.worker.tieredstore.reserver.enabled,false
 alluxio.worker.tieredstore.reserver.interval.ms,1000
 alluxio.worker.tieredstore.retry,3

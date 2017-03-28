@@ -94,8 +94,10 @@ alluxio.worker.tieredstore.level0.dirs.path:
   should be `/Volumes/`
 alluxio.worker.tieredstore.level0.dirs.quota:
   The capacity of the top storage layer.
-alluxio.worker.tieredstore.level0.reserved.ratio:
-  The portion of space reserved in the top storage layer (a value between 0 and 1).
+alluxio.worker.tieredstore.level0.watermark.high.ratio:
+  The high watermark of the space in the top storage layer (a value between 0 and 1).
+alluxio.worker.tieredstore.level0.watermark.low.ratio:
+  The low watermark of the space in the top storage layer (a value between 0 and 1).
 alluxio.worker.tieredstore.reserver.enabled:
   Whether to enable tiered store reserver service or not.
 alluxio.worker.tieredstore.reserver.interval.ms:

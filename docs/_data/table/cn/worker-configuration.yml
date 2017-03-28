@@ -73,8 +73,10 @@ alluxio.worker.tieredstore.level0.dirs.path:
   顶层存储层在存储目录中的路径。注意对于MacoS该值应为`/Volumes/`。
 alluxio.worker.tieredstore.level0.dirs.quota:
   顶层存储层容量。
-alluxio.worker.tieredstore.level0.reserved.ratio:
-  在顶层存储层中预留空间的比例（取值为0到1之间）。
+alluxio.worker.tieredstore.level0.watermark.high.ratio:
+  在顶层存储层中的高水位比例 （取值为0到1之间）。
+alluxio.worker.tieredstore.level0.watermark.low.ratio:
+  在顶层存储层中的低水位比例 （取值为0到1之间）。
 alluxio.worker.tieredstore.reserver.enabled:
   是否启用层次化存储空间预留服务。
 alluxio.worker.tieredstore.reserver.interval.ms:
