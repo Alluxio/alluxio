@@ -92,7 +92,8 @@ public class ConcurrentFileSystemMasterTest {
     // Register sleeping ufs with slow rename
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
+    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS)
+        .setDeleteFileMs(SLEEP_MS).setDeleteDirectoryMs(SLEEP_MS);
     UnderFileSystemRegistry.register(sSleepingUfsFactory);
   }
 
@@ -151,6 +152,26 @@ public class ConcurrentFileSystemMasterTest {
       Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
     }
     Assert.assertEquals(numThreads, files.size());
+  }
+
+  /**
+   * Tests concurrent deletes within the root do not block on each other.
+   */
+  @Test
+  public void rootConcurrentDelete() throws Exception {
+    final int numThreads = CONCURRENCY_FACTOR;
+    AlluxioURI[] paths = new AlluxioURI[numThreads];
+
+    for (int i = 0; i < numThreads; i++) {
+      paths[i] = new AlluxioURI("/file" + i);
+      mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
+    }
+
+    int errors = concurrentDelete(paths);
+
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
+    Assert.assertEquals(0, files.size());
   }
 
   /**
@@ -390,6 +411,56 @@ public class ConcurrentFileSystemMasterTest {
             AuthenticatedClientUser.set(TEST_USER);
             barrier.await();
             mFileSystem.rename(src[iteration], dst[iteration]);
+          } catch (Exception e) {
+            Throwables.propagate(e);
+          }
+        }
+      });
+      t.setUncaughtExceptionHandler(exceptionHandler);
+      threads.add(t);
+    }
+    Collections.shuffle(threads);
+    long startMs = CommonUtils.getCurrentMs();
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+    long durationMs = CommonUtils.getCurrentMs() - startMs;
+    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
+        durationMs < LIMIT_MS);
+    return errors.size();
+  }
+
+  /**
+   * Helper for deleting a list of paths concurrently. Enforces that the run time of this method
+   * is not greater than twice the sleep time (to infer concurrent operations).
+   *
+   * @param paths list of paths to delete
+   * @return how many errors occurred
+   */
+  private int concurrentDelete(final AlluxioURI[] paths)
+      throws Exception {
+    final int numFiles = paths.length;
+    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
+    List<Thread> threads = new ArrayList<>(numFiles);
+    // If there are exceptions, we will store them here.
+    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        errors.add(ex);
+      }
+    };
+    for (int i = 0; i < numFiles; i++) {
+      final int iteration = i;
+      Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            mFileSystem.delete(paths[iteration]);
           } catch (Exception e) {
             Throwables.propagate(e);
           }
