@@ -106,7 +106,8 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyToLocalRelativePath() throws Exception {
-    // relative path test
+    // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
+    // site-properties file
     try (SetAndRestoreSystemProperty s = new SetAndRestoreSystemProperty("user.dir",
             mTestFolder.getRoot().getAbsolutePath())) {
       FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
