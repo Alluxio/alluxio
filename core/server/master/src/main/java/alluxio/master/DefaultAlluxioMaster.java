@@ -19,7 +19,6 @@ import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
@@ -141,7 +140,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       // Check that journals of each service have been formatted.
       checkJournalFormatted();
       // Create masters.
-      createMasters(new MutableJournal.Factory(getJournalLocation()));
+      createMasters(new Journal.Factory(getJournalLocation()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

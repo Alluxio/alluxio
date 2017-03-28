@@ -31,15 +31,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  * initiates the shutdown of the thread.
  */
 @NotThreadSafe
-public final class JournalCheckpointerThread extends Thread {
-  private static final Logger LOG = LoggerFactory.getLogger(JournalCheckpointerThread.class);
+public final class JournalCheckpointThread extends Thread {
+  private static final Logger LOG = LoggerFactory.getLogger(JournalCheckpointThread.class);
 
   /** The master to apply the journal entries to. */
   private final Master mMaster;
   /** The journal to tail. */
   private final Journal mJournal;
   private final int mShutdownQuietWaitTimeMs;
-  private final int mJournalCheckpointerSleepTimeMs;
+  private final int mJournalCheckpointSleepTimeMs;
   /** This becomes true when the master initiates the shutdown. */
   private volatile boolean mInitiateShutdown = false;
 
@@ -49,17 +49,17 @@ public final class JournalCheckpointerThread extends Thread {
   private boolean mStopped = false;
 
   /**
-   * Creates a new instance of {@link JournalCheckpointerThread}.
+   * Creates a new instance of {@link JournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
    * @param journal the journal to tail
    */
-  public JournalCheckpointerThread(Master master, Journal journal) {
+  public JournalCheckpointThread(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
     mShutdownQuietWaitTimeMs =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
-    mJournalCheckpointerSleepTimeMs =
+    mJournalCheckpointSleepTimeMs =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
     mJournalReader = mJournal.getReader(JournalReaderCreateOptions.defaults().setPrimary(false));
   }
@@ -85,17 +85,9 @@ public final class JournalCheckpointerThread extends Thread {
     }
   }
 
-  /**
-   * @return the {@link JournalCheckpointer} that this thread last used to tail the journal. This will
-   *         only return the {@link JournalCheckpointer} if this thread is no longer running, to prevent
-   *         concurrent access to the {@link JournalCheckpointer}. Returns null if this thread has not yet
-   *         used a {@link JournalCheckpointer}, or if this thread is still running.
-   */
-  public JournalReader getJournalReader() {
-    if (mStopped) {
-      return mJournalReader;
-    }
-    return null;
+  public long getNextSequenceNumber() {
+    Preconditions.checkState(mStopped);
+    return mJournalReader.getNextSequenceNumber();
   }
 
   void maybeCheckpoint() {
@@ -173,8 +165,8 @@ public final class JournalCheckpointerThread extends Thread {
           return;
         }
         LOG.info("{}: No journal entry found. sleeping for {}ms.", mMaster.getName(),
-            mJournalCheckpointerSleepTimeMs);
-        CommonUtils.sleepMs(LOG, mJournalCheckpointerSleepTimeMs);
+            mJournalCheckpointSleepTimeMs);
+        CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
       }
     }
   }

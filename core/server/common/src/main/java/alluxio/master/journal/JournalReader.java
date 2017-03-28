@@ -35,5 +35,8 @@ public interface JournalReader extends Closeable {
   /**
    * @return the next sequence number, can be called after the reader is closed
    */
+  long getNextSequenceNumber();
+
+
   boolean shouldCheckpoint() throws IOException;
 }

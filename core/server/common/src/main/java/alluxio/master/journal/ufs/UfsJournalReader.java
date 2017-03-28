@@ -114,6 +114,11 @@ public class UfsJournalReader implements JournalReader {
   }
 
   @Override
+  public long getNextSequenceNumber() {
+    return mNextSequenceNumber;
+  }
+
+  @Override
   public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
     while (true) {
       Journal.JournalEntry entry = readInternal();

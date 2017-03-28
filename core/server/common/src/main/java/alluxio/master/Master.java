@@ -48,17 +48,17 @@ public interface Master extends Iterable<JournalEntry> {
   void processJournalEntry(JournalEntry entry) throws IOException;
 
   /**
-   * Starts the master, as the leader master or the standby master. Here, the master should
+   * Starts the master, as the primary master or the secondary master. Here, the master should
    * initialize state and possibly start threads required for operation.
    *
-   * If isLeader is true, the master should also initialize the journal and write the checkpoint
+   * If isPrimary is true, the master should also initialize the journal and write the checkpoint
    * file.
    *
-   * @param isLeader if true, the master should behave as the leader master in the system. If false,
-   *        the master should act as a standby master.
+   * @param isPrimary if true, the master should behave as the primary master in the system. If
+   *        false, the master should act as a secondary master.
    * @throws IOException if I/O error occurs
    */
-  void start(boolean isLeader) throws IOException;
+  void start(boolean isPrimary) throws IOException;
 
   /**
    * Stops the master. Here, anything created or started in {@link #start(boolean)} should be
@@ -67,12 +67,4 @@ public interface Master extends Iterable<JournalEntry> {
    * @throws IOException if I/O error occurs
    */
   void stop() throws IOException;
-
-  /**
-   * Updates the master state for being a leader master.
-   *
-   * This hook is called when the master becomes a leader. The master should not be running when
-   * this method is called.
-   */
-  void transitionToLeader();
 }
