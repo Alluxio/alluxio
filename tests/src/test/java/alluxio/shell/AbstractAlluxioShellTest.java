@@ -93,6 +93,16 @@ public abstract class AbstractAlluxioShellTest {
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
     fileReadTest("/testFile", 10);
+    mOutput.reset();
+
+    // relative path test
+    mFsShell.run("copyToLocal", "/testFile", ".");
+    Assert.assertEquals("Copied /testFile to file://" + System.getProperty("user.dir")
+            + "/testFile" + "\n", mOutput.toString());
+    mOutput.reset();
+    mFsShell.run("copyToLocal", "/testFile", "./testFile");
+    Assert.assertEquals("Copied /testFile to file://" + System.getProperty("user.dir")
+            + "/testFile" + "\n", mOutput.toString());
   }
 
   /**
@@ -113,6 +123,16 @@ public abstract class AbstractAlluxioShellTest {
   protected File generateFileContent(String path, byte[] toWrite) throws IOException,
       FileNotFoundException {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + path);
+    testFile.createNewFile();
+    FileOutputStream fos = new FileOutputStream(testFile);
+    fos.write(toWrite);
+    fos.close();
+    return testFile;
+  }
+
+  protected File generateRelativeFileContent(String path, byte[] toWrite) throws IOException,
+      FileNotFoundException {
+    File testFile = new File(System.getProperty("user.dir") + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     fos.write(toWrite);

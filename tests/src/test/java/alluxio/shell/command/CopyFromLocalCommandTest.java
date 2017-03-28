@@ -406,4 +406,14 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
     Assert.assertFalse(fileExists(new AlluxioURI("/testDir/foobar4")));
   }
+
+  @Test
+  public void copyFromLocalRelativePath() throws IOException {
+    File localDir = new File("localDir");
+    localDir.mkdir();
+    generateRelativeFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
+    int ret = mFsShell.run("copyFromLocal", "localDir/testFile", "/testFile");
+    Assert.assertEquals(0, ret);
+    Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
+  }
 }
