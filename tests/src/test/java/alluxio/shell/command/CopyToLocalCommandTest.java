@@ -11,12 +11,17 @@
 
 package alluxio.shell.command;
 
+import alluxio.SetAndRestoreSystemProperty;
+import alluxio.client.FileSystemTestUtils;
+import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +30,10 @@ import java.io.IOException;
  * Tests for copyToLocal command.
  */
 public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
+  /** Rule to create a new temporary folder during each test. */
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
   @Test
   public void copyToLocalDir() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -93,5 +102,21 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
     fileReadTest("/testDir/foobar1", 10);
     fileReadTest("/testDir/foobar2", 20);
     fileReadTest("/testDir/foobar3", 30);
+  }
+
+  @Test
+  public void copyToLocalRelativePath() throws Exception {
+    // relative path test
+    try (SetAndRestoreSystemProperty s = new SetAndRestoreSystemProperty("user.dir",
+            mTestFolder.getRoot().getAbsolutePath())) {
+      FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+      mFsShell.run("copyToLocal", "/testFile", ".");
+      Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
+              + "/testFile" + "\n", mOutput.toString());
+      mOutput.reset();
+      mFsShell.run("copyToLocal", "/testFile", "./testFile");
+      Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
+              + "/testFile" + "\n", mOutput.toString());
+    }
   }
 }

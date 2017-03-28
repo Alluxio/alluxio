@@ -12,6 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.SetAndRestoreSystemProperty;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
@@ -22,7 +23,9 @@ import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,6 +35,10 @@ import java.io.IOException;
  * Tests for copyFromLocal command.
  */
 public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
+  /** Rule to create a new temporary folder during each test. */
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
   @Test
   public void copyDirectoryFromLocalAtomic() throws Exception {
     File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
@@ -408,12 +415,17 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalRelativePath() throws IOException {
-    File localDir = new File("localDir");
-    localDir.mkdir();
-    generateRelativeFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
-    int ret = mFsShell.run("copyFromLocal", "localDir/testFile", "/testFile");
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
+  public void copyFromLocalRelativePath() throws Exception {
+    // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
+    // site-properties file
+    try (SetAndRestoreSystemProperty s = new SetAndRestoreSystemProperty("user.dir",
+            mTestFolder.getRoot().getAbsolutePath())) {
+      File localDir = mTestFolder.newFolder("testDir");
+      generateRelativeFileContent(localDir.getPath() + "/testFile",
+              BufferUtils.getIncreasingByteArray(10));
+      int ret = mFsShell.run("copyFromLocal", "testDir/testFile", "/testFile");
+      Assert.assertEquals(0, ret);
+      Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
+    }
   }
 }
