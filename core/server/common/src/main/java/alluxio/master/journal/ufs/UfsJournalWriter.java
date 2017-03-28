@@ -351,7 +351,9 @@ public final class UfsJournalWriter implements JournalWriter {
             mDataOutputStream);
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
-        throw e;
+        throw new IOException(String
+            .format("Failed to write journal file %s. Please ensure there is enough space left",
+                mCurrentLog), e);
       }
     }
 
@@ -385,7 +387,9 @@ public final class UfsJournalWriter implements JournalWriter {
         }
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
-        throw e;
+        throw new IOException(String
+            .format("Failed to flush journal file %s. Please ensure there is enough space left",
+                mCurrentLog), e);
       }
       boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
       if (overSize || !mUfs.supportsFlush()) {
