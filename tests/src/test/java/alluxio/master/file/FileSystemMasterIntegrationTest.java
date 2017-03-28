@@ -1036,7 +1036,7 @@ public class FileSystemMasterIntegrationTest {
           mFsMaster.createFile(mFiles[id], CreateFileOptions.defaults());
           mFsMaster.completeFile(mFiles[id], CompleteFileOptions.defaults());
         } catch (FileAlreadyExistsException | FileDoesNotExistException
-            | FileAlreadyCompletedException e) {
+            | FileAlreadyCompletedException | InvalidPathException e) {
           // Ignore
         } catch (Exception e) {
           throw e;
@@ -1045,7 +1045,7 @@ public class FileSystemMasterIntegrationTest {
         try {
           // Delete a random file.
           mFsMaster.delete(mFiles[id], DeleteOptions.defaults().setRecursive(false));
-        } catch (FileDoesNotExistException e) {
+        } catch (FileDoesNotExistException | InvalidPathException e) {
           // Ignore
         } catch (Exception e) {
           throw e;

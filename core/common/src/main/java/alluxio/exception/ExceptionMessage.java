@@ -133,6 +133,7 @@ public enum ExceptionMessage {
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
   PATH_INVALID_CONCURRENT_RENAME("Path is no longer valid, possibly due to a concurrent rename."),
+  PATH_INVALID_CONCURRENT_DELETE("Path is no longer valid, possibly due to a concurrent delete."),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
   RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),

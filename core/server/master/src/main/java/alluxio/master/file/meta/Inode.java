@@ -327,9 +327,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Obtains a read lock on the inode. Afterward, checks the inode state to ensure the parent is
-   * consistent with what the caller is expecting. If the state is inconsistent, an exception
-   * will be thrown and the lock will be released.
+   * Obtains a read lock on the inode. Afterward, checks the inode state:
+   *   - parent is consistent with what the caller is expecting
+   *   - the inode is not marked as deleted
+   * If the state is inconsistent, an exception will be thrown and the lock will be released.
    *
    * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
@@ -338,6 +339,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
     lockRead();
+    if (mDeleted) {
+      unlockRead();
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_DELETE.getMessage());
+    }
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
       unlockRead();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
@@ -372,9 +377,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Obtains a write lock on the inode. Afterward, checks the inode state to ensure the parent is
-   * consistent with what the caller is expecting. If the state is inconsistent, an exception
-   * will be thrown and the lock will be released.
+   * Obtains a write lock on the inode. Afterward, checks the inode state:
+   *   - parent is consistent with what the caller is expecting
+   *   - the inode is not marked as deleted
+   * If the state is inconsistent, an exception will be thrown and the lock will be released.
    *
    * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
@@ -383,6 +389,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public void lockWriteAndCheckParent(Inode parent) throws InvalidPathException {
     lockWrite();
+    if (mDeleted) {
+      unlockWrite();
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_DELETE.getMessage());
+    }
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
       unlockWrite();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
