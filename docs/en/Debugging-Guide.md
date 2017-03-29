@@ -153,10 +153,10 @@ See [Configuration](Configuration-Settings.html#common-configuration) for more d
 #### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application  
 
 A: When you see errors like "Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being available to try",
-it is because that Alluxio master failed to write or update journal files which are stored in a HDFS directory according to 
-the property `alluxio.master.journal.folder`. There can be multiple reasons for this type of errors, typically because 
-some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the 
-HDFS deployment is available and healthy for Alluxio to write journals when the journal directory is set to be in HDFS.
+it is because Alluxio master failed to update journal files stored in a HDFS directory according to
+the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
+some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
+HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
 
 
 ## Performance FAQ
