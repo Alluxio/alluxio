@@ -11,7 +11,7 @@
 
 package alluxio.shell.command;
 
-import alluxio.SetAndRestoreSystemProperty;
+import alluxio.SystemPropertyRule;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
@@ -23,8 +23,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Tests for copyToLocal command.
@@ -106,10 +108,11 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyToLocalRelativePath() throws Exception {
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
-    try (SetAndRestoreSystemProperty s = new SetAndRestoreSystemProperty("user.dir",
-            mTestFolder.getRoot().getAbsolutePath())) {
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
       mFsShell.run("copyToLocal", "/testFile", ".");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()

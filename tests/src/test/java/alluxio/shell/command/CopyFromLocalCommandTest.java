@@ -12,7 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.SetAndRestoreSystemProperty;
+import alluxio.SystemPropertyRule;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
@@ -27,9 +27,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Tests for copyFromLocal command.
@@ -416,10 +418,11 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void copyFromLocalRelativePath() throws Exception {
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
-    try (SetAndRestoreSystemProperty s = new SetAndRestoreSystemProperty("user.dir",
-            mTestFolder.getRoot().getAbsolutePath())) {
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       File localDir = mTestFolder.newFolder("testDir");
       generateRelativeFileContent(localDir.getPath() + "/testFile",
               BufferUtils.getIncreasingByteArray(10));
