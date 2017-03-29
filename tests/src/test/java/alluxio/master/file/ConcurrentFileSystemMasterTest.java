@@ -98,7 +98,8 @@ public class ConcurrentFileSystemMasterTest {
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
     options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS)
-        .setDeleteFileMs(SLEEP_MS).setDeleteDirectoryMs(SLEEP_MS);
+        .setDeleteFileMs(SLEEP_MS).setDeleteDirectoryMs(SLEEP_MS)
+        .setMkdirsMs(SLEEP_MS);
     UnderFileSystemRegistry.register(sSleepingUfsFactory);
   }
 
@@ -157,6 +158,25 @@ public class ConcurrentFileSystemMasterTest {
       Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
     }
     Assert.assertEquals(numThreads, files.size());
+  }
+
+  @Test
+  public void rootConcurrentCreate() throws Exception {
+    final int numThreads = CONCURRENCY_FACTOR;
+    final long limitMs = 7 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
+    AlluxioURI[] paths = new AlluxioURI[numThreads];
+
+    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
+        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.MUST_CACHE));
+
+    for (int i = 0; i < numThreads; i++) {
+      paths[i] =
+          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
+    }
+
+    int errors = concurrentCreate(paths, limitMs);
+
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
   /**
@@ -578,6 +598,49 @@ public class ConcurrentFileSystemMasterTest {
     long durationMs = CommonUtils.getCurrentMs() - startMs;
     Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
         durationMs < LIMIT_MS);
+    return errors.size();
+  }
+
+  private int concurrentCreate(final AlluxioURI[] paths, final long limitMs)
+      throws Exception {
+    final int numFiles = paths.length;
+    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
+    List<Thread> threads = new ArrayList<>(numFiles);
+    // If there are exceptions, we will store them here.
+    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        errors.add(ex);
+      }
+    };
+    for (int i = 0; i < numFiles; i++) {
+      final int iteration = i;
+      Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            mFileSystem.createFile(paths[iteration], sCreatePersistedFileOptions).close();
+          } catch (Exception e) {
+            Throwables.propagate(e);
+          }
+        }
+      });
+      t.setUncaughtExceptionHandler(exceptionHandler);
+      threads.add(t);
+    }
+    Collections.shuffle(threads);
+    long startMs = CommonUtils.getCurrentMs();
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+    long durationMs = CommonUtils.getCurrentMs() - startMs;
+    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + limitMs,
+        durationMs < limitMs);
     return errors.size();
   }
 

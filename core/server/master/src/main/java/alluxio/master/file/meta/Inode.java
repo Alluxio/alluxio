@@ -132,6 +132,23 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
+   * Compare-and-swaps the persistence state.
+   *
+   * @param old the old {@link PersistenceState}
+   * @param newState the new {@link PersistenceState} to set
+   * @return true if the old state matches and the new state was set
+   */
+  public boolean compareAndSwapPersistenceState(PersistenceState old, PersistenceState newState) {
+    synchronized (this) {
+      if (mPersistenceState == old) {
+        mPersistenceState = newState;
+        return true;
+      }
+      return false;
+    }
+  }
+
+  /**
    * @return the id of the parent folder
    */
   public long getParentId() {
