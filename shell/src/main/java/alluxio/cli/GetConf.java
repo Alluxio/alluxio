@@ -35,7 +35,8 @@ public final class GetConf {
       + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
       + "values of data size configuration will be converted to a quantity in the given unit."
       + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
-      + "and \"10MB\" will return 10240. Possible unit options include B, KB, MB, GB, TP, PB";
+      + "and with \"--unit S\", a configuration value of \"5000\" will return 5."
+      + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D";
 
   private static final String UNIT_OPTION_NAME = "unit";
   private static final Option UNIT_OPTION =

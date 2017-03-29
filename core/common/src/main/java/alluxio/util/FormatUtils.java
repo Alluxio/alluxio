@@ -206,15 +206,21 @@ public final class FormatUtils {
    */
   public static double parseTimeUnit(String unit, String ori) {
     double time = Double.parseDouble(ori);
-    if (unit.equals("MILLISECOND") || unit.equals("MS")) {
+    if (unit.equalsIgnoreCase("MILLISECOND") || unit.equalsIgnoreCase("MS")) {
       return time;
-    } else if (unit.equals("SECOND") || unit.equals("SEC") || unit.equals("S")) {
+    } else if (unit.equalsIgnoreCase("SECOND") || unit.equalsIgnoreCase("SEC")) {
       return time / 1000;
-    } else if (unit.equals("MINUTE") || unit.equals("MIN")) {
+    } else if (unit.equalsIgnoreCase("S")) {
+      return time / 1000;
+    } else if (unit.equalsIgnoreCase("MINUTE") || unit.equalsIgnoreCase("MIN")) {
       return time / 60000;
-    } else if (unit.equals("HOUR") || unit.equals("HR") || unit.equals("H")) {
+    } else if (unit.equalsIgnoreCase("M")) {
+      return time / 60000;
+    } else if (unit.equalsIgnoreCase("HOUR") || unit.equalsIgnoreCase("HR")) {
       return time / 3600000;
-    } else if (unit.equals("DAY") || unit.equals("D")) {
+    } else if (unit.equalsIgnoreCase("H")) {
+      return time / 3600000;
+    } else if (unit.equalsIgnoreCase("DAY") || unit.equalsIgnoreCase("D")) {
       return time / 86400000;
     } else {
       throw new IllegalArgumentException("Fail to parse " + ori + " to target unit" + unit);

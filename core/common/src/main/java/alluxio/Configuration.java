@@ -374,12 +374,7 @@ public final class Configuration {
    */
   public static double getTime(PropertyKey key, String targetUnit) {
     String rawValue = get(key);
-
-    try {
-      return FormatUtils.parseTimeUnit(targetUnit, rawValue);
-    } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_TIME.getMessage(key));
-    }
+    return FormatUtils.parseTimeUnit(targetUnit, rawValue);
   }
 
   /**
