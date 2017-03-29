@@ -48,13 +48,14 @@ public class MasterTestUtils {
   }
 
   /**
-   * Creates a new {@link FileSystemMaster} from journal along with its dependencies, and
-   * returns the master registry containing that master.
+   * Creates a new {@link FileSystemMaster} from journal along with its dependencies, and returns
+   * the master registry containing that master.
    *
    * @param isLeader whether to start as a leader
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader) throws Exception {
+  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
+      throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
