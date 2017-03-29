@@ -28,7 +28,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.Master;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
@@ -1576,9 +1575,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster = new FileSystemMaster(mRegistry, factory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
-    for (Master master : mRegistry.getMasters()) {
-      master.start(true);
-    }
+    mRegistry.start(true);
 
     // set up workers
     mWorkerId1 = mBlockMaster.getWorkerId(
@@ -1596,8 +1593,6 @@ public final class FileSystemMasterTest {
   }
 
   private void stopServices() throws Exception {
-    for (Master master : mRegistry.getMasters()) {
-      master.stop();
-    }
+    mRegistry.stop();
   }
 }
