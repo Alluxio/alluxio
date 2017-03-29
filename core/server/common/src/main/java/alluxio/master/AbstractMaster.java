@@ -104,12 +104,13 @@ public abstract class AbstractMaster implements Master {
        *
        * 1. Create a journal reader to replay the logs from the next sequence number.
        * 2. Start the journal writer.
+       * 3. Start serving.
        *
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
        */
 
-      // Step 1.
+      // Step 1. Replay the journal entries.
       long nextSequenceNumber =
           mJournalCheckpointThread != null ? mJournalCheckpointThread.getNextSequenceNumber() : 0;
       JournalReader journalReader = mJournal.getReader(
