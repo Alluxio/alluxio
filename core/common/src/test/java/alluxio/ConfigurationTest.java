@@ -20,8 +20,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.HashMap;
 import java.util.Properties;
 
 /**
@@ -42,8 +44,8 @@ public class ConfigurationTest {
   @Test
   public void defaultLoggerCorrectlyLoaded() throws Exception {
     // Avoid interference from system properties. site-properties will not be loaded during tests
-    try (SetAndRestoreSystemProperty p =
-        new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null)) {
+    try (Closeable p =
+        new SystemPropertyRule(PropertyKey.LOGGER_TYPE.toString(), null).toResource()) {
       String loggerType = Configuration.get(PropertyKey.LOGGER_TYPE);
       Assert.assertEquals("Console", loggerType);
     }
@@ -264,8 +266,8 @@ public class ConfigurationTest {
 
   @Test
   public void systemVariableSubstitution() throws Exception {
-    try (SetAndRestoreSystemProperty c =
-        new SetAndRestoreSystemProperty(PropertyKey.MASTER_HOSTNAME.toString(), "new_master")) {
+    try (Closeable p =
+        new SystemPropertyRule(PropertyKey.MASTER_HOSTNAME.toString(), "new_master").toResource()) {
       Configuration.defaultInit();
       Assert.assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
     }
@@ -321,11 +323,10 @@ public class ConfigurationTest {
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
-    try (SetAndRestoreSystemProperty p1 =
-             new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null);
-         SetAndRestoreSystemProperty p2 =
-             new SetAndRestoreSystemProperty(PropertyKey.SITE_CONF_DIR.toString(),
-                 mFolder.getRoot().getAbsolutePath())) {
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.defaultInit();
       Assert.assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           Configuration.get(PropertyKey.LOGGER_TYPE));
@@ -340,13 +341,11 @@ public class ConfigurationTest {
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
-    try (SetAndRestoreSystemProperty p1 =
-             new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null);
-         SetAndRestoreSystemProperty p2 =
-             new SetAndRestoreSystemProperty(PropertyKey.SITE_CONF_DIR.toString(),
-                 mFolder.getRoot().getAbsolutePath());
-         SetAndRestoreSystemProperty p3 =
-             new SetAndRestoreSystemProperty(PropertyKey.TEST_MODE.toString(), "false")) {
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.defaultInit();
       Assert.assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
     }

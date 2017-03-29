@@ -16,8 +16,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.SetAndRestoreConfiguration;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.Closeable;
 import java.net.InetSocketAddress;
 
 /**
@@ -45,8 +46,8 @@ public final class BlockInStreamTest {
   @Test
   public void readFromLocal() throws Exception {
     String clientHostname = "clientHostname";
-    try (SetAndRestoreConfiguration c = new SetAndRestoreConfiguration(
-        ImmutableMap.<PropertyKey, String>of(PropertyKey.USER_HOSTNAME, clientHostname))) {
+    try (Closeable c = new ConfigurationRule(
+        ImmutableMap.of(PropertyKey.USER_HOSTNAME, clientHostname)).toResource()) {
       long blockId = 0;
       FileSystemContext context = mock(FileSystemContext.class);
       BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);

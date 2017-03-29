@@ -13,8 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
 import alluxio.CommonTestUtils;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
@@ -25,6 +24,7 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.FileInfo;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -46,6 +46,7 @@ import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -98,7 +99,6 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
   }
 
@@ -114,12 +114,13 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
-
-    final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.MASTER_HOSTNAME, uri.getHost(),
+        PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
+        PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+    }
   }
 
   /**
@@ -133,10 +134,11 @@ public class AbstractFileSystemTest {
     }
 
     URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
-
-    final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+    try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true")
+        .toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+    }
   }
 
   /**
@@ -148,12 +150,13 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "false");
-
-    final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    Assert.assertTrue(fs instanceof FileSystem);
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.MASTER_HOSTNAME, uri.getHost(),
+        PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
+        PropertyKey.ZOOKEEPER_ENABLED, "false")).toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+      Assert.assertTrue(fs instanceof FileSystem);
+    }
   }
 
   /**
