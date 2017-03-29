@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -164,33 +165,29 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
-    } else {
-      // Delete children
-      UnderFileStatus[] pathsToDelete =
-          listInternal(path, ListOptions.defaults().setRecursive(true));
-      if (pathsToDelete == null) {
-        LOG.error("Unable to delete {} because listInternal returns null", path);
-        return false;
-      }
-      for (UnderFileStatus pathToDelete : pathsToDelete) {
-        // If we fail to deleteObject one file, stop
-        String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
-        if (pathToDelete.isDirectory()) {
-          if (!deleteObject(convertToFolderName(pathKey))) {
-            // If path is a directory, it is possible that it was not created through Alluxio and no
-            // zero-byte breadcrumb exists
-            LOG.warn("Failed to delete directory {}", pathToDelete.getName());
-          }
-        } else {
-          if (!deleteObject(pathKey)) {
-            LOG.error("Failed to delete file {}", pathToDelete.getName());
-            return false;
-          }
-        }
+      // Delete the directory itself
+      return deleteObject(stripPrefixIfPresent(convertToFolderName(path)));
+    }
+
+    // Delete children
+    List<String> objectsToDelete = new LinkedList<>();
+    UnderFileStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
+    if (pathsToDelete == null) {
+      LOG.error("Unable to delete {} because listInternal returns null", path);
+    }
+    for (UnderFileStatus pathToDelete : pathsToDelete) {
+      // If we fail to deleteObject one file, stop
+      String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
+      if (pathToDelete.isDirectory()) {
+        objectsToDelete.add(convertToFolderName(pathKey));
+      } else {
+        objectsToDelete.add(pathKey);
       }
     }
-    // Delete the directory itself
-    return deleteObject(stripPrefixIfPresent(convertToFolderName(path)));
+    objectsToDelete.add(stripPrefixIfPresent(convertToFolderName(path)));
+
+    // TODO(adit): paginate
+    return deleteObjects(objectsToDelete);
   }
 
   /**
@@ -429,6 +426,17 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return true if successful, false if an exception is thrown
    */
   protected abstract boolean deleteObject(String key) throws IOException;
+
+  /**
+   * Internal function to delete a list of keys.
+   *
+   * @param keys the list of keys to delete
+   * @return true if successfully deleted all keys, false if not
+   */
+  protected boolean deleteObjects(List<String> keys) throws IOException {
+    // TODO(adit): Implement me
+    return false;
+  }
 
   /**
    * Maximum number of items in a single listing chunk supported by the under store.

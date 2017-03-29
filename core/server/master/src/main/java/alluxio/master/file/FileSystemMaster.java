@@ -2378,13 +2378,17 @@ public final class FileSystemMaster extends AbstractMaster {
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
+    // TODO(adit): remove
     long ufsLength = ufs.getFileSize(ufsUri.toString());
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
+    // TODO(adit): remove
     String ufsOwner = ufs.getOwner(ufsUri.toString());
+    // TODO(adit): remove
     String ufsGroup = ufs.getGroup(ufsUri.toString());
+    // TODO(adit): remove
     short ufsMode = ufs.getMode(ufsUri.toString());
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
