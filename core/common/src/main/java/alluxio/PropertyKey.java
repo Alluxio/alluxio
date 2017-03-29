@@ -132,6 +132,10 @@ public enum PropertyKey {
       Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 5000),
   MASTER_JOURNAL_TAILER_SLEEP_TIME_MS(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 1000),
   MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 160000),
+  MASTER_JOURNAL_GC_PERIOD_MS(Name.MASTER_JOURNAL_GC_PERIOD_MS, 600000),
+  MASTER_JOURNAL_GC_THRESHOLD_MS(Name.MASTER_JOURNAL_GC_THRESHOLD_MS, 600000),
+  MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS,
+      1800000),
   MASTER_KEYTAB_KEY_FILE(Name.MASTER_KEYTAB_KEY_FILE, null),
   MASTER_LINEAGE_CHECKPOINT_CLASS(Name.MASTER_LINEAGE_CHECKPOINT_CLASS,
       "alluxio.master.lineage.checkpoint.CheckpointLatestPlanner"),
@@ -575,6 +579,12 @@ public enum PropertyKey {
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
+    public static final String MASTER_JOURNAL_GC_PERIOD_MS = "alluxio.master.journal.gc.period.ms";
+    public static final String MASTER_JOURNAL_GC_THRESHOLD_MS =
+        "alluxio.master.journal.gc.threshold.ms";
+    public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
+        "alluxio.master.journal.temporary.file.gc.threshold.ms";
+
     //
     // Worker related properties
     //

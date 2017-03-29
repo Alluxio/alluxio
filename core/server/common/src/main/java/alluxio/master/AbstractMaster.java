@@ -103,8 +103,7 @@ public abstract class AbstractMaster implements Master {
        * The sequence for dealing with the journal before starting as the primary:
        *
        * 1. Create a journal reader to replay the logs from the next sequence number.
-       * 2. Start the journal garbage collector.
-       * 3. Start the journal writer.
+       * 2. Start the journal writer.
        *
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
@@ -132,7 +131,7 @@ public abstract class AbstractMaster implements Master {
         }
       }
 
-      // Step 3: Start the journal writer.
+      // Step 2: Start the journal writer.
       mJournalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults()
           .setNextSequenceNumber(journalReader.getNextSequenceNumber()).setPrimary(true));
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);

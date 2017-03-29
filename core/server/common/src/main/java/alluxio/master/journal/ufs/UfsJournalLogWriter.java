@@ -20,6 +20,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ public final class UfsJournalLogWriter implements JournalWriter {
    */
   private boolean mRotateLogForNextWrite;
   private JournalOutputStream mJournalOutputStream;
+  private UfsJournalGarbageCollector mGarbageCollector;
 
   private class JournalOutputStream implements Closeable {
     final DataOutputStream mOutputStream;
@@ -126,6 +128,7 @@ public final class UfsJournalLogWriter implements JournalWriter {
       mRotateLogForNextWrite = true;
       mJournalOutputStream = new JournalOutputStream(currentLog, null);
     }
+    mGarbageCollector = new UfsJournalGarbageCollector(mJournal);
   }
 
   @Override
@@ -205,9 +208,12 @@ public final class UfsJournalLogWriter implements JournalWriter {
 
   @Override
   public synchronized void close() throws IOException {
+    Closer closer = Closer.create();
     if (mJournalOutputStream != null) {
-      mJournalOutputStream.close();
+      closer.register(mJournalOutputStream);
     }
+    closer.register(mGarbageCollector);
+    closer.close();
     mClosed = true;
   }
 

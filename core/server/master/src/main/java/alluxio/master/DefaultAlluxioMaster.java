@@ -180,7 +180,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   /**
    * @param journalFactory the factory to use for creating journals
    */
-  protected void createMasters(final JournalFactory journalFactory) {
+  private void createMasters(final JournalFactory journalFactory) {
     mRegistry = new MasterRegistry();
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
