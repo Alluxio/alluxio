@@ -16,7 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
-import alluxio.master.journal.JournalReaderCreateOptions;
+import alluxio.master.journal.options.JournalReaderCreateOptions;
 import alluxio.proto.journal.Journal;
 import alluxio.util.proto.ProtoUtils;
 

@@ -29,6 +29,7 @@ public interface JournalReader extends Closeable {
    *
    * @return the journal entry, null if no more entry left
    * @throws IOException if it failed to read an entry due to an I/O error
+   * @throws InvalidJournalEntryException if the journal entry is invalid (e.g. corrupted entry)
    */
   JournalEntry read() throws IOException, InvalidJournalEntryException;
 
@@ -37,6 +38,9 @@ public interface JournalReader extends Closeable {
    */
   long getNextSequenceNumber();
 
-
+  /**
+   * @return true if a checkpoint should be created
+   * @throws IOException if an I/O error occur
+   */
   boolean shouldCheckpoint() throws IOException;
 }

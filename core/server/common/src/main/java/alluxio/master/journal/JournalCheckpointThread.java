@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.Master;
+import alluxio.master.journal.options.JournalReaderCreateOptions;
+import alluxio.master.journal.options.JournalWriterCreateOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -27,8 +29,10 @@ import java.util.Iterator;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This thread continually tails the journal and applies it to the master, until the master
+ * This thread continually replays the journal and applies it to the master, until the master
  * initiates the shutdown of the thread.
+ * It periodically creates checkpoints. When the thread is stopped while it is writing checkpoint,
+ * the checkpoint being written will be cancelled.
  */
 @NotThreadSafe
 public final class JournalCheckpointThread extends Thread {
@@ -36,17 +40,20 @@ public final class JournalCheckpointThread extends Thread {
 
   /** The master to apply the journal entries to. */
   private final Master mMaster;
-  /** The journal to tail. */
+  /** The journal. */
   private final Journal mJournal;
+  /** Make sure no new journal logs are found for this amount of time before shutting down. */
   private final int mShutdownQuietWaitTimeMs;
+  /** If not journal log is found, sleep for this amount of time and check again. */
   private final int mJournalCheckpointSleepTimeMs;
   /** This becomes true when the master initiates the shutdown. */
   private volatile boolean mInitiateShutdown = false;
 
-  private JournalReader mJournalReader;
-
   /** True if this thread is no longer running. */
-  private boolean mStopped = false;
+  private volatile boolean mStopped = false;
+
+  /** The journal reader. */
+  private JournalReader mJournalReader;
 
   /**
    * Creates a new instance of {@link JournalCheckpointThread}.
@@ -65,73 +72,39 @@ public final class JournalCheckpointThread extends Thread {
   }
 
   /**
-   * Initiates the shutdown of this tailer thread, and also waits for it to finish.
+   * Initiates the shutdown of this checkpointer thread, and also waits for it to finish.
    */
   public void shutdownAndJoin() {
-    LOG.info("{}: Journal tailer shutdown has been initiated.", mMaster.getName());
+    LOG.info("{}: Journal checkpointer shutdown has been initiated.", mMaster.getName());
     mInitiateShutdown = true;
 
     try {
       // Wait for the thread to finish.
       join();
     } catch (InterruptedException e) {
-      LOG.error("{}: journal tailer shutdown is interrupted.", mMaster.getName(), e);
+      LOG.error("{}: journal checkpointer shutdown is interrupted.", mMaster.getName(), e);
       // Kills the master. This can happen in the following two scenarios:
       // 1. The user Ctrl-C the server.
       // 2. Zookeeper selects this master as standby before the master finishes the previous
       //    standby->leader transition. It is safer to crash the server because the behavior is
-      //    undefined to have two journal tailer running concurrently.
+      //    undefined to have two journal checkpointer running concurrently.
       throw new RuntimeException(e);
     }
   }
 
+  /**
+   * @return the last edit log sequence number read plus 1
+   */
   public long getNextSequenceNumber() {
     Preconditions.checkState(mStopped);
     return mJournalReader.getNextSequenceNumber();
   }
 
-  void maybeCheckpoint() {
-    if (mInitiateShutdown) {
-      return;
-    }
-    try {
-      if (!mJournalReader.shouldCheckpoint()) {
-        return;
-      }
-    } catch (IOException e) {
-      LOG.warn("Failed to decide whether to checkpoint from the journal reader with error {}.", e.getMessage());
-      return;
-    }
-
-    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = mMaster.iterator();
-    JournalWriter journalWriter = null;
-    IOException exception = null;
-    try {
-      journalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(false));
-      while (it.hasNext() && !mInitiateShutdown) {
-        journalWriter.write(it.next());
-      }
-    } catch (IOException e) {
-      LOG.warn("Failed to checkpoint with error {}.", e.getMessage());
-      exception = e;
-    }
-
-    if (it.hasNext() || mInitiateShutdown || exception != null) {
-      if (journalWriter != null) {
-        try {
-          journalWriter.cancel();
-        } catch (IOException e) {
-          LOG.warn("Failed to cancel the checkpoint with error {}.", e.getMessage());
-        }
-      }
-    }
-  }
-
   @Override
   public void run() {
-    // 1. Reads the journal and replays the journal entries.
-    // 2. Checkpoint when some condition is met.
-    // NOTE: If any errors appears in the above process, start from scratch.
+    // Keeps reading journal entries. If none is found, sleep for sometime. Periodically write
+    // checkpoints if some conditions are met. The a shutdown signal is receivied, wait until
+    // no new journal entries.
 
     LOG.info("{}: Journal checkpointer started.", mMaster.getName());
     alluxio.proto.journal.Journal.JournalEntry entry;
@@ -167,6 +140,46 @@ public final class JournalCheckpointThread extends Thread {
         LOG.info("{}: No journal entry found. sleeping for {}ms.", mMaster.getName(),
             mJournalCheckpointSleepTimeMs);
         CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
+      }
+    }
+  }
+
+  /**
+   * Creates a new checkpoint if necessary.
+   */
+  private void maybeCheckpoint() {
+    if (mInitiateShutdown) {
+      return;
+    }
+    try {
+      if (!mJournalReader.shouldCheckpoint()) {
+        return;
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to decide whether to checkpoint from the journal reader with error {}.", e.getMessage());
+      return;
+    }
+
+    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = mMaster.iterator();
+    JournalWriter journalWriter = null;
+    IOException exception = null;
+    try {
+      journalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(false));
+      while (it.hasNext() && !mInitiateShutdown) {
+        journalWriter.write(it.next());
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to checkpoint with error {}.", e.getMessage());
+      exception = e;
+    }
+
+    if (it.hasNext() || mInitiateShutdown || exception != null) {
+      if (journalWriter != null) {
+        try {
+          journalWriter.cancel();
+        } catch (IOException e) {
+          LOG.warn("Failed to cancel the checkpoint with error {}.", e.getMessage());
+        }
       }
     }
   }

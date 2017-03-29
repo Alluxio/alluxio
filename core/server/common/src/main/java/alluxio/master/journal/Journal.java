@@ -11,6 +11,8 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.journal.options.JournalReaderCreateOptions;
+import alluxio.master.journal.options.JournalWriterCreateOptions;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.util.URIUtils;
 
@@ -20,9 +22,8 @@ import java.net.URI;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The read-only journal. It prevents access to a {@link JournalWriter}.
+ * A journal interface.
  */
-@ThreadSafe
 public interface Journal {
 
   /**
@@ -33,7 +34,7 @@ public interface Journal {
     private final URI mBase;
 
     /**
-     * Creates a read-only journal factory with the specified base location. When journals are
+     * Creates a journal factory with the specified base location. When journals are
      * created, their names are appended to the base location.
      *
      * @param base the base location for journals created by this factory
@@ -46,16 +47,6 @@ public interface Journal {
     public Journal create(String name) {
       return new UfsJournal(URIUtils.appendPathOrDie(mBase, name));
     }
-
-    /**
-     * Creates a new read-only journal using the given location.
-     *
-     * @param location the journal location
-     * @return a new instance of {@link Journal}
-     */
-    public static Journal create(URI location) {
-      return new UfsJournal(location);
-    }
   }
 
   /**
@@ -64,9 +55,17 @@ public interface Journal {
   URI getLocation();
 
   /**
+   * @param options the options to create the reader
    * @return the {@link JournalReader} for this journal
    */
   JournalReader getReader(JournalReaderCreateOptions options);
+
+  /**
+   * @param options the options to create the writer
+   * @return the {@link JournalWriter} for this journal
+   * @throws IOException if an I/O error occurs
+   */
+  JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException;
 
   /**
    * @return whether the journal has been formatted
@@ -80,9 +79,4 @@ public interface Journal {
    * @throws IOException if an I/O error occurs
    */
   void format() throws IOException;
-
-  /**
-   * @return the {@link JournalWriter} for this journal
-   */
-  JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException;
 }

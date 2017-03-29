@@ -9,31 +9,53 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journal.options;
 
+/**
+ * Options to create a journal reader.
+ */
 public class JournalReaderCreateOptions {
+  /** The first log sequence number to read in the journal reader. */
   private long mNextSequenceNumber;
+  /** Whether the journal reader is running in a primary master. */
   private boolean mPrimary;
 
   private JournalReaderCreateOptions() {} // prevent instantiation
 
+  /**
+   * @return the default journal reader create options
+   */
   public static JournalReaderCreateOptions defaults() {
     return new JournalReaderCreateOptions();
   }
 
+  /**
+   * @return the next sequence number
+   */
   public long getNextSequenceNumber() {
     return mNextSequenceNumber;
   }
 
+  /**
+   * @return whether journal reader is to run in a primary master
+   */
   public boolean getPrimary() {
     return mPrimary;
   }
 
+  /**
+   * @param nextSequenceNumber the next sequence number
+   * @return the updated options
+   */
   public JournalReaderCreateOptions setNextSequenceNumber(long nextSequenceNumber) {
     mNextSequenceNumber = nextSequenceNumber;
     return this;
   }
 
+  /**
+   * @param primary whether jorunal reader is to run in a primary master
+   * @return the updated options
+   */
   public JournalReaderCreateOptions setPrimary(boolean primary) {
     mPrimary = primary;
     return this;

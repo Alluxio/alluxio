@@ -18,32 +18,29 @@ import java.io.IOException;
 import java.net.URI;
 
 /**
- * This class manages all the writes to the journal. Journal writes happen in two phases:
- *
- * 1. First the checkpoint is written. The checkpoint contains entries reflecting the
- * state of the master with all of the completed logs applied.
- *
- * 2. Afterwards, entries are appended to log. The checkpoint must be written before the logs.
- *
- * The latest state can be reconstructed by reading the checkpoint, and applying all the
- * completed logs and finally the current log.
+ * This class manages all the writes to the journal.
  */
 public interface JournalWriter extends Closeable {
   /**
-   * Writes an entry to the current log stream. {@link #flush} should be called
-   * afterward to ensure the entry is persisted.
+   * Writes an entry. {@link #flush} should be called afterwards if we want to make sure the entry
+   * is persisted.
    *
    * @param entry the journal entry to write
-   * @throws IOException if an error occurs writing the entry or if the checkpoint is not closed
+   * @throws IOException if an error occurs writing the entry
    */
   void write(JournalEntry entry) throws IOException;
 
   /**
-   * Flushes the current log stream. Otherwise this operation is a no-op.
+   * Flushes all the entries written to the underlying storage.
    *
    * @throws IOException if an error occurs preventing the stream from being flushed
    */
   void flush() throws IOException;
 
+  /**
+   * Cancels the current journal writer.
+   *
+   * @throws IOException if any I/O errors occur
+   */
   void cancel() throws IOException;
 }

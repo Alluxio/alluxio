@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.journal.options.JournalReaderCreateOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.commons.cli.CommandLine;
@@ -27,19 +28,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Tool for reading the journal. It reads binary journal entries and prints human-readable ones to
- * standard out. Example usage below.
+ * Tool for reading the journal entries given a range of sequence numbers. It reads binary journal
+ * entries and prints human-readable ones to standard out. Example usage below.
  *
  * <pre>
  * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
- *   alluxio.master.journal.JournalTool < journal/FileSystemMaster/log.out
+ *   alluxio.master.journal.JournalTool -master FileSystemMaster -start 0x100 -end 0x109
  * </pre>
  */
 @NotThreadSafe
@@ -68,10 +68,9 @@ public final class JournalTool {
    * Reads a journal via
    * {@code java -cp \
    * assembly/target/alluxio-assemblies-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
-   * alluxio.master.journal.JournalTool -master BlockMaster -start 0x1000 -end 0x1001}.
+   * alluxio.master.journal.JournalTool -master BlockMaster -start 0x100 -end 0x109}.
    *
    * @param args arguments passed to the tool
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void main(String[] args) {
     if (!parseInputArgs(args)) {
@@ -139,6 +138,9 @@ public final class JournalTool {
     return true;
   }
 
+  /**
+   * Prints the usage.
+   */
   private static void usage() {
     new HelpFormatter().printHelp(
         "java -cp alluxio-" + RuntimeConstants.VERSION

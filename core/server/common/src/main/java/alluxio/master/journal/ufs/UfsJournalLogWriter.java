@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalWriterCreateOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.options.CreateOptions;
 

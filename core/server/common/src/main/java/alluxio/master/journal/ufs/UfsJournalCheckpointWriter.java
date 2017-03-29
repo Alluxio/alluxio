@@ -13,7 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalWriterCreateOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;

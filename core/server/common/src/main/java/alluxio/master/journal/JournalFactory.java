@@ -19,7 +19,6 @@ public interface JournalFactory {
    * Creates a new journal using the given name.
    *
    * @param name the journal name
-   * @param
    * @return a new instance of {@link Journal}
    */
   Journal create(String name);
