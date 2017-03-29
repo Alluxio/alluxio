@@ -14,7 +14,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The excepton thrown when a dependency does not exist in Alluxio.
+ * The exception thrown when a dependency does not exist in Alluxio.
  */
 @ThreadSafe
 public class DependencyDoesNotExistException extends AlluxioException {

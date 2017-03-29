@@ -9,9 +9,9 @@ priority: 3
 * Table of Contents
 {:toc}
 
-This guide describes how to configure Alluxio with
+This guide describes the instruction to configure a
 [secure HDFS](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html)
-as the under storage system. Alluxio supports secure HDFS as the under filesystem, with
+as Alluxio's under storage system. Alluxio supports secure HDFS as the under filesystem, with
 [Kerberos](http://web.mit.edu/kerberos/) authentication.
 
 > Note: Kerberos authentication with secure HDFS is not Alluxio internal authentication via Kerberos.

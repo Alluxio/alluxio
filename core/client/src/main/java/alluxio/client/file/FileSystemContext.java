@@ -31,7 +31,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
@@ -381,7 +380,7 @@ public final class FileSystemContext implements Closeable {
     try {
       return mNettyChannelPools.get(address).acquire();
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

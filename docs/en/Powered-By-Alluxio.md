@@ -18,6 +18,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Baidu](http://www.baidu.com/)
 * [Barclays](http://www.barclays.co.uk/)
 * [EMC](https://www.emc.com/)
+* [ESRI](http://www.esri.com/)
 * [GBICC](http://www.gbicc.net/)
 * [Guardant Health](http://www.guardanthealth.com/)
 * [Huawei](http://www.huawei.com/)

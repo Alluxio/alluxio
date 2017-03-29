@@ -26,7 +26,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.StreamFactory;
-import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.file.options.InStreamOptions;
@@ -571,9 +570,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Update {@link #mCurrentBlockInStream} to be in-sync with mPos's block. The new block
-   * stream created with {@link UnderStoreBlockInStream#mPos} at position 0.
-   * This function is only called in {@link #updateStreams()}.
+   * Update {@link #mCurrentBlockInStream} to be in-sync with mPos's block. This function is only
+   * called in {@link #updateStreams()}.
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
    * @throws IOException if the next block in stream cannot be obtained
