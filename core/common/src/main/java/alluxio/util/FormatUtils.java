@@ -204,24 +204,24 @@ public final class FormatUtils {
    * @param ori the original time value set in millisecond
    * @return the time value transformed to target unit
    */
-  public static double parseTimeUnit(String unit, String ori) {
+  public static long parseTimeUnit(String unit, String ori) {
     double time = Double.parseDouble(ori);
     if (unit.equalsIgnoreCase("MILLISECOND") || unit.equalsIgnoreCase("MS")) {
-      return time;
+      return (long) (time);
     } else if (unit.equalsIgnoreCase("SECOND") || unit.equalsIgnoreCase("SEC")) {
-      return time / 1000;
+      return (long) (time / 1000);
     } else if (unit.equalsIgnoreCase("S")) {
-      return time / 1000;
+      return (long) (time / 1000);
     } else if (unit.equalsIgnoreCase("MINUTE") || unit.equalsIgnoreCase("MIN")) {
-      return time / 60000;
+      return (long) (time / 60000);
     } else if (unit.equalsIgnoreCase("M")) {
-      return time / 60000;
+      return (long) (time / 60000);
     } else if (unit.equalsIgnoreCase("HOUR") || unit.equalsIgnoreCase("HR")) {
-      return time / 3600000;
+      return (long) (time / 3600000);
     } else if (unit.equalsIgnoreCase("H")) {
-      return time / 3600000;
+      return (long) (time / 3600000);
     } else if (unit.equalsIgnoreCase("DAY") || unit.equalsIgnoreCase("D")) {
-      return time / 86400000;
+      return (long) (time / 86400000);
     } else {
       throw new IllegalArgumentException("Fail to parse " + ori + " to target unit" + unit);
     }

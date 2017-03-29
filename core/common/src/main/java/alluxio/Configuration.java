@@ -372,7 +372,7 @@ public final class Configuration {
    * @param targetUnit the target unit set by user
    * @return the time transformed from milliseconds to the target unit
    */
-  public static double getTime(PropertyKey key, String targetUnit) {
+  public static long getTime(PropertyKey key, String targetUnit) {
     String rawValue = get(key);
     return FormatUtils.parseTimeUnit(targetUnit, rawValue);
   }

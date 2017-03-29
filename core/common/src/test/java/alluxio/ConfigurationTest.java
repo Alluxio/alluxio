@@ -223,6 +223,48 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getTime() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "86400000");
+    Assert.assertEquals(86400000,
+            Configuration.getTime(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "MS"));
+  }
+
+  @Test
+  public void getTimeS() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "86400000");
+    Assert.assertEquals(86400,
+            Configuration.getTime(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "S"));
+  }
+
+  @Test
+  public void getTimeM() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "86400000");
+    Assert.assertEquals(1440,
+            Configuration.getTime(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "M"));
+  }
+
+  @Test
+  public void getTimeH() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "86400000");
+    Assert.assertEquals(24,
+            Configuration.getTime(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "H"));
+  }
+
+  @Test
+  public void getTimeD() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "86400000");
+    Assert.assertEquals(1,
+            Configuration.getTime(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "D"));
+  }
+
+  @Test
+  public void getTimeDLowercase() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "86400000");
+    Assert.assertEquals(1,
+            Configuration.getTime(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "d"));
+  }
+
+  @Test
   public void getClassTest() { // The name getClass is already reserved.
     Configuration.set(PropertyKey.WEB_THREADS, "java.lang.String");
     Assert.assertEquals(String.class, Configuration.getClass(PropertyKey.WEB_THREADS));
