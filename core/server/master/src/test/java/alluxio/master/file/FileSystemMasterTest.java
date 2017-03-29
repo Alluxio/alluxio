@@ -28,6 +28,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.Master;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
@@ -98,6 +99,7 @@ public final class FileSystemMasterTest {
   private static final String TEST_USER = "test";
 
   private CreateFileOptions mNestedFileOptions;
+  private MasterRegistry mRegistry;
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
@@ -1566,16 +1568,17 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
-    MasterRegistry registry = new MasterRegistry();
+    mRegistry = new MasterRegistry();
     JournalFactory factory = new MutableJournal.Factory(new URI(mJournalFolder));
-    mBlockMaster = new BlockMaster(registry, factory);
+    mBlockMaster = new BlockMaster(mRegistry, factory);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster = new FileSystemMaster(registry, factory,
+    mFileSystemMaster = new FileSystemMaster(mRegistry, factory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
-    mBlockMaster.start(true);
-    mFileSystemMaster.start(true);
+    for (Master master : mRegistry.getMasters()) {
+      master.start(true);
+    }
 
     // set up workers
     mWorkerId1 = mBlockMaster.getWorkerId(
@@ -1593,7 +1596,8 @@ public final class FileSystemMasterTest {
   }
 
   private void stopServices() throws Exception {
-    mFileSystemMaster.stop();
-    mBlockMaster.stop();
+    for (Master master : mRegistry.getMasters()) {
+      master.stop();
+    }
   }
 }
