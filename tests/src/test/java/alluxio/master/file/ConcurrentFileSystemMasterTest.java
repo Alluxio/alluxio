@@ -228,6 +228,45 @@ public class ConcurrentFileSystemMasterTest {
   }
 
   /**
+   * Tests concurrent deletes with shared prefix do not block on each other.
+   */
+  @Test
+  public void prefixConcurrentDelete() throws Exception {
+    final int numThreads = CONCURRENCY_FACTOR;
+    AlluxioURI[] paths = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    mFileSystem.createDirectory(dir1);
+    AlluxioURI dir2 = new AlluxioURI("/dir1/dir2");
+    mFileSystem.createDirectory(dir2);
+    AlluxioURI dir3 = new AlluxioURI("/dir1/dir2/dir3");
+    mFileSystem.createDirectory(dir3);
+
+    for (int i = 0; i < numThreads; i++) {
+      if (i % 3 == 0) {
+        paths[i] = dir1.join("/file" + i);
+      } if (i % 3 == 1) {
+        paths[i] = dir2.join("/file" + i);
+      } else {
+        paths[i] = dir3.join("/file" + i);
+      }
+      mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
+    }
+    int errors = concurrentDelete(paths);
+
+    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    List<URIStatus> files = mFileSystem.listStatus(dir1);
+    // Should only contain a single directory
+    Assert.assertEquals(1, files.size());
+    Assert.assertEquals("dir2", files.get(0).getName());
+    files = mFileSystem.listStatus(dir2);
+    // Should only contain a single directory
+    Assert.assertEquals(1, files.size());
+    Assert.assertEquals("dir3", files.get(0).getName());
+    files = mFileSystem.listStatus(dir3);
+    Assert.assertEquals(0, files.size());
+  }
+
+  /**
    * Tests that many threads concurrently renaming the same file will only succeed once.
    */
   @Test
