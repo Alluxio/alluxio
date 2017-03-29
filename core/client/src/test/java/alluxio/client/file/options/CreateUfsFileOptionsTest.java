@@ -11,22 +11,17 @@
 
 package alluxio.client.file.options;
 
-import alluxio.AuthenticatedUserRule;
 import alluxio.CommonTestUtils;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
+import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
-import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.util.CommonUtils;
 
-import org.junit.After;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -40,23 +35,11 @@ public final class CreateUfsFileOptionsTest {
   private static final String TEST_USER = "test";
 
   @Rule
-  public AuthenticatedUserRule mRule = new AuthenticatedUserRule(TEST_USER);
+  public LoginUserRule mRule = new LoginUserRule(TEST_USER);
 
-  @Before
-  public void before() {
-    LoginUserTestUtils.resetLoginUser();
-    GroupMappingServiceTestUtils.resetCache();
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
-    // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
-    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-        IdentityUserGroupsMapping.class.getName());
-  }
-
-  @After
-  public void after() {
-    ConfigurationTestUtils.resetConfiguration();
-  }
+  @Rule
+  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
+      .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, IdentityUserGroupsMapping.class.getName()));
 
   /**
    * Tests that building a {@link CreateUfsFileOptions} with the defaults works.

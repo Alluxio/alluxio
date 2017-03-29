@@ -115,6 +115,9 @@ public class DFSIOIntegrationTest implements Tool {
     org.apache.hadoop.conf.Configuration.addDefaultResource("mapred-site.xml");
   }
 
+  /**
+   * Represents different types of tests.
+   */
   private enum TestType {
     TEST_TYPE_READ("read"), TEST_TYPE_WRITE("write"), TEST_TYPE_CLEANUP("cleanup"),
         TEST_TYPE_APPEND("append"), TEST_TYPE_READ_RANDOM("random read"),
@@ -133,6 +136,9 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
+  /**
+   * Represents for 5 multiple bytes unit.
+   */
   enum ByteMultiple {
     B(1L), KB(0x400L), MB(0x100000L), GB(0x40000000L), TB(0x10000000000L);
 

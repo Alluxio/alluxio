@@ -25,6 +25,10 @@ public final class Protocol {
      * <code>UFS_FILE = 1;</code>
      */
     UFS_FILE(1, 1),
+    /**
+     * <code>UFS_BLOCK = 2;</code>
+     */
+    UFS_BLOCK(2, 2),
     ;
 
     /**
@@ -35,6 +39,10 @@ public final class Protocol {
      * <code>UFS_FILE = 1;</code>
      */
     public static final int UFS_FILE_VALUE = 1;
+    /**
+     * <code>UFS_BLOCK = 2;</code>
+     */
+    public static final int UFS_BLOCK_VALUE = 2;
 
 
     public final int getNumber() { return value; }
@@ -43,6 +51,7 @@ public final class Protocol {
       switch (value) {
         case 0: return ALLUXIO_BLOCK;
         case 1: return UFS_FILE;
+        case 2: return UFS_BLOCK;
         default: return null;
       }
     }
@@ -1962,6 +1971,24 @@ public final class Protocol {
      * <code>optional int64 session_id = 7;</code>
      */
     long getSessionId();
+
+    // optional bool no_cache = 8;
+    /**
+     * <code>optional bool no_cache = 8;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    boolean hasNoCache();
+    /**
+     * <code>optional bool no_cache = 8;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    boolean getNoCache();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.ReadRequest}
@@ -2057,6 +2084,11 @@ public final class Protocol {
             case 56: {
               bitField0_ |= 0x00000040;
               sessionId_ = input.readInt64();
+              break;
+            }
+            case 64: {
+              bitField0_ |= 0x00000080;
+              noCache_ = input.readBool();
               break;
             }
           }
@@ -2227,6 +2259,30 @@ public final class Protocol {
       return sessionId_;
     }
 
+    // optional bool no_cache = 8;
+    public static final int NO_CACHE_FIELD_NUMBER = 8;
+    private boolean noCache_;
+    /**
+     * <code>optional bool no_cache = 8;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    public boolean hasNoCache() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional bool no_cache = 8;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    public boolean getNoCache() {
+      return noCache_;
+    }
+
     private void initFields() {
       type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
@@ -2235,6 +2291,7 @@ public final class Protocol {
       cancel_ = false;
       lockId_ = 0L;
       sessionId_ = 0L;
+      noCache_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2268,6 +2325,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeInt64(7, sessionId_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeBool(8, noCache_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -2305,6 +2365,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(7, sessionId_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(8, noCache_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2440,6 +2504,8 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000020);
         sessionId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000040);
+        noCache_ = false;
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -2496,6 +2562,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000040;
         }
         result.sessionId_ = sessionId_;
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        result.noCache_ = noCache_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2532,6 +2602,9 @@ public final class Protocol {
         }
         if (other.hasSessionId()) {
           setSessionId(other.getSessionId());
+        }
+        if (other.hasNoCache()) {
+          setNoCache(other.getNoCache());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2822,6 +2895,55 @@ public final class Protocol {
       public Builder clearSessionId() {
         bitField0_ = (bitField0_ & ~0x00000040);
         sessionId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bool no_cache = 8;
+      private boolean noCache_ ;
+      /**
+       * <code>optional bool no_cache = 8;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public boolean hasNoCache() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional bool no_cache = 8;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public boolean getNoCache() {
+        return noCache_;
+      }
+      /**
+       * <code>optional bool no_cache = 8;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public Builder setNoCache(boolean value) {
+        bitField0_ |= 0x00000080;
+        noCache_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool no_cache = 8;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public Builder clearNoCache() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        noCache_ = false;
         onChanged();
         return this;
       }
@@ -5116,22 +5238,23 @@ public final class Protocol {
       "E_EXHAUSTED\020\010\022\027\n\023FAILED_PRECONDITION\020\t\022\013" +
       "\n\007ABORTED\020\n\022\020\n\014OUT_OF_RANGE\020\013\022\021\n\rUNIMPLE" +
       "MENTED\020\014\022\017\n\013UNAVAILABLE\020\016\022\r\n\tDATA_LOSS\020\017" +
-      "\022\016\n\nDO_NOT_USE\020\020\"\243\001\n\013ReadRequest\0223\n\004type" +
+      "\022\016\n\nDO_NOT_USE\020\020\"\265\001\n\013ReadRequest\0223\n\004type" +
       "\030\001 \001(\0162%.alluxio.proto.dataserver.Reques" +
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
-      "(\003\022\022\n\nsession_id\030\007 \001(\003\"\201\001\n\014WriteRequest\022" +
-      "3\n\004type\030\001 \001(\0162%.alluxio.proto.dataserver" +
-      ".RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003",
-      "\022\022\n\nsession_id\030\004 \001(\003\022\014\n\004tier\030\005 \001(\005\"<\n\010Re" +
-      "sponse\0220\n\006status\030\001 \001(\0132 .alluxio.proto.d" +
-      "ataserver.Status\"\020\n\016VersionRequest\"\205\001\n\017V" +
-      "ersionResponse\022@\n\007version\030\001 \001(\0162+.alluxi" +
-      "o.proto.dataserver.DataServerVersion:\002V1" +
-      "\0220\n\006status\030\002 \001(\0132 .alluxio.proto.dataser" +
-      "ver.Status*.\n\013RequestType\022\021\n\rALLUXIO_BLO" +
-      "CK\020\000\022\014\n\010UFS_FILE\020\001*#\n\021DataServerVersion\022" +
-      "\006\n\002V0\020\000\022\006\n\002V1\020\001"
+      "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
+      "\"\201\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
+      "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001",
+      "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
+      "\n\004tier\030\005 \001(\005\"<\n\010Response\0220\n\006status\030\001 \001(\013" +
+      "2 .alluxio.proto.dataserver.Status\"\020\n\016Ve" +
+      "rsionRequest\"\205\001\n\017VersionResponse\022@\n\007vers" +
+      "ion\030\001 \001(\0162+.alluxio.proto.dataserver.Dat" +
+      "aServerVersion:\002V1\0220\n\006status\030\002 \001(\0132 .all" +
+      "uxio.proto.dataserver.Status*=\n\013RequestT" +
+      "ype\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\t" +
+      "UFS_BLOCK\020\002*#\n\021DataServerVersion\022\006\n\002V0\020\000" +
+      "\022\006\n\002V1\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5155,7 +5278,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "Length", "Cancel", "LockId", "SessionId", });
+              new java.lang.String[] { "Type", "Id", "Offset", "Length", "Cancel", "LockId", "SessionId", "NoCache", });
           internal_static_alluxio_proto_dataserver_WriteRequest_descriptor =
             getDescriptor().getMessageTypes().get(3);
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new

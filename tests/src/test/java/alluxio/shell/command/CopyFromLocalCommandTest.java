@@ -277,7 +277,8 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     fos.close();
     mFsShell.run("copyFromLocal", testFile.getAbsolutePath(), "/testFile");
     Assert.assertEquals(
-        getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"}),
+        getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(),
+            "/testFile"}),
         mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);

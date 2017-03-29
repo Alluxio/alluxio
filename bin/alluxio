@@ -164,7 +164,7 @@ function runJavaClass {
           *) CLASS_ARGS+=" ${arg}"
       esac
   done
-  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} ${CLASS_ARGS}
+  "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} ${CLASS_ARGS}
 }
 
 function main {
@@ -196,7 +196,6 @@ function main {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   PARAMETER=""
-  ALLUXIO_SHELL_JAVA_OPTS=""
 
   case ${COMMAND} in
   "format")

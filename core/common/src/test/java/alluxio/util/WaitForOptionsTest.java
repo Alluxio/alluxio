@@ -18,7 +18,7 @@ import org.junit.Test;
 
 import java.util.Random;
 
-public class WaitForOptionsTest {
+public final class WaitForOptionsTest {
   @Test
   public void defaults() {
     WaitForOptions options = WaitForOptions.defaults();

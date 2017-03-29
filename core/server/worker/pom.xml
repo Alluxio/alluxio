@@ -77,14 +77,27 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
-  <repositories>
-    <repository>
-      <id>miredot</id>
-      <name>MireDot Releases</name>
-      <url>http://nexus.qmino.com/content/repositories/miredot</url>
-    </repository>
-  </repositories>
-
+  <build>
+    <plugins>
+      <!-- REST API documentation -->
+      <plugin>
+        <groupId>com.qmino</groupId>
+        <artifactId>miredot-plugin</artifactId>
+        <configuration>
+          <!-- This following license only works for groupId org.alluxio and artifactId alluxio-core-server-worker -->
+          <license>
+            cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyLXdvcmtlcnwyMDE5LTAzLTMxfHRydWV8LTEjTUN3Q0ZHdEUzWjV6TlhPdkY2SXM3c3BWK3hGekhCZ0dBaFF6am5MdWJhSVNLRFBmSXhEV0FiN1V0VFd2U1E9PQ==
+          </license>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

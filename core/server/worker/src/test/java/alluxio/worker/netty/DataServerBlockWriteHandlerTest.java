@@ -32,6 +32,9 @@ import org.mockito.Mockito;
 
 import java.util.Random;
 
+/**
+ * Unit tests for {@link DataServerBlockWriteHandler}.
+ */
 public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 

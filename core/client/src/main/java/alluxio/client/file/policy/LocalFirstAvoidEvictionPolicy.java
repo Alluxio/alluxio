@@ -14,6 +14,8 @@ package alluxio.client.file.policy;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -31,9 +33,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES is used to reserve some space of the worker
  * to store the block, for the values mCapacityBytes minus mUsedBytes is not the available bytes.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPolicy {
+public final class LocalFirstAvoidEvictionPolicy
+    implements FileWriteLocationPolicy, BlockLocationPolicy {
   private String mLocalHostName;
+
   /**
    * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
    */
@@ -67,6 +72,11 @@ public final class LocalFirstAvoidEvictionPolicy implements FileWriteLocationPol
       return shuffledWorkers.get(0).getNetAddress();
     }
     return localWorkerNetAddress;
+  }
+
+  @Override
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   /**

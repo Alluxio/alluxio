@@ -30,7 +30,7 @@ import java.util.Random;
 /**
  * Tests for the {@link CreateFileOptions} class.
  */
-public class CreateFileOptionsTest {
+public final class CreateFileOptionsTest {
   private final long mDefaultBlockSizeBytes = Configuration.getBytes(
       PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   private final int mDefaultWriteTier =

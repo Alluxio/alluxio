@@ -11,8 +11,6 @@
 
 package alluxio.client;
 
-import alluxio.annotation.PublicApi;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -24,7 +22,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * the number of bytes written to the output stream, and extends {@link Cancelable} to abort the
  * writes.
  */
-@PublicApi
 @NotThreadSafe
 public abstract class AbstractOutStream extends OutputStream implements Cancelable {
   // TODO(binfan): make mBytesWritten long so we could make offset > 2GB. This

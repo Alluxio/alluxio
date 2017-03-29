@@ -326,7 +326,7 @@ public abstract class AbstractJournalFormatterTest {
    */
   protected JournalEntry read() throws IOException {
     JournalInputStream jis = mFormatter.deserialize(mIs);
-    JournalEntry entry = jis.getNextEntry();
+    JournalEntry entry = jis.read();
     Assert.assertEquals(TEST_SEQUENCE_NUMBER, jis.getLatestSequenceNumber());
     return entry;
   }

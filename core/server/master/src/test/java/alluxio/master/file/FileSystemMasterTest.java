@@ -16,6 +16,7 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -27,6 +28,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
@@ -41,8 +43,8 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -71,6 +73,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -113,6 +116,9 @@ public final class FileSystemMasterTest {
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
 
+  @Rule
+  public LoginUserRule mLoginUser = new LoginUserRule(TEST_USER);
+
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.MASTER_LOST_FILES_DETECTION);
@@ -126,9 +132,7 @@ public final class FileSystemMasterTest {
    */
   @Before
   public void before() throws Exception {
-    LoginUserTestUtils.resetLoginUser();
     GroupMappingServiceTestUtils.resetCache();
-    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
     // Set umask "000" to make default directory permission 0777 and default file permission 0666.
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
@@ -1562,11 +1566,12 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(mJournalFolder);
-    mBlockMaster = new BlockMaster(journalFactory);
+    MasterRegistry registry = new MasterRegistry();
+    JournalFactory factory = new MutableJournal.Factory(new URI(mJournalFolder));
+    mBlockMaster = new BlockMaster(registry, factory);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory,
+    mFileSystemMaster = new FileSystemMaster(registry, factory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
     mBlockMaster.start(true);

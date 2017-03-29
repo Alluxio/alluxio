@@ -96,7 +96,7 @@ public final class StreamFactory {
     if (PACKET_STREAMING_ENABLED) {
       return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
     } else {
-      return new alluxio.client.block.LocalBlockInStream(blockId, blockSize, address, context,
+      return alluxio.client.block.LocalBlockInStream.create(blockId, blockSize, address, context,
           options);
     }
   }
@@ -117,8 +117,36 @@ public final class StreamFactory {
     if (PACKET_STREAMING_ENABLED) {
       return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);
     } else {
-      return new alluxio.client.block.RemoteBlockInStream(blockId, blockSize, address, context,
+      return alluxio.client.block.RemoteBlockInStream.create(blockId, blockSize, address, context,
           options);
+    }
+  }
+
+  /**
+   * Creates an {@link InputStream} to read a block from UFS if that block is in UFS but not in
+   * Alluxio. If the block is cached to Alluxio while it attempts to create the {@link InputStream}
+   * that reads from UFS, it returns an {@link InputStream} that reads from Aluxio instead.
+   *
+   * @param context the file system context
+   * @param ufsPath the UFS path
+   * @param blockId the block ID
+   * @param blockSize the block size
+   * @param blockStart the start position of the block in the UFS file
+   * @param address the worker network address
+   * @param options the in stream options
+   * @return the input stream
+   * @throws IOException if it fails to create the input stream
+   */
+  public static InputStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
+      long blockId, long blockSize, long blockStart, WorkerNetAddress address,
+      InStreamOptions options) throws IOException {
+    if (PACKET_STREAMING_ENABLED) {
+      return BlockInStream
+          .createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart, address,
+              options);
+    } else {
+      return alluxio.client.block.UnderFileSystemBlockInStream
+          .create(context, ufsPath, blockId, blockSize, blockStart, address, options);
     }
   }
 }

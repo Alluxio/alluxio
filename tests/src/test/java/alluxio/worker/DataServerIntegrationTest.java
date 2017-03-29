@@ -21,6 +21,7 @@ import alluxio.client.RemoteBlockReader;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -213,7 +214,9 @@ public class DataServerIntegrationTest {
 
   private ByteBuffer readRemotely(RemoteBlockReader client, BlockInfo block, int length)
       throws IOException, AlluxioException {
-    long lockId = mBlockWorkerClient.lockBlock(block.getBlockId()).getLockId();
+    long lockId =
+        mBlockWorkerClient.lockBlock(block.getBlockId(), LockBlockOptions.defaults()).getResult()
+            .getLockId();
     try {
       return client.readRemoteBlock(
           new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
@@ -290,7 +293,9 @@ public class DataServerIntegrationTest {
    */
   private DataServerMessage request(final BlockInfo block, final long offset, final long length)
       throws IOException, AlluxioException {
-    long lockId = mBlockWorkerClient.lockBlock(block.getBlockId()).getLockId();
+    long lockId =
+        mBlockWorkerClient.lockBlock(block.getBlockId(), LockBlockOptions.defaults()).getResult()
+            .getLockId();
 
     SocketChannel socketChannel = null;
 

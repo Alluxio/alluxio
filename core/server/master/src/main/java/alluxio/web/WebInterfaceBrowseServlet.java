@@ -25,6 +25,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AlluxioMasterService;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -109,13 +111,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       fileData = "The requested file is not complete yet.";
     }
     List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
-    for (FileBlockInfo fileBlockInfo : mMaster.getFileSystemMaster().getFileBlockInfoList(path)) {
+    for (FileBlockInfo fileBlockInfo : mMaster.getMaster(FileSystemMaster.class)
+        .getFileBlockInfoList(path)) {
       uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
-    request.setAttribute("highestTierAlias", mMaster.getBlockMaster().getGlobalStorageTierAssoc()
-        .getAlias(0));
+    request.setAttribute("highestTierAlias",
+        mMaster.getMaster(BlockMaster.class).getGlobalStorageTierAssoc().getAlias(0));
   }
 
   /**
@@ -148,10 +151,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     AlluxioURI currentPath = new AlluxioURI(requestPath);
     request.setAttribute("currentPath", currentPath.toString());
     request.setAttribute("viewingOffset", 0);
+    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
 
     try {
-      long fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
-      FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
+      long fileId = fileSystemMaster.getFileId(currentPath);
+      FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
       UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
       if (currentFileInfo.getAbsolutePath() == null) {
         throw new FileDoesNotExistException(currentPath.toString());
@@ -192,7 +196,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         return;
       }
       setPathDirectories(currentPath, request);
-      filesInfo = mMaster.getFileSystemMaster().listStatus(currentPath,
+      filesInfo = fileSystemMaster.listStatus(currentPath,
           ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
     } catch (FileDoesNotExistException e) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
@@ -220,8 +224,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
-              mMaster.getFileSystemMaster()
-                  .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
+              fileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
           List<String> locations = new ArrayList<>();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
@@ -295,6 +298,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void setPathDirectories(AlluxioURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UIFileInfo[0]);
       return;
@@ -303,12 +307,12 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     String[] splitPath = PathUtils.getPathComponents(path.toString());
     UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
     AlluxioURI currentPath = new AlluxioURI(AlluxioURI.SEPARATOR);
-    long fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
-    pathInfos[0] = new UIFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
+    long fileId = fileSystemMaster.getFileId(currentPath);
+    pathInfos[0] = new UIFileInfo(fileSystemMaster.getFileInfo(fileId));
     for (int i = 1; i < splitPath.length - 1; i++) {
       currentPath = currentPath.join(splitPath[i]);
-      fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
-      pathInfos[i] = new UIFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
+      fileId = fileSystemMaster.getFileId(currentPath);
+      pathInfos[i] = new UIFileInfo(fileSystemMaster.getFileInfo(fileId));
     }
     request.setAttribute("pathInfos", pathInfos);
   }

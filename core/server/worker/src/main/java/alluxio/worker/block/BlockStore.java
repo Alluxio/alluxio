@@ -36,10 +36,21 @@ interface BlockStore extends ISessionCleanup {
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return the lock id if the lock is acquired successfully
+   * @return the lock id (non-negative) if the lock is acquired successfully
    * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
    */
   long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+
+  /**
+   * Locks an existing block and guards subsequent reads on this block. If the lock fails, return
+   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   *
+   * @param sessionId the id of the session to lock this block
+   * @param blockId the id of the block to lock
+   * @return the lock id (non-negative) that uniquely identifies the lock obtained or
+   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   */
+  long lockBlockNoException(long sessionId, long blockId);
 
   /**
    * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
@@ -55,15 +66,14 @@ interface BlockStore extends ISessionCleanup {
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
+   * @return false if it fails to unlock due to the lock is not found
    */
-  void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  boolean unlockBlock(long sessionId, long blockId);
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
-   * location named after session id) to store its data. This method only creates meta
-   * data but adds NO data to this temporary location. The location can be a location with specific
-   * tier and dir, or {@link BlockStoreLocation#anyTier()}, or
+   * location named after session id) to store its data. The location can be a location with
+   * specific tier and dir, or {@link BlockStoreLocation#anyTier()}, or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
    * <p>
    * Before commit, all the data written to this block will be stored in the temp path and the block
@@ -80,7 +90,7 @@ interface BlockStore extends ISessionCleanup {
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    */
-  TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
+  TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
       IOException;
 
@@ -112,6 +122,15 @@ interface BlockStore extends ISessionCleanup {
    */
   BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException;
+
+  /**
+   * Gets the temp metadata of a specific block from local storage.
+   *
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   * @return metadata of the block or null if the temp block does not exist
+   */
+  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
@@ -169,9 +188,12 @@ interface BlockStore extends ISessionCleanup {
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
    * @throws BlockDoesNotExistException if the block can not be found
+   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
+   * @throws InvalidWorkerStateException if the worker state is invalid
    * @throws IOException if block can not be created
    */
-  BlockWriter getBlockWriter(long sessionId, long blockId) throws BlockDoesNotExistException,
+  BlockWriter getBlockWriter(long sessionId, long blockId)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
   /**
