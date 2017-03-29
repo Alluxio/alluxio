@@ -13,6 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalFormatter;
 import alluxio.master.journal.JournalOutputStream;
@@ -351,9 +352,8 @@ public final class UfsJournalWriter implements JournalWriter {
             mDataOutputStream);
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
-        throw new IOException(String
-            .format("Failed to write journal file %s. Please ensure there is enough space left: %s",
-                mCurrentLog, e.getMessage()), e);
+        throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mCurrentLog, e.getMessage()), e);
       }
     }
 
@@ -387,9 +387,8 @@ public final class UfsJournalWriter implements JournalWriter {
         }
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
-        throw new IOException(String
-            .format("Failed to flush journal file %s. Please ensure there is enough space left: %s",
-                mCurrentLog, e.getMessage()), e);
+        throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mCurrentLog, e.getMessage()), e);
       }
       boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
       if (overSize || !mUfs.supportsFlush()) {
