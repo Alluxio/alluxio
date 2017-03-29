@@ -13,6 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterCreateOptions;
@@ -143,7 +144,9 @@ public final class UfsJournalLogWriter implements JournalWriter {
           .writeDelimitedTo(mJournalOutputStream.mOutputStream);
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
-      throw e;
+      throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+              mJournalOutputStream.mCurrentLog, e.getMessage()), e);
     }
     mNextSequenceNumber++;
   }
@@ -191,7 +194,9 @@ public final class UfsJournalLogWriter implements JournalWriter {
       }
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
-      throw e;
+      throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+              mJournalOutputStream.mCurrentLog, e.getMessage()), e);
     }
     boolean overSize = mJournalOutputStream.bytesWritten() >= mMaxLogSize;
     if (overSize || !mJournal.getUfs().supportsFlush()) {
