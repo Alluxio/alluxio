@@ -15,6 +15,7 @@ import alluxio.SystemPropertyRule;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 
@@ -37,7 +38,7 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Test
-  public void copyToLocalDir() throws IOException, AlluxioException {
+  public void copyToLocalDir() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", testDir, mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
@@ -46,6 +47,19 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
     fileReadTest("/testDir/foo/foobar2", 20);
     fileReadTest("/testDir/bar/foobar3", 30);
     fileReadTest("/testDir/foobar4", 40);
+    mOutput.reset();
+    
+    //Test relative path
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      File localDir = mTestFolder.newFolder("localDir");
+      localDir.mkdir();
+      mFsShell.run("copyToLocal", "/testFile", "localDir");
+      Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
+              + "/localDir/testFile" + "\n", mOutput.toString());
+    }
   }
 
   @Test
@@ -119,14 +133,6 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
       mFsShell.run("copyToLocal", "/testFile", "./testFile");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
               + "/testFile" + "\n", mOutput.toString());
-      mOutput.reset();
-
-      // Copy to inside directory
-      File testDir = mTestFolder.newFolder("testDir");
-      testDir.mkdir();
-      mFsShell.run("copyToLocal", "/testFile", "testDir");
-      Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
-              + "/testDir/testFile" + "\n", mOutput.toString());
     }
   }
 }
