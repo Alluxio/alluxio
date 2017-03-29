@@ -37,7 +37,7 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Test
-  public void copyToLocalDir() throws Exception {
+  public void copyToLocalDir() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", testDir, mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
@@ -46,8 +46,10 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
     fileReadTest("/testDir/foo/foobar2", 20);
     fileReadTest("/testDir/bar/foobar3", 30);
     fileReadTest("/testDir/foobar4", 40);
-    mOutput.reset();
-    //Test relative path
+  }
+
+  @Test
+  public void copyToLocalRelativePathDir() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
