@@ -129,6 +129,15 @@ public abstract class AbstractAlluxioShellTest {
     return testFile;
   }
 
+  /**
+   * Creates file by given the temporary path and writes content to file.
+   *
+   * @param path the file path
+   * @param toWrite the file content
+   * @return the created file instance
+   * @throws IOException if error happens during writing to file
+   * @throws FileNotFoundException if file not found
+   */
   protected File generateRelativeFileContent(String path, byte[] toWrite) throws IOException,
       FileNotFoundException {
     File testFile = new File(path);

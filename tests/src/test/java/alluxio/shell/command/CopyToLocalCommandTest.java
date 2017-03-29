@@ -110,8 +110,6 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyToLocalRelativePath() throws Exception {
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
-    // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
-    // site-properties file
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
       mFsShell.run("copyToLocal", "/testFile", ".");
@@ -121,6 +119,14 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
       mFsShell.run("copyToLocal", "/testFile", "./testFile");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
               + "/testFile" + "\n", mOutput.toString());
+      mOutput.reset();
+
+      // Copy to inside directory
+      File testDir = mTestFolder.newFolder("testDir");
+      testDir.mkdir();
+      mFsShell.run("copyToLocal", "/testFile", "testDir");
+      Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
+              + "/testDir/testFile" + "\n", mOutput.toString());
     }
   }
 }

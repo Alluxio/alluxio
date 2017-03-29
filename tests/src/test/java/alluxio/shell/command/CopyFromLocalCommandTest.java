@@ -420,8 +420,6 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyFromLocalRelativePath() throws Exception {
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
-    // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
-    // site-properties file
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       File localDir = mTestFolder.newFolder("testDir");
       generateRelativeFileContent(localDir.getPath() + "/testFile",
