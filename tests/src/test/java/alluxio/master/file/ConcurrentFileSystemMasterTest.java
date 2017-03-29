@@ -244,7 +244,7 @@ public class ConcurrentFileSystemMasterTest {
     for (int i = 0; i < numThreads; i++) {
       if (i % 3 == 0) {
         paths[i] = dir1.join("/file" + i);
-      } if (i % 3 == 1) {
+      } else if (i % 3 == 1) {
         paths[i] = dir2.join("/file" + i);
       } else {
         paths[i] = dir3.join("/file" + i);
