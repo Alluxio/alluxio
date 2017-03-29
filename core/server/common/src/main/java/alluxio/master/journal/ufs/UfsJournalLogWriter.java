@@ -35,24 +35,37 @@ import java.net.URI;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link JournalWriter} based on UFS.
+ * Implementation of {@link JournalWriter} that writes journal edit log entries by the primary
+ * master. It marks the current log complete (so that it is visible to the secondary masters) when
+ * the current log is large enough.
+ *
+ * When a new journal writer is created, it also marks the current log complete if there is one.
+ *
+ * A journal garbage collector thread is created when the writer is created, and is stopped when
+ * the writer is closed.
  */
 @ThreadSafe
-public final class UfsJournalLogWriter implements JournalWriter {
+final class UfsJournalLogWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalLogWriter.class);
 
   private final UfsJournal mJournal;
+  /** The maximum size in bytes of a log file. */
   private final long mMaxLogSize;
 
+  /** The next sequence number to use. */
   private long mNextSequenceNumber;
-  /**
-   * When mRotateForNextWrite is set to true, mJournalOutputStream must be closed
-   * cleared before the next write.
-   */
+  /** When mRotateForNextWrite is set, mJournalOutputStream must be closed before the next write. */
   private boolean mRotateLogForNextWrite;
+  /** The output stream to write the journal log entries. */
   private JournalOutputStream mJournalOutputStream;
+  /** The garbage collector. */
   private UfsJournalGarbageCollector mGarbageCollector;
+  /** Whether the journal log writer is closed. */
+  private boolean mClosed;
 
+  /**
+   * A simple wrapper that wraps a output stream to the current log file.
+   */
   private class JournalOutputStream implements Closeable {
     final DataOutputStream mOutputStream;
     final UfsJournalFile mCurrentLog;
@@ -66,6 +79,9 @@ public final class UfsJournalLogWriter implements JournalWriter {
       mCurrentLog = currentLog;
     }
 
+    /**
+     * @return the number of bytes written to this stream
+     */
     long bytesWritten() {
       return mOutputStream.size();
     }
@@ -98,9 +114,9 @@ public final class UfsJournalLogWriter implements JournalWriter {
         return;
       }
 
-      String dst =
-          mJournal.getCheckpointOrLogFileLocation(mCurrentLog.getStart(), mNextSequenceNumber, false)
-              .toString();
+      String dst = mJournal
+          .encodeCheckpointOrLogFileLocation(mCurrentLog.getStart(), mNextSequenceNumber, false)
+          .toString();
       if (mJournal.getUfs().exists(dst)) {
         LOG.warn("Deleting duplicate completed log {}.", dst);
         // The dst can exist because of a master failure during commit. This can only happen
@@ -112,12 +128,12 @@ public final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
-  private boolean mClosed;
-
   /**
    * Creates a new instance of {@link UfsJournalLogWriter}.
    *
    * @param journal the handle to the journal
+   * @param options the optionsto create the journal log writer
+   * @throws IOException if any I/O exceptions occur
    */
   UfsJournalLogWriter(UfsJournal journal, JournalWriterCreateOptions options) throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
@@ -153,7 +169,6 @@ public final class UfsJournalLogWriter implements JournalWriter {
 
   /**
    * Closes the current journal output stream and creates a new one.
-   *
    * The implementation must be idempotent so that it can work when retrying during failures.
    *
    * @throws IOException if an IO exception occurs during the log rotation
@@ -165,14 +180,14 @@ public final class UfsJournalLogWriter implements JournalWriter {
     mJournalOutputStream = null;
 
     URI new_log = mJournal
-        .getCheckpointOrLogFileLocation(mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
+        .encodeCheckpointOrLogFileLocation(mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
             false  /* is_checkpoint */);
-    UfsJournalFile currentLog =
-        UfsJournalFile.createLog(new_log, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
+    UfsJournalFile currentLog = UfsJournalFile
+        .createLogFile(new_log, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     OutputStream outputStream = mJournal.getUfs().create(currentLog.getLocation().toString(),
         CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
     mJournalOutputStream = new JournalOutputStream(currentLog, outputStream);
-    LOG.info("Opened current log file: {}", currentLog);
+    LOG.info("Created current log file: {}", currentLog);
     mRotateLogForNextWrite = false;
   }
 

@@ -35,30 +35,37 @@ import java.util.Queue;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Implementation of {@link JournalReader} based on UFS.
+ * Implementation of {@link JournalReader} that reads journal entries from a UFS. It can optionally
+ * read after a given sequence number. By default, it starts from 0 sequence number.
+ * If this reader runs in a primary master, it reads the incomplete log.
+ * If this reader runs in a secondary master, it does not read the incomplete log.
  */
 @NotThreadSafe
-public class UfsJournalReader implements JournalReader {
+class UfsJournalReader implements JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalReader.class);
 
   private final UfsJournal mJournal;
+  /** Whether the reader runs in a primary master. */
   private final boolean mPrimary;
   private final long mCheckpointPeriodEntries;
-
   /**
    * The next edit log sequence number to read. This is not incremented when reading from
-   * checkpoint.
+   * the checkpoint.
    */
   private long mNextSequenceNumber;
-
+  /** The input stream to read the journal entries. */
   private JournalInputStream mInputStream;
-
+  /** A queue of files to be processed including checkpoint and logs. */
   private final Queue<UfsJournalFile> mFilesToProcess;
-
+  /** Buffer used to read from the file. */
   private final byte[] mBuffer = new byte[1024];
 
+  /** Whether the reader is closed. */
   private boolean mClosed;
 
+  /**
+   * A simple wrapper that wraps the journal file and the input stream.
+   */
   private class JournalInputStream implements Closeable {
     final UfsJournalFile mFile;
     /** The input stream that reads from a file. */
@@ -69,10 +76,14 @@ public class UfsJournalReader implements JournalReader {
       mStream = mJournal.getUfs().open(file.getLocation().toString());
     }
 
+    /**
+     * @return whether we have finished reading the current file
+     */
     boolean isDone() {
       return mFile.getEnd() == mNextSequenceNumber;
     }
 
+    @Override
     public void close() throws IOException {
       mStream.close();
     }
@@ -147,10 +158,11 @@ public class UfsJournalReader implements JournalReader {
   }
 
   /**
-   * Reads an entry without checking sequence number. It does not mutate sequence number.
-   * @return
-   * @throws IOException
-   * @throws InvalidJournalEntryException
+   * The real read implementation that reads a journal entry from a journal file.
+   *
+   * @return the journal entry, null if no journal entry is found
+   * @throws IOException if any I/O errors occur
+   * @throws InvalidJournalEntryException if the journal entry found is invalid
    */
   private Journal.JournalEntry readInternal() throws IOException, InvalidJournalEntryException {
     updateInputStream();
@@ -212,6 +224,10 @@ public class UfsJournalReader implements JournalReader {
     return entry;
   }
 
+  /**
+   * Updates the journal input stream by closing the current journal input stream if it is done and
+   * opening a new one.
+   */
   private void updateInputStream() throws IOException {
     if (mInputStream != null && mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone()) {
       return;

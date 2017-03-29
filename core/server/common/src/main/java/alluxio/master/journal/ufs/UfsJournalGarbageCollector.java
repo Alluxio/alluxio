@@ -15,10 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalWriter;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +32,9 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link JournalWriter} based on UFS.
+ * A garbage collector that periodically snapshots the journal and deletes files that are not
+ * necessary anymore. The implementation guarantees that the journal contains all the information
+ * required to recover the master full state.
  */
 @ThreadSafe
 final class UfsJournalGarbageCollector implements Closeable {
@@ -42,14 +42,16 @@ final class UfsJournalGarbageCollector implements Closeable {
 
   private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor(
       ThreadFactoryUtils.build("UfsJournalGarbageCollector-%d", true));
-
   private UfsJournal mJournal;
-
   private ScheduledFuture<?> mGc;
 
+  /**
+   * Creates the {@link UfsJournalGarbageCollector} instance.
+   *
+   * @param journal the UFS journal handle
+   */
   UfsJournalGarbageCollector(UfsJournal journal) {
     mJournal = journal;
-
     mGc = mExecutor.scheduleAtFixedRate(new Runnable() {
           @Override
           public void run() {
@@ -67,6 +69,9 @@ final class UfsJournalGarbageCollector implements Closeable {
     }
   }
 
+  /**
+   * Snapshots the journal and deletes files that are not necessary.
+   */
   private void gc() {
     UfsJournal.Snapshot snapshot;
     try {
@@ -75,12 +80,12 @@ final class UfsJournalGarbageCollector implements Closeable {
       LOG.warn("Failed to get journal snapshot with error {}.", e.getMessage());
       return;
     }
-    long nextCheckpointSequenceNumber = 0;
+    long checkpointSequenceNumber = 0;
 
     // Checkpoint.
     List<UfsJournalFile> checkpoints = snapshot.mCheckpoints;
     if (!checkpoints.isEmpty()) {
-      nextCheckpointSequenceNumber = checkpoints.get(checkpoints.size() - 1).getEnd();
+      checkpointSequenceNumber = checkpoints.get(checkpoints.size() - 1).getEnd();
     }
     for (int i = 0; i < checkpoints.size() - 1; ++i) {
       // Only keep at most 2 checkpoints.
@@ -88,20 +93,26 @@ final class UfsJournalGarbageCollector implements Closeable {
         deleteNoException(checkpoints.get(i).getLocation());
       }
       // For the the second last checkpoint. Check whether it has been there for a long time.
-      maybeGc(checkpoints.get(i), nextCheckpointSequenceNumber);
+      maybeGc(checkpoints.get(i), checkpointSequenceNumber);
     }
 
     for (UfsJournalFile log : snapshot.mLogs) {
-      maybeGc(log, nextCheckpointSequenceNumber);
+      maybeGc(log, checkpointSequenceNumber);
     }
 
     for (UfsJournalFile tmpCheckpoint : snapshot.mTemporaryCheckpoints) {
-      maybeGc(tmpCheckpoint, nextCheckpointSequenceNumber);
+      maybeGc(tmpCheckpoint, checkpointSequenceNumber);
     }
   }
 
-  private void maybeGc(UfsJournalFile file, long nextCheckpointSequenceNumber) {
-    if (file.getEnd() > nextCheckpointSequenceNumber && !file.isTmpCheckpoint()) {
+  /**
+   * Garbage collects a file if necessary.
+   *
+   * @param file the file
+   * @param checkpointSequenceNumber the first sequence number that has not been checkpointed
+   */
+  private void maybeGc(UfsJournalFile file, long checkpointSequenceNumber) {
+    if (file.getEnd() > checkpointSequenceNumber && !file.isTmpCheckpoint()) {
       return;
     }
 
@@ -122,6 +133,11 @@ final class UfsJournalGarbageCollector implements Closeable {
     }
   }
 
+  /**
+   * Deletes a file and swallows the exception by logging it.
+   *
+   * @param location the file location
+   */
   void deleteNoException(URI location) {
     try {
       mJournal.getUfs().deleteFile(location.toString());

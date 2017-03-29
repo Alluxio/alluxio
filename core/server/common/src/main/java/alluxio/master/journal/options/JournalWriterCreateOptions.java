@@ -11,29 +11,51 @@
 
 package alluxio.master.journal.options;
 
+/**
+ * Options to create a {@link alluxio.master.journal.JournalWriter}.
+ */
 public class JournalWriterCreateOptions {
+  /** The first journal log entry sequence number to write. */
   private long mNextSequenceNumber;
+  /** Whether this is a primary master. */
   private boolean mPrimary;
 
   private JournalWriterCreateOptions() {} // prevent instantiation
 
+  /**
+   * @return the default options
+   */
   public static JournalWriterCreateOptions defaults() {
     return new JournalWriterCreateOptions();
   }
 
+  /**
+   * @return the next sequence number
+   */
   public long getNextSequenceNumber() {
     return mNextSequenceNumber;
   }
 
+  /**
+   * @return whether it is a primary master
+   */
   public boolean getPrimary() {
     return mPrimary;
   }
 
+  /**
+   * @param nextSequenceNumber the next sequence number
+   * @return the updated options
+   */
   public JournalWriterCreateOptions setNextSequenceNumber(long nextSequenceNumber) {
     mNextSequenceNumber = nextSequenceNumber;
     return this;
   }
 
+  /**
+   * @param primary whether it is primary master
+   * @return the updated options
+   */
   public JournalWriterCreateOptions setPrimary(boolean primary) {
     mPrimary = primary;
     return this;

@@ -24,43 +24,55 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Implementation of {@link JournalWriter} based on UFS.
+ * Implementation of {@link JournalWriter} that writes checkpoint to a UFS. The secondary masters
+ * uses this to periodically create new checkpoints.
+ *
+ * It first writes checkpoint to a temporary location. After it is done with writing the temporary
+ * checkpoint, commit it by renaming the temporary checkpoint to the final location. If the same
+ * checkpoint has already been created by another secondary master, the checkpoint is aborted.
  */
-@ThreadSafe
-public final class UfsJournalCheckpointWriter implements JournalWriter {
+@NotThreadSafe
+final class UfsJournalCheckpointWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalCheckpointWriter.class);
 
   private final UfsJournal mJournal;
 
+  /** The checkpoint file to be committed to. */
   private final UfsJournalFile mCheckpointFile;
-  private final OutputStream mTmpCheckpointStream;
+  /** The location for the temporary checkpoint. */
   private final URI mTmpCheckpointFileLocation;
+  /** The output stream to the temporary checkpoint file. */
+  private final OutputStream mTmpCheckpointStream;
 
+  /** The sequence number for the next journal entry to be written to the checkpoint. */
   private long mNextSequenceNumber;
 
+  /** Whether this journal writer is closed. */
   private boolean mClosed;
 
   /**
    * Creates a new instance of {@link UfsJournalCheckpointWriter}.
    *
    * @param journal the handle to the journal
+   * @param options the options to create the journal writer
+   * @throws IOException if any I/O errors occur
    */
   UfsJournalCheckpointWriter(UfsJournal journal, JournalWriterCreateOptions options)
       throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
 
-    mTmpCheckpointFileLocation = mJournal.getTemporaryCheckpointFileLocation();
+    mTmpCheckpointFileLocation = mJournal.encodeTemporaryCheckpointFileLocation();
     mTmpCheckpointStream = mJournal.getUfs().create(mTmpCheckpointFileLocation.toString());
     mCheckpointFile = UfsJournalFile.createCheckpointFile(
-        mJournal.getCheckpointOrLogFileLocation(0, options.getNextSequenceNumber(), true),
+        mJournal.encodeCheckpointOrLogFileLocation(0, options.getNextSequenceNumber(), true),
         options.getNextSequenceNumber());
   }
 
   @Override
-  public synchronized void write(JournalEntry entry) throws IOException {
+  public void write(JournalEntry entry) throws IOException {
     if (mClosed) {
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
     }
@@ -74,12 +86,12 @@ public final class UfsJournalCheckpointWriter implements JournalWriter {
   }
 
   @Override
-  public synchronized void flush() throws IOException {
+  public void flush() throws IOException {
     throw new UnsupportedOperationException("UfsJournalCheckpointWriter#flush is not supported.");
   }
 
   @Override
-  public synchronized void close() throws IOException {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -116,7 +128,7 @@ public final class UfsJournalCheckpointWriter implements JournalWriter {
   }
 
   @Override
-  public synchronized void cancel() throws IOException {
+  public void cancel() throws IOException {
     if (mClosed) {
       return;
     }
