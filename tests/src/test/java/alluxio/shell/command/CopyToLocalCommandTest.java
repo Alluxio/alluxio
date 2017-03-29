@@ -15,7 +15,6 @@ import alluxio.SystemPropertyRule;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 
@@ -48,7 +47,6 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
     fileReadTest("/testDir/bar/foobar3", 30);
     fileReadTest("/testDir/foobar4", 40);
     mOutput.reset();
-    
     //Test relative path
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     HashMap<String, String> sysProps = new HashMap<>();
