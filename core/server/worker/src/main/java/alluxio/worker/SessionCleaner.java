@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.Sessions;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
@@ -30,9 +31,11 @@ public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(SessionCleaner.class);
 
   /** The object which supports cleaning up sessions. */
-  private final SessionCleanupCallback mSessionCleanupCallback;
+  private final Sessions mSessions;
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
+
+  private final ISessionCleanup mSessionCleanup;
 
   /** Flag to indicate if the checking should continue. */
   private volatile boolean mRunning;
@@ -40,10 +43,11 @@ public final class SessionCleaner implements Runnable {
   /**
    * Creates a new instance of {@link SessionCleaner}.
    *
-   * @param sessionCleanupCallback the session clean up callback which will periodically be invoked
+   * @param sessions the session clean up callback which will periodically be invoked
    */
-  public SessionCleaner(SessionCleanupCallback sessionCleanupCallback) {
-    mSessionCleanupCallback = sessionCleanupCallback;
+  public SessionCleaner(Sessions sessions, ISessionCleanup sessionCleanup) {
+    mSessions = sessions;
+    mSessionCleanup = sessionCleanup;
     mCheckIntervalMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
@@ -67,7 +71,10 @@ public final class SessionCleaner implements Runnable {
 
       // Check if any sessions have become zombies, if so clean them up
       lastCheckMs = System.currentTimeMillis();
-      mSessionCleanupCallback.cleanupSessions();
+      for (long session : mSessions.getTimedOutSessions()) {
+        mSessions.removeSession(session);
+        mSessionCleanup.cleanupSession(session);
+      }
     }
   }
 
