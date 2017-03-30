@@ -554,7 +554,13 @@ public final class CpCommand extends AbstractShellCommand {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
-    File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
+    File outputFile;
+    if (dstFile.isDirectory()) {
+      outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(), srcPath.getName()));
+    } else {
+      outputFile = dstFile;
+    }
+    File tmpDst = new File(outputFile.getPath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
@@ -566,11 +572,11 @@ public final class CpCommand extends AbstractShellCommand {
         out.write(buf, 0, t);
         t = is.read(buf);
       }
-      if (!tmpDst.renameTo(dstFile)) {
+      if (!tmpDst.renameTo(outputFile)) {
         throw new IOException(
-            "Failed to rename " + tmpDst.getPath() + " to destination " + dstPath);
+            "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
       }
-      System.out.println("Copied " + srcPath + " to " + dstPath);
+      System.out.println("Copied " + srcPath + " to " + "file://" + outputFile.getPath());
     } finally {
       tmpDst.delete();
     }
