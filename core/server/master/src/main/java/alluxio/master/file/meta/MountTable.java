@@ -73,7 +73,7 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
     final Iterator<Map.Entry<String, MountInfo>> it = mMountTable.entrySet().iterator();
     return new Iterator<Journal.JournalEntry>() {
       /** mEntry is always set to the next non-root mount point if exists. */
-      private Map.Entry<String, MountInfo> mEntry;
+      private Map.Entry<String, MountInfo> mEntry = null;
 
       @Override
       public boolean hasNext() {

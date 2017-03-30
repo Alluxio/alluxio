@@ -67,7 +67,7 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
     mTmpCheckpointFileLocation = mJournal.encodeTemporaryCheckpointFileLocation();
     mTmpCheckpointStream = mJournal.getUfs().create(mTmpCheckpointFileLocation.toString());
     mCheckpointFile = UfsJournalFile.createCheckpointFile(
-        mJournal.encodeCheckpointOrLogFileLocation(0, options.getNextSequenceNumber(), true),
+        mJournal.encodeCheckpointFileLocation(options.getNextSequenceNumber()),
         options.getNextSequenceNumber());
   }
 

@@ -113,9 +113,8 @@ final class UfsJournalLogWriter implements JournalWriter {
         return;
       }
 
-      String dst = mJournal
-          .encodeCheckpointOrLogFileLocation(mCurrentLog.getStart(), mNextSequenceNumber, false)
-          .toString();
+      String dst =
+          mJournal.encodeLogFileLocation(mCurrentLog.getStart(), mNextSequenceNumber).toString();
       if (mJournal.getUfs().exists(dst)) {
         LOG.warn("Deleting duplicate completed log {}.", dst);
         // The dst can exist because of a master failure during commit. This can only happen
@@ -180,9 +179,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     mJournalOutputStream.close();
     mJournalOutputStream = null;
 
-    URI newLog = mJournal
-        .encodeCheckpointOrLogFileLocation(mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
-            false  /* is_checkpoint */);
+    URI newLog =
+        mJournal.encodeLogFileLocation(mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     UfsJournalFile currentLog = UfsJournalFile
         .createLogFile(newLog, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     OutputStream outputStream = mJournal.getUfs().create(currentLog.getLocation().toString(),

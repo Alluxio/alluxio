@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
@@ -835,6 +836,9 @@ public class InodeTree implements Iterable<Journal.JournalEntry> {
 
       @Override
       public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
         Inode<?> inode = inodes.poll();
         if (inode.isDirectory()) {
           inodes.addAll(((InodeDirectory) inode).getChildren());

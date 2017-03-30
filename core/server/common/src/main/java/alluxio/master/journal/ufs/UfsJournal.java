@@ -53,9 +53,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public class UfsJournal implements Journal {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
   public static final long UNKNOWN_SEQUENCE_NUMBER = Long.MAX_VALUE;
-
   /** The journal version. */
-  private static final String VERSION = "v1";
+  public static final String VERSION = "v1";
 
   /** Directory for journal edit logs including the incomplete log file. */
   private static final String LOG_DIRNAME = "logs";
@@ -180,17 +179,27 @@ public class UfsJournal implements Journal {
   }
 
   /**
-   * Creates a checkpoint or a log location under the checkpoint or log directory.
+   * Creates a checkpoint location under the checkpoint directory.
+   *
+   * @param end the end sequence number (exclusive)
+   * @return the location
+   */
+  public URI encodeCheckpointFileLocation(long end) {
+    String filename = String.format("%x-%x", 0, end);
+    URI location = URIUtils.appendPathOrDie(getCheckpointDir(), filename);
+    return location;
+  }
+
+  /**
+   * Creates a log location under the log directory.
    *
    * @param start the start sequence number (inclusive)
    * @param end the end sequence number (exclusive)
-   * @param isCheckpoint whether this is a checkpoint file
    * @return the location
    */
-  public URI encodeCheckpointOrLogFileLocation(long start, long end, boolean isCheckpoint) {
+  public URI encodeLogFileLocation(long start, long end) {
     String filename = String.format("%x-%x", start, end);
-    URI location =
-        URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDir() : getLogDir(), filename);
+    URI location = URIUtils.appendPathOrDie(getLogDir(), filename);
     return location;
   }
 
