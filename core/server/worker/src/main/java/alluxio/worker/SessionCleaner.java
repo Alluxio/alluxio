@@ -42,8 +42,8 @@ public final class SessionCleaner implements Runnable {
 
   /**
    * Creates a new instance of {@link SessionCleaner}.
-   *
    * @param sessions the session clean up callback which will periodically be invoked
+   * @param sessionCleanup who want to cleanup the session
    */
   public SessionCleaner(Sessions sessions, ISessionCleanup sessionCleanup) {
     mSessions = sessions;
