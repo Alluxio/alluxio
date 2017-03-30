@@ -436,10 +436,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long opTimeMs = TEST_TIME_MS;
     CreateFileOptions options = CreateFileOptions.defaults().setOperationTimeMs(opTimeMs);
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
-      mFsMaster.createFileInternal(inodePath, options);
-    }
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), options);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
@@ -569,10 +566,7 @@ public class FileSystemMasterIntegrationTest {
     long ttl = 100;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     options.setTtlAction(TtlAction.FREE);
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
-      mFsMaster.createFileInternal(inodePath, options);
-    }
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.getTtl());

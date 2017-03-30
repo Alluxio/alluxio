@@ -59,6 +59,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -66,6 +67,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.journal.JournalEntryAppender;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
@@ -1127,13 +1129,15 @@ public final class FileSystemMaster extends AbstractMaster {
       JournalContext journalContext)
       throws FileAlreadyExistsException, BlockInfoException, FileDoesNotExistException,
       InvalidPathException, IOException {
-    InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
+    InodeTree.CreatePathResult createResult =
+        createFileInternal(inodePath, options, journalContext);
     journalCreatePathResult(createResult, journalContext);
   }
 
   /**
    * @param inodePath the path to be created
    * @param options method options
+   * @param journalContext the journal context
    * @return {@link InodeTree.CreatePathResult} with the path creation result
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
@@ -1143,10 +1147,11 @@ public final class FileSystemMaster extends AbstractMaster {
    *         option is false
    */
   InodeTree.CreatePathResult createFileInternal(LockedInodePath inodePath,
-      CreateFileOptions options)
+      CreateFileOptions options, JournalContext journalContext)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
-    InodeTree.CreatePathResult createResult = mInodeTree.createPath(inodePath, options);
+    InodeTree.CreatePathResult createResult =
+        mInodeTree.createPath(inodePath, options, createJournalAppender(journalContext));
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode<?>> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -1628,7 +1633,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param options method options
    * @return the id of the created directory
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, alluxio.master.file.options.CreatePathOptions)}
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalEntryAppender)}
    *         for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
@@ -1663,7 +1668,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, alluxio.master.file.options.CreatePathOptions)}
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalEntryAppender)}
    *         for more details
    * @throws AccessControlException if permission checking fails
    * @throws IOException if a non-Alluxio related exception occurs
@@ -1672,7 +1677,8 @@ public final class FileSystemMaster extends AbstractMaster {
       JournalContext journalContext)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
-    InodeTree.CreatePathResult createResult = createDirectoryInternal(inodePath, options);
+    InodeTree.CreatePathResult createResult =
+        createDirectoryInternal(inodePath, options, journalContext);
     journalCreatePathResult(createResult, journalContext);
     Metrics.DIRECTORIES_CREATED.inc();
   }
@@ -1682,21 +1688,23 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the path of the directory
    * @param options method options
+   * @param journalContext the journal context
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, alluxio.master.file.options.CreatePathOptions)}
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalEntryAppender)}
    *         for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
    */
   private InodeTree.CreatePathResult createDirectoryInternal(LockedInodePath inodePath,
-      CreateDirectoryOptions options)
+      CreateDirectoryOptions options, JournalContext journalContext)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException {
     try {
-      InodeTree.CreatePathResult createResult = mInodeTree.createPath(inodePath, options);
+      InodeTree.CreatePathResult createResult =
+          mInodeTree.createPath(inodePath, options, createJournalAppender(journalContext));
       InodeDirectory inodeDirectory = (InodeDirectory) inodePath.getInode();
       // If inodeDirectory's ttl not equals Constants.NO_TTL, it should insert into mTtlBuckets
       if (createResult.getCreated().size() > 0) {

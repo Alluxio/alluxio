@@ -29,6 +29,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
+import alluxio.master.journal.JournalEntryAppender;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
@@ -466,6 +467,7 @@ public class InodeTree implements JournalCheckpointStreamable {
    *
    * @param inodePath the path
    * @param options method options
+   * @param journalAppender the journal appender
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
@@ -478,10 +480,11 @@ public class InodeTree implements JournalCheckpointStreamable {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  public CreatePathResult createPath(LockedInodePath inodePath, CreatePathOptions<?> options)
+  public CreatePathResult createPath(LockedInodePath inodePath, CreatePathOptions<?> options,
+      JournalEntryAppender journalAppender)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
-    // TODO(gpang): should take JournalContext and append along the way, to stay consistent.
+    // TODO(gpang): Use the journalAppender and append entries during the create.
     AlluxioURI path = inodePath.getUri();
     if (path.isRoot()) {
       String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);

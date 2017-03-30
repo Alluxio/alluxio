@@ -17,12 +17,13 @@ import alluxio.PropertyKey;
 import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.JournalTailer;
-import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalEntryAppender;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalTailerThread;
+import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.MutableJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
@@ -309,6 +310,13 @@ public abstract class AbstractMaster implements Master {
   }
 
   /**
+   * @return new instance of {@link JournalEntryAppender}
+   */
+  protected JournalEntryAppender createJournalAppender(JournalContext journalContext) {
+    return new MasterJournalEntryAppender(journalContext);
+  }
+
+  /**
    * Context for storing journaling information.
    */
   @NotThreadSafe
@@ -330,6 +338,22 @@ public abstract class AbstractMaster implements Master {
     @Override
     public void close() {
       waitForJournalFlush(this);
+    }
+  }
+
+  /**
+   * This class appends journal entries to the async journal.
+   */
+  public final class MasterJournalEntryAppender implements JournalEntryAppender {
+    private final JournalContext mJournalContext;
+
+    public MasterJournalEntryAppender(JournalContext journalContext) {
+      mJournalContext = Preconditions.checkNotNull(journalContext);
+    }
+
+    @Override
+    public void append(alluxio.proto.journal.Journal.JournalEntry entry) {
+      mJournalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));
     }
   }
 }

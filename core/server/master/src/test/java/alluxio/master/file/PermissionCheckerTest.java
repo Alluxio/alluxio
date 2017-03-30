@@ -20,6 +20,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterRegistry;
+import alluxio.master.NoopJournalAppender;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -209,7 +210,8 @@ public final class PermissionCheckerTest {
     try (
         LockedInodePath inodePath = sTree
             .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
-      InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
+      InodeTree.CreatePathResult result =
+          sTree.createPath(inodePath, option, new NoopJournalAppender());
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
           .setOwner(option.getOwner()).setGroup(option.getGroup())
           .setMode(option.getMode().toShort());
