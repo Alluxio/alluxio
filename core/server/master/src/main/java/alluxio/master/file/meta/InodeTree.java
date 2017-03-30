@@ -539,34 +539,11 @@ public class InodeTree implements JournalCheckpointStreamable {
     // These are inodes to mark as persisted at the end of this method.
     List<Inode<?>> toPersistDirectories = new ArrayList<>();
     if (options.isPersisted()) {
-      // Directory persistence will not happen until the end of this method.
       existingNonPersisted.addAll(traversalResult.getNonPersisted());
 
-      // persist inodes now. These inodes are already READ locked.
+      // Synchronously persist directories now. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
-        // TODO(gpang): use a max timeout.
-        while (inode.getPersistenceState() != PersistenceState.PERSISTED) {
-          if (inode.compareAndSwapPersistenceState(PersistenceState.NOT_PERSISTED,
-              PersistenceState.TO_BE_PERSISTED)) {
-            inode.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
-
-            // Persist now, not later.
-            AlluxioURI uri = getPath(inode);
-            MountTable.Resolution resolution = mMountTable.resolve(uri);
-            String ufsUri = resolution.getUri().toString();
-            UnderFileSystem ufs = resolution.getUfs();
-            MkdirsOptions mkdirsOptions =
-                MkdirsOptions.defaults().setCreateParent(false).setOwner(inode.getOwner())
-                    .setGroup(inode.getGroup()).setMode(new Mode(inode.getMode()));
-            // TODO(gpang): catch exception and reset persistence state
-            ufs.mkdirs(ufsUri, mkdirsOptions);
-            // TODO(gpang): for updated inode, append to journal now, not later.
-            inode.setPersistenceState(PersistenceState.PERSISTED);
-          } else {
-            // TODO(gpang): use exponential backoff and max timeout
-            CommonUtils.sleepMs(150);
-          }
-        }
+        syncPersistDirectory((InodeDirectory) inode);
       }
     }
     if (pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null) {
@@ -613,28 +590,7 @@ public class InodeTree implements JournalCheckpointStreamable {
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
       if (options.isPersisted()) {
-        // TODO(gpang): use a max timeout.
-        // TODO(gpang): refactor this out, since it is similar to above.
-        while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
-          if (dir.compareAndSwapPersistenceState(PersistenceState.NOT_PERSISTED,
-              PersistenceState.TO_BE_PERSISTED)) {
-
-            // Persist now, not later.
-            AlluxioURI uri = getPath(dir);
-            MountTable.Resolution resolution = mMountTable.resolve(uri);
-            String ufsUri = resolution.getUri().toString();
-            UnderFileSystem ufs = resolution.getUfs();
-            MkdirsOptions mkdirsOptions =
-                MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
-                    .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-            // TODO(gpang): catch exception and reset persistence state
-            ufs.mkdirs(ufsUri, mkdirsOptions);
-            dir.setPersistenceState(PersistenceState.PERSISTED);
-          } else {
-            // TODO(gpang): use exponential backoff and max timeout
-            CommonUtils.sleepMs(250);
-          }
-        }
+        syncPersistDirectory(dir);
       }
       // TODO(gpang): for new inode, append to journal now, not later. This might be tricky with
       // READ locks.
@@ -1130,6 +1086,45 @@ public class InodeTree implements JournalCheckpointStreamable {
       }
     }
     return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockList);
+  }
+
+  /**
+   * Synchronously persists an {@link InodeDirectory} to the UFS. If concurrent calls are made, only
+   * one thread will persist to UFS, and the others will wait until it is persisted.
+   *
+   * @param dir the {@link InodeDirectory} to persist
+   */
+  private void syncPersistDirectory(InodeDirectory dir) {
+    // TODO(gpang): use a max timeout.
+    while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
+      if (dir.compareAndSwapPersistenceState(PersistenceState.NOT_PERSISTED,
+          PersistenceState.TO_BE_PERSISTED)) {
+        boolean success = false;
+        try {
+          AlluxioURI uri = getPath(dir);
+          MountTable.Resolution resolution = mMountTable.resolve(uri);
+          String ufsUri = resolution.getUri().toString();
+          UnderFileSystem ufs = resolution.getUfs();
+          MkdirsOptions mkdirsOptions =
+              MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
+                  .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
+          ufs.mkdirs(ufsUri, mkdirsOptions);
+          // TODO(gpang): for updated inode, append to journal now, not later.
+          dir.setPersistenceState(PersistenceState.PERSISTED);
+          success = true;
+        } catch (Exception e) {
+
+        } finally {
+          if (!success) {
+            // Failed to persist the inode, so set the state back to NOT_PERSISTED.
+            dir.setPersistenceState(PersistenceState.NOT_PERSISTED);
+          }
+        }
+      } else {
+        // TODO(gpang): use exponential backoff and max timeout
+        CommonUtils.sleepMs(150);
+      }
+    }
   }
 
   private static final class TraversalResult {
