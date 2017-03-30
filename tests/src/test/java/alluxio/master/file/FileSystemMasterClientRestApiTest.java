@@ -53,7 +53,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX;
     mFileSystemMaster =
-        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
+        mResource.get().getMaster().getInternalMaster().getMaster(DefaultFileSystemMaster.class);
   }
 
   @Test

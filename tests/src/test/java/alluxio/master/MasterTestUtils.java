@@ -15,7 +15,9 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.MutableJournal;
 import alluxio.util.CommonUtils;
@@ -28,32 +30,32 @@ import java.net.URI;
 public class MasterTestUtils {
 
   /**
-   * Creates a new {@link FileSystemMaster} from journal.
+   * Creates a new {@link DefaultFileSystemMaster} from journal.
    *
-   * @return a new {@link FileSystemMaster}
+   * @return a new {@link DefaultFileSystemMaster}
    */
   public static FileSystemMaster createLeaderFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
     BlockMaster blockMaster = new BlockMaster(registry, factory);
-    FileSystemMaster fsMaster = new FileSystemMaster(registry, factory);
+    FileSystemMaster fsMaster = new DefaultFileSystemMaster(registry, factory);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;
   }
 
   /**
-   * Creates a new standby {@link FileSystemMaster} from journal.
+   * Creates a new standby {@link DefaultFileSystemMaster} from journal.
    *
-   * @return a new {@link FileSystemMaster}
+   * @return a new {@link DefaultFileSystemMaster}
    */
   public static FileSystemMaster createStandbyFileSystemMasterFromJournal() throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
     BlockMaster blockMaster = new BlockMaster(registry, factory);
-    FileSystemMaster fsMaster = new FileSystemMaster(registry, factory);
+    FileSystemMaster fsMaster = new DefaultFileSystemMaster(registry, factory);
     blockMaster.start(false);
     fsMaster.start(false);
     return fsMaster;
@@ -69,7 +71,7 @@ public class MasterTestUtils {
       @Override
       public Boolean apply(Void aVoid) {
         return master.getStartupConsistencyCheck().getStatus()
-            == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE;
+            == StartupConsistencyCheck.Status.COMPLETE;
       }
     }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }

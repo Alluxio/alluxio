@@ -25,6 +25,7 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -65,7 +66,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getProxy().getWebLocalPort();
     mFileSystemMaster =
-        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
+        mResource.get().getMaster().getInternalMaster().getMaster(DefaultFileSystemMaster.class);
   }
 
   @Test

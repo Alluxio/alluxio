@@ -14,6 +14,7 @@ package alluxio.master.lineage.checkpoint;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -38,7 +39,7 @@ import java.util.ArrayList;
  * Unit tests for {@link CheckpointLatestPlanner}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemMaster.class})
+@PrepareForTest({DefaultFileSystemMaster.class})
 public final class CheckpointLatestPlannerTest {
   private LineageStore mLineageStore;
   private FileSystemMaster mFileSystemMaster;
@@ -52,7 +53,7 @@ public final class CheckpointLatestPlannerTest {
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    mFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
     mPlanner = new CheckpointLatestPlanner(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));
   }

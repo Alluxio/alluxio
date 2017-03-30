@@ -26,6 +26,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AlluxioMasterService;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.LoginUser;
@@ -111,7 +112,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       fileData = "The requested file is not complete yet.";
     }
     List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
-    for (FileBlockInfo fileBlockInfo : mMaster.getMaster(FileSystemMaster.class)
+    for (FileBlockInfo fileBlockInfo : mMaster.getMaster(DefaultFileSystemMaster.class)
         .getFileBlockInfoList(path)) {
       uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
     }
@@ -151,7 +152,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     AlluxioURI currentPath = new AlluxioURI(requestPath);
     request.setAttribute("currentPath", currentPath.toString());
     request.setAttribute("viewingOffset", 0);
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = mMaster.getMaster(DefaultFileSystemMaster.class);
 
     try {
       long fileId = fileSystemMaster.getFileId(currentPath);
@@ -298,7 +299,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void setPathDirectories(AlluxioURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = mMaster.getMaster(DefaultFileSystemMaster.class);
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UIFileInfo[0]);
       return;

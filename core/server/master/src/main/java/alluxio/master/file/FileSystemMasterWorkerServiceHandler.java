@@ -43,7 +43,7 @@ public final class FileSystemMasterWorkerServiceHandler
   /**
    * Creates a new instance of {@link FileSystemMasterWorkerServiceHandler}.
    *
-   * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
+   * @param fileSystemMaster the {@link DefaultFileSystemMaster} the handler uses internally
    */
   public FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);

@@ -12,6 +12,7 @@
 package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.thrift.PersistFile;
@@ -36,13 +37,13 @@ import java.util.List;
  * Tests {@link DefaultAsyncPersistHandler}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemMaster.class})
+@PrepareForTest({DefaultFileSystemMaster.class})
 public class DefaultAsyncPersistHandlerTest {
   private FileSystemMaster mFileSystemMaster;
 
   @Before
   public void before() {
-    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    mFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
   }
 
   @Test

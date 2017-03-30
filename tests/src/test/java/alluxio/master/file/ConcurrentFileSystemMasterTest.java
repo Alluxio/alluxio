@@ -50,7 +50,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Tests to validate the concurrency in {@link FileSystemMaster}. These tests all use a local
+ * Tests to validate the concurrency in {@link DefaultFileSystemMaster}. These tests all use a local
  * path as the under storage system.
  *
  * The tests validate the correctness of concurrent operations, ie. no corrupted/partial state is

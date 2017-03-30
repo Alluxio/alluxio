@@ -12,6 +12,7 @@
 package alluxio.master.lineage.recompute;
 
 import alluxio.job.Job;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.Lineage;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * Unit tests for {@link RecomputeExecutor}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(FileSystemMaster.class)
+@PrepareForTest(DefaultFileSystemMaster.class)
 public final class TestRecomputeExecutor {
 
   /**
@@ -48,7 +49,7 @@ public final class TestRecomputeExecutor {
     Mockito.when(planner.plan()).thenReturn(new RecomputePlan(Lists.newArrayList(lineage)));
 
     // mock file system master
-    FileSystemMaster fileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
     Mockito.when(fileSystemMaster.getFileSystemMasterView())
         .thenReturn(new FileSystemMasterView(fileSystemMaster));
     Mockito.when(fileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(fileId));

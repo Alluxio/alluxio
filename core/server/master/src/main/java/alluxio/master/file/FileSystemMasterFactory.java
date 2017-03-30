@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link FileSystemMaster} instance.
+ * Factory to create a {@link DefaultFileSystemMaster} instance.
  */
 @ThreadSafe
 public final class FileSystemMasterFactory implements MasterFactory {
@@ -48,7 +48,7 @@ public final class FileSystemMasterFactory implements MasterFactory {
   @Override
   public Master create(MasterRegistry registry, JournalFactory journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
-    LOG.info("Creating {} ", FileSystemMaster.class.getName());
-    return new FileSystemMaster(registry, journalFactory);
+    LOG.info("Creating {} ", DefaultFileSystemMaster.class.getName());
+    return new DefaultFileSystemMaster(registry, journalFactory);
   }
 }

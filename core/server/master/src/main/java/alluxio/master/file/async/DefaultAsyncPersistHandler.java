@@ -16,7 +16,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.thrift.PersistFile;
 import alluxio.util.IdUtils;
@@ -53,7 +53,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
   /**
    * Constructs a new instance of {@link AsyncPersistHandler}.
    *
-   * @param view a view of {@link FileSystemMaster}
+   * @param view a view of {@link DefaultFileSystemMaster}
    */
   public DefaultAsyncPersistHandler(FileSystemMasterView view) {
     mWorkerToAsyncPersistFiles = new HashMap<>();
