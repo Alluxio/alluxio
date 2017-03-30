@@ -41,7 +41,7 @@ public final class MetricsConfigTest {
    * correctly.
    */
   @Test
-  public void setPropertiesTest() {
+  public void setProperties() {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
 
     Properties masterProp = config.getProperties();
