@@ -306,7 +306,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
 
-    registry.add(DefaultFileSystemMaster.class, this);
+    registry.add(FileSystemMaster.class, this);
     Metrics.registerGauges(this);
   }
 

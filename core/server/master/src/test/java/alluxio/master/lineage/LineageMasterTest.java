@@ -75,7 +75,7 @@ public final class LineageMasterTest {
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
-    registry.add(DefaultFileSystemMaster.class, mFileSystemMaster);
+    registry.add(FileSystemMaster.class, mFileSystemMaster);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
     mLineageMaster = new LineageMaster(registry, factory,
