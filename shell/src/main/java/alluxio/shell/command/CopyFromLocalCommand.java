@@ -13,10 +13,14 @@ package alluxio.shell.command;
 
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.shell.AlluxioShellUtils;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -50,8 +54,10 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String srcPath = args[0];
-    cl.getArgList().set(0, "file://" + srcPath);
-    mCpCommand.run(cl);
+    for (File f : AlluxioShellUtils.getFiles(srcPath)) {
+      cl.getArgList().set(0, "file://" + f.getAbsolutePath());
+      mCpCommand.run(cl);
+    }
   }
 
   @Override
