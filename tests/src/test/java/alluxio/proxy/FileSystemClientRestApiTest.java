@@ -66,7 +66,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getProxy().getWebLocalPort();
     mFileSystemMaster =
-        mResource.get().getMaster().getInternalMaster().getMaster(DefaultFileSystemMaster.class);
+        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
   }
 
   @Test

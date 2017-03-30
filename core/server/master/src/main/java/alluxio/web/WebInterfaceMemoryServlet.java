@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.AlluxioMasterService;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -73,7 +72,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     request.setAttribute("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(DefaultFileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
 
     List<AlluxioURI> inMemoryFiles = fileSystemMaster.getInMemoryFiles();
     Collections.sort(inMemoryFiles);
