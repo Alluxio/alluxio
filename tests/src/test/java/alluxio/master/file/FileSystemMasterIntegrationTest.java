@@ -24,6 +24,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeTree;
@@ -156,7 +157,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
-  private FileSystemMaster createFileSystemMasterFromJournal() throws Exception {
+  private MasterRegistry createFileSystemMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -171,12 +172,14 @@ public class FileSystemMasterIntegrationTest {
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
 
-      FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
+      MasterRegistry registry = createFileSystemMasterFromJournal();
+      FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
       for (FileInfo info : mFsMaster.listStatus(new AlluxioURI("/"),
           ListStatusOptions.defaults())) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
+      registry.stop();
       before();
     }
   }
@@ -1029,7 +1032,7 @@ public class FileSystemMasterIntegrationTest {
           mFsMaster.createFile(mFiles[id], CreateFileOptions.defaults());
           mFsMaster.completeFile(mFiles[id], CompleteFileOptions.defaults());
         } catch (FileAlreadyExistsException | FileDoesNotExistException
-            | FileAlreadyCompletedException e) {
+            | FileAlreadyCompletedException | InvalidPathException e) {
           // Ignore
         } catch (Exception e) {
           throw e;
@@ -1038,7 +1041,7 @@ public class FileSystemMasterIntegrationTest {
         try {
           // Delete a random file.
           mFsMaster.delete(mFiles[id], DeleteOptions.defaults().setRecursive(false));
-        } catch (FileDoesNotExistException e) {
+        } catch (FileDoesNotExistException | InvalidPathException e) {
           // Ignore
         } catch (Exception e) {
           throw e;
