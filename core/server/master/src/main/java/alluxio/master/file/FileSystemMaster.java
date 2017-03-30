@@ -1262,10 +1262,8 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
       AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
-    // Delete should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
-        LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(path, InodeTree.LockMode.WRITE_PARENT)) {
+         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       deleteAndJournal(inodePath, options, journalContext);
@@ -1302,9 +1300,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private void deleteFromEntry(DeleteFileEntry entry) {
     Metrics.DELETE_PATHS_OPS.inc();
-    // Delete should lock the parent to remove the child inode.
     try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE_PARENT)) {
+        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       deleteInternal(inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
           .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
     } catch (Exception e) {
