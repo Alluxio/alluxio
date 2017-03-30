@@ -585,7 +585,8 @@ public class InodeTree implements JournalCheckpointStreamable {
           // The child directory inode already exists. Get the existing child inode.
           lockList.unlockLast();
 
-          dir = (InodeDirectory) currentInodeDirectory.getChildReadLock(pathComponents[k], lockList);
+          dir =
+              (InodeDirectory) currentInodeDirectory.getChildReadLock(pathComponents[k], lockList);
           if (dir == null) {
             // Could not get the child inode. Continue and try again.
             continue;
@@ -1141,7 +1142,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           }
           success = true;
         } catch (Exception e) {
-
+          // Ignore
         } finally {
           if (!success) {
             // Failed to persist the inode, so set the state back to NOT_PERSISTED.
