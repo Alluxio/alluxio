@@ -185,7 +185,7 @@ public class UfsJournal implements Journal {
    * @return the location
    */
   public URI encodeCheckpointFileLocation(long end) {
-    String filename = String.format("%x-%x", 0, end);
+    String filename = String.format("0x%x-0x%x", 0, end);
     URI location = URIUtils.appendPathOrDie(getCheckpointDir(), filename);
     return location;
   }
@@ -198,7 +198,7 @@ public class UfsJournal implements Journal {
    * @return the location
    */
   public URI encodeLogFileLocation(long start, long end) {
-    String filename = String.format("%x-%x", start, end);
+    String filename = String.format("0x%x-0x%x", start, end);
     URI location = URIUtils.appendPathOrDie(getLogDir(), filename);
     return location;
   }
@@ -217,25 +217,41 @@ public class UfsJournal implements Journal {
    *
    * @param filename the filename
    * @param isCheckpoint whether this is a checkpoint file or a log file
-   * @return the instance of {@link UfsJournalFile}
+   * @return the instance of {@link UfsJournalFile}, null if the file invalid
    */
-  public UfsJournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
+  UfsJournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
     URI location =
         URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDir() : getLogDir(), filename);
     try {
       String[] parts = filename.split("-");
-      Preconditions.checkState(parts.length == 2);
+
+      // There can be temporary files in logs directory. Skip them.
+      if (!isCheckpoint) {
+        if (parts.length != 2) {
+          return null;
+        }
+      } else {
+        Preconditions.checkState(parts.length == 2);
+      }
       long start = Long.decode(parts[0]);
       long end = Long.decode(parts[1]);
+
       if (isCheckpoint) {
         Preconditions.checkState(start == 0);
         return UfsJournalFile.createCheckpointFile(location, end);
       } else {
         return UfsJournalFile.createLogFile(location, start, end);
       }
-    } catch (IllegalStateException | NumberFormatException e) {
+    } catch (IllegalStateException e) {
       LOG.error("Illegal journal file {}.", location);
       throw e;
+    } catch (NumberFormatException e) {
+      if (!isCheckpoint) {
+        // There can be temporary files in logs directory. Skip them.
+        return null;
+      } else {
+        throw e;
+      }
     }
   }
 
@@ -245,7 +261,7 @@ public class UfsJournal implements Journal {
    * @param filename the temporary checkpoint file name
    * @return the instance of {@link UfsJournalFile}
    */
-  public UfsJournalFile decodeTemporaryCheckpointFile(String filename) {
+  UfsJournalFile decodeTemporaryCheckpointFile(String filename) {
     URI location = URIUtils.appendPathOrDie(getTmpDir(), filename);
     return UfsJournalFile.createTmpCheckpointFile(location);
   }
@@ -284,24 +300,36 @@ public class UfsJournal implements Journal {
    */
   public Snapshot getSnapshot() throws IOException {
     // Checkpoints.
-    UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
     List<UfsJournalFile> checkpoints = new ArrayList<>();
-    for (UnderFileStatus status : statuses) {
-      checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
+    UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
+    if (statuses != null) {
+      for (UnderFileStatus status : statuses) {
+        UfsJournalFile file = decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
+        if (file != null) {
+          checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
+        }
+      }
     }
     Collections.sort(checkpoints);
 
-    statuses = mUfs.listStatus(getLogDir().toString());
     List<UfsJournalFile> logs = new ArrayList<>();
-    for (UnderFileStatus status : statuses) {
-      logs.add(decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */));
+    statuses = mUfs.listStatus(getLogDir().toString());
+    if (statuses != null) {
+      for (UnderFileStatus status : statuses) {
+        UfsJournalFile file = decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */);
+        if (file != null) {
+          logs.add(file);
+        }
+      }
+      Collections.sort(logs);
     }
-    Collections.sort(logs);
 
-    statuses = mUfs.listStatus(getTmpDir().toString());
     List<UfsJournalFile> tmpCheckpoints = new ArrayList<>();
-    for (UnderFileStatus status : statuses) {
-      tmpCheckpoints.add(decodeTemporaryCheckpointFile(status.getName()));
+    statuses = mUfs.listStatus(getTmpDir().toString());
+    if (statuses != null) {
+      for (UnderFileStatus status : statuses) {
+        tmpCheckpoints.add(decodeTemporaryCheckpointFile(status.getName()));
+      }
     }
 
     return new Snapshot(checkpoints, logs, tmpCheckpoints);
@@ -317,7 +345,10 @@ public class UfsJournal implements Journal {
     UnderFileStatus[] statuses = mUfs.listStatus(getLogDir().toString());
     List<UfsJournalFile> logs = new ArrayList<>();
     for (UnderFileStatus status : statuses) {
-      logs.add(decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */));
+      UfsJournalFile file = decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */);
+      if (file != null) {
+        logs.add(file);
+      }
     }
     UfsJournalFile file =  Collections.max(logs);
     if (file.isIncompleteLog()) {
@@ -336,7 +367,10 @@ public class UfsJournal implements Journal {
     UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
     List<UfsJournalFile> checkpoints = new ArrayList<>();
     for (UnderFileStatus status : statuses) {
-      checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
+      UfsJournalFile file = decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
+      if (file != null) {
+        checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
+      }
     }
     Collections.sort(checkpoints);
     if (checkpoints.isEmpty()) {

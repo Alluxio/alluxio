@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This data structure implements {@link Comparable} such they can be sorted by the end SNs.
  */
 @ThreadSafe
-public final class UfsJournalFile implements Comparable<UfsJournalFile> {
+final public class UfsJournalFile implements Comparable<UfsJournalFile> {
   /** The location of the file. */
   private final URI mLocation;
   /** The start journal log entry sequence number (inclusive). */
