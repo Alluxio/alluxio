@@ -34,7 +34,7 @@ public final class ClientRWLock implements ReadWriteLock {
   private static final int MAX_AVAILABLE =
           Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCK_READERS);
   /** Underlying Semaphore. */
-  private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
+  private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, false);
   /** Reference count. */
   private AtomicInteger mReferences = new AtomicInteger();
 
