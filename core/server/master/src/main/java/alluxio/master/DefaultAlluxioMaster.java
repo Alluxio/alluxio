@@ -34,7 +34,6 @@ import alluxio.web.WebServer;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -260,9 +259,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected void startMasters(boolean isLeader) {
     try {
       connectToUFS();
-      for (Master master : mRegistry.getMasters()) {
-        master.start(isLeader);
-      }
+      mRegistry.start(isLeader);
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
@@ -270,9 +267,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   protected void stopMasters() {
     try {
-      for (Master master : Lists.reverse(mRegistry.getMasters())) {
-        master.stop();
-      }
+      mRegistry.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

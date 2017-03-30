@@ -28,35 +28,41 @@ import java.net.URI;
 public class MasterTestUtils {
 
   /**
-   * Creates a new {@link FileSystemMaster} from journal.
+   * Creates a new leader {@link FileSystemMaster} from journal along with its dependencies, and
+   * returns the master registry containing that master.
    *
-   * @return a new {@link FileSystemMaster}
+   * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  public static FileSystemMaster createLeaderFileSystemMasterFromJournal() throws Exception {
-    String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    MasterRegistry registry = new MasterRegistry();
-    JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
-    BlockMaster blockMaster = new BlockMaster(registry, factory);
-    FileSystemMaster fsMaster = new FileSystemMaster(registry, factory);
-    blockMaster.start(true);
-    fsMaster.start(true);
-    return fsMaster;
+  public static MasterRegistry createLeaderFileSystemMasterFromJournal() throws Exception {
+    return createFileSystemMasterFromJournal(true);
   }
 
   /**
-   * Creates a new standby {@link FileSystemMaster} from journal.
+   * Creates a new standby {@link FileSystemMaster} from journal along with its dependencies, and
+   * returns the master registry containing that master.
    *
-   * @return a new {@link FileSystemMaster}
+   * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  public static FileSystemMaster createStandbyFileSystemMasterFromJournal() throws Exception {
+  public static MasterRegistry createStandbyFileSystemMasterFromJournal() throws Exception {
+    return createFileSystemMasterFromJournal(false);
+  }
+
+  /**
+   * Creates a new {@link FileSystemMaster} from journal along with its dependencies, and returns
+   * the master registry containing that master.
+   *
+   * @param isLeader whether to start as a leader
+   * @return a master registry containing the created {@link FileSystemMaster} master
+   */
+  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
+      throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
-    BlockMaster blockMaster = new BlockMaster(registry, factory);
-    FileSystemMaster fsMaster = new FileSystemMaster(registry, factory);
-    blockMaster.start(false);
-    fsMaster.start(false);
-    return fsMaster;
+    new BlockMaster(registry, factory);
+    new FileSystemMaster(registry, factory);
+    registry.start(isLeader);
+    return registry;
   }
 
   /**
