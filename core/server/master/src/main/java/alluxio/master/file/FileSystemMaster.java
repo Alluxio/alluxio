@@ -1950,6 +1950,7 @@ public final class FileSystemMaster extends AbstractMaster {
         }
         while (!ufsDirsToMakeWithOptions.empty()) {
           Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
+          // TODO(gpang): this dir persisting logic needs to be corrected for concurrent persists.
           if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
             throw new IOException(
                 ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
