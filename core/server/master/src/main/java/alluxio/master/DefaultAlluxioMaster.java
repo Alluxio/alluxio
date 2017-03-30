@@ -147,6 +147,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
+  /**
+   * Checks whether the journal has been formatted.
+   *
+   * @throws IOException if the journal has not been formatted
+   */
   protected void checkJournalFormatted() throws IOException {
     Journal.Factory factory = new Journal.Factory(getJournalLocation());
     for (String name : ServerUtils.getMasterServiceNames()) {
