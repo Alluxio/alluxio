@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
+import alluxio.master.journal.JournalEntryAppender;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -41,7 +42,20 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
     mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
   }
 
+  /**
+   * @return the next directory id
+   */
   synchronized long getNewDirectoryId() {
+    return getNewDirectoryId(null);
+  }
+
+  /**
+   * Returns the next directory id, and journals the state.
+   *
+   * @param journalAppender the appender to journal to, if not null
+   * @return the next directory id
+   */
+  synchronized long getNewDirectoryId(JournalEntryAppender journalAppender) {
     initialize();
     long directoryId = BlockId.createBlockId(mContainerId, mSequenceNumber);
     if (mSequenceNumber == BlockId.getMaxSequenceNumber()) {
@@ -50,6 +64,9 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
       mSequenceNumber = 0;
     } else {
       mSequenceNumber++;
+    }
+    if (journalAppender != null) {
+      journalAppender.append(toJournalEntry());
     }
     return directoryId;
   }

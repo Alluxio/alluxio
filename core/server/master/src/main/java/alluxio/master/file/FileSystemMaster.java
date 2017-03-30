@@ -1729,31 +1729,6 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private void journalCreatePathResult(InodeTree.CreatePathResult createResult,
       JournalContext journalContext) {
-    for (Inode<?> inode : createResult.getModified()) {
-      InodeLastModificationTimeEntry inodeLastModificationTime =
-          InodeLastModificationTimeEntry.newBuilder().setId(inode.getId())
-              .setLastModificationTimeMs(inode.getLastModificationTimeMs()).build();
-      appendJournalEntry(
-          JournalEntry.newBuilder().setInodeLastModificationTime(inodeLastModificationTime).build(),
-          journalContext);
-    }
-    boolean createdDir = false;
-    for (Inode<?> inode : createResult.getCreated()) {
-      appendJournalEntry(inode.toJournalEntry(), journalContext);
-      if (inode.isDirectory()) {
-        createdDir = true;
-      }
-    }
-    if (createdDir) {
-      // At least one directory was created, so journal the state of the directory id generator.
-      appendJournalEntry(mDirectoryIdGenerator.toJournalEntry(), journalContext);
-    }
-    for (Inode<?> inode : createResult.getPersisted()) {
-      PersistDirectoryEntry persistDirectory =
-          PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
-      appendJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build(),
-          journalContext);
-    }
   }
 
   /**
