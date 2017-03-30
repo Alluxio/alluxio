@@ -403,9 +403,9 @@ public final class NetworkAddressUtils {
           }
         }
 
-        LOG.warn("Your hostname, " + InetAddress.getLocalHost().getHostName() + " resolves to"
-            + " a loopback/non-reachable address: " + address.getHostAddress()
-            + ", but we couldn't find any external IP address!");
+        LOG.warn("Your hostname, {} resolves to a loopback/non-reachable address: {}, "
+                  +  "but we couldn't find any external IP address!",
+                  InetAddress.getLocalHost().getHostName(), address.getHostAddress());
       }
 
       sLocalIP = address.getHostAddress();

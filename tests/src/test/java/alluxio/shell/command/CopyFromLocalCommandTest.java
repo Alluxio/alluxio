@@ -12,6 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.SystemPropertyRule;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
@@ -22,16 +23,24 @@ import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Tests for copyFromLocal command.
  */
 public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
+  /** Rule to create a new temporary folder during each test. */
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
   @Test
   public void copyDirectoryFromLocalAtomic() throws Exception {
     File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
@@ -405,5 +414,19 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
     Assert.assertFalse(fileExists(new AlluxioURI("/testDir/foobar4")));
+  }
+
+  @Test
+  public void copyFromLocalRelativePath() throws Exception {
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      File localDir = mTestFolder.newFolder("testDir");
+      generateRelativeFileContent(localDir.getPath() + "/testFile",
+              BufferUtils.getIncreasingByteArray(10));
+      int ret = mFsShell.run("copyFromLocal", "testDir/testFile", "/testFile");
+      Assert.assertEquals(0, ret);
+      Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
+    }
   }
 }
