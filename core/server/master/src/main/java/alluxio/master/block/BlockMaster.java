@@ -69,6 +69,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Future;
 
@@ -238,6 +239,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
       @Override
       public JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
         MasterBlockInfo info = it.next();
         BlockInfoEntry blockInfoEntry =
             BlockInfoEntry.newBuilder().setBlockId(info.getBlockId())

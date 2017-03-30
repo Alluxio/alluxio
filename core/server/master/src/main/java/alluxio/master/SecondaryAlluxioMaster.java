@@ -11,20 +11,12 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.LeaderSelectorClient;
-import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
 import alluxio.util.CommonUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

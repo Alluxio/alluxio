@@ -188,7 +188,7 @@ public class UfsJournal implements Journal {
    * @return the location
    */
   public URI encodeCheckpointOrLogFileLocation(long start, long end, boolean isCheckpoint) {
-    String filename = String.format("%0xd-%0xd", start, end);
+    String filename = String.format("%x-%x", start, end);
     URI location =
         URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDir() : getLogDir(), filename);
     return location;
@@ -210,7 +210,7 @@ public class UfsJournal implements Journal {
    * @param isCheckpoint whether this is a checkpoint file or a log file
    * @return the instance of {@link UfsJournalFile}
    */
-  private UfsJournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
+  public UfsJournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
     URI location =
         URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDir() : getLogDir(), filename);
     try {
@@ -236,7 +236,7 @@ public class UfsJournal implements Journal {
    * @param filename the temporary checkpoint file name
    * @return the instance of {@link UfsJournalFile}
    */
-  private UfsJournalFile decodeTemporaryCheckpointFile(String filename) {
+  public UfsJournalFile decodeTemporaryCheckpointFile(String filename) {
     URI location = URIUtils.appendPathOrDie(getTmpDir(), filename);
     return UfsJournalFile.createTmpCheckpointFile(location);
   }

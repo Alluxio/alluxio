@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -81,7 +82,7 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
         }
         while (it.hasNext()) {
           mEntry = it.next();
-          // Do not journal the root mount point
+          // Do not journal the root mount point.
           if (!mEntry.getKey().equals(ROOT)) {
             return true;
           }
@@ -91,10 +92,12 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
 
       @Override
       public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
         String alluxioPath = mEntry.getKey();
         MountInfo info = mEntry.getValue();
         mEntry = null;
-        hasNext();
 
         Map<String, String> properties = info.getOptions().getProperties();
         List<File.StringPairEntry> protoProperties = new ArrayList<>(properties.size());
@@ -105,9 +108,10 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
               .build());
         }
 
-        AddMountPointEntry addMountPoint = AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
-            .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
-            .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
+        AddMountPointEntry addMountPoint =
+            AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
+                .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
+                .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
         return Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
       }
 

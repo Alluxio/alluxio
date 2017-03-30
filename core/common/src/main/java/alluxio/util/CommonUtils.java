@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -401,6 +402,9 @@ public final class CommonUtils {
 
       @Override
       public T next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
         mHasNext = false;
         return element;
       }

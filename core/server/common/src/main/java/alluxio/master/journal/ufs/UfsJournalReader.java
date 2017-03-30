@@ -117,8 +117,8 @@ class UfsJournalReader implements JournalReader {
     if (mPrimary) {
       return false;
     }
-    if (mNextSequenceNumber > mJournal.getNextLogSequenceToCheckpoint() &&
-        mNextSequenceNumber % mCheckpointPeriodEntries == 0) {
+    if (mNextSequenceNumber > mJournal.getNextLogSequenceToCheckpoint()
+        && mNextSequenceNumber % mCheckpointPeriodEntries == 0) {
       return true;
     }
     return false;

@@ -14,7 +14,7 @@ package alluxio.master.journal.options;
 /**
  * Options to create a {@link alluxio.master.journal.JournalWriter}.
  */
-public class JournalWriterCreateOptions {
+public final class JournalWriterCreateOptions {
   /** The first journal log entry sequence number to write. */
   private long mNextSequenceNumber;
   /** Whether this is a primary master. */

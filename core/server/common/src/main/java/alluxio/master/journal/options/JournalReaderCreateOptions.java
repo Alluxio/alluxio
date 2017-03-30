@@ -14,7 +14,7 @@ package alluxio.master.journal.options;
 /**
  * Options to create a journal reader.
  */
-public class JournalReaderCreateOptions {
+public final class JournalReaderCreateOptions {
   /** The first log sequence number to read in the journal reader. */
   private long mNextSequenceNumber;
   /** Whether the journal reader is running in a primary master. */

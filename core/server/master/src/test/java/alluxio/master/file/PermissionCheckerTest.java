@@ -28,8 +28,8 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -168,7 +168,7 @@ public final class PermissionCheckerTest {
     // setup an InodeTree
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory =
-        new MutableJournal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
+        new Journal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
 
     BlockMaster blockMaster = new BlockMaster(registry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);

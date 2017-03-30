@@ -34,7 +34,6 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
 import alluxio.master.lineage.meta.Lineage;
@@ -46,6 +45,7 @@ import alluxio.master.lineage.recompute.RecomputePlanner;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.thrift.LineageMasterClientService;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -54,6 +54,7 @@ import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -155,10 +157,9 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
-      throws IOException {
-    mLineageStore.streamToJournalCheckpoint(outputStream);
-    outputStream.write(mLineageIdGenerator.toJournalEntry());
+  public synchronized Iterator<JournalEntry> iterator() {
+    return Iterators.concat(mLineageStore.iterator(),
+        CommonUtils.singleElementIterator(mLineageIdGenerator.toJournalEntry()));
   }
 
   /**

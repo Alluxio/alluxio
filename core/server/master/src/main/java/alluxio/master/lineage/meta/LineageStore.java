@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -217,6 +218,9 @@ public final class LineageStore implements Iterable<Journal.JournalEntry> {
 
       @Override
       public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
         return it.next().toJournalEntry();
       }
 

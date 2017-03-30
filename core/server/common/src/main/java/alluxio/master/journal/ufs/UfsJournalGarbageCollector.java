@@ -14,7 +14,6 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.master.journal.JournalWriter;
 import alluxio.util.ThreadFactoryUtils;
 
 import org.slf4j.Logger;
@@ -124,9 +123,9 @@ final class UfsJournalGarbageCollector implements Closeable {
       return;
     }
 
-    long thresholdMs = file.isTmpCheckpoint() ?
-        Configuration.getLong(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS) :
-        Configuration.getLong(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
+    long thresholdMs = file.isTmpCheckpoint()
+        ? Configuration.getLong(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
+        : Configuration.getLong(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
 
     if (System.currentTimeMillis() - lastModifiedTimeMs > thresholdMs) {
       deleteNoException(file.getLocation());

@@ -97,9 +97,8 @@ final class UfsJournalLogWriter implements JournalWriter {
       if (mOutputStream != null) {
         mOutputStream.close();
       }
-      LOG.info("Marking {} as complete with log entries within [{}, {}).", mCurrentLog.getLocation(),
-          mCurrentLog.getStart(), mNextSequenceNumber);
-
+      LOG.info("Marking {} as complete with log entries within [{}, {}).",
+          mCurrentLog.getLocation(), mCurrentLog.getStart(), mNextSequenceNumber);
 
       String src = mCurrentLog.getLocation().toString();
       if (!mJournal.getUfs().exists(src) && mNextSequenceNumber == mCurrentLog.getStart()) {
@@ -174,16 +173,18 @@ final class UfsJournalLogWriter implements JournalWriter {
    * @throws IOException if an IO exception occurs during the log rotation
    */
   private void maybeRotateLog() throws IOException {
-    if (!mRotateLogForNextWrite) return;
+    if (!mRotateLogForNextWrite) {
+      return;
+    }
 
     mJournalOutputStream.close();
     mJournalOutputStream = null;
 
-    URI new_log = mJournal
+    URI newLog = mJournal
         .encodeCheckpointOrLogFileLocation(mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
             false  /* is_checkpoint */);
     UfsJournalFile currentLog = UfsJournalFile
-        .createLogFile(new_log, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
+        .createLogFile(newLog, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     OutputStream outputStream = mJournal.getUfs().create(currentLog.getLocation().toString(),
         CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
     mJournalOutputStream = new JournalOutputStream(currentLog, outputStream);

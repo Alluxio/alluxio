@@ -15,7 +15,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URI;
 
 /**
  * This class manages all the writes to the journal.

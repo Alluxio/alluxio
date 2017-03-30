@@ -156,7 +156,8 @@ public final class JournalCheckpointThread extends Thread {
         return;
       }
     } catch (IOException e) {
-      LOG.warn("Failed to decide whether to checkpoint from the journal reader with error {}.", e.getMessage());
+      LOG.warn("Failed to decide whether to checkpoint from the journal reader with error {}.",
+          e.getMessage());
       return;
     }
 

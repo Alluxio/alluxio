@@ -43,8 +43,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
- * mostly consists of journal operations, like initialization, journal tailing when in secondary mode,
- * or journal writing when the master is the primary.
+ * mostly consists of journal operations, like initialization, journal tailing when in secondary
+ * mode, or journal writing when the master is the primary.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public abstract class AbstractMaster implements Master {
@@ -63,7 +63,8 @@ public abstract class AbstractMaster implements Master {
   /** true if this master is in primary mode, and not secondary mode. */
   private boolean mIsPrimary = false;
   /**
-   * The thread that replays the journal and periodically checkpoints when the master is in secondary mode.
+   * The thread that replays the journal and periodically checkpoints when the master is in
+   * secondary mode.
    */
   private JournalCheckpointThread mJournalCheckpointThread;
   /** The journal writer for when the master is the primary. */
