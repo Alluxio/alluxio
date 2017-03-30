@@ -198,36 +198,6 @@ public final class FormatUtils {
   }
 
   /**
-   * Parses a time from millisecond to target unit.
-   *
-   * @param unit the target unit set by user
-   * @param ori the original time value set in millisecond
-   * @return the time value transformed to target unit
-   */
-  public static long parseTimeUnit(String unit, String ori) {
-    double time = Double.parseDouble(ori);
-    if (unit.equalsIgnoreCase("MILLISECOND") || unit.equalsIgnoreCase("MS")) {
-      return (long) (time);
-    } else if (unit.equalsIgnoreCase("SECOND") || unit.equalsIgnoreCase("SEC")) {
-      return (long) (time / 1000);
-    } else if (unit.equalsIgnoreCase("S")) {
-      return (long) (time / 1000);
-    } else if (unit.equalsIgnoreCase("MINUTE") || unit.equalsIgnoreCase("MIN")) {
-      return (long) (time / 60000);
-    } else if (unit.equalsIgnoreCase("M")) {
-      return (long) (time / 60000);
-    } else if (unit.equalsIgnoreCase("HOUR") || unit.equalsIgnoreCase("HR")) {
-      return (long) (time / 3600000);
-    } else if (unit.equalsIgnoreCase("H")) {
-      return (long) (time / 3600000);
-    } else if (unit.equalsIgnoreCase("DAY") || unit.equalsIgnoreCase("D")) {
-      return (long) (time / 86400000);
-    } else {
-      throw new IllegalArgumentException("Fail to parse " + ori + " to target unit" + unit);
-    }
-  }
-
-  /**
    * Formats digital representation of a model as a human-readable string.
    *
    * @param mode file mode

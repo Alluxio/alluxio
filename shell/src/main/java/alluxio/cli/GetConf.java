@@ -44,7 +44,7 @@ public final class GetConf {
           .desc("unit of the value to return.").build();
   private static final Options OPTIONS = new Options().addOption(UNIT_OPTION);
 
-  private enum Unit {
+  private enum ByteUnit {
     B(1L),
     KB(1L << 10),
     MB(1L << 20),
@@ -62,7 +62,37 @@ public final class GetConf {
       return mValue;
     }
 
-    Unit(long value) {
+    ByteUnit(long value) {
+      mValue = value;
+    }
+  }
+
+  private enum TimeUnit {
+    MS(1L),
+    MILLISECOND(1L),
+    S(1000L),
+    SEC(1000L),
+    SECOND(1000L),
+    M(60000L),
+    MIN(60000L),
+    MINUTE(60000L),
+    H(3600000L),
+    HR(3600000L),
+    HOUR(3600000L),
+    D(86400000L),
+    DAY(86400000L);
+
+    /** value associated with each unit. */
+    private long mValue;
+
+    /**
+     * @return the value of this unit
+     */
+    public long getValue() {
+      return mValue;
+    }
+
+    TimeUnit(long value) {
       mValue = value;
     }
   }
@@ -116,16 +146,20 @@ public final class GetConf {
           if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
-              if (arg.endsWith("B")) {
-                Unit unit;
-                unit = Unit.valueOf(arg);
-                System.out.println(Configuration.getBytes(key) / unit.getValue());
-              } else {
-                System.out.println(Configuration.getTime(key, arg));
+              ByteUnit byteUnit;
+              byteUnit = ByteUnit.valueOf(arg);
+              System.out.println(Configuration.getBytes(key) / byteUnit.getValue());
+              break;
+            } catch (Exception e) {
+              try {
+                TimeUnit timeUnit;
+                timeUnit = TimeUnit.valueOf(arg);
+                System.out.println(Configuration.getMs(key) / timeUnit.getValue());
+                break;
+              } catch (IllegalArgumentException ex) {
+                printHelp(String.format("%s is not a valid unit", arg));
+                return 1;
               }
-            } catch (IllegalArgumentException e) {
-              printHelp(String.format("%s is not a valid unit", arg));
-              return 1;
             }
           } else {
             System.out.println(Configuration.get(key));

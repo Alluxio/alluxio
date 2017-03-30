@@ -366,15 +366,18 @@ public final class Configuration {
   }
 
   /**
-   * Gets the time in the given key.
+   * Gets the time of key in millisecond unit.
    *
    * @param key the key to get the value for
-   * @param targetUnit the target unit set by user
-   * @return the time transformed from milliseconds to the target unit
+   * @return the time of key in millisecond unit
    */
-  public static long getTime(PropertyKey key, String targetUnit) {
+  public static long getMs(PropertyKey key) {
     String rawValue = get(key);
-    return FormatUtils.parseTimeUnit(targetUnit, rawValue);
+    try {
+      return (long) Double.parseDouble(rawValue);
+    } catch (Exception e) {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
+    }
   }
 
   /**
