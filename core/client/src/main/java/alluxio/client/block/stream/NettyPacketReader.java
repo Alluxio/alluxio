@@ -19,6 +19,7 @@ import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
@@ -145,8 +146,7 @@ public final class NettyPacketReader implements PacketReader {
   public DataBuffer readPacket() throws IOException {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
     ByteBuf buf = null;
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       while (true) {
         if (mDone) {
           return null;
@@ -186,8 +186,6 @@ public final class NettyPacketReader implements PacketReader {
         buf.release();
       }
       throw e;
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -283,8 +281,7 @@ public final class NettyPacketReader implements PacketReader {
             .format("Failed to read block %d from %s with status %s.", mId, mAddress,
                 status.toString())));
       }
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(mPacketReaderException == null);
         DataBuffer dataBuffer = response.getPayloadDataBuffer();
         ByteBuf buf;
@@ -301,34 +298,26 @@ public final class NettyPacketReader implements PacketReader {
         if (tooManyPacketsPending()) {
           pause();
         }
-      } finally {
-        mLock.unlock();
       }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception caught while reading response from netty channel.", cause);
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         mPacketReaderException = cause;
         mNotEmptyOrFailed.signal();
-      } finally {
-        mLock.unlock();
       }
       ctx.close();
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         if (mPacketReaderException == null) {
           mPacketReaderException = new IOException("ChannelClosed");
         }
         mNotEmptyOrFailed.signal();
-      } finally {
-        mLock.unlock();
       }
       ctx.fireChannelUnregistered();
     }

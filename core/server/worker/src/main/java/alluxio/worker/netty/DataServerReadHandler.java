@@ -17,6 +17,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -140,16 +141,13 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
 
     if (msg.getCancel()) {
       if (mRequest != null) {
-        mLock.lock();
-        try {
+        try (LockResource lr = new LockResource(mLock)) {
           mRequest.mCancelled = mPosToQueue;
           if (remainingToWrite() <= 0) {
             // This can only happen when everything before mPosToQueue has been sent to the client.
             // This is not a common event.
             replySuccess(ctx.channel());
           }
-        } finally {
-          mLock.unlock();
         }
       }
       return;
@@ -158,16 +156,13 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
     mEOFSent.set(false);
     initializeRequest(msg);
 
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       // TODO(peis): Check the state of mPosToQueue and mPosToWrite.
       mPosToQueue = mRequest.mStart;
       mPosToWrite = mRequest.mStart;
 
       mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
       mPacketReaderActive = true;
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -279,13 +274,10 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
       mRequest.close();
       mRequest = null;
     }
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       mPacketReaderActive = false;
       mPosToQueue = -1;
       mPosToWrite = -1;
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -346,8 +338,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         return;
       }
 
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= PACKET_SIZE,
             "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
@@ -360,8 +351,6 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
         if (remainingToWrite() <= 0) {
           replySuccess(future.channel());
         }
-      } finally {
-        mLock.unlock();
       }
     }
   }
@@ -398,8 +387,7 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
       while (true) {
         final long start;
         final int packetSize;
-        mLock.lock();
-        try {
+        try (LockResource lr = new LockResource(mLock)) {
           start = mPosToQueue;
           long remaining = remainingToQueue();
           if (tooManyPendingPackets() || remaining <= 0) {
@@ -409,8 +397,6 @@ public abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter
 
           packetSize = (int) Math.min(remaining, PACKET_SIZE);
           mPosToQueue += packetSize;
-        } finally {
-          mLock.unlock();
         }
 
         DataBuffer packet;

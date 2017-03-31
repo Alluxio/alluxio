@@ -17,6 +17,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -114,8 +115,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
       return;
     }
 
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       DataBuffer dataBuffer = msg.getPayloadDataBuffer();
       ByteBuf buf;
       if (dataBuffer == null) {
@@ -134,8 +134,6 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
       if (tooManyPacketsInFlight()) {
         ctx.channel().config().setAutoRead(false);
       }
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -219,14 +217,11 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
     mPosToQueue = 0;
     mPosToWrite = 0;
 
-    try {
-      mLock.lock();
+    try (LockResource lr = new LockResource(mLock)) {
       for (ByteBuf buf : mPackets) {
         ReferenceCountUtil.release(buf);
       }
       mPacketWriterActive = false;
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -261,8 +256,7 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
     private void runInternal() {
       while (true) {
         ByteBuf buf;
-        mLock.lock();
-        try {
+        try (LockResource lr = new LockResource(mLock)) {
           buf = mPackets.poll();
           if (buf == null) {
             mPacketWriterActive = false;
@@ -272,8 +266,6 @@ public abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapte
             mCtx.channel().config().setAutoRead(true);
             mCtx.read();
           }
-        } finally {
-          mLock.unlock();
         }
 
         try {
