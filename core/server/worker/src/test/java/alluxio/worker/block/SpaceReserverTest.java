@@ -101,7 +101,7 @@ public class SpaceReserverTest {
 
     // 400 * 0.2 = 80
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
-    // 400 * 0.2 + 1000 * 0.3 = 380
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
+    // 1000 * 0.3 = 300
+    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 300L, "HDD");
   }
 }
