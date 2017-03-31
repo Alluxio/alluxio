@@ -66,7 +66,7 @@ public final class TempInodePathForDescendant extends LockedInodePath {
   }
 
   @Override
-  public synchronized Inode getInode() throws FileDoesNotExistException {
+  public synchronized Inode<?> getInode() throws FileDoesNotExistException {
     if (mDescendantInode == null) {
       return super.getInode();
     }
