@@ -1148,14 +1148,14 @@ public final class FileSystemMaster extends AbstractMaster {
       CreateFileOptions options, JournalContext journalContext)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
+    if (mWhitelist.inList(inodePath.getUri().toString())) {
+      options.setCacheable(true);
+    }
     InodeTree.CreatePathResult createResult =
         mInodeTree.createPath(inodePath, options, createJournalAppender(journalContext));
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode<?>> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
-    if (mWhitelist.inList(inodePath.getUri().toString())) {
-      inode.setCacheable(true);
-    }
 
     mTtlBuckets.insert(inode);
 

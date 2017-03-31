@@ -558,7 +558,7 @@ public class InodeTree implements JournalCheckpointStreamable {
 
       File.InodeLastModificationTimeEntry inodeLastModificationTime =
           File.InodeLastModificationTimeEntry.newBuilder().setId(currentInodeDirectory.getId())
-              .setLastModificationTimeMs(currentInodeDirectory.getLastModificationTimeMs()).build();
+              .setLastModificationTimeMs(options.getOperationTimeMs()).build();
       journalAppender.append(
           Journal.JournalEntry.newBuilder().setInodeLastModificationTime(inodeLastModificationTime)
               .build());
@@ -571,6 +571,7 @@ public class InodeTree implements JournalCheckpointStreamable {
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
+        .setOperationTimeMs(options.getOperationTimeMs())
         .setOwner(options.getOwner())
         .setGroup(options.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
@@ -595,7 +596,6 @@ public class InodeTree implements JournalCheckpointStreamable {
           // Successfully added the child, while holding the write lock.
           dir.setPinned(currentInodeDirectory.isPinned());
           currentInodeDirectory.addChild(dir);
-          currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
           if (options.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
             syncPersistDirectory(dir, null);
@@ -660,6 +660,9 @@ public class InodeTree implements JournalCheckpointStreamable {
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
+        }
+        if (fileOptions.isCacheable()) {
+          ((InodeFile) lastInode).setCacheable(true);
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());
       }
