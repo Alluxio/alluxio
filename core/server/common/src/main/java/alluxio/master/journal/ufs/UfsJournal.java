@@ -42,7 +42,11 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * The journal is made up of 2 components:
  * - The checkpoint: the full state of the master.
- * - The entries: incremental entries to apply to the checkpoint.
+ * - The log entries: incremental entries to apply to the checkpoint.
+ *
+ * The journal log entries must be self-contained. Checkpoint is considered as a compaction of
+ * a set of journal log entries. If the master does not do any checkpoint, the journal should
+ * still be sufficient.
  *
  * Journal file structure:
  * journal_folder/version/logs/StartSequenceNumber-EndSequenceNumber

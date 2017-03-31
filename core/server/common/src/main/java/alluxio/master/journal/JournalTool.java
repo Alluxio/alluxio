@@ -50,12 +50,12 @@ public final class JournalTool {
   /** Amount of time to wait before giving up on the user supplying a journal log via stdin. */
   private static final int EXIT_FAILED = -1;
   private static final int EXIT_SUCCEEDED = 0;
-  private static final Options OPTIONS = new Options()
-      .addOption("help", false, "Show help for this test.")
-      .addOption("master", true, "The name of the master (e.g. FileSystemMaster, BlockMaster). "
-          + "Set to FileSystemMaster by default.")
-      .addOption("start", true, "The start log sequence number (inclusive). Set to 0 by default.")
-      .addOption("end", true, "The end log sequence number (exclusive). Set to +inf by default.");
+  private static final Options OPTIONS =
+      new Options().addOption("help", false, "Show help for this test.").addOption("master", true,
+          "The name of the master (e.g. FileSystemMaster, BlockMaster). "
+              + "Set to FileSystemMaster by default.").addOption("start", true,
+          "The start log sequence number (inclusive). Set to 0 by default.").addOption("end", true,
+          "The end log sequence number (exclusive). Set to +inf by default.");
 
   private static boolean sHelp;
   private static String sMaster;
@@ -84,10 +84,9 @@ public final class JournalTool {
 
     JournalFactory factory = new Journal.Factory(getJournalLocation());
     Journal journal = factory.create(sMaster);
-    JournalReader reader = journal.getReader(
-        JournalReaderCreateOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart));
-    JournalEntry entry;
-    try {
+    try (JournalReader reader = journal.getReader(
+        JournalReaderCreateOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart))) {
+      JournalEntry entry;
       while ((entry = reader.read()) != null) {
         if (entry.getSequenceNumber() >= sEnd) {
           break;
@@ -142,10 +141,8 @@ public final class JournalTool {
    * Prints the usage.
    */
   private static void usage() {
-    new HelpFormatter().printHelp(
-        "java -cp alluxio-" + RuntimeConstants.VERSION
+    new HelpFormatter().printHelp("java -cp alluxio-" + RuntimeConstants.VERSION
             + "-jar-with-dependencies.jar alluxio.master.journal.JournalTool",
-        "Read an Alluxio journal and write it human-readably to stdout", OPTIONS, "",
-        true);
+        "Read an Alluxio journal and write it human-readably to stdout", OPTIONS, "", true);
   }
 }

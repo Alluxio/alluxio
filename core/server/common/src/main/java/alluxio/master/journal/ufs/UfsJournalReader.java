@@ -151,7 +151,7 @@ class UfsJournalReader implements JournalReader {
         //    result in duplicate logs.
         // 2. The first completed log after the checkpoint's last sequence number might contains
         //    some duplicate entries with the checkpoint.
-        LOG.warn("Skipping duplicate log entry {}.", entry);
+        LOG.debug("Skipping duplicate log entry {}.", entry);
       } else {
         throw new InvalidJournalEntryException(ExceptionMessage.JOURNAL_ENTRY_MISSING,
             mNextSequenceNumber, entry.getSequenceNumber());

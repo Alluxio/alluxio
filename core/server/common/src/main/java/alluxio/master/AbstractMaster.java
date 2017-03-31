@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -132,10 +133,18 @@ public abstract class AbstractMaster implements Master {
           throw new RuntimeException(e);
         }
       }
+      nextSequenceNumber = journalReader.getNextSequenceNumber();
 
       // Step 2: Start the journal writer.
-      mJournalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults()
-          .setNextSequenceNumber(journalReader.getNextSequenceNumber()).setPrimary(true));
+      mJournalWriter = mJournal.getWriter(
+          JournalWriterCreateOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
+              .setPrimary(true));
+      if (nextSequenceNumber == 0) {
+        Iterator<JournalEntry> it = iterator();
+        while (it.hasNext()) {
+          mJournalWriter.write(it.next());
+        }
+      }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
     } else {
       // This master is in secondary mode. Start the journal checkpoint thread. Since the master is
