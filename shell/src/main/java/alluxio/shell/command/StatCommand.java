@@ -100,15 +100,15 @@ public final class StatCommand extends WithWildCardPathCommand {
         + "   \"%b\": Number of blocks allocated for file";
   }
 
-  private static final String formatRegex = "%([bgruyzNY])";
-  private static final Pattern frPattern = Pattern.compile(formatRegex);
+  private static final String FORMAT_REGEX = "%([bgruyzNY])";
+  private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
 
   private String formatOutput(CommandLine cl, URIStatus status) {
     String format = cl.getOptionValue('f');
     int formatLen = format.length();
 
     StringBuilder output = new StringBuilder();
-    Matcher m = frPattern.matcher(format);
+    Matcher m = FORMAT_PATTERN.matcher(format);
     for (int i = 0; i < formatLen;) {
       if (m.find(i)) {
         if (m.start() != i) {
@@ -144,7 +144,9 @@ public final class StatCommand extends WithWildCardPathCommand {
         return status.getName();
       case 'Y':
         return String.valueOf(status.getLastModificationTimeMs());
+      default:
+        assert false;
+        return "";
     }
-    return "";
   }
 }
