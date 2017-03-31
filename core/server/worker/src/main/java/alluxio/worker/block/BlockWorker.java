@@ -151,10 +151,13 @@ public interface BlockWorker extends Worker {
    * @param blockId the id of the block to be opened for writing
    * @return the block writer for the local block file
    * @throws BlockDoesNotExistException if the block cannot be found
+   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
+   * @throws InvalidWorkerStateException if the worker state is invalid
    * @throws IOException if block cannot be created
    */
   BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
-      throws BlockDoesNotExistException, IOException;
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException;
 
   /**
    * Gets a report for the periodic heartbeat to master. Contains the blocks added since the last
@@ -396,11 +399,10 @@ public interface BlockWorker extends Worker {
    *         because the block exists in the Alluxio block store
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    *         {@link UnderFileSystemBlockStore}
-   * @throws InvalidWorkerStateException the worker is not in a valid state
    * @throws IOException if any I/O related errors occur
    * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
    */
   void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
+      WorkerOutOfSpaceException;
 }

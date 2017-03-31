@@ -17,13 +17,13 @@ import alluxio.PropertyKey;
 import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
+import alluxio.master.journal.JournalTailer;
+import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalTailer;
 import alluxio.master.journal.JournalTailerThread;
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.ReadWriteJournal;
+import alluxio.master.journal.MutableJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -34,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -47,8 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractMaster.class);
-
-  public static final long INVALID_FLUSH_COUNTER = -1;
+  private static final long INVALID_FLUSH_COUNTER = -1;
   private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
   private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
@@ -85,10 +86,15 @@ public abstract class AbstractMaster implements Master {
   }
 
   @Override
+  public Set<Class<?>> getDependencies() {
+    return new HashSet<>();
+  }
+
+  @Override
   public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
     JournalEntry entry;
     try {
-      while ((entry = inputStream.getNextEntry()) != null) {
+      while ((entry = inputStream.read()) != null) {
         processJournalEntry(entry);
       }
     } finally {
@@ -103,8 +109,8 @@ public abstract class AbstractMaster implements Master {
     mIsLeader = isLeader;
     LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
-      Preconditions.checkState(mJournal instanceof ReadWriteJournal);
-      mJournalWriter = ((ReadWriteJournal) mJournal).getNewWriter();
+      Preconditions.checkState(mJournal instanceof MutableJournal);
+      mJournalWriter = ((MutableJournal) mJournal).getWriter();
 
       /**
        * The sequence for dealing with the journal before starting as the leader:
@@ -114,28 +120,28 @@ public abstract class AbstractMaster implements Master {
        *
        * Phase 2. Mark all the logs as completed. Since this master is the leader, it is allowed to
        * write the journal, so it can mark the current log as completed. After this step, the
-       * current log file will not exist, and all logs will be complete.
+       * current log will not exist, and all logs will be complete.
        *
        * Phase 3. Reconstruct the state from the journal. This uses the JournalTailer to process all
-       * of the checkpoint and the complete log files. Since all logs are complete, after this step,
+       * of the checkpoint and the complete logs. Since all logs are complete, after this step,
        * the master will reflect the state of all of the journal entries.
        *
-       * Phase 4. Write out the checkpoint file. Since this master is completely up-to-date, it
-       * writes out the checkpoint file. When the checkpoint file is closed, it will then delete the
-       * complete log files.
+       * Phase 4. Write out the checkpoint. Since this master is completely up-to-date, it
+       * writes out the checkpoint. When the checkpoint is closed, it will then delete the
+       * complete logs.
        *
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
        */
 
       // Phase 1: Recover from a backup checkpoint if necessary.
-      mJournalWriter.recoverCheckpoint();
+      mJournalWriter.recover();
 
       // Phase 2: Mark all logs as complete, including the current log. After this call, the current
-      // log should not exist, and all the log files will be complete.
-      mJournalWriter.completeAllLogs();
+      // log should not exist, and all the logs will be complete.
+      mJournalWriter.completeLogs();
 
-      // Phase 3: Replay all the state of the checkpoint and the completed log files.
+      // Phase 3: Replay all the state of the checkpoint and the completed logs.
       JournalTailer catchupTailer;
       if (mStandbyJournalTailer != null && mStandbyJournalTailer.getLatestJournalTailer() != null
           && mStandbyJournalTailer.getLatestJournalTailer().isValid()) {
@@ -144,28 +150,28 @@ public abstract class AbstractMaster implements Master {
         LOG.info("{}: finish processing remaining journal entries (standby -> master).",
             getName());
         catchupTailer = mStandbyJournalTailer.getLatestJournalTailer();
-        catchupTailer.processNextJournalLogFiles();
+        catchupTailer.processNextJournalLogs();
       } else {
         // This master has not successfully processed any of the journal, so create a fresh tailer
         // to process the entire journal.
-        catchupTailer = new JournalTailer(this, mJournal);
+        catchupTailer = JournalTailer.Factory.create(this, mJournal);
         if (catchupTailer.checkpointExists()) {
           LOG.info("{}: process entire journal before becoming leader master.", getName());
           catchupTailer.processJournalCheckpoint(true);
-          catchupTailer.processNextJournalLogFiles();
+          catchupTailer.processNextJournalLogs();
         } else {
           LOG.info("{}: journal checkpoint does not exist, nothing to process.", getName());
         }
       }
       long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
 
-      // Phase 4: initialize the journal and write out the checkpoint file (the state of all
+      // Phase 4: initialize the journal and write out the checkpoint (the state of all
       // completed logs).
-      JournalOutputStream checkpointStream =
-          mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
-      LOG.info("{}: start writing checkpoint.", getName());
-      streamToJournalCheckpoint(checkpointStream);
-      checkpointStream.close();
+      try (JournalOutputStream checkpointStream =
+          mJournalWriter.getCheckpointOutputStream(latestSequenceNumber)) {
+        LOG.info("{}: start writing checkpoint.", getName());
+        streamToJournalCheckpoint(checkpointStream);
+      }
       LOG.info("{}: done with writing checkpoint.", getName());
 
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
@@ -214,7 +220,7 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public void transitionToLeader() {
-    mJournal = new ReadWriteJournal(mJournal.getDirectory());
+    mJournal = MutableJournal.Factory.create(mJournal.getLocation());
   }
 
   /**
@@ -225,7 +231,7 @@ public abstract class AbstractMaster implements Master {
   protected void writeJournalEntry(JournalEntry entry) {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
-      mJournalWriter.writeEntry(entry);
+      mJournalWriter.write(entry);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -237,7 +243,7 @@ public abstract class AbstractMaster implements Master {
   protected void flushJournal() {
     Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
-      mJournalWriter.flushEntryStream();
+      mJournalWriter.flush();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -268,10 +274,8 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
 
     RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, Constants.SECOND_MS);
-    int attempts = 0;
     while (retry.attemptRetry()) {
       try {
-        attempts++;
         mAsyncJournalWriter.flush(journalContext.getFlushCounter());
         return;
       } catch (IOException e) {
@@ -280,9 +284,9 @@ public abstract class AbstractMaster implements Master {
     }
     LOG.error(
         "Journal flush failed after {} attempts. Terminating process to prevent inconsistency.",
-        attempts);
+        retry.getRetryCount());
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      throw new RuntimeException("Journal flush failed after " + attempts
+      throw new RuntimeException("Journal flush failed after " + retry.getRetryCount()
           + " attempts. Terminating process to prevent inconsistency.");
     }
     System.exit(-1);

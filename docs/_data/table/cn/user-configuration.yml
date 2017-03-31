@@ -59,18 +59,16 @@ alluxio.user.network.netty.channel.pool.gc.threshold.ms:
   netty网络通道会被关闭如果它被闲置超过这个时间。
 alluxio.user.network.netty.channel.pool.disabled:
   禁用netty网络通道池特性。设置这个选项为真如果客户端的版本 >= 1.3.0 但是服务器版本 <= 1.2.x。
-alluxio.user.ufs.delegation.enabled:
-  是否使用worker对ufs数据进行代理。将该项设置为false会让client直接与ufs通信，目前该特性还处于实验阶段，若设置为true，可能在某些workload下会对性能有影响。
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
-  通过Alluxio worker从ufs读取数据时使用的缓存大小，每个读取操作至少会读取该数量的字节，如果代理被关闭，该配置项无效。
+  通过Alluxio worker从ufs读取数据时使用的缓存大小，每个读取操作至少会读取该数量的字节，除非已经到文件结束位置。
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
-  通过Alluxio worker写入数据到ufs时使用的缓存大小，每个写入操作至少会写入该数量的字节，除非已经到文件结束位置。如果代理被关闭，该配置项无效。
+  通过Alluxio worker写入数据到ufs时使用的缓存大小，每个写入操作至少会写入该数量的字节，除非已经到文件结束位置。
 alluxio.user.ufs.file.reader.class:
   选择通过worker的data server从底层文件系统读取数据的client所使用的网络栈。目前只支持 `alluxio.client.netty.NettyUnderFileSystemFileReader` （远程读取使用netty）
 alluxio.user.ufs.file.writer.class:
   选择通过worker的data server向底层文件系统写入数据的client所使用的网络栈。目前只支持 `alluxio.client.netty.NettyUnderFileSystemFileWriter` （远程读取使用netty）
 alluxio.user.packet.streaming.enabled:
-  是否使用流行数据传输机制。流行数据传输是一个实验功能，它会提高数据传输效率。
+  是否使用流行数据传输机制。它会提高数据传输效率。
 alluxio.user.rpc.retry.base.sleep.ms:
   在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个指数级重试的基数。
 alluxio.user.rpc.retry.max.sleep.ms:
@@ -79,3 +77,5 @@ alluxio.user.rpc.retry.max.num.retry:
   在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了重试的最大次数。
 alluxio.user.date.format.pattern:
   以指定的日期格式，在Cli命令和Web页面中显示日期。
+alluxio.user.short.circuit.enabled:
+  是否允许用户绕过Alluxio读取数据。

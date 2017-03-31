@@ -40,7 +40,7 @@ public final class ProtoBufJournalFormatterTest extends AbstractJournalFormatter
     for (int i = 1; i < serializedEntry.length; i++) {
       byte[] truncated = ArrayUtils.subarray(serializedEntry, 0, serializedEntry.length - i);
       Assert.assertEquals(null,
-          formatter.deserialize(new ByteArrayInputStream(truncated)).getNextEntry());
+          formatter.deserialize(new ByteArrayInputStream(truncated)).read());
     }
   }
 }

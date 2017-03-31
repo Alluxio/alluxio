@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.Locatable;
 import alluxio.client.UnderFileSystemBlockReader;
 import alluxio.client.block.options.LockBlockOptions;
@@ -92,8 +94,8 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       if (result.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
-            .equals(NetworkAddressUtils.getLocalHostName());
-        if (local) {
+            .equals(NetworkAddressUtils.getClientHostName());
+        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
           LocalFileBlockReader reader =
               closer.register(new LocalFileBlockReader(result.getBlockPath()));
           return LocalBlockInStream
@@ -133,7 +135,7 @@ public final class UnderFileSystemBlockInStream extends BufferedBlockInStream im
     mCloser = closer;
     mNoCache = !options.getAlluxioStorageType().isStore();
     mLocal = blockWorkerClient.getDataServerAddress().getHostName()
-        .equals(NetworkAddressUtils.getLocalHostName());
+        .equals(NetworkAddressUtils.getClientHostName());
   }
 
   @Override

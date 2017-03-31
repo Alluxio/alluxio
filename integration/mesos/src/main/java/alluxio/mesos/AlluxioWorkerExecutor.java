@@ -74,7 +74,7 @@ public class AlluxioWorkerExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
-          Format.format("worker");
+          Format.format(Format.Mode.WORKER);
           AlluxioWorker.main(new String[] {});
 
           status =

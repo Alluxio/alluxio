@@ -41,8 +41,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test master journal for cluster terminating. Assert that test can replay the editlog and
- * reproduce the correct state. Test both the single master(alluxio) and multi masters(alluxio-ft).
+ * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
+ * the correct state. Test both the single master (alluxio) and multi masters (alluxio-ft).
  */
 public class JournalShutdownIntegrationTest {
   @Rule
@@ -127,7 +127,7 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
-  private FileSystemMaster createFsMasterFromJournal() throws IOException {
+  private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -136,7 +136,8 @@ public class JournalShutdownIntegrationTest {
    */
   private void reproduceAndCheckState(int successFiles) throws Exception {
     Assert.assertNotEquals(successFiles, 0);
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     int actualFiles =
         fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
@@ -146,7 +147,7 @@ public class JournalShutdownIntegrationTest {
       Assert.assertTrue(
           fsMaster.getFileId(new AlluxioURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
-    fsMaster.stop();
+    registry.stop();
   }
 
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {

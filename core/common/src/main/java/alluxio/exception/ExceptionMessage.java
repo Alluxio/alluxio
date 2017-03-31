@@ -25,12 +25,14 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public enum ExceptionMessage {
   // general
+  DEPENDENCY_CYCLE("Dependency cycle encountered"),
   INVALID_PREFIX("Parent path {0} is not a prefix of child {1}"),
   NOT_SUPPORTED("This method is not supported"),
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
   PATH_MUST_BE_FILE("Path {0} must be a file"),
   PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
   PATH_INVALID("Path {0} is invalid"),
+  RESOURCE_UNAVAILABLE("Resource unavailable"),
 
   // general block
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
@@ -67,12 +69,12 @@ public enum ExceptionMessage {
   BLOCK_WRITE_ERROR(
       "Error writing blockId: {0,number,#}, sessionId: {1,number,#}, address: {2}, message: {3}"),
   NO_RPC_HANDLER("No handler implementation for rpc message type: {0}"),
+  UNDER_FILE_WRITE_ERROR(
+          "Error writing to under file system fileId: {0,number,#}, addr: {1}, msg: {2}"),
   UNEXPECTED_RPC_RESPONSE("Unexpected response message type: {0} (expected: {1})"),
   WRITER_ALREADY_OPEN(
       "This writer is already open for address: {0}, blockId: {1,number,#}, "
           + "sessionId: {2,number,#}"),
-  UNDER_FILE_WRITE_ERROR(
-      "Error writing to under file system fileId: {0,number,#}, addr: {1}, msg: {2}"),
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0,number,#} exists in {1}"),
@@ -106,6 +108,8 @@ public enum ExceptionMessage {
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
+  JOURNAL_WRITE_FAILURE("Failed to write to journal file ({0}): {1}"),
+  JOURNAL_FLUSH_FAILURE("Failed to flush journal file ({0}): {1}"),
   UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
 
   // file
@@ -131,6 +135,7 @@ public enum ExceptionMessage {
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
   PATH_INVALID_CONCURRENT_RENAME("Path is no longer valid, possibly due to a concurrent rename."),
+  PATH_INVALID_CONCURRENT_DELETE("Path is no longer valid, possibly due to a concurrent delete."),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
   RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
@@ -183,14 +188,14 @@ public enum ExceptionMessage {
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
-  PERMISSION_DENIED("Permission denied: {0}"),
-  SECURITY_IS_NOT_ENABLED("Security is not enabled"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
   INVALID_MODE_PERMISSIONS(
       "Invalid mode {0} - contains invalid segment {1} which has invalid permissions {2}"),
   INVALID_MODE_TARGETS(
       "Invalid mode {0} - contains invalid segment {1} which has invalid targets {2}"),
+  PERMISSION_DENIED("Permission denied: {0}"),
+  SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(
@@ -202,15 +207,15 @@ public enum ExceptionMessage {
   // mounting
   MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),
   MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
-  UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
   MOUNT_PATH_SHADOWS_DEFAULT_UFS(
       "Mount path {0} shadows an existing path in the default underlying filesystem"),
   MOUNT_READONLY("A write operation on {0} is under a readonly mount point {1}"),
+  UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
-  INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
+  INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),

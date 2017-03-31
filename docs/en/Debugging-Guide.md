@@ -27,13 +27,14 @@ in case the problem has been discussed before.
 
 Usually, Alluxio does not run on the development environment, which makes it difficult to debug Alluxio. We locate problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify the code and trigger new deployment, which is not allowed in some time.
 
-Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append the remote debugging parameters, the most convenient way is to modify the `alluxio-env.sh`, add the following configuration properties.
+Java remote debugging technology can make it simple to debug Alluxio in source level without modify any source. You need to append the JVM remote debugging parameters and then start debugging server. There are several ways to append the remote debugging parameters, you can export the properties in shell or `alluxio-env.sh`, add the following configuration properties.
 
-```properties
-ALLUXIO_MASTER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6600 $ALLUXIO_JAVA_OPTS"
-ALLUXIO_WORKER_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6601 $ALLUXIO_JAVA_OPTS"
-ALLUXIO_PROXY_JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6602 $ALLUXIO_JAVA_OPTS"
 ```
+export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
+export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6607"
+export ALLUXIO_USER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
+```
+`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time. 
 
 After start the master or worker, use eclipse or IntelliJ idea and other java ide, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
 
@@ -147,6 +148,16 @@ $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.
 See [Command-Line-Interface](Command-Line-Interface.html) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
 See [Configuration](Configuration-Settings.html#common-configuration) for more description.
+
+
+#### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application  
+
+A: When you see errors like "Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being available to try",
+it is because Alluxio master failed to update journal files stored in a HDFS directory according to
+the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
+some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
+HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
+
 
 ## Performance FAQ
 

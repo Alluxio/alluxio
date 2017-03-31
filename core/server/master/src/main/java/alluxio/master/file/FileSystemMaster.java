@@ -34,6 +34,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterRegistry;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
@@ -112,6 +113,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
@@ -141,6 +143,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class FileSystemMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMaster.class);
+  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(BlockMaster.class);
 
   /**
    * Locking in the FileSystemMaster
@@ -273,28 +276,28 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
-   * @param blockMaster the {@link BlockMaster} to use
+   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory) {
-    this(blockMaster, journalFactory, ExecutorServiceFactories
+  public FileSystemMaster(MasterRegistry registry, JournalFactory journalFactory) {
+    this(registry, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
 
   /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
-   * @param blockMaster the {@link BlockMaster} to use
+   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public FileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
+  public FileSystemMaster(MasterRegistry registry, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.get(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
+    super(journalFactory.create(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
-    mBlockMaster = blockMaster;
 
+    mBlockMaster = registry.get(BlockMaster.class);
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mMountTable = new MountTable();
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
@@ -305,6 +308,7 @@ public final class FileSystemMaster extends AbstractMaster {
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
 
+    registry.add(FileSystemMaster.class, this);
     Metrics.registerGauges(this);
   }
 
@@ -323,6 +327,11 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public String getName() {
     return Constants.FILE_SYSTEM_MASTER_NAME;
+  }
+
+  @Override
+  public Set<Class<?>> getDependencies() {
+    return DEPS;
   }
 
   @Override
@@ -417,7 +426,7 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     mInodeTree.streamToJournalCheckpoint(outputStream);
-    outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
+    outputStream.write(mDirectoryIdGenerator.toJournalEntry());
     // The mount table should be written to the checkpoint after the inodes are written, so that
     // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
     // entry traverses the inode tree.
@@ -1253,10 +1262,8 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
       AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
-    // Delete should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
-        LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(path, InodeTree.LockMode.WRITE_PARENT)) {
+         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       deleteAndJournal(inodePath, options, journalContext);
@@ -1293,9 +1300,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private void deleteFromEntry(DeleteFileEntry entry) {
     Metrics.DELETE_PATHS_OPS.inc();
-    // Delete should lock the parent to remove the child inode.
     try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE_PARENT)) {
+        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       deleteInternal(inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
           .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
     } catch (Exception e) {

@@ -67,47 +67,6 @@
       <artifactId>alluxio-core-protobuf</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-gcs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <!--Add Alluxio underfs modules so by including the client uber jar, application can talk to different underfs.-->
-    <!-- module alluxio-underfs-glusterfs depends on
-     hadoop library of 2.3.0, which may have problem when using with
-     hadoop 2.4 and later. Please check instructions in
-     http://alluxio.org/documentation/Configuring-Alluxio-with-GlusterFS.html
-     for how to use glusterfs with Alluxio. -->
-    <!-- <dependency> -->
-    <!--   <groupId>org.alluxio</groupId> -->
-    <!--   <artifactId>alluxio-underfs-glusterfs</artifactId> -->
-    <!--   <version>${project.version}</version> -->
-    <!-- </dependency> -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-hdfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-local</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-s3</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-s3a</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-swift</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
     <!-- External test dependencies -->
     <dependency>
@@ -177,20 +136,23 @@
       <!-- We are excluding guava, jackson-databind and jackson-core are in scope provided, as they are provided by Presto runtime. -->
       <dependencies>
         <dependency>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
-          <version>2.6.6</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-          <version>2.6.6</version>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.google.inject</groupId>
+          <artifactId>guice</artifactId>
           <scope>provided</scope>
         </dependency>
       </dependencies>

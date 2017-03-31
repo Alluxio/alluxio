@@ -22,7 +22,7 @@ get_env () {
 }
 
 check_java_version () {
-  local java_mjr_vers=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
+  local java_mjr_vers=$("${JAVA}" -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
   if [[ ${java_mjr_vers} -lt 18 ]]; then
     echo "It seems you are running a version of Java which is older then Java8.
      Please, use Java8 to use alluxio-fuse" >&2
@@ -59,7 +59,7 @@ mount_fuse() {
   fi
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
-  (nohup ${JAVA} -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
+  (nohup "${JAVA}" -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
     -o big_writes > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
@@ -86,7 +86,7 @@ umount_fuse () {
 }
 
 fuse_stat() {
-  local fuse_pid=$(${JAVA_HOME}/bin/jps | grep AlluxioFuse | awk -F' ' '{print $1}')
+  local fuse_pid=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse | awk -F' ' '{print $1}')
   if [[ -z ${fuse_pid} ]]; then
     if [[ $1 == "-v" ]]; then
       echo "AlluxioFuse: not running"

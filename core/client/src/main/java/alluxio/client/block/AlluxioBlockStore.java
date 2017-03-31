@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -144,18 +146,19 @@ public final class AlluxioBlockStore {
     // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
-    for (BlockLocation location : blockInfo.getLocations()) {
-      WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-      if (workerNetAddress.getHost().equals(mLocalHostName)) {
-        // There is a local worker and the block is local.
-        try {
-          return StreamFactory
-              .createLocalBlockInStream(mContext, blockId, blockInfo.getLength(), workerNetAddress,
-                  options);
-        } catch (IOException e) {
-          LOG.warn("Failed to open local stream for block {}: {}", blockId, e.getMessage());
-          // Getting a local stream failed, do not try again
-          break;
+    if (Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
+      for (BlockLocation location : blockInfo.getLocations()) {
+        WorkerNetAddress workerNetAddress = location.getWorkerAddress();
+        if (workerNetAddress.getHost().equals(mLocalHostName)) {
+          // There is a local worker and the block is local.
+          try {
+            return StreamFactory.createLocalBlockInStream(mContext, blockId, blockInfo.getLength(),
+                workerNetAddress, options);
+          } catch (IOException e) {
+            LOG.warn("Failed to open local stream for block {}: {}", blockId, e.getMessage());
+            // Getting a local stream failed, do not try again
+            break;
+          }
         }
       }
     }
@@ -197,7 +200,8 @@ public final class AlluxioBlockStore {
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
     // Location is local.
-    if (mLocalHostName.equals(address.getHost())) {
+    if (mLocalHostName.equals(address.getHost()) && Configuration
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
       return StreamFactory
           .createLocalBlockOutStream(mContext, blockId, blockSize, address, options);
     }

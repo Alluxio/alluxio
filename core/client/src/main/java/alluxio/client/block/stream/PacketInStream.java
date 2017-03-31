@@ -222,6 +222,13 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
   }
 
   /**
+   * @return whether the packet in stream is reading packets directly from a local file
+   */
+  public boolean isShortCircuit() {
+    return mPacketReaderFactory.isShortCircuit();
+  }
+
+  /**
    * Reads a new packet from the channel if all of the current packet is read.
    *
    * @throws IOException if it fails to read the packet

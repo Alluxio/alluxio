@@ -17,47 +17,52 @@ import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 
-import java.io.IOException;
+import java.net.URI;
 
 public class MasterTestUtils {
 
   /**
-   * Creates a new {@link FileSystemMaster} from journal.
+   * Creates a new leader {@link FileSystemMaster} from journal along with its dependencies, and
+   * returns the master registry containing that master.
    *
-   * @return a new FileSystemMaster
-   * @throws IOException
+   * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
-      throws IOException {
-    String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
-    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
-    blockMaster.start(true);
-    fsMaster.start(true);
-    return fsMaster;
+  public static MasterRegistry createLeaderFileSystemMasterFromJournal() throws Exception {
+    return createFileSystemMasterFromJournal(true);
   }
 
   /**
-   * Creates a new standby {@link FileSystemMaster} from journal.
+   * Creates a new standby {@link FileSystemMaster} from journal along with its dependencies, and
+   * returns the master registry containing that master.
    *
-   * @return a new FileSystemMaster
-   * @throws IOException
+   * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
-      throws IOException {
+  public static MasterRegistry createStandbyFileSystemMasterFromJournal() throws Exception {
+    return createFileSystemMasterFromJournal(false);
+  }
+
+  /**
+   * Creates a new {@link FileSystemMaster} from journal along with its dependencies, and returns
+   * the master registry containing that master.
+   *
+   * @param isLeader whether to start as a leader
+   * @return a master registry containing the created {@link FileSystemMaster} master
+   */
+  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
+      throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    JournalFactory journalFactory = new JournalFactory.ReadWrite(masterJournal);
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
-    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, journalFactory);
-    blockMaster.start(false);
-    fsMaster.start(false);
-    return fsMaster;
+    MasterRegistry registry = new MasterRegistry();
+    JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
+    new BlockMaster(registry, factory);
+    new FileSystemMaster(registry, factory);
+    registry.start(isLeader);
+    return registry;
   }
 
   /**

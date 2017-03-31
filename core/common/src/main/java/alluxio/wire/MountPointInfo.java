@@ -20,9 +20,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * The mount point information.
  */
+@NotThreadSafe
 public class MountPointInfo implements Serializable {
   private static final long serialVersionUID = -2912330427506888886L;
 
