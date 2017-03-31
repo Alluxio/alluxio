@@ -69,7 +69,7 @@ Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop
 ```
 
 Also, it's recommended to increase `alluxio.user.network.netty.timeout.ms` to a bigger value (e.g. 10 mins) to avoid the timeout
- failure when reading large files form remote.
+ failure when reading large files from remote.
 
 #### Increase `hive.max-split-size`
 
