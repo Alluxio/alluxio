@@ -647,7 +647,8 @@ public class InodeTree implements JournalCheckpointStreamable {
         // Lock the created inode before subsequent operations, and add it to the lock group.
         lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
         if (directoryOptions.isPersisted()) {
-          toPersistDirectories.add(lastInode);
+          // Do not journal the persist entry, since a creation entry will be journaled instead.
+          syncPersistDirectory((InodeDirectory) lastInode, null);
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());
       } else if (options instanceof CreateFileOptions) {
