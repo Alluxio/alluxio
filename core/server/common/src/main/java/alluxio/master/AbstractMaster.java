@@ -313,7 +313,7 @@ public abstract class AbstractMaster implements Master {
    * @return new instance of {@link JournalEntryAppender}
    */
   protected JournalEntryAppender createJournalAppender(JournalContext journalContext) {
-    return new MasterJournalEntryAppender(journalContext);
+    return new MasterJournalEntryAppender(journalContext, mAsyncJournalWriter);
   }
 
   /**
@@ -346,9 +346,12 @@ public abstract class AbstractMaster implements Master {
    */
   public final class MasterJournalEntryAppender implements JournalEntryAppender {
     private final JournalContext mJournalContext;
+    private final AsyncJournalWriter mAsyncJournalWriter;
 
-    public MasterJournalEntryAppender(JournalContext journalContext) {
+    public MasterJournalEntryAppender(JournalContext journalContext,
+        AsyncJournalWriter asyncJournalWriter) {
       mJournalContext = Preconditions.checkNotNull(journalContext);
+      mAsyncJournalWriter = Preconditions.checkNotNull(asyncJournalWriter);
     }
 
     @Override
