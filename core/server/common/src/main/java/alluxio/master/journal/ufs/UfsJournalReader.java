@@ -109,7 +109,9 @@ class UfsJournalReader implements JournalReader {
       return;
     }
     mClosed = true;
-    mInputStream.close();
+    if (mInputStream != null) {
+      mInputStream.close();
+    }
   }
 
   @Override
@@ -177,7 +179,7 @@ class UfsJournalReader implements JournalReader {
       // sequence number in the edit logs.
       if (mInputStream.mFile.isCheckpoint()) {
         mNextSequenceNumber = mInputStream.mFile.getEnd();
-        updateInputStream();
+        return readInternal();
       }
 
       if (!mInputStream.mFile.isIncompleteLog()) {
@@ -229,12 +231,14 @@ class UfsJournalReader implements JournalReader {
    * opening a new one.
    */
   private void updateInputStream() throws IOException {
-    if (mInputStream != null && mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone()) {
+    if (mInputStream != null && (mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone())) {
       return;
     }
 
-    mInputStream.close();
-    mInputStream = null;
+    if (mInputStream != null) {
+      mInputStream.close();
+      mInputStream = null;
+    }
     if (mFilesToProcess.isEmpty()) {
       UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
       // Remove incomplete log if this is a secondary master.
@@ -248,14 +252,14 @@ class UfsJournalReader implements JournalReader {
         mFilesToProcess.add(checkpoint);
         // index points to the log with mEnd >= checkpoint.mEnd.
         index = Collections.binarySearch(snapshot.mLogs, checkpoint);
-        if (index < snapshot.mLogs.size() && snapshot.mLogs.get(index).getEnd() == checkpoint
-            .getEnd()) {
+        if (index < 0 || (index < snapshot.mLogs.size()
+            && snapshot.mLogs.get(index).getEnd() == checkpoint.getEnd())) {
           index++;
         }
       }
       for (; index < snapshot.mLogs.size(); ++index) {
         UfsJournalFile file = snapshot.mLogs.get(index);
-        if (mPrimary && file.isIncompleteLog()) {
+        if ((!mPrimary && file.isIncompleteLog()) || mNextSequenceNumber >= file.getEnd()) {
           continue;
         }
         mFilesToProcess.add(snapshot.mLogs.get(index));

@@ -150,8 +150,7 @@ final public class UfsJournalFile implements Comparable<UfsJournalFile> {
 
   @Override
   public int compareTo(UfsJournalFile other) {
-    // First sort by the end sequence number then by the start sequence number.
-    long diff = mEnd == other.mEnd ? mStart - other.mStart : mEnd - other.mEnd;
+    long diff = mEnd - other.mEnd;
     if (diff < 0) {
       return -1;
     } else if (diff == 0) {

@@ -29,7 +29,7 @@ import org.mockito.Mockito;
 import java.net.URI;
 
 /**
- * Unit tests for {@link UfsJournalLogWriter}.
+ * Unit tests for {@link UfsJournalCheckpointWriter}.
  */
 public final class UfsJournalCheckpointWriterTest {
   @Rule
