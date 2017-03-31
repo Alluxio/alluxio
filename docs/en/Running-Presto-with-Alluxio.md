@@ -71,6 +71,10 @@ Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop
 Also, it's recommended to increase `alluxio.user.network.netty.timeout.ms` to a bigger value (e.g. 10 mins) to avoid the timeout
  failure when reading large files form remote.
 
+#### Increase `hive.max-split-size`
+
+Presto's hive integration uses the config [`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html) to control the parallelism of the query. It's recommended to set this size no less than Alluxio's block size to avoid the read contention within the same block.
+
 # Distribute the Alluxio Client Jar
 
 Distribute the Alluxio client Jar to all worker nodes in Presto:
