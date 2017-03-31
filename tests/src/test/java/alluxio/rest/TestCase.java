@@ -13,10 +13,10 @@ package alluxio.rest;
 
 import alluxio.Constants;
 
-import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.io.ByteStreams;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 
 import java.io.BufferedReader;
