@@ -75,9 +75,7 @@ public class ConcurrentFileSystemMasterTest {
   private static CreateFileOptions sCreatePersistedFileOptions =
       CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
   private static CreateDirectoryOptions sCreatePersistedDirOptions =
-      CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH);
-  private static CreateDirectoryOptions sCreateDirectoryOptions =
-      CreateDirectoryOptions.defaults().setRecursive(true);
+      CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH).setRecursive(true);
 
   private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
 
@@ -498,9 +496,9 @@ public class ConcurrentFileSystemMasterTest {
     AlluxioURI dir1 = new AlluxioURI("/root/dir1");
     AlluxioURI dir2 = new AlluxioURI("/root/parent/dir2");
     AlluxioURI dst = new AlluxioURI("/dst");
-    mFileSystem.createDirectory(dir1, sCreateDirectoryOptions);
-    mFileSystem.createDirectory(dir2, sCreateDirectoryOptions);
-    mFileSystem.createDirectory(dst, sCreateDirectoryOptions);
+    mFileSystem.createDirectory(dir1, sCreatePersistedDirOptions);
+    mFileSystem.createDirectory(dir2, sCreatePersistedDirOptions);
+    mFileSystem.createDirectory(dst, sCreatePersistedDirOptions);
     for (int i = 0; i < numThreads; i++) {
       // Dir1 has even files, dir2 has odd files.
       srcs[i] = i % 2 == 0 ? dir1.join("file" + i) : dir2.join("file" + i);
@@ -544,8 +542,8 @@ public class ConcurrentFileSystemMasterTest {
    * @param dst list of destination paths
    * @return the occurred errors
    */
-  private ConcurrentHashSet<Throwable> concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
-      throws Exception {
+  private ConcurrentHashSet<Throwable> concurrentRename(
+      final AlluxioURI[] src, final AlluxioURI[] dst) throws Exception {
     final int numFiles = src.length;
     final CyclicBarrier barrier = new CyclicBarrier(numFiles);
     List<Thread> threads = new ArrayList<>(numFiles);
