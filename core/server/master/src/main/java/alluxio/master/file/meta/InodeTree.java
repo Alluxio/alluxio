@@ -36,8 +36,6 @@ import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.TtlAction;
@@ -537,13 +535,7 @@ public class InodeTree implements JournalCheckpointStreamable {
 
     List<Inode<?>> createdInodes = new ArrayList<>();
     List<Inode<?>> modifiedInodes = new ArrayList<>();
-    // These are inodes that already exist, that should be journaled as persisted.
-    List<Inode<?>> existingNonPersisted = new ArrayList<>();
-    // These are inodes to mark as persisted at the end of this method.
-    List<Inode<?>> toPersistDirectories = new ArrayList<>();
     if (options.isPersisted()) {
-      existingNonPersisted.addAll(traversalResult.getNonPersisted());
-
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
         InodeUtils.syncPersistDirectory((InodeDirectory) inode, this, mMountTable, journalAppender);
@@ -616,6 +608,7 @@ public class InodeTree implements JournalCheckpointStreamable {
       }
 
       createdInodes.add(dir);
+      extensibleInodePath.getInodes().add(dir);
       mInodes.add(dir);
       currentInodeDirectory = dir;
     }
@@ -624,15 +617,15 @@ public class InodeTree implements JournalCheckpointStreamable {
     // here with that name. If there is an existing file that is a directory and we're creating a
     // directory, update persistence property of the directories if needed, otherwise, throw
     // FileAlreadyExistsException unless options.allowExists is true.
-    // TODO(gpang): does this have to be a write lock?
     Inode<?> lastInode = currentInodeDirectory.getChildWriteLock(name, lockList);
     if (lastInode != null) {
+      // inode to create already exist
       if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
           .isPersisted() && options.isPersisted()) {
         // The final path component already exists and is not persisted, so it should be added
         // to the non-persisted Inodes of traversalResult.
-        existingNonPersisted.add(lastInode);
-        toPersistDirectories.add(lastInode);
+        InodeUtils
+            .syncPersistDirectory((InodeDirectory) lastInode, this, mMountTable, journalAppender);
       } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
           && ((CreateDirectoryOptions) options).isAllowExists())) {
         String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
@@ -640,6 +633,7 @@ public class InodeTree implements JournalCheckpointStreamable {
         throw new FileAlreadyExistsException(errorMessage);
       }
     } else {
+      // create the new inode
       if (options instanceof CreateDirectoryOptions) {
         CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
         lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(journalAppender),
@@ -650,7 +644,6 @@ public class InodeTree implements JournalCheckpointStreamable {
           // Do not journal the persist entry, since a creation entry will be journaled instead.
           InodeUtils.syncPersistDirectory((InodeDirectory) lastInode, this, mMountTable, null);
         }
-        lastInode.setPinned(currentInodeDirectory.isPinned());
       } else if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
@@ -664,39 +657,28 @@ public class InodeTree implements JournalCheckpointStreamable {
         if (fileOptions.isCacheable()) {
           ((InodeFile) lastInode).setCacheable(true);
         }
-        lastInode.setPinned(currentInodeDirectory.isPinned());
+      }
+
+      lastInode.setPinned(currentInodeDirectory.isPinned());
+
+      if (!currentInodeDirectory.addChild(lastInode)) {
+        // Could not add the child inode to the parent.
+        lockList.unlockLast();
+        String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
+        LOG.error(errorMessage);
+        throw new FileAlreadyExistsException(errorMessage);
       }
 
       // Journal the new inode.
       journalAppender.append(lastInode.toJournalEntry());
 
       createdInodes.add(lastInode);
+      extensibleInodePath.getInodes().add(lastInode);
       mInodes.add(lastInode);
-      // TODO(gpang): handle the case where this returns false
-      currentInodeDirectory.addChild(lastInode);
-      currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
     }
 
-    // Persists all directories one by one rather than recursively creating necessary parent
-    // directories, because different ufs may have different semantics in the ACL permission of
-    // those recursively created directories. Even if the directory already exists in the ufs,
-    // we mark it as persisted.
-    for (Inode<?> inode : toPersistDirectories) {
-      MountTable.Resolution resolution = mMountTable.resolve(getPath(inode));
-      String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      MkdirsOptions mkdirsOptions =
-          MkdirsOptions.defaults().setCreateParent(false).setOwner(inode.getOwner())
-              .setGroup(inode.getGroup()).setMode(new Mode(inode.getMode()));
-      if (ufs.isDirectory(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
-        inode.setPersistenceState(PersistenceState.PERSISTED);
-      }
-    }
-
-    // Extend the inodePath with the created inodes.
-    extensibleInodePath.getInodes().addAll(createdInodes);
     LOG.debug("createFile: File Created: {} parent: {}", lastInode, currentInodeDirectory);
-    return new CreatePathResult(modifiedInodes, createdInodes, existingNonPersisted);
+    return new CreatePathResult(modifiedInodes, createdInodes);
   }
 
   /**
@@ -1185,19 +1167,16 @@ public class InodeTree implements JournalCheckpointStreamable {
   public static final class CreatePathResult {
     private final List<Inode<?>> mModified;
     private final List<Inode<?>> mCreated;
-    private final List<Inode<?>> mPersisted;
 
     /**
-     * Constructs the results of modified, created, and persisted inodes when creating a path.
+     * Constructs the results of modified and created inodes when creating a path.
      *
      * @param modified a list of modified inodes
      * @param created a list of created inodes
-     * @param persisted a list of persisted inodes
      */
-    CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted) {
+    CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created) {
       mModified = Preconditions.checkNotNull(modified);
       mCreated = Preconditions.checkNotNull(created);
-      mPersisted = Preconditions.checkNotNull(persisted);
     }
 
     /**
@@ -1212,13 +1191,6 @@ public class InodeTree implements JournalCheckpointStreamable {
      */
     public List<Inode<?>> getCreated() {
       return mCreated;
-    }
-
-    /**
-     * @return the list of existing inodes that were persisted during path creation
-     */
-    public List<Inode<?>> getPersisted() {
-      return mPersisted;
     }
   }
 }

@@ -348,15 +348,23 @@ public abstract class AbstractMaster implements Master {
     private final JournalContext mJournalContext;
     private final AsyncJournalWriter mAsyncJournalWriter;
 
+    /**
+     * Constructs a {@link MasterJournalEntryAppender}.
+     *
+     * @param journalContext a {@link JournalContext}
+     * @param asyncJournalWriter a {@link AsyncJournalWriter}
+     */
     public MasterJournalEntryAppender(JournalContext journalContext,
         AsyncJournalWriter asyncJournalWriter) {
-      mJournalContext = Preconditions.checkNotNull(journalContext);
+      mJournalContext = journalContext;
       mAsyncJournalWriter = Preconditions.checkNotNull(asyncJournalWriter);
     }
 
     @Override
     public void append(alluxio.proto.journal.Journal.JournalEntry entry) {
-      mJournalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));
+      if (mJournalContext != null) {
+        mJournalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));
+      }
     }
   }
 }
