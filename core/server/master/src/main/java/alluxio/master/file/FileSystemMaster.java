@@ -1129,7 +1129,6 @@ public final class FileSystemMaster extends AbstractMaster {
       InvalidPathException, IOException {
     InodeTree.CreatePathResult createResult =
         createFileInternal(inodePath, options, journalContext);
-    journalCreatePathResult(createResult, journalContext);
   }
 
   /**
@@ -1677,7 +1676,6 @@ public final class FileSystemMaster extends AbstractMaster {
       AccessControlException, IOException {
     InodeTree.CreatePathResult createResult =
         createDirectoryInternal(inodePath, options, journalContext);
-    journalCreatePathResult(createResult, journalContext);
     Metrics.DIRECTORIES_CREATED.inc();
   }
 
@@ -1716,17 +1714,6 @@ public final class FileSystemMaster extends AbstractMaster {
       Throwables.propagate(e);
     }
     return null;
-  }
-
-  /**
-   * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
-   * Synchronization is required outside of this method.
-   *
-   * @param createResult the {@link InodeTree.CreatePathResult} to journal
-   * @param journalContext the journalContext
-   */
-  private void journalCreatePathResult(InodeTree.CreatePathResult createResult,
-      JournalContext journalContext) {
   }
 
   /**
