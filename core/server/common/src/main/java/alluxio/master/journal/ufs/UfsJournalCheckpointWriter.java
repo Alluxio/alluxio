@@ -111,7 +111,17 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
 
     String dst = mCheckpointFile.getLocation().toString();
     try {
-      mJournal.getUfs().renameFile(mTmpCheckpointFileLocation.toString(), dst);
+      mJournal.getUfs().mkdirs(mJournal.getCheckpointDir().toString());
+    } catch (IOException e) {
+      if (!mJournal.getUfs().exists(mJournal.getCheckpointDir().toString())) {
+        throw e;
+      }
+    }
+    try {
+      if (!mJournal.getUfs().renameFile(mTmpCheckpointFileLocation.toString(), dst)) {
+        throw new IOException(String
+            .format("Failed to rename %s to %s.", mTmpCheckpointFileLocation.toString(), dst));
+      }
     } catch (IOException e) {
       if (!mJournal.getUfs().exists(dst)) {
         LOG.warn("Failed to commit checkpoint from {} to {} with error {}.",

@@ -71,7 +71,7 @@ final class UfsJournalGarbageCollector implements Closeable {
   /**
    * Snapshots the journal and deletes files that are not necessary.
    */
-  private void gc() {
+  void gc() {
     UfsJournal.Snapshot snapshot;
     try {
       snapshot = mJournal.getSnapshot();
@@ -92,15 +92,15 @@ final class UfsJournalGarbageCollector implements Closeable {
         deleteNoException(checkpoints.get(i).getLocation());
       }
       // For the the second last checkpoint. Check whether it has been there for a long time.
-      maybeGc(checkpoints.get(i), checkpointSequenceNumber);
+      maybeGcFile(checkpoints.get(i), checkpointSequenceNumber);
     }
 
     for (UfsJournalFile log : snapshot.mLogs) {
-      maybeGc(log, checkpointSequenceNumber);
+      maybeGcFile(log, checkpointSequenceNumber);
     }
 
     for (UfsJournalFile tmpCheckpoint : snapshot.mTemporaryCheckpoints) {
-      maybeGc(tmpCheckpoint, checkpointSequenceNumber);
+      maybeGcFile(tmpCheckpoint, checkpointSequenceNumber);
     }
   }
 
@@ -110,7 +110,7 @@ final class UfsJournalGarbageCollector implements Closeable {
    * @param file the file
    * @param checkpointSequenceNumber the first sequence number that has not been checkpointed
    */
-  private void maybeGc(UfsJournalFile file, long checkpointSequenceNumber) {
+  private void maybeGcFile(UfsJournalFile file, long checkpointSequenceNumber) {
     if (file.getEnd() > checkpointSequenceNumber && !file.isTmpCheckpoint()) {
       return;
     }
@@ -137,7 +137,7 @@ final class UfsJournalGarbageCollector implements Closeable {
    *
    * @param location the file location
    */
-  void deleteNoException(URI location) {
+  private void deleteNoException(URI location) {
     try {
       mJournal.getUfs().deleteFile(location.toString());
     } catch (IOException e) {

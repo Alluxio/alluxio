@@ -12,16 +12,13 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterCreateOptions;
-import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
 
-import org.eclipse.jetty.util.ArrayQueue;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,7 +28,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.net.URI;
-import java.util.Queue;
 
 /**
  * Unit tests for {@link UfsJournalLogWriter}.

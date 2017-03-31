@@ -236,12 +236,8 @@ public class UfsJournal implements Journal {
       String[] parts = filename.split("-");
 
       // There can be temporary files in logs directory. Skip them.
-      if (!isCheckpoint) {
-        if (parts.length != 2) {
-          return null;
-        }
-      } else {
-        Preconditions.checkState(parts.length == 2);
+      if (parts.length != 2) {
+        return null;
       }
       long start = Long.decode(parts[0]);
       long end = Long.decode(parts[1]);
@@ -256,12 +252,8 @@ public class UfsJournal implements Journal {
       LOG.error("Illegal journal file {}.", location);
       throw e;
     } catch (NumberFormatException e) {
-      if (!isCheckpoint) {
-        // There can be temporary files in logs directory. Skip them.
-        return null;
-      } else {
-        throw e;
-      }
+      // There can be temporary files (e.g. created for rename).
+      return null;
     }
   }
 
