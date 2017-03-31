@@ -71,10 +71,14 @@ final class UfsJournalLogWriter implements JournalWriter {
     final UfsJournalFile mCurrentLog;
 
     JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) {
-      if (stream instanceof DataOutputStream) {
-        mOutputStream = (DataOutputStream) stream;
+      if (stream != null) {
+        if (stream instanceof DataOutputStream) {
+          mOutputStream = (DataOutputStream) stream;
+        } else {
+          mOutputStream = new DataOutputStream(stream);
+        }
       } else {
-        mOutputStream = new DataOutputStream(stream);
+        mOutputStream = null;
       }
       mCurrentLog = currentLog;
     }
@@ -130,7 +134,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    * Creates a new instance of {@link UfsJournalLogWriter}.
    *
    * @param journal the handle to the journal
-   * @param options the optionsto create the journal log writer
+   * @param options the options to create the journal log writer
    * @throws IOException if any I/O exceptions occur
    */
   UfsJournalLogWriter(UfsJournal journal, JournalWriterCreateOptions options) throws IOException {
@@ -138,9 +142,9 @@ final class UfsJournalLogWriter implements JournalWriter {
     mNextSequenceNumber = options.getNextSequenceNumber();
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
 
+    mRotateLogForNextWrite = true;
     UfsJournalFile currentLog = mJournal.getCurrentLog();
     if (currentLog != null) {
-      mRotateLogForNextWrite = true;
       mJournalOutputStream = new JournalOutputStream(currentLog, null);
     }
     mGarbageCollector = new UfsJournalGarbageCollector(mJournal);
@@ -175,9 +179,10 @@ final class UfsJournalLogWriter implements JournalWriter {
     if (!mRotateLogForNextWrite) {
       return;
     }
-
-    mJournalOutputStream.close();
-    mJournalOutputStream = null;
+    if (mJournalOutputStream != null) {
+      mJournalOutputStream.close();
+      mJournalOutputStream = null;
+    }
 
     URI newLog =
         mJournal.encodeLogFileLocation(mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
