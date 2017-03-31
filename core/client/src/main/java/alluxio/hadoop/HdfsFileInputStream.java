@@ -64,7 +64,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri,
       org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
-    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, stats);
+    LOG.debug("HdfsFileInputStream({}, {})", uri, stats);
 
     mCurrentPosition = 0;
     mStatistics = stats;
@@ -73,7 +73,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mFileInfo = fs.getStatus(uri);
       mInputStream = fs.openFile(uri, OpenFileOptions.defaults());
     } catch (FileDoesNotExistException e) {
-      // Transform the Alluxio exception to a Java exception to satisfy the Hadoop API contract.
+      // Transform the Alluxio exception to a Java exception to satisfy the HDFS API contract.
       throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
     } catch (AlluxioException e) {
       throw new IOException(e);
