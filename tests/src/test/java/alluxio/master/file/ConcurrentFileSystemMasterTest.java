@@ -30,6 +30,7 @@ import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import org.junit.AfterClass;
@@ -148,9 +149,8 @@ public class ConcurrentFileSystemMasterTest {
       dsts[i] = new AlluxioURI("/renamed" + i);
     }
 
-    int errors = concurrentRename(srcs, dsts);
+    assertErrorsSizeEquals(concurrentRename(srcs, dsts), 0);
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     Collections.sort(files, new IntegerSuffixedPathComparator());
     for (int i = 0; i < numThreads; i++) {
@@ -172,9 +172,8 @@ public class ConcurrentFileSystemMasterTest {
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
 
-    int errors = concurrentDelete(paths);
+    assertErrorsSizeEquals(concurrentDelete(paths), 0);
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, files.size());
   }
@@ -197,9 +196,9 @@ public class ConcurrentFileSystemMasterTest {
       mFileSystem.createFile(srcs[i], sCreatePersistedFileOptions).close();
       dsts[i] = dir.join("/renamed" + i);
     }
-    int errors = concurrentRename(srcs, dsts);
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    assertErrorsSizeEquals(concurrentRename(srcs, dsts), 0);
+
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/dir"));
     Collections.sort(files, new IntegerSuffixedPathComparator());
     for (int i = 0; i < numThreads; i++) {
@@ -222,9 +221,9 @@ public class ConcurrentFileSystemMasterTest {
       paths[i] = dir.join("/file" + i);
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = concurrentDelete(paths);
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    assertErrorsSizeEquals(concurrentDelete(paths), 0);
+
     List<URIStatus> files = mFileSystem.listStatus(dir);
     Assert.assertEquals(0, files.size());
   }
@@ -253,9 +252,9 @@ public class ConcurrentFileSystemMasterTest {
       }
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = concurrentDelete(paths);
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    assertErrorsSizeEquals(concurrentDelete(paths), 0);
+
     List<URIStatus> files = mFileSystem.listStatus(dir1);
     // Should only contain a single directory
     Assert.assertEquals(1, files.size());
@@ -284,10 +283,10 @@ public class ConcurrentFileSystemMasterTest {
     // Create the one source file
     mFileSystem.createFile(srcs[0], sCreatePersistedFileOptions).close();
 
-    int errors = concurrentRename(srcs, dsts);
+    ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
     // We should get an error for all but 1 rename
-    Assert.assertEquals(numThreads - 1, errors);
+    Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
 
@@ -309,10 +308,10 @@ public class ConcurrentFileSystemMasterTest {
     // Create the single file
     mFileSystem.createFile(paths[0], sCreatePersistedFileOptions).close();
 
-    int errors = concurrentDelete(paths);
+    ConcurrentHashSet<Throwable> errors = concurrentDelete(paths);
 
     // We should get an error for all but 1 delete
-    Assert.assertEquals(numThreads - 1, errors);
+    Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, files.size());
@@ -335,10 +334,10 @@ public class ConcurrentFileSystemMasterTest {
     mFileSystem.createDirectory(srcs[0]);
     mFileSystem.createFile(new AlluxioURI("/dir/file"), sCreatePersistedFileOptions).close();
 
-    int errors = concurrentRename(srcs, dsts);
+    ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
     // We should get an error for all but 1 rename
-    Assert.assertEquals(numThreads - 1, errors);
+    assertErrorsSizeEquals(errors, numThreads - 1);
     // Only one renamed dir should exist
     List<URIStatus> existingDirs = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(1, existingDirs.size());
@@ -362,10 +361,10 @@ public class ConcurrentFileSystemMasterTest {
     // Create the single directory
     mFileSystem.createDirectory(paths[0], sCreatePersistedDirOptions);
 
-    int errors = concurrentDelete(paths);
+    ConcurrentHashSet<Throwable> errors = concurrentDelete(paths);
 
     // We should get an error for all but 1 delete
-    Assert.assertEquals(numThreads - 1, errors);
+    assertErrorsSizeEquals(errors, numThreads - 1);
     List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, dirs.size());
   }
@@ -384,10 +383,10 @@ public class ConcurrentFileSystemMasterTest {
       dsts[i] = new AlluxioURI("/renamed");
     }
 
-    int errors = concurrentRename(srcs, dsts);
+    ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
     // We should get an error for all but 1 rename.
-    Assert.assertEquals(numThreads - 1, errors);
+    assertErrorsSizeEquals(errors, numThreads - 1);
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     // Store file names in a set to ensure the names are all unique.
@@ -425,10 +424,10 @@ public class ConcurrentFileSystemMasterTest {
       dsts[i] = dir2.join("renamed" + i);
     }
 
-    int errors = concurrentRename(srcs, dsts);
+    ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
     // We should get no errors
-    Assert.assertEquals(0, errors);
+    assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
     List<URIStatus> dir2Files = mFileSystem.listStatus(dir2);
@@ -466,10 +465,10 @@ public class ConcurrentFileSystemMasterTest {
       mFileSystem.createFile(srcs[i], sCreatePersistedFileOptions).close();
     }
 
-    int errors = concurrentRename(srcs, dsts);
+    ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
     // We should get no errors.
-    Assert.assertEquals(0, errors);
+    assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
     List<URIStatus> dir2Files = mFileSystem.listStatus(dir2);
@@ -509,10 +508,10 @@ public class ConcurrentFileSystemMasterTest {
       mFileSystem.createFile(srcs[i], sCreatePersistedFileOptions).close();
     }
 
-    int errors = concurrentRename(srcs, dsts);
+    ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
     // We should get no errors.
-    Assert.assertEquals(0, errors);
+    assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
     List<URIStatus> dir2Files = mFileSystem.listStatus(dir2);
@@ -528,6 +527,13 @@ public class ConcurrentFileSystemMasterTest {
     }
   }
 
+  private void assertErrorsSizeEquals(ConcurrentHashSet<Throwable> errors, int expected) {
+    if (errors.size() != expected) {
+      Assert.fail(String.format("Expected %d errors, but got %d, errors:\n",
+          expected, errors.size()) + Joiner.on("\n").join(errors));
+    }
+  }
+
   /**
    * Helper for renaming a list of paths concurrently. Assumes the srcs are already created and
    * dsts do not exist. Enforces that the run time of this method is not greater than twice the
@@ -536,9 +542,9 @@ public class ConcurrentFileSystemMasterTest {
    *
    * @param src list of source paths
    * @param dst list of destination paths
-   * @return how many errors occurred
+   * @return the occurred errors
    */
-  private int concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
+  private ConcurrentHashSet<Throwable> concurrentRename(final AlluxioURI[] src, final AlluxioURI[] dst)
       throws Exception {
     final int numFiles = src.length;
     final CyclicBarrier barrier = new CyclicBarrier(numFiles);
@@ -578,7 +584,7 @@ public class ConcurrentFileSystemMasterTest {
     long durationMs = CommonUtils.getCurrentMs() - startMs;
     Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
         durationMs < LIMIT_MS);
-    return errors.size();
+    return errors;
   }
 
   /**
@@ -586,9 +592,9 @@ public class ConcurrentFileSystemMasterTest {
    * is not greater than twice the sleep time (to infer concurrent operations).
    *
    * @param paths list of paths to delete
-   * @return how many errors occurred
+   * @return the occurred errors
    */
-  private int concurrentDelete(final AlluxioURI[] paths)
+  private ConcurrentHashSet<Throwable> concurrentDelete(final AlluxioURI[] paths)
       throws Exception {
     final int numFiles = paths.length;
     final CyclicBarrier barrier = new CyclicBarrier(numFiles);
@@ -628,7 +634,7 @@ public class ConcurrentFileSystemMasterTest {
     long durationMs = CommonUtils.getCurrentMs() - startMs;
     Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
         durationMs < LIMIT_MS);
-    return errors.size();
+    return errors;
   }
 
   /**
