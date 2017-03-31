@@ -112,6 +112,6 @@ And you can see the query results from console:
 
 ![PrestoQueryResult]({{site.data.img.screenshot_presto_query_result}})
 
-Presto Server log in：
+Presto Server log:
 
 ![PrestoQueryLog]({{site.data.img.screenshot_presto_query_log}})
