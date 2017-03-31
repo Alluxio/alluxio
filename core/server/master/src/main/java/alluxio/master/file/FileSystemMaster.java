@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
-import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -47,6 +46,7 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeUtils;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
@@ -94,7 +94,6 @@ import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -1828,9 +1827,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
-    renameInternal(srcInodePath, dstInodePath, false, options);
-    List<Inode<?>> persistedInodes = propagatePersistedInternal(srcInodePath, false);
-    journalPersistedInodes(persistedInodes, journalContext);
+    renameInternal(srcInodePath, dstInodePath, journalContext, false, options);
 
     RenameEntry rename =
         RenameEntry.newBuilder().setId(srcInode.getId()).setDstPath(dstInodePath.getUri().getPath())
@@ -1843,6 +1840,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param srcInodePath the path of the rename source
    * @param dstInodePath the path to the rename destination
+   * @param journalContext the journal context
    * @param replayed whether the operation is a result of replaying the journal
    * @param options method options
    * @throws FileDoesNotExistException if a non-existent file is encountered
@@ -1850,7 +1848,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error is encountered
    */
   private void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
-      boolean replayed, RenameOptions options)
+      JournalContext journalContext, boolean replayed, RenameOptions options)
       throws FileDoesNotExistException, InvalidPathException, IOException {
 
     // Rename logic:
@@ -1888,34 +1886,32 @@ public final class FileSystemMaster extends AbstractMaster {
       if (!replayed && srcInode.isPersisted()) {
         MountTable.Resolution resolution = mMountTable.resolve(srcPath);
 
+        // Persist ancestor directories from top to the bottom. We cannot use recursive create
+        // parents here because the permission for the ancestors can be different.
+
+        // inodes from the same mount point as the dst
+        Stack<InodeDirectory> sameMountDirs = new Stack<>();
+        List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
+        for (int i = dstInodeList.size() - 1; i >= 0; i--) {
+          // Since dstInodePath is guaranteed to not be a full path, all inodes in the incomplete
+          // path are guaranteed to be a directory.
+          InodeDirectory dir = (InodeDirectory) dstInodeList.get(i);
+          sameMountDirs.push(dir);
+          if (dir.isMountPoint()) {
+            break;
+          }
+        }
+        while (!sameMountDirs.empty()) {
+          InodeDirectory dir = sameMountDirs.pop();
+          if (!dir.isPersisted()) {
+            InodeUtils.syncPersistDirectory(dir, mInodeTree, mMountTable,
+                createJournalAppender(journalContext));
+          }
+        }
+
         String ufsSrcPath = resolution.getUri().toString();
         UnderFileSystem ufs = resolution.getUfs();
         String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-        // Create ancestor directories from top to the bottom. We cannot use recursive create
-        // parents here because the permission for the ancestors can be different.
-        List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
-        Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
-        AlluxioURI curUfsDirPath = new AlluxioURI(ufsDstUri).getParent();
-        // The dst inode does not exist yet, so the last inode in the list is the existing parent.
-        for (int i = dstInodeList.size() - 1; i >= 0; i--) {
-          if (ufs.isDirectory(curUfsDirPath.toString())) {
-            break;
-          }
-          Inode<?> curInode = dstInodeList.get(i);
-          MkdirsOptions mkdirsOptions =
-              MkdirsOptions.defaults().setCreateParent(false).setOwner(curInode.getOwner())
-                  .setGroup(curInode.getGroup()).setMode(new Mode(curInode.getMode()));
-          ufsDirsToMakeWithOptions.push(new Pair<>(curUfsDirPath.toString(), mkdirsOptions));
-          curUfsDirPath = curUfsDirPath.getParent();
-        }
-        while (!ufsDirsToMakeWithOptions.empty()) {
-          Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
-          // TODO(gpang): this dir persisting logic needs to be corrected for concurrent persists.
-          if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())) {
-            throw new IOException(
-                ExceptionMessage.FAILED_UFS_CREATE.getMessage(ufsDirAndPerm.getFirst()));
-          }
-        }
         boolean success;
         if (srcInode.isFile()) {
           success = ufs.renameFile(ufsSrcPath, ufsDstUri);
@@ -1989,7 +1985,7 @@ public final class FileSystemMaster extends AbstractMaster {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       RenameOptions options = RenameOptions.defaults().setOperationTimeMs(entry.getOpTimeMs());
-      renameInternal(srcInodePath, dstInodePath, true, options);
+      renameInternal(srcInodePath, dstInodePath, null, true, options);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

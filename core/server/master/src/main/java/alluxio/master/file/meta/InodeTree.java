@@ -38,7 +38,6 @@ import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.TtlAction;
@@ -547,13 +546,14 @@ public class InodeTree implements JournalCheckpointStreamable {
 
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
-        syncPersistDirectory((InodeDirectory) inode, journalAppender);
+        InodeUtils.syncPersistDirectory((InodeDirectory) inode, this, mMountTable, journalAppender);
       }
     }
     if (pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
       // In these two cases, the last traversed Inode will be modified.
+      currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
       modifiedInodes.add(currentInodeDirectory);
 
       File.InodeLastModificationTimeEntry inodeLastModificationTime =
@@ -598,7 +598,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           currentInodeDirectory.addChild(dir);
           if (options.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
-            syncPersistDirectory(dir, null);
+            InodeUtils.syncPersistDirectory(dir, this, mMountTable, null);
           }
           // Journal the new inode.
           journalAppender.append(dir.toJournalEntry());
@@ -648,7 +648,7 @@ public class InodeTree implements JournalCheckpointStreamable {
         lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
         if (directoryOptions.isPersisted()) {
           // Do not journal the persist entry, since a creation entry will be journaled instead.
-          syncPersistDirectory((InodeDirectory) lastInode, null);
+          InodeUtils.syncPersistDirectory((InodeDirectory) lastInode, this, mMountTable, null);
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());
       } else if (options instanceof CreateFileOptions) {
@@ -1111,53 +1111,6 @@ public class InodeTree implements JournalCheckpointStreamable {
       }
     }
     return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockList);
-  }
-
-  /**
-   * Synchronously persists an {@link InodeDirectory} to the UFS. If concurrent calls are made, only
-   * one thread will persist to UFS, and the others will wait until it is persisted.
-   *
-   * @param dir the {@link InodeDirectory} to persist
-   * @param journalAppender the appender to journal the persist entry to, if not null
-   */
-  private void syncPersistDirectory(InodeDirectory dir, JournalEntryAppender journalAppender) {
-    // TODO(gpang): use a max timeout.
-    while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
-      if (dir.compareAndSwapPersistenceState(PersistenceState.NOT_PERSISTED,
-          PersistenceState.TO_BE_PERSISTED)) {
-        boolean success = false;
-        try {
-          AlluxioURI uri = getPath(dir);
-          MountTable.Resolution resolution = mMountTable.resolve(uri);
-          String ufsUri = resolution.getUri().toString();
-          UnderFileSystem ufs = resolution.getUfs();
-          MkdirsOptions mkdirsOptions =
-              MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
-                  .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-          ufs.mkdirs(ufsUri, mkdirsOptions);
-          dir.setPersistenceState(PersistenceState.PERSISTED);
-
-          if (journalAppender != null) {
-            // Append the persist entry to the journal.
-            File.PersistDirectoryEntry persistDirectory =
-                File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-            journalAppender.append(
-                Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
-          }
-          success = true;
-        } catch (Exception e) {
-          // Ignore
-        } finally {
-          if (!success) {
-            // Failed to persist the inode, so set the state back to NOT_PERSISTED.
-            dir.setPersistenceState(PersistenceState.NOT_PERSISTED);
-          }
-        }
-      } else {
-        // TODO(gpang): use exponential backoff and max timeout
-        CommonUtils.sleepMs(150);
-      }
-    }
   }
 
   private static final class TraversalResult {
