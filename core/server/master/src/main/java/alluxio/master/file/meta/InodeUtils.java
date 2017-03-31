@@ -12,7 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.master.journal.JournalEntryAppender;
+import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.Mode;
@@ -38,10 +38,10 @@ public final class InodeUtils {
    * @param dir the {@link InodeDirectory} to persist
    * @param inodeTree the {@link InodeTree}
    * @param mountTable the {@link MountTable}
-   * @param journalAppender the appender to journal the persist entry to, if not null
+   * @param journalContext the journal context
    */
   public static void syncPersistDirectory(InodeDirectory dir, InodeTree inodeTree,
-      MountTable mountTable, JournalEntryAppender journalAppender) {
+      MountTable mountTable, JournalContext journalContext) {
     // TODO(gpang): use a max timeout.
     while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
       if (dir.compareAndSwapPersistenceState(PersistenceState.NOT_PERSISTED,
@@ -58,13 +58,11 @@ public final class InodeUtils {
           ufs.mkdirs(ufsUri, mkdirsOptions);
           dir.setPersistenceState(PersistenceState.PERSISTED);
 
-          if (journalAppender != null) {
-            // Append the persist entry to the journal.
-            File.PersistDirectoryEntry persistDirectory =
-                File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-            journalAppender.append(
-                Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
-          }
+          // Append the persist entry to the journal.
+          File.PersistDirectoryEntry persistDirectory =
+              File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
+          journalContext.append(
+              Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
           success = true;
         } catch (Exception e) {
           // Ignore

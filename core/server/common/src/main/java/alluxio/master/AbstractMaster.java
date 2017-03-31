@@ -18,7 +18,7 @@ import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalEntryAppender;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalTailer;
@@ -258,7 +258,7 @@ public abstract class AbstractMaster implements Master {
    */
   protected void appendJournalEntry(JournalEntry entry, JournalContext journalContext) {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
-    journalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));
+    journalContext.append(entry);
   }
 
   /**
@@ -306,64 +306,43 @@ public abstract class AbstractMaster implements Master {
    * @return new instance of {@link JournalContext}
    */
   protected JournalContext createJournalContext() {
-    return new JournalContext();
-  }
-
-  /**
-   * @return new instance of {@link JournalEntryAppender}
-   */
-  protected JournalEntryAppender createJournalAppender(JournalContext journalContext) {
-    return new MasterJournalEntryAppender(journalContext, mAsyncJournalWriter);
+    return new MasterJournalContext(mAsyncJournalWriter);
   }
 
   /**
    * Context for storing journaling information.
    */
   @NotThreadSafe
-  public final class JournalContext implements AutoCloseable {
+  public final class MasterJournalContext implements JournalContext {
+    private final AsyncJournalWriter mAsyncJournalWriter;
     private long mFlushCounter;
 
-    private JournalContext() {
+    /**
+     * Constructs a {@link MasterJournalContext}.
+     *
+     * @param asyncJournalWriter a {@link AsyncJournalWriter}
+     */
+    private MasterJournalContext(AsyncJournalWriter asyncJournalWriter) {
+      mAsyncJournalWriter = asyncJournalWriter;
       mFlushCounter = INVALID_FLUSH_COUNTER;
     }
 
-    private long getFlushCounter() {
-      return mFlushCounter;
-    }
-
-    private void setFlushCounter(long counter) {
-      mFlushCounter = counter;
-    }
-
     @Override
-    public void close() {
-      waitForJournalFlush(this);
-    }
-  }
-
-  /**
-   * This class appends journal entries to the async journal.
-   */
-  public final class MasterJournalEntryAppender implements JournalEntryAppender {
-    private final JournalContext mJournalContext;
-    private final AsyncJournalWriter mAsyncJournalWriter;
-
-    /**
-     * Constructs a {@link MasterJournalEntryAppender}.
-     *
-     * @param journalContext a {@link JournalContext}
-     * @param asyncJournalWriter a {@link AsyncJournalWriter}
-     */
-    public MasterJournalEntryAppender(JournalContext journalContext,
-        AsyncJournalWriter asyncJournalWriter) {
-      mJournalContext = journalContext;
-      mAsyncJournalWriter = Preconditions.checkNotNull(asyncJournalWriter);
+    public long getFlushCounter() {
+      return mFlushCounter;
     }
 
     @Override
     public void append(alluxio.proto.journal.Journal.JournalEntry entry) {
-      if (mJournalContext != null) {
-        mJournalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));
+      if (mAsyncJournalWriter != null) {
+        mFlushCounter = mAsyncJournalWriter.appendEntry(entry);
+      }
+    }
+
+    @Override
+    public void close() {
+      if (mAsyncJournalWriter != null) {
+        waitForJournalFlush(this);
       }
     }
   }

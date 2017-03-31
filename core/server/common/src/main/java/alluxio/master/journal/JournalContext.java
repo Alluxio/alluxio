@@ -9,21 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.journal;
 
-import alluxio.master.journal.JournalEntryAppender;
 import alluxio.proto.journal.Journal;
 
+import java.io.Closeable;
+
 /**
- * NOOP version of JournalEntryAppender.
+ * Context for storing journaling information.
  */
-public final class NoopJournalAppender implements JournalEntryAppender {
-  public NoopJournalAppender() {
-    // Do nothing
-  }
+public interface JournalContext extends Closeable {
+  /**
+   * @param entry the {@link Journal.JournalEntry} to append to the journal
+   */
+  void append(Journal.JournalEntry entry);
+
+  /**
+   * @return the journal flush counter
+   */
+  long getFlushCounter();
 
   @Override
-  public void append(Journal.JournalEntry entry) {
-    // Do nothing
-  }
+  void close();
 }

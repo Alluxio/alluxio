@@ -66,6 +66,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
@@ -1150,7 +1151,7 @@ public final class FileSystemMaster extends AbstractMaster {
       options.setCacheable(true);
     }
     InodeTree.CreatePathResult createResult =
-        mInodeTree.createPath(inodePath, options, createJournalAppender(journalContext));
+        mInodeTree.createPath(inodePath, options, journalContext);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode<?>> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -1430,7 +1431,7 @@ public final class FileSystemMaster extends AbstractMaster {
           mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
         }
 
-        if (i == 0 && !replayed) {
+        if (i == 0) {
           // Journal right before deleting the "root" of the sub-tree from the parent, since the
           // parent is read locked.
           DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(delInode.getId())
@@ -1706,7 +1707,7 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException {
     try {
       InodeTree.CreatePathResult createResult =
-          mInodeTree.createPath(inodePath, options, createJournalAppender(journalContext));
+          mInodeTree.createPath(inodePath, options, journalContext);
       InodeDirectory inodeDirectory = (InodeDirectory) inodePath.getInode();
       // If inodeDirectory's ttl not equals Constants.NO_TTL, it should insert into mTtlBuckets
       if (createResult.getCreated().size() > 0) {
@@ -1911,8 +1912,7 @@ public final class FileSystemMaster extends AbstractMaster {
         while (!sameMountDirs.empty()) {
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
-            InodeUtils.syncPersistDirectory(dir, mInodeTree, mMountTable,
-                createJournalAppender(journalContext));
+            InodeUtils.syncPersistDirectory(dir, mInodeTree, mMountTable, journalContext);
           }
         }
 

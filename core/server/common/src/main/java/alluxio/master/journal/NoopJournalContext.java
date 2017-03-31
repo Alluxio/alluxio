@@ -14,11 +14,28 @@ package alluxio.master.journal;
 import alluxio.proto.journal.Journal;
 
 /**
- * This interface enables appending entries to the journal.
+ * Noop version of JournalContext.
  */
-public interface JournalEntryAppender {
+public final class NoopJournalContext implements JournalContext {
   /**
-   * @param entry the {@link Journal.JournalEntry} to append to the journal
+   * Constructs the {@link NoopJournalContext}.
    */
-  void append(Journal.JournalEntry entry);
+  public NoopJournalContext() {
+    // Do nothing
+  }
+
+  @Override
+  public void append(Journal.JournalEntry entry) {
+    // Do nothing
+  }
+
+  @Override
+  public long getFlushCounter() {
+    return -1;
+  }
+
+  @Override
+  public void close() {
+    // Do nothing
+  }
 }
