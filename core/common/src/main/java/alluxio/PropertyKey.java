@@ -218,6 +218,8 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
       "${alluxio.worker.memory.size}"),
+  // Deprecated. It will be removed in 1.5.0.
+  WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "0.1"),
   WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO_FORMAT(
       Name.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO_FORMAT, 1.0),
   WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO_FORMAT(
@@ -225,6 +227,8 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVEL1_ALIAS(Name.WORKER_TIERED_STORE_LEVEL1_ALIAS, null),
   WORKER_TIERED_STORE_LEVEL1_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, null),
   WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, null),
+  // Deprecated. It will be removed in 1.5.0.
+  WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, "0.1"),
   WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO_FORMAT(
       Name.WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO_FORMAT, 1.0),
   WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO_FORMAT(
@@ -232,6 +236,8 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVEL2_ALIAS(Name.WORKER_TIERED_STORE_LEVEL2_ALIAS, null),
   WORKER_TIERED_STORE_LEVEL2_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, null),
   WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA, null),
+  // Deprecated. It will be removed in 1.5.0.
+  WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, "0.1"),
   WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO_FORMAT(
       Name.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO_FORMAT, 1.0),
   WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO_FORMAT(
@@ -657,6 +663,9 @@ public enum PropertyKey {
         "alluxio.worker.tieredstore.level0.dirs.path";
     public static final String WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
         "alluxio.worker.tieredstore.level0.dirs.quota";
+    // Deprecated. It will be removed in 1.5.0.
+    public static final String WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
+        "alluxio.worker.tieredstore.level0.reserved.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO_FORMAT =
         "alluxio.worker.tieredstore.level0.watermark.high.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO_FORMAT =
@@ -667,6 +676,9 @@ public enum PropertyKey {
         "alluxio.worker.tieredstore.level1.dirs.path";
     public static final String WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
         "alluxio.worker.tieredstore.level1.dirs.quota";
+    // Deprecated. It will be removed in 1.5.0.
+    public static final String WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
+        "alluxio.worker.tieredstore.level1.reserved.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO_FORMAT =
         "alluxio.worker.tieredstore.level1.watermark.high.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO_FORMAT =
@@ -677,6 +689,9 @@ public enum PropertyKey {
         "alluxio.worker.tieredstore.level2.dirs.path";
     public static final String WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
         "alluxio.worker.tieredstore.level2.dirs.quota";
+    // Deprecated. It will be removed in 1.5.0.
+    public static final String WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
+        "alluxio.worker.tieredstore.level2.reserved.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO_FORMAT =
         "alluxio.worker.tieredstore.level2.watermark.high.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO_FORMAT =
