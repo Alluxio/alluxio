@@ -20,6 +20,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class NoopJournalContext implements JournalContext {
+  public static final NoopJournalContext INSTANCE = new NoopJournalContext();
+
   /**
    * Constructs the {@link NoopJournalContext}.
    */

@@ -31,6 +31,7 @@ import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
@@ -590,7 +591,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           currentInodeDirectory.addChild(dir);
           if (options.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
-            InodeUtils.syncPersistDirectory(dir, this, mMountTable, null);
+            InodeUtils.syncPersistDirectory(dir, this, mMountTable, NoopJournalContext.INSTANCE);
           }
           // Journal the new inode.
           journalContext.append(dir.toJournalEntry());
@@ -642,7 +643,8 @@ public class InodeTree implements JournalCheckpointStreamable {
         lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
         if (directoryOptions.isPersisted()) {
           // Do not journal the persist entry, since a creation entry will be journaled instead.
-          InodeUtils.syncPersistDirectory((InodeDirectory) lastInode, this, mMountTable, null);
+          InodeUtils.syncPersistDirectory((InodeDirectory) lastInode, this, mMountTable,
+              NoopJournalContext.INSTANCE);
         }
       } else if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;

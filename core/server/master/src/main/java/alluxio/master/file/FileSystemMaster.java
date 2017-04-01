@@ -145,7 +145,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileSystemMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMaster.class);
   private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(BlockMaster.class);
-  private static final JournalContext NOOP_JOURNAL_CONTEXT = new NoopJournalContext();
 
   /**
    * Locking in the FileSystemMaster
@@ -1302,7 +1301,7 @@ public final class FileSystemMaster extends AbstractMaster {
     Metrics.DELETE_PATHS_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      deleteInternal(inodePath, NOOP_JOURNAL_CONTEXT, true, entry.getOpTimeMs(),
+      deleteInternal(inodePath, NoopJournalContext.INSTANCE, true, entry.getOpTimeMs(),
           DeleteOptions.defaults()
           .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
     } catch (Exception e) {
@@ -1995,7 +1994,7 @@ public final class FileSystemMaster extends AbstractMaster {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       RenameOptions options = RenameOptions.defaults().setOperationTimeMs(entry.getOpTimeMs());
-      renameInternal(srcInodePath, dstInodePath, NOOP_JOURNAL_CONTEXT, true, options);
+      renameInternal(srcInodePath, dstInodePath, NoopJournalContext.INSTANCE, true, options);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
