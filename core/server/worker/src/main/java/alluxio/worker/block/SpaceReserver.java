@@ -59,6 +59,7 @@ public class SpaceReserver implements HeartbeatExecutor  {
     mBlockWorker = blockWorker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
     Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
+    long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       // HighWatemark defines when to start the space reserving process
@@ -74,13 +75,14 @@ public class SpaceReserver implements HeartbeatExecutor  {
       long lowWatermarkInBytes =
           (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
       mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
-      mLowWaterMarkInBytesOnTiers.put(tierAlias, lowWatermarkInBytes);
+      mLowWaterMarkInBytesOnTiers.put(tierAlias, lowWatermarkInBytes + lastTierReservedBytes);
+      lastTierReservedBytes += lowWatermarkInBytes;
     }
   }
 
   private void reserveSpace() {
     Map<String, Long> usedBytesOnTiers = mBlockWorker.getStoreMeta().getUsedBytesOnTiers();
-    for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
+    for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long highWatermarkInBytes = mHighWaterMarkInBytesOnTiers.get(tierAlias);
       if (highWatermarkInBytes > 0 && usedBytesOnTiers.get(tierAlias) >= highWatermarkInBytes) {

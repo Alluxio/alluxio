@@ -99,9 +99,9 @@ public class SpaceReserverTest {
     // Run the space reserver once.
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
+    // 400 * 0.2 + 1000 * 0.3 = 380
+    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
     // 400 * 0.2 = 80
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
-    // 1000 * 0.3 = 300
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 300L, "HDD");
   }
 }
