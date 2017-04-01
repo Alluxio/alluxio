@@ -1440,8 +1440,7 @@ public final class FileSystemMaster extends AbstractMaster {
           // parent is read locked.
           DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(delInode.getId())
               .setRecursive(deleteOptions.isRecursive()).setOpTimeMs(opTimeMs).build();
-          appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build(),
-              journalContext);
+          journalContext.append(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
         }
         mInodeTree.deleteInode(tempInodePath, opTimeMs);
       }
