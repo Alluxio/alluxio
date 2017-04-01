@@ -85,8 +85,9 @@ public class SpaceReserver implements HeartbeatExecutor  {
     for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long highWatermarkInBytes = mHighWaterMarkInBytesOnTiers.get(tierAlias);
-      if (highWatermarkInBytes > 0 && usedBytesOnTiers.get(tierAlias) >= highWatermarkInBytes) {
-        long lowWatermarkInBytes = mLowWaterMarkInBytesOnTiers.get(tierAlias);
+      long lowWatermarkInBytes = mLowWaterMarkInBytesOnTiers.get(tierAlias);
+      if (highWatermarkInBytes > lowWatermarkInBytes
+          && usedBytesOnTiers.get(tierAlias) >= highWatermarkInBytes) {
         try {
           mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, lowWatermarkInBytes, tierAlias);
         } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
