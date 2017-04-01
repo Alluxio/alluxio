@@ -140,6 +140,7 @@ final class UfsJournalGarbageCollector implements Closeable {
   private void deleteNoException(URI location) {
     try {
       mJournal.getUfs().deleteFile(location.toString());
+      LOG.info("Garbage collected journal file {}.", location);
     } catch (IOException e) {
       LOG.warn("Failed to delete journal file {}.", location);
     }

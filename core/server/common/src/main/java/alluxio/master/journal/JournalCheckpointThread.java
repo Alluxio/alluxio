@@ -59,7 +59,7 @@ public final class JournalCheckpointThread extends Thread {
    * Creates a new instance of {@link JournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
-   * @param journal the journal to tail
+   * @param journal the journal
    */
   public JournalCheckpointThread(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
@@ -102,23 +102,45 @@ public final class JournalCheckpointThread extends Thread {
 
   @Override
   public void run() {
+    try {
+      runInternal();
+    } catch (RuntimeException e) {
+      LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
+      System.exit(-1);
+    } finally {
+      if (mJournalReader != null) {
+        try {
+          mJournalReader.close();
+        } catch (IOException e) {
+          LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
+              e.getMessage());
+        }
+      }
+    }
+  }
+
+  private void runInternal() {
     // Keeps reading journal entries. If none is found, sleep for sometime. Periodically write
     // checkpoints if some conditions are met. The a shutdown signal is receivied, wait until
     // no new journal entries.
 
-    LOG.info("{}: Journal checkpointer started.", mMaster.getName());
+    LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     alluxio.proto.journal.Journal.JournalEntry entry;
-    while (!mInitiateShutdown) {
+    while (true) {
       // The start time (ms) for the initiated shutdown.
       try {
         entry = mJournalReader.read();
-        mMaster.processJournalEntry(entry);
+        if (entry != null) {
+          mMaster.processJournalEntry(entry);
+        }
       } catch (IOException | InvalidJournalEntryException e) {
-        LOG.warn("Failed to process the journal entry with error {}.", e.getMessage());
+        LOG.warn("{}: Failed to process the journal entry with error {}.", mMaster.getName(),
+            e.getMessage());
         try {
           mJournalReader.close();
         } catch (IOException ee) {
-          LOG.warn("Failed to close the journal reader with error {}.", ee.getMessage());
+          LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
+              ee.getMessage());
         }
         mJournalReader =
             mJournal.getReader(JournalReaderCreateOptions.defaults().setPrimary(false));
@@ -131,14 +153,11 @@ public final class JournalCheckpointThread extends Thread {
       if (entry == null) {
         if (mInitiateShutdown) {
           CommonUtils.sleepMs(LOG, mShutdownQuietWaitTimeMs);
-          LOG.info(
-              "{}: Journal checkpointer has been shutdown. No new logs have been found during the "
-                  + "quiet period.", mMaster.getName());
+          LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
+              + "during the quiet period.", mMaster.getName());
           mStopped = true;
           return;
         }
-        LOG.info("{}: No journal entry found. sleeping for {}ms.", mMaster.getName(),
-            mJournalCheckpointSleepTimeMs);
         CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
       }
     }
@@ -156,31 +175,42 @@ public final class JournalCheckpointThread extends Thread {
         return;
       }
     } catch (IOException e) {
-      LOG.warn("Failed to decide whether to checkpoint from the journal reader with error {}.",
-          e.getMessage());
+      LOG.warn("{}: Failed to decide whether to checkpoint from the journal reader with error {}.",
+          mMaster.getName(), e.getMessage());
       return;
     }
+
+    LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(),
+        mJournalReader.getNextSequenceNumber());
 
     Iterator<alluxio.proto.journal.Journal.JournalEntry> it = mMaster.iterator();
     JournalWriter journalWriter = null;
     IOException exception = null;
     try {
-      journalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(false));
+      journalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(false)
+          .setNextSequenceNumber(mJournalReader.getNextSequenceNumber()));
       while (it.hasNext() && !mInitiateShutdown) {
         journalWriter.write(it.next());
       }
     } catch (IOException e) {
-      LOG.warn("Failed to checkpoint with error {}.", e.getMessage());
+      LOG.warn("{}: Failed to checkpoint with error {}.", mMaster.getName(), e.getMessage());
       exception = e;
     }
 
-    if (it.hasNext() || mInitiateShutdown || exception != null) {
-      if (journalWriter != null) {
-        try {
+    if (journalWriter != null) {
+      try {
+        if (it.hasNext() || mInitiateShutdown || exception != null) {
           journalWriter.cancel();
-        } catch (IOException e) {
-          LOG.warn("Failed to cancel the checkpoint with error {}.", e.getMessage());
+          LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
+              mJournalReader.getNextSequenceNumber());
+        } else {
+          journalWriter.close();
+          LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
+              mJournalReader.getNextSequenceNumber());
         }
+      } catch (IOException e) {
+        LOG.warn("{}: Failed to cancel or close the checkpoint with error {}.", mMaster.getName(),
+            e.getMessage());
       }
     }
   }

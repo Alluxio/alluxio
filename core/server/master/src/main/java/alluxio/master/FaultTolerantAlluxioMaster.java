@@ -54,7 +54,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
 
       // Check that the journal has been formatted.
-      checkJournalFormatted();
+      MasterUtils.checkJournalFormatted();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This data structure implements {@link Comparable} such they can be sorted by the end SNs.
  */
 @ThreadSafe
-final public class UfsJournalFile implements Comparable<UfsJournalFile> {
+final class UfsJournalFile implements Comparable<UfsJournalFile> {
   /** The location of the file. */
   private final URI mLocation;
   /** The start journal log entry sequence number (inclusive). */
@@ -64,7 +64,7 @@ final public class UfsJournalFile implements Comparable<UfsJournalFile> {
    * @param end the end sequence number (exclusive)
    * @return the file
    */
-  public static UfsJournalFile createCheckpointFile(URI location, long end) {
+  static UfsJournalFile createCheckpointFile(URI location, long end) {
     return new UfsJournalFile(location, 0, end, true);
   }
 
@@ -76,7 +76,7 @@ final public class UfsJournalFile implements Comparable<UfsJournalFile> {
    * @param end the end sequence number (exclusive)
    * @return the file
    */
-  public static UfsJournalFile createLogFile(URI location, long start, long end) {
+  static UfsJournalFile createLogFile(URI location, long start, long end) {
     return new UfsJournalFile(location, start, end, false);
   }
 
@@ -86,7 +86,7 @@ final public class UfsJournalFile implements Comparable<UfsJournalFile> {
    * @param location the file location
    * @return the file
    */
-  public static UfsJournalFile createTmpCheckpointFile(URI location) {
+  static UfsJournalFile createTmpCheckpointFile(URI location) {
     return new UfsJournalFile(location, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
         UfsJournal.UNKNOWN_SEQUENCE_NUMBER, false);
   }
@@ -94,42 +94,42 @@ final public class UfsJournalFile implements Comparable<UfsJournalFile> {
   /**
    * @return the file location
    */
-  public URI getLocation() {
+  URI getLocation() {
     return mLocation;
   }
 
   /**
    * @return the start sequence number (inclusive)
    */
-  public long getStart() {
+  long getStart() {
     return mStart;
   }
 
   /**
    * @return the end sequence number (exclusive)
    */
-  public long getEnd() {
+  long getEnd() {
     return mEnd;
   }
 
   /**
    * @return whether it is a committed checkpoint file
    */
-  public boolean isCheckpoint() {
+  boolean isCheckpoint() {
     return mIsCheckpoint;
   }
 
   /**
    * @return whether it is a completed log
    */
-  public boolean isCompletedLog() {
+  boolean isCompletedLog() {
     return !isCheckpoint() && mEnd != UfsJournal.UNKNOWN_SEQUENCE_NUMBER;
   }
 
   /**
    * @return whether it is incomplete log (a.k.a. the current log)
    */
-  public boolean isIncompleteLog() {
+  boolean isIncompleteLog() {
     return mStart != UfsJournal.UNKNOWN_SEQUENCE_NUMBER
         && mEnd == UfsJournal.UNKNOWN_SEQUENCE_NUMBER;
   }
@@ -137,7 +137,7 @@ final public class UfsJournalFile implements Comparable<UfsJournalFile> {
   /**
    * @return whether it is a temporary checkpoint
    */
-  public boolean isTmpCheckpoint() {
+  boolean isTmpCheckpoint() {
     return mStart == UfsJournal.UNKNOWN_SEQUENCE_NUMBER
         && mEnd == UfsJournal.UNKNOWN_SEQUENCE_NUMBER;
   }

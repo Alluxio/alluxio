@@ -135,6 +135,16 @@ stop() {
   ${BIN}/alluxio-stop.sh all
 }
 
+start_secondary_master() {
+  if [[ -z ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} ]]; then
+    ALLUXIO_SECONDARY_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  fi
+
+  echo "Starting secondary master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+  (nohup "${JAVA}" -cp ${CLASSPATH} \
+   ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} \
+   alluxio.master.AlluxioSecondaryMaster > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
+}
 
 start_master() {
   if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
@@ -299,6 +309,9 @@ main() {
       ;;
     master)
       start_master "${FORMAT}"
+      ;;
+    secondary_master)
+      start_secondary_master
       ;;
     proxy)
       start_proxy

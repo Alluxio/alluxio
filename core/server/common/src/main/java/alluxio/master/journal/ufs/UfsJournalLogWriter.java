@@ -87,6 +87,9 @@ final class UfsJournalLogWriter implements JournalWriter {
      * @return the number of bytes written to this stream
      */
     long bytesWritten() {
+      if (mOutputStream == null) {
+        return 0;
+      }
       return mOutputStream.size();
     }
 

@@ -34,7 +34,7 @@ import java.net.URI;
  * Unit tests for {@link UfsJournalReader}.
  */
 public final class UfsJournalReaderTest {
-  private static long CHECKPOINT_SIZE = 10;
+  private static final long CHECKPOINT_SIZE = 10;
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -187,12 +187,34 @@ public final class UfsJournalReaderTest {
   }
 
   /**
-   * Reads logs created while reading the journal.
+   * Reads checkpoint and logs. The checkpoint's last sequence number does not match any one of
+   * the logs' sequence number.
    */
   @Test
-  public void readCheckpointAndLogs() throws Exception {
+  public void readCheckpointAndLogsSnNoMatch() throws Exception {
     long fileSize = 10;
-    buildCheckpoint(fileSize * 2);
+    buildCheckpoint(fileSize * 3 + 1);
+
+    for (int i = 0; i < 10; ++i) {
+      buildCompletedLog(i * fileSize, (i + 1) * fileSize);
+    }
+
+    try (JournalReader reader = mJournal
+        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+      while ((reader.read()) != null) {
+      }
+      Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
+    }
+  }
+
+  /**
+   * Reads checkpoint and logs. The checkpoint's last sequence number matches one of
+   * the logs' sequence number.
+   */
+  @Test
+  public void readCheckpointAndLogsSnMatch() throws Exception {
+    long fileSize = 10;
+    buildCheckpoint(fileSize * 3);
 
     for (int i = 0; i < 10; ++i) {
       buildCompletedLog(i * fileSize, (i + 1) * fileSize);

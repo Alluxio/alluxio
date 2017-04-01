@@ -229,7 +229,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * (D) private FromEntry methods used to replay entries from the journal:
    * These methods are used to replay entries from reading the journal. This is done on start, as
-   * well as for standby masters.
+   * well as for secondary masters.
    * (D) cannot call (A)
    * (D) cannot call (B)
    * (D) can call (C)
@@ -338,6 +338,11 @@ public final class FileSystemMaster extends AbstractMaster {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      // The mount table is the only to clear. The inode tree is reset when it processes the ROOT
+      // journal entry.
+      mMountTable.clear();
+    }
     if (entry.hasInodeFile()) {
       mInodeTree.addInodeFileFromJournal(entry.getInodeFile());
       // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
@@ -440,7 +445,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (isPrimary) {
       // Only initialize root when isPrimary because when initializing root, BlockMaster needs to
       // write journal entry, if it is not primary, BlockMaster won't have a writable journal.
-      // If it is standby, it should be able to load the inode tree from primary's checkpoint.
+      // If it is secondary, it should be able to load the inode tree from journal.
       mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
           SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
       String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);

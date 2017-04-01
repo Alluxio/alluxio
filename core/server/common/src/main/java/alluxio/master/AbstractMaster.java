@@ -115,34 +115,34 @@ public abstract class AbstractMaster implements Master {
       // Step 1. Replay the journal entries.
       long nextSequenceNumber =
           mJournalCheckpointThread != null ? mJournalCheckpointThread.getNextSequenceNumber() : 0;
-      JournalReader journalReader = mJournal.getReader(
+      try (JournalReader journalReader = mJournal.getReader(
           JournalReaderCreateOptions.defaults().setPrimary(true)
-              .setNextSequenceNumber(nextSequenceNumber));
-
-      while (true) {
-        try {
-          JournalEntry entry = journalReader.read();
-          if (entry == null) {
-            journalReader.close();
-            break;
+              .setNextSequenceNumber(nextSequenceNumber))) {
+        while (true) {
+          try {
+            JournalEntry entry = journalReader.read();
+            if (entry == null) {
+              journalReader.close();
+              break;
+            }
+            processJournalEntry(entry);
+          } catch (InvalidJournalEntryException e) {
+            LOG.error("Invalid journal is found.", e);
+            // We found invalid journal, nothing we can do but crash.
+            throw new RuntimeException(e);
           }
-          processJournalEntry(entry);
-        } catch (InvalidJournalEntryException e) {
-          LOG.error("Invalid journal is found.", e);
-          // We found invalid journal, nothing we can do but crash.
-          throw new RuntimeException(e);
         }
-      }
-      nextSequenceNumber = journalReader.getNextSequenceNumber();
+        nextSequenceNumber = journalReader.getNextSequenceNumber();
 
-      // Step 2: Start the journal writer.
-      mJournalWriter = mJournal.getWriter(
-          JournalWriterCreateOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
-              .setPrimary(true));
-      if (nextSequenceNumber == 0) {
-        Iterator<JournalEntry> it = iterator();
-        while (it.hasNext()) {
-          mJournalWriter.write(it.next());
+        // Step 2: Start the journal writer.
+        mJournalWriter = mJournal.getWriter(
+            JournalWriterCreateOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
+                .setPrimary(true));
+        if (nextSequenceNumber == 0) {
+          Iterator<JournalEntry> it = iterator();
+          while (it.hasNext()) {
+            mJournalWriter.write(it.next());
+          }
         }
       }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);

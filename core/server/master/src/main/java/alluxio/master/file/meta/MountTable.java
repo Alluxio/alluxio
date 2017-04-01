@@ -85,6 +85,8 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
           // Do not journal the root mount point.
           if (!mEntry.getKey().equals(ROOT)) {
             return true;
+          } else {
+            mEntry = null;
           }
         }
         return false;
@@ -169,6 +171,18 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
         }
       }
       mMountTable.put(alluxioPath, new MountInfo(ufsUri, options));
+    }
+  }
+
+  /**
+   * Clears all the mount point except the root.
+   */
+  public void clear() {
+    LOG.info("Clearing mount table (except the root).");
+    try (LockResource r = new LockResource(mWriteLock)) {
+      MountInfo mountInfo = mMountTable.get(ROOT);
+      mMountTable.clear();
+      mMountTable.put(ROOT, mountInfo);
     }
   }
 

@@ -112,7 +112,7 @@ public final class UfsJournalCheckpointWriterTest {
     String expectedCheckpoint =
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
-    mJournal.getUfs().create(expectedCheckpoint);
+    mJournal.getUfs().create(expectedCheckpoint).close();
     for (int i = 0; i < 5; ++i) {
       writer.write(newEntry(i));
     }
@@ -121,6 +121,30 @@ public final class UfsJournalCheckpointWriterTest {
     UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
     Assert.assertEquals(1, snapshot.mCheckpoints.size());
     Assert.assertEquals(expectedCheckpoint, snapshot.mCheckpoints.get(0).getLocation().toString());
+    Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
+  }
+
+  @Test
+  public void olderCheckpointExists() throws Exception {
+    long endSN = 0x20;
+    JournalWriter writer = mJournal.getWriter(
+        JournalWriterCreateOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+    String oldCheckpoint = URIUtils
+        .appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN - 1))
+        .toString();
+    mJournal.getUfs().create(oldCheckpoint).close();
+    String expectedCheckpoint =
+        URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
+            .toString();
+    for (int i = 0; i < 5; ++i) {
+      writer.write(newEntry(i));
+    }
+    writer.close();
+
+    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+    Assert.assertEquals(2, snapshot.mCheckpoints.size());
+    Assert.assertEquals(oldCheckpoint, snapshot.mCheckpoints.get(0).getLocation().toString());
+    Assert.assertEquals(expectedCheckpoint, snapshot.mCheckpoints.get(1).getLocation().toString());
     Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
   }
 

@@ -79,7 +79,7 @@ public final class LineageMaster extends AbstractMaster {
   private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
 
   private final FileSystemMaster mFileSystemMaster;
-  private final LineageStore mLineageStore;
+  private LineageStore mLineageStore;
   private final LineageIdGenerator mLineageIdGenerator;
 
   /**
@@ -131,6 +131,9 @@ public final class LineageMaster extends AbstractMaster {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      mLineageStore = new LineageStore(mLineageIdGenerator);
+    }
     if (entry.hasLineage()) {
       mLineageStore.addLineageFromJournal(entry.getLineage());
     } else if (entry.hasLineageIdGenerator()) {
