@@ -316,8 +316,8 @@ public class UfsJournal implements Journal {
           checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
         }
       }
+      Collections.sort(checkpoints);
     }
-    Collections.sort(checkpoints);
 
     List<UfsJournalFile> logs = new ArrayList<>();
     statuses = mUfs.listStatus(getLogDir().toString());

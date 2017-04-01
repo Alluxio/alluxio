@@ -102,6 +102,24 @@ public final class JournalCheckpointThread extends Thread {
 
   @Override
   public void run() {
+    try {
+      runInternal();
+    } catch (RuntimeException e) {
+      LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
+      System.exit(-1);
+    } finally {
+      if (mJournalReader != null) {
+        try {
+          mJournalReader.close();
+        } catch (IOException e) {
+          LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
+              e.getMessage());
+        }
+      }
+    }
+  }
+
+  private void runInternal() {
     // Keeps reading journal entries. If none is found, sleep for sometime. Periodically write
     // checkpoints if some conditions are met. The a shutdown signal is receivied, wait until
     // no new journal entries.
