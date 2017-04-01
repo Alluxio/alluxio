@@ -53,7 +53,7 @@ public final class StatCommand extends WithWildCardPathCommand {
     return new Options().addOption(
             Option.builder("f")
                     .required(false)
-                    .hasArg(true)
+                    .hasArg()
                     .desc("format")
                     .build()
     );
@@ -89,14 +89,13 @@ public final class StatCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Displays info for the specified path both file and directory."
         + " Specify -f to display info in given format:"
-        + "   \"%N\": name of the file"
-        + "   \"%z\": size of file in bytes"
-        + "   \"%u\": owner"
-        + "   \"%g\": group name of owner"
-        + "   \"%r\": replication number"
-        + "   \"%y\" or \"%Y\": modification time."
-        + "     %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
-        + "     %Y it shows milliseconds since January 1, 1970 UTC"
+        + "   \"%N\": name of the file;"
+        + "   \"%z\": size of file in bytes;"
+        + "   \"%u\": owner;"
+        + "   \"%g\": group name of owner;"
+        + "   \"%y\" or \"%Y\": modification time,"
+            + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
+            + " %Y it shows milliseconds since January 1, 1970 UTC;"
         + "   \"%b\": Number of blocks allocated for file";
   }
 
@@ -131,8 +130,6 @@ public final class StatCommand extends WithWildCardPathCommand {
         return String.valueOf(status.getFileBlockInfos().size());
       case 'g':
         return status.getGroup();
-//      case 'r':
-//        return status.
       case 'u':
         return status.getOwner();
       case 'y':
