@@ -167,28 +167,28 @@ public class UfsJournal implements Journal {
   /**
    * @return the log directory location
    */
-  public URI getLogDir() {
+  URI getLogDir() {
     return mLogDir;
   }
 
   /**
    * @return the checkpoint directory location
    */
-  public URI getCheckpointDir() {
+  URI getCheckpointDir() {
     return mCheckpointDir;
   }
 
   /**
    * @return the temporary directory location
    */
-  public URI getTmpDir() {
+  URI getTmpDir() {
     return mTmpDir;
   }
 
   /**
    * @return the under file system instance
    */
-  public UnderFileSystem getUfs() {
+  UnderFileSystem getUfs() {
     return mUfs;
   }
 
@@ -198,7 +198,7 @@ public class UfsJournal implements Journal {
    * @param end the end sequence number (exclusive)
    * @return the location
    */
-  public URI encodeCheckpointFileLocation(long end) {
+  URI encodeCheckpointFileLocation(long end) {
     String filename = String.format("0x%x-0x%x", 0, end);
     URI location = URIUtils.appendPathOrDie(getCheckpointDir(), filename);
     return location;
@@ -211,7 +211,7 @@ public class UfsJournal implements Journal {
    * @param end the end sequence number (exclusive)
    * @return the location
    */
-  public URI encodeLogFileLocation(long start, long end) {
+  URI encodeLogFileLocation(long start, long end) {
     String filename = String.format("0x%x-0x%x", start, end);
     URI location = URIUtils.appendPathOrDie(getLogDir(), filename);
     return location;
@@ -222,7 +222,7 @@ public class UfsJournal implements Journal {
    *
    * @return the location
    */
-  public URI encodeTemporaryCheckpointFileLocation() {
+  URI encodeTemporaryCheckpointFileLocation() {
     return URIUtils.appendPathOrDie(getTmpDir(), UUID.randomUUID().toString());
   }
 
@@ -304,7 +304,7 @@ public class UfsJournal implements Journal {
    * @return the journal snapshot
    * @throws IOException if any I/O errors occur
    */
-  public Snapshot getSnapshot() throws IOException {
+  Snapshot getSnapshot() throws IOException {
     // Checkpoints.
     List<UfsJournalFile> checkpoints = new ArrayList<>();
     UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
@@ -349,7 +349,7 @@ public class UfsJournal implements Journal {
    * @return the current log
    * @throws IOException if any I/O errors occur
    */
-  public UfsJournalFile getCurrentLog() throws IOException {
+  UfsJournalFile getCurrentLog() throws IOException {
     List<UfsJournalFile> logs = new ArrayList<>();
     UnderFileStatus[] statuses = mUfs.listStatus(getLogDir().toString());
     if (statuses != null) {
@@ -376,12 +376,13 @@ public class UfsJournal implements Journal {
    * @return the first journal log sequence number that is not yet checkpointed
    * @throws IOException if any I/O errors occur
    */
-  public long getNextLogSequenceToCheckpoint() throws IOException {
+  long getNextLogSequenceToCheckpoint() throws IOException {
     List<UfsJournalFile> checkpoints = new ArrayList<>();
     UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
     if (statuses != null) {
       for (UnderFileStatus status : statuses) {
-        UfsJournalFile file = decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
+        UfsJournalFile file =
+            decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
         if (file != null) {
           checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
         }

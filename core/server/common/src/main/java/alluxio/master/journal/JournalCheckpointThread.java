@@ -59,7 +59,7 @@ public final class JournalCheckpointThread extends Thread {
    * Creates a new instance of {@link JournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
-   * @param journal the journal to tail
+   * @param journal the journal
    */
   public JournalCheckpointThread(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
@@ -106,7 +106,7 @@ public final class JournalCheckpointThread extends Thread {
     // checkpoints if some conditions are met. The a shutdown signal is receivied, wait until
     // no new journal entries.
 
-    LOG.info("{}: Journal checkpointer started.", mMaster.getName());
+    LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     alluxio.proto.journal.Journal.JournalEntry entry;
     while (true) {
       // The start time (ms) for the initiated shutdown.
@@ -135,9 +135,8 @@ public final class JournalCheckpointThread extends Thread {
       if (entry == null) {
         if (mInitiateShutdown) {
           CommonUtils.sleepMs(LOG, mShutdownQuietWaitTimeMs);
-          LOG.info(
-              "{}: Journal checkpointer has been shutdown. No new logs have been found during the "
-                  + "quiet period.", mMaster.getName());
+          LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
+              + "during the quiet period.", mMaster.getName());
           mStopped = true;
           return;
         }
@@ -163,7 +162,7 @@ public final class JournalCheckpointThread extends Thread {
       return;
     }
 
-    LOG.info("{}: Starting to checkpoint to sequence number {}.", mMaster.getName(),
+    LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(),
         mJournalReader.getNextSequenceNumber());
 
     Iterator<alluxio.proto.journal.Journal.JournalEntry> it = mMaster.iterator();
@@ -184,12 +183,11 @@ public final class JournalCheckpointThread extends Thread {
       try {
         if (it.hasNext() || mInitiateShutdown || exception != null) {
           journalWriter.cancel();
-          LOG.info("{}: Cancelled writing checkpoint to sequence number {}: {} {} {}.",
-              mMaster.getName(), mJournalReader.getNextSequenceNumber(), it.hasNext(),
-              mInitiateShutdown, exception != null ? exception.getMessage() : "null");
+          LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
+              mJournalReader.getNextSequenceNumber());
         } else {
           journalWriter.close();
-          LOG.info("{}: Done with writing checkpoint to sequence number {}.", mMaster.getName(),
+          LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
               mJournalReader.getNextSequenceNumber());
         }
       } catch (IOException e) {
