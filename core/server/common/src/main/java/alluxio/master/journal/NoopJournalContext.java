@@ -13,9 +13,12 @@ package alluxio.master.journal;
 
 import alluxio.proto.journal.Journal;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Noop version of JournalContext.
  */
+@ThreadSafe
 public final class NoopJournalContext implements JournalContext {
   /**
    * Constructs the {@link NoopJournalContext}.

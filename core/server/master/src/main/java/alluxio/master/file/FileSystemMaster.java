@@ -69,6 +69,7 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
@@ -144,6 +145,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileSystemMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMaster.class);
   private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(BlockMaster.class);
+  private static final JournalContext NOOP_JOURNAL_CONTEXT = new NoopJournalContext();
 
   /**
    * Locking in the FileSystemMaster
@@ -1300,7 +1302,8 @@ public final class FileSystemMaster extends AbstractMaster {
     Metrics.DELETE_PATHS_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      deleteInternal(inodePath, null, true, entry.getOpTimeMs(), DeleteOptions.defaults()
+      deleteInternal(inodePath, NOOP_JOURNAL_CONTEXT, true, entry.getOpTimeMs(),
+          DeleteOptions.defaults()
           .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -1992,7 +1995,7 @@ public final class FileSystemMaster extends AbstractMaster {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       RenameOptions options = RenameOptions.defaults().setOperationTimeMs(entry.getOpTimeMs());
-      renameInternal(srcInodePath, dstInodePath, null, true, options);
+      renameInternal(srcInodePath, dstInodePath, NOOP_JOURNAL_CONTEXT, true, options);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
