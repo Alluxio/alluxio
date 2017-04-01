@@ -47,7 +47,10 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
   /** The output stream to the temporary checkpoint file. */
   private final OutputStream mTmpCheckpointStream;
 
-  /** The sequence number for the next journal entry to be written to the checkpoint. */
+  /**
+   * The sequence number for the next journal entry to be written to the checkpoint. Note that this
+   * always starts with 0 and is not necessarily the same as the sequence number in edit logs.
+   */
   private long mNextSequenceNumber;
 
   /** Whether this journal writer is closed. */
@@ -96,6 +99,7 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
       return;
     }
     mClosed = true;
+    mTmpCheckpointStream.flush();
     mTmpCheckpointStream.close();
 
     // Delete the temporary checkpoint if there is a newer checkpoint committed.
@@ -103,20 +107,21 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
     if (snapshot != null && !snapshot.mCheckpoints.isEmpty()) {
       UfsJournalFile checkpoint =
           snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
-      if (mNextSequenceNumber <= checkpoint.getEnd()) {
+      if (mCheckpointFile.getEnd() <= checkpoint.getEnd()) {
         mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
         return;
       }
     }
 
-    String dst = mCheckpointFile.getLocation().toString();
     try {
       mJournal.getUfs().mkdirs(mJournal.getCheckpointDir().toString());
     } catch (IOException e) {
       if (!mJournal.getUfs().exists(mJournal.getCheckpointDir().toString())) {
         throw e;
       }
+      LOG.warn("Failed to create the checkpoint directory {}.", mJournal.getCheckpointDir());
     }
+    String dst = mCheckpointFile.getLocation().toString();
     try {
       if (!mJournal.getUfs().renameFile(mTmpCheckpointFileLocation.toString(), dst)) {
         throw new IOException(String
@@ -130,8 +135,8 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
       try {
         mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
       } catch (IOException ee) {
-        LOG.warn("Failed to clean up temporary checkpoint {} at {}.", mTmpCheckpointFileLocation,
-            mNextSequenceNumber);
+        LOG.warn("Failed to clean up temporary checkpoint {} at entry {}.",
+            mTmpCheckpointFileLocation, mCheckpointFile.getEnd());
       }
       throw e;
     }

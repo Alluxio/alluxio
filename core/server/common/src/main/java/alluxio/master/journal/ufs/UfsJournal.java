@@ -377,15 +377,17 @@ public class UfsJournal implements Journal {
    * @throws IOException if any I/O errors occur
    */
   public long getNextLogSequenceToCheckpoint() throws IOException {
-    UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
     List<UfsJournalFile> checkpoints = new ArrayList<>();
-    for (UnderFileStatus status : statuses) {
-      UfsJournalFile file = decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
-      if (file != null) {
-        checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
+    UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
+    if (statuses != null) {
+      for (UnderFileStatus status : statuses) {
+        UfsJournalFile file = decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
+        if (file != null) {
+          checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
+        }
       }
+      Collections.sort(checkpoints);
     }
-    Collections.sort(checkpoints);
     if (checkpoints.isEmpty()) {
       return 0;
     }

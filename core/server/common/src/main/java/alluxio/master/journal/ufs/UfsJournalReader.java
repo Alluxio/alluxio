@@ -252,9 +252,11 @@ class UfsJournalReader implements JournalReader {
         mFilesToProcess.add(checkpoint);
         // index points to the log with mEnd >= checkpoint.mEnd.
         index = Collections.binarySearch(snapshot.mLogs, checkpoint);
-        if (index < 0 || (index < snapshot.mLogs.size()
-            && snapshot.mLogs.get(index).getEnd() == checkpoint.getEnd())) {
+        if (index >= 0) {
           index++;
+        } else {
+          // Find the insertion point.
+          index = -index - 1;
         }
       }
       for (; index < snapshot.mLogs.size(); ++index) {
