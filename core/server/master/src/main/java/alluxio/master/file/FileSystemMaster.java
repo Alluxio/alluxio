@@ -1311,7 +1311,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
-   * {@link #deleteInternal(LockedInodePath, boolean, long, DeleteOptions)}.
+   * {@link #deleteInternal(LockedInodePath, JournalContext, boolean, long, DeleteOptions)}.
    *
    * @param inodePath the {@link LockedInodePath} to delete
    * @param journalContext the journal context
@@ -1639,7 +1639,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param options method options
    * @return the id of the created directory
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalEntryAppender)}
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
    *         for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
@@ -1674,7 +1674,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalEntryAppender)}
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
    *         for more details
    * @throws AccessControlException if permission checking fails
    * @throws IOException if a non-Alluxio related exception occurs
@@ -1697,7 +1697,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalEntryAppender)}
+   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
    *         for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
