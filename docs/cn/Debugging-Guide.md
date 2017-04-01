@@ -15,7 +15,7 @@ group: Resources
 ## Alluxio日志地址
 
 Alluxio运行过程中可产生master、worker和client日志，这些日志存储在`{ALLUXIO_HOME}/logs`文件夹中，日志名称分别为
-`master.log`,`master.out`, `worker.log`, `worker.out` 和`user_${USER}.log`。
+`master.log`,`master.out`, `worker.log`, `worker.out` 和`user_${USER}.log`。其中`log`后缀的文件是log4j生成的，`out`后缀的文件是标准输出流和标准错误流重定向的文件。
 
 master和worker日志对于理解Alluxio master节点和worker节点的运行过程是非常有帮助的，当Alluxio运行出现问题时，可以查阅日志发现问题产生原因。如果不清楚错误日志信息，可在[邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)查找，错误日志信息有可能之前已经讨论过。
 
