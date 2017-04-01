@@ -120,7 +120,6 @@ public enum ExceptionMessage {
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
-  HDFS_FILE_NOT_FOUND("File {0} with URI {1} is not found"),
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
