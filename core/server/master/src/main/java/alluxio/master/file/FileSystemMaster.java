@@ -179,7 +179,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * so that operations are not holding metadata locks waiting on the journal IO. In particular,
    * file system operations are expected to create a {@link JournalContext} resource, use it
    * throughout the lifetime of an operation to collect journal events through
-   * {@link #appendJournalEntry(JournalEntry, JournalContext)}, and then close the resource, which
+   * {@link JournalContext#append(JournalEntry)}, and then close the resource, which
    * will persist the journal events. In order to ensure the journal events are always persisted,
    * the following paradigm is recommended:
    *
@@ -211,16 +211,17 @@ public final class FileSystemMaster extends AbstractMaster {
    * (A) cannot call (D)
    *
    * (B) private (or package private) methods that journal:
-   * These methods perform the work from the public apis, and also asynchronously write to the
-   * journal (for write operations). The names of these methods are suffixed with "AndJournal".
+   * These methods perform the work from the public apis, like checking and error handling, and also
+   * asynchronously append entries to the journal. The names of these methods are suffixed with
+   * "AndJournal".
    * (B) cannot call (A)
    * (B) can call (B)
    * (B) can call (C)
    * (B) cannot call (D)
    *
    * (C) private (or package private) internal methods:
-   * These methods perform the rest of the work, and do not do any journaling. The names of these
-   * methods are suffixed by "Internal".
+   * These methods perform the rest of the work, and may append to the journal. The names of these
+   * methods are suffixed by "Internal". These are typically called by the (D) methods.
    * (C) cannot call (A)
    * (C) cannot call (B)
    * (C) can call (C)
@@ -228,7 +229,8 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * (D) private FromEntry methods used to replay entries from the journal:
    * These methods are used to replay entries from reading the journal. This is done on start, as
-   * well as for standby masters.
+   * well as for standby masters. When replaying entries, no additional journaling should happen,
+   * so {@link NoopJournalContext#INSTANCE} must be used if a context is necessary.
    * (D) cannot call (A)
    * (D) cannot call (B)
    * (D) can call (C)
