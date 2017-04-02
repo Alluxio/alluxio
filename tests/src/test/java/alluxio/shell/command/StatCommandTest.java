@@ -79,22 +79,21 @@ public final class StatCommandTest extends AbstractAlluxioShellTest {
   public void statFileFormat() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    String format = "%N %z %u %g %y %b";
+    String format = "%N-%z";
     mFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
     String res1 = mOutput.toString();
-    Assert.assertTrue(res1.contains(testDir + "/foo"));
-    Assert.assertTrue(res1.contains("foobar1 10"));
-    Assert.assertTrue(res1.contains(testDir + "/foo/foobar1"));
-    Assert.assertFalse(res1.contains(testDir + "/bar"));
-    Assert.assertFalse(res1.contains(testDir + "/foobar4"));
-    Assert.assertFalse(res1.contains(testDir + "/bar/foobar3"));
+    String lineSeparator = System.getProperty("line.separator");
+    Assert.assertTrue(res1.equals("foobar1-10" + lineSeparator));
+  }
 
-//    mFsShell.run("stat", testDir + "/*/foo*");
-//    String res2 = mOutput.toString();
-//    res2 = res2.replace(res1, "");
-//    Assert.assertTrue(res2.contains(testDir + "/foo/foobar1"));
-//    Assert.assertTrue(res2.contains(testDir + "/foo/foobar2"));
-//    Assert.assertTrue(res2.contains(testDir + "/bar/foobar3"));
-//    Assert.assertFalse(res2.contains(testDir + "/foobar4"));
+  @Test
+  public void statDirectoryFormat() throws IOException, AlluxioException {
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+
+    String format = "%N-%z";
+    mFsShell.run("stat", "-f", format, testDir + "/foo");
+    String res1 = mOutput.toString();
+    String lineSeparator = System.getProperty("line.separator");
+    Assert.assertTrue(res1.equals("foo-NA" + lineSeparator));
   }
 }

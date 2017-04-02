@@ -62,20 +62,20 @@ public final class StatCommand extends WithWildCardPathCommand {
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
-    if (status.isFolder()) {
-      System.out.println(path + " is a directory path.");
-      System.out.println(status);
+    if (cl.hasOption('f')) {
+      System.out.println(formatOutput(cl, status));
     } else {
-      System.out.println(path + " is a file path.");
-      if (cl.hasOption('f')) {
-        System.out.println(formatOutput(cl, status));
-      } else {
+      if (status.isFolder()) {
+        System.out.println(path + " is a directory path.");
         System.out.println(status);
-      }
-      System.out.println("Containing the following blocks: ");
-      AlluxioBlockStore blockStore = AlluxioBlockStore.create();
-      for (long blockId : status.getBlockIds()) {
-        System.out.println(blockStore.getInfo(blockId));
+      } else {
+        System.out.println(path + " is a file path.");
+        System.out.println(status);
+        System.out.println("Containing the following blocks: ");
+        AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+        for (long blockId : status.getBlockIds()) {
+          System.out.println(blockStore.getInfo(blockId));
+        }
       }
     }
   }
@@ -99,7 +99,7 @@ public final class StatCommand extends WithWildCardPathCommand {
         + "   \"%b\": Number of blocks allocated for file";
   }
 
-  private static final String FORMAT_REGEX = "%([bgruyzNY])";
+  private static final String FORMAT_REGEX = "%([bguyzNY])";
   private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
 
   private String formatOutput(CommandLine cl, URIStatus status) {
@@ -127,7 +127,7 @@ public final class StatCommand extends WithWildCardPathCommand {
     char formatSpecifier = m.group(1).charAt(0);
     switch (formatSpecifier) {
       case 'b':
-        return String.valueOf(status.getFileBlockInfos().size());
+        return status.isFolder() ? "NA" : String.valueOf(status.getFileBlockInfos().size());
       case 'g':
         return status.getGroup();
       case 'u':
@@ -136,7 +136,7 @@ public final class StatCommand extends WithWildCardPathCommand {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return sdf.format(new Date(status.getLastModificationTimeMs()));
       case 'z':
-        return String.valueOf(status.getLength());
+        return status.isFolder() ? "NA" : String.valueOf(status.getLength());
       case 'N':
         return status.getName();
       case 'Y':
