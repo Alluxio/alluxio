@@ -455,7 +455,7 @@ public final class FileSystemMaster extends AbstractMaster {
                 UnderFileSystemUtils.isObjectStorage(defaultUFS) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new IOException("Failed to mount the default UFS " + defaultUFS);
+        throw new IOException("Failed to mount the default UFS " + defaultUFS, e);
       }
     }
     // Call super.start after mInodeTree is initialized because mInodeTree is needed to write

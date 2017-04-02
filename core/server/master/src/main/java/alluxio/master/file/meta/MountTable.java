@@ -182,7 +182,9 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
     try (LockResource r = new LockResource(mWriteLock)) {
       MountInfo mountInfo = mMountTable.get(ROOT);
       mMountTable.clear();
-      mMountTable.put(ROOT, mountInfo);
+      if (mountInfo != null) {
+        mMountTable.put(ROOT, mountInfo);
+      }
     }
   }
 

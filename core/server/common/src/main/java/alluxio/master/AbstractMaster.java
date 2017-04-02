@@ -167,7 +167,7 @@ public abstract class AbstractMaster implements Master {
       }
     } else {
       if (mJournalCheckpointThread != null) {
-        // Stop and wait for the journal tailer thread.
+        // Stop and wait for the journal checkpoint thread.
         mJournalCheckpointThread.shutdownAndJoin();
       }
     }
