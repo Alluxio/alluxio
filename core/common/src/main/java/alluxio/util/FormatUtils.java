@@ -198,6 +198,47 @@ public final class FormatUtils {
   }
 
   /**
+   * Parses a String size to Milliseconds.
+   *
+   * @param timeSize the size of a time, e.g. 1M, 5H, 10D
+   * @return the time size in milliseconds
+   */
+  public static long parseTimeSize(String timeSize) {
+    double alpha = 0.0001;
+    String ori = timeSize;
+    String end = "";
+    int index = timeSize.length() - 1;
+    while (index >= 0) {
+      if (timeSize.charAt(index) > '9' || timeSize.charAt(index) < '0') {
+        end = timeSize.charAt(index) + end;
+      } else {
+        break;
+      }
+      index--;
+    }
+    timeSize = timeSize.substring(0, index + 1);
+    double ret = Double.parseDouble(timeSize);
+    end = end.toLowerCase();
+    if (end.isEmpty() || end.equalsIgnoreCase("ms")
+            || end.equalsIgnoreCase("millisecond")) {
+      return (long) (ret + alpha);
+    } else if (end.equalsIgnoreCase("s") || end.equalsIgnoreCase("sec")
+            || end.equalsIgnoreCase("second")) {
+      return (long) (ret * Constants.SECOND + alpha);
+    } else if (end.equalsIgnoreCase("m") || end.equalsIgnoreCase("min")
+            || end.equalsIgnoreCase("minute")) {
+      return (long) (ret * Constants.MINUTE + alpha);
+    } else if (end.equalsIgnoreCase("h") || end.equalsIgnoreCase("hr")
+            || end.equalsIgnoreCase("hour")) {
+      return (long) (ret * Constants.HOUR + alpha);
+    } else if (end.equalsIgnoreCase("d") || end.equalsIgnoreCase("day")) {
+      return (long) (ret * Constants.DAY + alpha);
+    } else {
+      throw new IllegalArgumentException("Fail to parse " + ori + " to milliseconds");
+    }
+  }
+
+  /**
    * Formats digital representation of a model as a human-readable string.
    *
    * @param mode file mode
