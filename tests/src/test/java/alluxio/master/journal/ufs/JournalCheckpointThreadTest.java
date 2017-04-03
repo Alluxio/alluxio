@@ -25,7 +25,6 @@ import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
 import org.apache.thrift.TProcessor;
-import org.eclipse.jetty.util.ArrayQueue;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,6 +35,7 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
@@ -51,7 +51,7 @@ public final class JournalCheckpointThreadTest {
     private Queue<Journal.JournalEntry> mEntries;
 
     FakeMaster() {
-      mEntries = new ArrayQueue<>();
+      mEntries = new ArrayDeque<>();
     }
 
     @Override

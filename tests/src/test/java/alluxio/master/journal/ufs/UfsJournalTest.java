@@ -13,7 +13,6 @@ package alluxio.master.journal.ufs;
 
 import alluxio.util.URIUtils;
 
-import org.eclipse.jetty.util.ArrayQueue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,6 +20,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.net.URI;
+import java.util.ArrayDeque;
 import java.util.Queue;
 
 /**
@@ -101,7 +101,7 @@ public final class UfsJournalTest {
     mJournal.getUfs().create(t).close();
 
     long start = 0x11;
-    Queue<String> expectedLogs = new ArrayQueue<>();
+    Queue<String> expectedLogs = new ArrayDeque<>();
     for (int i = 0; i < 10; ++i) {
       String l = mJournal.encodeLogFileLocation(start + i, start + i + 2).toString();
       expectedLogs.add(l);

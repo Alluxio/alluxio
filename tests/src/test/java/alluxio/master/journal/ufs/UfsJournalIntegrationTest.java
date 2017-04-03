@@ -64,9 +64,10 @@ public class UfsJournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB))
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-        .build();
+          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+              Integer.toString(Constants.KB))
+          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false").build();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
