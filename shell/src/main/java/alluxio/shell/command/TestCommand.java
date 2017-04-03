@@ -15,10 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import java.io.IOException;
-import net.jcip.annotations.ThreadSafe;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+
+import java.io.IOException;
+
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * Tests properties of the path specified in args.
