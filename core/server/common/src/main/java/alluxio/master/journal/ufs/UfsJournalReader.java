@@ -16,7 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
-import alluxio.master.journal.options.JournalReaderCreateOptions;
+import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.proto.journal.Journal;
 import alluxio.util.proto.ProtoUtils;
 
@@ -94,7 +94,7 @@ class UfsJournalReader implements JournalReader {
    *
    * @param journal the handle to the journal
    */
-  UfsJournalReader(UfsJournal journal, JournalReaderCreateOptions options) {
+  UfsJournalReader(UfsJournal journal, JournalReaderOptions options) {
     mFilesToProcess = new ArrayDeque<>();
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mNextSequenceNumber = options.getNextSequenceNumber();

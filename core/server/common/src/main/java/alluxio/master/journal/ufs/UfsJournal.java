@@ -16,8 +16,8 @@ import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalReaderCreateOptions;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -106,12 +106,12 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public JournalReader getReader(JournalReaderCreateOptions options) {
+  public JournalReader getReader(JournalReaderOptions options) {
     return new UfsJournalReader(this, options);
   }
 
   @Override
-  public JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException {
+  public JournalWriter getWriter(JournalWriterOptions options) throws IOException {
     if (options.isPrimary()) {
       return new UfsJournalLogWriter(this, options);
     } else {

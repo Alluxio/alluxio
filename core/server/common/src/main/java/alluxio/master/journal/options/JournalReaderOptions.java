@@ -12,21 +12,21 @@
 package alluxio.master.journal.options;
 
 /**
- * Options to create a {@link alluxio.master.journal.JournalWriter}.
+ * Options to create a journal reader.
  */
-public final class JournalWriterCreateOptions {
-  /** The first journal log entry sequence number to write. */
+public final class JournalReaderOptions {
+  /** The first log sequence number to read in the journal reader. */
   private long mNextSequenceNumber;
-  /** Whether this is a primary master. */
+  /** Whether the journal reader is running in a primary master. */
   private boolean mPrimary;
 
-  private JournalWriterCreateOptions() {} // prevent instantiation
+  private JournalReaderOptions() {} // prevent instantiation
 
   /**
-   * @return the default options
+   * @return the default journal reader create options
    */
-  public static JournalWriterCreateOptions defaults() {
-    return new JournalWriterCreateOptions();
+  public static JournalReaderOptions defaults() {
+    return new JournalReaderOptions();
   }
 
   /**
@@ -37,7 +37,7 @@ public final class JournalWriterCreateOptions {
   }
 
   /**
-   * @return whether it is a primary master
+   * @return whether journal reader is to run in a primary master
    */
   public boolean isPrimary() {
     return mPrimary;
@@ -47,16 +47,16 @@ public final class JournalWriterCreateOptions {
    * @param nextSequenceNumber the next sequence number
    * @return the updated options
    */
-  public JournalWriterCreateOptions setNextSequenceNumber(long nextSequenceNumber) {
+  public JournalReaderOptions setNextSequenceNumber(long nextSequenceNumber) {
     mNextSequenceNumber = nextSequenceNumber;
     return this;
   }
 
   /**
-   * @param primary whether it is primary master
+   * @param primary whether jorunal reader is to run in a primary master
    * @return the updated options
    */
-  public JournalWriterCreateOptions setPrimary(boolean primary) {
+  public JournalReaderOptions setPrimary(boolean primary) {
     mPrimary = primary;
     return this;
   }

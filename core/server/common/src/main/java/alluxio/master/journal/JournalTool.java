@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.journal.options.JournalReaderCreateOptions;
+import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.commons.cli.CommandLine;
@@ -85,7 +85,7 @@ public final class JournalTool {
     JournalFactory factory = new Journal.Factory(getJournalLocation());
     Journal journal = factory.create(sMaster);
     try (JournalReader reader = journal.getReader(
-        JournalReaderCreateOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart))) {
+        JournalReaderOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart))) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
         if (entry.getSequenceNumber() >= sEnd) {

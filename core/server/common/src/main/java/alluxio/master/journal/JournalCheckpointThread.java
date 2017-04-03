@@ -15,8 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.Master;
-import alluxio.master.journal.options.JournalReaderCreateOptions;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -68,7 +68,7 @@ public final class JournalCheckpointThread extends Thread {
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
     mJournalCheckpointSleepTimeMs =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
-    mJournalReader = mJournal.getReader(JournalReaderCreateOptions.defaults().setPrimary(false));
+    mJournalReader = mJournal.getReader(JournalReaderOptions.defaults().setPrimary(false));
   }
 
   /**
@@ -138,7 +138,7 @@ public final class JournalCheckpointThread extends Thread {
               ee.getMessage());
         }
         mJournalReader =
-            mJournal.getReader(JournalReaderCreateOptions.defaults().setPrimary(false));
+            mJournal.getReader(JournalReaderOptions.defaults().setPrimary(false));
         quitePeriodWaited = false;
         continue;
       }
@@ -196,7 +196,7 @@ public final class JournalCheckpointThread extends Thread {
     JournalWriter journalWriter = null;
     IOException exception = null;
     try {
-      journalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(false)
+      journalWriter = mJournal.getWriter(JournalWriterOptions.defaults().setPrimary(false)
           .setNextSequenceNumber(mJournalReader.getNextSequenceNumber()));
       while (it.hasNext() && !mShutdownInitiated) {
         journalWriter.write(it.next());

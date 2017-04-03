@@ -13,7 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
@@ -63,7 +63,7 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
    * @param options the options to create the journal writer
    * @throws IOException if any I/O errors occur
    */
-  UfsJournalCheckpointWriter(UfsJournal journal, JournalWriterCreateOptions options)
+  UfsJournalCheckpointWriter(UfsJournal journal, JournalWriterOptions options)
       throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
 
