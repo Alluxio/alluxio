@@ -66,20 +66,6 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
         CommandUtils.convertMsToDate(createTime), fileType, path);
   }
 
-    // Helper function to format ls result without acl enabled.
-    private String getLsNoAclResultStr_h(AlluxioURI uri, int size, String fileType)
-            throws IOException, AlluxioException {
-        URIStatus status = mFileSystem.getStatus(uri);
-        return getLsNoAclResultStr_h(uri.getPath(), status.getCreationTimeMs(), size, fileType);
-    }
-
-    // Helper function to format ls result without acl enabled.
-    private String getLsNoAclResultStr_h(String path, long createTime, int size, String fileType)
-            throws IOException, AlluxioException {
-        return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
-                CommandUtils.convertMsToDate(createTime), fileType, path);
-    }
-
   // Helper function to create a set of files in the file system
   private URIStatus[] createFiles() throws IOException, AlluxioException {
     FileSystemTestUtils
@@ -127,12 +113,12 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
         URIStatus[] files = createFiles();
         mFsShell.run("ls", "-h", "/testRoot");
         String expected = "";
-        expected += getLsNoAclResultStr_h("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-                LsCommand.STATE_FILE_IN_MEMORY);
-        expected += getLsNoAclResultStr_h("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
-                LsCommand.STATE_FOLDER);
-        expected += getLsNoAclResultStr_h("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
-                LsCommand.STATE_FILE_NOT_IN_MEMORY);
+        expected += String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(10),
+                CommandUtils.convertMsToDate(files[0].getCreationTimeMs()), LsCommand.STATE_FILE_IN_MEMORY, "/testRoot/testFileA");
+        expected += String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(1),
+                CommandUtils.convertMsToDate(files[1].getCreationTimeMs()), LsCommand.STATE_FOLDER, "/testRoot/testDir");
+        expected += String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(30),
+                CommandUtils.convertMsToDate(files[3].getCreationTimeMs()), LsCommand.STATE_FILE_NOT_IN_MEMORY, "/testRoot/testFileC");
         Assert.assertEquals(expected, mOutput.toString());
     }
 
