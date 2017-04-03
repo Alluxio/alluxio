@@ -31,7 +31,7 @@ import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
-import alluxio.client.block.TestBufferedBlockOutStream;
+import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -86,7 +86,7 @@ public class FileOutStreamTest {
   private FileSystemMasterClient mFileSystemMasterClient;
   private FileSystemWorkerClient mWorkerClient;
 
-  private Map<Long, TestBufferedBlockOutStream> mAlluxioOutStreamMap;
+  private Map<Long, TestBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
   private UnderFileSystemFileOutStream.Factory mFactory;
@@ -133,15 +133,15 @@ public class FileOutStreamTest {
         });
 
     // Set up out streams. When they are created, add them to outStreamMap
-    final Map<Long, TestBufferedBlockOutStream> outStreamMap = new HashMap<>();
+    final Map<Long, TestBlockOutStream> outStreamMap = new HashMap<>();
     when(mBlockStore.getOutStream(anyLong(), eq(BLOCK_LENGTH),
         any(OutStreamOptions.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
-              TestBufferedBlockOutStream newStream =
-                  new TestBufferedBlockOutStream(blockId, BLOCK_LENGTH, mFileSystemContext);
+              TestBlockOutStream newStream =
+                  new TestBlockOutStream(blockId, BLOCK_LENGTH, mFileSystemContext);
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);
