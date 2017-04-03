@@ -47,7 +47,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -59,10 +58,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
- * followed by the checkpoint.
+ * Test master journal, including checkpoint and entry log.
  */
-@Ignore
 public class UfsJournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -190,7 +187,7 @@ public class UfsJournalIntegrationTest {
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
     Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
-        .listStatus(completedLocation.toString()).length <= 1);
+        .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }
 
@@ -472,10 +469,10 @@ public class UfsJournalIntegrationTest {
     mFileSystem.mount(mountUri, ufsUri);
     mLocalAlluxioCluster.stopFS();
 
-    // Start a leader master, which will create a new checkpoint, with a mount entry.
+    // Start a leader master with a mount entry.
     MasterTestUtils.createLeaderFileSystemMasterFromJournal().stop();
 
-    // Start a standby master, which will replay the mount entry from the checkpoint.
+    // Start a standby master, which will replay the mount entry from the journal.
     MasterRegistry registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
     final FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     try {
@@ -565,7 +562,6 @@ public class UfsJournalIntegrationTest {
       PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
       PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
       PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
-  @Ignore
   public void setAcl() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 
@@ -617,7 +613,7 @@ public class UfsJournalIntegrationTest {
     // The fullly qualified class name of this group mapping service. This is needed to configure
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
-        "alluxio.master.UfsJournalIntegrationTest$FakeUserGroupsMapping";
+        "alluxio.master.journal.ufs.UfsJournalIntegrationTest$FakeUserGroupsMapping";
 
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
