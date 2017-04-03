@@ -22,8 +22,8 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalCheckpointThread;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalReaderCreateOptions;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -116,7 +116,7 @@ public abstract class AbstractMaster implements Master {
       long nextSequenceNumber =
           mJournalCheckpointThread != null ? mJournalCheckpointThread.getNextSequenceNumber() : 0;
       try (JournalReader journalReader = mJournal.getReader(
-          JournalReaderCreateOptions.defaults().setPrimary(true)
+          JournalReaderOptions.defaults().setPrimary(true)
               .setNextSequenceNumber(nextSequenceNumber))) {
         while (true) {
           try {
@@ -136,7 +136,7 @@ public abstract class AbstractMaster implements Master {
 
         // Step 2: Start the journal writer.
         mJournalWriter = mJournal.getWriter(
-            JournalWriterCreateOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
+            JournalWriterOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
                 .setPrimary(true));
         if (nextSequenceNumber == 0) {
           Iterator<JournalEntry> it = iterator();

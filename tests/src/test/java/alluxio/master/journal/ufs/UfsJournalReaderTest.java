@@ -14,8 +14,8 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalReaderCreateOptions;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -59,7 +59,7 @@ public final class UfsJournalReaderTest {
     long endSN = 0x20;
     buildCheckpoint(endSN);
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
       Journal.JournalEntry entry;
       int sn = 0;
       while ((entry = reader.read()) != null) {
@@ -77,7 +77,7 @@ public final class UfsJournalReaderTest {
     long endSN = 0x1;
     buildCheckpoint(endSN);
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
       Journal.JournalEntry entry;
       int sn = 0;
       while ((entry = reader.read()) != null) {
@@ -98,7 +98,7 @@ public final class UfsJournalReaderTest {
       buildCompletedLog(i * fileSize, i * fileSize + fileSize);
     }
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
       Journal.JournalEntry entry;
       int sn = 0;
       while ((entry = reader.read()) != null) {
@@ -120,7 +120,7 @@ public final class UfsJournalReaderTest {
     buildCompletedLog(0, endSN);
     buildIncompleteLog(endSN, endSN + 1);
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
       Journal.JournalEntry entry;
       int sn = 0;
       while ((entry = reader.read()) != null) {
@@ -139,7 +139,7 @@ public final class UfsJournalReaderTest {
     buildCompletedLog(0, endSN);
     buildIncompleteLog(endSN, endSN + 1);
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(false))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(false))) {
       Journal.JournalEntry entry;
       int sn = 0;
       while ((entry = reader.read()) != null) {
@@ -161,7 +161,7 @@ public final class UfsJournalReaderTest {
     buildCompletedLog(0, endSN);
 
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
       Journal.JournalEntry entry;
       int sn = 0;
       while ((entry = reader.read()) != null) {
@@ -200,7 +200,7 @@ public final class UfsJournalReaderTest {
     }
 
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
       while ((reader.read()) != null) {
       }
       Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
@@ -221,7 +221,7 @@ public final class UfsJournalReaderTest {
     }
 
     try (JournalReader reader = mJournal
-        .getReader(JournalReaderCreateOptions.defaults().setPrimary(true))) {
+        .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
       while ((reader.read()) != null) {
       }
       Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
@@ -230,8 +230,7 @@ public final class UfsJournalReaderTest {
 
   private void buildCheckpoint(long sequenceNumber) throws Exception {
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(false)
-            .setNextSequenceNumber(sequenceNumber));
+        JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(sequenceNumber));
     for (int i = 0; i < CHECKPOINT_SIZE; ++i) {
       writer.write(newEntry(i));
     }
@@ -240,8 +239,8 @@ public final class UfsJournalReaderTest {
 
   private void buildCompletedLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
-    JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(true).setNextSequenceNumber(start));
+    JournalWriter writer = mJournal
+        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(start));
     for (long i = start; i < end; ++i) {
       writer.write(newEntry(i));
     }

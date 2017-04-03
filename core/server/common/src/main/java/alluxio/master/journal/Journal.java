@@ -11,8 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.options.JournalReaderCreateOptions;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.util.URIUtils;
 
@@ -58,14 +58,14 @@ public interface Journal {
    * @param options the options to create the reader
    * @return the {@link JournalReader} for this journal
    */
-  JournalReader getReader(JournalReaderCreateOptions options);
+  JournalReader getReader(JournalReaderOptions options);
 
   /**
    * @param options the options to create the writer
    * @return the {@link JournalWriter} for this journal
    * @throws IOException if an I/O error occurs
    */
-  JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException;
+  JournalWriter getWriter(JournalWriterOptions options) throws IOException;
 
   /**
    * @return whether the journal has been formatted

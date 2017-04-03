@@ -16,7 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.options.CreateOptions;
 
@@ -140,7 +140,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    * @param options the options to create the journal log writer
    * @throws IOException if any I/O exceptions occur
    */
-  UfsJournalLogWriter(UfsJournal journal, JournalWriterCreateOptions options) throws IOException {
+  UfsJournalLogWriter(UfsJournal journal, JournalWriterOptions options) throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
     mNextSequenceNumber = options.getNextSequenceNumber();
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);

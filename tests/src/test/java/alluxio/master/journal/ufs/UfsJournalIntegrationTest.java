@@ -30,7 +30,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -128,7 +128,7 @@ public class UfsJournalIntegrationTest {
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
     try (JournalWriter writer =
-        journal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(true))) {
+        journal.getWriter(JournalWriterOptions.defaults().setPrimary(true))) {
       // Flush multiple times, without writing to the log.
       writer.flush();
       writer.flush();

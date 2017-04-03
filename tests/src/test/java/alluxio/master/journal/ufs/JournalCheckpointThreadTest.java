@@ -16,7 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.journal.JournalCheckpointThread;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -161,7 +161,7 @@ public final class JournalCheckpointThreadTest {
   private void buildCompletedLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(true).setNextSequenceNumber(start));
+        JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(start));
     for (long i = start; i < end; ++i) {
       writer.write(newEntry(i));
     }

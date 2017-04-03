@@ -13,7 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterCreateOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -55,7 +55,7 @@ public final class UfsJournalCheckpointWriterTest {
   public void writeJournalEntry() throws Exception {
     long endSN = 0x20;
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+        JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
     for (int i = 0; i < 5; ++i) {
       writer.write(newEntry(i));
     }
@@ -74,7 +74,7 @@ public final class UfsJournalCheckpointWriterTest {
   public void writeJournalEntryMoreThanJournalLogSequenceNumber() throws Exception {
     long endSN = 0x20;
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+        JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
     for (int i = 0; i < endSN + 10; ++i) {
       writer.write(newEntry(i));
     }
@@ -93,7 +93,7 @@ public final class UfsJournalCheckpointWriterTest {
   public void cancel() throws Exception {
     long endSN = 0x20;
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+        JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
     for (int i = 0; i < 5; ++i) {
       writer.write(newEntry(i));
     }
@@ -108,7 +108,7 @@ public final class UfsJournalCheckpointWriterTest {
   public void checkpointExists() throws Exception {
     long endSN = 0x20;
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+        JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
     String expectedCheckpoint =
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
@@ -128,7 +128,7 @@ public final class UfsJournalCheckpointWriterTest {
   public void olderCheckpointExists() throws Exception {
     long endSN = 0x20;
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+        JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
     String oldCheckpoint = URIUtils
         .appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN - 1))
         .toString();
@@ -152,7 +152,7 @@ public final class UfsJournalCheckpointWriterTest {
   public void newerCheckpointExists() throws Exception {
     long endSN = 0x20;
     JournalWriter writer = mJournal.getWriter(
-        JournalWriterCreateOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+        JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
     String newerCheckpoint = URIUtils
         .appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN + 1))
         .toString();
