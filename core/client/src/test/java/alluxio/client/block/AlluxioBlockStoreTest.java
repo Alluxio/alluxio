@@ -11,8 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
