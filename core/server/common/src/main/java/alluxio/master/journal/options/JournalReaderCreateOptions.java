@@ -39,7 +39,7 @@ public final class JournalReaderCreateOptions {
   /**
    * @return whether journal reader is to run in a primary master
    */
-  public boolean getPrimary() {
+  public boolean isPrimary() {
     return mPrimary;
   }
 

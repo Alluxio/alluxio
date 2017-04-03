@@ -98,7 +98,7 @@ class UfsJournalReader implements JournalReader {
     mFilesToProcess = new ArrayDeque<>();
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mNextSequenceNumber = options.getNextSequenceNumber();
-    mPrimary = options.getPrimary();
+    mPrimary = options.isPrimary();
     mCheckpointPeriodEntries = Configuration.getLong(
         PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
   }

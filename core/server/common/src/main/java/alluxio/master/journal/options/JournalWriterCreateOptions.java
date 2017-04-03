@@ -39,7 +39,7 @@ public final class JournalWriterCreateOptions {
   /**
    * @return whether it is a primary master
    */
-  public boolean getPrimary() {
+  public boolean isPrimary() {
     return mPrimary;
   }
 

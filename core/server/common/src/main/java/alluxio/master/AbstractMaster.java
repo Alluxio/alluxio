@@ -168,7 +168,7 @@ public abstract class AbstractMaster implements Master {
     } else {
       if (mJournalCheckpointThread != null) {
         // Stop and wait for the journal checkpoint thread.
-        mJournalCheckpointThread.shutdownAndJoin();
+        mJournalCheckpointThread.awaitTermination();
       }
     }
     // Shut down the executor service, interrupting any running threads.

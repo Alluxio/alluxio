@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 /**
  * Unit tests for {@link alluxio.master.journal.JournalCheckpointThread}.
  */
@@ -117,9 +115,8 @@ public final class JournalCheckpointThreadTest {
     JournalCheckpointThread checkpointThread = new JournalCheckpointThread(fakeMaster, mJournal);
     checkpointThread.start();
     CommonUtils.waitFor("checkpoint", new Function<Void, Boolean>() {
-      @Nullable
       @Override
-      public Boolean apply(@Nullable Void input) {
+      public Boolean apply(Void input) {
         try {
           UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
           if (!snapshot.mCheckpoints.isEmpty()
@@ -137,7 +134,28 @@ public final class JournalCheckpointThreadTest {
     for (int i = 0; i < 5; ++i) {
       Assert.assertEquals(i * 2 + 2, snapshot.mCheckpoints.get(i).getEnd());
     }
-    checkpointThread.shutdownAndJoin();
+    checkpointThread.awaitTermination();
+  }
+
+  @Test
+  public void checkpointAfterShutdown() throws Exception {
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
+    buildCompletedLog(0, 10);
+    buildIncompleteLog(10, 15);
+    FakeMaster fakeMaster = new FakeMaster();
+    JournalCheckpointThread checkpointThread = new JournalCheckpointThread(fakeMaster, mJournal);
+    checkpointThread.start();
+    checkpointThread.awaitTermination();
+
+    // Make sure all the journal entries have been processed. Note that it is not necessary that
+    // the they are checkpointed.
+    Iterator<Journal.JournalEntry> it = fakeMaster.iterator();
+    int sz = 0;
+    while (it.hasNext()) {
+      it.next();
+      sz++;
+    }
+    Assert.assertEquals(10, sz);
   }
 
   private void buildCompletedLog(long start, long end) throws Exception {
