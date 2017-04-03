@@ -112,7 +112,7 @@ public class UfsJournal implements Journal {
 
   @Override
   public JournalWriter getWriter(JournalWriterCreateOptions options) throws IOException {
-    if (options.getPrimary()) {
+    if (options.isPrimary()) {
       return new UfsJournalLogWriter(this, options);
     } else {
       return new UfsJournalCheckpointWriter(this, options);

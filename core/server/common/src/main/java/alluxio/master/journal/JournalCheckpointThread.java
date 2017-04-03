@@ -47,7 +47,7 @@ public final class JournalCheckpointThread extends Thread {
   /** If not journal log is found, sleep for this amount of time and check again. */
   private final int mJournalCheckpointSleepTimeMs;
   /** This becomes true when the master initiates the shutdown. */
-  private volatile boolean mInitiateShutdown = false;
+  private volatile boolean mShutdownInitiated = false;
 
   /** True if this thread is no longer running. */
   private volatile boolean mStopped = false;
@@ -74,9 +74,9 @@ public final class JournalCheckpointThread extends Thread {
   /**
    * Initiates the shutdown of this checkpointer thread, and also waits for it to finish.
    */
-  public void shutdownAndJoin() {
+  public void awaitTermination() {
     LOG.info("{}: Journal checkpointer shutdown has been initiated.", mMaster.getName());
-    mInitiateShutdown = true;
+    mShutdownInitiated = true;
 
     try {
       // Wait for the thread to finish.
@@ -93,6 +93,8 @@ public final class JournalCheckpointThread extends Thread {
   }
 
   /**
+   * This should only be called after this thread is shutdown.
+   *
    * @return the last edit log sequence number read plus 1
    */
   public long getNextSequenceNumber() {
@@ -107,35 +109,28 @@ public final class JournalCheckpointThread extends Thread {
     } catch (RuntimeException e) {
       LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
       System.exit(-1);
-    } finally {
-      if (mJournalReader != null) {
-        try {
-          mJournalReader.close();
-        } catch (IOException e) {
-          LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
-              e.getMessage());
-        }
-      }
     }
   }
 
   private void runInternal() {
     // Keeps reading journal entries. If none is found, sleep for sometime. Periodically write
-    // checkpoints if some conditions are met. The a shutdown signal is receivied, wait until
+    // checkpoints if some conditions are met. When a shutdown signal is received, wait until
     // no new journal entries.
 
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     alluxio.proto.journal.Journal.JournalEntry entry;
+    // Set to true if it has waited for a quite period. Reset if a valid journal entry is read.
+    boolean quitePeriodWaited = false;
     while (true) {
-      // The start time (ms) for the initiated shutdown.
       try {
         entry = mJournalReader.read();
         if (entry != null) {
           mMaster.processJournalEntry(entry);
+          quitePeriodWaited = false;
         }
       } catch (IOException | InvalidJournalEntryException e) {
-        LOG.warn("{}: Failed to process the journal entry with error {}.", mMaster.getName(),
-            e.getMessage());
+        LOG.warn("{}: Failed to read or process the journal entry with error {}.",
+            mMaster.getName(), e.getMessage());
         try {
           mJournalReader.close();
         } catch (IOException ee) {
@@ -144,6 +139,7 @@ public final class JournalCheckpointThread extends Thread {
         }
         mJournalReader =
             mJournal.getReader(JournalReaderCreateOptions.defaults().setPrimary(false));
+        quitePeriodWaited = false;
         continue;
       }
 
@@ -151,14 +147,27 @@ public final class JournalCheckpointThread extends Thread {
 
       // Sleep for a while if no entry is found.
       if (entry == null) {
-        if (mInitiateShutdown) {
+        if (mShutdownInitiated) {
+          if (quitePeriodWaited) {
+            LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
+                + "during the quiet period.", mMaster.getName());
+            mStopped = true;
+
+            if (mJournalReader != null) {
+              try {
+                mJournalReader.close();
+              } catch (IOException e) {
+                LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
+                    e.getMessage());
+              }
+            }
+            return;
+          }
           CommonUtils.sleepMs(LOG, mShutdownQuietWaitTimeMs);
-          LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
-              + "during the quiet period.", mMaster.getName());
-          mStopped = true;
-          return;
+          quitePeriodWaited = true;
+        } else {
+          CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
         }
-        CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
       }
     }
   }
@@ -167,7 +176,7 @@ public final class JournalCheckpointThread extends Thread {
    * Creates a new checkpoint if necessary.
    */
   private void maybeCheckpoint() {
-    if (mInitiateShutdown) {
+    if (mShutdownInitiated) {
       return;
     }
     try {
@@ -189,7 +198,7 @@ public final class JournalCheckpointThread extends Thread {
     try {
       journalWriter = mJournal.getWriter(JournalWriterCreateOptions.defaults().setPrimary(false)
           .setNextSequenceNumber(mJournalReader.getNextSequenceNumber()));
-      while (it.hasNext() && !mInitiateShutdown) {
+      while (it.hasNext() && !mShutdownInitiated) {
         journalWriter.write(it.next());
       }
     } catch (IOException e) {
@@ -199,7 +208,7 @@ public final class JournalCheckpointThread extends Thread {
 
     if (journalWriter != null) {
       try {
-        if (it.hasNext() || mInitiateShutdown || exception != null) {
+        if (it.hasNext() || mShutdownInitiated || exception != null) {
           journalWriter.cancel();
           LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
               mJournalReader.getNextSequenceNumber());
