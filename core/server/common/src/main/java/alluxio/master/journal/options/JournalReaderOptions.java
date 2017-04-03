@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.options;
 
+import com.google.common.base.Objects;
+
 /**
  * Options to create a journal reader.
  */
@@ -59,5 +61,30 @@ public final class JournalReaderOptions {
   public JournalReaderOptions setPrimary(boolean primary) {
     mPrimary = primary;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof JournalReaderOptions)) {
+      return false;
+    }
+    JournalReaderOptions that = (JournalReaderOptions) o;
+    return Objects.equal(mNextSequenceNumber, that.mNextSequenceNumber)
+        && Objects.equal(mPrimary, that.mPrimary);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mNextSequenceNumber, mPrimary);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("nextSequenceNumber", mNextSequenceNumber)
+        .add("primary", mPrimary).toString();
   }
 }
