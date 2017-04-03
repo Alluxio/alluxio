@@ -34,7 +34,7 @@ import java.io.IOException;
  */
 public final class LsCommandTest extends AbstractAlluxioShellTest {
   // Helper function to format ls result.
-  private String getLsResultStr(AlluxioURI uri, String size, String testUser, String testGroup)
+  private String getLsResultStr(AlluxioURI uri, int size, String testUser, String testGroup)
       throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(uri);
     return getLsResultStr(uri.getPath(), status.getCreationTimeMs(), size,
@@ -43,28 +43,42 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
   }
 
   // Helper function to format ls result.
-  private String getLsResultStr(String path, long createTime, String size, String fileType,
+  private String getLsResultStr(String path, long createTime, int size, String fileType,
       String testUser, String testGroup, int permission, boolean isDir)
       throws IOException, AlluxioException {
     return String
         .format(Constants.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir),
-            testUser, testGroup, size,
+            testUser, testGroup, String.valueOf(size),
             CommandUtils.convertMsToDate(createTime), fileType, path);
   }
 
   // Helper function to format ls result without acl enabled.
-  private String getLsNoAclResultStr(AlluxioURI uri, String size, String fileType)
+  private String getLsNoAclResultStr(AlluxioURI uri, int size, String fileType)
       throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(uri);
     return getLsNoAclResultStr(uri.getPath(), status.getCreationTimeMs(), size, fileType);
   }
 
   // Helper function to format ls result without acl enabled.
-  private String getLsNoAclResultStr(String path, long createTime, String size, String fileType)
+  private String getLsNoAclResultStr(String path, long createTime, int size, String fileType)
       throws IOException, AlluxioException {
-    return String.format(Constants.LS_FORMAT_NO_ACL, size,
+    return String.format(Constants.LS_FORMAT_NO_ACL, String.valueOf(size),
         CommandUtils.convertMsToDate(createTime), fileType, path);
   }
+
+    // Helper function to format ls result without acl enabled.
+    private String getLsNoAclResultStr_h(AlluxioURI uri, int size, String fileType)
+            throws IOException, AlluxioException {
+        URIStatus status = mFileSystem.getStatus(uri);
+        return getLsNoAclResultStr_h(uri.getPath(), status.getCreationTimeMs(), size, fileType);
+    }
+
+    // Helper function to format ls result without acl enabled.
+    private String getLsNoAclResultStr_h(String path, long createTime, int size, String fileType)
+            throws IOException, AlluxioException {
+        return String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(size),
+                CommandUtils.convertMsToDate(createTime), fileType, path);
+    }
 
   // Helper function to create a set of files in the file system
   private URIStatus[] createFiles() throws IOException, AlluxioException {
@@ -93,14 +107,34 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), String.valueOf(10),
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), String.valueOf(1),
+    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
         LsCommand.STATE_FOLDER);
-    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), String.valueOf(30),
+    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
         LsCommand.STATE_FILE_NOT_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
+
+    /**
+     * Tests ls -h command when security is not enabled.
+     */
+    @Test
+    @LocalAlluxioClusterResource.Config(
+            confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                    PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+    public void lsHumanReadable() throws IOException, AlluxioException {
+        URIStatus[] files = createFiles();
+        mFsShell.run("ls", "-h", "/testRoot");
+        String expected = "";
+        expected += getLsNoAclResultStr_h("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
+                LsCommand.STATE_FILE_IN_MEMORY);
+        expected += getLsNoAclResultStr_h("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
+                LsCommand.STATE_FOLDER);
+        expected += getLsNoAclResultStr_h("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
+                LsCommand.STATE_FILE_NOT_IN_MEMORY);
+        Assert.assertEquals(expected, mOutput.toString());
+    }
 
   /**
    * Tests ls -p command when security is not enabled.
@@ -117,31 +151,12 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
         SetAttributeOptions.defaults().setPinned(true));
     mFsShell.run("ls", "-pR",  "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), String.valueOf(10),
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), String.valueOf(20),
+    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
         LsCommand.STATE_FILE_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
-    /**
-     * Tests ls -h command when security is not enabled.
-     */
-    @Test
-    @LocalAlluxioClusterResource.Config(
-            confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
-                    PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-    public void lsHumanReadable() throws IOException, AlluxioException {
-        URIStatus[] files = createFiles();
-        mFsShell.run("ls", "-h", "/testRoot");
-        String expected = "";
-        expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), FormatUtils.getSizeFromBytes(10),
-                LsCommand.STATE_FILE_IN_MEMORY);
-        expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), FormatUtils.getSizeFromBytes(1),
-                LsCommand.STATE_FOLDER);
-        expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), FormatUtils.getSizeFromBytes(30),
-                LsCommand.STATE_FILE_NOT_IN_MEMORY);
-        Assert.assertEquals(expected, mOutput.toString());
-    }
 
   /**
    * Tests ls -d command when security is not enabled.
@@ -156,7 +171,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/testRoot/"));
     String expected = "";
     expected += getLsNoAclResultStr("/testRoot", dirStatus.getCreationTimeMs(),
-            String.valueOf(3) /* number of direct children under /testRoot/ dir */, LsCommand.STATE_FOLDER);
+        3 /* number of direct children under /testRoot/ dir */, LsCommand.STATE_FOLDER);
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -171,7 +186,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("ls", "-d", "/");
     URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/"));
     String expected = "";
-    expected += getLsNoAclResultStr("/", dirStatus.getCreationTimeMs(), String.valueOf(0), LsCommand.STATE_FOLDER);
+    expected += getLsNoAclResultStr("/", dirStatus.getCreationTimeMs(), 0, LsCommand.STATE_FOLDER);
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -191,13 +206,13 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), String.valueOf(10),
+    expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getMode(),
         files[0].isFolder());
     expected +=
-        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), String.valueOf(1), LsCommand.STATE_FOLDER,
+        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1, LsCommand.STATE_FOLDER,
             testUser, testUser, files[1].getMode(), files[1].isFolder());
-    expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), String.valueOf(30),
+    expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
         LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getMode(),
         files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
@@ -214,22 +229,22 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     String expect = "";
-    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/bar/foobar3"), String.valueOf(30),
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar1"), String.valueOf(10),
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar2"), String.valueOf(20),
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20,
         LsCommand.STATE_FILE_IN_MEMORY);
     mFsShell.run("ls", testDir + "/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/bar/foobar3"), String.valueOf(30),
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar1"), String.valueOf(10),
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar2"), String.valueOf(20),
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foobar4"), String.valueOf(40),
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foobar4"), 40,
         LsCommand.STATE_FILE_IN_MEMORY);
     mFsShell.run("ls", testDir + "/*");
     Assert.assertEquals(expect, mOutput.toString());
@@ -253,16 +268,16 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     String expect = "";
-    expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), String.valueOf(30), testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), String.valueOf(10), testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), String.valueOf(20), testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20, testUser, testUser);
     mFsShell.run("ls", testDir + "/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), String.valueOf(30), testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), String.valueOf(10), testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), String.valueOf(20), testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI(testDir + "/foobar4"), String.valueOf(40), testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foobar4"), 40, testUser, testUser);
     mFsShell.run("ls", testDir + "/*");
     Assert.assertEquals(expect, mOutput.toString());
   }
@@ -279,13 +294,13 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), String.valueOf(10),
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), String.valueOf(1),
+    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
         LsCommand.STATE_FOLDER);
-    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), String.valueOf(20),
+    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), String.valueOf(30),
+    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
         LsCommand.STATE_FILE_NOT_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -309,16 +324,16 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
-    expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), String.valueOf(10),
+    expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getMode(),
         files[0].isFolder());
     expected +=
-        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), String.valueOf(1), LsCommand.STATE_FOLDER,
+        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1, LsCommand.STATE_FOLDER,
             testUser, testUser, files[1].getMode(), files[1].isFolder());
-    expected += getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), String.valueOf(20),
+    expected += getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
         LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[2].getMode(),
         files[2].isFolder());
-    expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), String.valueOf(30),
+    expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
         LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getMode(),
         files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
@@ -336,7 +351,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
     URIStatus file = mFileSystem.getStatus(new AlluxioURI(fileName));
     mFsShell.run("ls", "/");
-    String expected = getLsNoAclResultStr(fileName, file.getCreationTimeMs(), String.valueOf(10),
+    String expected = getLsNoAclResultStr(fileName, file.getCreationTimeMs(), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
