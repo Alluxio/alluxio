@@ -87,6 +87,36 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("print raw sizes.")
           .build();
+  protected static final Option DIR_OPTION =
+      Option.builder("d")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path is a directory.")
+          .build();
+  protected static final Option FILE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path is a file.")
+          .build();
+  protected static final Option PATH_EXIST_OPTION =
+      Option.builder("e")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path exists.")
+          .build();
+  protected static final Option DIR_NOT_EMPTY_OPTION =
+      Option.builder("s")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path is not empty.")
+          .build();
+  protected static final Option FILE_ZERO_LENGTH_OPTION =
+      Option.builder("z")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether file is zero length.")
+          .build();
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
