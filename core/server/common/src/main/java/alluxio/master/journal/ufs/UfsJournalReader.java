@@ -21,7 +21,6 @@ import alluxio.proto.journal.Journal;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-import org.eclipse.jetty.util.ArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Queue;
 
@@ -95,7 +95,7 @@ class UfsJournalReader implements JournalReader {
    * @param journal the handle to the journal
    */
   UfsJournalReader(UfsJournal journal, JournalReaderCreateOptions options) {
-    mFilesToProcess = new ArrayQueue<>();
+    mFilesToProcess = new ArrayDeque<>();
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mNextSequenceNumber = options.getNextSequenceNumber();
     mPrimary = options.getPrimary();
