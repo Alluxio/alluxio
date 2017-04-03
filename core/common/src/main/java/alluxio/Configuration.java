@@ -130,7 +130,7 @@ public final class Configuration {
   private static Properties createDefaultProps() {
     Properties defaultProps = new Properties();
     // Load compile-time default
-    for (PropertyKey key : PropertyKey.values()) {
+    for (PropertyKey key : PropertyKey.getDefaultKeys()) {
       String value = key.getDefaultValue();
       if (value != null) {
         defaultProps.setProperty(key.toString(), value);

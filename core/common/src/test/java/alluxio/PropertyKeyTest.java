@@ -27,4 +27,10 @@ public final class PropertyKeyTest {
     Assert.assertEquals(PropertyKey.VERSION,
         PropertyKey.fromString(PropertyKey.VERSION.toString()));
   }
+
+  @Test
+  public void equalsTest() throws Exception {
+    Assert.assertEquals(new PropertyKey("foo"), new PropertyKey("foo"));
+    Assert.assertNotEquals(new PropertyKey("foo"), new PropertyKey("bar"));
+  }
 }
