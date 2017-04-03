@@ -343,7 +343,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
       if (abort) {
         try {
-          completeOrCancel(false);
+          cancel();
         } catch (IOException e) {
           LOG.warn("Failed to abort, cancel or complete the write request with error {}.",
               e.getMessage());
@@ -352,10 +352,10 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       } else if (cancel || eof) {
         try {
           if (cancel) {
-            completeOrCancel(false);
+            cancel();
             replyCancel();
           } else {
-            completeOrCancel(true);
+            complete();
             replySuccess();
           }
         } catch (IOException e) {
@@ -365,18 +365,26 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Completes or cancels this write.
+     * Completes this write.
      *
-     * @param isComplete whether it is to complete or cancel the write request
      * @throws IOException if I/O related errors occur
      */
-    private void completeOrCancel(boolean isComplete) throws IOException {
+    private void complete() throws IOException {
       if (mRequest != null) {
-        if (isComplete) {
-          mRequest.close();
-        } else {
-          mRequest.cancel();
-        }
+        mRequest.close();
+        mRequest = null;
+      }
+      mPosToWrite = 0;
+    }
+
+    /**
+     * Cancels this write.
+     *
+     * @throws IOException if I/O related errors occur
+     */
+    private void cancel() throws IOException {
+      if (mRequest != null) {
+        mRequest.cancel();
         mRequest = null;
       }
       mPosToWrite = 0;

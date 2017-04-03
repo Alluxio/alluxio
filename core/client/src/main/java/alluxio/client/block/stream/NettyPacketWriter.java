@@ -186,7 +186,7 @@ public final class NettyPacketWriter implements PacketWriter {
     if (mClosed) {
       return;
     }
-    sendEOFOrCancel(false);
+    sendCancel();
   }
 
   @Override
@@ -220,7 +220,7 @@ public final class NettyPacketWriter implements PacketWriter {
       return;
     }
 
-    sendEOFOrCancel(true);
+    sendEof();
     mLock.lock();
     try {
       while (true) {
@@ -260,22 +260,16 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   /**
-   * Sends an EOF or a CANCEL packet to end the write request if the stream.
-   *
-   * @param isEof whether it is an EOF request or a CANCEL request
+   * Sends an EOF packet to end the write request if the stream.
    */
-  private void sendEOFOrCancel(boolean isEof) {
+  private void sendEof() {
     final long pos;
     mLock.lock();
     try {
       if (mEOFSent || mCancelSent) {
         return;
       }
-      if (isEof) {
-        mEOFSent = true;
-      } else {
-        mCancelSent = true;
-      }
+      mEOFSent = true;
       pos = mPosToQueue;
     } finally {
       mLock.unlock();
@@ -283,7 +277,30 @@ public final class NettyPacketWriter implements PacketWriter {
     // Write the EOF packet.
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
-            .setTier(mTier).setType(mRequestType).setEof(isEof).setCancel(!isEof).build();
+            .setTier(mTier).setType(mRequestType).setEof(true).build();
+    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+  }
+
+  /**
+   * Sends a CANCEL packet to end the write request if the stream.
+   */
+  private void sendCancel() {
+    final long pos;
+    mLock.lock();
+    try {
+      if (mEOFSent || mCancelSent) {
+        return;
+      }
+      mCancelSent = true;
+      pos = mPosToQueue;
+    } finally {
+      mLock.unlock();
+    }
+    // Write the EOF packet.
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
+            .setTier(mTier).setType(mRequestType).setCancel(true).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
@@ -413,7 +430,7 @@ public final class NettyPacketWriter implements PacketWriter {
         mLock.unlock();
       }
       if (shouldSendEOF) {
-        sendEOFOrCancel(true);
+        sendEof();
       }
     }
   }
