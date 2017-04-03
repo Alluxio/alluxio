@@ -13,9 +13,9 @@ package alluxio.client.block.stream;
 
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
-import com.google.common.io.Closer;
 
-import static org.mockito.Mockito.mock;
+import com.google.common.io.Closer;
+import org.mockito.Mockito;
 
 /**
  * Mock of {@link BlockInStream} to create a BlockInStream on a single block. The
@@ -29,7 +29,7 @@ public class TestBlockInStream extends BlockInStream {
    * @param data data to read
    */
   public TestBlockInStream(long blockId, byte[] data) {
-    super(new TestPacketInStream(data, blockId, data.length, true), mock(BlockWorkerClient.class),
-        Closer.create(), InStreamOptions.defaults());
+    super(new TestPacketInStream(data, blockId, data.length, true),
+        Mockito.mock(BlockWorkerClient.class), Closer.create(), InStreamOptions.defaults());
   }
 }

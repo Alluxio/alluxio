@@ -15,8 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.BoundedStream;
-import alluxio.client.Cancelable;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockOutStream;

@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Integration tests for {@link alluxio.client.block.RemoteBlockInStream}.
+ * Integration tests for reading from a remote worker.
  */
 @RunWith(Parameterized.class)
 public class RemoteBlockInStreamIntegrationTest {
@@ -109,7 +109,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read()}. Read from underfs.
+   * Tests the single byte read API from a remote location when the data is only in the
+   * underlying storage.
    */
   @Test
   public void readTest1() throws Exception {
@@ -170,7 +171,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests the batch read API from a remote location when the data is only in the
+   * underlying storage.
    */
   @Test
   public void readTest2() throws Exception {
@@ -207,7 +209,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
+   * Tests the batch read API with offset and length from a remote location when the data is only in
+   * the underlying storage.
    */
   @Test
   public void readTest3() throws Exception {
@@ -244,7 +247,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read()}. Read from remote data server.
+   * Tests the single byte read API from a remote location when the data is in an Alluxio worker.
    */
   @Test
   public void readTest4() throws Exception {
@@ -257,8 +260,9 @@ public class RemoteBlockInStreamIntegrationTest {
       AlluxioBlockStore blockStore = AlluxioBlockStore.create();
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is = BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(),
-          workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is =
+          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+              FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -276,7 +280,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
+   * Tests the batch read API from a remote location when the data is only in an Alluxio worker.
    */
   @Test
   public void readTest5() throws Exception {
@@ -304,7 +308,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
+   * Tests the batch read API with offset and length from a remote location when the data is in an
+   * Alluxio worker.
    */
   @Test
   public void readTest6() throws Exception {

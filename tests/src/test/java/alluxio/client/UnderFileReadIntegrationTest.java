@@ -38,11 +38,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Integration tests for {@link alluxio.client.block.UnderFileSystemBlockInStream}.
+ * Integration tests for reading data which is only stored in Alluxio's under storage.
  */
-public class UnderFileSystemBlockInStreamIntegrationTest {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(UnderFileSystemBlockInStreamIntegrationTest.class);
+public class UnderFileReadIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileReadIntegrationTest.class);
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -70,7 +69,7 @@ public class UnderFileSystemBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystemBlockInStream#read()}. Read from underfs.
+   * Tests single byte reads from the underfs.
    */
   @Test
   public void read() throws Exception {
@@ -131,7 +130,7 @@ public class UnderFileSystemBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystemBlockInStream#read()} concurrency. Read from underfs.
+   * Tests single byte reads from the underfs concurrently.
    */
   @Test
   public void concurrentUfsRead() throws Exception {
@@ -187,7 +186,7 @@ public class UnderFileSystemBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystemBlockInStream#seek(long)}.
+   * Tests seeking through files only in the underfs.
    */
   @Test
   public void seek() throws Exception {
@@ -210,7 +209,7 @@ public class UnderFileSystemBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link UnderFileSystemBlockInStream#skip(long)}.
+   * Tests skipping through files only in the underfs.
    */
   @Test
   public void skip() throws Exception {

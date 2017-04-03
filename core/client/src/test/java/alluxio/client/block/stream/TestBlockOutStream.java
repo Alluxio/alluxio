@@ -14,9 +14,9 @@ package alluxio.client.block.stream;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.options.OutStreamOptions;
 
-import java.nio.ByteBuffer;
+import org.mockito.Mockito;
 
-import static org.mockito.Mockito.mock;
+import java.nio.ByteBuffer;
 
 /**
  * Test class for mocking {@link BlockOutStream} and exposing internal state.
@@ -27,7 +27,7 @@ public class TestBlockOutStream extends BlockOutStream {
   private boolean mCanceled;
 
   public TestBlockOutStream(ByteBuffer data, long id, long blockSize) {
-    super(new TestPacketOutStream(data), id, blockSize, mock(BlockWorkerClient.class),
+    super(new TestPacketOutStream(data), id, blockSize, Mockito.mock(BlockWorkerClient.class),
         OutStreamOptions.defaults());
     mData = data;
     mClosed = false;
