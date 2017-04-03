@@ -15,9 +15,9 @@ import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
@@ -86,6 +86,12 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
         mChecksum += BufferUtils.byteToInt(value);
       }
       buffer = new DataNettyBufferV2(buf);
+    }
+    if (len == EOF) {
+      writeRequest = writeRequest.toBuilder().setEof(true).build();
+    }
+    if (len == CANCEL) {
+      writeRequest = writeRequest.toBuilder().setCancel(true).build();
     }
     return new RPCProtoMessage(new ProtoMessage(writeRequest), buffer);
   }

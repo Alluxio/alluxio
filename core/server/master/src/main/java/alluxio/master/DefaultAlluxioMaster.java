@@ -292,6 +292,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     startServing("", "");
   }
 
+  /**
+   * Starts serving, letting {@link MetricsSystem} start sink and starting the web ui server and
+   * RPC Server.
+   *
+   * @param startMessage empty string or the message that the master gains the leadership
+   * @param stopMessage empty string or the message that the master loses the leadership
+   */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
@@ -360,6 +367,12 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     mMasterServiceServer.serve();
   }
 
+  /**
+   * Stops serving, trying stop RPC server and web ui server and letting {@link MetricsSystem} stop
+   * all the sinks.
+   *
+   * @throws Exception if the underlying jetty server throws an exception
+   */
   protected void stopServing() throws Exception {
     if (mMasterServiceServer != null) {
       mMasterServiceServer.stop();
