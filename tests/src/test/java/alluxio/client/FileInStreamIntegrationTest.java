@@ -321,7 +321,6 @@ public final class FileInStreamIntegrationTest {
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240",
           PropertyKey.Name.USER_FILE_BUFFER_BYTES, "128"})
-  @Ignore("Tempororily ignore until fixed by https://github.com/Alluxio/alluxio/pull/4907")
   public void concurrentRemoteRead() throws Exception {
     int blockSize = 10240;
     final int bufferSize = 128;
