@@ -30,7 +30,7 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.BufferedBlockOutStream;
+import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -62,6 +62,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -135,13 +136,13 @@ public class FileOutStreamTest {
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBlockOutStream> outStreamMap = new HashMap<>();
     when(mBlockStore.getOutStream(anyLong(), eq(BLOCK_LENGTH),
-        any(OutStreamOptions.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
+        any(OutStreamOptions.class))).thenAnswer(new Answer<TestBlockOutStream>() {
           @Override
-          public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
+          public TestBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBlockOutStream newStream =
-                  new TestBlockOutStream(blockId, BLOCK_LENGTH, mFileSystemContext);
+                  new TestBlockOutStream(ByteBuffer.allocate(1000), blockId, BLOCK_LENGTH);
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);
@@ -273,7 +274,7 @@ public class FileOutStreamTest {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
-    BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
+    BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
         .thenReturn(stream);
     mTestStream = createTestStream(FILE_NAME, options);
@@ -295,7 +296,7 @@ public class FileOutStreamTest {
    */
   @Test
   public void cacheWriteExceptionSyncPersist() throws IOException {
-    BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
+    BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyLong(), anyLong(), any(OutStreamOptions.class)))
         .thenReturn(stream);
 

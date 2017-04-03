@@ -24,12 +24,14 @@ import static org.mockito.Mockito.mock;
 public class TestBlockOutStream extends BlockOutStream {
   private final ByteBuffer mData;
   private boolean mClosed;
+  private boolean mCanceled;
 
   public TestBlockOutStream(ByteBuffer data, long id, long blockSize) {
     super(new TestPacketOutStream(data), id, blockSize, mock(BlockWorkerClient.class),
         OutStreamOptions.defaults());
     mData = data;
     mClosed = false;
+    mCanceled = false;
   }
 
   public byte[] getWrittenData() {
@@ -40,8 +42,20 @@ public class TestBlockOutStream extends BlockOutStream {
     return mClosed;
   }
 
+  public boolean isCanceled() {
+    return mCanceled;
+  }
+
   @Override
   public void close() {
     mClosed = true;
+  }
+
+  @Override
+  public void cancel() {
+    if (mClosed) {
+      return;
+    }
+    mCanceled = true;
   }
 }
