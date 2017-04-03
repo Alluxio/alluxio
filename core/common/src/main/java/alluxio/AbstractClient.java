@@ -28,12 +28,19 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -161,10 +168,13 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
+    int socketTimeoutMs = Configuration.getInt(
+        PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
     int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY);
     final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
+    ExecutorService executor = Executors.newCachedThreadPool();
     while (!mClosed) {
       mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
@@ -174,7 +184,23 @@ public abstract class AbstractClient implements Client {
           new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
-        mProtocol.getTransport().open();
+        // Set a timeout for transport.open() in case it hangs when the authentication type does not
+        // match between Alluxio client and servers.
+        FutureTask<Void> openTask = new FutureTask<>(
+            new TransportOpenCallable(mProtocol.getTransport()));
+        executor.submit(openTask);
+        try {
+          openTask.get((long) socketTimeoutMs, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+          String message = "Timeout to open the thrift transport. This exception may be caused by "
+              + "incorrect network configuration. Please check whether the authentication types "
+              + "match between client and server. Note that NOSASL client is not able to connect "
+              + "to servers with SIMPLE security mode.";
+          throw new IOException(message, e);
+        } finally {
+          openTask.cancel(true);
+        }
+
         LOG.info("Client registered with {} {} @ {}", getServiceName(), mMode, mAddress);
         mConnected = true;
         afterConnect();
@@ -192,7 +218,7 @@ public abstract class AbstractClient implements Client {
           throw new IOException(message, e);
         }
         throw e;
-      } catch (TTransportException e) {
+      } catch (Exception e) {
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "
             + mMode + " @ " + mAddress + " : " + e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
@@ -358,5 +384,24 @@ public abstract class AbstractClient implements Client {
       }
     }
     throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  private class TransportOpenCallable implements Callable<Void> {
+    TTransport mTransport;
+
+    /**
+     * Constructs a new {@link TransportOpenCallable}.
+     *
+     * @param transport the transport to open
+     */
+    public TransportOpenCallable(TTransport transport) {
+      mTransport = transport;
+    }
+
+    @Override
+    public Void call() throws TTransportException {
+      mTransport.open();
+      return null;
+    }
   }
 }
