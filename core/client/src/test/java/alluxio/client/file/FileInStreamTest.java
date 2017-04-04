@@ -84,6 +84,7 @@ public class FileInStreamTest {
     ClientTestUtils.setSmallBufferSizes();
 
     mContext = PowerMockito.mock(FileSystemContext.class);
+    PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
     mBlockStore = Mockito.mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
@@ -141,8 +142,8 @@ public class FileInStreamTest {
     for (int i = 0; i < FILE_LENGTH; i++) {
       Assert.assertEquals(i & 0xff, mTestStream.read());
     }
-    verifyCacheStreams(FILE_LENGTH);
     mTestStream.close();
+    verifyCacheStreams(FILE_LENGTH);
   }
 
   /**

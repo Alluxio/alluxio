@@ -12,10 +12,17 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.options.InStreamOptions;
 
+import alluxio.client.resource.LockBlockResource;
+import alluxio.exception.AlluxioException;
+import alluxio.retry.RetryPolicy;
+import alluxio.wire.WorkerNetAddress;
 import com.google.common.io.Closer;
-import org.mockito.Mockito;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Mock of {@link BlockInStream} to create a BlockInStream on a single block. The
@@ -30,6 +37,83 @@ public class TestBlockInStream extends BlockInStream {
    */
   public TestBlockInStream(long blockId, byte[] data) {
     super(new TestPacketInStream(data, blockId, data.length, true),
-        Mockito.mock(BlockWorkerClient.class), Closer.create(), InStreamOptions.defaults());
+        new DummyBlockWorkerClient(), Closer.create(), InStreamOptions.defaults());
+  }
+
+  private static class DummyBlockWorkerClient implements BlockWorkerClient {
+    @Override
+    public void accessBlock(long blockId) throws IOException {
+
+    }
+
+    @Override
+    public void cacheBlock(long blockId) throws IOException, AlluxioException {
+
+    }
+
+    @Override
+    public void cancelBlock(long blockId) throws IOException, AlluxioException {
+
+    }
+
+    @Override
+    public InetSocketAddress getDataServerAddress() {
+      return new InetSocketAddress("localhost", 29998);
+    }
+
+    @Override
+    public long getSessionId() {
+      return 0;
+    }
+
+    @Override
+    public WorkerNetAddress getWorkerNetAddress() {
+      return null;
+    }
+
+    @Override
+    public LockBlockResource lockBlock(long blockId, LockBlockOptions options) throws IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public LockBlockResource lockUfsBlock(long blockId, LockBlockOptions options) throws IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public boolean promoteBlock(long blockId) throws IOException, AlluxioException {
+      return false;
+    }
+
+    @Override
+    public void removeBlock(long blockId) throws IOException, AlluxioException {
+
+    }
+
+    @Override
+    public String requestBlockLocation(long blockId, long initialBytes, int tier) throws IOException {
+      return null;
+    }
+
+    @Override
+    public boolean requestSpace(long blockId, long requestBytes) throws IOException {
+      return false;
+    }
+
+    @Override
+    public boolean unlockBlock(long blockId) throws IOException {
+      return false;
+    }
+
+    @Override
+    public void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void close() throws IOException {
+
+    }
   }
 }
