@@ -105,8 +105,7 @@ public enum ExceptionMessage {
       "Failed to acquire an access token for the UFS block {0,number,#} (filename: {1})."),
   UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION(
       "UFS block {0,number,#} does not exist for session {1,number,#}"),
-
-
+  
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
   JOURNAL_WRITE_FAILURE("Failed to write to journal file ({0}): {1}"),
