@@ -60,19 +60,19 @@ public final class UfsJournalLogWriterTest {
     long startSN = 0x10;
     long endSN = 0x20;
     mJournal.getUfs().create(
-        mJournal.encodeLogFileLocation(startSN, UfsJournal.UNKNOWN_SEQUENCE_NUMBER).toString())
-        .close();
+        UfsJournalFile.encodeLogFileLocation(mJournal, startSN, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
+            .toString()).close();
     mJournal.getWriter(
         JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
         .close();
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
 
     String expectedLog =
         URIUtils.appendPathOrDie(mJournal.getLogDir(), String.format("0x%x-0x%x", startSN, endSN))
             .toString();
-    Assert.assertEquals(1, snapshot.mLogs.size());
-    Assert.assertEquals(expectedLog, snapshot.mLogs.get(0).getLocation().toString());
-    Assert.assertTrue(mJournal.getCurrentLog() == null);
+    Assert.assertEquals(1, snapshot.getLogs().size());
+    Assert.assertEquals(expectedLog, snapshot.getLogs().get(0).getLocation().toString());
+    Assert.assertTrue(UfsJournalSnapshot.getCurrentLog(mJournal) == null);
   }
 
   /**
@@ -83,20 +83,20 @@ public final class UfsJournalLogWriterTest {
     long startSN = 0x10;
     long endSN = 0x20;
     mJournal.getUfs().create(
-        mJournal.encodeLogFileLocation(startSN, UfsJournal.UNKNOWN_SEQUENCE_NUMBER).toString())
+        UfsJournalFile.encodeLogFileLocation(mJournal, startSN, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
+            .toString()).close();
+    mJournal.getUfs()
+        .create(UfsJournalFile.encodeLogFileLocation(mJournal, startSN, endSN).toString()).close();
+    mJournal.getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
         .close();
-    mJournal.getUfs().create(mJournal.encodeLogFileLocation(startSN, endSN).toString()).close();
-    mJournal.getWriter(
-        JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
-        .close();
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
 
     String expectedLog =
         URIUtils.appendPathOrDie(mJournal.getLogDir(), String.format("0x%x-0x%x", startSN, endSN))
             .toString();
-    Assert.assertEquals(1, snapshot.mLogs.size());
-    Assert.assertEquals(expectedLog, snapshot.mLogs.get(0).getLocation().toString());
-    Assert.assertTrue(mJournal.getCurrentLog() == null);
+    Assert.assertEquals(1, snapshot.getLogs().size());
+    Assert.assertEquals(expectedLog, snapshot.getLogs().get(0).getLocation().toString());
+    Assert.assertTrue(UfsJournalSnapshot.getCurrentLog(mJournal) == null);
   }
 
   /**
@@ -117,12 +117,12 @@ public final class UfsJournalLogWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertTrue(snapshot.mCheckpoints.isEmpty());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertTrue(snapshot.getCheckpoints().isEmpty());
     // 0x20 - 0x2a
-    Assert.assertEquals(1, snapshot.mLogs.size());
-    Assert.assertEquals(mJournal.encodeLogFileLocation(0x20, 0x2a),
-        snapshot.mLogs.get(0).getLocation());
+    Assert.assertEquals(1, snapshot.getLogs().size());
+    Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x20, 0x2a),
+        snapshot.getLogs().get(0).getLocation());
   }
 
   /**
@@ -143,16 +143,16 @@ public final class UfsJournalLogWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertTrue(snapshot.mCheckpoints.isEmpty());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertTrue(snapshot.getCheckpoints().isEmpty());
     // 0x20 - 0x21, 0x21 - 0x26, 0x26 - 0x2a
-    Assert.assertEquals(3, snapshot.mLogs.size());
-    Assert.assertEquals(mJournal.encodeLogFileLocation(0x20, 0x21),
-        snapshot.mLogs.get(0).getLocation());
-    Assert.assertEquals(mJournal.encodeLogFileLocation(0x21, 0x26),
-        snapshot.mLogs.get(1).getLocation());
-    Assert.assertEquals(mJournal.encodeLogFileLocation(0x26, 0x2a),
-        snapshot.mLogs.get(2).getLocation());
+    Assert.assertEquals(3, snapshot.getLogs().size());
+    Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x20, 0x21),
+        snapshot.getLogs().get(0).getLocation());
+    Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x21, 0x26),
+        snapshot.getLogs().get(1).getLocation());
+    Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x26, 0x2a),
+        snapshot.getLogs().get(2).getLocation());
   }
 
   /**
@@ -173,12 +173,12 @@ public final class UfsJournalLogWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertTrue(snapshot.mCheckpoints.isEmpty());
-    Assert.assertEquals(10, snapshot.mLogs.size());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertTrue(snapshot.getCheckpoints().isEmpty());
+    Assert.assertEquals(10, snapshot.getLogs().size());
     for (int i = 0; i < 10; ++i) {
-      Assert.assertEquals(mJournal.encodeLogFileLocation(0x20 + i, 0x21 + i),
-          snapshot.mLogs.get(i).getLocation());
+      Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x20 + i, 0x21 + i),
+          snapshot.getLogs().get(i).getLocation());
     }
   }
 

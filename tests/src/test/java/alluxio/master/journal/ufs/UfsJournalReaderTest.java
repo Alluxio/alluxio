@@ -266,8 +266,11 @@ public final class UfsJournalReaderTest {
   private void buildIncompleteLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     buildCompletedLog(start, end);
-    Assert.assertTrue(mUfs.renameFile(mJournal.encodeLogFileLocation(start, end).toString(),
-        mJournal.encodeLogFileLocation(start, UfsJournal.UNKNOWN_SEQUENCE_NUMBER).toString()));
+    Assert.assertTrue(
+        mUfs.renameFile(UfsJournalFile.encodeLogFileLocation(mJournal, start, end).toString(),
+            UfsJournalFile
+                .encodeLogFileLocation(mJournal, start, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
+                .toString()));
   }
 
   /**

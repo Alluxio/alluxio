@@ -33,10 +33,12 @@ public final class UfsJournalFileTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   private URI mLocation;
+  private UfsJournal mJournal;
 
   @Before
   public void before() throws Exception {
     mLocation = URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "master");
+    mJournal = new UfsJournal(mLocation);
   }
 
   @Test
@@ -101,5 +103,70 @@ public final class UfsJournalFileTest {
     for (int i = 0; i < logs.size(); ++i) {
       Assert.assertEquals(i + 1, logs.get(i).getEnd());
     }
+  }
+
+  /**
+   * Encodes/decodes completed log file names.
+   */
+  @Test
+  public void completedLogFilename() throws Exception {
+    String location = UfsJournalFile.encodeLogFileLocation(mJournal, 0x10, 0x100).toString();
+    Assert.assertEquals(URIUtils.appendPathOrDie(mJournal.getLogDir(), "0x10-0x100").toString(),
+        location);
+    UfsJournalFile file = UfsJournalFile.decodeLogFile(mJournal, "0x10-0x100");
+    Assert.assertTrue(file.isCompletedLog());
+    Assert.assertEquals(0x10, file.getStart());
+    Assert.assertEquals(0x100, file.getEnd());
+    Assert.assertEquals(location, file.getLocation().toString());
+  }
+
+  /**
+   * Encodes/decodes incomplete log file names.
+   */
+  @Test
+  public void incompleteLogFilename() throws Exception {
+    String location =
+        UfsJournalFile.encodeLogFileLocation(mJournal, 0x10, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
+            .toString();
+    String expectedFilename = "0x10-0x" + Long.toHexString(UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
+    Assert.assertEquals(URIUtils.appendPathOrDie(mJournal.getLogDir(), expectedFilename).toString(),
+        location);
+    UfsJournalFile file = UfsJournalFile.decodeLogFile(mJournal, expectedFilename);
+    Assert.assertTrue(file.isIncompleteLog());
+    Assert.assertEquals(0x10, file.getStart());
+    Assert.assertEquals(UfsJournal.UNKNOWN_SEQUENCE_NUMBER, file.getEnd());
+    Assert.assertEquals(location, file.getLocation().toString());
+  }
+
+  /**
+   * Encodes/decodes checkpoint filename.
+   */
+  @Test
+  public void checkpointFilename() throws Exception {
+    String location = UfsJournalFile.encodeCheckpointFileLocation(mJournal, 0x10).toString();
+    String expectedFilename = "0x0-0x10";
+    Assert.assertEquals(
+        URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), expectedFilename).toString(),
+        location);
+    UfsJournalFile file = UfsJournalFile.decodeCheckpointFile(mJournal, expectedFilename);
+    Assert.assertTrue(file.isCheckpoint());
+    Assert.assertEquals(0x0, file.getStart());
+    Assert.assertEquals(0x10, file.getEnd());
+    Assert.assertEquals(location, file.getLocation().toString());
+  }
+
+  /**
+   * Encodes/decodes temporary checkpoint filename.
+   */
+  @Test
+  public void temporaryCheckpointFilename() throws Exception {
+    String location = UfsJournalFile.encodeTemporaryCheckpointFileLocation(mJournal).toString();
+    Assert.assertTrue(location.startsWith(mJournal.getTmpDir().toString()));
+    UfsJournalFile file = UfsJournalFile
+        .decodeTemporaryCheckpointFile(mJournal, location.substring(location.lastIndexOf('/') + 1));
+    Assert.assertTrue(file.isTmpCheckpoint());
+    Assert.assertEquals(UfsJournal.UNKNOWN_SEQUENCE_NUMBER, file.getStart());
+    Assert.assertEquals(UfsJournal.UNKNOWN_SEQUENCE_NUMBER, file.getEnd());
+    Assert.assertEquals(location, file.getLocation().toString());
   }
 }
