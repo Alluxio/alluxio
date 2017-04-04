@@ -194,7 +194,7 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage());
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost())) {
