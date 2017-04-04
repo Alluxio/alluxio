@@ -13,7 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.master.Master;
+import alluxio.master.MockMaster;
 import alluxio.master.journal.JournalCheckpointThread;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
@@ -24,7 +24,6 @@ import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
-import org.apache.thrift.TProcessor;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,57 +34,12 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayDeque;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
 
 /**
  * Unit tests for {@link alluxio.master.journal.JournalCheckpointThread}.
  */
 public final class JournalCheckpointThreadTest {
-  private static class FakeMaster implements Master {
-    private Queue<Journal.JournalEntry> mEntries;
-
-    FakeMaster() {
-      mEntries = new ArrayDeque<>();
-    }
-
-    @Override
-    public Map<String, TProcessor> getServices() {
-      return null;
-    }
-
-    @Override
-    public String getName() {
-      return "FakeMaster";
-    }
-
-    @Override
-    public Set<Class<?>> getDependencies() {
-      return null;
-    }
-
-    @Override
-    public void processJournalEntry(Journal.JournalEntry entry) throws IOException {
-      mEntries.add(entry);
-    }
-
-    @Override
-    public void start(boolean isPrimary) throws IOException {
-    }
-
-    @Override
-    public void stop() throws IOException {
-    }
-
-    @Override
-    public Iterator<Journal.JournalEntry> iterator() {
-      return mEntries.iterator();
-    }
-  }
-
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -106,15 +60,15 @@ public final class JournalCheckpointThreadTest {
   }
 
   /**
-   * The checkpoint thread replays all the logs and checkpoint periodically if not shutdown.
+   * The checkpoint thread replays all the logs and checkpoints periodically if not shutdown.
    */
   @Test
   public void checkpointBeforeShutdown() throws Exception {
     Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
-    FakeMaster fakeMaster = new FakeMaster();
-    JournalCheckpointThread checkpointThread = new JournalCheckpointThread(fakeMaster, mJournal);
+    MockMaster mockMaster = new MockMaster();
+    JournalCheckpointThread checkpointThread = new JournalCheckpointThread(mockMaster, mJournal);
     checkpointThread.start();
     CommonUtils.waitFor("checkpoint", new Function<Void, Boolean>() {
       @Override
@@ -148,14 +102,14 @@ public final class JournalCheckpointThreadTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
-    FakeMaster fakeMaster = new FakeMaster();
-    JournalCheckpointThread checkpointThread = new JournalCheckpointThread(fakeMaster, mJournal);
+    MockMaster mockMaster = new MockMaster();
+    JournalCheckpointThread checkpointThread = new JournalCheckpointThread(mockMaster, mJournal);
     checkpointThread.start();
     checkpointThread.awaitTermination();
 
     // Make sure all the journal entries have been processed. Note that it is not necessary that
     // the they are checkpointed.
-    Iterator<Journal.JournalEntry> it = fakeMaster.iterator();
+    Iterator<Journal.JournalEntry> it = mockMaster.iterator();
     int sz = 0;
     while (it.hasNext()) {
       it.next();
