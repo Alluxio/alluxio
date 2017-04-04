@@ -24,16 +24,11 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -41,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implementation of UFS-based journal.
  *
  * The journal is made up of 2 components:
- * - The checkpoint: the full state of the master.
+ * - The checkpoint:  a snapshot of the master state
  * - The log entries: incremental entries to apply to the checkpoint.
  *
  * The journal log entries must be self-contained. Checkpoint is considered as a compaction of
@@ -141,16 +136,11 @@ public class UfsJournal implements Journal {
     URI location = getLocation();
     LOG.info("Formatting {}", location);
     if (mUfs.isDirectory(location.toString())) {
-      for (UnderFileStatus p : mUfs.listStatus(location.toString())) {
-        URI childPath = URIUtils.appendPathOrDie(location, p.getName());
-        boolean failedToDelete;
-        if (p.isDirectory()) {
-          failedToDelete = !mUfs
-              .deleteDirectory(childPath.toString(), DeleteOptions.defaults().setRecursive(true));
-        } else {
-          failedToDelete = !mUfs.deleteFile(childPath.toString());
-        }
-        if (failedToDelete) {
+      for (UnderFileStatus status : mUfs.listStatus(location.toString())) {
+        String childPath = URIUtils.appendPathOrDie(location, status.getName()).toString();
+        if (status.isDirectory()
+            && !mUfs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true))
+            || status.isFile() && !mUfs.deleteFile(childPath)) {
           throw new IOException(String.format("Failed to delete %s", childPath));
         }
       }
@@ -190,208 +180,5 @@ public class UfsJournal implements Journal {
    */
   UnderFileSystem getUfs() {
     return mUfs;
-  }
-
-  /**
-   * Creates a checkpoint location under the checkpoint directory.
-   *
-   * @param end the end sequence number (exclusive)
-   * @return the location
-   */
-  URI encodeCheckpointFileLocation(long end) {
-    String filename = String.format("0x%x-0x%x", 0, end);
-    URI location = URIUtils.appendPathOrDie(getCheckpointDir(), filename);
-    return location;
-  }
-
-  /**
-   * Creates a log location under the log directory.
-   *
-   * @param start the start sequence number (inclusive)
-   * @param end the end sequence number (exclusive)
-   * @return the location
-   */
-  URI encodeLogFileLocation(long start, long end) {
-    String filename = String.format("0x%x-0x%x", start, end);
-    URI location = URIUtils.appendPathOrDie(getLogDir(), filename);
-    return location;
-  }
-
-  /**
-   * Creates a temporary location under the temporary directory.
-   *
-   * @return the location
-   */
-  URI encodeTemporaryCheckpointFileLocation() {
-    return URIUtils.appendPathOrDie(getTmpDir(), UUID.randomUUID().toString());
-  }
-
-  /**
-   * Decodes a checkpoint or a log file name into a {@link UfsJournalFile}.
-   *
-   * @param filename the filename
-   * @param isCheckpoint whether this is a checkpoint file or a log file
-   * @return the instance of {@link UfsJournalFile}, null if the file invalid
-   */
-  UfsJournalFile decodeCheckpointOrLogFile(String filename, boolean isCheckpoint) {
-    URI location =
-        URIUtils.appendPathOrDie(isCheckpoint ? getCheckpointDir() : getLogDir(), filename);
-    try {
-      String[] parts = filename.split("-");
-
-      // There can be temporary files in logs directory. Skip them.
-      if (parts.length != 2) {
-        return null;
-      }
-      long start = Long.decode(parts[0]);
-      long end = Long.decode(parts[1]);
-
-      if (isCheckpoint) {
-        Preconditions.checkState(start == 0);
-        return UfsJournalFile.createCheckpointFile(location, end);
-      } else {
-        return UfsJournalFile.createLogFile(location, start, end);
-      }
-    } catch (IllegalStateException e) {
-      LOG.error("Illegal journal file {}.", location);
-      throw e;
-    } catch (NumberFormatException e) {
-      // There can be temporary files (e.g. created for rename).
-      return null;
-    }
-  }
-
-  /**
-   * Decodes a temporary checkpoint file name into a {@link UfsJournalFile}.
-   *
-   * @param filename the temporary checkpoint file name
-   * @return the instance of {@link UfsJournalFile}
-   */
-  UfsJournalFile decodeTemporaryCheckpointFile(String filename) {
-    URI location = URIUtils.appendPathOrDie(getTmpDir(), filename);
-    return UfsJournalFile.createTmpCheckpointFile(location);
-  }
-
-  /**
-   * A snapshot of everything in the journal.
-   */
-  static class Snapshot {
-    /** The committed checkpoints. */
-    final List<UfsJournalFile> mCheckpoints;
-    /** The journal edit logs including the incomplete log. */
-    final List<UfsJournalFile> mLogs;
-    /** The temporary checkpoint files. */
-    final List<UfsJournalFile> mTemporaryCheckpoints;
-
-    /**
-     * Creates an instance of the journal snapshot.
-     *
-     * @param checkpoints the checkpoints
-     * @param logs the logs including the incomplete log
-     * @param temporaryCheckpoints the temporary checkpoint files
-     */
-    Snapshot(List<UfsJournalFile> checkpoints, List<UfsJournalFile> logs,
-        List<UfsJournalFile> temporaryCheckpoints) {
-      mCheckpoints = checkpoints;
-      mLogs = logs;
-      mTemporaryCheckpoints = temporaryCheckpoints;
-    }
-  }
-
-  /**
-   * Creates a snapshot of the journal.
-   *
-   * @return the journal snapshot
-   * @throws IOException if any I/O errors occur
-   */
-  Snapshot getSnapshot() throws IOException {
-    // Checkpoints.
-    List<UfsJournalFile> checkpoints = new ArrayList<>();
-    UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
-    if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
-        UfsJournalFile file =
-            decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
-        if (file != null) {
-          checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
-        }
-      }
-      Collections.sort(checkpoints);
-    }
-
-    List<UfsJournalFile> logs = new ArrayList<>();
-    statuses = mUfs.listStatus(getLogDir().toString());
-    if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
-        UfsJournalFile file =
-            decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */);
-        if (file != null) {
-          logs.add(file);
-        }
-      }
-      Collections.sort(logs);
-    }
-
-    List<UfsJournalFile> tmpCheckpoints = new ArrayList<>();
-    statuses = mUfs.listStatus(getTmpDir().toString());
-    if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
-        tmpCheckpoints.add(decodeTemporaryCheckpointFile(status.getName()));
-      }
-    }
-
-    return new Snapshot(checkpoints, logs, tmpCheckpoints);
-  }
-
-  /**
-   * Gets the current log (the incomplete log) that is being written to.
-   *
-   * @return the current log
-   * @throws IOException if any I/O errors occur
-   */
-  UfsJournalFile getCurrentLog() throws IOException {
-    List<UfsJournalFile> logs = new ArrayList<>();
-    UnderFileStatus[] statuses = mUfs.listStatus(getLogDir().toString());
-    if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
-        UfsJournalFile file =
-            decodeCheckpointOrLogFile(status.getName(), false  /* is_checkpoint */);
-        if (file != null) {
-          logs.add(file);
-        }
-      }
-      if (!logs.isEmpty()) {
-        UfsJournalFile file = Collections.max(logs);
-        if (file.isIncompleteLog()) {
-          return file;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Gets the first journal log sequence number that is not yet checkpointed.
-   *
-   * @return the first journal log sequence number that is not yet checkpointed
-   * @throws IOException if any I/O errors occur
-   */
-  long getNextLogSequenceToCheckpoint() throws IOException {
-    List<UfsJournalFile> checkpoints = new ArrayList<>();
-    UnderFileStatus[] statuses = mUfs.listStatus(getCheckpointDir().toString());
-    if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
-        UfsJournalFile file =
-            decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */);
-        if (file != null) {
-          checkpoints.add(decodeCheckpointOrLogFile(status.getName(), true  /* is_checkpoint */));
-        }
-      }
-      Collections.sort(checkpoints);
-    }
-    if (checkpoints.isEmpty()) {
-      return 0;
-    }
-    return checkpoints.get(checkpoints.size() - 1).getEnd();
   }
 }

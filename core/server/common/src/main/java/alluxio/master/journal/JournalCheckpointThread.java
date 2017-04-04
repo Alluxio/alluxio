@@ -108,7 +108,7 @@ public final class JournalCheckpointThread extends Thread {
       runInternal();
     } catch (RuntimeException e) {
       LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
-      System.exit(-1);
+      throw e;
     }
   }
 
@@ -119,14 +119,14 @@ public final class JournalCheckpointThread extends Thread {
 
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     alluxio.proto.journal.Journal.JournalEntry entry;
-    // Set to true if it has waited for a quite period. Reset if a valid journal entry is read.
-    boolean quitePeriodWaited = false;
+    // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
+    boolean quietPeriodWaited = false;
     while (true) {
       try {
         entry = mJournalReader.read();
         if (entry != null) {
           mMaster.processJournalEntry(entry);
-          quitePeriodWaited = false;
+          quietPeriodWaited = false;
         }
       } catch (IOException | InvalidJournalEntryException e) {
         LOG.warn("{}: Failed to read or process the journal entry with error {}.",
@@ -139,7 +139,7 @@ public final class JournalCheckpointThread extends Thread {
         }
         mJournalReader =
             mJournal.getReader(JournalReaderOptions.defaults().setPrimary(false));
-        quitePeriodWaited = false;
+        quietPeriodWaited = false;
         continue;
       }
 
@@ -148,7 +148,7 @@ public final class JournalCheckpointThread extends Thread {
       // Sleep for a while if no entry is found.
       if (entry == null) {
         if (mShutdownInitiated) {
-          if (quitePeriodWaited) {
+          if (quietPeriodWaited) {
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
                 + "during the quiet period.", mMaster.getName());
             mStopped = true;
@@ -164,7 +164,7 @@ public final class JournalCheckpointThread extends Thread {
             return;
           }
           CommonUtils.sleepMs(LOG, mShutdownQuietWaitTimeMs);
-          quitePeriodWaited = true;
+          quietPeriodWaited = true;
         } else {
           CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
         }

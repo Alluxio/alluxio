@@ -67,10 +67,10 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
       throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
 
-    mTmpCheckpointFileLocation = mJournal.encodeTemporaryCheckpointFileLocation();
+    mTmpCheckpointFileLocation = UfsJournalFile.encodeTemporaryCheckpointFileLocation(mJournal);
     mTmpCheckpointStream = mJournal.getUfs().create(mTmpCheckpointFileLocation.toString());
     mCheckpointFile = UfsJournalFile.createCheckpointFile(
-        mJournal.encodeCheckpointFileLocation(options.getNextSequenceNumber()),
+        UfsJournalFile.encodeCheckpointFileLocation(mJournal, options.getNextSequenceNumber()),
         options.getNextSequenceNumber());
   }
 
@@ -103,10 +103,10 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
     mTmpCheckpointStream.close();
 
     // Delete the temporary checkpoint if there is a newer checkpoint committed.
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    if (snapshot != null && !snapshot.mCheckpoints.isEmpty()) {
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    if (snapshot != null && !snapshot.getCheckpoints().isEmpty()) {
       UfsJournalFile checkpoint =
-          snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
+          snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1);
       if (mCheckpointFile.getEnd() <= checkpoint.getEnd()) {
         mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
         return;

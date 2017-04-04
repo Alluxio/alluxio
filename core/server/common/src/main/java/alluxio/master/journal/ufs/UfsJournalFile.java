@@ -11,9 +11,15 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.util.URIUtils;
+
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,6 +37,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class UfsJournalFile implements Comparable<UfsJournalFile> {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsJournalFile.class);
+
   /** The location of the file. */
   private final URI mLocation;
   /** The start journal log entry sequence number (inclusive). */
@@ -90,6 +98,113 @@ final class UfsJournalFile implements Comparable<UfsJournalFile> {
   static UfsJournalFile createTmpCheckpointFile(URI location) {
     return new UfsJournalFile(location, UfsJournal.UNKNOWN_SEQUENCE_NUMBER,
         UfsJournal.UNKNOWN_SEQUENCE_NUMBER, false);
+  }
+
+  /**
+   * Encodes a checkpoint location under the checkpoint directory.
+   *
+   * @param journal the UFS journal instance
+   * @param end the end sequence number (exclusive)
+   * @return the location
+   */
+  static URI encodeCheckpointFileLocation(UfsJournal journal, long end) {
+    String filename = String.format("0x%x-0x%x", 0, end);
+    URI location = URIUtils.appendPathOrDie(journal.getCheckpointDir(), filename);
+    return location;
+  }
+
+  /**
+   * Encodes a log location under the log directory.
+   *
+   * @param journal the UFS journal instance
+   * @param start the start sequence number (inclusive)
+   * @param end the end sequence number (exclusive)
+   * @return the location
+   */
+  static URI encodeLogFileLocation(UfsJournal journal, long start, long end) {
+    String filename = String.format("0x%x-0x%x", start, end);
+    URI location = URIUtils.appendPathOrDie(journal.getLogDir(), filename);
+    return location;
+  }
+
+  /**
+   * Encodes a temporary location under the temporary directory.
+   *
+   * @param journal the UFS journal instance*
+   * @return the location
+   */
+  static URI encodeTemporaryCheckpointFileLocation(UfsJournal journal) {
+    return URIUtils.appendPathOrDie(journal.getTmpDir(), UUID.randomUUID().toString());
+  }
+
+  /**
+   * Decodes a checkpoint or a log file name into a {@link UfsJournalFile}.
+   *
+   * @param journal the UFS journal instance
+   * @param filename the filename
+   * @return the instance of {@link UfsJournalFile}, null if the file invalid
+   */
+  static UfsJournalFile decodeLogFile(UfsJournal journal, String filename) {
+    URI location = URIUtils.appendPathOrDie(journal.getLogDir(), filename);
+    try {
+      String[] parts = filename.split("-");
+
+      // There can be temporary files in logs directory. Skip them.
+      if (parts.length != 2) {
+        return null;
+      }
+      long start = Long.decode(parts[0]);
+      long end = Long.decode(parts[1]);
+      return UfsJournalFile.createLogFile(location, start, end);
+    } catch (IllegalStateException e) {
+      LOG.error("Illegal journal file {}.", location);
+      throw e;
+    } catch (NumberFormatException e) {
+      // There can be temporary files (e.g. created for rename).
+      return null;
+    }
+  }
+
+  /**
+   * Decodes a checkpoint file name into a {@link UfsJournalFile}.
+   *
+   * @param journal the UFS journal instance
+   * @param filename the filename
+   * @return the instance of {@link UfsJournalFile}, null if the file invalid
+   */
+  static UfsJournalFile decodeCheckpointFile(UfsJournal journal, String filename) {
+    URI location = URIUtils.appendPathOrDie(journal.getCheckpointDir(), filename);
+    try {
+      String[] parts = filename.split("-");
+
+      // There can be temporary files in logs directory. Skip them.
+      if (parts.length != 2) {
+        return null;
+      }
+      long start = Long.decode(parts[0]);
+      long end = Long.decode(parts[1]);
+
+      Preconditions.checkState(start == 0);
+      return UfsJournalFile.createCheckpointFile(location, end);
+    } catch (IllegalStateException e) {
+      LOG.error("Illegal journal file {}.", location);
+      throw e;
+    } catch (NumberFormatException e) {
+      // There can be temporary files (e.g. created for rename).
+      return null;
+    }
+  }
+
+  /**
+   * Decodes a temporary checkpoint file name into a {@link UfsJournalFile}.
+   *
+   * @param journal the UFS journal instance
+   * @param filename the temporary checkpoint file name
+   * @return the instance of {@link UfsJournalFile}
+   */
+  static UfsJournalFile decodeTemporaryCheckpointFile(UfsJournal journal, String filename) {
+    URI location = URIUtils.appendPathOrDie(journal.getTmpDir(), filename);
+    return UfsJournalFile.createTmpCheckpointFile(location);
   }
 
   /**
