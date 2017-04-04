@@ -373,9 +373,9 @@ public final class FileInStreamIntegrationTest {
   }
 
   /**
-   * Read large file remotely.
+   * Read large file remotely. Make sure the test does not timeout.
    */
-  @Test
+  @Test(timeout = 30000)
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
