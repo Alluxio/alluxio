@@ -26,7 +26,8 @@ import javax.annotation.concurrent.ThreadSafe;
  *    inclusive).
  * 4. Checkpoint file: [0]-[end SN] (the end SN is exclusive).
  *
- * This data structure implements {@link Comparable} such that they can be sorted by the end SNs.
+ * This data structure implements {@link Comparable} such that journal files can be sorted by the
+ * end SNs.
  */
 @ThreadSafe
 final class UfsJournalFile implements Comparable<UfsJournalFile> {
