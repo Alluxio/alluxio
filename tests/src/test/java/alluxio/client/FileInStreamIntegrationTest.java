@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
@@ -369,5 +370,33 @@ public final class FileInStreamIntegrationTest {
     service.shutdown();
     service.awaitTermination(Constants.MINUTE_MS, TimeUnit.MILLISECONDS);
     Assert.assertEquals(concurrency * 2, count.get());
+  }
+
+  /**
+   * Read large file remotely.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
+          PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
+          PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+  public void remoteReadLargeFile() throws Exception {
+    // write a file outside of Alluxio
+    AlluxioURI filePath = new AlluxioURI(mTestPath + "/test");
+    try (FileOutStream os = mFileSystem.createFile(filePath, CreateFileOptions.defaults()
+        .setBlockSizeBytes(16 * Constants.MB).setWriteType(WriteType.THROUGH))) {
+      // Write a smaller byte array 10 times to avoid demanding 500mb of contiguous memory.
+      byte[] bytes = BufferUtils.getIncreasingByteArray(50 * Constants.MB);
+      for (int i = 0; i < 10; i++) {
+        os.write(bytes);
+      }
+    }
+
+    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    try (FileInStream in = mFileSystem.openFile(filePath, options)) {
+      byte[] buf = new byte[8 * Constants.MB];
+      while (in.read(buf) != -1) {
+      }
+    }
   }
 }
