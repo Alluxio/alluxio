@@ -82,7 +82,8 @@ public final class UfsJournalSnapshotTest {
       Assert.assertEquals(expectedLogs.poll(), log.getLocation().toString());
     }
 
-    Assert.assertEquals(currentLog, UfsJournalSnapshot.getCurrentLog(mJournal).getLocation().toString());
+    Assert.assertEquals(currentLog,
+        UfsJournalSnapshot.getCurrentLog(mJournal).getLocation().toString());
 
     Assert.assertEquals(0x12, UfsJournalSnapshot.getNextLogSequenceToCheckpoint(mJournal));
   }
