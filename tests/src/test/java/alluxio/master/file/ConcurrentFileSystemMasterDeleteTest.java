@@ -21,14 +21,10 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.collections.ConcurrentHashSet;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
-import alluxio.util.CommonUtils;
 
-import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -37,10 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CyclicBarrier;
 
 /**
  * Tests to validate the concurrency in {@link FileSystemMaster}. These tests all use a local
@@ -74,13 +67,6 @@ public class ConcurrentFileSystemMasterDeleteTest {
   private FileSystem mFileSystem;
 
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
-
-  private enum UnaryOperation {
-    CREATE,
-    DELETE,
-    GET_FILE_INFO,
-    LIST_STATUS
-  }
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
@@ -123,7 +109,9 @@ public class ConcurrentFileSystemMasterDeleteTest {
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
 
-    int errors = concurrentUnaryOperation(UnaryOperation.DELETE, paths, LIMIT_MS);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
+            LIMIT_MS);
 
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -144,7 +132,9 @@ public class ConcurrentFileSystemMasterDeleteTest {
       paths[i] = dir.join("/file" + i);
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = concurrentUnaryOperation(UnaryOperation.DELETE, paths, LIMIT_MS);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
+            LIMIT_MS);
 
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(dir);
@@ -175,7 +165,9 @@ public class ConcurrentFileSystemMasterDeleteTest {
       }
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = concurrentUnaryOperation(UnaryOperation.DELETE, paths, LIMIT_MS);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
+            LIMIT_MS);
 
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(dir1);
@@ -203,7 +195,9 @@ public class ConcurrentFileSystemMasterDeleteTest {
     // Create the single file
     mFileSystem.createFile(paths[0], sCreatePersistedFileOptions).close();
 
-    int errors = concurrentUnaryOperation(UnaryOperation.DELETE, paths, LIMIT_MS);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
+            LIMIT_MS);
 
     // We should get an error for all but 1 delete
     Assert.assertEquals(numThreads - 1, errors);
@@ -225,69 +219,13 @@ public class ConcurrentFileSystemMasterDeleteTest {
     // Create the single directory
     mFileSystem.createDirectory(paths[0], sCreatePersistedDirOptions);
 
-    int errors = concurrentUnaryOperation(UnaryOperation.DELETE, paths, LIMIT_MS);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
+            LIMIT_MS);
 
     // We should get an error for all but 1 delete
     Assert.assertEquals(numThreads - 1, errors);
     List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, dirs.size());
-  }
-
-  private int concurrentUnaryOperation(final UnaryOperation operation, final AlluxioURI[] paths,
-      final long limitMs) throws Exception {
-    final int numFiles = paths.length;
-    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
-    List<Thread> threads = new ArrayList<>(numFiles);
-    // If there are exceptions, we will store them here.
-    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
-    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
-      public void uncaughtException(Thread th, Throwable ex) {
-        errors.add(ex);
-      }
-    };
-    for (int i = 0; i < numFiles; i++) {
-      final int iteration = i;
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            AuthenticatedClientUser.set(TEST_USER);
-            barrier.await();
-            switch (operation) {
-              case CREATE:
-                mFileSystem.createFile(paths[iteration], sCreatePersistedFileOptions).close();
-                break;
-              case DELETE:
-                mFileSystem.delete(paths[iteration]);
-                break;
-              case GET_FILE_INFO:
-                mFileSystem.getStatus(paths[iteration]);
-                break;
-              case LIST_STATUS:
-                mFileSystem.listStatus(paths[iteration]);
-                break;
-              default: throw new IllegalArgumentException("'operation' is not a valid operation.");
-            }
-
-          } catch (Exception e) {
-            Throwables.propagate(e);
-          }
-        }
-      });
-      t.setUncaughtExceptionHandler(exceptionHandler);
-      threads.add(t);
-    }
-    Collections.shuffle(threads);
-    long startMs = CommonUtils.getCurrentMs();
-    for (Thread t : threads) {
-      t.start();
-    }
-    for (Thread t : threads) {
-      t.join();
-    }
-    long durationMs = CommonUtils.getCurrentMs() - startMs;
-    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + limitMs,
-        durationMs < limitMs);
-    return errors.size();
   }
 }

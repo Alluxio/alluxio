@@ -22,16 +22,12 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ListStatusOptions;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
-import alluxio.util.CommonUtils;
 import alluxio.wire.LoadMetadataType;
 
-import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -42,13 +38,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CyclicBarrier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Tests to validate the concurrency in {@link FileSystemMaster}. These tests all use a local
@@ -66,25 +57,12 @@ public class ConcurrentFileSystemMasterCreateTest {
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
   private static final long SLEEP_MS = Constants.SECOND_MS;
-  /**
-   * Options to mark a created file as persisted. Note that this does not actually persist the
-   * file but flag the file to be treated as persisted, which will invoke ufs operations.
-   */
-  private static CreateFileOptions sCreatePersistedFileOptions =
-      CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
 
   private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
 
   private FileSystem mFileSystem;
 
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
-
-  private enum UnaryOperation {
-    CREATE,
-    DELETE,
-    GET_FILE_INFO,
-    LIST_STATUS
-  }
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
@@ -114,27 +92,6 @@ public class ConcurrentFileSystemMasterCreateTest {
     mFileSystem = FileSystem.Factory.get();
   }
 
-  /**
-   * Uses the integer suffix of a path to determine order. Paths without integer suffixes will be
-   * ordered last.
-   */
-  private class IntegerSuffixedPathComparator implements Comparator<URIStatus> {
-    @Override
-    public int compare(URIStatus o1, URIStatus o2) {
-      return extractIntegerSuffix(o1.getName()) - extractIntegerSuffix(o2.getName());
-    }
-
-    private int extractIntegerSuffix(String name) {
-      Pattern p = Pattern.compile("\\D*(\\d+$)");
-      Matcher m = p.matcher(name);
-      if (m.matches()) {
-        return Integer.parseInt(m.group(1));
-      } else {
-        return Integer.MAX_VALUE;
-      }
-    }
-  }
-
   @Test
   public void concurrentCreate() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
@@ -146,7 +103,9 @@ public class ConcurrentFileSystemMasterCreateTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = concurrentUnaryOperation(UnaryOperation.CREATE, paths, limitMs);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
+            limitMs);
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
@@ -165,7 +124,9 @@ public class ConcurrentFileSystemMasterCreateTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = concurrentUnaryOperation(UnaryOperation.CREATE, paths, limitMs);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
+            limitMs);
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
@@ -184,7 +145,9 @@ public class ConcurrentFileSystemMasterCreateTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = concurrentUnaryOperation(UnaryOperation.CREATE, paths, limitMs);
+    int errors = ConcurrentFileSystemMasterUtils
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
+            limitMs);
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
@@ -278,64 +241,6 @@ public class ConcurrentFileSystemMasterCreateTest {
     runLoadMetadata(WriteType.MUST_CACHE, false, true, true);
   }
 
-  private int concurrentUnaryOperation(final UnaryOperation operation, final AlluxioURI[] paths,
-      final long limitMs) throws Exception {
-    final int numFiles = paths.length;
-    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
-    List<Thread> threads = new ArrayList<>(numFiles);
-    // If there are exceptions, we will store them here.
-    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
-    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
-      public void uncaughtException(Thread th, Throwable ex) {
-        errors.add(ex);
-      }
-    };
-    for (int i = 0; i < numFiles; i++) {
-      final int iteration = i;
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            AuthenticatedClientUser.set(TEST_USER);
-            barrier.await();
-            switch (operation) {
-              case CREATE:
-                mFileSystem.createFile(paths[iteration], sCreatePersistedFileOptions).close();
-                break;
-              case DELETE:
-                mFileSystem.delete(paths[iteration]);
-                break;
-              case GET_FILE_INFO:
-                mFileSystem.getStatus(paths[iteration]);
-                break;
-              case LIST_STATUS:
-                mFileSystem.listStatus(paths[iteration]);
-                break;
-              default: throw new IllegalArgumentException("'operation' is not a valid operation.");
-            }
-
-          } catch (Exception e) {
-            Throwables.propagate(e);
-          }
-        }
-      });
-      t.setUncaughtExceptionHandler(exceptionHandler);
-      threads.add(t);
-    }
-    Collections.shuffle(threads);
-    long startMs = CommonUtils.getCurrentMs();
-    for (Thread t : threads) {
-      t.start();
-    }
-    for (Thread t : threads) {
-      t.join();
-    }
-    long durationMs = CommonUtils.getCurrentMs() - startMs;
-    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + limitMs,
-        durationMs < limitMs);
-    return errors.size();
-  }
-
   /**
    * Runs load metadata tests.
    *
@@ -390,9 +295,13 @@ public class ConcurrentFileSystemMasterCreateTest {
 
     int errors = 0;
     if (listParentDir) {
-      errors = concurrentUnaryOperation(UnaryOperation.LIST_STATUS, paths, limitMs);
+      errors = ConcurrentFileSystemMasterUtils
+          .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
+              paths, limitMs);
     } else {
-      errors = concurrentUnaryOperation(UnaryOperation.GET_FILE_INFO, paths, limitMs);
+      errors = ConcurrentFileSystemMasterUtils
+          .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.GET_FILE_INFO,
+              paths, limitMs);
     }
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
 
@@ -413,7 +322,7 @@ public class ConcurrentFileSystemMasterCreateTest {
 
     files = mFileSystem.listStatus(new AlluxioURI("/existing/path/"), listOptions);
     Assert.assertEquals(uniquePaths, files.size());
-    Collections.sort(files, new IntegerSuffixedPathComparator());
+    Collections.sort(files, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 0; i < uniquePaths; i++) {
       Assert.assertEquals("last_" + i, files.get(i).getName());
       Assert.assertEquals(PersistenceState.PERSISTED,
