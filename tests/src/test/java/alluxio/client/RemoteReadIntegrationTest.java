@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for reading from a remote worker.
  */
 @RunWith(Parameterized.class)
-public class RemoteBlockInStreamIntegrationTest {
+public class RemoteReadIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -82,12 +82,12 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Constructor for {@link RemoteBlockInStreamIntegrationTest}.
+   * Constructor for {@link RemoteReadIntegrationTest}.
    *
    * @param dataServer the address of the worker's data server
    * @param transferType the file transfer type used by the worker
    */
-  public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType) {
+  public RemoteReadIntegrationTest(String dataServer, String transferType) {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
@@ -171,8 +171,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests the batch read API from a remote location when the data is only in the
-   * underlying storage.
+   * Tests the batch read API from a remote location when the data is only in the underlying
+   * storage.
    */
   @Test
   public void readTest2() throws Exception {
@@ -337,7 +337,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests the batch read API from a remote location when the data is only in the underlying
+   * storage.
    */
   @Test
   public void readTest7() throws Exception {
@@ -357,8 +358,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
-   * negative position.
+   * Validates the expected exception for seeking a negative position.
    */
   @Test
   public void seekExceptionTest1() throws Exception {
@@ -376,8 +376,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
-   * position that is past block size.
+   * Validates the expected exception for seeking a position that is past block size.
    */
   @Test
   public void seekExceptionTest2() throws Exception {
@@ -396,7 +395,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#seek(long)}.
+   * Tests seeking through data which is in a remote location.
    */
   @Test
   public void seek() throws Exception {
@@ -419,7 +418,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#skip(long)}.
+   * Tests skipping through data which is in a remote location.
    */
   @Test
   public void skip() throws Exception {
@@ -526,7 +525,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests remote read stream lock in {@link RemoteBlockInStream}.
+   * Tests remote reads lock blocks correctly.
    */
   @Test
   public void remoteReadLock() throws Exception {

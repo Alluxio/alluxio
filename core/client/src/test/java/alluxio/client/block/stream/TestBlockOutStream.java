@@ -16,7 +16,9 @@ import alluxio.client.file.options.OutStreamOptions;
 
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Test class for mocking {@link BlockOutStream} and exposing internal state.
@@ -27,15 +29,15 @@ public class TestBlockOutStream extends BlockOutStream {
   private boolean mCanceled;
 
   public TestBlockOutStream(ByteBuffer data, long id, long blockSize) {
-    super(new TestPacketOutStream(data), id, blockSize, Mockito.mock(BlockWorkerClient.class),
-        OutStreamOptions.defaults());
+    super(new TestPacketOutStream(data, blockSize), id, blockSize, Mockito
+        .mock(BlockWorkerClient.class), OutStreamOptions.defaults());
     mData = data;
     mClosed = false;
     mCanceled = false;
   }
 
   public byte[] getWrittenData() {
-    return mData.array();
+    return Arrays.copyOfRange(mData.array(), 0, mData.position());
   }
 
   public boolean isClosed() {
@@ -47,12 +49,14 @@ public class TestBlockOutStream extends BlockOutStream {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
+    super.close();
     mClosed = true;
   }
 
   @Override
-  public void cancel() {
+  public void cancel() throws IOException {
+    super.cancel();
     if (mClosed) {
       return;
     }

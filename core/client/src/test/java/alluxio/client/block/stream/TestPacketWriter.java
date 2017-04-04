@@ -28,7 +28,8 @@ public class TestPacketWriter implements PacketWriter {
 
   @Override
   public void writePacket(ByteBuf packet) throws IOException {
-    packet.getBytes(0, mBuffer);
+    mBuffer.limit(mBuffer.position() + packet.readableBytes());
+    packet.readBytes(mBuffer);
   }
 
   @Override

@@ -272,9 +272,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       }
       long blockId = getBlockId(pos);
       long blockPos = pos % mBlockSize;
-      try (InputStream inputStream = getBlockInStream(blockId)) {
-        assert inputStream instanceof PositionedReadable;
-        int bytesRead = ((PositionedReadable) inputStream).positionedRead(blockPos, b, off, len);
+      try (BlockInStream bin = getBlockInStream(blockId)) {
+        int bytesRead = bin.positionedRead(blockPos, b, off, len);
         Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
         pos += bytesRead;
         off += bytesRead;

@@ -40,8 +40,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Integration tests for reading data which is only stored in Alluxio's under storage.
  */
-public class UnderFileReadIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileReadIntegrationTest.class);
+public class UnderStorageReadIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderStorageReadIntegrationTest.class);
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;

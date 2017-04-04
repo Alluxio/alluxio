@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
  * A {@link PacketOutStream} which writes to a bytebuffer.
  */
 public class TestPacketOutStream extends PacketOutStream {
-  public TestPacketOutStream(ByteBuffer buffer) {
-    super(new TestPacketWriter(buffer), buffer.capacity());
+  public TestPacketOutStream(ByteBuffer buffer, long length) {
+    super(new TestPacketWriter(buffer), length);
   }
 }
