@@ -810,7 +810,7 @@ public class ConcurrentFileSystemMasterTest {
       boolean listParentDir) throws Exception {
     int numThreads = CONCURRENCY_FACTOR;
     // 2 nested components to create.
-    long limitMs = 2 * SLEEP_MS * 2;
+    long limitMs = 2 * SLEEP_MS * 3;
 
     int uniquePaths = useSinglePath ? 1 : numThreads;
 

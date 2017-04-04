@@ -12,16 +12,20 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Represents the tree of Inode's.
@@ -39,10 +43,11 @@ public final class InodeUtils {
    * @param inodeTree the {@link InodeTree}
    * @param mountTable the {@link MountTable}
    * @param journalContext the journal context
+   * @throws IOException if the file fails to persist
    */
   public static void syncPersistDirectory(InodeDirectory dir, InodeTree inodeTree,
-      MountTable mountTable, JournalContext journalContext) {
-    // TODO(gpang): use a max timeout.
+      MountTable mountTable, JournalContext journalContext) throws IOException {
+    RetryPolicy retry = new ExponentialBackoffRetry(2, 1000, 200);
     while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
       if (dir.compareAndSwapPersistenceState(PersistenceState.NOT_PERSISTED,
           PersistenceState.TO_BE_PERSISTED)) {
@@ -75,8 +80,9 @@ public final class InodeUtils {
           }
         }
       } else {
-        // TODO(gpang): use exponential backoff and max timeout
-        CommonUtils.sleepMs(150);
+        if (!retry.attemptRetry()) {
+          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(dir.getName()));
+        }
       }
     }
   }
