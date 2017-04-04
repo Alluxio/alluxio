@@ -38,7 +38,7 @@ public class TestPacketReader implements PacketReader {
       return null;
     }
     ByteBuffer buffer =
-        ByteBuffer.wrap(mData, (int) mPos, (int) Math.min(mPacketSize, mEnd));
+        ByteBuffer.wrap(mData, (int) mPos, (int) (Math.min(mPacketSize, mEnd) - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
     return dataBuffer;

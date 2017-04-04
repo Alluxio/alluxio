@@ -37,6 +37,11 @@ public class TestBlockOutStream extends BlockOutStream {
   }
 
   public byte[] getWrittenData() {
+    try {
+      super.flush();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     return Arrays.copyOfRange(mData.array(), 0, mData.position());
   }
 

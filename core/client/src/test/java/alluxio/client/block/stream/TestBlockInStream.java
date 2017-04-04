@@ -40,6 +40,10 @@ public class TestBlockInStream extends BlockInStream {
         new DummyBlockWorkerClient(), Closer.create(), InStreamOptions.defaults());
   }
 
+  /**
+   * A mock {@link BlockWorkerClient} which returns local host for the data server address. This
+   * is currently a workaround for multiple mocks interfering with each other.
+   */
   private static class DummyBlockWorkerClient implements BlockWorkerClient {
     @Override
     public void accessBlock(long blockId) throws IOException {

@@ -15,6 +15,8 @@ import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.StreamFactory;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.TestBlockInStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.BlockInStream;
@@ -208,6 +210,7 @@ public class FileInStreamTest {
       Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, chunksize), buffer);
       offset += chunksize;
     }
+    mTestStream.close();
     verifyCacheStreams(FILE_LENGTH);
   }
 
@@ -525,19 +528,6 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that the file in stream uses the supplied location policy.
-   */
-  @Test
-  public void locationPolicy() throws Exception {
-    FileWriteLocationPolicy policy = Mockito.mock(FileWriteLocationPolicy.class);
-    mTestStream = new FileInStream(mStatus,
-        InStreamOptions.defaults().setReadType(ReadType.CACHE).setLocationPolicy(policy), mContext);
-    mTestStream.read();
-    Mockito.verify(policy)
-        .getWorkerForNextBlock(Mockito.anyListOf(BlockWorkerInfo.class), Mockito.anyLong());
-  }
-
-  /**
    * Tests that the correct exception message is produced when the location policy is not specified.
    */
   @Test
@@ -561,9 +551,11 @@ public class FileInStreamTest {
   private void testReadBuffer(int dataRead) throws Exception {
     byte[] buffer = new byte[dataRead];
     mTestStream.read(buffer);
-    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
+    mTestStream.close();
 
-    verifyCacheStreams(dataRead);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
+    int cachedData = (int) ((dataRead / BLOCK_LENGTH) * BLOCK_LENGTH);
+    verifyCacheStreams(cachedData);
   }
 
   /**
