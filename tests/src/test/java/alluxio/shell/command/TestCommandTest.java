@@ -14,9 +14,11 @@ package alluxio.shell.command;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.shell.AbstractAlluxioShellTest;
-import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
 
 /**
  * Tests for test command.

@@ -21,7 +21,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Tests properties of the path specified in args.
@@ -58,9 +58,9 @@ public final class TestCommand extends AbstractShellCommand {
 
   private void printResult(boolean testResult) {
     if (testResult) {
-      System.out.printf("%d\n", 0);
+      System.out.println(0);
     } else {
-      System.out.printf("%d\n", 1);
+      System.out.println(1);
     }
   }
 
@@ -95,7 +95,7 @@ public final class TestCommand extends AbstractShellCommand {
       }
       printResult(testResult);
     } catch (AlluxioException | IOException e) {
-      System.out.printf("%d\n", 1);
+      System.out.println(1);
     }
   }
 
