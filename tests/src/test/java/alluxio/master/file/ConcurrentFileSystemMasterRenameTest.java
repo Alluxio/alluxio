@@ -65,7 +65,7 @@ import java.util.regex.Pattern;
  * The tests also validate that operations are concurrent by injecting a short sleep in the
  * critical code path. Tests will timeout if the critical section is performed serially.
  */
-public class ConcurrentFileSystemMasterTest {
+public class ConcurrentFileSystemMasterRenameTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
