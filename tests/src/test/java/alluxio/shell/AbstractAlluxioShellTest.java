@@ -217,7 +217,7 @@ public abstract class AbstractAlluxioShellTest {
    *
    * @param uri the path of the file to read
    * @param length the length of content to read
-   * @return the content that you want to read
+   * @return the content that has been read
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an unexpected exception is thrown
    */
