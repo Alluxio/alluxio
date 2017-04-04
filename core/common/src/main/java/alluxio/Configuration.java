@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
@@ -398,6 +399,30 @@ public final class Configuration {
       LOG.error("requested class could not be loaded: {}", rawValue, e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Gets a set of properties that share a given common prefix key as a map. E.g., if A.B=V1 and
+   * A.C=V2, calling this method with prefixKey=A returns a map of {B=V1, C=V2}, where B and C are
+   * also valid properties. If no property shares the prefix, an empty map is returned.
+   *
+   * @param prefixKey the prefix key
+   * @return a map of trailing properties aggregated by the prefix
+   */
+  public static Map<PropertyKey, String> getTrailingProperties(PropertyKey prefixKey) {
+    int prefixKeyLen = prefixKey.toString().length();
+    Map<PropertyKey, String> ret = Maps.newHashMap();
+    for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
+      String key = entry.getKey();
+      if (key.length() > prefixKeyLen + 1 && key.startsWith(prefixKey.toString()) &&
+          key.charAt(prefixKeyLen) == '.') {
+        String trailingKey = key.substring(prefixKeyLen + 1);
+        if (PropertyKey.isValid(trailingKey)) {
+          ret.put(PropertyKey.fromString(trailingKey), entry.getValue());
+        }
+      }
+    }
+    return ret;
   }
 
   /**

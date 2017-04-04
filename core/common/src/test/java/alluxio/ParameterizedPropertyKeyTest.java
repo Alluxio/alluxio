@@ -102,7 +102,6 @@ public final class ParameterizedPropertyKeyTest {
         ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.option.foo"));
     Assert.assertTrue(
         ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.option.alluxio.foo"));
-
     Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.alluxio"));
     Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table..alluxio"));
     Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table. .alluxio"));
