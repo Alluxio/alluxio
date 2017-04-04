@@ -97,10 +97,19 @@ public final class ParameterizedPropertyKeyTest {
     Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
     Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.Fo123.alluxio"));
     Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.option"));
+    Assert.assertTrue(
+        ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.option.foo"));
+    Assert.assertTrue(
+        ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.option.alluxio.foo"));
+
     Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.alluxio"));
     Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table..alluxio"));
     Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table. .alluxio"));
     Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.foo.alluxio1"));
+    Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.option."));
+    Assert.assertFalse(
+        ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.option.foo."));
     // Numeric parameter
     Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.worker.tieredstore.level1.alias"));
     Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.worker.tieredstore.level99.alias"));

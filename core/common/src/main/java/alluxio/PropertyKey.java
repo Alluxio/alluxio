@@ -20,22 +20,16 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Configurations properties constants. Please check and update Configuration-Settings.md file when
- * you change or add Alluxio configuration properties.
+ * Configuration property key which is essentially a wrapper of String.
+ * This class also provides a set of pre-defined property keys.
  */
 @ThreadSafe
 public final class PropertyKey {
   /** A map from default property key's string name to the key. */
-  private static final Map<PropertyKey, Object> DEFAULT_VALUES;
+  private static final Map<PropertyKey, Object> DEFAULT_VALUES = new HashMap<>();
 
   /** A map from default property key's string name to the key. */
-  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP;
-
-  static {
-    DEFAULT_VALUES = new HashMap<>();
-    DEFAULT_KEYS_MAP = new HashMap<>();
-  }
-
+  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
 
   public static final PropertyKey CONF_DIR =
       defaultKey(Name.CONF_DIR, String.format("${%s}/conf", Name.HOME));
