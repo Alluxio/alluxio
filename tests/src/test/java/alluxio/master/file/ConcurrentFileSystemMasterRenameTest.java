@@ -21,17 +21,14 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
-import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
@@ -42,8 +39,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -87,13 +82,6 @@ public class ConcurrentFileSystemMasterRenameTest {
 
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
-  private enum UnaryOperation {
-    CREATE,
-    DELETE,
-    GET_FILE_INFO,
-    LIST_STATUS
-  }
-
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
 
@@ -109,8 +97,7 @@ public class ConcurrentFileSystemMasterRenameTest {
     // Register sleeping ufs with slow rename
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS)
-        .setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS);
+    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
     UnderFileSystemRegistry.register(sSleepingUfsFactory);
   }
 
@@ -169,149 +156,6 @@ public class ConcurrentFileSystemMasterRenameTest {
       Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
     }
     Assert.assertEquals(numThreads, files.size());
-  }
-
-  @Test
-  public void concurrentCreate() throws Exception {
-    final int numThreads = CONCURRENCY_FACTOR;
-    // 7 nested components to create (2 seconds each).
-    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] =
-          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
-    }
-    int errors = concurrentUnaryOperation(UnaryOperation.CREATE, paths, limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
-  }
-
-  @Test
-  public void concurrentCreateExistingDir() throws Exception {
-    final int numThreads = CONCURRENCY_FACTOR;
-    // 7 nested components to create (2 seconds each).
-    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-
-    // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
-        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH));
-
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] =
-          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
-    }
-    int errors = concurrentUnaryOperation(UnaryOperation.CREATE, paths, limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
-  }
-
-  @Test
-  public void concurrentCreateNonPersistedDir() throws Exception {
-    final int numThreads = CONCURRENCY_FACTOR;
-    // 7 nested components to create (2 seconds each).
-    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-
-    // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
-        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.MUST_CACHE));
-
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] =
-          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
-    }
-    int errors = concurrentUnaryOperation(UnaryOperation.CREATE, paths, limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
-  }
-
-  @Test
-  public void concurrentLoadFileMetadata() throws Exception {
-    runLoadMetadata(null, false, true, false);
-  }
-
-  @Test
-  public void concurrentLoadFileMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, true, false);
-  }
-
-  @Test
-  public void concurrentLoadFileMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, true, false);
-  }
-
-  @Test
-  public void concurrentLoadSameFileMetadata() throws Exception {
-    runLoadMetadata(null, true, true, false);
-  }
-
-  @Test
-  public void concurrentLoadSameFileMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, true, true, false);
-  }
-
-  @Test
-  public void concurrentLoadSameFileMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, true, true, false);
-  }
-
-  @Test
-  public void concurrentLoadDirMetadata() throws Exception {
-    runLoadMetadata(null, false, false, false);
-  }
-
-  @Test
-  public void concurrentLoadDirMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, false, false);
-  }
-
-  @Test
-  public void concurrentLoadDirMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, false, false);
-  }
-
-  @Test
-  public void concurrentLoadSameDirMetadata() throws Exception {
-    runLoadMetadata(null, true, false, false);
-  }
-
-  @Test
-  public void concurrentLoadSameDirMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, true, false, false);
-  }
-
-  @Test
-  public void concurrentLoadSameDirMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, true, false, false);
-  }
-
-  @Test
-  public void concurrentListDirs() throws Exception {
-    runLoadMetadata(null, false, false, true);
-  }
-
-  @Test
-  public void concurrentListDirsExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, false, true);
-  }
-
-  @Test
-  public void concurrentListDirsNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, false, true);
-  }
-
-  @Test
-  public void concurrentListFiles() throws Exception {
-    runLoadMetadata(null, false, true, true);
-  }
-
-  @Test
-  public void concurrentListFilesExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, true, true);
-  }
-
-  @Test
-  public void concurrentListFilesNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, true, true);
   }
 
   /**
@@ -611,149 +455,6 @@ public class ConcurrentFileSystemMasterRenameTest {
     Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
         durationMs < LIMIT_MS);
     return errors.size();
-  }
-
-  private int concurrentUnaryOperation(final UnaryOperation operation, final AlluxioURI[] paths,
-      final long limitMs) throws Exception {
-    final int numFiles = paths.length;
-    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
-    List<Thread> threads = new ArrayList<>(numFiles);
-    // If there are exceptions, we will store them here.
-    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
-    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
-      public void uncaughtException(Thread th, Throwable ex) {
-        errors.add(ex);
-      }
-    };
-    for (int i = 0; i < numFiles; i++) {
-      final int iteration = i;
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            AuthenticatedClientUser.set(TEST_USER);
-            barrier.await();
-            switch (operation) {
-              case CREATE:
-                mFileSystem.createFile(paths[iteration], sCreatePersistedFileOptions).close();
-                break;
-              case DELETE:
-                mFileSystem.delete(paths[iteration]);
-                break;
-              case GET_FILE_INFO:
-                mFileSystem.getStatus(paths[iteration]);
-                break;
-              case LIST_STATUS:
-                mFileSystem.listStatus(paths[iteration]);
-                break;
-              default: throw new IllegalArgumentException("'operation' is not a valid operation.");
-            }
-
-          } catch (Exception e) {
-            Throwables.propagate(e);
-          }
-        }
-      });
-      t.setUncaughtExceptionHandler(exceptionHandler);
-      threads.add(t);
-    }
-    Collections.shuffle(threads);
-    long startMs = CommonUtils.getCurrentMs();
-    for (Thread t : threads) {
-      t.start();
-    }
-    for (Thread t : threads) {
-      t.join();
-    }
-    long durationMs = CommonUtils.getCurrentMs() - startMs;
-    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + limitMs,
-        durationMs < limitMs);
-    return errors.size();
-  }
-
-  /**
-   * Runs load metadata tests.
-   *
-   * @param writeType the {@link WriteType} to create ancestors, if not null
-   * @param useSinglePath if true, threads will only use a single path
-   * @param createFiles if true, will create files at the bottom of the tree, directories otherwise
-   * @param listParentDir if true, will list the parent dir to load the metadata
-   * @throws Exception if an error occurs
-   */
-  private void runLoadMetadata(WriteType writeType, boolean useSinglePath, boolean createFiles,
-      boolean listParentDir) throws Exception {
-    int numThreads = CONCURRENCY_FACTOR;
-    // 2 nested components to create.
-    long limitMs = 2 * SLEEP_MS * 3;
-
-    int uniquePaths = useSinglePath ? 1 : numThreads;
-
-    if (listParentDir) {
-      // Loading direct children needs to load each child, so reduce the branching factor.
-      uniquePaths = 10;
-      limitMs = (2 + uniquePaths) * SLEEP_MS * 2;
-    }
-
-    // Create UFS files outside of Alluxio.
-    new File(mLocalUfsPath + "/existing/path/").mkdirs();
-    for (int i = 0; i < uniquePaths; i++) {
-      if (createFiles) {
-        FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/existing/path/last_" + i);
-        fileWriter.write("test");
-        fileWriter.close();
-      } else {
-        new File(mLocalUfsPath + "/existing/path/last_" + i).mkdirs();
-      }
-    }
-
-    if (writeType != null) {
-      // create inodes in Alluxio
-      mFileSystem.createDirectory(new AlluxioURI("/existing/path/"),
-          CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(writeType));
-    }
-
-    // Generate path names for threads.
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-    int fileId = 0;
-    for (int i = 0; i < numThreads; i++) {
-      if (listParentDir) {
-        paths[i] = new AlluxioURI("/existing/path/");
-      } else {
-        paths[i] = new AlluxioURI("/existing/path/last_" + ((fileId++) % uniquePaths));
-      }
-    }
-
-    int errors = 0;
-    if (listParentDir) {
-      errors = concurrentUnaryOperation(UnaryOperation.LIST_STATUS, paths, limitMs);
-    } else {
-      errors = concurrentUnaryOperation(UnaryOperation.GET_FILE_INFO, paths, limitMs);
-    }
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
-
-    ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
-        LoadMetadataType.Never);
-
-    List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"), listOptions);
-    Assert.assertEquals(1, files.size());
-    Assert.assertEquals("existing", files.get(0).getName());
-    Assert.assertEquals(PersistenceState.PERSISTED,
-        PersistenceState.valueOf(files.get(0).getPersistenceState()));
-
-    files = mFileSystem.listStatus(new AlluxioURI("/existing"), listOptions);
-    Assert.assertEquals(1, files.size());
-    Assert.assertEquals("path", files.get(0).getName());
-    Assert.assertEquals(PersistenceState.PERSISTED,
-        PersistenceState.valueOf(files.get(0).getPersistenceState()));
-
-    files = mFileSystem.listStatus(new AlluxioURI("/existing/path/"), listOptions);
-    Assert.assertEquals(uniquePaths, files.size());
-    Collections.sort(files, new IntegerSuffixedPathComparator());
-    for (int i = 0; i < uniquePaths; i++) {
-      Assert.assertEquals("last_" + i, files.get(i).getName());
-      Assert.assertEquals(PersistenceState.PERSISTED,
-          PersistenceState.valueOf(files.get(i).getPersistenceState()));
-    }
   }
 
   /**

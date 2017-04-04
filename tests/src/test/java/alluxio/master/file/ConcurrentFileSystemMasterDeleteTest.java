@@ -94,7 +94,6 @@ public class ConcurrentFileSystemMasterDeleteTest {
   // Must be done in beforeClass so execution is before rules
   @BeforeClass
   public static void beforeClass() throws Exception {
-    // Register sleeping ufs with slow rename
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
     options.setDeleteFileMs(SLEEP_MS).setDeleteDirectoryMs(SLEEP_MS);
