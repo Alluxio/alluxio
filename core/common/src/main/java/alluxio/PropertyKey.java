@@ -11,6 +11,9 @@
 
 package alluxio;
 
+import com.google.common.base.Objects;
+
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,368 +24,586 @@ import javax.annotation.concurrent.ThreadSafe;
  * you change or add Alluxio configuration properties.
  */
 @ThreadSafe
-public enum PropertyKey {
-  CONF_DIR(Name.CONF_DIR, String.format("${%s}/conf", Name.HOME)),
-  DEBUG(Name.DEBUG, false),
-  HOME(Name.HOME, "/opt/alluxio"),
-  KEY_VALUE_ENABLED(Name.KEY_VALUE_ENABLED, false),
-  KEY_VALUE_PARTITION_SIZE_BYTES_MAX(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB"),
-  LOGGER_TYPE(Name.LOGGER_TYPE, "Console"),
-  LOGS_DIR(Name.LOGS_DIR, String.format("${%s}/logs", Name.WORK_DIR)),
-  METRICS_CONF_FILE(Name.METRICS_CONF_FILE,
-      String.format("${%s}/metrics.properties", Name.CONF_DIR)),
-  NETWORK_HOST_RESOLUTION_TIMEOUT_MS(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000),
-  NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB"),
-  SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
-  TEST_MODE(Name.TEST_MODE, false),
-  VERSION(Name.VERSION, ProjectConstants.VERSION),
-  WEB_RESOURCES(Name.WEB_RESOURCES,
-      String.format("${%s}/core/server/common/src/main/webapp", Name.HOME)),
-  WEB_THREADS(Name.WEB_THREADS, 1),
-  WORK_DIR(Name.WORK_DIR, String.format("${%s}", Name.HOME)),
-  ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
-  ZOOKEEPER_ELECTION_PATH(Name.ZOOKEEPER_ELECTION_PATH, "/election"),
-  ZOOKEEPER_ENABLED(Name.ZOOKEEPER_ENABLED, false),
-  ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT(Name.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT, 10),
-  ZOOKEEPER_LEADER_PATH(Name.ZOOKEEPER_LEADER_PATH, "/leader"),
+public final class PropertyKey {
+  /** A map from default property key's string name to the key. */
+  private static final Map<PropertyKey, Object> DEFAULT_VALUES;
+
+  /** A map from default property key's string name to the key. */
+  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP;
+
+  static {
+    DEFAULT_VALUES = new HashMap<>();
+    DEFAULT_KEYS_MAP = new HashMap<>();
+  }
+
+
+  public static final PropertyKey CONF_DIR =
+      defaultKey(Name.CONF_DIR, String.format("${%s}/conf", Name.HOME));
+  public static final PropertyKey DEBUG = defaultKey(Name.DEBUG, false);
+  public static final PropertyKey HOME = defaultKey(Name.HOME, "/opt/alluxio");
+  public static final PropertyKey KEY_VALUE_ENABLED = defaultKey(Name.KEY_VALUE_ENABLED, false);
+  public static final PropertyKey KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
+      defaultKey(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB");
+  public static final PropertyKey LOGGER_TYPE = defaultKey(Name.LOGGER_TYPE, "Console");
+  public static final PropertyKey LOGS_DIR =
+      defaultKey(Name.LOGS_DIR, String.format("${%s}/logs", Name.WORK_DIR));
+  public static final PropertyKey METRICS_CONF_FILE =
+      defaultKey(Name.METRICS_CONF_FILE, String.format("${%s}/metrics.properties", Name.CONF_DIR));
+  public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
+      defaultKey(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000);
+  public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
+      defaultKey(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB");
+  public static final PropertyKey SITE_CONF_DIR =
+      defaultKey(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/");
+  public static final PropertyKey TEST_MODE = defaultKey(Name.TEST_MODE, false);
+  public static final PropertyKey VERSION = defaultKey(Name.VERSION, ProjectConstants.VERSION);
+  public static final PropertyKey WEB_RESOURCES = defaultKey(Name.WEB_RESOURCES,
+      String.format("${%s}/core/server/common/src/main/webapp", Name.HOME));
+  public static final PropertyKey WEB_THREADS = defaultKey(Name.WEB_THREADS, 1);
+  public static final PropertyKey WORK_DIR =
+      defaultKey(Name.WORK_DIR, String.format("${%s}", Name.HOME));
+  public static final PropertyKey ZOOKEEPER_ADDRESS = defaultKey(Name.ZOOKEEPER_ADDRESS, null);
+  public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
+      defaultKey(Name.ZOOKEEPER_ELECTION_PATH, "/election");
+  public static final PropertyKey ZOOKEEPER_ENABLED = defaultKey(Name.ZOOKEEPER_ENABLED, false);
+  public static final PropertyKey ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
+      defaultKey(Name.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT, 10);
+  public static final PropertyKey ZOOKEEPER_LEADER_PATH =
+      defaultKey(Name.ZOOKEEPER_LEADER_PATH, "/leader");
 
   //
   // UFS related properties
   //
-  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR)),
-  UNDERFS_ALLOW_SET_OWNER_FAILURE(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE, false),
-  UNDERFS_LISTING_LENGTH(Name.UNDERFS_LISTING_LENGTH, 1000),
-  UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
-  UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
-      "org.apache.hadoop.fs.glusterfs.GlusterFileSystem"),
-  UNDERFS_GLUSTERFS_MOUNTS(Name.UNDERFS_GLUSTERFS_MOUNTS, null),
-  UNDERFS_GLUSTERFS_MR_DIR(Name.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system"),
-  UNDERFS_GLUSTERFS_VOLUMES(Name.UNDERFS_GLUSTERFS_VOLUMES, null),
-  UNDERFS_HDFS_CONFIGURATION(Name.UNDERFS_HDFS_CONFIGURATION,
-      String.format("${%s}/core-site.xml", Name.CONF_DIR)),
-  UNDERFS_HDFS_IMPL(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem"),
-  UNDERFS_HDFS_PREFIXES(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///,maprfs:///"),
-  UNDERFS_HDFS_REMOTE(Name.UNDERFS_HDFS_REMOTE, false),
-  UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY,
-      false),
-  UNDERFS_OSS_CONNECT_MAX(Name.UNDERFS_OSS_CONNECT_MAX, 1024),
-  UNDERFS_OSS_CONNECT_TIMEOUT(Name.UNDERFS_OSS_CONNECT_TIMEOUT, 50000),
-  UNDERFS_OSS_CONNECT_TTL(Name.UNDERFS_OSS_CONNECT_TTL, -1),
-  UNDERFS_OSS_SOCKET_TIMEOUT(Name.UNDERFS_OSS_SOCKET_TIMEOUT, 50000),
-  UNDERFS_S3_ADMIN_THREADS_MAX(Name.UNDERFS_S3_ADMIN_THREADS_MAX, 20),
-  UNDERFS_S3_DISABLE_DNS_BUCKETS(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS, false),
-  UNDERFS_S3_ENDPOINT(Name.UNDERFS_S3_ENDPOINT, null),
-  UNDERFS_S3_ENDPOINT_HTTP_PORT(Name.UNDERFS_S3_ENDPOINT_HTTP_PORT, null),
-  UNDERFS_S3_ENDPOINT_HTTPS_PORT(Name.UNDERFS_S3_ENDPOINT_HTTPS_PORT, null),
-  UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, ""),
-  UNDERFS_S3_PROXY_HOST(Name.UNDERFS_S3_PROXY_HOST, null),
-  UNDERFS_S3_PROXY_HTTPS_ONLY(Name.UNDERFS_S3_PROXY_HTTPS_ONLY, true),
-  UNDERFS_S3_PROXY_PORT(Name.UNDERFS_S3_PROXY_PORT, null),
-  UNDERFS_S3_THREADS_MAX(Name.UNDERFS_S3_THREADS_MAX, 40),
-  UNDERFS_S3_UPLOAD_THREADS_MAX(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 20),
-  UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000),
-  UNDERFS_S3A_INHERIT_ACL(Name.UNDERFS_S3A_INHERIT_ACL, true),
-  UNDERFS_S3A_REQUEST_TIMEOUT(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS, 60000),
-  UNDERFS_S3A_SECURE_HTTP_ENABLED(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false),
-  UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED,
-      false),
-  UNDERFS_S3A_SOCKET_TIMEOUT_MS(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS, 50000),
+  // Deprecated
+  public static final PropertyKey UNDERFS_ADDRESS =
+      defaultKey(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR));
+  public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
+      defaultKey(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE, false);
+  public static final PropertyKey UNDERFS_LISTING_LENGTH =
+      defaultKey(Name.UNDERFS_LISTING_LENGTH, 1000);
+  public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
+      defaultKey(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
+  public static final PropertyKey UNDERFS_GLUSTERFS_IMPL =
+      defaultKey(Name.UNDERFS_GLUSTERFS_IMPL, "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
+  public static final PropertyKey UNDERFS_GLUSTERFS_MOUNTS =
+      defaultKey(Name.UNDERFS_GLUSTERFS_MOUNTS, null);
+  public static final PropertyKey UNDERFS_GLUSTERFS_MR_DIR =
+      defaultKey(Name.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system");
+  public static final PropertyKey UNDERFS_GLUSTERFS_VOLUMES =
+      defaultKey(Name.UNDERFS_GLUSTERFS_VOLUMES, null);
+  public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
+      defaultKey(Name.UNDERFS_HDFS_CONFIGURATION,
+          String.format("${%s}/core-site.xml", Name.CONF_DIR));
+  public static final PropertyKey UNDERFS_HDFS_IMPL =
+      defaultKey(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem");
+  public static final PropertyKey UNDERFS_HDFS_PREFIXES =
+      defaultKey(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///,maprfs:///");
+  public static final PropertyKey UNDERFS_HDFS_REMOTE = defaultKey(Name.UNDERFS_HDFS_REMOTE, false);
+  public static final PropertyKey UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
+      defaultKey(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY, false);
+  public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
+      defaultKey(Name.UNDERFS_OSS_CONNECT_MAX, 1024);
+  public static final PropertyKey UNDERFS_OSS_CONNECT_TIMEOUT =
+      defaultKey(Name.UNDERFS_OSS_CONNECT_TIMEOUT, 50000);
+  public static final PropertyKey UNDERFS_OSS_CONNECT_TTL =
+      defaultKey(Name.UNDERFS_OSS_CONNECT_TTL, -1);
+  public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
+      defaultKey(Name.UNDERFS_OSS_SOCKET_TIMEOUT, 50000);
+  public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
+      defaultKey(Name.UNDERFS_S3_ADMIN_THREADS_MAX, 20);
+  public static final PropertyKey UNDERFS_S3_DISABLE_DNS_BUCKETS =
+      defaultKey(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS, false);
+  public static final PropertyKey UNDERFS_S3_ENDPOINT = defaultKey(Name.UNDERFS_S3_ENDPOINT, null);
+  public static final PropertyKey UNDERFS_S3_ENDPOINT_HTTP_PORT =
+      defaultKey(Name.UNDERFS_S3_ENDPOINT_HTTP_PORT, null);
+  public static final PropertyKey UNDERFS_S3_ENDPOINT_HTTPS_PORT =
+      defaultKey(Name.UNDERFS_S3_ENDPOINT_HTTPS_PORT, null);
+  public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
+      defaultKey(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
+  public static final PropertyKey UNDERFS_S3_PROXY_HOST =
+      defaultKey(Name.UNDERFS_S3_PROXY_HOST, null);
+  public static final PropertyKey UNDERFS_S3_PROXY_HTTPS_ONLY =
+      defaultKey(Name.UNDERFS_S3_PROXY_HTTPS_ONLY, true);
+  public static final PropertyKey UNDERFS_S3_PROXY_PORT =
+      defaultKey(Name.UNDERFS_S3_PROXY_PORT, null);
+  public static final PropertyKey UNDERFS_S3_THREADS_MAX =
+      defaultKey(Name.UNDERFS_S3_THREADS_MAX, 40);
+  public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
+      defaultKey(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 20);
+  public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
+      defaultKey(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000);
+  public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
+      defaultKey(Name.UNDERFS_S3A_INHERIT_ACL, true);
+  public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
+      defaultKey(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS, 60000);
+  public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
+      defaultKey(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false);
+  public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
+      defaultKey(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED, false);
+  public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
+      defaultKey(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS, 50000);
 
   //
   // UFS access control related properties
   //
   // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
-  GCS_ACCESS_KEY(Name.GCS_ACCESS_KEY, null),
-  GCS_SECRET_KEY(Name.GCS_SECRET_KEY, null),
-  OSS_ACCESS_KEY(Name.OSS_ACCESS_KEY, null),
-  OSS_ENDPOINT_KEY(Name.OSS_ENDPOINT_KEY, null),
-  OSS_SECRET_KEY(Name.OSS_SECRET_KEY, null),
-  S3A_ACCESS_KEY(Name.S3A_ACCESS_KEY, null),
-  S3A_SECRET_KEY(Name.S3A_SECRET_KEY, null),
-  S3N_ACCESS_KEY(Name.S3N_ACCESS_KEY, null),
-  S3N_SECRET_KEY(Name.S3N_SECRET_KEY, null),
-  SWIFT_API_KEY(Name.SWIFT_API_KEY, null),
-  SWIFT_AUTH_METHOD_KEY(Name.SWIFT_AUTH_METHOD_KEY, null),
-  SWIFT_AUTH_URL_KEY(Name.SWIFT_AUTH_URL_KEY, null),
-  SWIFT_PASSWORD_KEY(Name.SWIFT_PASSWORD_KEY, null),
-  SWIFT_SIMULATION(Name.SWIFT_SIMULATION, null),
-  SWIFT_TENANT_KEY(Name.SWIFT_TENANT_KEY, null),
-  SWIFT_USE_PUBLIC_URI_KEY(Name.SWIFT_USE_PUBLIC_URI_KEY, null),
-  SWIFT_USER_KEY(Name.SWIFT_USER_KEY, null),
-  SWIFT_REGION_KEY(Name.SWIFT_REGION_KEY, null),
+  public static final PropertyKey GCS_ACCESS_KEY = defaultKey(Name.GCS_ACCESS_KEY, null);
+  public static final PropertyKey GCS_SECRET_KEY = defaultKey(Name.GCS_SECRET_KEY, null);
+  public static final PropertyKey OSS_ACCESS_KEY = defaultKey(Name.OSS_ACCESS_KEY, null);
+  public static final PropertyKey OSS_ENDPOINT_KEY = defaultKey(Name.OSS_ENDPOINT_KEY, null);
+  public static final PropertyKey OSS_SECRET_KEY = defaultKey(Name.OSS_SECRET_KEY, null);
+  public static final PropertyKey S3A_ACCESS_KEY = defaultKey(Name.S3A_ACCESS_KEY, null);
+  public static final PropertyKey S3A_SECRET_KEY = defaultKey(Name.S3A_SECRET_KEY, null);
+  public static final PropertyKey S3N_ACCESS_KEY = defaultKey(Name.S3N_ACCESS_KEY, null);
+  public static final PropertyKey S3N_SECRET_KEY = defaultKey(Name.S3N_SECRET_KEY, null);
+  public static final PropertyKey SWIFT_API_KEY = defaultKey(Name.SWIFT_API_KEY, null);
+  public static final PropertyKey SWIFT_AUTH_METHOD_KEY =
+      defaultKey(Name.SWIFT_AUTH_METHOD_KEY, null);
+  public static final PropertyKey SWIFT_AUTH_URL_KEY = defaultKey(Name.SWIFT_AUTH_URL_KEY, null);
+  public static final PropertyKey SWIFT_PASSWORD_KEY = defaultKey(Name.SWIFT_PASSWORD_KEY, null);
+  public static final PropertyKey SWIFT_SIMULATION = defaultKey(Name.SWIFT_SIMULATION, null);
+  public static final PropertyKey SWIFT_TENANT_KEY = defaultKey(Name.SWIFT_TENANT_KEY, null);
+  public static final PropertyKey SWIFT_USE_PUBLIC_URI_KEY =
+      defaultKey(Name.SWIFT_USE_PUBLIC_URI_KEY, null);
+  public static final PropertyKey SWIFT_USER_KEY = defaultKey(Name.SWIFT_USER_KEY, null);
+  public static final PropertyKey SWIFT_REGION_KEY = defaultKey(Name.SWIFT_REGION_KEY, null);
+
+  //
+  // Mount table related properties
+  //
+  public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_ALLUXIO =
+      defaultKey(
+          ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("root").toString(), "/");
+  public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_OPTION =
+      defaultKey(
+          ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("root").toString(),
+          null);
+  public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
+      defaultKey(
+          ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_READONLY.format("root").toString(),
+          false);
+  public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
+      defaultKey(
+          ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_SHARED.format("root").toString(),
+          true);
+  public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
+      defaultKey(
+          ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_UFS.format("root").toString(),
+          String.format("${%s}", Name.UNDERFS_ADDRESS));
 
   //
   // Master related properties
   //
-  MASTER_ADDRESS(Name.MASTER_ADDRESS, null),
-  MASTER_BIND_HOST(Name.MASTER_BIND_HOST, "0.0.0.0"),
-  MASTER_CONNECTION_TIMEOUT_MS(Name.MASTER_CONNECTION_TIMEOUT_MS, 0),
-  MASTER_FILE_ASYNC_PERSIST_HANDLER(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER,
-      "alluxio.master.file.async.DefaultAsyncPersistHandler"),
-  MASTER_FORMAT_FILE_PREFIX(Name.MASTER_FORMAT_FILE_PREFIX, "_format_"),
-  MASTER_HEARTBEAT_INTERVAL_MS(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000),
-  MASTER_HOSTNAME(Name.MASTER_HOSTNAME, null),
-  MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
-  MASTER_JOURNAL_FLUSH_TIMEOUT_MS(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 300000),
-  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR)),
-  MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
-      "alluxio.master.journal.ProtoBufJournalFormatter"),
-  MASTER_JOURNAL_LOG_SIZE_BYTES_MAX(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB"),
-  MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS(
-      Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 5000),
-  MASTER_JOURNAL_TAILER_SLEEP_TIME_MS(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 1000),
-  MASTER_KEYTAB_KEY_FILE(Name.MASTER_KEYTAB_KEY_FILE, null),
-  MASTER_LINEAGE_CHECKPOINT_CLASS(Name.MASTER_LINEAGE_CHECKPOINT_CLASS,
-      "alluxio.master.lineage.checkpoint.CheckpointLatestPlanner"),
-  MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, 300000),
-  MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, 300000),
-  MASTER_LINEAGE_RECOMPUTE_LOG_PATH(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
-      String.format("${%s}/recompute.log", Name.LOGS_DIR)),
-  MASTER_PRINCIPAL(Name.MASTER_PRINCIPAL, null),
+  public static final PropertyKey MASTER_ADDRESS = defaultKey(Name.MASTER_ADDRESS, null);
+  public static final PropertyKey MASTER_BIND_HOST = defaultKey(Name.MASTER_BIND_HOST, "0.0.0.0");
+  public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
+      defaultKey(Name.MASTER_CONNECTION_TIMEOUT_MS, 0);
+  public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
+      defaultKey(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER,
+          "alluxio.master.file.async.DefaultAsyncPersistHandler");
+  public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
+      defaultKey(Name.MASTER_FORMAT_FILE_PREFIX, "_format_");
+  public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
+      defaultKey(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000);
+  public static final PropertyKey MASTER_HOSTNAME = defaultKey(Name.MASTER_HOSTNAME, null);
+  public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
+      defaultKey(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5);
+  public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
+      defaultKey(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 300000);
+  public static final PropertyKey MASTER_JOURNAL_FOLDER =
+      defaultKey(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR));
+  public static final PropertyKey MASTER_JOURNAL_FORMATTER_CLASS =
+      defaultKey(Name.MASTER_JOURNAL_FORMATTER_CLASS,
+          "alluxio.master.journal.ProtoBufJournalFormatter");
+  public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
+      defaultKey(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB");
+  public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
+      defaultKey(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 5000);
+  public static final PropertyKey MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
+      defaultKey(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 1000);
+  public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
+      defaultKey(Name.MASTER_KEYTAB_KEY_FILE, null);
+  public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_CLASS =
+      defaultKey(Name.MASTER_LINEAGE_CHECKPOINT_CLASS,
+          "alluxio.master.lineage.checkpoint.CheckpointLatestPlanner");
+  public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
+      defaultKey(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, 300000);
+  public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
+      defaultKey(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, 300000);
+  public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
+      defaultKey(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
+          String.format("${%s}/recompute.log", Name.LOGS_DIR));
+  public static final PropertyKey MASTER_PRINCIPAL = defaultKey(Name.MASTER_PRINCIPAL, null);
   // deprecated since version 1.4 and will be removed in version 2.0
   // use USER_RPC_RETRY_MAX_NUM_RETRY instead
-  MASTER_RETRY(Name.MASTER_RETRY, String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY)),
-  MASTER_RPC_PORT(Name.MASTER_RPC_PORT, 19998),
-  MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, true),
-  MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "MEM"),
-  MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS, "SSD"),
-  MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS, "HDD"),
-  MASTER_TIERED_STORE_GLOBAL_LEVELS(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS, 3),
-  MASTER_TTL_CHECKER_INTERVAL_MS(Name.MASTER_TTL_CHECKER_INTERVAL_MS, 3600000),
-  MASTER_WEB_BIND_HOST(Name.MASTER_WEB_BIND_HOST, "0.0.0.0"),
-  MASTER_WEB_HOSTNAME(Name.MASTER_WEB_HOSTNAME, null),
-  MASTER_WEB_PORT(Name.MASTER_WEB_PORT, 19999),
-  MASTER_WHITELIST(Name.MASTER_WHITELIST, "/"),
-  MASTER_WORKER_THREADS_MAX(Name.MASTER_WORKER_THREADS_MAX, 2048),
-  MASTER_WORKER_THREADS_MIN(Name.MASTER_WORKER_THREADS_MIN, 512),
-  MASTER_WORKER_TIMEOUT_MS(Name.MASTER_WORKER_TIMEOUT_MS, 300000),
+  public static final PropertyKey MASTER_RETRY =
+      defaultKey(Name.MASTER_RETRY, String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY));
+  public static final PropertyKey MASTER_RPC_PORT = defaultKey(Name.MASTER_RPC_PORT, 19998);
+  public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
+      defaultKey(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, true);
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
+      defaultKey(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "MEM");
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
+      defaultKey(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS, "SSD");
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
+      defaultKey(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS, "HDD");
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVELS =
+      defaultKey(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS, 3);
+  public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
+      defaultKey(Name.MASTER_TTL_CHECKER_INTERVAL_MS, 3600000);
+  public static final PropertyKey MASTER_WEB_BIND_HOST =
+      defaultKey(Name.MASTER_WEB_BIND_HOST, "0.0.0.0");
+  public static final PropertyKey MASTER_WEB_HOSTNAME = defaultKey(Name.MASTER_WEB_HOSTNAME, null);
+  public static final PropertyKey MASTER_WEB_PORT = defaultKey(Name.MASTER_WEB_PORT, 19999);
+  public static final PropertyKey MASTER_WHITELIST = defaultKey(Name.MASTER_WHITELIST, "/");
+  public static final PropertyKey MASTER_WORKER_THREADS_MAX =
+      defaultKey(Name.MASTER_WORKER_THREADS_MAX, 2048);
+  public static final PropertyKey MASTER_WORKER_THREADS_MIN =
+      defaultKey(Name.MASTER_WORKER_THREADS_MIN, 512);
+  public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
+      defaultKey(Name.MASTER_WORKER_TIMEOUT_MS, 300000);
 
   //
   // Worker related properties
   //
-  WORKER_ALLOCATOR_CLASS(Name.WORKER_ALLOCATOR_CLASS,
-      "alluxio.worker.block.allocator.MaxFreeAllocator"),
-  WORKER_BIND_HOST(Name.WORKER_BIND_HOST, "0.0.0.0"),
-  WORKER_BLOCK_HEARTBEAT_INTERVAL_MS(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 1000),
-  WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 60000),
-  WORKER_BLOCK_THREADS_MAX(Name.WORKER_BLOCK_THREADS_MAX, 2048),
-  WORKER_BLOCK_THREADS_MIN(Name.WORKER_BLOCK_THREADS_MIN, 256),
-  WORKER_DATA_BIND_HOST(Name.WORKER_DATA_BIND_HOST, "0.0.0.0"),
-  WORKER_DATA_FOLDER(Name.WORKER_DATA_FOLDER, "/alluxioworker/"),
-  WORKER_DATA_HOSTNAME(Name.WORKER_DATA_HOSTNAME, null),
-  WORKER_DATA_PORT(Name.WORKER_DATA_PORT, 29999),
-  WORKER_DATA_SERVER_CLASS(Name.WORKER_DATA_SERVER_CLASS, "alluxio.worker.netty.NettyDataServer"),
-  WORKER_DATA_TMP_FOLDER(Name.WORKER_DATA_TMP_FOLDER, ".tmp_blocks"),
-  WORKER_DATA_TMP_SUBDIR_MAX(Name.WORKER_DATA_TMP_SUBDIR_MAX, 1024),
-  WORKER_EVICTOR_CLASS(Name.WORKER_EVICTOR_CLASS, "alluxio.worker.block.evictor.LRUEvictor"),
-  WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR(Name.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR, 2.0),
-  WORKER_EVICTOR_LRFU_STEP_FACTOR(Name.WORKER_EVICTOR_LRFU_STEP_FACTOR, 0.25),
-  WORKER_FILE_PERSIST_POOL_SIZE(Name.WORKER_FILE_PERSIST_POOL_SIZE, 64),
-  WORKER_FILE_PERSIST_RATE_LIMIT(Name.WORKER_FILE_PERSIST_RATE_LIMIT, "2GB"),
-  WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED(Name.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, false),
-  WORKER_FILE_BUFFER_SIZE(Name.WORKER_FILE_BUFFER_SIZE, "1MB"),
-  WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS, 1000),
-  WORKER_HOSTNAME(Name.WORKER_HOSTNAME, null),
-  WORKER_KEYTAB_FILE(Name.WORKER_KEYTAB_FILE, null),
-  WORKER_MEMORY_SIZE(Name.WORKER_MEMORY_SIZE, "1GB"),
-  WORKER_NETWORK_NETTY_BACKLOG(Name.WORKER_NETWORK_NETTY_BACKLOG, null),
-  WORKER_NETWORK_NETTY_BOSS_THREADS(Name.WORKER_NETWORK_NETTY_BOSS_THREADS, 1),
-  WORKER_NETWORK_NETTY_BUFFER_RECEIVE(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE, null),
-  WORKER_NETWORK_NETTY_BUFFER_SEND(Name.WORKER_NETWORK_NETTY_BUFFER_SEND, null),
-  WORKER_NETWORK_NETTY_CHANNEL(Name.WORKER_NETWORK_NETTY_CHANNEL, null),
-  WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "MAPPED"),
-  WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 2),
-  WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 15),
-  WORKER_NETWORK_NETTY_WATERMARK_HIGH(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "32KB"),
-  WORKER_NETWORK_NETTY_WATERMARK_LOW(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW, "8KB"),
-  WORKER_NETWORK_NETTY_WORKER_THREADS(Name.WORKER_NETWORK_NETTY_WORKER_THREADS, 0),
-  WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(
-      Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16),
-  WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(
-      Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16),
-  WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES(
-      Name.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"),
-  WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX(
-      Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128),
-  WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX(
-      Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128),
-  WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX(
-      Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128),
-  WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX(
-      Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128),
+  public static final PropertyKey WORKER_ALLOCATOR_CLASS =
+      defaultKey(Name.WORKER_ALLOCATOR_CLASS, "alluxio.worker.block.allocator.MaxFreeAllocator");
+  public static final PropertyKey WORKER_BIND_HOST = defaultKey(Name.WORKER_BIND_HOST, "0.0.0.0");
+  public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
+      defaultKey(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 1000);
+  public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
+      defaultKey(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 60000);
+  public static final PropertyKey WORKER_BLOCK_THREADS_MAX =
+      defaultKey(Name.WORKER_BLOCK_THREADS_MAX, 2048);
+  public static final PropertyKey WORKER_BLOCK_THREADS_MIN =
+      defaultKey(Name.WORKER_BLOCK_THREADS_MIN, 256);
+  public static final PropertyKey WORKER_DATA_BIND_HOST =
+      defaultKey(Name.WORKER_DATA_BIND_HOST, "0.0.0.0");
+  public static final PropertyKey WORKER_DATA_FOLDER =
+      defaultKey(Name.WORKER_DATA_FOLDER, "/alluxioworker/");
+  public static final PropertyKey WORKER_DATA_HOSTNAME =
+      defaultKey(Name.WORKER_DATA_HOSTNAME, null);
+  public static final PropertyKey WORKER_DATA_PORT = defaultKey(Name.WORKER_DATA_PORT, 29999);
+  public static final PropertyKey WORKER_DATA_SERVER_CLASS =
+      defaultKey(Name.WORKER_DATA_SERVER_CLASS, "alluxio.worker.netty.NettyDataServer");
+  public static final PropertyKey WORKER_DATA_TMP_FOLDER =
+      defaultKey(Name.WORKER_DATA_TMP_FOLDER, ".tmp_blocks");
+  public static final PropertyKey WORKER_DATA_TMP_SUBDIR_MAX =
+      defaultKey(Name.WORKER_DATA_TMP_SUBDIR_MAX, 1024);
+  public static final PropertyKey WORKER_EVICTOR_CLASS =
+      defaultKey(Name.WORKER_EVICTOR_CLASS, "alluxio.worker.block.evictor.LRUEvictor");
+  public static final PropertyKey WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
+      defaultKey(Name.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR, 2.0);
+  public static final PropertyKey WORKER_EVICTOR_LRFU_STEP_FACTOR =
+      defaultKey(Name.WORKER_EVICTOR_LRFU_STEP_FACTOR, 0.25);
+  public static final PropertyKey WORKER_FILE_PERSIST_POOL_SIZE =
+      defaultKey(Name.WORKER_FILE_PERSIST_POOL_SIZE, 64);
+  public static final PropertyKey WORKER_FILE_PERSIST_RATE_LIMIT =
+      defaultKey(Name.WORKER_FILE_PERSIST_RATE_LIMIT, "2GB");
+  public static final PropertyKey WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
+      defaultKey(Name.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, false);
+  public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
+      defaultKey(Name.WORKER_FILE_BUFFER_SIZE, "1MB");
+  public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
+      defaultKey(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS, 1000);
+  public static final PropertyKey WORKER_HOSTNAME = defaultKey(Name.WORKER_HOSTNAME, null);
+  public static final PropertyKey WORKER_KEYTAB_FILE = defaultKey(Name.WORKER_KEYTAB_FILE, null);
+  public static final PropertyKey WORKER_MEMORY_SIZE = defaultKey(Name.WORKER_MEMORY_SIZE, "1GB");
+  public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
+      defaultKey(Name.WORKER_NETWORK_NETTY_BACKLOG, null);
+  public static final PropertyKey WORKER_NETWORK_NETTY_BOSS_THREADS =
+      defaultKey(Name.WORKER_NETWORK_NETTY_BOSS_THREADS, 1);
+  public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
+      defaultKey(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE, null);
+  public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_SEND =
+      defaultKey(Name.WORKER_NETWORK_NETTY_BUFFER_SEND, null);
+  public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
+      defaultKey(Name.WORKER_NETWORK_NETTY_CHANNEL, null);
+  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
+      defaultKey(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "MAPPED");
+  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
+      defaultKey(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 2);
+  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
+      defaultKey(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 15);
+  public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_HIGH =
+      defaultKey(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "32KB");
+  public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_LOW =
+      defaultKey(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW, "8KB");
+  public static final PropertyKey WORKER_NETWORK_NETTY_WORKER_THREADS =
+      defaultKey(Name.WORKER_NETWORK_NETTY_WORKER_THREADS, 0);
+  public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+      defaultKey(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16);
+  public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+      defaultKey(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
+  public static final PropertyKey WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
+      defaultKey(Name.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB");
+  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
+      defaultKey(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128);
+  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
+      defaultKey(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128);
+  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
+      defaultKey(Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128);
+  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
+      defaultKey(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128);
 
-  WORKER_PRINCIPAL(Name.WORKER_PRINCIPAL, null),
-  WORKER_RPC_PORT(Name.WORKER_RPC_PORT, 29998),
-  WORKER_SESSION_TIMEOUT_MS(Name.WORKER_SESSION_TIMEOUT_MS, 60000),
-  WORKER_TIERED_STORE_BLOCK_LOCK_READERS(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS, 1000),
-  WORKER_TIERED_STORE_BLOCK_LOCKS(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000),
-  WORKER_TIERED_STORE_LEVEL0_ALIAS(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM"),
-  WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
-  WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
-      "${alluxio.worker.memory.size}"),
-  WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "0.1"),
-  WORKER_TIERED_STORE_LEVEL1_ALIAS(Name.WORKER_TIERED_STORE_LEVEL1_ALIAS, null),
-  WORKER_TIERED_STORE_LEVEL1_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, null),
-  WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, null),
-  WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, null),
-  WORKER_TIERED_STORE_LEVEL2_ALIAS(Name.WORKER_TIERED_STORE_LEVEL2_ALIAS, null),
-  WORKER_TIERED_STORE_LEVEL2_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, null),
-  WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA, null),
-  WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, null),
-  WORKER_TIERED_STORE_LEVELS(Name.WORKER_TIERED_STORE_LEVELS, 1),
-  WORKER_TIERED_STORE_RESERVER_ENABLED(Name.WORKER_TIERED_STORE_RESERVER_ENABLED, false),
-  WORKER_TIERED_STORE_RESERVER_INTERVAL_MS(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000),
-  WORKER_TIERED_STORE_RETRY(Name.WORKER_TIERED_STORE_RETRY, 3),
-  WORKER_WEB_BIND_HOST(Name.WORKER_WEB_BIND_HOST, "0.0.0.0"),
-  WORKER_WEB_HOSTNAME(Name.WORKER_WEB_HOSTNAME, null),
-  WORKER_WEB_PORT(Name.WORKER_WEB_PORT, 30000),
+  public static final PropertyKey WORKER_PRINCIPAL = defaultKey(Name.WORKER_PRINCIPAL, null);
+  public static final PropertyKey WORKER_RPC_PORT = defaultKey(Name.WORKER_RPC_PORT, 29998);
+  public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
+      defaultKey(Name.WORKER_SESSION_TIMEOUT_MS, 60000);
+  public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
+      defaultKey(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS, 1000);
+  public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCKS =
+      defaultKey(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM");
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk");
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "${alluxio.worker.memory.size}");
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "0.1");
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_ALIAS =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL1_ALIAS, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_ALIAS =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL2_ALIAS, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, null);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
+      defaultKey(Name.WORKER_TIERED_STORE_LEVELS, 1);
+  public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
+      defaultKey(Name.WORKER_TIERED_STORE_RESERVER_ENABLED, false);
+  public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
+      defaultKey(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000);
+  public static final PropertyKey WORKER_TIERED_STORE_RETRY =
+      defaultKey(Name.WORKER_TIERED_STORE_RETRY, 3);
+  public static final PropertyKey WORKER_WEB_BIND_HOST =
+      defaultKey(Name.WORKER_WEB_BIND_HOST, "0.0.0.0");
+  public static final PropertyKey WORKER_WEB_HOSTNAME = defaultKey(Name.WORKER_WEB_HOSTNAME, null);
+  public static final PropertyKey WORKER_WEB_PORT = defaultKey(Name.WORKER_WEB_PORT, 30000);
 
   //
   // Proxy related properties
   //
-  PROXY_STREAM_CACHE_TIMEOUT_MS(Name.PROXY_STREAM_CACHE_TIMEOUT_MS, 3600000),
-  PROXY_WEB_BIND_HOST(Name.PROXY_WEB_BIND_HOST, "0.0.0.0"),
-  PROXY_WEB_HOSTNAME(Name.PROXY_WEB_HOSTNAME, null),
-  PROXY_WEB_PORT(Name.PROXY_WEB_PORT, 39999),
+  public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
+      defaultKey(Name.PROXY_STREAM_CACHE_TIMEOUT_MS, 3600000);
+  public static final PropertyKey PROXY_WEB_BIND_HOST =
+      defaultKey(Name.PROXY_WEB_BIND_HOST, "0.0.0.0");
+  public static final PropertyKey PROXY_WEB_HOSTNAME = defaultKey(Name.PROXY_WEB_HOSTNAME, null);
+  public static final PropertyKey PROXY_WEB_PORT = defaultKey(Name.PROXY_WEB_PORT, 39999);
 
   //
   // User related properties
   //
-  USER_BLOCK_MASTER_CLIENT_THREADS(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10),
-  USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB"),
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
+      defaultKey(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
+      defaultKey(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB");
   // Deprecated. It will be removed in 2.0.0.
-  USER_BLOCK_REMOTE_READER_CLASS(Name.USER_BLOCK_REMOTE_READER_CLASS,
-      "alluxio.client.netty.NettyRemoteBlockReader"),
+  public static final PropertyKey USER_BLOCK_REMOTE_READER_CLASS =
+      defaultKey(Name.USER_BLOCK_REMOTE_READER_CLASS,
+          "alluxio.client.netty.NettyRemoteBlockReader");
   // Deprecated. It will be removed in 2.0.0.
-  USER_BLOCK_REMOTE_WRITER_CLASS(Name.USER_BLOCK_REMOTE_WRITER_CLASS,
-      "alluxio.client.netty.NettyRemoteBlockWriter"),
-  USER_BLOCK_SIZE_BYTES_DEFAULT(Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "512MB"),
-  USER_BLOCK_WORKER_CLIENT_THREADS(Name.USER_BLOCK_WORKER_CLIENT_THREADS, 10),
-  USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX, 128),
-  USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS(
-      Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
-  USER_DATE_FORMAT_PATTERN(Name.USER_DATE_FORMAT_PATTERN, "MM-dd-yyyy HH:mm:ss:SSS"),
-  USER_FAILED_SPACE_REQUEST_LIMITS(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3),
-  USER_FILE_BUFFER_BYTES(Name.USER_FILE_BUFFER_BYTES, "1MB"),
-  USER_FILE_CACHE_PARTIALLY_READ_BLOCK(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true),
-  USER_FILE_MASTER_CLIENT_THREADS(Name.USER_FILE_MASTER_CLIENT_THREADS, 10),
-  USER_FILE_PASSIVE_CACHE_ENABLED(Name.USER_FILE_PASSIVE_CACHE_ENABLED, true),
-  USER_FILE_READ_TYPE_DEFAULT(Name.USER_FILE_READ_TYPE_DEFAULT, "CACHE_PROMOTE"),
-  USER_FILE_SEEK_BUFFER_SIZE_BYTES(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, "1MB"),
-  USER_FILE_WAITCOMPLETED_POLL_MS(Name.USER_FILE_WAITCOMPLETED_POLL_MS, 1000),
-  USER_FILE_WORKER_CLIENT_THREADS(Name.USER_FILE_WORKER_CLIENT_THREADS, 10),
-  USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX(Name.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX, 128),
-  USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS(
-      Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
-  USER_FILE_WRITE_LOCATION_POLICY(Name.USER_FILE_WRITE_LOCATION_POLICY,
-      "alluxio.client.file.policy.LocalFirstPolicy"),
-  USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES(
-      Name.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES, "0MB"),
-  USER_FILE_WRITE_TYPE_DEFAULT(Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"),
-  USER_FILE_WRITE_TIER_DEFAULT(Name.USER_FILE_WRITE_TIER_DEFAULT, Constants.FIRST_TIER),
-  USER_HEARTBEAT_INTERVAL_MS(Name.USER_HEARTBEAT_INTERVAL_MS, 1000),
-  USER_HOSTNAME(Name.USER_HOSTNAME, null),
-  USER_LINEAGE_ENABLED(Name.USER_LINEAGE_ENABLED, false),
-  USER_LINEAGE_MASTER_CLIENT_THREADS(Name.USER_LINEAGE_MASTER_CLIENT_THREADS, 10),
-  USER_LOCAL_READER_PACKET_SIZE_BYTES(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "8MB"),
-  USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
-  USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL, null),
-  USER_NETWORK_NETTY_TIMEOUT_MS(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000),
-  USER_NETWORK_NETTY_WORKER_THREADS(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0),
-  USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024),
-  USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
-      Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS),
-  USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED, false),
-  USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES,
-      "64KB"),
-  USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS,
-      16),
-  USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS,
-      16),
-  USER_NETWORK_NETTY_READER_CANCEL_ENABLED(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true),
-  USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, true),
-  USER_RPC_RETRY_BASE_SLEEP_MS(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50),
-  USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20),
-  USER_RPC_RETRY_MAX_SLEEP_MS(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000),
-  USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, true),
-  USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES,
-      "8MB"),
-  USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES,
-      "2MB"),
+  public static final PropertyKey USER_BLOCK_REMOTE_WRITER_CLASS =
+      defaultKey(Name.USER_BLOCK_REMOTE_WRITER_CLASS,
+          "alluxio.client.netty.NettyRemoteBlockWriter");
+  public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
+      defaultKey(Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "512MB");
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_THREADS =
+      defaultKey(Name.USER_BLOCK_WORKER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
+      defaultKey(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX, 128);
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+      defaultKey(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS);
+  public static final PropertyKey USER_DATE_FORMAT_PATTERN =
+      defaultKey(Name.USER_DATE_FORMAT_PATTERN, "MM-dd-yyyy HH:mm:ss:SSS");
+  public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
+      defaultKey(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
+  public static final PropertyKey USER_FILE_BUFFER_BYTES =
+      defaultKey(Name.USER_FILE_BUFFER_BYTES, "1MB");
+  public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+      defaultKey(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
+      defaultKey(Name.USER_FILE_MASTER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
+      defaultKey(Name.USER_FILE_PASSIVE_CACHE_ENABLED, true);
+  public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
+      defaultKey(Name.USER_FILE_READ_TYPE_DEFAULT, "CACHE_PROMOTE");
+  public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      defaultKey(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, "1MB");
+  public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
+      defaultKey(Name.USER_FILE_WAITCOMPLETED_POLL_MS, 1000);
+  public static final PropertyKey USER_FILE_WORKER_CLIENT_THREADS =
+      defaultKey(Name.USER_FILE_WORKER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
+      defaultKey(Name.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX, 128);
+  public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+      defaultKey(Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS);
+  public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
+      defaultKey(Name.USER_FILE_WRITE_LOCATION_POLICY,
+          "alluxio.client.file.policy.LocalFirstPolicy");
+  public static final PropertyKey USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
+      defaultKey(Name.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES, "0MB");
+  public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
+      defaultKey(Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+  public static final PropertyKey USER_FILE_WRITE_TIER_DEFAULT =
+      defaultKey(Name.USER_FILE_WRITE_TIER_DEFAULT, Constants.FIRST_TIER);
+  public static final PropertyKey USER_HEARTBEAT_INTERVAL_MS =
+      defaultKey(Name.USER_HEARTBEAT_INTERVAL_MS, 1000);
+  public static final PropertyKey USER_HOSTNAME = defaultKey(Name.USER_HOSTNAME, null);
+  public static final PropertyKey USER_LINEAGE_ENABLED =
+      defaultKey(Name.USER_LINEAGE_ENABLED, false);
+  public static final PropertyKey USER_LINEAGE_MASTER_CLIENT_THREADS =
+      defaultKey(Name.USER_LINEAGE_MASTER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_LOCAL_READER_PACKET_SIZE_BYTES =
+      defaultKey(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES, "8MB");
+  public static final PropertyKey USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
+      defaultKey(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB");
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
+      defaultKey(Name.USER_NETWORK_NETTY_CHANNEL, null);
+  public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
+      defaultKey(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000);
+  public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
+      defaultKey(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0);
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
+      defaultKey(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024);
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
+      defaultKey(Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS);
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
+      defaultKey(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED, false);
+  public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
+      defaultKey(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES, "64KB");
+  public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+      defaultKey(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16);
+  public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+      defaultKey(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
+  public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
+      defaultKey(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true);
+  public static final PropertyKey USER_PACKET_STREAMING_ENABLED =
+      defaultKey(Name.USER_PACKET_STREAMING_ENABLED, true);
+  public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
+      defaultKey(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50);
+  public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
+      defaultKey(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
+  public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
+      defaultKey(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000);
+  // Deprecated
+  public static final PropertyKey USER_UFS_DELEGATION_ENABLED =
+      defaultKey(Name.USER_UFS_DELEGATION_ENABLED, true);
+  // Deprecated
+  public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
+      defaultKey(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, "8MB");
+  public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
+      defaultKey(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, "2MB");
   // Deprecated. It will be removed in 2.0.0.
-  USER_UFS_FILE_READER_CLASS(Name.USER_UFS_FILE_READER_CLASS,
-      "alluxio.client.netty.NettyUnderFileSystemFileReader"),
+  public static final PropertyKey USER_UFS_FILE_READER_CLASS =
+      defaultKey(Name.USER_UFS_FILE_READER_CLASS,
+          "alluxio.client.netty.NettyUnderFileSystemFileReader");
   // Deprecated. It will be removed in 2.0.0.
-  USER_UFS_FILE_WRITER_CLASS(Name.USER_UFS_FILE_WRITER_CLASS,
-      "alluxio.client.netty.NettyUnderFileSystemFileWriter"),
-  USER_UFS_BLOCK_READ_LOCATION_POLICY(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
-      "alluxio.client.file.policy.LocalFirstPolicy"),
-  USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS(
-      Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 1),
-  USER_UFS_BLOCK_READ_CONCURRENCY_MAX(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX,
-      Integer.MAX_VALUE),
-  USER_UFS_BLOCK_OPEN_TIMEOUT_MS(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000),
-  USER_SHORT_CIRCUIT_ENABLED(Name.USER_SHORT_CIRCUIT_ENABLED, true),
+  public static final PropertyKey USER_UFS_FILE_WRITER_CLASS =
+      defaultKey(Name.USER_UFS_FILE_WRITER_CLASS,
+          "alluxio.client.netty.NettyUnderFileSystemFileWriter");
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
+      defaultKey(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
+          "alluxio.client.file.policy.LocalFirstPolicy");
+  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
+      defaultKey(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 1);
+  public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
+      defaultKey(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX, Integer.MAX_VALUE);
+  public static final PropertyKey USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+      defaultKey(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000);
+  public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
+      defaultKey(Name.USER_SHORT_CIRCUIT_ENABLED, true);
 
   //
   // FUSE integration related properties
   //
   /** Maximum number of Alluxio paths to cache for fuse conversion. */
-  FUSE_CACHED_PATHS_MAX(Name.FUSE_CACHED_PATHS_MAX, 500),
+  public static final PropertyKey FUSE_CACHED_PATHS_MAX =
+      defaultKey(Name.FUSE_CACHED_PATHS_MAX, 500);
   /** Have the fuse process log every FS request. */
-  FUSE_DEBUG_ENABLED(Name.FUSE_DEBUG_ENABLED, false),
+  public static final PropertyKey FUSE_DEBUG_ENABLED = defaultKey(Name.FUSE_DEBUG_ENABLED, false);
 
   /** FUSE file system name. */
-  FUSE_FS_NAME(Name.FUSE_FS_NAME, "alluxio-fuse"),
-  FUSE_FS_ROOT(Name.FUSE_FS_ROOT, "/"),
+  public static final PropertyKey FUSE_FS_NAME = defaultKey(Name.FUSE_FS_NAME, "alluxio-fuse");
+  public static final PropertyKey FUSE_FS_ROOT = defaultKey(Name.FUSE_FS_ROOT, "/");
   /**
    * Passed to fuse-mount, maximum granularity of write operations:
    * Capped by the kernel to 128KB max (as of Linux 3.16.0),.
    */
-  FUSE_MAXWRITE_BYTES(Name.FUSE_MAXWRITE_BYTES, 131072),
-  FUSE_MOUNT_DEFAULT(Name.FUSE_MOUNT_DEFAULT, "/mnt/alluxio"),
+  public static final PropertyKey FUSE_MAXWRITE_BYTES =
+      defaultKey(Name.FUSE_MAXWRITE_BYTES, 131072);
+  public static final PropertyKey FUSE_MOUNT_DEFAULT =
+      defaultKey(Name.FUSE_MOUNT_DEFAULT, "/mnt/alluxio");
 
   //
   // Security related properties
   //
-  SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-      null),
-  SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS,
-      "600000"),
-  SECURITY_AUTHENTICATION_TYPE(Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"),
-  SECURITY_AUTHORIZATION_PERMISSION_ENABLED(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true),
-  SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
-      "supergroup"),
-  SECURITY_AUTHORIZATION_PERMISSION_UMASK(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "022"),
-  SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS, "60000"),
-  SECURITY_GROUP_MAPPING_CLASS(Name.SECURITY_GROUP_MAPPING_CLASS,
-      "alluxio.security.group.provider.ShellBasedUnixGroupsMapping"),
-  SECURITY_LOGIN_USERNAME(Name.SECURITY_LOGIN_USERNAME, null),
+  public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
+      defaultKey(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS, null);
+  public static final PropertyKey SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
+      defaultKey(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS, "600000");
+  public static final PropertyKey SECURITY_AUTHENTICATION_TYPE =
+      defaultKey(Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+  public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
+      defaultKey(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
+  public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
+      defaultKey(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "supergroup");
+  public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_UMASK =
+      defaultKey(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "022");
+  public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
+      defaultKey(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS, "60000");
+  public static final PropertyKey SECURITY_GROUP_MAPPING_CLASS =
+      defaultKey(Name.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.ShellBasedUnixGroupsMapping");
+  public static final PropertyKey SECURITY_LOGIN_USERNAME =
+      defaultKey(Name.SECURITY_LOGIN_USERNAME, null);
 
   //
   // Mesos and Yarn related properties
   //
-  INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
-  INTEGRATION_MASTER_RESOURCE_MEM(Name.INTEGRATION_MASTER_RESOURCE_MEM, "1024MB"),
-  INTEGRATION_MESOS_ALLUXIO_JAR_URL(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL,
-      String.format("http://downloads.alluxio.org/downloads/files/${%s}/"
-      + "alluxio-${%s}-bin.tar.gz", Name.VERSION, Name.VERSION)),
-  INTEGRATION_MESOS_ALLUXIO_MASTER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME,
-      "AlluxioMaster"),
-  INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT, 1),
-  INTEGRATION_MESOS_ALLUXIO_WORKER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME,
-      "AlluxioWorker"),
-  INTEGRATION_MESOS_JDK_PATH(Name.INTEGRATION_MESOS_JDK_PATH, "jdk1.7.0_79"),
-  INTEGRATION_MESOS_JDK_URL(Name.INTEGRATION_MESOS_JDK_URL,
-      "https://alluxio-mesos.s3.amazonaws.com/jdk-7u79-linux-x64.tar.gz"),
-  INTEGRATION_MESOS_PRINCIPAL(Name.INTEGRATION_MESOS_PRINCIPAL, "alluxio"),
-  INTEGRATION_MESOS_ROLE(Name.INTEGRATION_MESOS_ROLE, "*"),
-  INTEGRATION_MESOS_SECRET(Name.INTEGRATION_MESOS_SECRET, null),
-  INTEGRATION_MESOS_USER(Name.INTEGRATION_MESOS_USER, ""),
-  INTEGRATION_WORKER_RESOURCE_CPU(Name.INTEGRATION_WORKER_RESOURCE_CPU, 1),
-  INTEGRATION_WORKER_RESOURCE_MEM(Name.INTEGRATION_WORKER_RESOURCE_MEM, "1024MB"),
-  INTEGRATION_YARN_WORKERS_PER_HOST_MAX(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, 1),
-  ;
+  public static final PropertyKey INTEGRATION_MASTER_RESOURCE_CPU =
+      defaultKey(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1);
+  public static final PropertyKey INTEGRATION_MASTER_RESOURCE_MEM =
+      defaultKey(Name.INTEGRATION_MASTER_RESOURCE_MEM, "1024MB");
+  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_JAR_URL =
+      defaultKey(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL, String.format(
+          "http://downloads.alluxio.org/downloads/files/${%s}/" + "alluxio-${%s}-bin.tar.gz",
+          Name.VERSION, Name.VERSION));
+  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_MASTER_NAME =
+      defaultKey(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME, "AlluxioMaster");
+  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT =
+      defaultKey(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT, 1);
+  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_WORKER_NAME =
+      defaultKey(Name.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME, "AlluxioWorker");
+  public static final PropertyKey INTEGRATION_MESOS_JDK_PATH =
+      defaultKey(Name.INTEGRATION_MESOS_JDK_PATH, "jdk1.7.0_79");
+  public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
+      defaultKey(Name.INTEGRATION_MESOS_JDK_URL,
+          "https://alluxio-mesos.s3.amazonaws.com/jdk-7u79-linux-x64.tar.gz");
+  public static final PropertyKey INTEGRATION_MESOS_PRINCIPAL =
+      defaultKey(Name.INTEGRATION_MESOS_PRINCIPAL, "alluxio");
+  public static final PropertyKey INTEGRATION_MESOS_ROLE =
+      defaultKey(Name.INTEGRATION_MESOS_ROLE, "*");
+  public static final PropertyKey INTEGRATION_MESOS_SECRET =
+      defaultKey(Name.INTEGRATION_MESOS_SECRET, null);
+  public static final PropertyKey INTEGRATION_MESOS_USER =
+      defaultKey(Name.INTEGRATION_MESOS_USER, "");
+  public static final PropertyKey INTEGRATION_WORKER_RESOURCE_CPU =
+      defaultKey(Name.INTEGRATION_WORKER_RESOURCE_CPU, 1);
+  public static final PropertyKey INTEGRATION_WORKER_RESOURCE_MEM =
+      defaultKey(Name.INTEGRATION_WORKER_RESOURCE_MEM, "1024MB");
+  public static final PropertyKey INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
+      defaultKey(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, 1);
 
   /**
    * A nested class to hold named string constants for their corresponding enum values.
@@ -522,7 +743,7 @@ public enum PropertyKey {
     public static final String MASTER_ADDRESS = "alluxio.master.address";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
-            "alluxio.master.connection.timeout.ms";
+        "alluxio.master.connection.timeout.ms";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
@@ -649,7 +870,7 @@ public enum PropertyKey {
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
-         "alluxio.worker.tieredstore.block.lock.readers";
+        "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
     public static final String WORKER_TIERED_STORE_LEVEL0_ALIAS =
@@ -714,8 +935,7 @@ public enum PropertyKey {
         "alluxio.user.block.worker.client.pool.size.max";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold.ms";
-    public static final String USER_DATE_FORMAT_PATTERN =
-        "alluxio.user.date.format.pattern";
+    public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
@@ -777,17 +997,14 @@ public enum PropertyKey {
         "alluxio.user.rpc.retry.base.sleep.ms";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
         "alluxio.user.rpc.retry.max.num.retry";
-    public static final String USER_RPC_RETRY_MAX_SLEEP_MS =
-        "alluxio.user.rpc.retry.max.sleep.ms";
+    public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep.ms";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
     public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.write.buffer.size.bytes";
-    public static final String USER_UFS_FILE_READER_CLASS =
-        "alluxio.user.ufs.file.reader.class";
-    public static final String USER_UFS_FILE_WRITER_CLASS =
-        "alluxio.user.ufs.file.writer.class";
+    public static final String USER_UFS_FILE_READER_CLASS = "alluxio.user.ufs.file.reader.class";
+    public static final String USER_UFS_FILE_WRITER_CLASS = "alluxio.user.ufs.file.writer.class";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
@@ -832,21 +1049,15 @@ public enum PropertyKey {
     private Name() {} // prevent instantiation
   }
 
-  /** A map from a property key's string name to the key. */
-  private static final Map<String, PropertyKey> KEYS_MAP = initKeysMap();
-
   /** Property name. */
   private final String mName;
-
-  /** Property name. */
-  private final String mDefaultValue;
 
   /**
    * @param keyStr string of property key
    * @return whether the input is a valid property name
    */
   public static boolean isValid(String keyStr) {
-    return KEYS_MAP.containsKey(keyStr);
+    return DEFAULT_KEYS_MAP.containsKey(keyStr) || ParameterizedPropertyKey.isValid(keyStr);
   }
 
   /**
@@ -857,37 +1068,55 @@ public enum PropertyKey {
    * @return corresponding property
    */
   public static PropertyKey fromString(String keyStr) {
-    PropertyKey key = KEYS_MAP.get(keyStr);
-    if (key == null) {
-      throw new IllegalArgumentException("Invalid property key " + keyStr);
+    PropertyKey key = DEFAULT_KEYS_MAP.get(keyStr);
+    if (key != null) {
+      return key;
     }
+    return ParameterizedPropertyKey.fromString(keyStr);
+  }
+
+  /**
+   * @return all default keys
+   */
+  public static Collection<PropertyKey> getDefaultKeys() {
+    return DEFAULT_KEYS_MAP.values();
+  }
+
+  /**
+   * Factory method to create a default property.
+   *
+   * @param propertyStr String of this property
+   * @param defaultValue Default value of this property in compile time if not null
+   */
+  private static PropertyKey defaultKey(String propertyStr, Object defaultValue) {
+    PropertyKey key = new PropertyKey(propertyStr);
+    DEFAULT_KEYS_MAP.put(propertyStr, key);
+    DEFAULT_VALUES.put(key, defaultValue);
     return key;
   }
 
   /**
-   * @return a Map from property key name to the key
+   * @param property String of this property
    */
-  private static Map<String, PropertyKey> initKeysMap() {
-    Map<String, PropertyKey> map = new HashMap<>();
-    for (PropertyKey key : PropertyKey.values()) {
-      map.put(key.toString(), key);
-    }
-    return map;
+  PropertyKey(String property) {
+    mName = property;
   }
 
-  /**
-   * Constructs a configuration property.
-   *
-   * @param property String of this property
-   * @param defaultValue Default value of this property in compile time if not null
-   */
-  PropertyKey(String property, Object defaultValue) {
-    mName = property;
-    if (defaultValue == null) {
-      mDefaultValue = null;
-    } else {
-      mDefaultValue = defaultValue.toString();
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (!(o instanceof PropertyKey)) {
+      return false;
+    }
+    PropertyKey that = (PropertyKey) o;
+    return Objects.equal(mName, that.mName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mName);
   }
 
   @Override
@@ -896,10 +1125,14 @@ public enum PropertyKey {
   }
 
   /**
-   * @return the default value of a property key
+   * @return the default value of a property key or null if no default value set
    */
   public String getDefaultValue() {
-    return mDefaultValue;
+    Object value = DEFAULT_VALUES.get(this);
+    if (value != null) {
+      return value.toString();
+    }
+    return null;
   }
 
 }

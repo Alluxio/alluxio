@@ -15,8 +15,8 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.ParameterizedPropertyKey;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.cli.Format;
 import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
@@ -130,7 +130,7 @@ public abstract class AbstractLocalAlluxioCluster {
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+          ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         UnderFileSystemUtils.mkdirIfNotExists(dirPath);
@@ -266,15 +266,15 @@ public abstract class AbstractLocalAlluxioCluster {
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
     Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(0), "MEM");
+        ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
     Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
+        ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
         ramdiskPath);
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+          ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
@@ -282,7 +282,7 @@ public abstract class AbstractLocalAlluxioCluster {
         newPaths.add(newPath);
       }
       Configuration.set(
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level),
+          ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
           Joiner.on(',').join(newPaths));
     }
 
