@@ -22,7 +22,7 @@ import alluxio.util.SecurityUtils;
 import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
+
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -115,7 +115,6 @@ public final class LsCommand extends WithWildCardPathCommand {
         .addOption(LIST_HUMAN_READABLE_OPTION);
   }
 
-
   /**
    * Displays information for all directories and files directly under the path specified in args.
    *
@@ -177,7 +176,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"));
+            cl.hasOption("p"));
   }
 
   @Override

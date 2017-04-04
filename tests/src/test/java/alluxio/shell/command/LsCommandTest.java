@@ -61,9 +61,17 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
 
   // Helper function to format ls result without acl enabled.
   private String getLsNoAclResultStr(String path, long createTime, int size, String fileType)
+        throws IOException, AlluxioException {
+    return getLsNoAclResultStr(path, createTime, false, size, fileType);
+  }
+
+  // Helper function to format ls result without acl enabled.
+  private String getLsNoAclResultStr(String path, long createTime, boolean hSize, int size,
+                                     String fileType)
       throws IOException, AlluxioException {
-    return String.format(Constants.LS_FORMAT_NO_ACL, String.valueOf(size),
-        CommandUtils.convertMsToDate(createTime), fileType, path);
+    String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
+    return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
+              CommandUtils.convertMsToDate(createTime), fileType, path);
   }
 
   // Helper function to create a set of files in the file system
@@ -102,25 +110,26 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
-    /**
-     * Tests ls -h command when security is not enabled.
-     */
-    @Test
-    @LocalAlluxioClusterResource.Config(
-            confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
-                    PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-    public void lsHumanReadable() throws IOException, AlluxioException {
-        URIStatus[] files = createFiles();
-        mFsShell.run("ls", "-h", "/testRoot");
-        String expected = "";
-        expected += String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(10),
-                CommandUtils.convertMsToDate(files[0].getCreationTimeMs()), LsCommand.STATE_FILE_IN_MEMORY, "/testRoot/testFileA");
-        expected += String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(1),
-                CommandUtils.convertMsToDate(files[1].getCreationTimeMs()), LsCommand.STATE_FOLDER, "/testRoot/testDir");
-        expected += String.format(Constants.LS_FORMAT_NO_ACL, FormatUtils.getSizeFromBytes(30),
-                CommandUtils.convertMsToDate(files[3].getCreationTimeMs()), LsCommand.STATE_FILE_NOT_IN_MEMORY, "/testRoot/testFileC");
-        Assert.assertEquals(expected, mOutput.toString());
-    }
+  /**
+   * Tests ls -h command when security is not enabled.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsHumanReadable() throws IOException, AlluxioException {
+    URIStatus[] files = createFiles();
+    mFsShell.run("ls", "-h", "/testRoot");
+    boolean hSize = true;
+    String expected = "";
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), hSize, 10,
+            LsCommand.STATE_FILE_IN_MEMORY);
+    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), hSize, 1,
+            LsCommand.STATE_FOLDER);
+    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), hSize, 30,
+            LsCommand.STATE_FILE_NOT_IN_MEMORY);
+    Assert.assertEquals(expected, mOutput.toString());
+  }
 
   /**
    * Tests ls -p command when security is not enabled.
