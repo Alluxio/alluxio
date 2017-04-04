@@ -11,8 +11,10 @@
 
 package alluxio.shell.command;
 
+import alluxio.AlluxioURI;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
@@ -31,13 +33,10 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testPathIsDirectoryWhenPathIsDirectory() throws IOException {
-    String[] command = new String[] {"mkdir", "/testDir"};
-    mFsShell.run(command);
+  public void testPathIsDirectoryWhenPathIsDirectory() throws IOException, AlluxioException {
+    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     mFsShell.run("test", "-d", "/testDir");
-    String expected = getCommandOutput(command);
-    expected += "0\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    Assert.assertEquals("0\n", mOutput.toString());
   }
 
   @Test
@@ -55,13 +54,10 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testPathIsFileWhenPathIsDirectory() throws IOException {
-    String[] command = new String[] {"mkdir", "/testDir"};
-    mFsShell.run(command);
+  public void testPathIsFileWhenPathIsDirectory() throws IOException, AlluxioException {
+    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     mFsShell.run("test", "-f", "/testDir");
-    String expected = getCommandOutput(command);
-    expected += "1\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    Assert.assertEquals("1\n", mOutput.toString());
   }
 
   @Test
@@ -79,13 +75,10 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testPathExistWhenPathIsDirectory() throws IOException {
-    String[] command = new String[] {"mkdir", "/testDir"};
-    mFsShell.run(command);
+  public void testPathExistWhenPathIsDirectory() throws IOException, AlluxioException {
+    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     mFsShell.run("test", "-e", "/testDir");
-    String expected = getCommandOutput(command);
-    expected += "0\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    Assert.assertEquals("0\n", mOutput.toString());
   }
 
   @Test
@@ -151,13 +144,10 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testFileZeroLengthWhenPathIsDirectory() throws IOException {
-    String[] command = new String[] {"mkdir", "/testDir"};
-    mFsShell.run(command);
+  public void testFileZeroLengthWhenPathIsDirectory() throws IOException, AlluxioException {
+    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     mFsShell.run("test", "-z", "/testDir");
-    String expected = getCommandOutput(command);
-    expected += "1\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    Assert.assertEquals("1\n", mOutput.toString());
   }
 
   @Test

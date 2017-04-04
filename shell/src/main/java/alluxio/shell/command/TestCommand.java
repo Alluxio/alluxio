@@ -17,6 +17,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -28,6 +29,37 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class TestCommand extends AbstractShellCommand {
+
+  private static final Option DIR_OPTION =
+      Option.builder("d")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path is a directory.")
+          .build();
+  private static final Option FILE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path is a file.")
+          .build();
+  private static final Option PATH_EXIST_OPTION =
+      Option.builder("e")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path exists.")
+          .build();
+  private static final Option DIR_NOT_EMPTY_OPTION =
+      Option.builder("s")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether path is not empty.")
+          .build();
+  private static final Option FILE_ZERO_LENGTH_OPTION =
+      Option.builder("z")
+          .required(false)
+          .hasArg(false)
+          .desc("test whether file is zero length.")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -65,46 +97,75 @@ public final class TestCommand extends AbstractShellCommand {
   }
 
   /**
-   * Tests properties of the path specified in args.
+   * Tests whether the path is a directory.
    *
-   * @param path The {@link AlluxioURI} path as the input of the command
-   * @param testDir test whether the path is a directory
-   * @param testFile test whether the path is a file
-   * @param testPathExist test whether the path exists
-   * @param testDirNotEmpty test whether the directory is not empty
-   * @param testFileZeroLength test whether the file is zero length
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
+   * @param status the {@link URIStatus} status as the input of the command
+   * @return true if the path is a directory or false if it is not a directory
    */
-  public void test(AlluxioURI path, boolean testDir, boolean testFile, boolean testPathExist,
-                   boolean testDirNotEmpty, boolean testFileZeroLength)
-                   throws AlluxioException, IOException {
-    try {
-      URIStatus status = mFileSystem.getStatus(path);
-      boolean testResult = false;
-      if (testDir && status.isFolder()) {
-        testResult = true;
-      } else if (testFile && !status.isFolder()) {
-        testResult = true;
-      } else if (testPathExist) {
-        testResult = true;
-      } else if (testDirNotEmpty && status.isFolder() && status.getLength() > 0) {
-        testResult = true;
-      } else if (testFileZeroLength && !status.isFolder() && status.getLength() == 0) {
-        testResult = true;
-      }
-      printResult(testResult);
-    } catch (AlluxioException | IOException e) {
-      System.out.println(1);
-    }
+  private boolean isDir(URIStatus status) {
+    return status.isFolder();
+  }
+
+  /**
+   * Tests whether the path is a file.
+   *
+   * @param status the {@link URIStatus} status as the input of the command
+   * @return true if the path is a file or false if it is not a file
+   */
+  private boolean isFile(URIStatus status) {
+    return !status.isFolder();
+  }
+
+  /**
+   * Tests whether the directory is not empty.
+   *
+   * @param status the {@link URIStatus} status as the input of the command
+   * @return true if the directory is not empty or false if it is empty
+   */
+  private boolean isNonEmptyDir(URIStatus status) {
+    return status.isFolder() && status.getLength() > 0;
+  }
+
+  /**
+   * Tests whether the file is zero length.
+   *
+   * @param status the {@link URIStatus} status as the input of the command
+   * @return true if the file is zero length or false if it is not zero length
+   */
+  private boolean isZeroLengthFile(URIStatus status) {
+    return !status.isFolder() && status.getLength() == 0;
   }
 
   @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    test(path, cl.hasOption("d"), cl.hasOption("f"), cl.hasOption("e"),
-         cl.hasOption("s"), cl.hasOption("z"));
+    try {
+      URIStatus status = mFileSystem.getStatus(path);
+      boolean testResult = false;
+      if (cl.hasOption("d")) {
+        if (isDir(status)) {
+          testResult = true;
+        }
+      } else if (cl.hasOption("f")) {
+        if (isFile(status)) {
+          testResult = true;
+        }
+      } else if (cl.hasOption("e")) {
+        testResult = true;
+      } else if (cl.hasOption("s")) {
+        if (isNonEmptyDir(status)) {
+          testResult = true;
+        }
+      } else if (cl.hasOption("z")) {
+        if (isZeroLengthFile(status)) {
+          testResult = true;
+        }
+      }
+      printResult(testResult);
+    } catch (AlluxioException | IOException e) {
+      System.out.println(1);
+    }
   }
 
   @Override
@@ -114,11 +175,16 @@ public final class TestCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Display properties of the path."
-        + " Specify -d to test whether the path is a directory."
-        + " Specify -f to test whether the path is a file."
-        + " Specify -e to test whether the path exists."
-        + " Specify -s to test whether the directory is not empty."
-        + " Specify -z to test whether the file is zero length.";
+    return "Test properties of the path."
+        + " Specify -d to test whether the path is a directory,"
+        + " returning 0 if it's true or 1 if it's false."
+        + " Specify -f to test whether the path is a file,"
+        + " returning 0 if it's true or 1 if it's false."
+        + " Specify -e to test whether the path exists,"
+        + " returning 0 if it's true or 1 if it's false."
+        + " Specify -s to test whether the directory is not empty,"
+        + " returning 0 if it's true or 1 if it's false."
+        + " Specify -z to test whether the file is zero length,"
+        + " returning 0 if it's true or 1 if it's false.";
   }
 }
