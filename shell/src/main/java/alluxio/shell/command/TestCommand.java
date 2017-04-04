@@ -58,9 +58,9 @@ public final class TestCommand extends AbstractShellCommand {
 
   private void printResult(boolean testResult) {
     if (testResult) {
-      System.out.printf("%d\n", 0);
+      System.out.println(0);
     } else {
-      System.out.printf("%d\n", 1);
+      System.out.println(1);
     }
   }
 
@@ -95,7 +95,7 @@ public final class TestCommand extends AbstractShellCommand {
       }
       printResult(testResult);
     } catch (AlluxioException | IOException e) {
-      System.out.printf("%d\n", 1);
+      System.out.println(1);
     }
   }
 
