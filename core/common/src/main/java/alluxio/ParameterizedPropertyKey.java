@@ -68,8 +68,8 @@ public enum ParameterizedPropertyKey {
   }
 
   /**
-   * Parses a string and return its corresponding {@link PropertyKey}, throwing exception if no such
-   * a property can be found.
+   * Parses a string and returns its corresponding {@link PropertyKey}, throwing exception if no
+   * such a property can be found.
    *
    * @param input string of property key
    * @return corresponding property

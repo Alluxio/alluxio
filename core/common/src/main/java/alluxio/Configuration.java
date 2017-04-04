@@ -407,9 +407,9 @@ public final class Configuration {
    * also valid properties. If no property shares the prefix, an empty map is returned.
    *
    * @param prefixKey the prefix key
-   * @return a map of trailing properties aggregated by the prefix
+   * @return a map from nested properties aggregated by the prefix
    */
-  public static Map<PropertyKey, String> getTrailingProperties(PropertyKey prefixKey) {
+  public static Map<PropertyKey, String> getNestedProperties(PropertyKey prefixKey) {
     int prefixKeyLen = prefixKey.toString().length();
     Map<PropertyKey, String> ret = Maps.newHashMap();
     for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {

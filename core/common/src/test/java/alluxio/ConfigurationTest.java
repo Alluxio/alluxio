@@ -237,7 +237,7 @@ public class ConfigurationTest {
             PropertyKey.WEB_THREADS.toString()), "val");
     Map<PropertyKey, String> expected = new HashMap<>();
     expected.put(PropertyKey.WEB_THREADS, "val");
-    Assert.assertThat(Configuration.getTrailingProperties(
+    Assert.assertThat(Configuration.getNestedProperties(
         ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(expected));
   }
@@ -247,7 +247,7 @@ public class ConfigurationTest {
     Configuration.set(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY
         .format("foo", ""), "val");
     Map<PropertyKey, String> empty = new HashMap<>();
-    Assert.assertThat(Configuration.getTrailingProperties(
+    Assert.assertThat(Configuration.getNestedProperties(
         ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(empty));
   }
@@ -258,7 +258,7 @@ public class ConfigurationTest {
         ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             "alluxio.invalid.property"), "val");
     Map<PropertyKey, String> empty = new HashMap<>();
-    Assert.assertThat(Configuration.getTrailingProperties(
+    Assert.assertThat(Configuration.getNestedProperties(
         ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(empty));
   }
@@ -270,9 +270,9 @@ public class ConfigurationTest {
             PropertyKey.WEB_THREADS.toString()),
         "val");
     Map<PropertyKey, String> empty = new HashMap<>();
-    Assert.assertThat(Configuration.getTrailingProperties(PropertyKey.HOME),
+    Assert.assertThat(Configuration.getNestedProperties(PropertyKey.HOME),
         CoreMatchers.is(empty));
-    Assert.assertThat(Configuration.getTrailingProperties(
+    Assert.assertThat(Configuration.getNestedProperties(
         ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("bar")),
         CoreMatchers.is(empty));
   }
