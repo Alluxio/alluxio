@@ -184,6 +184,7 @@ public class FileOutStreamTest {
   @Test
   public void singleByteWrite() throws Exception {
     mTestStream.write(5);
+    mTestStream.close();
     Assert.assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
   }
 
@@ -196,6 +197,7 @@ public class FileOutStreamTest {
     for (int i = 0; i < bytesToWrite; i++) {
       mTestStream.write(i);
     }
+    mTestStream.close();
     verifyIncreasingBytesWritten(bytesToWrite);
   }
 
@@ -206,6 +208,7 @@ public class FileOutStreamTest {
   public void writeBuffer() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
     mTestStream.write(BufferUtils.getIncreasingByteArray(bytesToWrite));
+    mTestStream.close();
     verifyIncreasingBytesWritten(bytesToWrite);
   }
 
@@ -218,6 +221,7 @@ public class FileOutStreamTest {
     int offset = (int) (BLOCK_LENGTH / 3);
     mTestStream.write(BufferUtils.getIncreasingByteArray(bytesToWrite + offset), offset,
         bytesToWrite);
+    mTestStream.close();
     verifyIncreasingBytesWritten(offset, bytesToWrite);
   }
 
@@ -318,6 +322,7 @@ public class FileOutStreamTest {
     // Only writes the lowest byte
     mTestStream.write(0x1fffff00);
     mTestStream.write(0x1fffff01);
+    mTestStream.close();
     verifyIncreasingBytesWritten(2);
   }
 

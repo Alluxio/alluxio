@@ -61,5 +61,6 @@ public class TestBlockOutStream extends BlockOutStream {
       return;
     }
     mCanceled = true;
+    mClosed = true;
   }
 }
