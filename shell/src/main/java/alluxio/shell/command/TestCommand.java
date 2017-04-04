@@ -21,7 +21,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Tests properties of the path specified in args.
