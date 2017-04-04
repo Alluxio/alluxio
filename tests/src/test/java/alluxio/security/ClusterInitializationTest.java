@@ -12,6 +12,7 @@
 package alluxio.security;
 
 import alluxio.AlluxioURI;
+import alluxio.ConstantPropertyKey;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
@@ -51,7 +52,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {ConstantPropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void startCluster() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
@@ -67,7 +68,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {ConstantPropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterSuccess() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile")).close();
@@ -91,7 +92,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {ConstantPropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterFail() throws Exception {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED

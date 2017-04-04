@@ -12,8 +12,8 @@
 package alluxio.security;
 
 import alluxio.AlluxioURI;
+import alluxio.ConstantPropertyKey;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ConnectionFailedException;
@@ -55,35 +55,35 @@ public final class MasterClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
-      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
+      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+      ConstantPropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
   public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-nosasl");
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-simple");
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+          ConstantPropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-custom");
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+          ConstantPropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
 
