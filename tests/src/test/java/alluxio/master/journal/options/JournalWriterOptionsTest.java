@@ -14,6 +14,8 @@ package alluxio.master.journal.options;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Random;
+
 /**
  * Unit tests for {@link JournalWriterOptions}.
  */
@@ -30,10 +32,13 @@ public final class JournalWriterOptionsTest {
    */
   @Test
   public void fields() {
+    Random random = new Random();
+    boolean isPrimary = random.nextBoolean();
+    long sequenceNumber = random.nextLong();
     JournalWriterOptions options = JournalWriterOptions.defaults();
-    options.setPrimary(true);
-    Assert.assertEquals(true, options.isPrimary());
-    options.setNextSequenceNumber(0x100);
-    Assert.assertEquals(0x100, options.getNextSequenceNumber());
+    options.setPrimary(isPrimary);
+    Assert.assertEquals(isPrimary, options.isPrimary());
+    options.setNextSequenceNumber(sequenceNumber);
+    Assert.assertEquals(sequenceNumber, options.getNextSequenceNumber());
   }
 }
