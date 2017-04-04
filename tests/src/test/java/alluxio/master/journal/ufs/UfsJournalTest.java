@@ -38,6 +38,9 @@ public final class UfsJournalTest {
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster"));
   }
 
+  /**
+   * Encodes/decodes completed log file names.
+   */
   @Test
   public void completedLogFilename() throws Exception {
     String location = mJournal.encodeLogFileLocation(0x10, 0x100).toString();
@@ -50,6 +53,9 @@ public final class UfsJournalTest {
     Assert.assertEquals(location, file.getLocation().toString());
   }
 
+  /**
+   * Encodes/decodes incomplete log file names.
+   */
   @Test
   public void incompleteLogFilename() throws Exception {
     String location =
@@ -64,6 +70,9 @@ public final class UfsJournalTest {
     Assert.assertEquals(location, file.getLocation().toString());
   }
 
+  /**
+   * Encodes/decodes checkpoint filename.
+   */
   @Test
   public void checkpointFilename() throws Exception {
     String location = mJournal.encodeCheckpointFileLocation(0x10).toString();
@@ -78,6 +87,9 @@ public final class UfsJournalTest {
     Assert.assertEquals(location, file.getLocation().toString());
   }
 
+  /**
+   * Encodes/decodes temporary checkpoint filename.
+   */
   @Test
   public void temporaryCheckpointFilename() throws Exception {
     String location = mJournal.encodeTemporaryCheckpointFileLocation().toString();
@@ -90,6 +102,9 @@ public final class UfsJournalTest {
     Assert.assertEquals(location, file.getLocation().toString());
   }
 
+  /**
+   * Tests snapshotting the journal.
+   */
   @Test
   public void snapshot() throws Exception {
     String c1 = mJournal.encodeCheckpointFileLocation(0x10).toString();
@@ -133,6 +148,9 @@ public final class UfsJournalTest {
     Assert.assertEquals(0x12, mJournal.getNextLogSequenceToCheckpoint());
   }
 
+  /**
+   * Tests formatting journal.
+   */
   @Test
   public void format() throws Exception {
     mJournal.getUfs().create(mJournal.encodeCheckpointFileLocation(0x12).toString()).close();

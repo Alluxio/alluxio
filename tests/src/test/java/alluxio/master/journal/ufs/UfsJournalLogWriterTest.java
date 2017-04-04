@@ -52,6 +52,9 @@ public final class UfsJournalLogWriterTest {
     Configuration.defaultInit();
   }
 
+  /**
+   * A new journal writer completes the current log.
+   */
   @Test
   public void completeCurrentLog() throws Exception {
     long startSN = 0x10;
@@ -72,6 +75,9 @@ public final class UfsJournalLogWriterTest {
     Assert.assertTrue(mJournal.getCurrentLog() == null);
   }
 
+  /**
+   * The completed log corresponds to the current log exists.
+   */
   @Test
   public void duplicateCompletedLog() throws Exception {
     long startSN = 0x10;
@@ -93,6 +99,9 @@ public final class UfsJournalLogWriterTest {
     Assert.assertTrue(mJournal.getCurrentLog() == null);
   }
 
+  /**
+   * Writes journal entries while the UFS has flush supported.
+   */
   @Test
   public void writeJournalEntryUfsHasFlush() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
@@ -116,6 +125,9 @@ public final class UfsJournalLogWriterTest {
         snapshot.mLogs.get(0).getLocation());
   }
 
+  /**
+   * Writes journal entries while the UFS has no flush supported.
+   */
   @Test
   public void writeJournalEntryUfsNoFlush() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(false);
@@ -143,6 +155,9 @@ public final class UfsJournalLogWriterTest {
         snapshot.mLogs.get(2).getLocation());
   }
 
+  /**
+   * Tests journal rotation.
+   */
   @Test
   public void writeJournalEntryRotate() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);

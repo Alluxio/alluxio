@@ -51,6 +51,9 @@ public final class UfsJournalCheckpointWriterTest {
     Configuration.defaultInit();
   }
 
+  /**
+   * Writes journal entries to the checkpoint.
+   */
   @Test
   public void writeJournalEntry() throws Exception {
     long endSN = 0x20;
@@ -70,6 +73,12 @@ public final class UfsJournalCheckpointWriterTest {
     Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
   }
 
+  /**
+   * The number of journal entries written to the checkpoint is greater than the checkpoint
+   * sequence number encoded in the checkpoint file. This is to show that the journal entry's
+   * sequence number in the checkpoint file is not relevant to the sequence number encoded in
+   * the checkpoint file.
+   */
   @Test
   public void writeJournalEntryMoreThanJournalLogSequenceNumber() throws Exception {
     long endSN = 0x20;
@@ -89,6 +98,9 @@ public final class UfsJournalCheckpointWriterTest {
     Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
   }
 
+  /**
+   * Tests cancel.
+   */
   @Test
   public void cancel() throws Exception {
     long endSN = 0x20;
@@ -104,6 +116,9 @@ public final class UfsJournalCheckpointWriterTest {
     Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
   }
 
+  /**
+   * Tests an existing checkpoint file.
+   */
   @Test
   public void checkpointExists() throws Exception {
     long endSN = 0x20;
@@ -124,6 +139,9 @@ public final class UfsJournalCheckpointWriterTest {
     Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
   }
 
+  /**
+   * An older checkpoint file exists.
+   */
   @Test
   public void olderCheckpointExists() throws Exception {
     long endSN = 0x20;
@@ -148,6 +166,9 @@ public final class UfsJournalCheckpointWriterTest {
     Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
   }
 
+  /**
+   * A newer checkpoint file exists.
+   */
   @Test
   public void newerCheckpointExists() throws Exception {
     long endSN = 0x20;

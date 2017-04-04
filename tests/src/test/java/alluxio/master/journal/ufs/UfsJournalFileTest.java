@@ -64,7 +64,7 @@ public final class UfsJournalFileTest {
   }
 
   @Test
-  public void createIncompletedLogFile() {
+  public void createIncompleteLogFile() {
     UfsJournalFile file =
         UfsJournalFile.createLogFile(mLocation, 0x10, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     Assert.assertEquals(0x10, file.getStart());

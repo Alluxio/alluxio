@@ -86,7 +86,6 @@ public final class JournalCheckpointThreadTest {
     }
   }
 
-  private static final long CHECKPOINT_SIZE = 10;
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -106,6 +105,9 @@ public final class JournalCheckpointThreadTest {
     Configuration.defaultInit();
   }
 
+  /**
+   * The checkpoint thread replays all the logs and checkpoint periodically if not shutdown.
+   */
   @Test
   public void checkpointBeforeShutdown() throws Exception {
     Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
@@ -137,6 +139,9 @@ public final class JournalCheckpointThreadTest {
     checkpointThread.awaitTermination();
   }
 
+  /**
+   * The checkpoint thread replays all the logs before shutting down.
+   */
   @Test
   public void checkpointAfterShutdown() throws Exception {
     Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");

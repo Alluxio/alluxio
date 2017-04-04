@@ -54,6 +54,9 @@ public final class UfsJournalReaderTest {
     Configuration.defaultInit();
   }
 
+  /**
+   * Reads checkpoint.
+   */
   @Test
   public void readCheckpoint() throws Exception {
     long endSN = 0x20;
@@ -72,6 +75,10 @@ public final class UfsJournalReaderTest {
     }
   }
 
+  /**
+   * Reads a checkpoint that has journal log sequence number (encoded in the file) smaller
+   * than the number of journal entries in the checkpoint.
+   */
   @Test
   public void readCheckpointLogSequenceSmallerThanCheckpointSize() throws Exception {
     long endSN = 0x1;
@@ -90,6 +97,9 @@ public final class UfsJournalReaderTest {
     }
   }
 
+  /**
+   * Reads completed logs.
+   */
   @Test
   public void readCompletedLog() throws Exception {
     long fileSize = 10;
@@ -114,6 +124,9 @@ public final class UfsJournalReaderTest {
     }
   }
 
+  /**
+   * Reads incomplete logs in a primary master.
+   */
   @Test
   public void readIncompleteLogPrimary() throws Exception {
     long endSN = 10;
@@ -133,6 +146,9 @@ public final class UfsJournalReaderTest {
     }
   }
 
+  /**
+   * Secondary master cannot read incomplete logs.
+   */
   @Test
   public void readIncompleteLogSecondary() throws Exception {
     long endSN = 10;
