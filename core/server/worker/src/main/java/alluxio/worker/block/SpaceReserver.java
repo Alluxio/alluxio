@@ -48,7 +48,7 @@ public class SpaceReserver implements HeartbeatExecutor  {
   private final Map<String, Long> mHighWaterMarkInBytesOnTiers = new HashMap<>();
 
   /** Mapping from tier alias to space size to be reserved on the tier. */
-  private final Map<String, Long> mLowWaterMarkInBytesOnTiers = new HashMap<>();
+  private final Map<String, Long> mReservedBytesOnTiers = new HashMap<>();
 
   /**
    * Creates a new instance of {@link SpaceReserver}.
@@ -62,21 +62,21 @@ public class SpaceReserver implements HeartbeatExecutor  {
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
+      long capOnTier = capOnTiers.get(tierAlias);
       // HighWatemark defines when to start the space reserving process
       PropertyKey tierHighWatermarkProp =
           PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(ordinal);
       long highWatermarkInBytes =
-          (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierHighWatermarkProp));
+          (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
 
       // LowWatemark defines when to stop the space reserving process if started
       PropertyKey tierLowWatermarkProp =
           PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(ordinal);
-      long capOnTier = capOnTiers.get(tierAlias);
-      long lowWatermarkInBytes =
+      long reservedBytes =
           (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
       mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
-      mLowWaterMarkInBytesOnTiers.put(tierAlias, lowWatermarkInBytes + lastTierReservedBytes);
-      lastTierReservedBytes += lowWatermarkInBytes;
+      mReservedBytesOnTiers.put(tierAlias, reservedBytes + lastTierReservedBytes);
+      lastTierReservedBytes += reservedBytes;
     }
   }
 
@@ -85,15 +85,15 @@ public class SpaceReserver implements HeartbeatExecutor  {
     for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long highWatermarkInBytes = mHighWaterMarkInBytesOnTiers.get(tierAlias);
-      long lowWatermarkInBytes = mLowWaterMarkInBytesOnTiers.get(tierAlias);
-      if (highWatermarkInBytes > lowWatermarkInBytes
+      long reservedBytes = mReservedBytesOnTiers.get(tierAlias);
+      if (highWatermarkInBytes > reservedBytes
           && usedBytesOnTiers.get(tierAlias) >= highWatermarkInBytes) {
         try {
-          mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, lowWatermarkInBytes, tierAlias);
+          mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedBytes, tierAlias);
         } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
             | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
           LOG.warn("SpaceReserver failed to free tier {} to {} bytes used",
-              tierAlias, lowWatermarkInBytes, e);
+              tierAlias, reservedBytes, e);
         }
       }
     }
