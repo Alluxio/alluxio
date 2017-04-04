@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * If this reader runs in a secondary master, it does not read the incomplete log.
  */
 @NotThreadSafe
-class UfsJournalReader implements JournalReader {
+final class UfsJournalReader implements JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalReader.class);
 
   private final UfsJournal mJournal;
@@ -119,7 +119,7 @@ class UfsJournalReader implements JournalReader {
     if (mPrimary) {
       return false;
     }
-    if (mNextSequenceNumber > mJournal.getNextLogSequenceToCheckpoint()
+    if (mNextSequenceNumber > UfsJournalSnapshot.getNextLogSequenceToCheckpoint(mJournal)
         && mNextSequenceNumber % mCheckpointPeriodEntries == 0) {
       return true;
     }
@@ -240,18 +240,19 @@ class UfsJournalReader implements JournalReader {
       mInputStream = null;
     }
     if (mFilesToProcess.isEmpty()) {
-      UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+      UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
       // Remove incomplete log if this is a secondary master.
-      if (snapshot.mCheckpoints.isEmpty() && snapshot.mLogs.isEmpty()) {
+      if (snapshot.getCheckpoints().isEmpty() && snapshot.getLogs().isEmpty()) {
         return;
       }
 
       int index = 0;
-      if (mNextSequenceNumber == 0 && !snapshot.mCheckpoints.isEmpty()) {
-        UfsJournalFile checkpoint = snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1);
+      if (mNextSequenceNumber == 0 && !snapshot.getCheckpoints().isEmpty()) {
+        UfsJournalFile checkpoint =
+            snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1);
         mFilesToProcess.add(checkpoint);
         // index points to the log with mEnd >= checkpoint.mEnd.
-        index = Collections.binarySearch(snapshot.mLogs, checkpoint);
+        index = Collections.binarySearch(snapshot.getLogs(), checkpoint);
         if (index >= 0) {
           index++;
         } else {
@@ -259,12 +260,12 @@ class UfsJournalReader implements JournalReader {
           index = -index - 1;
         }
       }
-      for (; index < snapshot.mLogs.size(); ++index) {
-        UfsJournalFile file = snapshot.mLogs.get(index);
+      for (; index < snapshot.getLogs().size(); ++index) {
+        UfsJournalFile file = snapshot.getLogs().get(index);
         if ((!mPrimary && file.isIncompleteLog()) || mNextSequenceNumber >= file.getEnd()) {
           continue;
         }
-        mFilesToProcess.add(snapshot.mLogs.get(index));
+        mFilesToProcess.add(snapshot.getLogs().get(index));
       }
     }
 

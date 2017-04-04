@@ -72,9 +72,9 @@ final class UfsJournalGarbageCollector implements Closeable {
    * Snapshots the journal and deletes files that are not necessary.
    */
   void gc() {
-    UfsJournal.Snapshot snapshot;
+    UfsJournalSnapshot snapshot;
     try {
-      snapshot = mJournal.getSnapshot();
+      snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     } catch (IOException e) {
       LOG.warn("Failed to get journal snapshot with error {}.", e.getMessage());
       return;
@@ -82,7 +82,7 @@ final class UfsJournalGarbageCollector implements Closeable {
     long checkpointSequenceNumber = 0;
 
     // Checkpoint.
-    List<UfsJournalFile> checkpoints = snapshot.mCheckpoints;
+    List<UfsJournalFile> checkpoints = snapshot.getCheckpoints();
     if (!checkpoints.isEmpty()) {
       checkpointSequenceNumber = checkpoints.get(checkpoints.size() - 1).getEnd();
     }
@@ -95,11 +95,11 @@ final class UfsJournalGarbageCollector implements Closeable {
       maybeGcFile(checkpoints.get(i), checkpointSequenceNumber);
     }
 
-    for (UfsJournalFile log : snapshot.mLogs) {
+    for (UfsJournalFile log : snapshot.getLogs()) {
       maybeGcFile(log, checkpointSequenceNumber);
     }
 
-    for (UfsJournalFile tmpCheckpoint : snapshot.mTemporaryCheckpoints) {
+    for (UfsJournalFile tmpCheckpoint : snapshot.getTemporaryCheckpoints()) {
       maybeGcFile(tmpCheckpoint, checkpointSequenceNumber);
     }
   }

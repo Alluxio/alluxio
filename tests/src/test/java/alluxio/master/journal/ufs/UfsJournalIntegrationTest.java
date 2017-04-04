@@ -601,9 +601,9 @@ public class UfsJournalIntegrationTest {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
-    if (journal.getCurrentLog() != null) {
+    if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
       UnderFileSystem.Factory.get(journalFolder)
-          .deleteFile(journal.getCurrentLog().getLocation().toString());
+          .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());
     }
   }
 

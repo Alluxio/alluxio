@@ -120,9 +120,10 @@ public final class JournalCheckpointThreadTest {
       @Override
       public Boolean apply(Void input) {
         try {
-          UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-          if (!snapshot.mCheckpoints.isEmpty()
-              && snapshot.mCheckpoints.get(snapshot.mCheckpoints.size() - 1).getEnd() == 10) {
+          UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+          if (!snapshot.getCheckpoints().isEmpty()
+              && snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1).getEnd()
+              == 10) {
             return true;
           }
         } catch (IOException e) {
@@ -131,10 +132,10 @@ public final class JournalCheckpointThreadTest {
         return false;
       }
     }, WaitForOptions.defaults().setTimeout(20000));
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertEquals(5, snapshot.mCheckpoints.size());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertEquals(5, snapshot.getCheckpoints().size());
     for (int i = 0; i < 5; ++i) {
-      Assert.assertEquals(i * 2 + 2, snapshot.mCheckpoints.get(i).getEnd());
+      Assert.assertEquals(i * 2 + 2, snapshot.getCheckpoints().get(i).getEnd());
     }
     checkpointThread.awaitTermination();
   }
@@ -176,8 +177,11 @@ public final class JournalCheckpointThreadTest {
   private void buildIncompleteLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     buildCompletedLog(start, end);
-    Assert.assertTrue(mUfs.renameFile(mJournal.encodeLogFileLocation(start, end).toString(),
-        mJournal.encodeLogFileLocation(start, UfsJournal.UNKNOWN_SEQUENCE_NUMBER).toString()));
+    Assert.assertTrue(
+        mUfs.renameFile(UfsJournalFile.encodeLogFileLocation(mJournal, start, end).toString(),
+            UfsJournalFile
+                .encodeLogFileLocation(mJournal, start, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
+                .toString()));
   }
 
   /**

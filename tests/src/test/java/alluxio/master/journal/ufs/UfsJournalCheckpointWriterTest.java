@@ -64,13 +64,13 @@ public final class UfsJournalCheckpointWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     String expectedCheckpoint =
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
-    Assert.assertEquals(1, snapshot.mCheckpoints.size());
-    Assert.assertEquals(expectedCheckpoint, snapshot.mCheckpoints.get(0).getLocation().toString());
-    Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
+    Assert.assertEquals(1, snapshot.getCheckpoints().size());
+    Assert.assertEquals(expectedCheckpoint, snapshot.getCheckpoints().get(0).getLocation().toString());
+    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 
   /**
@@ -89,13 +89,13 @@ public final class UfsJournalCheckpointWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     String expectedCheckpoint =
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
-    Assert.assertEquals(1, snapshot.mCheckpoints.size());
-    Assert.assertEquals(expectedCheckpoint, snapshot.mCheckpoints.get(0).getLocation().toString());
-    Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
+    Assert.assertEquals(1, snapshot.getCheckpoints().size());
+    Assert.assertEquals(expectedCheckpoint, snapshot.getCheckpoints().get(0).getLocation().toString());
+    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 
   /**
@@ -111,9 +111,9 @@ public final class UfsJournalCheckpointWriterTest {
     }
     writer.cancel();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertTrue(snapshot.mCheckpoints.isEmpty());
-    Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertTrue(snapshot.getCheckpoints().isEmpty());
+    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 
   /**
@@ -133,10 +133,10 @@ public final class UfsJournalCheckpointWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertEquals(1, snapshot.mCheckpoints.size());
-    Assert.assertEquals(expectedCheckpoint, snapshot.mCheckpoints.get(0).getLocation().toString());
-    Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertEquals(1, snapshot.getCheckpoints().size());
+    Assert.assertEquals(expectedCheckpoint, snapshot.getCheckpoints().get(0).getLocation().toString());
+    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 
   /**
@@ -159,11 +159,11 @@ public final class UfsJournalCheckpointWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertEquals(2, snapshot.mCheckpoints.size());
-    Assert.assertEquals(oldCheckpoint, snapshot.mCheckpoints.get(0).getLocation().toString());
-    Assert.assertEquals(expectedCheckpoint, snapshot.mCheckpoints.get(1).getLocation().toString());
-    Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertEquals(2, snapshot.getCheckpoints().size());
+    Assert.assertEquals(oldCheckpoint, snapshot.getCheckpoints().get(0).getLocation().toString());
+    Assert.assertEquals(expectedCheckpoint, snapshot.getCheckpoints().get(1).getLocation().toString());
+    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 
   /**
@@ -183,10 +183,10 @@ public final class UfsJournalCheckpointWriterTest {
     }
     writer.close();
 
-    UfsJournal.Snapshot snapshot = mJournal.getSnapshot();
-    Assert.assertEquals(1, snapshot.mCheckpoints.size());
-    Assert.assertEquals(newerCheckpoint, snapshot.mCheckpoints.get(0).getLocation().toString());
-    Assert.assertTrue(snapshot.mTemporaryCheckpoints.isEmpty());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertEquals(1, snapshot.getCheckpoints().size());
+    Assert.assertEquals(newerCheckpoint, snapshot.getCheckpoints().get(0).getLocation().toString());
+    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 
   /**
