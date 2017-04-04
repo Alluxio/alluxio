@@ -55,7 +55,9 @@ public final class InodeUtils {
           MkdirsOptions mkdirsOptions =
               MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
                   .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-          ufs.mkdirs(ufsUri, mkdirsOptions);
+          if (!ufs.isDirectory(ufsUri)) {
+            ufs.mkdirs(ufsUri, mkdirsOptions);
+          }
           dir.setPersistenceState(PersistenceState.PERSISTED);
 
           // Append the persist entry to the journal.
