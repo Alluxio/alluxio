@@ -25,14 +25,17 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PropertyKey {
-  /** A map from runtime property key's string name to the key. */
-  private static final Map<PropertyKey, Object> DEFAULT_VALUES = new HashMap<>();
+  /** A map from default property key's string name to the key. */
+  private static final Map<PropertyKey, Object> DEFAULT_VALUES;
 
   /** A map from default property key's string name to the key. */
-  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
+  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP;
 
-  /** A map from runtime property key's string name to the key. */
-  private static final Map<String, PropertyKey> RUNTIME_KEYS_MAP = new HashMap<>();
+  static {
+    DEFAULT_VALUES = new HashMap<>();
+    DEFAULT_KEYS_MAP = new HashMap<>();
+  }
+
 
   public static final PropertyKey CONF_DIR =
       defaultKey(Name.CONF_DIR, String.format("${%s}/conf", Name.HOME));
@@ -1054,7 +1057,7 @@ public final class PropertyKey {
    * @return whether the input is a valid property name
    */
   public static boolean isValid(String keyStr) {
-    return DEFAULT_KEYS_MAP.containsKey(keyStr) || RUNTIME_KEYS_MAP.containsKey(keyStr);
+    return DEFAULT_KEYS_MAP.containsKey(keyStr) || ParameterizedPropertyKey.isValid(keyStr);
   }
 
   /**
@@ -1066,10 +1069,10 @@ public final class PropertyKey {
    */
   public static PropertyKey fromString(String keyStr) {
     PropertyKey key = DEFAULT_KEYS_MAP.get(keyStr);
-    if (key == null) {
-      throw new IllegalArgumentException("Invalid property key " + keyStr);
+    if (key != null) {
+      return key;
     }
-    return key;
+    return ParameterizedPropertyKey.fromString(keyStr);
   }
 
   /**
@@ -1092,22 +1095,10 @@ public final class PropertyKey {
     return key;
   }
 
-//  /**
-//   * Factory method to create a property key during runtime.
-//   *
-//   * @param propertyStr String of this property
-//   * @param defaultValue Default value of this property in compile time if not null
-//   */
-//  public static PropertyKey runtimeKey(String propertyStr, Object defaultValue) {
-//    PropertyKey key = new PropertyKey(propertyStr);
-//    RUNTIME_KEYS_MAP.put(propertyStr, key);
-//    return key;
-//  }
-
   /**
    * @param property String of this property
    */
-  public PropertyKey(String property) {
+  PropertyKey(String property) {
     mName = property;
   }
 
@@ -1137,7 +1128,11 @@ public final class PropertyKey {
    * @return the default value of a property key or null if no default value set
    */
   public String getDefaultValue() {
-    return DEFAULT_VALUES.get(this).toString();
+    Object value = DEFAULT_VALUES.get(this);
+    if (value != null) {
+      return value.toString();
+    }
+    return null;
   }
 
 }

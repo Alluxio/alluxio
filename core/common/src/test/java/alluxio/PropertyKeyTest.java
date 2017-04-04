@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.exception.ExceptionMessage;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,13 +26,42 @@ public final class PropertyKeyTest {
    */
   @Test
   public void fromString() throws Exception {
-    Assert.assertEquals(PropertyKey.VERSION,
-        PropertyKey.fromString(PropertyKey.VERSION.toString()));
+    Assert
+        .assertEquals(PropertyKey.VERSION, PropertyKey.fromString(PropertyKey.VERSION.toString()));
   }
 
   @Test
   public void equalsTest() throws Exception {
     Assert.assertEquals(new PropertyKey("foo"), new PropertyKey("foo"));
     Assert.assertNotEquals(new PropertyKey("foo"), new PropertyKey("bar"));
+  }
+
+  @Test
+  public void isValid() throws Exception {
+    Assert.assertTrue(PropertyKey.isValid(PropertyKey.HOME.toString()));
+    Assert.assertTrue(PropertyKey.isValid(
+        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo").toString()));
+
+    Assert.assertFalse(PropertyKey.isValid(""));
+    Assert.assertFalse(PropertyKey.isValid(" "));
+    Assert.assertFalse(PropertyKey.isValid("foo"));
+    Assert.assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString() + "1"));
+    Assert.assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString().toUpperCase()));
+  }
+
+  @Test
+  public void fromStringExceptionThrown() throws Exception {
+    String[] wrongKeys =
+        {"", " ", "foo", "alluxio.foo", "alluxio.HOME", "alluxio.master.mount.table.root.alluxio1",
+            "alluxio.master.mount.table.alluxio", "alluxio.master.mount.table.foo"};
+    for (String key : wrongKeys) {
+      try {
+        PropertyKey.fromString(key);
+        Assert.fail();
+      } catch (IllegalArgumentException e) {
+        Assert.assertEquals(e.getMessage(),
+            ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+      }
+    }
   }
 }
