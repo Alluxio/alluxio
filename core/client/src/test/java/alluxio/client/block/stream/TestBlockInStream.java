@@ -14,11 +14,11 @@ package alluxio.client.block.stream;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.options.InStreamOptions;
-
 import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.io.Closer;
 
 import java.io.IOException;
@@ -76,12 +76,14 @@ public class TestBlockInStream extends BlockInStream {
     }
 
     @Override
-    public LockBlockResource lockBlock(long blockId, LockBlockOptions options) throws IOException, AlluxioException {
+    public LockBlockResource lockBlock(long blockId, LockBlockOptions options) throws IOException,
+        AlluxioException {
       return null;
     }
 
     @Override
-    public LockBlockResource lockUfsBlock(long blockId, LockBlockOptions options) throws IOException, AlluxioException {
+    public LockBlockResource lockUfsBlock(long blockId, LockBlockOptions options)
+        throws IOException, AlluxioException {
       return null;
     }
 
@@ -96,7 +98,8 @@ public class TestBlockInStream extends BlockInStream {
     }
 
     @Override
-    public String requestBlockLocation(long blockId, long initialBytes, int tier) throws IOException {
+    public String requestBlockLocation(long blockId, long initialBytes, int tier)
+        throws IOException {
       return null;
     }
 
