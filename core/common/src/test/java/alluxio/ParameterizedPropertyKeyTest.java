@@ -11,13 +11,19 @@
 
 package alluxio;
 
+import alluxio.exception.ExceptionMessage;
+
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Tests enum type {@link ParameterizedPropertyKey}.
  */
 public final class ParameterizedPropertyKeyTest {
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
 
   @Test
   public void formatMasterTieredStoreGlobalAlias() throws Exception {
@@ -67,5 +73,61 @@ public final class ParameterizedPropertyKeyTest {
         ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1));
     Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO,
         ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(2));
+  }
+
+  @Test
+  public void mountTableRootProperties() throws Exception {
+    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
+        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("root"));
+    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_UFS.format("root"));
+    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY,
+        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_READONLY.format("root"));
+    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED,
+        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_SHARED.format("root"));
+    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION,
+        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("root"));
+  }
+
+  @Test
+  public void isValid() throws Exception {
+    // String parameter
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.root.alluxio"));
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.foo.alluxio"));
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.Fo123.alluxio"));
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
+    Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.alluxio"));
+    Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table..alluxio"));
+    Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table. .alluxio"));
+    Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.master.mount.table.foo.alluxio1"));
+    // Numeric parameter
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.worker.tieredstore.level1.alias"));
+    Assert.assertTrue(ParameterizedPropertyKey.isValid("alluxio.worker.tieredstore.level99.alias"));
+    Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.worker.tieredstore.level.alias"));
+    Assert.assertFalse(ParameterizedPropertyKey.isValid("alluxio.worker.tieredstore.levela.alias"));
+  }
+
+  @Test
+  public void fromString() throws Exception {
+    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
+        ParameterizedPropertyKey.fromString("alluxio.master.mount.table.root.alluxio"));
+    Assert.assertEquals(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"),
+        ParameterizedPropertyKey.fromString("alluxio.master.mount.table.foo.alluxio"));
+  }
+
+  @Test
+  public void fromStringExceptionThrown() throws Exception {
+    String[] wrongKeys = {"", " ", "foo", "alluxio.master.mount.table.root.alluxio1",
+        "alluxio.master.mount.table.alluxio", "alluxio.master.mount.table.foo"};
+    for (String key : wrongKeys) {
+      try {
+        ParameterizedPropertyKey.fromString(key);
+        Assert.fail();
+      } catch (IllegalArgumentException e) {
+        Assert.assertEquals(e.getMessage(),
+            ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+      }
+    }
   }
 }
