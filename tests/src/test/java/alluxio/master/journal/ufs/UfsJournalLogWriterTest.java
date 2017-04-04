@@ -62,8 +62,8 @@ public final class UfsJournalLogWriterTest {
     mJournal.getUfs().create(
         UfsJournalFile.encodeLogFileLocation(mJournal, startSN, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
             .toString()).close();
-    mJournal.getWriter(
-        JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
+    mJournal
+        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
         .close();
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
 
@@ -87,7 +87,8 @@ public final class UfsJournalLogWriterTest {
             .toString()).close();
     mJournal.getUfs()
         .create(UfsJournalFile.encodeLogFileLocation(mJournal, startSN, endSN).toString()).close();
-    mJournal.getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
+    mJournal
+        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
         .close();
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
 
@@ -106,8 +107,8 @@ public final class UfsJournalLogWriterTest {
   public void writeJournalEntryUfsHasFlush() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     long nextSN = 0x20;
-    JournalWriter writer = mJournal.getWriter(
-        JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
+    JournalWriter writer = mJournal
+        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
     for (int i = 0; i < 10; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;
@@ -132,8 +133,8 @@ public final class UfsJournalLogWriterTest {
   public void writeJournalEntryUfsNoFlush() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(false);
     long nextSN = 0x20;
-    JournalWriter writer = mJournal.getWriter(
-        JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
+    JournalWriter writer = mJournal
+        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
     for (int i = 0; i < 10; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;
@@ -164,8 +165,8 @@ public final class UfsJournalLogWriterTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "1");
 
     long nextSN = 0x20;
-    JournalWriter writer = mJournal.getWriter(
-        JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
+    JournalWriter writer = mJournal
+        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
     for (int i = 0; i < 10; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;
