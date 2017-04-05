@@ -138,9 +138,8 @@ public final class TestCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
-    Option[] opts = cl.getOptions();
-    if (opts.length > 1) {
-      System.out.println("test takes no such option. Usage: test [-d|-f|-e|-s|-z] <path>");
+    if (cl.getOptions().length > 1) {
+      System.out.println("test takes only 1 option. Usage: test [-d|-f|-e|-s|-z] <path>");
       return;
     }
     String[] args = cl.getArgs();
