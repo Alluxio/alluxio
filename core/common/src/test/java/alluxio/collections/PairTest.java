@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link Pair}.
  */
-public class PairTest {
+public final class PairTest {
   private static final String STR_TYPE = "test";
   private static final Integer INTEGER_TYPE = 7883;
   private static final Long LONG_TYPE = 9887L;

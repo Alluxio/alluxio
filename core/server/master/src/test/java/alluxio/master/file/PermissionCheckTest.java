@@ -102,6 +102,7 @@ public final class PermissionCheckTest {
   private static final Mode TEST_DIR_MODE = new Mode((short) 0755);
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
+  private MasterRegistry mRegistry;
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
 
@@ -172,13 +173,12 @@ public final class PermissionCheckTest {
   @Before
   public void before() throws Exception {
     GroupMappingServiceTestUtils.resetCache();
-    MasterRegistry registry = new MasterRegistry();
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMaster(registry, factory);
-    mFileSystemMaster = new FileSystemMaster(registry, factory);
-    mBlockMaster.start(true);
-    mFileSystemMaster.start(true);
+    mBlockMaster = new BlockMaster(mRegistry, factory);
+    mFileSystemMaster = new FileSystemMaster(mRegistry, factory);
+    mRegistry.start(true);
 
     createDirAndFileForTest();
 
@@ -188,8 +188,7 @@ public final class PermissionCheckTest {
 
   @After
   public void after() throws Exception {
-    mFileSystemMaster.stop();
-    mBlockMaster.stop();
+    mRegistry.stop();
     GroupMappingServiceTestUtils.resetCache();
   }
 

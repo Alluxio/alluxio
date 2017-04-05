@@ -111,7 +111,7 @@ Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储�
 
 考虑到与其他语言的可移植性，Alluxio本地API也可以以REST API的形式通过HTTP代理访问。
 
-REST API文档是作为Alluxio构建的一部分来生成的，并可以通过`${ALLUXIO_HOME}/core/server/target/miredot/index.html`来访问。
+REST API文档是作为Alluxio构建的一部分来生成的，并可以通过`${ALLUXIO_HOME}/core/server/target/miredot/index.html`来访问。特别地，`paths`资源端点对应于`FileSystem`API端点。REST API和原生API的最主要的区别在于对流的表示。原生API使用内存内的流，而REST API将流的创建和使用分离开来（更多细节请参考'create'和`open`REST API方法以及`streams`资源端点）。
 
 HTTP代理是一个独立的服务器，可以通过`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`来启动，以及通过`${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`来停止。默认情况下，REST API在端口39999可用。
 
