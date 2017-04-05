@@ -1122,8 +1122,7 @@ public final class FileSystemMaster extends AbstractMaster {
       JournalContext journalContext)
       throws FileAlreadyExistsException, BlockInfoException, FileDoesNotExistException,
       InvalidPathException, IOException {
-    InodeTree.CreatePathResult createResult =
-        createFileInternal(inodePath, options, journalContext);
+    createFileInternal(inodePath, options, journalContext);
   }
 
   /**
@@ -1676,8 +1675,7 @@ public final class FileSystemMaster extends AbstractMaster {
       JournalContext journalContext)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
-    InodeTree.CreatePathResult createResult =
-        createDirectoryInternal(inodePath, options, journalContext);
+    createDirectoryInternal(inodePath, options, journalContext);
     Metrics.DIRECTORIES_CREATED.inc();
   }
 

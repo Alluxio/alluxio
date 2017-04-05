@@ -80,15 +80,9 @@ public class InodeTree implements JournalCheckpointStreamable {
   public enum LockMode {
     /** Read lock the entire path. */
     READ,
-    /**
-     * Read lock the entire path, but write lock the target inode. If the target inode does not
-     * exist, the last found inode is write locked.
-     */
+    /** Read lock the entire path, but write lock the target inode. */
     WRITE,
-    /**
-     * Read lock the entire path, but write lock the target inode and the parent of the target.
-     * If the target inode does not exist, this mode behaves like WRITE.
-     */
+    /** Read lock the entire path, but write lock the target inode and the parent of the target. */
     WRITE_PARENT,
   }
 
@@ -620,13 +614,14 @@ public class InodeTree implements JournalCheckpointStreamable {
     // FileAlreadyExistsException unless options.allowExists is true.
     Inode<?> lastInode = null;
     while (lastInode == null) {
+      // Try to lock the last inode with the lock mode of the path.
       if (extensibleInodePath.getLockMode() == LockMode.READ) {
         lastInode = currentInodeDirectory.getChildReadLock(name, lockList);
       } else {
         lastInode = currentInodeDirectory.getChildWriteLock(name, lockList);
       }
       if (lastInode != null) {
-        // inode to create already exist
+        // inode to create already exists
         if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
             .isPersisted() && options.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
@@ -640,7 +635,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           throw new FileAlreadyExistsException(errorMessage);
         }
       } else {
-        // create the new inode
+        // create the new inode, with a write lock
         if (options instanceof CreateDirectoryOptions) {
           CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
           lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(journalContext),
@@ -666,15 +661,13 @@ public class InodeTree implements JournalCheckpointStreamable {
             ((InodeFile) lastInode).setCacheable(true);
           }
         }
-
         lastInode.setPinned(currentInodeDirectory.isPinned());
 
         if (!currentInodeDirectory.addChild(lastInode)) {
-          // Could not add the child inode to the parent.
+          // Could not add the child inode to the parent. Continue and try again.
           lockList.unlockLast();
-          String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
-          LOG.error(errorMessage);
-          throw new FileAlreadyExistsException(errorMessage);
+          lastInode = null;
+          continue;
         }
 
         // Journal the new inode.
