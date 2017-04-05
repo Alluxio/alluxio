@@ -134,7 +134,8 @@ public final class StatCommand extends WithWildCardPathCommand {
         resp = status.getGroup();
         break;
       case 'u':
-        resp = status.getOwner();break;
+        resp = status.getOwner();
+        break;
       case 'y':
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         resp = sdf.format(new Date(status.getLastModificationTimeMs()));
