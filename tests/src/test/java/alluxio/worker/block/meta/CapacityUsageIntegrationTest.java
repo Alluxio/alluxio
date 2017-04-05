@@ -46,7 +46,8 @@ public class CapacityUsageIntegrationTest {
           .setProperty(
               ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "HDD")
           .setProperty(
-              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1), "/disk1")
+              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
+              "/disk1")
           .setProperty(
               ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
               String.valueOf(DISK_CAPACITY_BYTES))

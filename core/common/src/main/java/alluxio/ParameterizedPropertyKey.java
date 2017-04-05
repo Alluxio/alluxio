@@ -51,7 +51,8 @@ public final class ParameterizedPropertyKey extends PropertyKey {
     WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
     WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO("alluxio.worker.tieredstore.level%d.reserved.ratio",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),;
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
+    ;
 
     private final String mFormat;
     private final Pattern mPattern;

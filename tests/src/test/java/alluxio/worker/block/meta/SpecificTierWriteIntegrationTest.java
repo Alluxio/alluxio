@@ -54,17 +54,24 @@ public class SpecificTierWriteIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
-          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
-          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")
-          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
+          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1),
+              "SSD")
+          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2),
+              "HDD")
+          .setProperty(
+              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
               Files.createTempDir().getAbsolutePath())
-          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
+          .setProperty(
+              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
               Files.createTempDir().getAbsolutePath())
-          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
+          .setProperty(
+              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
               String.valueOf(CAPACITY_BYTES))
-          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(2),
+          .setProperty(
+              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(2),
               Files.createTempDir().getAbsolutePath())
-          .setProperty(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(2),
+          .setProperty(
+              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(2),
               String.valueOf(CAPACITY_BYTES)).build();
 
   @ClassRule

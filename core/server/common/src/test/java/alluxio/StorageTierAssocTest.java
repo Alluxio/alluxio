@@ -49,7 +49,8 @@ public class StorageTierAssocTest {
   public void masterWorkerConfConstructor() throws Exception {
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, "3",
-        ParameterizedPropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2), "BOTTOM",
+        ParameterizedPropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2),
+        "BOTTOM",
         PropertyKey.WORKER_TIERED_STORE_LEVELS, "2",
         ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "BOTTOM"))
         .toResource()) {

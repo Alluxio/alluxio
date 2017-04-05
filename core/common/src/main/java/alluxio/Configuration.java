@@ -414,8 +414,8 @@ public final class Configuration {
     Map<PropertyKey, String> ret = Maps.newHashMap();
     for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
       String key = entry.getKey();
-      if (key.length() > prefixKeyLen + 1 && key.startsWith(prefixKey.toString()) &&
-          key.charAt(prefixKeyLen) == '.') {
+      if (key.length() > prefixKeyLen + 1 && key.startsWith(prefixKey.toString())
+          && key.charAt(prefixKeyLen) == '.') {
         String trailingKey = key.substring(prefixKeyLen + 1);
         if (PropertyKey.isValid(trailingKey)) {
           ret.put(PropertyKey.fromString(trailingKey), entry.getValue());

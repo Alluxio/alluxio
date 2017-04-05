@@ -136,15 +136,18 @@ public class TieredBlockStoreTestUtils {
         "tierPath and tierCapacity should have the same length");
 
     Configuration
-        .set(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(ordinal), tierAlias);
+        .set(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(ordinal),
+            tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    Configuration.set(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(ordinal),
-        tierPathString);
+    Configuration
+        .set(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(ordinal),
+            tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    Configuration.set(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
-        tierCapacityString);
+    Configuration
+        .set(ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
+            tierCapacityString);
   }
 
   /**
