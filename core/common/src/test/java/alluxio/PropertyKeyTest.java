@@ -40,7 +40,7 @@ public final class PropertyKeyTest {
 
   @Test
   public void length() throws Exception {
-    Assert.assertEquals(ConstantPropertyKey.Name.HOME.length(), PropertyKey.HOME.length());
+    Assert.assertEquals(PropertyKey.Name.HOME.length(), PropertyKey.HOME.length());
   }
 
   @Test

@@ -11,8 +11,8 @@
 
 package alluxio.security;
 
-import alluxio.ConstantPropertyKey;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
@@ -53,36 +53,36 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
-      ConstantPropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
   public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          ConstantPropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
   @Test(timeout = 10000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE,
-          "CUSTOM", ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE,
+          "CUSTOM", PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          ConstantPropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio",
-          ConstantPropertyKey.Name.USER_RPC_RETRY_MAX_NUM_RETRY, "1"
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio",
+          PropertyKey.Name.USER_RPC_RETRY_MAX_NUM_RETRY, "1"
       })
   public void customAuthenticationDenyConnect() throws Exception {
     boolean failedToConnect = false;

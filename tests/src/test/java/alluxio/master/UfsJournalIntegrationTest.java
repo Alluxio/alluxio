@@ -16,7 +16,6 @@ import static org.mockito.Mockito.doThrow;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.ConstantPropertyKey;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -570,9 +569,9 @@ public class UfsJournalIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      ConstantPropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-      ConstantPropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-      ConstantPropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
+      PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
   public void setAcl() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 

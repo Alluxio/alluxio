@@ -12,9 +12,9 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.ConstantPropertyKey;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -318,9 +318,9 @@ public final class FileInStreamIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {ConstantPropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
-          ConstantPropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240",
-          ConstantPropertyKey.Name.USER_FILE_BUFFER_BYTES, "128"})
+      confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
+          PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240",
+          PropertyKey.Name.USER_FILE_BUFFER_BYTES, "128"})
   public void concurrentRemoteRead() throws Exception {
     int blockSize = 10240;
     final int bufferSize = 128;
@@ -377,9 +377,9 @@ public final class FileInStreamIntegrationTest {
    */
   @Test(timeout = 30000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {ConstantPropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
-          ConstantPropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
-          ConstantPropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+      confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
+          PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
+          PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
   public void remoteReadLargeFile() throws Exception {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(mTestPath + "/test");

@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.ConstantPropertyKey;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.file.FileSystemMaster;
@@ -84,7 +83,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getConfiguration() throws Exception {
     String home = "home";
-    String rawConfDir = String.format("${%s}/conf", ConstantPropertyKey.Name.HOME);
+    String rawConfDir = String.format("${%s}/conf", PropertyKey.Name.HOME);
     String resolvedConfDir = String.format("%s/conf", home);
     Configuration.set(PropertyKey.HOME, home);
     Configuration.set(PropertyKey.CONF_DIR, rawConfDir);
