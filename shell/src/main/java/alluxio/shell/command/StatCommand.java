@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -51,11 +52,11 @@ public final class StatCommand extends WithWildCardPathCommand {
   @Override
   protected Options getOptions() {
     return new Options().addOption(
-            Option.builder("f")
-                    .required(false)
-                    .hasArg()
-                    .desc("format")
-                    .build()
+        Option.builder("f")
+            .required(false)
+            .hasArg()
+            .desc("format")
+            .build()
     );
   }
 
@@ -94,8 +95,8 @@ public final class StatCommand extends WithWildCardPathCommand {
         + "   \"%u\": owner;"
         + "   \"%g\": group name of owner;"
         + "   \"%y\" or \"%Y\": modification time,"
-            + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
-            + " %Y it shows milliseconds since January 1, 1970 UTC;"
+        + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
+        + " %Y it shows milliseconds since January 1, 1970 UTC;"
         + "   \"%b\": Number of blocks allocated for file";
   }
 
@@ -108,42 +109,48 @@ public final class StatCommand extends WithWildCardPathCommand {
 
     StringBuilder output = new StringBuilder();
     Matcher m = FORMAT_PATTERN.matcher(format);
-    for (int i = 0; i < formatLen;) {
-      if (m.find(i)) {
-        if (m.start() != i) {
-          output.append(format.substring(i, m.start()));
-        }
-        output.append(getField(m, status));
-        i = m.end();
-      } else {
-        output.append(format.substring(i));
-        break;
+    int i = 0;
+    while (i < formatLen && m.find(i)) {
+      if (m.start() != i) {
+        output.append(format.substring(i, m.start()));
       }
+      output.append(getField(m, status));
+      i = m.end();
+    }
+    if (i < formatLen) {
+      output.append(format.substring(i));
     }
     return output.toString();
   }
 
   private String getField(Matcher m, URIStatus status) {
     char formatSpecifier = m.group(1).charAt(0);
+    String resp = null;
     switch (formatSpecifier) {
       case 'b':
-        return status.isFolder() ? "NA" : String.valueOf(status.getFileBlockInfos().size());
+        resp = status.isFolder() ? "NA" : String.valueOf(status.getFileBlockInfos().size());
+        break;
       case 'g':
-        return status.getGroup();
+        resp = status.getGroup();
+        break;
       case 'u':
-        return status.getOwner();
+        resp = status.getOwner();break;
       case 'y':
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return sdf.format(new Date(status.getLastModificationTimeMs()));
+        resp = sdf.format(new Date(status.getLastModificationTimeMs()));
+        break;
       case 'z':
-        return status.isFolder() ? "NA" : String.valueOf(status.getLength());
+        resp = status.isFolder() ? "NA" : String.valueOf(status.getLength());
+        break;
       case 'N':
-        return status.getName();
+        resp = status.getName();
+        break;
       case 'Y':
-        return String.valueOf(status.getLastModificationTimeMs());
+        resp = String.valueOf(status.getLastModificationTimeMs());
+        break;
       default:
-        assert false;
-        return "";
+        Preconditions.checkArgument(false, "Unknown format specifier %c", formatSpecifier);
     }
+    return resp;
   }
 }

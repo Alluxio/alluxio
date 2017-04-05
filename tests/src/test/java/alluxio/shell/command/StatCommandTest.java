@@ -79,21 +79,31 @@ public final class StatCommandTest extends AbstractAlluxioShellTest {
   public void statFileFormat() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    String format = "%N-%z";
+    String format = "%N-%z-%b-%u-%g-%Y";
     mFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
     String res1 = mOutput.toString();
-    String lineSeparator = System.getProperty("line.separator");
-    Assert.assertTrue(res1.equals("foobar1-10" + lineSeparator));
+    Assert.assertTrue(res1.startsWith("foobar1-10-1-"));
+
+    format = "%N-%z-%b-%u-%g-%y";
+    mFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
+    String res2 = mOutput.toString();
+    res2 = res2.replace(res1, "");
+    Assert.assertTrue(res2.startsWith("foobar1-10-1-"));
   }
 
   @Test
   public void statDirectoryFormat() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    String format = "%N-%z";
+    String format = "%N-%z-%b-%Y-%u-%g";
     mFsShell.run("stat", "-f", format, testDir + "/foo");
     String res1 = mOutput.toString();
-    String lineSeparator = System.getProperty("line.separator");
-    Assert.assertTrue(res1.equals("foo-NA" + lineSeparator));
+    Assert.assertTrue(res1.startsWith("foo-NA-NA-"));
+
+    format = "%N-%z-%b-%y-%u-%g";
+    mFsShell.run("stat", "-f", format, testDir + "/foo");
+    String res2 = mOutput.toString();
+    res2 = res2.replace(res1, "");
+    Assert.assertTrue(res2.startsWith("foo-NA-NA-"));
   }
 }
