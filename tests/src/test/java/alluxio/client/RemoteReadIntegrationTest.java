@@ -76,8 +76,9 @@ public class RemoteReadIntegrationTest {
     List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
+    // TODO(calvin): Reenable this after File Channel Transfer is well supported
+    // list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+    //   IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
