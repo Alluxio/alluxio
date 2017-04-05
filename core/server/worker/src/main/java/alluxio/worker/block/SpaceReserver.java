@@ -59,8 +59,7 @@ public class SpaceReserver implements HeartbeatExecutor  {
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
       PropertyKey tierReservedSpaceProp =
-          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO
-              .format(ordinal);
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long reservedSpaceBytes =
           (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
