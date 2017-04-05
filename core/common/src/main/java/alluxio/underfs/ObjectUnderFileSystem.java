@@ -170,24 +170,37 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     // Delete children
-    List<String> objectsToDelete = new LinkedList<>();
+    DeleteBuffer deleteBuffer = new DeleteBuffer();
     UnderFileStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
     if (pathsToDelete == null) {
       LOG.error("Unable to delete {} because listInternal returns null", path);
     }
     for (UnderFileStatus pathToDelete : pathsToDelete) {
-      // If we fail to deleteObject one file, stop
       String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
       if (pathToDelete.isDirectory()) {
-        objectsToDelete.add(convertToFolderName(pathKey));
+        deleteBuffer.add(convertToFolderName(pathKey));
       } else {
-        objectsToDelete.add(pathKey);
+        deleteBuffer.add(pathKey);
       }
     }
-    objectsToDelete.add(stripPrefixIfPresent(convertToFolderName(path)));
+    deleteBuffer.add(stripPrefixIfPresent(convertToFolderName(path)));
+    return deleteBuffer.getResult();
+  }
 
-    // TODO(adit): paginate
-    return deleteObjects(objectsToDelete);
+  /**
+   * Objects added to a {@link DeleteBuffer} will be deleted in batches. Multiple batches are
+   * processed in parallel.
+   */
+  class DeleteBuffer {
+    List<String> objectsToDelete = new LinkedList<>();
+
+    public void add(String path) {
+      objectsToDelete.add(path);
+    }
+
+    public boolean getResult() throws IOException {
+      return deleteObjects(objectsToDelete);
+    }
   }
 
   /**
@@ -434,8 +447,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return true if successfully deleted all keys, false if not
    */
   protected boolean deleteObjects(List<String> keys) throws IOException {
-    // TODO(adit): Implement me
-    return false;
+    for (String key : keys) {
+      boolean status = deleteObject(key);
+      // If key is a directory, it is possible that it was not created through Alluxio and no
+      // zero-byte breadcrumb exists
+      if (!status && key.endsWith(getFolderSuffix())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

@@ -44,6 +44,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
+import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -314,6 +315,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected boolean deleteObjects(List<String> keys) throws IOException {
+    Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
       List<DeleteObjectsRequest.KeyVersion> keysToDelete = new LinkedList<>();
       for (String key : keys) {
