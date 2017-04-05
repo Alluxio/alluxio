@@ -334,29 +334,29 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCKS =
       create(Name.WORKER_TIERED_STORE_BLOCK_LOCKS, 1000);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
-      create(Name.WORKER_TIERED_STORE_LEVEL0_ALIAS, "MEM");
+      create(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, "MEM", 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
-      create(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk");
+      create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, "/mnt/ramdisk", 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
-      create(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "${alluxio.worker.memory.size}");
+      create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, "${alluxio.worker.memory.size}", 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
-      create(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "0.1");
+      create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, "0.1", 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_ALIAS =
-      create(Name.WORKER_TIERED_STORE_LEVEL1_ALIAS, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, null, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
-      create(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, null, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
-      create(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, null, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
-      create(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_ALIAS =
-      create(Name.WORKER_TIERED_STORE_LEVEL2_ALIAS, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
-      create(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
-      create(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
-      create(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, null);
+      create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
       create(Name.WORKER_TIERED_STORE_LEVELS, 1);
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
@@ -842,30 +842,6 @@ public class PropertyKey {
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
-    public static final String WORKER_TIERED_STORE_LEVEL0_ALIAS =
-        "alluxio.worker.tieredstore.level0.alias";
-    public static final String WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
-        "alluxio.worker.tieredstore.level0.dirs.path";
-    public static final String WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
-        "alluxio.worker.tieredstore.level0.dirs.quota";
-    public static final String WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
-        "alluxio.worker.tieredstore.level0.reserved.ratio";
-    public static final String WORKER_TIERED_STORE_LEVEL1_ALIAS =
-        "alluxio.worker.tieredstore.level1.alias";
-    public static final String WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
-        "alluxio.worker.tieredstore.level1.dirs.path";
-    public static final String WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
-        "alluxio.worker.tieredstore.level1.dirs.quota";
-    public static final String WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
-        "alluxio.worker.tieredstore.level1.reserved.ratio";
-    public static final String WORKER_TIERED_STORE_LEVEL2_ALIAS =
-        "alluxio.worker.tieredstore.level2.alias";
-    public static final String WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
-        "alluxio.worker.tieredstore.level2.dirs.path";
-    public static final String WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
-        "alluxio.worker.tieredstore.level2.dirs.quota";
-    public static final String WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
-        "alluxio.worker.tieredstore.level2.reserved.ratio";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
     public static final String WORKER_TIERED_STORE_RESERVER_ENABLED =
         "alluxio.worker.tieredstore.reserver.enabled";
@@ -1114,10 +1090,12 @@ public class PropertyKey {
    * @return corresponding property
    */
   public static PropertyKey fromString(String input) {
+    // First try to parse it as default key
     PropertyKey key = DEFAULT_KEYS_MAP.get(input);
     if (key != null) {
       return key;
     }
+    // Try different templates and see if any template matches
     for (Template template : Template.values()) {
       Matcher matcher = template.mPattern.matcher(input);
       if (matcher.matches()) {

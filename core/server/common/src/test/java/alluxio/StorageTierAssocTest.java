@@ -25,14 +25,14 @@ import java.util.List;
  */
 public class StorageTierAssocTest {
   private void checkStorageTierAssoc(StorageTierAssoc assoc, PropertyKey levelsProperty,
-      PropertyKey.Template aliasFormat) {
+      PropertyKey.Template template) {
     int size = Configuration.getInt(levelsProperty);
     Assert.assertEquals(size, assoc.size());
 
     List<String> expectedOrderedAliases = new ArrayList<>();
 
     for (int i = 0; i < size; i++) {
-      String alias = Configuration.get(aliasFormat.format(i));
+      String alias = Configuration.get(template.format(i));
       Assert.assertEquals(i, assoc.getOrdinal(alias));
       Assert.assertEquals(alias, assoc.getAlias(i));
       expectedOrderedAliases.add(alias);
