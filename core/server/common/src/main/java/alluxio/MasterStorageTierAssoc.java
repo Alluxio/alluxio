@@ -26,7 +26,7 @@ public class MasterStorageTierAssoc extends StorageTierAssoc {
    */
   public MasterStorageTierAssoc() {
     super(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
-        ParameterizedPropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
+        PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
   }
 
   /**

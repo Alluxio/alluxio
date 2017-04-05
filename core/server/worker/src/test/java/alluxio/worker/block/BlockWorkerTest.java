@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.ParameterizedPropertyKey;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -88,7 +87,7 @@ public class BlockWorkerTest {
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2");
 
     Configuration.set(
-        ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
         String.valueOf(Constants.GB));
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
         mFolder.newFolder().getAbsolutePath());

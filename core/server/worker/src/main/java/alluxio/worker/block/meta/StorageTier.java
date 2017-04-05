@@ -12,7 +12,6 @@
 package alluxio.worker.block.meta;
 
 import alluxio.Configuration;
-import alluxio.ParameterizedPropertyKey;
 import alluxio.PropertyKey;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -60,7 +59,7 @@ public final class StorageTier {
     String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
     String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
-        ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
     String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
@@ -70,7 +69,7 @@ public final class StorageTier {
     }
 
     PropertyKey tierDirCapacityConf =
-        ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(mTierOrdinal);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(mTierOrdinal);
     String rawDirQuota = Configuration.get(tierDirCapacityConf);
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");

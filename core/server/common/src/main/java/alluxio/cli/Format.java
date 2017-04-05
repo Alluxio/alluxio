@@ -12,7 +12,6 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
-import alluxio.ParameterizedPropertyKey;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
@@ -120,7 +119,7 @@ public final class Format {
         int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
         for (int level = 0; level < storageLevels; level++) {
           PropertyKey tierLevelDirPath =
-              ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
           String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
           String name = "TIER_" + level + "_DIR_PATH";
           for (String dirPath : dirPaths) {

@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class StorageTierAssocTest {
   private void checkStorageTierAssoc(StorageTierAssoc assoc, PropertyKey levelsProperty,
-      ParameterizedPropertyKey.Template aliasFormat) {
+      PropertyKey.Template aliasFormat) {
     int size = Configuration.getInt(levelsProperty);
     Assert.assertEquals(size, assoc.size());
 
@@ -49,16 +49,16 @@ public class StorageTierAssocTest {
   public void masterWorkerConfConstructor() throws Exception {
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, "3",
-        ParameterizedPropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2),
+        PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2),
         "BOTTOM",
         PropertyKey.WORKER_TIERED_STORE_LEVELS, "2",
-        ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "BOTTOM"))
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "BOTTOM"))
         .toResource()) {
       checkStorageTierAssoc(new MasterStorageTierAssoc(),
           PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
-          ParameterizedPropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
+          PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
       checkStorageTierAssoc(new WorkerStorageTierAssoc(), PropertyKey.WORKER_TIERED_STORE_LEVELS,
-          ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
     }
   }
 

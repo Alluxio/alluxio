@@ -19,6 +19,8 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -158,15 +160,15 @@ public class PropertyKey {
   // Mount table related properties
   //
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_ALLUXIO =
-      create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO, "/", "root");
+      create(Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO, "/", "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_OPTION =
-      create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION, null, "root");
+      create(Template.MASTER_MOUNT_TABLE_ENTRY_OPTION, null, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
-      create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_READONLY, false, "root");
+      create(Template.MASTER_MOUNT_TABLE_ENTRY_READONLY, false, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
-      create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_SHARED, true, "root");
+      create(Template.MASTER_MOUNT_TABLE_ENTRY_SHARED, true, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
-      create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_UFS,
+      create(Template.MASTER_MOUNT_TABLE_ENTRY_UFS,
           String.format("${%s}", Name.UNDERFS_ADDRESS), "root");
 
   //
@@ -1017,6 +1019,68 @@ public class PropertyKey {
     } // prevent instantiation
   }
 
+  /**
+   * A set of templates to generate the names of parameterized properties given
+   * different parameters. E.g., * {@code Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)}
+   */
+  @ThreadSafe
+  public enum Template {
+    MASTER_MOUNT_TABLE_ENTRY_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
+        "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
+    MASTER_MOUNT_TABLE_ENTRY_OPTION("alluxio.master.mount.table.%s.option",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
+    MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option(\\.\\w+)++"),
+    MASTER_MOUNT_TABLE_ENTRY_READONLY("alluxio.master.mount.table.%s.readonly",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly"),
+    MASTER_MOUNT_TABLE_ENTRY_SHARED("alluxio.master.mount.table.%s.shared",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.shared"),
+    MASTER_MOUNT_TABLE_ENTRY_UFS("alluxio.master.mount.table.%s.ufs",
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
+    MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
+        "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
+    WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
+    WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path"),
+    WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
+    WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO("alluxio.worker.tieredstore.level%d.reserved.ratio",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
+    ;
+
+    private final String mFormat;
+    private final Pattern mPattern;
+
+    /**
+     * Constructs a property key format.
+     *
+     * @param format String of this property as formatted string
+     * @param re String of this property as regexp
+     */
+    Template(String format, String re) {
+      mFormat = format;
+      mPattern = Pattern.compile(re);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
+          .toString();
+    }
+
+    /**
+     * Converts a property key template (e.g.,
+     * {@link #WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO}) to a {@link PropertyKey} instance.
+     *
+     * @param params ordinal
+     * @return corresponding property
+     */
+    public PropertyKey format(Object... params) {
+      return new PropertyKey(String.format(mFormat, params));
+    }
+  }
+
   /** A map from default property key's string name to the key. */
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
 
@@ -1024,54 +1088,44 @@ public class PropertyKey {
   private static final Map<PropertyKey, Object> DEFAULT_VALUES = new HashMap<>();
 
   /**
-   * @param name string of property key
+   * @param input string of property key
    * @return whether the input is a valid property name
    */
-  public static boolean isValidDefaultKey(String name) {
-    return DEFAULT_KEYS_MAP.containsKey(name);
-  }
-
-  /**
-   * Parses a string and return its corresponding {@link PropertyKey}, return null if no such
-   * a property can be found.
-   *
-   * @param keyStr string of property key
-   * @return corresponding property
-   */
-  public static PropertyKey createDefaultKeyFromString(String keyStr) {
-    PropertyKey key = DEFAULT_KEYS_MAP.get(keyStr);
-    if (key != null) {
-      return key;
+  public static boolean isValid(String input) {
+    // Check if input matches any default keys
+    if (DEFAULT_KEYS_MAP.containsKey(input)) {
+      return true;
     }
-    return null;
-  }
-
-  /**
-   * @param keyStr string of property key
-   * @return whether the input is a valid property name
-   */
-  public static boolean isValid(String keyStr) {
-    return isValidDefaultKey(keyStr) || ParameterizedPropertyKey.isValid(keyStr);
+    // Check if input matches any parameterized keys
+    for (Template template : Template.values()) {
+      Matcher matcher = template.mPattern.matcher(input);
+      if (matcher.matches()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
    * Parses a string and return its corresponding {@link PropertyKey}, throwing exception if no such
    * a property can be found.
    *
-   * @param keyStr string of property key
+   * @param input string of property key
    * @return corresponding property
    */
-  public static PropertyKey fromString(String keyStr) {
-    PropertyKey key = createDefaultKeyFromString(keyStr);
+  public static PropertyKey fromString(String input) {
+    PropertyKey key = DEFAULT_KEYS_MAP.get(input);
     if (key != null) {
       return key;
     }
-    key = ParameterizedPropertyKey.fromString(keyStr);
-    if (key != null) {
-      return key;
+    for (Template template : Template.values()) {
+      Matcher matcher = template.mPattern.matcher(input);
+      if (matcher.matches()) {
+        return new PropertyKey(input);
+      }
     }
     throw new IllegalArgumentException(
-        ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(keyStr));
+        ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(input));
   }
 
   /**
@@ -1110,9 +1164,8 @@ public class PropertyKey {
    * @param template String of this property
    * @param defaultValue Default value of this property in compile time if not null
    */
-  static PropertyKey create(ParameterizedPropertyKey.Template template, Object defaultValue,
-      Object... param) {
-    ParameterizedPropertyKey key = template.format(param);
+  static PropertyKey create(Template template, Object defaultValue, Object... param) {
+    PropertyKey key = template.format(param);
     DEFAULT_VALUES.put(key, defaultValue);
     return key;
   }
