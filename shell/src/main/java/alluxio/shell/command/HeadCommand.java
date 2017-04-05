@@ -35,62 +35,63 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HeadCommand extends WithWildCardPathCommand {
-    /**
-     * @param fs the filesystem of Alluxio
-     */
-    public HeadCommand(FileSystem fs) {
+
+  /**
+   * @param fs the filesystem of Alluxio
+   */
+  public HeadCommand(FileSystem fs) {
         super(fs);
     }
 
-    @Override
-    public String getCommandName() {
+  @Override
+  public String getCommandName() {
         return "head";
     }
 
-    @Override
-    protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-        URIStatus status = mFileSystem.getStatus(path);
+  @Override
+  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
-        int numOfBytes = Constants.KB;
-        if (cl.hasOption('c')) {
-            numOfBytes = Integer.parseInt(cl.getOptionValue('c'));
-            Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
-        }
-
-        if (status.isFolder()) {
-            throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
-        }
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        try (FileInStream is = mFileSystem.openFile(path, options)) {
-            long bytesToRead;
-            if (status.getLength() > numOfBytes) {
-                bytesToRead = numOfBytes;
-            } else {
-                bytesToRead = status.getLength();
-            }
-
-            byte[] buf = new byte[(int)bytesToRead];
-            int read = is.read(buf);
-            if (read != -1) {
-                System.out.write(buf, 0, read);
-            }
-        }
+    int numOfBytes = Constants.KB;
+    if (cl.hasOption('c')) {
+      numOfBytes = Integer.parseInt(cl.getOptionValue('c'));
+      Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
-    @Override
-    public String getUsage() {
+    if (status.isFolder()) {
+      throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    }
+    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    try (FileInStream is = mFileSystem.openFile(path, options)) {
+      long bytesToRead;
+      if (status.getLength() > numOfBytes) {
+        bytesToRead = numOfBytes;
+      } else {
+        bytesToRead = status.getLength();
+      }
+
+      byte[] buf = new byte[(int)bytesToRead];
+      int read = is.read(buf);
+      if (read != -1) {
+        System.out.write(buf, 0, read);
+      }
+    }
+  }
+
+  @Override
+  public String getUsage() {
         return "head -c <number of bytes> <path>";
     }
 
-    @Override
-    public String getDescription() {
-        return "Prints the file's first n bytes (by default, 1KB) to the console.";
-    }
+  @Override
+  public String getDescription() {
+    return "Prints the file's first n bytes (by default, 1KB) to the console.";
+  }
 
-    @Override
-    protected Options getOptions() {
-        Option bytesOption =
-                Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
-        return new Options().addOption(bytesOption);
-    }
+  @Override
+  protected Options getOptions() {
+    Option bytesOption =
+        Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
+    return new Options().addOption(bytesOption);
+  }
 }
