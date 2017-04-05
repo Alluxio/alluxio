@@ -21,7 +21,7 @@ import javax.security.sasl.AuthenticationException;
 /**
  * Tests the {@link CustomAuthenticationProvider} class.
  */
-public class CustomAuthenticationProviderTest {
+public final class CustomAuthenticationProviderTest {
 
   /**
    * The exception expected to be thrown.
