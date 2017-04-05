@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -676,7 +677,7 @@ public class PropertyKey {
   }
 
   /**
-   * @return all default keys
+   * @return all pre-defined property keys
    */
   public static Collection<ConstantPropertyKey> getDefaultKeys() {
     return ConstantPropertyKey.getDefaultKeys();
@@ -686,10 +687,10 @@ public class PropertyKey {
   private final String mName;
 
   /**
-   * @param property String of this property
+   * @param name String of this property
    */
-  PropertyKey(String property) {
-    mName = property;
+  PropertyKey(String name) {
+    mName = Preconditions.checkNotNull(name, "name");
   }
 
   /**
@@ -737,6 +738,13 @@ public class PropertyKey {
   @Override
   public String toString() {
     return mName;
+  }
+
+  /**
+   * @return length of this property key
+   */
+  public int length() {
+    return mName.length();
   }
 
   /**

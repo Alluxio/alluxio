@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A set of parameterized property keys that can generate the property name given parameters.
+ * Property keys that can be generated based on provided templates given parameters.
  * E.g., * {@code Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)}
  */
 @ThreadSafe

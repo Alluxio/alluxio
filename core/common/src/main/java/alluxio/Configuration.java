@@ -410,15 +410,15 @@ public final class Configuration {
    * @return a map from nested properties aggregated by the prefix
    */
   public static Map<PropertyKey, String> getNestedProperties(PropertyKey prefixKey) {
-    int prefixKeyLen = prefixKey.toString().length();
+    int prefixKeyLen = prefixKey.length();
     Map<PropertyKey, String> ret = Maps.newHashMap();
     for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
       String key = entry.getKey();
       if (key.length() > prefixKeyLen + 1 && key.startsWith(prefixKey.toString())
           && key.charAt(prefixKeyLen) == '.') {
-        String trailingKey = key.substring(prefixKeyLen + 1);
-        if (PropertyKey.isValid(trailingKey)) {
-          ret.put(PropertyKey.fromString(trailingKey), entry.getValue());
+        String suffixKey = key.substring(prefixKeyLen + 1);
+        if (PropertyKey.isValid(suffixKey)) {
+          ret.put(PropertyKey.fromString(suffixKey), entry.getValue());
         }
       }
     }

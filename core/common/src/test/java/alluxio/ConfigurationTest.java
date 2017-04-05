@@ -231,7 +231,7 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void getTrailingProperties() {
+  public void getNestedProperties() {
     Configuration.set(
         ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             PropertyKey.WEB_THREADS.toString()), "val");
@@ -243,7 +243,7 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void getTrailingPropertiesEmptyTrailingProperty() {
+  public void getNestedPropertiesEmptyTrailingProperty() {
     Configuration.set(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY
         .format("foo", ""), "val");
     Map<PropertyKey, String> empty = new HashMap<>();
@@ -253,7 +253,7 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void getTrailingPropertiesInvalidTrailingProperty() {
+  public void getNestedPropertiesInvalidTrailingProperty() {
     Configuration.set(
         ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             "alluxio.invalid.property"), "val");
@@ -264,7 +264,7 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void getTrailingPropertiesWrongPrefix() {
+  public void getNestedPropertiesWrongPrefix() {
     Configuration.set(
         ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             PropertyKey.WEB_THREADS.toString()),

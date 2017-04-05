@@ -32,8 +32,15 @@ public final class PropertyKeyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    Assert.assertEquals(new PropertyKey("foo"), new PropertyKey("foo"));
-    Assert.assertNotEquals(new PropertyKey("foo"), new PropertyKey("bar"));
+    Assert.assertEquals(
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"),
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"));
+    Assert.assertNotEquals(PropertyKey.HOME, PropertyKey.HOME);
+  }
+
+  @Test
+  public void length() throws Exception {
+    Assert.assertEquals(ConstantPropertyKey.Name.HOME.length(), PropertyKey.HOME.length());
   }
 
   @Test
