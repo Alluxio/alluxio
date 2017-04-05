@@ -203,6 +203,15 @@ public final class RPCProtoMessage extends RPCMessage {
     return createResponse(Protocol.Status.Code.OK, "", null, data);
   }
 
+  /**
+   * Creates a response in CANCELLED state.
+   *
+   * @return the message created
+   */
+  public static RPCProtoMessage createCancelResponse() {
+    return createResponse(Protocol.Status.Code.CANCELLED, "", null, null);
+  }
+
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("message", mMessage)

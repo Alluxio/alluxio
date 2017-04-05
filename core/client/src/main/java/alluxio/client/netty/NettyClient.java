@@ -43,8 +43,6 @@ public final class NettyClient {
   /**  Share both the encoder and decoder with all the client pipelines. */
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
-  private static final boolean PACKET_STREAMING_ENABLED =
-      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
 
   private static final ChannelType CHANNEL_TYPE = getChannelType();
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
@@ -76,7 +74,7 @@ public final class NettyClient {
     boot.option(ChannelOption.SO_KEEPALIVE, true);
     boot.option(ChannelOption.TCP_NODELAY, true);
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-    if (PACKET_STREAMING_ENABLED && CHANNEL_TYPE == ChannelType.EPOLL) {
+    if (CHANNEL_TYPE == ChannelType.EPOLL) {
       boot.option(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
     }
 
@@ -102,13 +100,11 @@ public final class NettyClient {
    * @return {@link ChannelType} to use
    */
   private static ChannelType getChannelType() {
-    if (PACKET_STREAMING_ENABLED) {
-      try {
-        EpollChannelOption.class.getField("EPOLL_MODE");
-      } catch (Throwable e) {
-        LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final.");
-        return ChannelType.NIO;
-      }
+    try {
+      EpollChannelOption.class.getField("EPOLL_MODE");
+    } catch (Throwable e) {
+      LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final.");
+      return ChannelType.NIO;
     }
     return Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   }
