@@ -72,18 +72,17 @@ public final class ParameterizedPropertyKey extends PropertyKey {
       return Objects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
           .toString();
     }
-  }
 
-  /**
-   * Converts a property key template (e.g.,
-   * {@link Template#WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO})
-   * to a {@link PropertyKey} instance.
-   *
-   * @param params ordinal
-   * @return corresponding property
-   */
-  public static ParameterizedPropertyKey create(Template template, Object... params) {
-    return new ParameterizedPropertyKey(template, params);
+    /**
+     * Converts a property key template (e.g.,
+     * {@link #WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO}) to a {@link PropertyKey} instance.
+     *
+     * @param params ordinal
+     * @return corresponding property
+     */
+    public ParameterizedPropertyKey format(Object... params) {
+      return new ParameterizedPropertyKey(String.format(mFormat, params));
+    }
   }
 
   /**
@@ -118,17 +117,9 @@ public final class ParameterizedPropertyKey extends PropertyKey {
   }
 
   /**
-   * @param template String of this property as formatted string
-   * @param params list of parameters to fill in the template for this property
-   */
-  private ParameterizedPropertyKey(Template template, Object... params) {
-    super(String.format(template.mFormat, params), null);
-  }
-
-  /**
    * @param name String of this property name
    */
   private ParameterizedPropertyKey(String name) {
-    super(name, null);
+    super(name);
   }
 }

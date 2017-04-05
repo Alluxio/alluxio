@@ -18,7 +18,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A set of constant property keys.
+ * A property key that is predefined at compile time.
  */
 @ThreadSafe
 public final class ConstantPropertyKey extends PropertyKey {
@@ -468,20 +468,7 @@ public final class ConstantPropertyKey extends PropertyKey {
   }
 
   /** A map from default property key's string name to the key. */
-  private static final Map<ConstantPropertyKey, Object> DEFAULT_VALUES = new HashMap<>();
-
-  /** A map from default property key's string name to the key. */
-  private static final Map<String, ConstantPropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
-
-  /**
-   * Factory method to create a default property.
-   *
-   * @param propertyStr String of this property
-   * @param defaultValue Default value of this property in compile time if not null
-   */
-  static PropertyKey create(String propertyStr, Object defaultValue) {
-    return new ConstantPropertyKey(propertyStr, defaultValue);
-  }
+  static final Map<String, ConstantPropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
 
   /**
    * @param keyStr string of property key
@@ -492,13 +479,13 @@ public final class ConstantPropertyKey extends PropertyKey {
   }
 
   /**
-   * Parses a string and return its corresponding {@link PropertyKey}, throwing exception if no such
+   * Parses a string and return its corresponding {@link PropertyKey}, return null if no such
    * a property can be found.
    *
    * @param keyStr string of property key
    * @return corresponding property
    */
-  public static ConstantPropertyKey fromString(String keyStr) {
+  public static PropertyKey fromString(String keyStr) {
     ConstantPropertyKey key = DEFAULT_KEYS_MAP.get(keyStr);
     if (key != null) {
       return key;
@@ -516,8 +503,8 @@ public final class ConstantPropertyKey extends PropertyKey {
   /**
    * @param name String of this property
    */
-  ConstantPropertyKey(String name, Object value) {
-    super(name, value);
+  ConstantPropertyKey(String name) {
+    super(name);
     DEFAULT_KEYS_MAP.put(name, this);
   }
 }
