@@ -26,7 +26,6 @@ import java.io.IOException;
 /**
  * Tests for head command.
  */
-
 public final class HeadCommandTest extends AbstractAlluxioShellTest {
 
     @Test
@@ -84,4 +83,3 @@ public final class HeadCommandTest extends AbstractAlluxioShellTest {
         Assert.assertArrayEquals(expect, mOutput.toByteArray());
     }
 }
-

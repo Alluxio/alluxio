@@ -33,7 +33,6 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Prints the file's first n bytes (by default, 1KB) to the console.
  */
-
 @ThreadSafe
 public final class HeadCommand extends WithWildCardPathCommand {
     /**
@@ -95,5 +94,3 @@ public final class HeadCommand extends WithWildCardPathCommand {
         return new Options().addOption(bytesOption);
     }
 }
-
-
