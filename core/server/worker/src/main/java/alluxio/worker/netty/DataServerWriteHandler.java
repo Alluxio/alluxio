@@ -17,11 +17,8 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
-<<<<<<< HEAD
 import alluxio.resource.LockResource;
-=======
 import alluxio.util.network.NettyUtils;
->>>>>>> d828dfbe59e52396d741482c8d5cdba55e3aed6c
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
