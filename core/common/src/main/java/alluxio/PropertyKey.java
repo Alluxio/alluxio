@@ -11,13 +11,14 @@
 
 package alluxio;
 
+import alluxio.exception.ExceptionMessage;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Configuration property key which is essentially a wrapper of String.
- * This class also provides a set of pre-defined property keys.
+ * Configuration property keys. This class also provides a set of pre-defined property keys.
  */
 @ThreadSafe
 public class PropertyKey {
@@ -192,19 +193,19 @@ public class PropertyKey {
   // Mount table related properties
   //
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_ALLUXIO = ConstantPropertyKey
-      .create(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("root").toString(),
+      .create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("root").toString(),
           "/");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_OPTION = ConstantPropertyKey
-      .create(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("root").toString(),
+      .create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("root").toString(),
           null);
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY = ConstantPropertyKey
-      .create(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_READONLY.format("root").toString(),
+      .create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_READONLY.format("root").toString(),
           false);
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED = ConstantPropertyKey
-      .create(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_SHARED.format("root").toString(),
+      .create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_SHARED.format("root").toString(),
           true);
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS = ConstantPropertyKey
-      .create(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_UFS.format("root").toString(),
+      .create(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_UFS.format("root").toString(),
           String.format("${%s}", ConstantPropertyKey.Name.UNDERFS_ADDRESS));
 
   //
@@ -684,21 +685,29 @@ public class PropertyKey {
    * @return corresponding property
    */
   public static PropertyKey fromString(String keyStr) {
-    ConstantPropertyKey key = ConstantPropertyKey.fromString(keyStr);
+    PropertyKey key = ConstantPropertyKey.fromString(keyStr);
     if (key != null) {
       return key;
     }
-    return ParameterizedPropertyKey.fromString(keyStr);
+    key = ParameterizedPropertyKey.fromString(keyStr);
+    if (key != null) {
+      return key;
+    }
+    throw new IllegalArgumentException(
+        ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(keyStr));
   }
 
   /** Property name. */
   private final String mName;
+  /** Property default value. */
+  private final Object mDefaultValue;
 
   /**
    * @param property String of this property
    */
-  PropertyKey(String property) {
+  PropertyKey(String property, Object defaultValue) {
     mName = property;
+    mDefaultValue = defaultValue;
   }
 
   @Override
@@ -727,11 +736,6 @@ public class PropertyKey {
    * @return the default value of a property key or null if no default value set
    */
   public String getDefaultValue() {
-    //Object value = DEFAULT_VALUES.get(this);
-    Object value = null;
-    if (value != null) {
-      return value.toString();
-    }
-    return null;
+    return mDefaultValue != null ? mDefaultValue.toString() : null;
   }
 }

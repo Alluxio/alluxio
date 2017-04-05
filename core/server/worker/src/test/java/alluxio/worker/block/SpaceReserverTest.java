@@ -79,10 +79,10 @@ public class SpaceReserverTest {
         new long[][]{new long[]{0}, new long[]{0}}, "/");
 
     PropertyKey reserveRatioProp =
-        ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
+        ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
     Configuration.set(reserveRatioProp, "0.2");
     reserveRatioProp =
-        ParameterizedPropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1);
+        ParameterizedPropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1);
     Configuration.set(reserveRatioProp, "0.3");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 

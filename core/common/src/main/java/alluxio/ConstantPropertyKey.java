@@ -11,26 +11,19 @@
 
 package alluxio;
 
-import alluxio.exception.ExceptionMessage;
-
-import com.google.common.base.Objects;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A set of parameterized property keys that can generate the property name given parameters.
- * E.g., * {@code ParameterizedPropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)}
+ * A set of constant property keys.
  */
 @ThreadSafe
-public class ConstantPropertyKey extends PropertyKey {
+public final class ConstantPropertyKey extends PropertyKey {
   /**
-   * A nested class to hold named string constants for their corresponding enum values.
+   * A nested class to hold named string constants for their corresponding properties.
    * Used for setting configuration in integration tests.
    */
   @ThreadSafe
@@ -470,7 +463,8 @@ public class ConstantPropertyKey extends PropertyKey {
         "alluxio.security.group.mapping.class";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
-    private Name() {} // prevent instantiation
+    private Name() {
+    } // prevent instantiation
   }
 
   /** A map from default property key's string name to the key. */
@@ -486,17 +480,7 @@ public class ConstantPropertyKey extends PropertyKey {
    * @param defaultValue Default value of this property in compile time if not null
    */
   static PropertyKey create(String propertyStr, Object defaultValue) {
-    ConstantPropertyKey key = new ConstantPropertyKey(propertyStr);
-    DEFAULT_KEYS_MAP.put(propertyStr, key);
-    DEFAULT_VALUES.put(key, defaultValue);
-    return key;
-  }
-
-  /**
-   * @param property String of this property
-   */
-  ConstantPropertyKey(String property) {
-    super(property);
+    return new ConstantPropertyKey(propertyStr, defaultValue);
   }
 
   /**
@@ -529,13 +513,11 @@ public class ConstantPropertyKey extends PropertyKey {
     return DEFAULT_KEYS_MAP.values();
   }
 
-  public String getDefaultValue() {
-    //Object value = DEFAULT_VALUES.get(this);
-    Object value = null;
-    if (value != null) {
-      return value.toString();
-    }
-    return null;
+  /**
+   * @param name String of this property
+   */
+  ConstantPropertyKey(String name, Object value) {
+    super(name, value);
+    DEFAULT_KEYS_MAP.put(name, this);
   }
-
 }

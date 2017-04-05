@@ -58,7 +58,7 @@ public abstract class StorageTierAssoc {
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param aliasFormat the format for the conf that identifies the alias for each level
    */
-  protected StorageTierAssoc(PropertyKey levelsProperty, ParameterizedPropertyKey aliasFormat) {
+  protected StorageTierAssoc(PropertyKey levelsProperty, ParameterizedPropertyKey.Template aliasFormat) {
     int levels = Configuration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {

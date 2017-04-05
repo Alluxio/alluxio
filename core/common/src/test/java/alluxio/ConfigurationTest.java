@@ -233,47 +233,47 @@ public class ConfigurationTest {
   @Test
   public void getTrailingProperties() {
     Configuration.set(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             PropertyKey.WEB_THREADS.toString()), "val");
     Map<PropertyKey, String> expected = new HashMap<>();
     expected.put(PropertyKey.WEB_THREADS, "val");
     Assert.assertThat(Configuration.getNestedProperties(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(expected));
   }
 
   @Test
   public void getTrailingPropertiesEmptyTrailingProperty() {
-    Configuration.set(ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY
+    Configuration.set(ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY
         .format("foo", ""), "val");
     Map<PropertyKey, String> empty = new HashMap<>();
     Assert.assertThat(Configuration.getNestedProperties(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(empty));
   }
 
   @Test
   public void getTrailingPropertiesInvalidTrailingProperty() {
     Configuration.set(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             "alluxio.invalid.property"), "val");
     Map<PropertyKey, String> empty = new HashMap<>();
     Assert.assertThat(Configuration.getNestedProperties(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(empty));
   }
 
   @Test
   public void getTrailingPropertiesWrongPrefix() {
     Configuration.set(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             PropertyKey.WEB_THREADS.toString()),
         "val");
     Map<PropertyKey, String> empty = new HashMap<>();
     Assert.assertThat(Configuration.getNestedProperties(PropertyKey.HOME),
         CoreMatchers.is(empty));
     Assert.assertThat(Configuration.getNestedProperties(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("bar")),
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("bar")),
         CoreMatchers.is(empty));
   }
 

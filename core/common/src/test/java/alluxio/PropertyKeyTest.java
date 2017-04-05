@@ -40,7 +40,7 @@ public final class PropertyKeyTest {
   public void isValid() throws Exception {
     Assert.assertTrue(PropertyKey.isValid(PropertyKey.HOME.toString()));
     Assert.assertTrue(PropertyKey.isValid(
-        ParameterizedPropertyKey.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo").toString()));
+        ParameterizedPropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo").toString()));
 
     Assert.assertFalse(PropertyKey.isValid(""));
     Assert.assertFalse(PropertyKey.isValid(" "));
