@@ -680,6 +680,11 @@ public class DFSIOIntegrationTest implements Tool {
     ioer.close();
   }
 
+  /**
+   * Runs the integration test for DFS IO.
+   *
+   * @param args arguments
+   */
   public static void main(String[] args) {
     DFSIOIntegrationTest bench = new DFSIOIntegrationTest();
     int res;

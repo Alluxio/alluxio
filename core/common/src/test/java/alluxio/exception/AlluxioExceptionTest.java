@@ -16,7 +16,7 @@ import alluxio.thrift.AlluxioTException;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class AlluxioExceptionTest {
+public final class AlluxioExceptionTest {
 
   @Test
   public void unknownException() {

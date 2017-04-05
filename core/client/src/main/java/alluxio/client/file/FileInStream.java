@@ -65,8 +65,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(FileInStream.class);
 
-  private static final boolean PACKET_STREAMING_ENABLED =
-      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
   private static final boolean PASSIVE_CACHE_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
 
@@ -252,11 +250,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    if (!PACKET_STREAMING_ENABLED) {
-      throw new RuntimeException(String.format(
-          "Positioned read is not supported, please set %s to true to enable positioned read.",
-          PropertyKey.USER_PACKET_STREAMING_ENABLED.toString()));
-    }
     if (pos < 0 || pos >= mFileLength) {
       return -1;
     }
