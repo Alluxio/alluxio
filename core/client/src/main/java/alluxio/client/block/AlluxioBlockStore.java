@@ -11,8 +11,6 @@
 
 package alluxio.client.block;
 
-import static alluxio.util.FormatUtils.getSizeFromBytes;
-
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -22,24 +20,22 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.resource.CloseableResource;
+import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
@@ -196,8 +192,8 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new RuntimeException(
-          ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(getSizeFromBytes(blockSize)));
+      throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
+          FormatUtils.getSizeFromBytes(blockSize)));
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost())) {
