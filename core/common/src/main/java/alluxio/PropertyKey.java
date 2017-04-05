@@ -991,8 +991,7 @@ public class PropertyKey {
         "alluxio.security.group.mapping.class";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
-    private Name() {
-    } // prevent instantiation
+    private Name() {} // prevent instantiation
   }
 
   /**
@@ -1109,7 +1108,7 @@ public class PropertyKey {
   /**
    * @return all pre-defined property keys
    */
-  public static Collection<? extends PropertyKey> getDefaultKeys() {
+  public static Collection<? extends PropertyKey> defaultKeys() {
     return DEFAULT_KEYS_MAP.values();
   }
 
