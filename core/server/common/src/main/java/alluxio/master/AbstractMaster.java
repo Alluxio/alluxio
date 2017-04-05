@@ -106,7 +106,6 @@ public abstract class AbstractMaster implements Master {
        *
        * 1. Create a journal reader to replay the logs from the next sequence number.
        * 2. Start the journal writer.
-       * 3. Start serving.
        *
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
@@ -118,31 +117,25 @@ public abstract class AbstractMaster implements Master {
       try (JournalReader journalReader = mJournal.getReader(
           JournalReaderOptions.defaults().setPrimary(true)
               .setNextSequenceNumber(nextSequenceNumber))) {
-        while (true) {
-          try {
-            JournalEntry entry = journalReader.read();
-            if (entry == null) {
-              journalReader.close();
-              break;
-            }
-            processJournalEntry(entry);
-          } catch (InvalidJournalEntryException e) {
-            LOG.error("Invalid journal is found.", e);
-            // We found invalid journal, nothing we can do but crash.
-            throw new RuntimeException(e);
-          }
+        JournalEntry entry;
+        while ((entry = journalReader.read()) != null) {
+          processJournalEntry(entry);
         }
         nextSequenceNumber = journalReader.getNextSequenceNumber();
+      } catch (InvalidJournalEntryException e) {
+        LOG.error("Invalid journal is found.", e);
+        // We found invalid journal, nothing we can do but crash.
+        throw new RuntimeException(e);
+      }
 
-        // Step 2: Start the journal writer.
-        mJournalWriter = mJournal.getWriter(
-            JournalWriterOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
-                .setPrimary(true));
-        if (nextSequenceNumber == 0) {
-          Iterator<JournalEntry> it = iterator();
-          while (it.hasNext()) {
-            mJournalWriter.write(it.next());
-          }
+      // Step 2: Start the journal writer.
+      mJournalWriter = mJournal.getWriter(
+          JournalWriterOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
+              .setPrimary(true));
+      if (nextSequenceNumber == 0) {
+        Iterator<JournalEntry> it = iterator();
+        while (it.hasNext()) {
+          mJournalWriter.write(it.next());
         }
       }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
