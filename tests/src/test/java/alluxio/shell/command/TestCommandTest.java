@@ -165,4 +165,20 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
     expected += "1\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
+
+  @Test
+  public void testWithoutOption() throws IOException, AlluxioException {
+    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
+    mFsShell.run("test", "/testDir");
+    String expected = "test takes 1 option, not 0. Usage: test [-d|-f|-e|-s|-z] <path>\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
+  public void testWrongOption() throws IOException, AlluxioException {
+    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
+    mFsShell.run("test", "-dfesz", "/testDir");
+    String expected = "test takes no such option. Usage: test [-d|-f|-e|-s|-z] <path>\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
 }

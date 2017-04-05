@@ -138,6 +138,11 @@ public final class TestCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
+    Option[] opts = cl.getOptions();
+    if (opts.length > 1) {
+      System.out.println("test takes no such option. Usage: test [-d|-f|-e|-s|-z] <path>");
+      return;
+    }
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     try {
@@ -161,6 +166,9 @@ public final class TestCommand extends AbstractShellCommand {
         if (isZeroLengthFile(status)) {
           testResult = true;
         }
+      } else {
+        System.out.println("test takes 1 option, not 0. Usage: test [-d|-f|-e|-s|-z] <path>");
+        return;
       }
       printResult(testResult);
     } catch (AlluxioException | IOException e) {
@@ -175,16 +183,11 @@ public final class TestCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Test properties of the path."
+    return "Test a property of a path, returning 0 if the property is true, or 1 otherwise."
         + " Specify -d to test whether the path is a directory,"
-        + " returning 0 if it's true or 1 if it's false."
         + " Specify -f to test whether the path is a file,"
-        + " returning 0 if it's true or 1 if it's false."
         + " Specify -e to test whether the path exists,"
-        + " returning 0 if it's true or 1 if it's false."
         + " Specify -s to test whether the directory is not empty,"
-        + " returning 0 if it's true or 1 if it's false."
-        + " Specify -z to test whether the file is zero length,"
-        + " returning 0 if it's true or 1 if it's false.";
+        + " Specify -z to test whether the file is zero length,";
   }
 }
