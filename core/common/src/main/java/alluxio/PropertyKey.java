@@ -679,7 +679,7 @@ public class PropertyKey {
   /**
    * @return all pre-defined property keys
    */
-  public static Collection<ConstantPropertyKey> getDefaultKeys() {
+  public static Collection<? extends PropertyKey> getDefaultKeys() {
     return ConstantPropertyKey.getDefaultKeys();
   }
 
@@ -699,19 +699,19 @@ public class PropertyKey {
    * @param name String of this property
    * @param defaultValue Default value of this property in compile time if not null
    */
-  static ConstantPropertyKey create(String name, Object defaultValue) {
+  static PropertyKey create(String name, Object defaultValue) {
     ConstantPropertyKey key = new ConstantPropertyKey(name);
     DEFAULT_VALUES.put(key, defaultValue);
     return key;
   }
 
   /**
-   * Factory method to create a property from template and and assign a default value.
+   * Factory method to create a property from template and assign a default value.
    *
    * @param template String of this property
    * @param defaultValue Default value of this property in compile time if not null
    */
-  static ParameterizedPropertyKey create(ParameterizedPropertyKey.Template template,
+  static PropertyKey create(ParameterizedPropertyKey.Template template,
       Object defaultValue, Object... param) {
     ParameterizedPropertyKey key = template.format(param);
     DEFAULT_VALUES.put(key, defaultValue);
@@ -745,6 +745,14 @@ public class PropertyKey {
    */
   public int length() {
     return mName.length();
+  }
+
+  /**
+   * @param key the name of input key
+   * @return if this key is nested inside the given key
+   */
+  public boolean isNested(String key) {
+    return key.length() > length() + 1 && key.startsWith(mName) && key.charAt(length()) == '.';
   }
 
   /**
