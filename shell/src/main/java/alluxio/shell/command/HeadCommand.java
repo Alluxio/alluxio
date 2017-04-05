@@ -40,13 +40,13 @@ public final class HeadCommand extends WithWildCardPathCommand {
    * @param fs the filesystem of Alluxio
    */
   public HeadCommand(FileSystem fs) {
-        super(fs);
-    }
+    super(fs);
+  }
 
   @Override
   public String getCommandName() {
-        return "head";
-    }
+    return "head";
+  }
 
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
@@ -70,7 +70,7 @@ public final class HeadCommand extends WithWildCardPathCommand {
         bytesToRead = status.getLength();
       }
 
-      byte[] buf = new byte[(int)bytesToRead];
+      byte[] buf = new byte[(int) bytesToRead];
       int read = is.read(buf);
       if (read != -1) {
         System.out.write(buf, 0, read);
@@ -80,8 +80,8 @@ public final class HeadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-        return "head -c <number of bytes> <path>";
-    }
+    return "head -c <number of bytes> <path>";
+  }
 
   @Override
   public String getDescription() {
