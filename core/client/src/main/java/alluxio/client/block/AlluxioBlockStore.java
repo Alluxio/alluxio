@@ -22,15 +22,16 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.resource.CloseableResource;
+import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -197,7 +198,8 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
+          FormatUtils.getSizeFromBytes(blockSize)));
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost()) && Configuration
