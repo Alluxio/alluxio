@@ -21,7 +21,7 @@ import org.mockito.Mockito;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StreamCacheTest {
+public final class StreamCacheTest {
   @Test
   public void operations() throws Exception {
     StreamCache streamCache = new StreamCache(Constants.HOUR_MS);

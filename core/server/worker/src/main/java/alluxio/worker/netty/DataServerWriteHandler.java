@@ -17,6 +17,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.base.Preconditions;
@@ -191,8 +192,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       // If we have seen an error, return early and release the data. This can only
       // happen for those mis-behaving clients who first sends some invalid requests, then
       // then some random data. It can leak memory if we do not release buffers here.
@@ -223,8 +223,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       if (tooManyPacketsInFlight()) {
         NettyUtils.disableAutoRead(ctx.channel());
       }
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -301,8 +299,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
       while (true) {
         ByteBuf buf;
-        mLock.lock();
-        try {
+        try (LockResource lr = new LockResource(mLock)) {
           buf = mPackets.poll();
           if (buf == null || buf == EOF || buf == CANCEL || buf == ABORT) {
             eof = buf == EOF;
@@ -325,8 +322,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           if (!tooManyPacketsInFlight()) {
             NettyUtils.enableAutoRead(mChannel);
           }
-        } finally {
-          mLock.unlock();
         }
 
         try {
@@ -413,11 +408,8 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
      */
     private void replyError() {
       Error error;
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         error = Preconditions.checkNotNull(mError);
-      } finally {
-        mLock.unlock();
       }
 
       if (error.mNotifyClient) {
@@ -435,8 +427,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    * @param error the error
    */
   private void pushAbortPacket(Channel channel, Error error) {
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       if (mError != null) {
         return;
       }
@@ -446,8 +437,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
         mPacketWriterActive = true;
         mPacketWriterExecutor.submit(new PacketWriter(channel));
       }
-    } finally {
-      mLock.unlock();
     }
   }
 

@@ -944,6 +944,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * This class runs multiple concurrent threads to rename all files in one directory.
+   */
   class ConcurrentRenamer implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
@@ -951,6 +954,15 @@ public class FileSystemMasterIntegrationTest {
     private AlluxioURI mRootPath2;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent renamer.
+     *
+     * @param depth the depth of files to be renamed in one directory
+     * @param concurrencyDepth the concurrency depth of files to be renamed in one directory
+     * @param rootPath  the source root path of the files to be renamed
+     * @param rootPath2 the destination root path of the files to be renamed
+     * @param initPath the directory of files to be renamed in under root path
+     */
     ConcurrentRenamer(int depth, int concurrencyDepth, AlluxioURI rootPath, AlluxioURI rootPath2,
         AlluxioURI initPath) {
       mDepth = depth;
@@ -967,6 +979,13 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
+    /**
+     * Renames all files in one directory using multiple concurrent threads.
+     *
+     * @param depth the depth of files to be renamed in one directory
+     * @param concurrencyDepth the concurrency depth of files to be renamed in one directory
+     * @param path the directory of files to be renamed in under root path
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;

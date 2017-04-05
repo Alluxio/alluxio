@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link GreedyAllocator}.
  */
-public class GreedyAllocatorTest extends AllocatorTestBase {
+public final class GreedyAllocatorTest extends AllocatorTestBase {
 
   /**
    * Tests that blocks are allocated in the first storage directory which has enough free space.
