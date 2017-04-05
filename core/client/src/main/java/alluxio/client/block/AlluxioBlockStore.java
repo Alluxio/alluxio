@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import static alluxio.util.FormatUtils.getSizeFromBytes;
+
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -194,7 +196,8 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
+      throw new RuntimeException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(getSizeFromBytes(blockSize)));
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost())) {
