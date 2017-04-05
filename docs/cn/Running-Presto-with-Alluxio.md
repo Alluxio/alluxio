@@ -74,7 +74,7 @@ Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.gi
 - 因为Presto使用的guava版本是18.0，而Alluxio使用的是14.0，所以需要将Alluxio client端的pom.xml中guava版本修改为18.0并重新编译Alluxio客户端。
 
 - 你必须将Alluxio客户端jar包 `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-（在`/<PATH_TO_ALLUXIO>/core/client/target/`目录下）放置在所有Presto节点的`$PRESTO_HOME/plugin/hadoop/`
+（在`/<PATH_TO_ALLUXIO>/core/client/target/`目录下）放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
 
 # Presto命令行示例
@@ -105,7 +105,7 @@ OVERWRITE INTO TABLE u_user;
 在presto client执行如下查询：
 
 ```
-/home/path/presto/presto-cli-0.159-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+/home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
 ```
 
 你可以在命令行中看到相应查询结果：
