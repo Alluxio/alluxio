@@ -81,6 +81,16 @@ public final class HelpCommand extends AbstractShellCommand {
   }
 
   @Override
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length <= getNumOfArgs();
+    if (!valid) {
+      System.out.println(getCommandName() + " takes at most " + getNumOfArgs() + " arguments, "
+                           + " not " + args.length + "\n");
+    }
+    return valid;
+  }
+
+  @Override
   protected int getNumOfArgs() {
     return 1;
   }

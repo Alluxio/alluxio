@@ -221,11 +221,11 @@ public final class AlluxioShellUtils {
   }
 
   /**
-   * Gets all supported {@link ShellCommand} classes and stores them in a map.
+   * Gets all supported {@link ShellCommand} classes instances and load them into a map.
    * Provides a way to gain these commands information by their CommandName.
    *
    * @param fileSystem a FileSystem as each ShellCommand constructor's parameter
-   * @param commandsMap a HashMap that stores "key = commandName, value = commandInstance"
+   * @param commandsMap a Map which is used to store "key = commandName, value = commandInstance"
    *                    pairs
    */
   public static void loadCommands(FileSystem fileSystem, Map<String, ShellCommand> commandsMap) {
