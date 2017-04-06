@@ -486,7 +486,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    ConfUtils.mergeHadoopConfiguration(conf);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf);
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());

@@ -234,7 +234,6 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param blockWorkerClient the block worker client
    * @param closer the closer registered with closable resources open so far
    * @param options the options
-   * @throws IOException if it fails to create an instance
    */
   protected BlockInStream(PacketInStream inputStream, BlockWorkerClient blockWorkerClient,
       Closer closer, InStreamOptions options) {

@@ -14,8 +14,7 @@ package alluxio.client;
 import java.net.InetSocketAddress;
 
 /**
- * Something that can be located by an {@link InetSocketAddress} such as
- * {@link alluxio.client.block.RemoteBlockInStream}.
+ * Something that can be located by an {@link InetSocketAddress}.
  */
 public interface Locatable {
   /**
