@@ -120,7 +120,7 @@ public abstract class LockedInodePath implements AutoCloseable {
   }
 
   /**
-   * @return the {@link alluxio.master.file.meta.InodeTree.LockMode} of this path
+   * @return the {@link InodeTree.LockMode} of this path
    */
   public synchronized InodeTree.LockMode getLockMode() {
     return mLockMode;
