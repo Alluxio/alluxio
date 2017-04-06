@@ -45,10 +45,10 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
-* Default implementation of the {@link FileSystem} interface. Developers can extend this class
-* instead of implementing the interface. This implementation reads and writes data through
-* {@link FileInStream} and {@link FileOutStream}. This class is thread safe.
-*/
+ * Default implementation of the {@link FileSystem} interface. Developers can extend this class
+ * instead of implementing the interface. This implementation reads and writes data through
+ * {@link FileInStream} and {@link FileOutStream}. This class is thread safe.
+ */
 @PublicApi
 @ThreadSafe
 public class BaseFileSystem implements FileSystem {
@@ -75,17 +75,17 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void createDirectory(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+          throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     createDirectory(path, CreateDirectoryOptions.defaults());
   }
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+          throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.createDirectory(path, options);
-      LOG.debug("Created directory " + path.getPath());
+      LOG.debug("Created directory {}, options: {} ", path.getPath(), options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -93,19 +93,19 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileOutStream createFile(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+          throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     return createFile(path, CreateFileOptions.defaults());
   }
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+          throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     URIStatus status;
     try {
       masterClient.createFile(path, options);
       status = masterClient.getStatus(path);
-      LOG.debug("Created file " + path.getPath());
+      LOG.debug("Created file {} ,options: {} " , path.getPath(),options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -116,17 +116,17 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void delete(AlluxioURI path)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+          throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     delete(path, DeleteOptions.defaults());
   }
 
   @Override
   public void delete(AlluxioURI path, DeleteOptions options)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+          throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.delete(path, options);
-      LOG.debug("Deleted file " + path.getName());
+      LOG.debug("Deleted {} ,options: {} " , path.getPath(),options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -134,13 +134,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public boolean exists(AlluxioURI path)
-      throws InvalidPathException, IOException, AlluxioException {
+          throws InvalidPathException, IOException, AlluxioException {
     return exists(path, ExistsOptions.defaults());
   }
 
   @Override
   public boolean exists(AlluxioURI path, ExistsOptions options)
-      throws InvalidPathException, IOException, AlluxioException {
+          throws InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
@@ -155,17 +155,17 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void free(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     free(path, FreeOptions.defaults());
   }
 
   @Override
   public void free(AlluxioURI path, FreeOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
-      LOG.debug("Freed file " + path.getPath());
+      LOG.debug("Freed {} ,options: {}" ,path.getPath(),options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -173,13 +173,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     return getStatus(path, GetStatusOptions.defaults());
   }
 
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       return masterClient.getStatus(path);
@@ -192,13 +192,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     return listStatus(path, ListStatusOptions.defaults());
   }
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
@@ -218,7 +218,7 @@ public class BaseFileSystem implements FileSystem {
   @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
@@ -230,11 +230,11 @@ public class BaseFileSystem implements FileSystem {
   @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
-      LOG.debug("loaded metadata {} with options {}", path.getParent(), options);
+      LOG.debug("Loaded metadata {}, options: {}", path.getPath(), options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -242,18 +242,18 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath)
-      throws IOException, AlluxioException {
+          throws IOException, AlluxioException {
     mount(alluxioPath, ufsPath, MountOptions.defaults());
   }
 
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
-      throws IOException, AlluxioException {
+          throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this fail on the master side
       masterClient.mount(alluxioPath, ufsPath, options);
-      LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
+      LOG.debug("Mounted  {} to {} ,options: {} " , ufsPath.toString() ,alluxioPath.getPath(),options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -261,17 +261,17 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     return openFile(path, OpenFileOptions.defaults());
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFileOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     URIStatus status = getStatus(path);
     if (status.isFolder()) {
       throw new FileNotFoundException(
-          ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
+              ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
     InStreamOptions inStreamOptions = options.toInStreamOptions();
     return FileInStream.create(status, inStreamOptions, mFileSystemContext);
@@ -279,18 +279,18 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     rename(src, dst, RenameOptions.defaults());
   }
 
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Update this code on the master side.
       masterClient.rename(src, dst);
-      LOG.debug("Renamed file " + src.getPath() + " to " + dst.getPath());
+      LOG.debug("Renamed {} to {}, options: {} " , src.getPath(), dst.getPath(),options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -298,17 +298,17 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void setAttribute(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     setAttribute(path, SetAttributeOptions.defaults());
   }
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
-      LOG.debug("Set attributes for path {} with options {}", path.getPath(), options);
+      LOG.debug("Set attributes for {} , options: {}", path.getPath(), options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -321,11 +321,11 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void unmount(AlluxioURI path, UnmountOptions options)
-      throws IOException, AlluxioException {
+          throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.unmount(path);
-      LOG.info("Unmount " + path);
+      LOG.debug("Unmounted  {} ,options: {} " + path.getpath(),options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
