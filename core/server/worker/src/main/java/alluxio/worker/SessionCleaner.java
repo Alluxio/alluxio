@@ -35,7 +35,7 @@ public final class SessionCleaner implements Runnable {
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
 
-  private final ISessionCleanup mSessionCleanup;
+  private final SessionCleanup mSessionCleanup;
 
   /** Flag to indicate if the checking should continue. */
   private volatile boolean mRunning;
@@ -45,7 +45,7 @@ public final class SessionCleaner implements Runnable {
    * @param sessions the session clean up callback which will periodically be invoked
    * @param sessionCleanup who want to cleanup the session
    */
-  public SessionCleaner(Sessions sessions, ISessionCleanup sessionCleanup) {
+  public SessionCleaner(Sessions sessions, SessionCleanup sessionCleanup) {
     mSessions = sessions;
     mSessionCleanup = sessionCleanup;
     mCheckIntervalMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
