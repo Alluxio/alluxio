@@ -16,9 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.MasterFactory;
-import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.URIUtils;
@@ -118,18 +116,13 @@ public final class JournalUpgrader {
         long start = -1;
         long end = -1;
         logNumber++;
-        try (JournalReader reader =
-            mJournalV1.getReader(JournalReaderOptions.defaults().setLocation(completedLog))) {
+        try (JournalFileParser parser = JournalFileParser.Factory.create(completedLog)) {
           alluxio.proto.journal.Journal.JournalEntry entry;
-          try {
-            while ((entry = reader.read()) != null) {
-              if (start == -1) {
-                start = entry.getSequenceNumber();
-              }
-              end = entry.getSequenceNumber();
+          while ((entry = parser.next()) != null) {
+            if (start == -1) {
+              start = entry.getSequenceNumber();
             }
-          } catch (InvalidJournalEntryException e) {
-            throw new IOException(e);
+            end = entry.getSequenceNumber();
           }
         }
 

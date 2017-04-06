@@ -11,9 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.exception.InvalidJournalEntryException;
-import alluxio.master.journal.JournalReader;
-import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.JournalFileParser;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.proto.ProtoUtils;
@@ -30,15 +28,13 @@ import java.net.URI;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Implementation of {@link JournalReader} that reads journal entries from a journal file.
+ * Implementation of {@link JournalFileParser} that parses a journal file.
  */
 @NotThreadSafe
-final class UfsJournalFileReader implements JournalReader {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsJournalFileReader.class);
+public final class UfsJournalFileParser implements JournalFileParser {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsJournalFileParser.class);
 
   private final UnderFileSystem mUfs;
-  /** The next journal entry sequence number to read. */
-  private long mNextSequenceNumber;
   /** Buffer used to read from the file. */
   private final byte[] mBuffer = new byte[1024];
 
@@ -48,11 +44,10 @@ final class UfsJournalFileReader implements JournalReader {
   private URI mLocation;
 
   /**
-   * Creates a new instance of {@link UfsJournalFileReader}.
+   * Creates a new instance of {@link UfsJournalFileParser}.
    */
-  UfsJournalFileReader(JournalReaderOptions options) {
-    mNextSequenceNumber = -1;
-    mLocation = Preconditions.checkNotNull(options.getLocation());
+  public UfsJournalFileParser(URI location) {
+    mLocation = Preconditions.checkNotNull(location);
     mUfs = UnderFileSystem.Factory.get(mLocation.toString());
   }
 
@@ -62,18 +57,7 @@ final class UfsJournalFileReader implements JournalReader {
   }
 
   @Override
-  public long getNextSequenceNumberToCheckpoint() throws IOException {
-    throw new UnsupportedOperationException(
-        "UfsJournalFileReader#getNextSequenceNumberToCheckpoint is not supported.");
-  }
-
-  @Override
-  public long getNextSequenceNumber() {
-    return mNextSequenceNumber;
-  }
-
-  @Override
-  public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
+  public Journal.JournalEntry next() throws IOException {
     if (mInputStream == null) {
       mInputStream = mUfs.open(mLocation.toString());
     }
@@ -107,9 +91,6 @@ final class UfsJournalFileReader implements JournalReader {
       return null;
     }
 
-    Journal.JournalEntry entry =
-        Journal.JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
-    mNextSequenceNumber = entry.getSequenceNumber() + 1;
-    return entry;
+    return Journal.JournalEntry.parseFrom(new ByteArrayInputStream(buffer, 0, size));
   }
 }

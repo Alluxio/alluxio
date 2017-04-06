@@ -24,7 +24,8 @@ Where component is one of:
   master            \tStop local master.
   proxy             \tStop local proxy.
   proxies           \tStop proxies on worker nodes.
-  secondary_master  \tStop secondary masters on the secondary master nodes.
+  secondary_master  \tStop local secondary master.
+  secondary_masters \tStop secondary masters on the secondary master nodes.
   worker            \tStop local worker.
   workers           \tStop workers on worker nodes.
 
@@ -65,8 +66,10 @@ case "${WHAT}" in
   all)
     stop_proxies
     stop_workers
-    stop_master
     stop_secondary_masters
+    stop_secondary_master
+    stop_proxy
+    stop_master
     ;;
   local)
     stop_proxy

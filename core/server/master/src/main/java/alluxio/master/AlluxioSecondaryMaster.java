@@ -28,7 +28,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The secondary Alluxio master that only replays the journal logs and writes checkpoints.
+ * The secondary Alluxio master that replays journal logs and writes checkpoints.
  */
 @NotThreadSafe
 public final class AlluxioSecondaryMaster implements Server {
