@@ -22,6 +22,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -37,7 +38,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,6 +66,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
+  /** Executor service used for parallel UFS operations such as bulk deletes. */
+  ExecutorService mExecutorService;
+
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
@@ -67,6 +76,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected ObjectUnderFileSystem(AlluxioURI uri) {
     super(uri);
+
+    int numThreads = Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
+    mExecutorService = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
+        "alluxio-underfs-object-service-worker", numThreads).create();
   }
 
   /**
@@ -195,7 +208,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   class DeleteBuffer {
     ArrayList<List<String>> mBatches;
-    ArrayList<List<String>> mBatchesResult;
+    ArrayList<Future<List<String>>> mBatchesResult;
     List<String> mCurrentBatch;
     int mEntriesAdded;
 
@@ -227,10 +240,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     List<String> getResult() throws IOException {
       processBatch();
-      // TODO(adit): wait for all batches to terminate
       LinkedList<String> result = new LinkedList<>();
-      for (List<String> list : mBatchesResult) {
-        result.addAll(list);
+      for (Future<List<String>> list : mBatchesResult) {
+        try {
+          result.addAll(list.get());
+        } catch (InterruptedException e) {
+          // If operation was interrupted do not add to successfully deleted list
+        } catch (ExecutionException e) {
+          // If operation failed to execute do not add to successfully deleted list
+        }
       }
       return result;
     }
@@ -252,8 +270,35 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @param batchNumber index starting from 0
      */
     void processBatchInThread(int batchNumber) throws IOException {
-      List<String> res = deleteObjects(mBatches.get(batchNumber));
-      mBatchesResult.add(batchNumber, res);
+      mBatchesResult.add(batchNumber,
+          getExecutorService().submit(new DeleteThread(mBatches.get(batchNumber))));
+    }
+
+    /**
+     * Thread class to delete a batch of objects.
+     */
+    @NotThreadSafe
+    class DeleteThread implements Callable<List<String>> {
+
+      List<String> mBatch;
+
+      /**
+       * Delete a batch of objects.
+       * @param batch a list of objects to delete
+       */
+      public DeleteThread(List<String> batch) {
+        mBatch = batch;
+      }
+
+      @Override
+      public List<String> call() {
+        try {
+          return deleteObjects(mBatch);
+        } catch (IOException e) {
+          // Do not append to success list
+          return null;
+        }
+      }
     }
   }
 
@@ -511,6 +556,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     return result;
+  }
+
+  /**
+   * @return the {@link ExecutorService} for this object storage
+   */
+  protected ExecutorService getExecutorService() {
+    return mExecutorService;
   }
 
   /**
