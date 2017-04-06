@@ -18,16 +18,17 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for the {@link ConfUtils} class.
+ * Tests for the {@link HadoopConfigurationUtils} class.
  */
-public final class ConfUtilsTest {
+public final class HadoopConfigurationUtilsTest {
   private static final String TEST_S3_ACCCES_KEY = "TEST ACCESS KEY";
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
   private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
   private static final String TEST_ALLUXIO_VALUE = "alluxio.unsupported.value";
 
   /**
-   * Test for the {@link ConfUtils#mergeHadoopConfiguration} method for an empty configuration.
+   * Test for the {@link HadoopConfigurationUtils#mergeHadoopConfiguration} method for an empty
+   * configuration.
    */
   @Test
   public void mergeEmptyHadoopConfiguration() {
@@ -35,13 +36,13 @@ public final class ConfUtilsTest {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
 
     long beforeSize = Configuration.toMap().size();
-    ConfUtils.mergeHadoopConfiguration(hadoopConfig);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
     long afterSize = Configuration.toMap().size();
     Assert.assertEquals(beforeSize, afterSize);
   }
 
   /**
-   * Test for the {@link ConfUtils#mergeHadoopConfiguration} method.
+   * Test for the {@link HadoopConfigurationUtils#mergeHadoopConfiguration} method.
    */
   @Test
   public void mergeHadoopConfiguration() {
@@ -55,7 +56,7 @@ public final class ConfUtilsTest {
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
 
     long beforeSize = Configuration.toMap().size();
-    ConfUtils.mergeHadoopConfiguration(hadoopConfig);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
     long afterSize = Configuration.toMap().size();
     Assert.assertEquals(beforeSize + 2, afterSize);
     Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3N_ACCESS_KEY));

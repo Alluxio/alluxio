@@ -17,6 +17,7 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -189,15 +190,12 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     }
 
     initializeRequest(msg);
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       mPosToQueue = mRequest.mStart;
       mPosToWrite = mRequest.mStart;
 
       mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
       mPacketReaderActive = true;
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -237,8 +235,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    */
   private void setError(Channel channel, Error error) {
     Preconditions.checkNotNull(error);
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       if (mError != null) {
         return;
       }
@@ -247,8 +244,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
         mPacketReaderActive = true;
         mPacketReaderExecutor.submit(new PacketReader(channel));
       }
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -256,8 +251,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @param channel the channel
    */
   private void setEof(Channel channel) {
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       if (mError != null || mCancel || mEof) {
         return;
       }
@@ -266,8 +260,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
         mPacketReaderActive = true;
         mPacketReaderExecutor.submit(new PacketReader(channel));
       }
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -275,8 +267,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @param channel the channel
    */
   private void setCancel(Channel channel) {
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       if (mError != null || mEof || mCancel) {
         return;
       }
@@ -285,8 +276,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
         mPacketReaderActive = true;
         mPacketReaderExecutor.submit(new PacketReader(channel));
       }
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -294,8 +283,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * Resets all the states.
    */
   private void reset() {
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       Preconditions.checkState(mPacketReaderActive == false);
       mPosToQueue = 0;
       mPosToWrite = 0;
@@ -304,8 +292,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
       mError = null;
       mRequest = null;
       mDone = false;
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -371,8 +357,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
         return;
       }
 
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= PACKET_SIZE,
             "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
@@ -382,8 +367,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
           mPacketReaderExecutor.submit(new PacketReader(future.channel()));
           mPacketReaderActive = true;
         }
-      } finally {
-        mLock.unlock();
       }
     }
 
@@ -429,8 +412,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
       while (true) {
         final long start;
         final int packetSize;
-        mLock.lock();
-        try {
+        try (LockResource lr = new LockResource(mLock)) {
           start = mPosToQueue;
           eof = mEof;
           cancel = mCancel;
@@ -445,8 +427,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
-        } finally {
-          mLock.unlock();
         }
 
         DataBuffer packet;
@@ -458,11 +438,8 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
           continue;
         }
         if (packet != null) {
-          mLock.lock();
-          try {
+          try (LockResource lr = new LockResource(mLock)) {
             mPosToQueue += packet.getLength();
-          } finally {
-            mLock.unlock();
           }
         }
         if (packet == null || packet.getLength() < packetSize

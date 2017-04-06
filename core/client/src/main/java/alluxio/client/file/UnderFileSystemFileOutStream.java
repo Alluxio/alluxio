@@ -29,8 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to write to a file in the under file system through an Alluxio
- * worker's data server. This class is based off of
- * {@link alluxio.client.block.BufferedBlockOutStream}.
+ * worker's data server.
  */
 // TODO(calvin): See if common logic in this class and buffered block out stream can be abstracted
 @NotThreadSafe

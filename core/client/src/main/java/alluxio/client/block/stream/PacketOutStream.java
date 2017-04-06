@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * streams data packet by packet.
  */
 @NotThreadSafe
-public final class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
+public class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
   private final Closer mCloser;
   /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
   private final long mLength;
@@ -118,7 +118,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param packetWriter the packet writer
    * @param length the length of the stream
    */
-  private PacketOutStream(PacketWriter packetWriter, long length) {
+  protected PacketOutStream(PacketWriter packetWriter, long length) {
     mCloser = Closer.create();
     mLength = length;
     mPacketWriters = new ArrayList<>(1);
@@ -133,7 +133,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param packetWriters the packet writers
    * @param length the length of the stream
    */
-  private PacketOutStream(List<PacketWriter> packetWriters, long length) {
+  protected PacketOutStream(List<PacketWriter> packetWriters, long length) {
     mCloser = Closer.create();
     mLength = length;
     mPacketWriters = packetWriters;
