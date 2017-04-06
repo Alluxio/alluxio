@@ -34,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class UfsJournalFileReader implements JournalReader {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsJournalReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UfsJournalFileReader.class);
 
   private final UnderFileSystem mUfs;
   /** The next journal entry sequence number to read. */
@@ -48,7 +48,7 @@ final class UfsJournalFileReader implements JournalReader {
   private URI mLocation;
 
   /**
-   * Creates a new instance of {@link UfsJournalReader}.
+   * Creates a new instance of {@link UfsJournalFileReader}.
    */
   UfsJournalFileReader(JournalReaderOptions options) {
     mNextSequenceNumber = -1;

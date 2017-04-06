@@ -49,7 +49,6 @@ public final class JournalTool {
   private static final Logger LOG = LoggerFactory.getLogger(JournalTool.class);
   /** Separator to place at the end of each journal entry. */
   private static final String ENTRY_SEPARATOR = StringUtils.repeat('-', 80);
-  /** Amount of time to wait before giving up on the user supplying a journal log via stdin. */
   private static final int EXIT_FAILED = -1;
   private static final int EXIT_SUCCEEDED = 0;
   private static final Options OPTIONS =
@@ -61,7 +60,9 @@ public final class JournalTool {
               "The start log sequence number (inclusive). Set to 0 by default.")
           .addOption("end", true,
               "The end log sequence number (exclusive). Set to +inf by default.")
-          .addOption("journalFile", true, "If set, only read journal from this file.");
+          .addOption("journalFile", true,
+              "If set, only read journal from this file. -master is ignored when -journalFile is "
+                  + "set.");
 
   private static boolean sHelp;
   private static String sMaster;

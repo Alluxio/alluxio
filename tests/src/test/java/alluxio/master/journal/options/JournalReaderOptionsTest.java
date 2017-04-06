@@ -14,6 +14,7 @@ package alluxio.master.journal.options;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.net.URI;
 import java.util.Random;
 
 /**
@@ -25,13 +26,14 @@ public final class JournalReaderOptionsTest {
     JournalReaderOptions options = JournalReaderOptions.defaults();
     Assert.assertEquals(0, options.getNextSequenceNumber());
     Assert.assertEquals(false, options.isPrimary());
+    Assert.assertEquals(null, options.getLocation());
   }
 
   /**
    * Tests getting and setting fields.
    */
   @Test
-  public void fields() {
+  public void fields() throws Exception {
     Random random = new Random();
     boolean isPrimary = random.nextBoolean();
     long sequenceNumber = random.nextLong();
@@ -40,5 +42,8 @@ public final class JournalReaderOptionsTest {
     Assert.assertEquals(isPrimary, options.isPrimary());
     options.setNextSequenceNumber(sequenceNumber);
     Assert.assertEquals(sequenceNumber, options.getNextSequenceNumber());
+    URI location = new URI("/a");
+    options.setLocation(location);
+    Assert.assertEquals(location, options.getLocation());
   }
 }

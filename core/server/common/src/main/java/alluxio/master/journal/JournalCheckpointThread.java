@@ -226,8 +226,9 @@ public final class JournalCheckpointThread extends Thread {
               nextSequenceNumber);
         }
       } catch (IOException e) {
-        LOG.warn("{}: Failed to cancel or close the checkpoint with error {}.", mMaster.getName(),
-            e.getMessage());
+        LOG.warn(
+            "{}: Failed to cancel or finish the checkpoint [sequence number {}] with error {}.",
+            mMaster.getName(), nextSequenceNumber, e.getMessage());
       }
     }
   }
