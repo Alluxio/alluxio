@@ -50,7 +50,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LRFUEvictor extends AbstractEvictor {
-  // Map from block id to the last updated logic time count
+  /** Map from block id to the last updated logic time count. */
   private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMapV8<>();
   // Map from block id to the CRF value of the block
   private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMapV8<>();
