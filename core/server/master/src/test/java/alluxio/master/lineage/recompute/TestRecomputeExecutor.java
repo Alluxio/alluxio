@@ -12,7 +12,6 @@
 package alluxio.master.lineage.recompute;
 
 import alluxio.job.Job;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.Lineage;
