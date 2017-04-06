@@ -41,21 +41,20 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Tool to update journal from v0 to v1. Format the v1 journal before running this tool.
+ * Tool to upgrade journal from v0 to v1. Format the v1 journal before running this tool.
  *
  * It is strongly recommended to backup the v0 journal before running this tool to avoid losing
  * any data in case of failures.
  *
  * <pre>
  * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
- *   alluxio.master.journal.JournalUpdater -journalDirectoryV0 YourJournalDirectoryV0
+ *   alluxio.master.journal.JournalUpgrader -journalDirectoryV0 YourJournalDirectoryV0
  * </pre>
  */
 @NotThreadSafe
-public final class JournalUpdater {
-  private static final Logger LOG = LoggerFactory.getLogger(JournalUpdater.class);
+public final class JournalUpgrader {
+  private static final Logger LOG = LoggerFactory.getLogger(JournalUpgrader.class);
 
-  /** Amount of time to wait before giving up on the user supplying a journal log via stdin. */
   private static final int EXIT_FAILED = -1;
   private static final int EXIT_SUCCEEDED = 0;
   private static final Options OPTIONS =
@@ -68,9 +67,9 @@ public final class JournalUpdater {
   private static String sJournalDirectoryV0;
 
   /**
-   * A class that provides a way to update the journal from v0 to v1.
+   * A class that provides a way to upgrade the journal from v0 to v1.
    */
-  private static final class Updater {
+  private static final class Upgrader {
     private final String mMaster;
     private final alluxio.master.journalv0.MutableJournal mJournalV0;
     private final Journal mJournalV1;
@@ -83,7 +82,7 @@ public final class JournalUpdater {
     private final URI mCheckpointsV1;
     private final URI mLogsV1;
 
-    private Updater(String master) {
+    private Upgrader(String master) {
       mMaster = master;
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
           getJournalLocation(sJournalDirectoryV0))).create(master);
@@ -100,19 +99,19 @@ public final class JournalUpdater {
     }
 
     /**
-     * Updates journal from v0 to v1.
+     * Upgrades journal from v0 to v1.
      *
      * @throws IOException if any I/O errors occur
      */
-    void update() throws IOException {
+    void upgrade() throws IOException {
       if (!mUfs.exists(mCheckpointV0.toString())) {
-        LOG.info("No checkpoint is found for {}. No update is required.", mMaster);
+        LOG.info("No checkpoint is found for {}. No upgrade is required.", mMaster);
         return;
       }
       prepare();
 
-      LOG.info("Starting to update {} journal.", mMaster);
-      boolean checkpointUpdated = false;
+      LOG.info("Starting to upgrade {} journal.", mMaster);
+      boolean checkpointUpgraded = false;
       int logNumber = 1;
       URI completedLog;
       while (mUfs.exists((completedLog = getCompletedLogV0(logNumber)).toString())) {
@@ -134,9 +133,9 @@ public final class JournalUpdater {
           }
         }
 
-        if (!checkpointUpdated) {
+        if (!checkpointUpgraded) {
           renameCheckpoint(start);
-          checkpointUpdated = true;
+          checkpointUpgraded = true;
         }
 
         URI dst = URIUtils.appendPathOrDie(mLogsV1, String.format("0x%x-0x%x", start, end + 1));
@@ -147,7 +146,7 @@ public final class JournalUpdater {
         }
       }
 
-      if (!checkpointUpdated) {
+      if (!checkpointUpgraded) {
         renameCheckpoint(1);
       }
 
@@ -207,13 +206,13 @@ public final class JournalUpdater {
     }
   }
 
-  private JournalUpdater() {}  // prevent instantiation
+  private JournalUpgrader() {}  // prevent instantiation
 
   /**
    * Reads a journal via
    * {@code java -cp \
    * assembly/target/alluxio-assemblies-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
-   * alluxio.master.journal.JournalUpdater -master BlockMaster}.
+   * alluxio.master.journal.JournalUpgrader -master BlockMaster}.
    *
    * @param args arguments passed to the tool
    */
@@ -233,11 +232,11 @@ public final class JournalUpdater {
     }
 
     for (String master : masters) {
-      Updater updater = new Updater(master);
+      Upgrader upgrader = new Upgrader(master);
       try {
-        updater.update();
+        upgrader.upgrade();
       } catch (IOException e) {
-        LOG.error("Failed to update the journal for {}.", master, e);
+        LOG.error("Failed to upgrade the journal for {}.", master, e);
         System.exit(EXIT_FAILED);
       }
     }
@@ -270,7 +269,7 @@ public final class JournalUpdater {
    */
   private static void usage() {
     new HelpFormatter().printHelp("java -cp alluxio-" + RuntimeConstants.VERSION
-            + "-jar-with-dependencies.jar alluxio.master.journal.JournalUpdater",
-        "Updates journal from v0 to v1", OPTIONS, "", true);
+            + "-jar-with-dependencies.jar alluxio.master.journal.JournalUpgrader",
+        "Upgrades journal from v0 to v1", OPTIONS, "", true);
   }
 }

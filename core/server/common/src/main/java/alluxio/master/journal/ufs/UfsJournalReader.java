@@ -244,22 +244,22 @@ final class UfsJournalReader implements JournalReader {
             snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1);
         if (mNextSequenceNumber < checkpoint.getEnd()) {
           mFilesToProcess.add(checkpoint);
-          // Reset the sequence number to 0 when the checkpoint is read because it is not supported
-          // to read from checkpoint with an offset.
-          // This can only happen in the following scenario:
+          // Reset the sequence number to 0 because it is not supported to read from checkpoint with
+          // an offset. This can only happen in the following scenario:
           // 1. Read checkpoint to SN1, then optionally read completed logs to SN2 (>= SN1).
           // 2. A new checkpoint is written to SN3 (> SN2).
           // 3. Resume reading from SN2.
           mNextSequenceNumber = 0;
         }
-        // index points to the log with mEnd > checkpoint.mEnd.
         index = Collections.binarySearch(snapshot.getLogs(), checkpoint);
         if (index >= 0) {
+          // The log entry the index points to (before index++) has mEnd == checkpoint.mEnd.
           index++;
         } else {
           // Find the insertion point.
           index = -index - 1;
         }
+        // index now points to the first log with mEnd > checkpoint.mEnd.
       }
       for (; index < snapshot.getLogs().size(); index++) {
         UfsJournalFile file = snapshot.getLogs().get(index);
