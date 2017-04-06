@@ -34,9 +34,8 @@ public final class ClientRWLock implements ReadWriteLock {
   private static final int MAX_AVAILABLE =
           Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCK_READERS);
   /**
-   * Underlying Semaphore.
-   * Convert to non-fair lock for the accidental hold read lock forever and write lock request
-   * will blocked the all read lock following if we use fair lock.
+   * Uses the unfair lock to prevent a read lock that fails to release from locking the block
+   * forever and thus blocking all the subsequent write access.
    * See https://alluxio.atlassian.net/browse/ALLUXIO-2636.
    */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, false);
