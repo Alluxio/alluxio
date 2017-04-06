@@ -15,6 +15,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalCheckpointWriter.class);
 
   private final UfsJournal mJournal;
+  private final UnderFileSystem mUfs;
 
   /** The checkpoint file to be committed to. */
   private final UfsJournalFile mCheckpointFile;
@@ -66,9 +68,10 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
   UfsJournalCheckpointWriter(UfsJournal journal, JournalWriterOptions options)
       throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
+    mUfs = mJournal.getUfs();
 
     mTmpCheckpointFileLocation = UfsJournalFile.encodeTemporaryCheckpointFileLocation(mJournal);
-    mTmpCheckpointStream = mJournal.getUfs().create(mTmpCheckpointFileLocation.toString());
+    mTmpCheckpointStream = mUfs.create(mTmpCheckpointFileLocation.toString());
     mCheckpointFile = UfsJournalFile.createCheckpointFile(
         UfsJournalFile.encodeCheckpointFileLocation(mJournal, options.getNextSequenceNumber()),
         options.getNextSequenceNumber());
@@ -90,7 +93,7 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
 
   @Override
   public void flush() throws IOException {
-    throw new UnsupportedOperationException("UfsJournalCheckpointWriter#flush is not supported.");
+    mTmpCheckpointStream.flush();
   }
 
   @Override
@@ -99,41 +102,38 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
       return;
     }
     mClosed = true;
-    mTmpCheckpointStream.flush();
     mTmpCheckpointStream.close();
 
     // Delete the temporary checkpoint if there is a newer checkpoint committed.
-    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-    if (snapshot != null && !snapshot.getCheckpoints().isEmpty()) {
-      UfsJournalFile checkpoint =
-          snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1);
+    UfsJournalFile checkpoint = UfsJournalSnapshot.getSnapshot(mJournal).getLatestCheckpoint();
+    if (checkpoint != null) {
       if (mCheckpointFile.getEnd() <= checkpoint.getEnd()) {
-        mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
+        mUfs.deleteFile(mTmpCheckpointFileLocation.toString());
         return;
       }
     }
 
     try {
-      mJournal.getUfs().mkdirs(mJournal.getCheckpointDir().toString());
+      mUfs.mkdirs(mJournal.getCheckpointDir().toString());
     } catch (IOException e) {
-      if (!mJournal.getUfs().exists(mJournal.getCheckpointDir().toString())) {
+      if (!mUfs.exists(mJournal.getCheckpointDir().toString())) {
+        LOG.warn("Failed to create the checkpoint directory {}.", mJournal.getCheckpointDir());
         throw e;
       }
-      LOG.warn("Failed to create the checkpoint directory {}.", mJournal.getCheckpointDir());
     }
     String dst = mCheckpointFile.getLocation().toString();
     try {
-      if (!mJournal.getUfs().renameFile(mTmpCheckpointFileLocation.toString(), dst)) {
+      if (!mUfs.renameFile(mTmpCheckpointFileLocation.toString(), dst)) {
         throw new IOException(String
             .format("Failed to rename %s to %s.", mTmpCheckpointFileLocation.toString(), dst));
       }
     } catch (IOException e) {
-      if (!mJournal.getUfs().exists(dst)) {
+      if (!mUfs.exists(dst)) {
         LOG.warn("Failed to commit checkpoint from {} to {} with error {}.",
             mTmpCheckpointFileLocation, dst, e.getMessage());
       }
       try {
-        mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
+        mUfs.deleteFile(mTmpCheckpointFileLocation.toString());
       } catch (IOException ee) {
         LOG.warn("Failed to clean up temporary checkpoint {} at entry {}.",
             mTmpCheckpointFileLocation, mCheckpointFile.getEnd());
@@ -150,8 +150,8 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
     mClosed = true;
 
     mTmpCheckpointStream.close();
-    if (mJournal.getUfs().exists(mTmpCheckpointFileLocation.toString())) {
-      mJournal.getUfs().deleteFile(mTmpCheckpointFileLocation.toString());
+    if (mUfs.exists(mTmpCheckpointFileLocation.toString())) {
+      mUfs.deleteFile(mTmpCheckpointFileLocation.toString());
     }
   }
 }

@@ -40,6 +40,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <pre>
  * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalTool -master FileSystemMaster -start 0x100 -end 0x109
+ * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
+ *   alluxio.master.journal.JournalTool -journalFile YourJournalFilePath
  * </pre>
  */
 @NotThreadSafe
@@ -51,16 +53,21 @@ public final class JournalTool {
   private static final int EXIT_FAILED = -1;
   private static final int EXIT_SUCCEEDED = 0;
   private static final Options OPTIONS =
-      new Options().addOption("help", false, "Show help for this test.").addOption("master", true,
-          "The name of the master (e.g. FileSystemMaster, BlockMaster). "
-              + "Set to FileSystemMaster by default.").addOption("start", true,
-          "The start log sequence number (inclusive). Set to 0 by default.").addOption("end", true,
-          "The end log sequence number (exclusive). Set to +inf by default.");
+      new Options()
+          .addOption("help", false, "Show help for this test.")
+          .addOption("master", true, "The name of the master (e.g. FileSystemMaster, BlockMaster). "
+              + "Set to FileSystemMaster by default.")
+          .addOption("start", true,
+              "The start log sequence number (inclusive). Set to 0 by default.")
+          .addOption("end", true,
+              "The end log sequence number (exclusive). Set to +inf by default.")
+          .addOption("journalFile", true, "If set, only read journal from this file.");
 
   private static boolean sHelp;
   private static String sMaster;
   private static long sStart;
   private static long sEnd;
+  private static String sJournalFile;
 
   private JournalTool() {} // prevent instantiation
 
@@ -84,10 +91,23 @@ public final class JournalTool {
 
     JournalFactory factory = new Journal.Factory(getJournalLocation());
     Journal journal = factory.create(sMaster);
-    try (JournalReader reader = journal.getReader(
-        JournalReaderOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart))) {
+    JournalReaderOptions options =
+        JournalReaderOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart);
+    if (sJournalFile != null && !sJournalFile.isEmpty()) {
+      try {
+        URI location = new URI(sJournalFile);
+        options.setLocation(location);
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    try (JournalReader reader = journal.getReader(options)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
+        if (entry.getSequenceNumber() < sStart) {
+          continue;
+        }
         if (entry.getSequenceNumber() >= sEnd) {
           break;
         }
@@ -134,6 +154,7 @@ public final class JournalTool {
     sMaster = cmd.getOptionValue("master", "FileSystemMaster");
     sStart = Long.parseLong(cmd.getOptionValue("start", "0"));
     sEnd = Long.parseLong(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
+    sJournalFile = cmd.getOptionValue("sJournalFile", "");
     return true;
   }
 
@@ -143,6 +164,7 @@ public final class JournalTool {
   private static void usage() {
     new HelpFormatter().printHelp("java -cp alluxio-" + RuntimeConstants.VERSION
             + "-jar-with-dependencies.jar alluxio.master.journal.JournalTool",
-        "Read an Alluxio journal and write it human-readably to stdout", OPTIONS, "", true);
+        "Read an Alluxio journal and write it to stdout in a human-readable format.", OPTIONS, "",
+        true);
   }
 }

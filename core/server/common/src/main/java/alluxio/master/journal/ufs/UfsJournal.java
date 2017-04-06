@@ -51,6 +51,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class UfsJournal implements Journal {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
+  /**
+   * This is set to Long.MAX_VALUE such that the current log can be sorted after any other
+   * completed logs.
+   */
   public static final long UNKNOWN_SEQUENCE_NUMBER = Long.MAX_VALUE;
   /** The journal version. */
   public static final String VERSION = "v1";
@@ -102,7 +106,11 @@ public class UfsJournal implements Journal {
 
   @Override
   public JournalReader getReader(JournalReaderOptions options) {
-    return new UfsJournalReader(this, options);
+    if (options.getLocation() != null) {
+      return new UfsJournalFileReader(options);
+    } else {
+      return new UfsJournalReader(this, options);
+    }
   }
 
   @Override

@@ -46,6 +46,8 @@ public final class JournalCheckpointThread extends Thread {
   private final int mShutdownQuietWaitTimeMs;
   /** If not journal log is found, sleep for this amount of time and check again. */
   private final int mJournalCheckpointSleepTimeMs;
+  /** Writes a new checkpoint after processing this many journal entries. */
+  private final long mCheckpointPeriodEntries;
   /** This becomes true when the master initiates the shutdown. */
   private volatile boolean mShutdownInitiated = false;
 
@@ -69,6 +71,8 @@ public final class JournalCheckpointThread extends Thread {
     mJournalCheckpointSleepTimeMs =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
     mJournalReader = mJournal.getReader(JournalReaderOptions.defaults().setPrimary(false));
+    mCheckpointPeriodEntries = Configuration.getLong(
+        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
   }
 
   /**
@@ -93,7 +97,7 @@ public final class JournalCheckpointThread extends Thread {
   }
 
   /**
-   * This should only be called after this thread is shutdown.
+   * This should only be called after {@link JournalCheckpointThread#awaitTermination()}.
    *
    * @return the last edit log sequence number read plus 1
    */
@@ -137,8 +141,9 @@ public final class JournalCheckpointThread extends Thread {
           LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
               ee.getMessage());
         }
-        mJournalReader =
-            mJournal.getReader(JournalReaderOptions.defaults().setPrimary(false));
+        long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
+        mJournalReader = mJournal.getReader(JournalReaderOptions.defaults().setPrimary(false)
+            .setNextSequenceNumber(nextSequenceNumber));
         quietPeriodWaited = false;
         continue;
       }
@@ -179,25 +184,28 @@ public final class JournalCheckpointThread extends Thread {
     if (mShutdownInitiated) {
       return;
     }
+    long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
+    long nextSequenceNumberToCheckpoint;
     try {
-      if (!mJournalReader.shouldCheckpoint()) {
-        return;
-      }
+      nextSequenceNumberToCheckpoint = mJournalReader.getNextSequenceNumberToCheckpoint();
     } catch (IOException e) {
-      LOG.warn("{}: Failed to decide whether to checkpoint from the journal reader with error {}.",
+      LOG.warn("{}: Failed to get the next sequence number to checkpoint with error {}.",
           mMaster.getName(), e.getMessage());
       return;
     }
+    if (nextSequenceNumber <= nextSequenceNumberToCheckpoint
+        || nextSequenceNumber % mCheckpointPeriodEntries != 0) {
+      return;
+    }
 
-    LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(),
-        mJournalReader.getNextSequenceNumber());
+    LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(), nextSequenceNumber);
 
     Iterator<alluxio.proto.journal.Journal.JournalEntry> it = mMaster.iterator();
     JournalWriter journalWriter = null;
     IOException exception = null;
     try {
       journalWriter = mJournal.getWriter(JournalWriterOptions.defaults().setPrimary(false)
-          .setNextSequenceNumber(mJournalReader.getNextSequenceNumber()));
+          .setNextSequenceNumber(nextSequenceNumber));
       while (it.hasNext() && !mShutdownInitiated) {
         journalWriter.write(it.next());
       }
@@ -211,11 +219,11 @@ public final class JournalCheckpointThread extends Thread {
         if (it.hasNext() || mShutdownInitiated || exception != null) {
           journalWriter.cancel();
           LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
-              mJournalReader.getNextSequenceNumber());
+              nextSequenceNumber);
         } else {
           journalWriter.close();
           LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
-              mJournalReader.getNextSequenceNumber());
+              nextSequenceNumber);
         }
       } catch (IOException e) {
         LOG.warn("{}: Failed to cancel or close the checkpoint with error {}.", mMaster.getName(),

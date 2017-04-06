@@ -47,14 +47,24 @@ final class UfsJournalSnapshot {
   }
 
   /**
-   * @return the checkpoints
+   * @return the checkpoints sorted by end sequence number increasingly
    */
   List<UfsJournalFile> getCheckpoints() {
     return mCheckpoints;
   }
 
   /**
-   * @return the logs
+   * @return the latest checkpoint, null if no checkpoint exists
+   */
+  UfsJournalFile getLatestCheckpoint() {
+    if (!mCheckpoints.isEmpty()) {
+      return mCheckpoints.get(mCheckpoints.size() - 1);
+    }
+    return null;
+  }
+
+  /**
+   * @return the logs sorted by the end sequence number increasingly
    */
   List<UfsJournalFile> getLogs() {
     return mLogs;

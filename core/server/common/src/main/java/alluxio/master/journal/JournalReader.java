@@ -39,8 +39,8 @@ public interface JournalReader extends Closeable {
   long getNextSequenceNumber();
 
   /**
-   * @return true if a checkpoint should be created
+   * @return the next sequence number to checkpoint
    * @throws IOException if an I/O error occur
    */
-  boolean shouldCheckpoint() throws IOException;
+  long getNextSequenceNumberToCheckpoint() throws IOException;
 }

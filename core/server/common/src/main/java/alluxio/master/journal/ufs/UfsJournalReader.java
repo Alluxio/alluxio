@@ -11,13 +11,12 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.proto.journal.Journal;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
@@ -45,9 +44,10 @@ final class UfsJournalReader implements JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalReader.class);
 
   private final UfsJournal mJournal;
+  private final UnderFileSystem mUfs;
   /** Whether the reader runs in a primary master. */
   private final boolean mPrimary;
-  private final long mCheckpointPeriodEntries;
+
   /**
    * The next edit log sequence number to read. This is not incremented when reading from
    * the checkpoint.
@@ -73,7 +73,7 @@ final class UfsJournalReader implements JournalReader {
 
     JournalInputStream(UfsJournalFile file) throws IOException {
       mFile = file;
-      mStream = mJournal.getUfs().open(file.getLocation().toString());
+      mStream = mUfs.open(file.getLocation().toString());
     }
 
     /**
@@ -97,10 +97,9 @@ final class UfsJournalReader implements JournalReader {
   UfsJournalReader(UfsJournal journal, JournalReaderOptions options) {
     mFilesToProcess = new ArrayDeque<>();
     mJournal = Preconditions.checkNotNull(journal, "journal");
+    mUfs = mJournal.getUfs();
     mNextSequenceNumber = options.getNextSequenceNumber();
     mPrimary = options.isPrimary();
-    mCheckpointPeriodEntries = Configuration.getLong(
-        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
   }
 
   @Override
@@ -115,15 +114,8 @@ final class UfsJournalReader implements JournalReader {
   }
 
   @Override
-  public boolean shouldCheckpoint() throws IOException {
-    if (mPrimary) {
-      return false;
-    }
-    if (mNextSequenceNumber > UfsJournalSnapshot.getNextLogSequenceToCheckpoint(mJournal)
-        && mNextSequenceNumber % mCheckpointPeriodEntries == 0) {
-      return true;
-    }
-    return false;
+  public long getNextSequenceNumberToCheckpoint() throws IOException {
+    return UfsJournalSnapshot.getNextLogSequenceToCheckpoint(mJournal);
   }
 
   @Override
@@ -151,7 +143,8 @@ final class UfsJournalReader implements JournalReader {
         //    result in duplicate logs.
         // 2. The first completed log after the checkpoint's last sequence number might contains
         //    some duplicate entries with the checkpoint.
-        LOG.debug("Skipping duplicate log entry {}.", entry);
+        LOG.debug("Skipping duplicate log entry {} (next sequence number: {}).", entry,
+            mNextSequenceNumber);
       } else {
         throw new InvalidJournalEntryException(ExceptionMessage.JOURNAL_ENTRY_MISSING,
             mNextSequenceNumber, entry.getSequenceNumber());
@@ -241,17 +234,25 @@ final class UfsJournalReader implements JournalReader {
     }
     if (mFilesToProcess.isEmpty()) {
       UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-      // Remove incomplete log if this is a secondary master.
       if (snapshot.getCheckpoints().isEmpty() && snapshot.getLogs().isEmpty()) {
         return;
       }
 
       int index = 0;
-      if (mNextSequenceNumber == 0 && !snapshot.getCheckpoints().isEmpty()) {
+      if (!snapshot.getCheckpoints().isEmpty()) {
         UfsJournalFile checkpoint =
             snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1);
-        mFilesToProcess.add(checkpoint);
-        // index points to the log with mEnd >= checkpoint.mEnd.
+        if (mNextSequenceNumber < checkpoint.getEnd()) {
+          mFilesToProcess.add(checkpoint);
+          // Reset the sequence number to 0 when the checkpoint is read because it is not supported
+          // to read from checkpoint with an offset.
+          // This can only happen in the following scenario:
+          // 1. Read checkpoint to SN1, then optionally read completed logs to SN2 (>= SN1).
+          // 2. A new checkpoint is written to SN3 (> SN2).
+          // 3. Resume reading from SN2.
+          mNextSequenceNumber = 0;
+        }
+        // index points to the log with mEnd > checkpoint.mEnd.
         index = Collections.binarySearch(snapshot.getLogs(), checkpoint);
         if (index >= 0) {
           index++;
@@ -260,7 +261,7 @@ final class UfsJournalReader implements JournalReader {
           index = -index - 1;
         }
       }
-      for (; index < snapshot.getLogs().size(); ++index) {
+      for (; index < snapshot.getLogs().size(); index++) {
         UfsJournalFile file = snapshot.getLogs().get(index);
         if ((!mPrimary && file.isIncompleteLog()) || mNextSequenceNumber >= file.getEnd()) {
           continue;
