@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -184,7 +185,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     deleteBuffer.add(stripPrefixIfPresent(convertToFolderName(path)));
-    return deleteBuffer.getResult();
+    return deleteBuffer.getResult().size() == deleteBuffer.mEntriesAdded;
   }
 
   /**
@@ -192,14 +193,66 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * processed in parallel.
    */
   class DeleteBuffer {
-    List<String> objectsToDelete = new LinkedList<>();
+    ArrayList<List<String>> mBatches;
+    ArrayList<List<String>> mBatchesResult;
+    List<String> mCurrentBatch;
+    int mEntriesAdded;
 
-    public void add(String path) {
-      objectsToDelete.add(path);
+    DeleteBuffer() {
+      mBatches = new ArrayList<>();
+      mBatchesResult = new ArrayList<>();
+      mCurrentBatch = null;
+      mEntriesAdded = 0;
     }
 
-    public boolean getResult() throws IOException {
-      return deleteObjects(objectsToDelete);
+    void add(String path) throws IOException {
+      mEntriesAdded++;
+      if (mCurrentBatch == null) {
+        mCurrentBatch = new LinkedList<>();
+      }
+      if (mCurrentBatch.size() < getListingChunkLength()) {
+        mCurrentBatch.add(path);
+      } else {
+        // Batch is full
+        processBatch();
+      }
+    }
+
+    /**
+     * Get the combined result from all batches.
+     *
+     * @return a list of successfully deleted objects
+     * @throws IOException if a non-Alluxio error occurs
+     */
+    List<String> getResult() throws IOException {
+      processBatch();
+      // TODO(adit): wait for all batches to terminate
+      LinkedList<String> result = new LinkedList<>();
+      for (List<String> list : mBatchesResult) {
+        result.addAll(list);
+      }
+      return result;
+    }
+
+    /**
+     * Process a single batch.
+     */
+    void processBatch() throws IOException {
+      if (mCurrentBatch != null) {
+        int batchNumber = mBatches.size();
+        mBatches.add(new LinkedList<>(mCurrentBatch));
+        mCurrentBatch = null;
+        processBatchInThread(batchNumber);
+      }
+    }
+
+    /**
+     * Launch a thread for processing a individual batch.
+     * @param batchNumber index starting from 0
+     */
+    void processBatchInThread(int batchNumber) throws IOException {
+      List<String> res = deleteObjects(mBatches.get(batchNumber));
+      mBatchesResult.add(batchNumber, res);
     }
   }
 
@@ -444,18 +497,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Internal function to delete a list of keys.
    *
    * @param keys the list of keys to delete
-   * @return true if successfully deleted all keys, false if not
+   * @return list of successfully deleted keys
    */
-  protected boolean deleteObjects(List<String> keys) throws IOException {
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    List<String> result = new LinkedList<>();
     for (String key : keys) {
       boolean status = deleteObject(key);
       // If key is a directory, it is possible that it was not created through Alluxio and no
       // zero-byte breadcrumb exists
-      if (!status && key.endsWith(getFolderSuffix())) {
-        return false;
+      if (status || key.endsWith(getFolderSuffix())) {
+        result.add(key);
       }
     }
-    return true;
+    return result;
   }
 
   /**

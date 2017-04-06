@@ -314,16 +314,21 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean deleteObjects(List<String> keys) throws IOException {
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
       List<DeleteObjectsRequest.KeyVersion> keysToDelete = new LinkedList<>();
       for (String key : keys) {
         keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
       }
-      DeleteObjectsResult res =
+      DeleteObjectsResult deletedObjectsResult =
           mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
-      return res.getDeletedObjects() != null && (res.getDeletedObjects().size() == keys.size());
+      List<String> deletedObjects = new LinkedList<>();
+      for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
+          .getDeletedObjects()) {
+        deletedObjects.add(deletedObject.getKey());
+      }
+      return deletedObjects;
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
