@@ -330,6 +330,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     }
   }
 
+  /**
+   * Starts the Thrift RPC server. The AlluxioMaster registers the Services of registered
+   * {@link Master}s and meta services to a multiplexed processor, then creates the master thrift
+   * service with the multiplexed processor.
+   */
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();

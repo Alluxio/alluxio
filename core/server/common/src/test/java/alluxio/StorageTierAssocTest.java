@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Unit tests for {@link StorageTierAssoc}.
  */
-public class StorageTierAssocTest {
+public final class StorageTierAssocTest {
   private void checkStorageTierAssoc(StorageTierAssoc assoc, PropertyKey levelsProperty,
       PropertyKey.Template template) {
     int size = Configuration.getInt(levelsProperty);

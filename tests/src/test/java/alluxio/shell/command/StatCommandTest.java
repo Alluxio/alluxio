@@ -74,4 +74,36 @@ public final class StatCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(res2.contains(testDir + "/bar/foobar3"));
     Assert.assertFalse(res2.contains(testDir + "/foobar4"));
   }
+
+  @Test
+  public void statFileFormat() throws IOException, AlluxioException {
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+
+    String format = "%N-%z-%b-%u-%g-%Y";
+    mFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
+    String res1 = mOutput.toString();
+    Assert.assertTrue(res1.startsWith("foobar1-10-1-"));
+
+    format = "%N-%z-%b-%u-%g-%y";
+    mFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
+    String res2 = mOutput.toString();
+    res2 = res2.replace(res1, "");
+    Assert.assertTrue(res2.startsWith("foobar1-10-1-"));
+  }
+
+  @Test
+  public void statDirectoryFormat() throws IOException, AlluxioException {
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+
+    String format = "%N-%z-%b-%Y-%u-%g";
+    mFsShell.run("stat", "-f", format, testDir + "/foo");
+    String res1 = mOutput.toString();
+    Assert.assertTrue(res1.startsWith("foo-NA-NA-"));
+
+    format = "%N-%z-%b-%y-%u-%g";
+    mFsShell.run("stat", "-f", format, testDir + "/foo");
+    String res2 = mOutput.toString();
+    res2 = res2.replace(res1, "");
+    Assert.assertTrue(res2.startsWith("foo-NA-NA-"));
+  }
 }

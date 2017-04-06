@@ -135,6 +135,8 @@ public class PropertyKey {
       create(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false);
   public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
       create(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED, false);
+  public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
+      create(Name.UNDERFS_S3A_SIGNER_ALGORITHM, null);
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       create(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS, 50000);
 
@@ -468,8 +470,6 @@ public class PropertyKey {
       create(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
       create(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true);
-  public static final PropertyKey USER_PACKET_STREAMING_ENABLED =
-      create(Name.USER_PACKET_STREAMING_ENABLED, true);
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       create(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50);
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
@@ -670,6 +670,8 @@ public class PropertyKey {
         "alluxio.underfs.s3a.secure.http.enabled";
     public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
         "alluxio.underfs.s3a.server.side.encryption.enabled";
+    public static final String UNDERFS_S3A_SIGNER_ALGORITHM =
+        "alluxio.underfs.s3a.signer.algorithm";
     public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
         "alluxio.underfs.s3a.socket.timeout.ms";
     public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
@@ -942,8 +944,6 @@ public class PropertyKey {
         "alluxio.user.network.netty.reader.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
         "alluxio.user.network.netty.reader.cancel.enabled";
-    public static final String USER_PACKET_STREAMING_ENABLED =
-        "alluxio.user.packet.streaming.enabled";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep.ms";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =

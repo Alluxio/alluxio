@@ -53,7 +53,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stream is closed.
  */
 @NotThreadSafe
-public final class BlockInStream extends FilterInputStream implements BoundedStream, Seekable,
+public class BlockInStream extends FilterInputStream implements BoundedStream, Seekable,
     PositionedReadable, Locatable {
   /** Helper to manage closeables. */
   private final Closer mCloser;
@@ -83,7 +83,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
       LockBlockResource lockBlockResource =
           closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
       PacketInStream inStream = closer.register(PacketInStream
-          .createLocalPacketInstream(lockBlockResource.getResult().getBlockPath(), blockId,
+          .createLocalPacketInStream(lockBlockResource.getResult().getBlockPath(), blockId,
               blockSize));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
@@ -168,7 +168,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
             .equals(NetworkAddressUtils.getClientHostName());
         if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
           inStream = closer.register(PacketInStream
-              .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
+              .createLocalPacketInStream(lockBlockResult.getBlockPath(), blockId, blockSize));
         } else {
           inStream = closer.register(PacketInStream
               .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
@@ -236,7 +236,7 @@ public final class BlockInStream extends FilterInputStream implements BoundedStr
    * @param options the options
    * @throws IOException if it fails to create an instance
    */
-  private BlockInStream(PacketInStream inputStream, BlockWorkerClient blockWorkerClient,
+  protected BlockInStream(PacketInStream inputStream, BlockWorkerClient blockWorkerClient,
       Closer closer, InStreamOptions options) {
     super(inputStream);
 
