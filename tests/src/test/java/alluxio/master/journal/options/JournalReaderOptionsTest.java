@@ -31,7 +31,7 @@ public final class JournalReaderOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fields() {
+  public void fields() throws Exception {
     Random random = new Random();
     boolean isPrimary = random.nextBoolean();
     long sequenceNumber = random.nextLong();
