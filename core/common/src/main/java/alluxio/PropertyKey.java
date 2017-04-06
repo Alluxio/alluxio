@@ -29,6 +29,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class PropertyKey {
+  // The following two maps must be the first to initialize within this file.
+  /** A map from default property key's string name to the key. */
+  private static Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
+  /** A map from default property key's string name to the key. */
+  private static Map<PropertyKey, Object> DEFAULT_VALUES = new HashMap<>();
+
   public static final PropertyKey CONF_DIR =
       create(Name.CONF_DIR, String.format("${%s}/conf", Name.HOME));
   public static final PropertyKey DEBUG = create(Name.DEBUG, false);
@@ -1056,12 +1062,6 @@ public class PropertyKey {
     }
   }
 
-  /** A map from default property key's string name to the key. */
-  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
-
-  /** A map from default property key's string name to the key. */
-  private static final Map<PropertyKey, Object> DEFAULT_VALUES = new HashMap<>();
-
   /**
    * @param input string of property key
    * @return whether the input is a valid property name
@@ -1143,6 +1143,7 @@ public class PropertyKey {
    */
   static PropertyKey create(Template template, Object defaultValue, Object... param) {
     PropertyKey key = template.format(param);
+    DEFAULT_KEYS_MAP.put(key.toString(), key);
     DEFAULT_VALUES.put(key, defaultValue);
     return key;
   }

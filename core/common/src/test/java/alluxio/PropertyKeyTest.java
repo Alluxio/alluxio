@@ -34,7 +34,7 @@ public final class PropertyKeyTest {
   public void equalsTest() throws Exception {
     Assert.assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"),
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"));
-    Assert.assertNotEquals(PropertyKey.HOME, PropertyKey.HOME);
+    Assert.assertEquals(PropertyKey.HOME, PropertyKey.HOME);
   }
 
   @Test
