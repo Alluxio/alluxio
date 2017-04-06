@@ -21,16 +21,18 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
 Where ACTION is one of:
-  all [MOPT]     \tStart master and all proxies and workers.
-  local [MOPT]   \tStart a master, proxy, and worker locally.
-  master         \tStart the master on this node.
-  proxy          \tStart the proxy on this node.
-  proxies        \tStart proxies on worker nodes.
-  safe           \tScript will run continuously and start the master if it's not running.
-  worker [MOPT]  \tStart a worker on this node.
-  workers [MOPT] \tStart workers on worker nodes.
-  restart_worker \tRestart a failed worker on this node.
-  restart_workers\tRestart any failed workers on worker nodes.
+  all [MOPT]         \tStart master and all proxies and workers.
+  local [MOPT]       \tStart a master, proxy, and worker locally.
+  master             \tStart the master on this node.
+  secondary_master   \tStart the secondary master on this node.
+  secondary_masters  \tStart the secondary masters on secondary master nodes.
+  proxy              \tStart the proxy on this node.
+  proxies            \tStart proxies on worker nodes.
+  safe               \tScript will run continuously and start the master if it's not running.
+  worker [MOPT]      \tStart a worker on this node.
+  workers [MOPT]     \tStart workers on worker nodes.
+  restart_worker     \tRestart a failed worker on this node.
+  restart_workers    \tRestart any failed workers on worker nodes.
 
 MOPT (Mount Option) is one of:
   Mount    \tMount the configured RamFS. Notice: this will format the existing RamFS.
@@ -215,6 +217,10 @@ start_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" $1
 }
 
+start_secondary_masters() {
+  ${LAUNCHER} "${BIN}/alluxio-secondary-masters.sh" "${BIN}/alluxio-start.sh" "secondary_master"
+}
+
 run_safe() {
   while [ 1 ]
   do
@@ -296,6 +302,7 @@ main() {
       sleep 2
       start_workers "${MOPT}"
       start_proxies
+      start_secondary_masters
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
@@ -306,12 +313,16 @@ main() {
       sleep 2
       start_worker "${MOPT}"
       start_proxy
+      start_secondary_master
       ;;
     master)
       start_master "${FORMAT}"
       ;;
     secondary_master)
       start_secondary_master
+      ;;
+    secondary_masters)
+      start_secondary_masters
       ;;
     proxy)
       start_proxy
