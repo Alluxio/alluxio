@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * Unit tests for {@link LockResource}.
  */
-public class LockResourceTest {
+public final class LockResourceTest {
 
   /**
    * Tests {@link LockResource} with {@link ReentrantLock}.
