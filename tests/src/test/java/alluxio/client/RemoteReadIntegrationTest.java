@@ -16,7 +16,7 @@ import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.RemoteBlockInStream;
+import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -50,10 +50,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Integration tests for {@link alluxio.client.block.RemoteBlockInStream}.
+ * Integration tests for reading from a remote worker.
  */
 @RunWith(Parameterized.class)
-public class RemoteBlockInStreamIntegrationTest {
+public class RemoteReadIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -76,18 +76,19 @@ public class RemoteBlockInStreamIntegrationTest {
     List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
+    // TODO(calvin): Reenable this after File Channel Transfer is well supported
+    // list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+    //   IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
   /**
-   * Constructor for {@link RemoteBlockInStreamIntegrationTest}.
+   * Constructor for {@link RemoteReadIntegrationTest}.
    *
    * @param dataServer the address of the worker's data server
    * @param transferType the file transfer type used by the worker
    */
-  public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType) {
+  public RemoteReadIntegrationTest(String dataServer, String transferType) {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
@@ -109,7 +110,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read()}. Read from underfs.
+   * Tests the single byte read API from a remote location when the data is only in the
+   * underlying storage.
    */
   @Test
   public void readTest1() throws Exception {
@@ -170,7 +172,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests the batch read API from a remote location when the data is only in the underlying
+   * storage.
    */
   @Test
   public void readTest2() throws Exception {
@@ -207,7 +210,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
+   * Tests the batch read API with offset and length from a remote location when the data is only in
+   * the underlying storage.
    */
   @Test
   public void readTest3() throws Exception {
@@ -244,7 +248,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read()}. Read from remote data server.
+   * Tests the single byte read API from a remote location when the data is in an Alluxio worker.
    */
   @Test
   public void readTest4() throws Exception {
@@ -257,8 +261,9 @@ public class RemoteBlockInStreamIntegrationTest {
       AlluxioBlockStore blockStore = AlluxioBlockStore.create();
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
-          workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is =
+          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+              FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -276,7 +281,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
+   * Tests the batch read API from a remote location when the data is only in an Alluxio worker.
    */
   @Test
   public void readTest5() throws Exception {
@@ -288,8 +293,9 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
-          workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is =
+          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+              FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -303,7 +309,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
+   * Tests the batch read API with offset and length from a remote location when the data is in an
+   * Alluxio worker.
    */
   @Test
   public void readTest6() throws Exception {
@@ -315,8 +322,9 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
-          workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is =
+          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+              FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -330,7 +338,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
+   * Tests the batch read API from a remote location when the data is only in the underlying
+   * storage.
    */
   @Test
   public void readTest7() throws Exception {
@@ -350,8 +359,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
-   * negative position.
+   * Validates the expected exception for seeking a negative position.
    */
   @Test
   public void seekExceptionTest1() throws Exception {
@@ -369,8 +377,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
-   * position that is past block size.
+   * Validates the expected exception for seeking a position that is past block size.
    */
   @Test
   public void seekExceptionTest2() throws Exception {
@@ -389,7 +396,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#seek(long)}.
+   * Tests seeking through data which is in a remote location.
    */
   @Test
   public void seek() throws Exception {
@@ -412,7 +419,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests {@link RemoteBlockInStream#skip(long)}.
+   * Tests skipping through data which is in a remote location.
    */
   @Test
   public void skip() throws Exception {
@@ -519,7 +526,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests remote read stream lock in {@link RemoteBlockInStream}.
+   * Tests remote reads lock blocks correctly.
    */
   @Test
   public void remoteReadLock() throws Exception {
@@ -535,8 +542,9 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is = RemoteBlockInStream.create(info.getBlockId(), info.getLength(),
-          workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is =
+          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+              FileSystemContext.INSTANCE, InStreamOptions.defaults());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -550,10 +558,11 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertFalse(mFileSystem.exists(uri));
 
       // Try to create an in stream again, and it should fail.
-      RemoteBlockInStream is2 = null;
+      BlockInStream is2 = null;
       try {
-        is2 = RemoteBlockInStream.create(info.getBlockId(), info.getLength(), workerAddr,
-            FileSystemContext.INSTANCE, InStreamOptions.defaults());
+        is2 =
+            BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(),
+                workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
       } catch (IOException e) {
         Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
       } finally {

@@ -37,6 +37,7 @@ public enum ExceptionMessage {
   // general block
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
+  NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
@@ -120,7 +121,6 @@ public enum ExceptionMessage {
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
-  HDFS_FILE_NOT_FOUND("File {0} with URI {1} is not found"),
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
@@ -181,6 +181,7 @@ public enum ExceptionMessage {
   KEY_NOT_FLOAT("Configuration cannot evaluate key {0} as float"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
+  KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 

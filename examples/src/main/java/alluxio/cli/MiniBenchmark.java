@@ -12,9 +12,7 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -50,9 +48,9 @@ public final class MiniBenchmark {
 
   private static void usage() {
     System.out.println("Usage:");
-    System.out.println("To run a mini benchmark to read or write a file.");
+    System.out.println("To run a mini benchmark to write or read a file.");
     System.out.println(String
-        .format("java -cp %s %s <master address> <[READ, WRITE]> <fileSize> <iterations>",
+        .format("java -cp %s %s <[READ, WRITE]> <fileSize> <iterations>",
         RuntimeConstants.ALLUXIO_JAR, MiniBenchmark.class.getCanonicalName()));
   }
 
@@ -64,18 +62,15 @@ public final class MiniBenchmark {
    * @throws Exception if error occurs during tests
    */
   public static void main(String[] args) throws Exception {
-    if (args.length != 4) {
+    if (args.length != 3) {
       usage();
       System.exit(-1);
     }
-    AlluxioURI masterLocation = new AlluxioURI(args[0]);
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterLocation.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, masterLocation.getPort());
     FileSystemContext.INSTANCE.reset();
 
-    OperationType operationType = Enum.valueOf(OperationType.class, args[1]);
-    long fileSize = FormatUtils.parseSpaceSize(args[2]);
-    int iterations = Integer.parseInt(args[3]);
+    OperationType operationType = OperationType.valueOf(args[0]);
+    long fileSize = FormatUtils.parseSpaceSize(args[1]);
+    int iterations = Integer.parseInt(args[2]);
 
     CommonUtils.warmUpLoop();
 
@@ -117,7 +112,7 @@ public final class MiniBenchmark {
    *
    * @param fileSize the file size
    * @param iterations number of iterations
-   * @throws Exception it if fails to write
+   * @throws Exception if it fails to write
    */
   private static void writeFile(long fileSize, int iterations) throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();
