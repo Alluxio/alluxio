@@ -13,8 +13,6 @@ package alluxio.master.journal.options;
 
 import com.google.common.base.Objects;
 
-import java.net.URI;
-
 /**
  * Options to create a journal reader.
  */
@@ -23,12 +21,6 @@ public final class JournalReaderOptions {
   private long mNextSequenceNumber;
   /** Whether the journal reader is running in a primary master. */
   private boolean mPrimary;
-
-  /**
-   * If set, read only from this file instead of the default journal location. This is used to write
-   * tool to parse any file comprised of journal entries.
-   */
-  private URI mLocation;
 
   private JournalReaderOptions() {} // prevent instantiation
 
@@ -54,13 +46,6 @@ public final class JournalReaderOptions {
   }
 
   /**
-   * @return the journal file location, null if not set
-   */
-  public URI getLocation() {
-    return mLocation;
-  }
-
-  /**
    * @param nextSequenceNumber the next sequence number
    * @return the updated options
    */
@@ -78,15 +63,6 @@ public final class JournalReaderOptions {
     return this;
   }
 
-  /**
-   * @param location the journal file location
-   * @return the updated options
-   */
-  public JournalReaderOptions setLocation(URI location) {
-    mLocation = location;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -97,20 +73,18 @@ public final class JournalReaderOptions {
     }
     JournalReaderOptions that = (JournalReaderOptions) o;
     return Objects.equal(mNextSequenceNumber, that.mNextSequenceNumber)
-        && Objects.equal(mPrimary, that.mPrimary)
-        && Objects.equal(mLocation, that.mLocation);
+        && Objects.equal(mPrimary, that.mPrimary);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mNextSequenceNumber, mPrimary, mLocation);
+    return Objects.hashCode(mNextSequenceNumber, mPrimary);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("nextSequenceNumber", mNextSequenceNumber)
-        .add("primary", mPrimary)
-        .add("location", mLocation).toString();
+        .add("primary", mPrimary).toString();
   }
 }

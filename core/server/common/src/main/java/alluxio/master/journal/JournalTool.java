@@ -90,25 +90,46 @@ public final class JournalTool {
       System.exit(EXIT_SUCCEEDED);
     }
 
+    if (sJournalFile != null && !sJournalFile.isEmpty()) {
+      parseJournalFile();
+    } else {
+      readFromJournal();
+    }
+  }
+
+  private static void parseJournalFile() {
+    URI location;
+    try {
+      location = new URI(sJournalFile);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+
+    try (JournalFileParser parser = JournalFileParser.Factory.create(location)) {
+      JournalEntry entry;
+      while ((entry = parser.next()) != null) {
+        if (entry.getSequenceNumber() < sStart) {
+          continue;
+        }
+        if (entry.getSequenceNumber() >= sEnd) {
+          break;
+        }
+        System.out.println(ENTRY_SEPARATOR);
+        System.out.print(entry);
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to get next journal entry.", e);
+    }
+  }
+
+  private static void readFromJournal() {
     JournalFactory factory = new Journal.Factory(getJournalLocation());
     Journal journal = factory.create(sMaster);
     JournalReaderOptions options =
         JournalReaderOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart);
-    if (sJournalFile != null && !sJournalFile.isEmpty()) {
-      try {
-        URI location = new URI(sJournalFile);
-        options.setLocation(location);
-      } catch (URISyntaxException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
     try (JournalReader reader = journal.getReader(options)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
-        if (entry.getSequenceNumber() < sStart) {
-          continue;
-        }
         if (entry.getSequenceNumber() >= sEnd) {
           break;
         }

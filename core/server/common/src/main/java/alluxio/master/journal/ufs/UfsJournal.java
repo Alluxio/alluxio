@@ -106,11 +106,7 @@ public class UfsJournal implements Journal {
 
   @Override
   public JournalReader getReader(JournalReaderOptions options) {
-    if (options.getLocation() != null) {
-      return new UfsJournalFileReader(options);
-    } else {
-      return new UfsJournalReader(this, options);
-    }
+    return new UfsJournalReader(this, options);
   }
 
   @Override

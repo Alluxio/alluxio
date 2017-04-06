@@ -132,12 +132,10 @@ final class UfsJournalReader implements JournalReader {
       }
       if (mInputStream.mFile.isCheckpoint()) {
         return entry;
-      }
-      if (entry.getSequenceNumber() == mNextSequenceNumber) {
+      } else if (entry.getSequenceNumber() == mNextSequenceNumber) {
         mNextSequenceNumber++;
         return entry;
-      }
-      if (entry.getSequenceNumber() < mNextSequenceNumber) {
+      } else if (entry.getSequenceNumber() < mNextSequenceNumber) {
         // This can happen in the following two scenarios:
         // 1. The primary master failed when renaming the current log to completed log which might
         //    result in duplicate logs.
@@ -240,8 +238,7 @@ final class UfsJournalReader implements JournalReader {
 
       int index = 0;
       if (!snapshot.getCheckpoints().isEmpty()) {
-        UfsJournalFile checkpoint =
-            snapshot.getCheckpoints().get(snapshot.getCheckpoints().size() - 1);
+        UfsJournalFile checkpoint = snapshot.getLatestCheckpoint();
         if (mNextSequenceNumber < checkpoint.getEnd()) {
           mFilesToProcess.add(checkpoint);
           // Reset the sequence number to 0 because it is not supported to read from checkpoint with
