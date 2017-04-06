@@ -45,6 +45,8 @@ public final class UfsJournalFileParser implements JournalFileParser {
 
   /**
    * Creates a new instance of {@link UfsJournalFileParser}.
+   *
+   * @param location the journal file location
    */
   public UfsJournalFileParser(URI location) {
     mLocation = Preconditions.checkNotNull(location);
