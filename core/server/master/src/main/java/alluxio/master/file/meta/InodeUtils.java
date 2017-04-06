@@ -49,7 +49,7 @@ public final class InodeUtils {
       MountTable mountTable, JournalContext journalContext) throws IOException {
     RetryPolicy retry = new ExponentialBackoffRetry(2, 1000, 200);
     while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
-      if (dir.compareAndSwapPersistenceState(PersistenceState.NOT_PERSISTED,
+      if (dir.compareAndSwap(PersistenceState.NOT_PERSISTED,
           PersistenceState.TO_BE_PERSISTED)) {
         boolean success = false;
         try {
