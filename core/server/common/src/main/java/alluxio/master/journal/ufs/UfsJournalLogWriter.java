@@ -18,6 +18,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.base.Preconditions;
@@ -49,6 +51,8 @@ final class UfsJournalLogWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalLogWriter.class);
 
   private final UfsJournal mJournal;
+  private final UnderFileSystem mUfs;
+
   /** The maximum size in bytes of a log file. */
   private final long mMaxLogSize;
 
@@ -108,7 +112,7 @@ final class UfsJournalLogWriter implements JournalWriter {
           mCurrentLog.getLocation(), mCurrentLog.getStart(), mNextSequenceNumber);
 
       String src = mCurrentLog.getLocation().toString();
-      if (!mJournal.getUfs().exists(src) && mNextSequenceNumber == mCurrentLog.getStart()) {
+      if (!mUfs.exists(src) && mNextSequenceNumber == mCurrentLog.getStart()) {
         // This can happen when there is any failures before creating a new log file after
         // committing last log file.
         return;
@@ -116,20 +120,20 @@ final class UfsJournalLogWriter implements JournalWriter {
 
       // Delete the current log if it contains nothing.
       if (mNextSequenceNumber == mCurrentLog.getStart()) {
-        mJournal.getUfs().deleteFile(src);
+        mUfs.deleteFile(src);
         return;
       }
 
       String dst = UfsJournalFile
           .encodeLogFileLocation(mJournal, mCurrentLog.getStart(), mNextSequenceNumber).toString();
-      if (mJournal.getUfs().exists(dst)) {
+      if (mUfs.exists(dst)) {
         LOG.warn("Deleting duplicate completed log {}.", dst);
         // The dst can exist because of a master failure during commit. This can only happen
         // when the primary master starts. We can delete either the src or dst. We delete dst and
         // do rename again.
-        mJournal.getUfs().deleteFile(dst);
+        mUfs.deleteFile(dst);
       }
-      mJournal.getUfs().renameFile(src, dst);
+      mUfs.renameFile(src, dst);
     }
   }
 
@@ -142,6 +146,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    */
   UfsJournalLogWriter(UfsJournal journal, JournalWriterOptions options) throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
+    mUfs = mJournal.getUfs();
     mNextSequenceNumber = options.getNextSequenceNumber();
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
 
@@ -191,7 +196,7 @@ final class UfsJournalLogWriter implements JournalWriter {
         .encodeLogFileLocation(mJournal, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     UfsJournalFile currentLog = UfsJournalFile.createLogFile(newLog, mNextSequenceNumber,
         UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
-    OutputStream outputStream = mJournal.getUfs().create(currentLog.getLocation().toString(),
+    OutputStream outputStream = mUfs.create(currentLog.getLocation().toString(),
         CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
     mJournalOutputStream = new JournalOutputStream(currentLog, outputStream);
     LOG.info("Created current log file: {}", currentLog);
@@ -221,7 +226,7 @@ final class UfsJournalLogWriter implements JournalWriter {
               mJournalOutputStream.mCurrentLog, e.getMessage()), e);
     }
     boolean overSize = mJournalOutputStream.bytesWritten() >= mMaxLogSize;
-    if (overSize || !mJournal.getUfs().supportsFlush()) {
+    if (overSize || !mUfs.supportsFlush()) {
       // (1) The log file is oversize, needs to be rotated. Or
       // (2) Underfs is S3 or OSS, flush on S3OutputStream/OSSOutputStream will only flush to
       // local temporary file, call close and complete the log to sync the journal entry to S3/OSS.

@@ -241,7 +241,7 @@ public final class JournalUpdater {
         System.exit(EXIT_FAILED);
       }
     }
- }
+  }
 
   /**
    * Parses the input args with a command line format, using

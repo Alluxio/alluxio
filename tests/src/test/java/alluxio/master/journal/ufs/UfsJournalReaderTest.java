@@ -207,7 +207,7 @@ public final class UfsJournalReaderTest {
    * the logs' sequence number.
    */
   @Test
-  public void readCheckpointAndLogsSnNoMatch() throws Exception {
+  public void readCheckpointAndLogsSnNotMatch() throws Exception {
     long fileSize = 10;
     buildCheckpoint(fileSize * 3 + 1);
 
@@ -238,6 +238,48 @@ public final class UfsJournalReaderTest {
 
     try (JournalReader reader = mJournal
         .getReader(JournalReaderOptions.defaults().setPrimary(true))) {
+      while ((reader.read()) != null) {
+      }
+      Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
+    }
+  }
+
+  /**
+   * Reads checkpoint and logs from a non-zero sequence number. The given sequence number is within
+   * the checkpoint.
+   */
+  @Test
+  public void resumeReadingWithinCheckpoint() throws Exception {
+    long fileSize = 10;
+    buildCheckpoint(fileSize * 3);
+
+    for (int i = 0; i < 10; ++i) {
+      buildCompletedLog(i * fileSize, (i + 1) * fileSize);
+    }
+
+    try (JournalReader reader = mJournal.getReader(
+        JournalReaderOptions.defaults().setPrimary(true).setNextSequenceNumber(fileSize * 2))) {
+      while ((reader.read()) != null) {
+      }
+      Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
+    }
+  }
+
+  /**
+   * Reads checkpoint and logs from a non-zero sequence number. The given sequence number is after
+   * the checkpoint.
+   */
+  @Test
+  public void resumeReadingAfterCheckpoint() throws Exception {
+    long fileSize = 10;
+    buildCheckpoint(fileSize * 3);
+
+    for (int i = 0; i < 10; ++i) {
+      buildCompletedLog(i * fileSize, (i + 1) * fileSize);
+    }
+
+    try (JournalReader reader = mJournal.getReader(
+        JournalReaderOptions.defaults().setPrimary(true).setNextSequenceNumber(fileSize * 3 + 1))) {
       while ((reader.read()) != null) {
       }
       Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());

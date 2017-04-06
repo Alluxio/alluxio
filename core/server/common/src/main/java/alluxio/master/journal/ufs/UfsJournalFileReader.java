@@ -62,8 +62,9 @@ final class UfsJournalFileReader implements JournalReader {
   }
 
   @Override
-  public boolean shouldCheckpoint() throws IOException {
-    return false;
+  public long getNextSequenceNumberToCheckpoint() throws IOException {
+    throw new UnsupportedOperationException(
+        "UfsJournalFileReader#getNextSequenceNumberToCheckpoint is not supported.");
   }
 
   @Override
