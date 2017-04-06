@@ -20,7 +20,6 @@ import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
 import alluxio.master.MasterRegistry;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.JournalFactory;
@@ -39,10 +38,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -54,8 +50,6 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Unit tests for {@link LineageMaster}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DefaultFileSystemMaster.class})
 public final class LineageMasterTest {
   private ExecutorService mExecutorService;
   private LineageMaster mLineageMaster;
@@ -74,7 +68,7 @@ public final class LineageMasterTest {
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
+    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     registry.add(FileSystemMaster.class, mFileSystemMaster);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);

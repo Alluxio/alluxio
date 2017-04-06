@@ -68,7 +68,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Unit test for {@link DefaultFileSystemMaster} when permission check is enabled by configure
+ * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
  * alluxio.security.authorization.permission.enabled=true.
  */
 public final class PermissionCheckTest {
@@ -176,7 +176,7 @@ public final class PermissionCheckTest {
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mBlockMaster = new BlockMaster(registry, factory);
-    mFileSystemMaster = new DefaultFileSystemMaster(registry, factory);
+    mFileSystemMaster = (FileSystemMaster) new FileSystemMasterFactory().create(registry, factory);
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 

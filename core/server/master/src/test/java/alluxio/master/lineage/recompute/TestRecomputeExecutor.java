@@ -19,10 +19,7 @@ import alluxio.master.lineage.meta.Lineage;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +27,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Unit tests for {@link RecomputeExecutor}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(DefaultFileSystemMaster.class)
 public final class TestRecomputeExecutor {
 
   /**
@@ -49,7 +44,7 @@ public final class TestRecomputeExecutor {
     Mockito.when(planner.plan()).thenReturn(new RecomputePlan(Lists.newArrayList(lineage)));
 
     // mock file system master
-    FileSystemMaster fileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = Mockito.mock(FileSystemMaster.class);
     Mockito.when(fileSystemMaster.getFileSystemMasterView())
         .thenReturn(new FileSystemMasterView(fileSystemMaster));
     Mockito.when(fileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(fileId));

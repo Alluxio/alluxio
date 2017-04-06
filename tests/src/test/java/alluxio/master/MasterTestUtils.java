@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.MutableJournal;
@@ -62,7 +63,7 @@ public class MasterTestUtils {
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
     new BlockMaster(registry, factory);
-    new DefaultFileSystemMaster(registry, factory);
+    new FileSystemMasterFactory().create(registry, factory);
     registry.start(isLeader);
     return registry;
   }

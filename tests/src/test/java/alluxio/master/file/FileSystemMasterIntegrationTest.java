@@ -66,7 +66,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Test behavior of {@link DefaultFileSystemMaster}.
+ * Test behavior of {@link FileSystemMaster}.
  *
  * For example, (concurrently) creating/deleting/renaming files.
  */

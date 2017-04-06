@@ -14,7 +14,6 @@ package alluxio.master.lineage.recompute;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -25,18 +24,13 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 
 /**
  * Unit tests for {@link RecomputePlanner}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DefaultFileSystemMaster.class})
 public final class RecomputePlannerTest {
   private RecomputePlanner mPlanner;
   private LineageStore mLineageStore;
@@ -50,7 +44,7 @@ public final class RecomputePlannerTest {
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
+    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     Mockito.when(mFileSystemMaster.getFileSystemMasterView())
         .thenReturn(new FileSystemMasterView(mFileSystemMaster));
     mPlanner = new RecomputePlanner(mLineageStore, mFileSystemMaster);
