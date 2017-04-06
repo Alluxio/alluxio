@@ -24,7 +24,7 @@ public class CapacityTest {
   /**
    * Test to convert between a Capacity type and a json type.
    *
-   * @throws Exception if an error occurs during convert between Capacity type and json type
+   * @throws Exception if an error occurs during conversion between Capacity type and json type
    */
   @Test
   public void json() throws Exception {
@@ -40,7 +40,7 @@ public class CapacityTest {
   }
 
   /**
-   * Check if the two Capacity object are equal.
+   * Checks if the two Capacity objects are equal.
    *
    * @param a the first Capacity object to be checked
    * @param b the second Capacity object to be checked
@@ -52,7 +52,7 @@ public class CapacityTest {
   }
 
   /**
-   * Randomly create a Capacity object.
+   * Randomly creates a Capacity object.
    *
    * @return the created Capacity object
    */
