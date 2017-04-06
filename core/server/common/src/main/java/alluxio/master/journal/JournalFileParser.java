@@ -29,6 +29,7 @@ public interface JournalFileParser extends Closeable {
    * Factory to create {@link JournalFileParser}.
    */
   final class Factory {
+    private Factory() {}  // prevent instantiation
     /**
      * Creates a journal parser given the location.
      *
@@ -45,6 +46,7 @@ public interface JournalFileParser extends Closeable {
    * is no more entry left.
    *
    * @return the journal entry, null if no more entry left
+   * @throws IOException if any I/O errors occur
    */
   JournalEntry next() throws IOException;
 }

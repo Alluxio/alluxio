@@ -37,7 +37,7 @@ public interface JournalReader extends Closeable {
    * Gets the the sequence number of the next journal log entry to read. This method is valid
    * no matter whether this JournalReader is closed or not.
    *
-   * @return the next sequence number.
+   * @return the next sequence number
    */
   long getNextSequenceNumber();
 

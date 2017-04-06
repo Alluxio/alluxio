@@ -143,7 +143,7 @@ public final class JournalUpgrader {
         renameCheckpoint(1);
       }
 
-      LOG.info("Finished updating {} journal.", mMaster);
+      LOG.info("Finished upgrading {} journal.", mMaster);
     }
 
     private void prepare() throws IOException {
