@@ -128,7 +128,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public void close() throws IOException {
-    if (mContext != FileSystemContext.INSTANCE) {
+    if (mContext != null && mContext != FileSystemContext.INSTANCE) {
       mContext.close();
     }
     super.close();
