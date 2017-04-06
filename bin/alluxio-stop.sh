@@ -65,7 +65,6 @@ case "${WHAT}" in
   all)
     stop_proxies
     stop_workers
-    stop_proxies
     stop_master
     stop_secondary_masters
     ;;
