@@ -582,13 +582,13 @@ public class InodeTree implements JournalCheckpointStreamable {
         } else {
           // Successfully added the child, while holding the write lock.
           dir.setPinned(currentInodeDirectory.isPinned());
-          currentInodeDirectory.addChild(dir);
           if (options.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
             InodeUtils.syncPersistDirectory(dir, this, mMountTable, NoopJournalContext.INSTANCE);
           }
           // Journal the new inode.
           journalContext.append(dir.toJournalEntry());
+          mInodes.add(dir);
 
           // After creation and journaling, downgrade to a read lock.
           lockList.unlockLast();
@@ -604,7 +604,6 @@ public class InodeTree implements JournalCheckpointStreamable {
 
       createdInodes.add(dir);
       extensibleInodePath.getInodes().add(dir);
-      mInodes.add(dir);
       currentInodeDirectory = dir;
     }
 
@@ -672,6 +671,7 @@ public class InodeTree implements JournalCheckpointStreamable {
 
         // Journal the new inode.
         journalContext.append(lastInode.toJournalEntry());
+        mInodes.add(lastInode);
 
         if (extensibleInodePath.getLockMode() == LockMode.READ) {
           // After creating the inode, downgrade to a read lock
@@ -685,7 +685,6 @@ public class InodeTree implements JournalCheckpointStreamable {
 
         createdInodes.add(lastInode);
         extensibleInodePath.getInodes().add(lastInode);
-        mInodes.add(lastInode);
       }
     }
 
