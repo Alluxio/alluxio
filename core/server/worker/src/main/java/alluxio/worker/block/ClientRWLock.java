@@ -33,7 +33,12 @@ public final class ClientRWLock implements ReadWriteLock {
   /** Total number of permits. This value decides the max number of concurrent readers. */
   private static final int MAX_AVAILABLE =
           Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCK_READERS);
-  /** Underlying Semaphore. */
+  /**
+   * Underlying Semaphore.
+   * Convert to non-fair lock for the accidental hold read lock forever and write lock request
+   * will blocked the all read lock following if we use fair lock.
+   * See https://alluxio.atlassian.net/browse/ALLUXIO-2636.
+   */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, false);
   /** Reference count. */
   private AtomicInteger mReferences = new AtomicInteger();
