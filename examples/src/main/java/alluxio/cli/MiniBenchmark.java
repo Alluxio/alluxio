@@ -68,7 +68,6 @@ public final class MiniBenchmark {
       usage();
       System.exit(-1);
     }
-    // AlluxioURI masterLocation = new AlluxioURI(args[0]);
     Configuration.set(PropertyKey.MASTER_HOSTNAME, Configuration.get(PropertyKey.MASTER_HOSTNAME));
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Configuration.get(PropertyKey.MASTER_RPC_PORT));
     FileSystemContext.INSTANCE.reset();
