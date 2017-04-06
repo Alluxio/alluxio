@@ -12,9 +12,7 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -68,11 +66,9 @@ public final class MiniBenchmark {
       usage();
       System.exit(-1);
     }
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, Configuration.get(PropertyKey.MASTER_HOSTNAME));
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Configuration.get(PropertyKey.MASTER_RPC_PORT));
     FileSystemContext.INSTANCE.reset();
 
-    OperationType operationType = Enum.valueOf(OperationType.class, args[0]);
+    OperationType operationType = OperationType.valueOf(args[0]);
     long fileSize = FormatUtils.parseSpaceSize(args[1]);
     int iterations = Integer.parseInt(args[2]);
 
