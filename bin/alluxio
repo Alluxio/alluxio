@@ -161,8 +161,7 @@ function runJavaClass {
       shift
       case "${arg}" in
           -debug)
-              echo "debug mode!"
-              ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_SHELL_DEBUG_JAVA_OPTS}" ;;
+              ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}" ;;
           -D*)
               ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
           *)
