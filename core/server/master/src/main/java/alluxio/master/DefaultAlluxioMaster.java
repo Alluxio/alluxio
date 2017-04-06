@@ -11,15 +11,11 @@
 
 package alluxio.master;
 
-import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
@@ -47,14 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -139,63 +128,11 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Check that journals of each service have been formatted.
-      checkJournalFormatted();
+      MasterUtils.checkJournalFormatted();
       // Create masters.
-      createMasters(new MutableJournal.Factory(getJournalLocation()));
+      mRegistry = new MasterRegistry();
+      MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
     } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Checks whether the journal has been formatted.
-   *
-   * @throws IOException if the journal has not been formatted
-   */
-  protected void checkJournalFormatted() throws IOException {
-    Journal.Factory factory = new Journal.Factory(getJournalLocation());
-    for (String name : ServerUtils.getMasterServiceNames()) {
-      Journal journal = factory.create(name);
-      if (!journal.isFormatted()) {
-        throw new RuntimeException(
-            String.format("Journal %s has not been formatted!", journal.getLocation()));
-      }
-    }
-  }
-
-  /**
-   * @return the journal location
-   */
-  protected URI getJournalLocation() {
-    String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
-      journalDirectory += AlluxioURI.SEPARATOR;
-    }
-    try {
-      return new URI(journalDirectory);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * @param journalFactory the factory to use for creating journals
-   */
-  protected void createMasters(final JournalFactory journalFactory) {
-    mRegistry = new MasterRegistry();
-    List<Callable<Void>> callables = new ArrayList<>();
-    for (final MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
-      callables.add(new Callable<Void>() {
-        @Override
-        public Void call() throws Exception {
-          factory.create(mRegistry, journalFactory);
-          return null;
-        }
-      });
-    }
-    try {
-      Executors.newCachedThreadPool().invokeAll(callables, 10, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
