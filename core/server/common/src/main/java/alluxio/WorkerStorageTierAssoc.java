@@ -26,7 +26,7 @@ public class WorkerStorageTierAssoc extends StorageTierAssoc {
    */
   public WorkerStorageTierAssoc() {
     super(PropertyKey.WORKER_TIERED_STORE_LEVELS,
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
   }
 
   /**
