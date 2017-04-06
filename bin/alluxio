@@ -274,7 +274,6 @@ function main {
   ;;
   "runMiniBenchmark")
     CLASS="alluxio.cli.MiniBenchmark"
-    PARAMETER="alluxio://${ALLUXIO_MASTER_HOSTNAME}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
     ;;
