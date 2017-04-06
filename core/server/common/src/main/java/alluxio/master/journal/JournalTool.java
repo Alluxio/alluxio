@@ -130,9 +130,6 @@ public final class JournalTool {
     try (JournalReader reader = journal.getReader(options)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
-        if (entry.getSequenceNumber() < sStart) {
-          continue;
-        }
         if (entry.getSequenceNumber() >= sEnd) {
           break;
         }
