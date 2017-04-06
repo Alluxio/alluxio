@@ -50,9 +50,9 @@ public final class MiniBenchmark {
 
   private static void usage() {
     System.out.println("Usage:");
-    System.out.println("To run a mini benchmark to read or write a file.");
+    System.out.println("To run a mini benchmark to write or read a file.");
     System.out.println(String
-        .format("java -cp %s %s <master address> <[READ, WRITE]> <fileSize> <iterations>",
+        .format("java -cp %s %s <[READ, WRITE]> <fileSize> <iterations>",
         RuntimeConstants.ALLUXIO_JAR, MiniBenchmark.class.getCanonicalName()));
   }
 
@@ -116,7 +116,7 @@ public final class MiniBenchmark {
    *
    * @param fileSize the file size
    * @param iterations number of iterations
-   * @throws Exception it if fails to write
+   * @throws Exception if it fails to write
    */
   private static void writeFile(long fileSize, int iterations) throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();
