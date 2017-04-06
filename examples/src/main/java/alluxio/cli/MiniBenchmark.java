@@ -64,18 +64,18 @@ public final class MiniBenchmark {
    * @throws Exception if error occurs during tests
    */
   public static void main(String[] args) throws Exception {
-    if (args.length != 4) {
+    if (args.length != 3) {
       usage();
       System.exit(-1);
     }
-    AlluxioURI masterLocation = new AlluxioURI(args[0]);
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterLocation.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, masterLocation.getPort());
+    // AlluxioURI masterLocation = new AlluxioURI(args[0]);
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Configuration.get(PropertyKey.MASTER_RPC_PORT));
     FileSystemContext.INSTANCE.reset();
 
-    OperationType operationType = Enum.valueOf(OperationType.class, args[1]);
-    long fileSize = FormatUtils.parseSpaceSize(args[2]);
-    int iterations = Integer.parseInt(args[3]);
+    OperationType operationType = Enum.valueOf(OperationType.class, args[0]);
+    long fileSize = FormatUtils.parseSpaceSize(args[1]);
+    int iterations = Integer.parseInt(args[2]);
 
     CommonUtils.warmUpLoop();
 
