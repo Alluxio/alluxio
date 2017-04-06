@@ -175,6 +175,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     UnderFileStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
     if (pathsToDelete == null) {
       LOG.error("Unable to delete {} because listInternal returns null", path);
+      return false;
     }
     for (UnderFileStatus pathToDelete : pathsToDelete) {
       String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
