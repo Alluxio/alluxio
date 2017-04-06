@@ -28,7 +28,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Queue;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -248,13 +247,11 @@ final class UfsJournalReader implements JournalReader {
           // 3. Resume reading from SN2.
           mNextSequenceNumber = 0;
         }
-        index = Collections.binarySearch(snapshot.getLogs(), checkpoint);
-        if (index >= 0) {
-          // The log entry the index points to (before index++) has mEnd == checkpoint.mEnd.
-          index++;
-        } else {
-          // Find the insertion point.
-          index = -index - 1;
+        for (; index < snapshot.getLogs().size(); index++) {
+          UfsJournalFile file = snapshot.getLogs().get(index);
+          if (file.getEnd() > checkpoint.getEnd()) {
+            break;
+          }
         }
         // index now points to the first log with mEnd > checkpoint.mEnd.
       }
