@@ -15,6 +15,7 @@ import alluxio.collections.DirectedAcyclicGraph;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.Job;
+import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Lineage.LineageEntry;
 
@@ -34,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * TODO(yupeng): relax locking
  */
 @ThreadSafe
-public final class LineageStore implements Iterable<Journal.JournalEntry> {
+public final class LineageStore implements JournalEntryIterable {
   private final LineageIdGenerator mLineageIdGenerator;
   private final DirectedAcyclicGraph<Lineage> mLineageDAG;
 
@@ -207,7 +208,7 @@ public final class LineageStore implements Iterable<Journal.JournalEntry> {
    * @return the iterator
    */
   @Override
-  public synchronized Iterator<Journal.JournalEntry> iterator() {
+  public synchronized Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     // Write the lineages out in a topological order
     final Iterator<Lineage> it = mLineageDAG.getAllInTopologicalOrder().iterator();
     return new Iterator<Journal.JournalEntry>() {

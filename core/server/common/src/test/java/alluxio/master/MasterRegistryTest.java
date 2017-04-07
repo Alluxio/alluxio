@@ -36,7 +36,7 @@ public class MasterRegistryTest {
     }
 
     @Override
-    public Iterator<Journal.JournalEntry> iterator() {
+    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
       return new Iterator<Journal.JournalEntry>() {
         @Override
         public boolean hasNext() {

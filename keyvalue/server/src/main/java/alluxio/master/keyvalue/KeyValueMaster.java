@@ -131,7 +131,7 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   @Override
-  public synchronized Iterator<JournalEntry> iterator() {
+  public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
     return Iterators.concat(getJournalEntryIterator(mCompleteStoreToPartitions),
         getJournalEntryIterator(mIncompleteStoreToPartitions));
   }

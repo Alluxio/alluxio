@@ -18,6 +18,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
@@ -44,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is used for keeping track of Alluxio mount points.
  */
 @ThreadSafe
-public final class MountTable implements Iterable<Journal.JournalEntry> {
+public final class MountTable implements JournalEntryIterable {
   private static final Logger LOG = LoggerFactory.getLogger(MountTable.class);
 
   public static final String ROOT = "/";
@@ -69,7 +70,7 @@ public final class MountTable implements Iterable<Journal.JournalEntry> {
   }
 
   @Override
-  public Iterator<Journal.JournalEntry> iterator() {
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     final Iterator<Map.Entry<String, MountInfo>> it = mMountTable.entrySet().iterator();
     return new Iterator<Journal.JournalEntry>() {
       /** mEntry is always set to the next non-root mount point if exists. */
