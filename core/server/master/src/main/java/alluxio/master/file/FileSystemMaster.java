@@ -1282,9 +1282,8 @@ public final class FileSystemMaster extends AbstractMaster {
   private void deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
       JournalContext journalContext) throws InvalidPathException, FileDoesNotExistException,
       IOException, DirectoryNotEmptyException {
-    Inode<?> inode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
-    deleteInternal(inodePath, journalContext, false, opTimeMs, deleteOptions);
+    deleteInternal(inodePath, false, opTimeMs, deleteOptions, journalContext);
   }
 
   /**
@@ -1294,9 +1293,9 @@ public final class FileSystemMaster extends AbstractMaster {
     Metrics.DELETE_PATHS_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      deleteInternal(inodePath, NoopJournalContext.INSTANCE, true, entry.getOpTimeMs(),
-          DeleteOptions.defaults()
-          .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
+      deleteInternal(inodePath, true, entry.getOpTimeMs(),
+          DeleteOptions.defaults().setRecursive(entry.getRecursive())
+              .setAlluxioOnly(entry.getAlluxioOnly()), NoopJournalContext.INSTANCE);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -1304,21 +1303,21 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
-   * {@link #deleteInternal(LockedInodePath, JournalContext, boolean, long, DeleteOptions)}.
+   * {@link #deleteInternal(LockedInodePath, boolean, long, DeleteOptions, JournalContext)}.
    *
    * @param inodePath the {@link LockedInodePath} to delete
-   * @param journalContext the journal context
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
+   * @param journalContext the journal context
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if the fileId is for the root directory
    * @throws IOException if an I/O error is encountered
    */
-  private void deleteRecursiveInternal(LockedInodePath inodePath, JournalContext journalContext,
-      boolean replayed, long opTimeMs, DeleteOptions deleteOptions)
+  private void deleteRecursiveInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
+      DeleteOptions deleteOptions, JournalContext journalContext)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     try {
-      deleteInternal(inodePath, journalContext, replayed, opTimeMs, deleteOptions);
+      deleteInternal(inodePath, replayed, opTimeMs, deleteOptions, journalContext);
     } catch (DirectoryNotEmptyException e) {
       throw new IllegalStateException(
           "deleteInternal should never throw DirectoryNotEmptyException when recursive is true", e);
@@ -1329,17 +1328,17 @@ public final class FileSystemMaster extends AbstractMaster {
    * Implements file deletion.
    *
    * @param inodePath the file {@link LockedInodePath}
-   * @param journalContext the journal context
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
    * @param deleteOptions the method optitions
+   * @param journalContext the journal context
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteInternal(LockedInodePath inodePath, JournalContext journalContext,
-      boolean replayed, long opTimeMs, DeleteOptions deleteOptions)
+  private void deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
+      DeleteOptions deleteOptions, JournalContext journalContext)
       throws FileDoesNotExistException, IOException, DirectoryNotEmptyException,
       InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
@@ -1828,7 +1827,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
-    renameInternal(srcInodePath, dstInodePath, journalContext, false, options);
+    renameInternal(srcInodePath, dstInodePath, false, options, journalContext);
 
     RenameEntry rename =
         RenameEntry.newBuilder().setId(srcInode.getId()).setDstPath(dstInodePath.getUri().getPath())
@@ -1841,15 +1840,15 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param srcInodePath the path of the rename source
    * @param dstInodePath the path to the rename destination
-   * @param journalContext the journal context
    * @param replayed whether the operation is a result of replaying the journal
    * @param options method options
+   * @param journalContext the journal context
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
    */
   private void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
-      JournalContext journalContext, boolean replayed, RenameOptions options)
+      boolean replayed, RenameOptions options, JournalContext journalContext)
       throws FileDoesNotExistException, InvalidPathException, IOException {
 
     // Rename logic:
@@ -1894,7 +1893,7 @@ public final class FileSystemMaster extends AbstractMaster {
         Stack<InodeDirectory> sameMountDirs = new Stack<>();
         List<Inode<?>> dstInodeList = dstInodePath.getInodeList();
         for (int i = dstInodeList.size() - 1; i >= 0; i--) {
-          // Since dstInodePath is guaranteed to not be a full path, all inodes in the incomplete
+          // Since dstInodePath is guaranteed not to be a full path, all inodes in the incomplete
           // path are guaranteed to be a directory.
           InodeDirectory dir = (InodeDirectory) dstInodeList.get(i);
           sameMountDirs.push(dir);
@@ -1985,7 +1984,7 @@ public final class FileSystemMaster extends AbstractMaster {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       RenameOptions options = RenameOptions.defaults().setOperationTimeMs(entry.getOpTimeMs());
-      renameInternal(srcInodePath, dstInodePath, NoopJournalContext.INSTANCE, true, options);
+      renameInternal(srcInodePath, dstInodePath, true, options, NoopJournalContext.INSTANCE);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -2630,8 +2629,8 @@ public final class FileSystemMaster extends AbstractMaster {
       // operations from being persisted in the UFS.
       long fileId = inode.getId();
       long opTimeMs = System.currentTimeMillis();
-      deleteRecursiveInternal(inodePath, journalContext, true /* replayed */, opTimeMs,
-          DeleteOptions.defaults().setRecursive(true));
+      deleteRecursiveInternal(inodePath, true /* replayed */, opTimeMs,
+          DeleteOptions.defaults().setRecursive(true), journalContext);
       DeleteFileEntry deleteFile =
           DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true).setOpTimeMs(opTimeMs)
               .build();
