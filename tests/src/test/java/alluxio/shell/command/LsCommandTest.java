@@ -71,7 +71,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
       throws IOException, AlluxioException {
     String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
-              CommandUtils.convertMsToDate(createTime), fileType, path);
+        CommandUtils.convertMsToDate(createTime), fileType, path);
   }
 
   // Helper function to create a set of files in the file system
@@ -115,19 +115,19 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
-                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsHumanReadable() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "-h", "/testRoot");
     boolean hSize = true;
     String expected = "";
     expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), hSize, 10,
-            LsCommand.STATE_FILE_IN_MEMORY);
+        LsCommand.STATE_FILE_IN_MEMORY);
     expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), hSize, 1,
-            LsCommand.STATE_FOLDER);
+        LsCommand.STATE_FOLDER);
     expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), hSize, 30,
-            LsCommand.STATE_FILE_NOT_IN_MEMORY);
+        LsCommand.STATE_FILE_NOT_IN_MEMORY);
     Assert.assertEquals(expected, mOutput.toString());
   }
 
