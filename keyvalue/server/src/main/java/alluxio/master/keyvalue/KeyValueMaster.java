@@ -132,8 +132,8 @@ public final class KeyValueMaster extends AbstractMaster {
 
   @Override
   public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.concat(getJournalEntryIterator(mCompleteStoreToPartitions),
-        getJournalEntryIterator(mIncompleteStoreToPartitions));
+    return Iterators.concat(getStoreIterator(mCompleteStoreToPartitions),
+        getStoreIterator(mIncompleteStoreToPartitions));
   }
 
   @Override
@@ -441,7 +441,7 @@ public final class KeyValueMaster extends AbstractMaster {
     return JournalEntry.newBuilder().setMergeStore(mergeStore).build();
   }
 
-  private Iterator<JournalEntry> getJournalEntryIterator(
+  private Iterator<JournalEntry> getStoreIterator(
       Map<Long, List<PartitionInfo>> storeToPartitions) {
     final Iterator<Map.Entry<Long, List<PartitionInfo>>> it =
         storeToPartitions.entrySet().iterator();
