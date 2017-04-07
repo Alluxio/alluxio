@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -30,7 +30,7 @@ public final class NoopJournalContext implements JournalContext {
   }
 
   @Override
-  public void append(Journal.JournalEntry entry) {
+  public void append(JournalEntry entry) {
     // Do nothing
   }
 

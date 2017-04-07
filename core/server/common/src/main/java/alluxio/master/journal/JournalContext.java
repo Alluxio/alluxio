@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
 
@@ -20,9 +20,9 @@ import java.io.Closeable;
  */
 public interface JournalContext extends Closeable {
   /**
-   * @param entry the {@link Journal.JournalEntry} to append to the journal
+   * @param entry the {@link JournalEntry} to append to the journal
    */
-  void append(Journal.JournalEntry entry);
+  void append(JournalEntry entry);
 
   /**
    * @return the journal flush counter

@@ -331,7 +331,7 @@ public abstract class AbstractMaster implements Master {
     }
 
     @Override
-    public void append(alluxio.proto.journal.Journal.JournalEntry entry) {
+    public void append(JournalEntry entry) {
       if (mAsyncJournalWriter != null) {
         mFlushCounter = mAsyncJournalWriter.appendEntry(entry);
       }
