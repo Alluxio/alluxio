@@ -290,7 +290,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public DefaultFileSystemMaster(MasterRegistry registry, JournalFactory journalFactory,
+  DefaultFileSystemMaster(MasterRegistry registry, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
