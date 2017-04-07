@@ -35,7 +35,7 @@ final class LostFileDetector implements HeartbeatExecutor {
   /**
    * Constructs a new {@link LostFileDetector}.
    */
-  public LostFileDetector(DefaultFileSystemMaster fileSystemMaster, InodeTree inodeTree) {
+  public LostFileDetector(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
   }

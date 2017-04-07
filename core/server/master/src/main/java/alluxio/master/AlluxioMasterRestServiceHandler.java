@@ -537,8 +537,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
-    StartupConsistencyCheck check = mFileSystemMaster
-        .getStartupConsistencyCheck();
+    StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
     alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
     List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
     List<String> uris = new ArrayList<>(inconsistentUris.size());
