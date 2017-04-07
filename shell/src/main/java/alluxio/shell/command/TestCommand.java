@@ -88,14 +88,6 @@ public final class TestCommand extends AbstractShellCommand {
         .addOption(FILE_ZERO_LENGTH_OPTION);
   }
 
-  private void printResult(boolean testResult) {
-    if (testResult) {
-      System.out.println(0);
-    } else {
-      System.out.println(1);
-    }
-  }
-
   /**
    * Tests whether the path is a directory.
    *
@@ -137,10 +129,10 @@ public final class TestCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     if (cl.getOptions().length > 1) {
       System.out.println("test takes only 1 option. Usage: test [-d|-f|-e|-s|-z] <path>");
-      return;
+      return 1;
     }
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
@@ -167,11 +159,11 @@ public final class TestCommand extends AbstractShellCommand {
         }
       } else {
         System.out.println("test takes 1 option, not 0. Usage: test [-d|-f|-e|-s|-z] <path>");
-        return;
+        return 1;
       }
-      printResult(testResult);
+      return testResult ? 0 : 1;
     } catch (AlluxioException | IOException e) {
-      System.out.println(1);
+      return 1;
     }
   }
 

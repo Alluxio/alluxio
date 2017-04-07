@@ -28,97 +28,93 @@ import java.io.IOException;
 public final class TestCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void testPathIsDirectoryWhenPathNotExist() throws IOException {
-    mFsShell.run("test", "-d", "/testPath");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-d", "/testPath");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testPathIsDirectoryWhenPathIsDirectory() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
-    mFsShell.run("test", "-d", "/testDir");
-    Assert.assertEquals("0\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-d", "/testDir");
+    Assert.assertEquals(0, ret);
   }
 
   @Test
   public void testPathIsDirectoryWhenPathIsFile() throws IOException {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.run("test", "-d", "/testFile");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-d", "/testFile");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testPathIsFileWhenPathNotExist() throws IOException {
-    mFsShell.run("test", "-f", "/testPath");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-f", "/testPath");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testPathIsFileWhenPathIsDirectory() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
-    mFsShell.run("test", "-f", "/testDir");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-f", "/testDir");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testPathIsFileWhenPathIsFile() throws IOException {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.run("test", "-f", "/testFile");
-    Assert.assertEquals("0\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-f", "/testFile");
+    Assert.assertEquals(0, ret);
   }
 
   @Test
   public void testPathExistWhenPathNotExist() throws IOException {
-    mFsShell.run("test", "-e", "/testPath");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-e", "/testPath");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testPathExistWhenPathIsDirectory() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
-    mFsShell.run("test", "-e", "/testDir");
-    Assert.assertEquals("0\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-e", "/testDir");
+    Assert.assertEquals(0, ret);
   }
 
   @Test
   public void testPathExistWhenPathIsFile() throws IOException {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.run("test", "-e", "/testFile");
-    Assert.assertEquals("0\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-e", "/testFile");
+    Assert.assertEquals(0, ret);
   }
 
   @Test
   public void testDirNotEmptyWhenPathNotExist() throws IOException {
-    mFsShell.run("test", "-s", "/testPath");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-s", "/testPath");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testDirNotEmptyWhenPathIsDirectory() throws IOException {
-    String[] command = new String[] {"mkdir", "/testDir1/testDir2"};
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testDir3/testFile1", WriteType.MUST_CACHE, 0);
+        .createByteFile(mFileSystem, "/testDir1/testFile1", WriteType.MUST_CACHE, 0);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testDir4/testFile2", WriteType.MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testDir2/testFile2", WriteType.MUST_CACHE, 10);
+    String[] command = new String[] {"mkdir", "/testDir3/testDir4"};
     mFsShell.run(command);
-    String expected = getCommandOutput(command);
-    mFsShell.run("test", "-s", "/testDir1");
-    expected += "0\n";
-    Assert.assertEquals(expected, mOutput.toString());
 
-    mFsShell.run("test", "-s", "/testDir1/testDir2");
-    expected += "1\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    int ret = mFsShell.run("test", "-s", "/testDir1");
+    Assert.assertEquals(0, ret);
 
-    mFsShell.run("test", "-s", "/testDir3");
-    expected += "0\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    ret = mFsShell.run("test", "-s", "/testDir2");
+    Assert.assertEquals(0, ret);
 
-    mFsShell.run("test", "-s", "/testDir4");
-    expected += "0\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    ret = mFsShell.run("test", "-s", "/testDir3");
+    Assert.assertEquals(0, ret);
+
+    ret = mFsShell.run("test", "-s", "/testDir3/testDir4");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
@@ -127,27 +123,24 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
         .createByteFile(mFileSystem, "/testFile1", WriteType.MUST_CACHE, 0);
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile2", WriteType.MUST_CACHE, 10);
-    String expected = "";
-    mFsShell.run("test", "-s", "/testFile1");
-    expected += "1\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    int ret = mFsShell.run("test", "-s", "/testFile1");
+    Assert.assertEquals(1, ret);
 
-    mFsShell.run("test", "-s", "/testFile2");
-    expected += "1\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    ret = mFsShell.run("test", "-s", "/testFile2");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testFileZeroLengthWhenPathNotExist() throws IOException {
-    mFsShell.run("test", "-z", "/testPath");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-z", "/testPath");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testFileZeroLengthWhenPathIsDirectory() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
-    mFsShell.run("test", "-z", "/testDir");
-    Assert.assertEquals("1\n", mOutput.toString());
+    int ret = mFsShell.run("test", "-z", "/testDir");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
@@ -156,20 +149,18 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
         .createByteFile(mFileSystem, "/testFile1", WriteType.MUST_CACHE, 0);
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile2", WriteType.MUST_CACHE, 10);
-    String expected = "";
-    mFsShell.run("test", "-z", "/testFile1");
-    expected += "0\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    int ret = mFsShell.run("test", "-z", "/testFile1");
+    Assert.assertEquals(0, ret);
 
-    mFsShell.run("test", "-z", "/testFile2");
-    expected += "1\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    ret = mFsShell.run("test", "-z", "/testFile2");
+    Assert.assertEquals(1, ret);
   }
 
   @Test
   public void testWithoutOption() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
-    mFsShell.run("test", "/testDir");
+    int ret = mFsShell.run("test", "/testDir");
+    Assert.assertEquals(1, ret);
     String expected = "test takes 1 option, not 0. Usage: test [-d|-f|-e|-s|-z] <path>\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -177,7 +168,8 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void testWrongOption() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
-    mFsShell.run("test", "-dfesz", "/testDir");
+    int ret = mFsShell.run("test", "-dfesz", "/testDir");
+    Assert.assertEquals(1, ret);
     String expected = "test takes only 1 option. Usage: test [-d|-f|-e|-s|-z] <path>\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
