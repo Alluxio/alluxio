@@ -32,6 +32,12 @@ import java.io.IOException;
  */
 public final class InodeUtils {
   private static final Logger LOG = LoggerFactory.getLogger(InodeUtils.class);
+  /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
+  private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
+  /** Maximum amount (exponential backoff) to sleep before retrying persisting an inode. */
+  private static final int PERSIST_WAIT_MAX_SLEEP_MS = 1000;
+  /** The maximum retries for persisting an inode. */
+  private static final int PERSIST_WAIT_MAX_RETRIES = 50;
 
   private InodeUtils() {} // prevent instantiation
 
@@ -47,17 +53,19 @@ public final class InodeUtils {
    */
   public static void syncPersistDirectory(InodeDirectory dir, InodeTree inodeTree,
       MountTable mountTable, JournalContext journalContext) throws IOException {
-    RetryPolicy retry = new ExponentialBackoffRetry(2, 1000, 50);
+    RetryPolicy retry =
+        new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
+            PERSIST_WAIT_MAX_RETRIES);
     while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
       if (dir.compareAndSwap(PersistenceState.NOT_PERSISTED,
           PersistenceState.TO_BE_PERSISTED)) {
         boolean success = false;
-        String errorDetails = "Inode: " + dir.toString();
+        StringBuilder errorDetails = new StringBuilder("Inode: ").append(dir.toString());
         try {
           AlluxioURI uri = inodeTree.getPath(dir);
           MountTable.Resolution resolution = mountTable.resolve(uri);
           String ufsUri = resolution.getUri().toString();
-          errorDetails += " ufsUri: " + ufsUri;
+          errorDetails.append(" ufsUri: ").append(ufsUri);
           UnderFileSystem ufs = resolution.getUfs();
           MkdirsOptions mkdirsOptions =
               MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
@@ -75,7 +83,8 @@ public final class InodeUtils {
           success = true;
         } catch (Exception e) {
           // Ignore
-          LOG.warn("Failed to persist directory to UFS: {} : {}", errorDetails, e.getMessage());
+          LOG.warn("Failed to persist directory to UFS: {} : {}", errorDetails.toString(),
+              e.getMessage());
           LOG.debug("Exception: ", e);
         } finally {
           if (!success) {
