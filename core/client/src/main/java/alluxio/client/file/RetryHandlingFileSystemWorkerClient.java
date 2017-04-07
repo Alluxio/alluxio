@@ -143,7 +143,8 @@ public final class RetryHandlingFileSystemWorkerClient
     try {
       return mClientPool.acquire();
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      Throwables.propagateIfPossible(e);
+      throw new RuntimeException(e);
     }
   }
 

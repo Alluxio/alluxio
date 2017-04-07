@@ -19,18 +19,18 @@ Alluxio客户端需要和Presto的具体配置文件一起编译。在顶层目�
 mvn clean package -Ppresto -DskipTests
 ```
 
-接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)。并且已经配置好
+接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.170版本)。并且已经配置好
 [Hive On Alluxio](http://www.alluxio.org/docs/master/cn/Running-Hive-with-Alluxio.html)
 
 # 配置
 
 Presto 通过连接Hive metastore来获取数据库和表的信息，同时通过表的元数据信息来获取表数据所在的hdfs位置信息。
 所以需要先配置[Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html),为了访问hdfs，
-需要将hadoop的core-site.xml、hdfs-site.xml加入到Presto，并通过 hive.config.resources 指向hadoop的配置文件.
+需要将hadoop的core-site.xml、hdfs-site.xml加入到Presto每个节点的设置文件`/<PATH_TO_PRESTO>/etc/catalog/hive.properties`中的`hive.config.resources`的值.
 
 #### 配置`core-site.xml`
 
-你需要向你的Presto目录里的`core-site.xml`中添加以下配置项：
+你需要向你的`hive.properties`指向的`core-site.xml`中添加以下配置项：
 
 ```xml
 <property>
@@ -51,6 +51,22 @@ HA模式的Alluxio需要加入如下配置
   <description>The Alluxio FileSystem (Hadoop 1.x and 2.x) with fault tolerant support</description>
 </property>
 ```
+#### 配置额外的Alluxio配置
+
+类似于上面的配置方法，额外的Alluxio设置可以添加到每个节点上Hadoop目录下的`core-site.xml`文件里。比如可以如此来将`alluxio.user.file.writetype.default`从默认值`MUST_CACHE`改为`CACHE_THROUGH`:
+
+```xml
+<property>
+ <name>alluxio.user.file.writetype.default</name>
+ <value>CACHE_THROUGH</value>
+</property>
+```
+
+此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读异地大文件时的超时问题。
+
+#### 提高`hive.max-split-size`值
+
+Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html)来控制一个查询的分布式并行粒度。我们建议将这个值提高到你的Alluxio的块大小以上，以防止Presto在同一个块上进行多个并行的查找带来的相互阻塞。
 
 # 分发Alluxio客户端jar包
 
@@ -58,7 +74,7 @@ HA模式的Alluxio需要加入如下配置
 - 因为Presto使用的guava版本是18.0，而Alluxio使用的是14.0，所以需要将Alluxio client端的pom.xml中guava版本修改为18.0并重新编译Alluxio客户端。
 
 - 你必须将Alluxio客户端jar包 `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-（在`/<PATH_TO_ALLUXIO>/core/client/target/`目录下）放置在所有Presto节点的`$PRESTO_HOME/plugin/hadoop/`
+（在`/<PATH_TO_ALLUXIO>/core/client/target/`目录下）放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
 
 # Presto命令行示例
@@ -89,7 +105,7 @@ OVERWRITE INTO TABLE u_user;
 在presto client执行如下查询：
 
 ```
-/home/path/presto/presto-cli-0.159-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+/home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
 ```
 
 你可以在命令行中看到相应查询结果：

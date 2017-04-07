@@ -94,7 +94,7 @@ public final class ConfigurationUtils {
       String file = PathUtils.concatPath(path, propertiesFile);
       Properties properties = loadPropertiesFromFile(file);
       if (properties != null) {
-        // If a site conf is successfully loaded, stop trying different paths
+        // If a site conf is successfully loaded, stop trying different paths.
         LOG.info("Configuration file {} loaded.", file);
         return properties;
       }

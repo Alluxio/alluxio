@@ -13,15 +13,15 @@ message Status {
   // TODO(peis): Come up with a story for this. The objective is here is to standarize the error codes in Alluxio.
   enum Code {
     OK = 0;
+    CANCELLED = 1;
+    UNKNOWN = 2;
     INVALID_ARGUMENT = 3;
+    PERMISSION_DENIED = 6;
     INTERNAL = 13;
 
     // The following are unused for now.
-    CANCELLED = 1;
-    UNKNOWN = 2;
     NOT_FOUND = 4;
     ALREADY_EXISTS = 5;
-    PERMISSION_DENIED = 6;
     UNAUTHENTICATED = 7;
     RESOURCE_EXHAUSTED = 8;
     FAILED_PRECONDITION = 9;
@@ -68,10 +68,13 @@ message WriteRequest {
   // The block ID or UFS file ID.
   optional int64 id = 2;
   optional int64 offset = 3;
-
-  // These are only applicable for block write.
   optional int64 session_id = 4;
+
+  // This is only applicable for block write.
   optional int32 tier = 5;
+
+  optional bool eof = 6;
+  optional bool cancel = 7;
 }
 
 // The response.
@@ -79,16 +82,3 @@ message Response {
   optional Status status = 1;
 }
 
-// The netty data server version.
-enum DataServerVersion {
-  V0 = 0; // Pre-proto version.
-  V1 = 1; // Proto version.
-}
-
-message VersionRequest {
-}
-
-message VersionResponse {
-  optional DataServerVersion version = 1 [default = V1];
-  optional Status status = 2;
-}

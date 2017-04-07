@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This handler handles block read request. Check more information in {@link DataServerReadHandler}.
  */
 @NotThreadSafe
-public final class DataServerBlockReadHandler extends DataServerReadHandler {
+final class DataServerBlockReadHandler extends DataServerReadHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerBlockReadHandler.class);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
@@ -49,7 +49,7 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
    * The block read request internal representation.
    */
   private final class BlockReadRequestInternal extends ReadRequestInternal {
-    public BlockReader mBlockReader = null;
+    final BlockReader mBlockReader;
 
     /**
      * Creates an instance of {@link BlockReadRequestInternal}.
@@ -57,25 +57,19 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
      * @param request the block read request
      * @throws Exception if it fails to create the object
      */
-    public BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
+    BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
+      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength());
       mBlockReader = mWorker
           .readBlockRemote(request.getSessionId(), request.getId(), request.getLockId());
-      mId = request.getId();
       mWorker.accessBlock(request.getSessionId(), mId);
 
-      mStart = request.getOffset();
-      mEnd = mStart + request.getLength();
       ((FileChannel) mBlockReader.getChannel()).position(mStart);
     }
 
     @Override
-    public void close() {
-      if (mBlockReader != null)  {
-        try {
-          mBlockReader.close();
-        } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {}.", mId);
-        }
+    public void close() throws IOException {
+      if (mBlockReader != null) {
+        mBlockReader.close();
       }
     }
   }
@@ -87,7 +81,7 @@ public final class DataServerBlockReadHandler extends DataServerReadHandler {
    * @param blockWorker the block worker
    * @param fileTransferType the file transfer type
    */
-  public DataServerBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
+  DataServerBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
       FileTransferType fileTransferType) {
     super(executorService);
     mWorker = blockWorker;

@@ -18,8 +18,9 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -49,10 +50,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    buffer is full, resumes if the buffer is not full.
  * 2. The server reads packets from the channel and writes them to the block worker. See the server
  *    side implementation for details.
- * 3. When all the packets are sent, the client closes the reader by sending an empty packet to
- *    the server to signify the end of the block. The client must wait the response from the server
- *    to make sure everything has been written to the block worker.
+ * 3. The client can either send an EOF packet or a CANCEL packet to end the write request. The
+ *    client has to wait for the response from the data server for the EOF or CANCEL packet to make
+ *    sure that the server has cleaned its states.
  * 4. To make it simple to handle errors, the channel is closed if any error occurs.
+ *
+ * NOTE: this class is NOT threadsafe. Do not call cancel/close while some other threads are
+ * writing.
  */
 @NotThreadSafe
 public final class NettyPacketWriter implements PacketWriter {
@@ -92,6 +96,8 @@ public final class NettyPacketWriter implements PacketWriter {
   private boolean mDone = false;
   @GuardedBy("mLock")
   private boolean mEOFSent = false;
+  @GuardedBy("mLock")
+  private boolean mCancelSent = false;
   /** This condition is met if mPacketWriteException != null or mDone = true. */
   private Condition mDoneOrFailed = mLock.newCondition();
   /** This condition is met if mPacketWriteException != null or the buffer is not full. */
@@ -126,11 +132,8 @@ public final class NettyPacketWriter implements PacketWriter {
 
   @Override
   public long pos() {
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       return mPosToQueue;
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -138,9 +141,8 @@ public final class NettyPacketWriter implements PacketWriter {
   public void writePacket(final ByteBuf buf) throws IOException {
     final long len;
     final long offset;
-    mLock.lock();
-    try {
-      Preconditions.checkState(!mClosed && !mEOFSent);
+    try (LockResource lr = new LockResource(mLock)) {
+      Preconditions.checkState(!mClosed && !mEOFSent && !mCancelSent);
       Preconditions.checkArgument(buf.readableBytes() <= PACKET_SIZE);
       while (true) {
         if (mPacketWriteException != null) {
@@ -164,8 +166,6 @@ public final class NettyPacketWriter implements PacketWriter {
     } catch (Throwable e) {
       buf.release();
       throw e;
-    } finally {
-      mLock.unlock();
     }
 
     Protocol.WriteRequest writeRequest =
@@ -181,34 +181,14 @@ public final class NettyPacketWriter implements PacketWriter {
     if (mClosed) {
       return;
     }
-
-    mLock.lock();
-    try {
-      mPacketWriteException = new IOException("PacketWriter is cancelled.");
-      mBufferEmptyOrFailed.signal();
-      mBufferNotFullOrFailed.signal();
-      mDoneOrFailed.signal();
-
-      // TODO(peis): Better support cancel so that we do not need to close the channel.
-      ChannelFuture future = mChannel.close().sync();
-      if (future.cause() != null) {
-        throw new IOException(future.cause());
-      }
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    } finally {
-      mLock.unlock();
-    }
-    // NOTE: PacketWriter#cancel doesn't imply PacketWriter#close. close must be called for every
-    // PacketWriter instance.
+    sendCancel();
   }
 
   @Override
   public void flush() throws IOException {
     mChannel.flush();
 
-    mLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mLock)) {
       while (true) {
         if (mPosToWrite == mPosToQueue) {
           return;
@@ -223,8 +203,6 @@ public final class NettyPacketWriter implements PacketWriter {
       }
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -234,7 +212,7 @@ public final class NettyPacketWriter implements PacketWriter {
       return;
     }
 
-    sendEOF();
+    sendEof();
     mLock.lock();
     try {
       while (true) {
@@ -274,24 +252,41 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   /**
-   * Sends an empty packet to signify the EOF.
+   * Sends an EOF packet to end the write request if the stream.
    */
-  private void sendEOF() {
+  private void sendEof() {
     final long pos;
-    mLock.lock();
-    try {
-      if (mEOFSent) {
+    try (LockResource lr = new LockResource(mLock)) {
+      if (mEOFSent || mCancelSent) {
         return;
       }
       mEOFSent = true;
       pos = mPosToQueue;
-    } finally {
-      mLock.unlock();
     }
-    // Write the last packet.
+    // Write the EOF packet.
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
-            .setTier(mTier).setType(mRequestType).build();
+            .setTier(mTier).setType(mRequestType).setEof(true).build();
+    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+  }
+
+  /**
+   * Sends a CANCEL packet to end the write request if the stream.
+   */
+  private void sendCancel() {
+    final long pos;
+    try (LockResource lr = new LockResource(mLock)) {
+      if (mEOFSent || mCancelSent) {
+        return;
+      }
+      mCancelSent = true;
+      pos = mPosToQueue;
+    }
+    // Write the EOF packet.
+    Protocol.WriteRequest writeRequest =
+        Protocol.WriteRequest.newBuilder().setId(mId).setOffset(pos).setSessionId(mSessionId)
+            .setTier(mTier).setType(mRequestType).setCancel(true).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), null))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
@@ -308,7 +303,7 @@ public final class NettyPacketWriter implements PacketWriter {
     /**
      * Default constructor.
      */
-    public PacketWriteHandler() {}
+    PacketWriteHandler() {}
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
@@ -316,17 +311,14 @@ public final class NettyPacketWriter implements PacketWriter {
       RPCProtoMessage response = (RPCProtoMessage) msg;
       Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
 
-      if (!Status.isOk(status)) {
+      if (!Status.isOk(status) && !Status.isCancelled(status)) {
         throw new IOException(String
             .format("Failed to write block %d from %s with status %s.", mId, mAddress,
                 status.toString()));
       }
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         mDone = true;
         mDoneOrFailed.signal();
-      } finally {
-        mLock.unlock();
       }
     }
 
@@ -334,14 +326,11 @@ public final class NettyPacketWriter implements PacketWriter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception caught while reading response from netty channel {}.",
           cause);
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         mPacketWriteException = cause;
         mBufferNotFullOrFailed.signal();
         mDoneOrFailed.signal();
         mBufferEmptyOrFailed.signal();
-      } finally {
-        mLock.unlock();
       }
 
       ctx.close();
@@ -349,16 +338,13 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         if (mPacketWriteException == null) {
           mPacketWriteException = new IOException("Channel closed.");
         }
         mBufferNotFullOrFailed.signal();
         mDoneOrFailed.signal();
         mBufferEmptyOrFailed.signal();
-      } finally {
-        mLock.unlock();
       }
       ctx.fireChannelUnregistered();
     }
@@ -384,7 +370,7 @@ public final class NettyPacketWriter implements PacketWriter {
     /**
      * @param posToWriteUncommitted the pos to commit (i.e. update mPosToWrite)
      */
-    public WriteListener(long posToWriteUncommitted) {
+    WriteListener(long posToWriteUncommitted) {
       mPosToWriteUncommitted = posToWriteUncommitted;
     }
 
@@ -394,8 +380,7 @@ public final class NettyPacketWriter implements PacketWriter {
         future.channel().close();
       }
       boolean shouldSendEOF = false;
-      mLock.lock();
-      try {
+      try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= PACKET_SIZE,
             "Some packet is not acked.");
         Preconditions.checkState(mPosToWriteUncommitted <= mLength);
@@ -417,11 +402,9 @@ public final class NettyPacketWriter implements PacketWriter {
         if (mPosToWrite == mLength) {
           shouldSendEOF = true;
         }
-      } finally {
-        mLock.unlock();
       }
       if (shouldSendEOF) {
-        sendEOF();
+        sendEof();
       }
     }
   }
