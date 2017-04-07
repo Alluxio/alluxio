@@ -28,7 +28,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -116,7 +115,7 @@ public final class AlluxioFrameworkIntegrationTest {
                     return false;
                   }
                 } catch (Exception e) {
-                  throw Throwables.propagate(e);
+                  throw new RuntimeException(e);
                 }
               }
             }, WaitForOptions.defaults().setTimeout(15 * Constants.MINUTE_MS));
@@ -139,7 +138,7 @@ public final class AlluxioFrameworkIntegrationTest {
     } catch (Exception e) {
       LOG.info("Failed to launch Alluxio on Mesos. Note that this test requires that "
           + "Mesos is currently running.");
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
