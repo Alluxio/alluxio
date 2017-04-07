@@ -15,6 +15,7 @@ import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryRepresentable;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -46,7 +47,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
    * @return the next directory id
    */
   synchronized long getNewDirectoryId() {
-    return getNewDirectoryId(null);
+    return getNewDirectoryId(NoopJournalContext.INSTANCE);
   }
 
   /**
@@ -65,9 +66,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
     } else {
       mSequenceNumber++;
     }
-    if (journalContext != null) {
-      journalContext.append(toJournalEntry());
-    }
+    journalContext.append(toJournalEntry());
     return directoryId;
   }
 
