@@ -218,6 +218,16 @@ public interface FileSystemMaster extends Master {
   Map<String, MountInfo> getMountTable();
 
   /**
+   * @return the number of files and directories
+   */
+  int getNumberOfPaths();
+
+  /**
+   * @return the number of pinned files and directories
+   */
+  int getNumberOfPinnedFiles();
+
+  /**
    * Deletes a given path.
    * <p>
    * This operation requires user to have WRITE permission on the parent of the path.

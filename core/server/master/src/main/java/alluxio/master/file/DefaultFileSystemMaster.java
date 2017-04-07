@@ -1040,16 +1040,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return mMountTable.getMountTable();
   }
 
-  /**
-   * @return the number of files and directories
-   */
+  @Override
   public int getNumberOfPaths() {
     return mInodeTree.getSize();
   }
 
-  /**
-   * @return the number of pinned files and directories
-   */
+  @Override
   public int getNumberOfPinnedFiles() {
     return mInodeTree.getPinnedSize();
   }

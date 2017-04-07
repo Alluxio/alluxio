@@ -86,9 +86,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Unit tests for {@link DefaultFileSystemMaster}.
+ * Unit tests for {@link FileSystemMaster}.
  */
-public final class DefaultFileSystemMasterTest {
+public final class FileSystemMasterTest {
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
@@ -99,9 +99,9 @@ public final class DefaultFileSystemMasterTest {
 
   private CreateFileOptions mNestedFileOptions;
   private MasterRegistry mRegistry;
+  private JournalFactory mJournalFactory;
   private BlockMaster mBlockMaster;
-  private ExecutorService mExecutorService;
-  private DefaultFileSystemMaster mFileSystemMaster;
+  private FileSystemMaster mFileSystemMaster;
   private long mWorkerId1;
   private long mWorkerId2;
 
@@ -156,7 +156,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#delete(AlluxioURI, DeleteOptions)} method.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method.
    */
   @Test
   public void deleteFile() throws Exception {
@@ -207,7 +207,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#delete(AlluxioURI, DeleteOptions)} method with a
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method with a
    * non-empty directory.
    */
   @Test
@@ -228,7 +228,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
    * a directory.
    */
   @Test
@@ -259,7 +259,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#getNewBlockIdForFile(AlluxioURI)} method.
+   * Tests the {@link FileSystemMaster#getNewBlockIdForFile(AlluxioURI)} method.
    */
   @Test
   public void getNewBlockIdForFile() throws Exception {
@@ -285,7 +285,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#getPersistenceState(long)} method.
+   * Tests the {@link FileSystemMaster#getPersistenceState(long)} method.
    */
   @Test
   public void getPersistenceState() throws Exception {
@@ -303,7 +303,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#getFileId(AlluxioURI)} method.
+   * Tests the {@link FileSystemMaster#getFileId(AlluxioURI)} method.
    */
   @Test
   public void getFileId() throws Exception {
@@ -329,7 +329,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#getFileInfo(AlluxioURI)} method.
+   * Tests the {@link FileSystemMaster#getFileInfo(AlluxioURI)} method.
    */
   @Test
   public void getFileInfo() throws Exception {
@@ -716,7 +716,7 @@ public final class DefaultFileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link DefaultFileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
+   * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
    * {@link CreateFileOptions} after the TTL check was done once.
    */
   @Test
@@ -753,7 +753,7 @@ public final class DefaultFileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link DefaultFileSystemMaster#createDirectory(AlluxioURI, CreateDirectoryOptions)} with a TTL
+   * {@link FileSystemMaster#createDirectory(AlluxioURI, CreateDirectoryOptions)} with a TTL
    * set in the {@link CreateDirectoryOptions} after the TTL check was done once.
    */
   @Test
@@ -1036,7 +1036,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method
+   * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method
    * and that an exception is thrown when trying to set a TTL for a directory.
    */
   @Test
@@ -1103,7 +1103,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#rename(AlluxioURI, AlluxioURI, RenameOptions)} method.
+   * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI, RenameOptions)} method.
    */
   @Test
   public void rename() throws Exception {
@@ -1188,7 +1188,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests {@link DefaultFileSystemMaster#free} on persisted file.
+   * Tests {@link FileSystemMaster#free} on persisted file.
    */
   @Test
   public void free() throws Exception {
@@ -1209,7 +1209,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests {@link DefaultFileSystemMaster#free} on non-persisted file.
+   * Tests {@link FileSystemMaster#free} on non-persisted file.
    */
   @Test
   public void freeNonPersistedFile() throws Exception {
@@ -1222,7 +1222,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests {@link DefaultFileSystemMaster#free} on pinned file when forced flag is false.
+   * Tests {@link FileSystemMaster#free} on pinned file when forced flag is false.
    */
   @Test
   public void freePinnedFileWithoutForce() throws Exception {
@@ -1237,7 +1237,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests {@link DefaultFileSystemMaster#free} on pinned file when forced flag is true.
+   * Tests {@link FileSystemMaster#free} on pinned file when forced flag is true.
    */
   @Test
   public void freePinnedFileWithForce() throws Exception {
@@ -1259,7 +1259,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#free} method with a directory but recursive to false.
+   * Tests the {@link FileSystemMaster#free} method with a directory but recursive to false.
    */
   @Test
   public void freeDirNonRecursive() throws Exception {
@@ -1272,7 +1272,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#free} method with a directory.
+   * Tests the {@link FileSystemMaster#free} method with a directory.
    */
   @Test
   public void freeDir() throws Exception {
@@ -1293,7 +1293,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#free} method with a directory with a file
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file
    * non-persisted.
    */
   @Test
@@ -1308,7 +1308,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#free} method with a directory with a file pinned when
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file pinned when
    * forced flag is false.
    */
   @Test
@@ -1325,7 +1325,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#free} method with a directory with a file pinned when
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file pinned when
    * forced flag is true.
    */
   @Test
@@ -1346,7 +1346,7 @@ public final class DefaultFileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
+   * Tests the {@link FileSystemMaster#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
    */
   @Test
   public void mount() throws Exception {
@@ -1454,13 +1454,19 @@ public final class DefaultFileSystemMasterTest {
    */
   @Test
   public void stop() throws Exception {
+    mRegistry.stop();
+    ExecutorService mExecutorService = Executors
+        .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
+    mFileSystemMaster = new DefaultFileSystemMaster(mRegistry, mJournalFactory,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mRegistry.start(true);
     mFileSystemMaster.stop();
     Assert.assertTrue(mExecutorService.isShutdown());
     Assert.assertTrue(mExecutorService.isTerminated());
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#workerHeartbeat(long, List)} method.
+   * Tests the {@link FileSystemMaster#workerHeartbeat(long, List)} method.
    */
   @Test
   public void workerHeartbeat() throws Exception {
@@ -1569,12 +1575,9 @@ public final class DefaultFileSystemMasterTest {
 
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    JournalFactory factory = new MutableJournal.Factory(new URI(mJournalFolder));
-    mBlockMaster = new BlockMaster(mRegistry, factory);
-    mExecutorService = Executors
-        .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mRegistry, factory,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mJournalFactory = new MutableJournal.Factory(new URI(mJournalFolder));
+    mBlockMaster = new BlockMaster(mRegistry, mJournalFactory);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, mJournalFactory);
 
     mRegistry.start(true);
 
