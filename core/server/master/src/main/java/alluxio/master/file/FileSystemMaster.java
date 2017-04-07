@@ -1488,7 +1488,8 @@ public final class FileSystemMaster extends AbstractMaster {
     Metrics.PATHS_DELETED.inc(deletedCount);
   }
 
-  private boolean isUFSDeleteSafe (Inode inodee, AlluxioURI path){
+  private boolean isUFSDeleteSafe(Inode inode, AlluxioURI path) {
+    // TODO(adit): implement me
     return true;
   }
 
