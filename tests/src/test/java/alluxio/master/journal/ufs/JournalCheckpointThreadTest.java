@@ -109,7 +109,7 @@ public final class JournalCheckpointThreadTest {
 
     // Make sure all the journal entries have been processed. Note that it is not necessary that
     // the they are checkpointed.
-    Iterator<Journal.JournalEntry> it = mockMaster.iterator();
+    Iterator<Journal.JournalEntry> it = mockMaster.getJournalEntryIterator();
     int sz = 0;
     while (it.hasNext()) {
       it.next();

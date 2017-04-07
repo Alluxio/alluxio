@@ -160,8 +160,8 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public synchronized Iterator<JournalEntry> iterator() {
-    return Iterators.concat(mLineageStore.iterator(),
+  public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(mLineageStore.getJournalEntryIterator(),
         CommonUtils.singleElementIterator(mLineageIdGenerator.toJournalEntry()));
   }
 

@@ -134,7 +134,7 @@ public abstract class AbstractMaster implements Master {
           JournalWriterOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
               .setPrimary(true));
       if (nextSequenceNumber == 0) {
-        Iterator<JournalEntry> it = iterator();
+        Iterator<JournalEntry> it = getJournalEntryIterator();
         while (it.hasNext()) {
           mJournalWriter.write(it.next());
         }

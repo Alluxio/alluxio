@@ -28,6 +28,7 @@ import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal;
@@ -60,7 +61,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public class InodeTree implements Iterable<Journal.JournalEntry> {
+public class InodeTree implements JournalEntryIterable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
 
   /** Value to be used for an inode with no parent. */
@@ -823,7 +824,7 @@ public class InodeTree implements Iterable<Journal.JournalEntry> {
   }
 
   @Override
-  public Iterator<Journal.JournalEntry> iterator() {
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     // Write tree via breadth-first traversal, so that during deserialization, it may be more
     // efficient than depth-first during deserialization due to parent directory's locality.
     final Queue<Inode<?>> inodes = new LinkedList<>();

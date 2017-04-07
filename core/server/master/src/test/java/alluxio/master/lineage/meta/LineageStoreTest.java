@@ -92,7 +92,7 @@ public final class LineageStoreTest {
   }
 
   /**
-   * Tests the {@link LineageStore#iterator()} method.
+   * Tests the {@link LineageStore#getJournalEntryIterator()}} method.
    */
   @Test
   public void journalEntrySerialization() throws Exception {
@@ -100,7 +100,7 @@ public final class LineageStoreTest {
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L),
         mJob);
 
-    Iterator<Journal.JournalEntry> it = mLineageStore.iterator();
+    Iterator<Journal.JournalEntry> it = mLineageStore.getJournalEntryIterator();
     Assert.assertTrue(it.hasNext());
     Assert.assertEquals(mLineageStore.getLineage(l1).toJournalEntry(), it.next());
     Assert.assertTrue(it.hasNext());

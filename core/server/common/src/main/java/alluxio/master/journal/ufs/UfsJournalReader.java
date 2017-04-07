@@ -113,11 +113,6 @@ final class UfsJournalReader implements JournalReader {
   }
 
   @Override
-  public long getNextSequenceNumberToCheckpoint() throws IOException {
-    return UfsJournalSnapshot.getNextLogSequenceToCheckpoint(mJournal);
-  }
-
-  @Override
   public long getNextSequenceNumber() {
     return mNextSequenceNumber;
   }

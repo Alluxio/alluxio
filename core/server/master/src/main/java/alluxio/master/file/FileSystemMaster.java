@@ -431,13 +431,13 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   @Override
-  public Iterator<JournalEntry> iterator() {
-    return Iterators.concat(mInodeTree.iterator(),
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(mInodeTree.getJournalEntryIterator(),
         CommonUtils.singleElementIterator(mDirectoryIdGenerator.toJournalEntry()),
         // The mount table should be written to the checkpoint after the inodes are written, so that
         // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
         // entry traverses the inode tree.
-        mMountTable.iterator());
+        mMountTable.getJournalEntryIterator());
   }
 
   @Override

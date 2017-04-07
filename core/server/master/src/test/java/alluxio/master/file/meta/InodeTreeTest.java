@@ -661,7 +661,7 @@ public final class InodeTreeTest {
 
   // helper for verifying that correct objects were journaled to the output stream
   private static void verifyJournal(InodeTree root, List<Inode<?>> journaled) throws Exception {
-    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = root.iterator();
+    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = root.getJournalEntryIterator();
     for (Inode<?> node : journaled) {
       Assert.assertTrue(it.hasNext());
       Assert.assertEquals(node.toJournalEntry(), it.next());

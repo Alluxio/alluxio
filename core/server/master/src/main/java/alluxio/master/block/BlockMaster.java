@@ -229,7 +229,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   @Override
-  public Iterator<JournalEntry> iterator() {
+  public Iterator<JournalEntry> getJournalEntryIterator() {
     final Iterator<MasterBlockInfo> it = mBlocks.values().iterator();
     Iterator<JournalEntry> blockIterator = new Iterator<JournalEntry>() {
       @Override
