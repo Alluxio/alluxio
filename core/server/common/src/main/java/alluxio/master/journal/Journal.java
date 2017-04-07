@@ -68,6 +68,14 @@ public interface Journal {
   JournalWriter getWriter(JournalWriterOptions options) throws IOException;
 
   /**
+   * Gets the log sequence number of the last journal entry written to checkpoint + 1.
+   *
+   * @return the next sequence number to checkpoint
+   * @throws IOException if an I/O error occur
+   */
+  long getNextSequenceNumberToCheckpoint() throws IOException;
+
+  /**
    * @return whether the journal has been formatted
    * @throws IOException if an I/O error occurs
    */

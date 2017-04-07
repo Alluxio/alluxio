@@ -119,6 +119,11 @@ public class UfsJournal implements Journal {
   }
 
   @Override
+  public long getNextSequenceNumberToCheckpoint() throws IOException {
+    return UfsJournalSnapshot.getNextLogSequenceNumberToCheckpoint(this);
+  }
+
+  @Override
   public boolean isFormatted() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
     UnderFileStatus[] files = ufs.listStatus(mLocation.toString());

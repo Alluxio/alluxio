@@ -17,6 +17,7 @@ import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.Master;
 import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.master.journal.options.JournalWriterOptions;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -187,7 +188,7 @@ public final class JournalCheckpointThread extends Thread {
     long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
     long nextSequenceNumberToCheckpoint;
     try {
-      nextSequenceNumberToCheckpoint = mJournalReader.getNextSequenceNumberToCheckpoint();
+      nextSequenceNumberToCheckpoint = mJournal.getNextSequenceNumberToCheckpoint();
     } catch (IOException e) {
       LOG.warn("{}: Failed to get the next sequence number to checkpoint with error {}.",
           mMaster.getName(), e.getMessage());
@@ -200,7 +201,7 @@ public final class JournalCheckpointThread extends Thread {
 
     LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(), nextSequenceNumber);
 
-    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = mMaster.iterator();
+    Iterator<JournalEntry> it = mMaster.iterator();
     JournalWriter journalWriter = null;
     IOException exception = null;
     try {

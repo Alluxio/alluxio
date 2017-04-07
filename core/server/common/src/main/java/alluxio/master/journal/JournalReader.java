@@ -40,10 +40,4 @@ public interface JournalReader extends Closeable {
    * @return the next sequence number
    */
   long getNextSequenceNumber();
-
-  /**
-   * @return the next sequence number to checkpoint
-   * @throws IOException if an I/O error occur
-   */
-  long getNextSequenceNumberToCheckpoint() throws IOException;
 }

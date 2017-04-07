@@ -152,7 +152,7 @@ final class UfsJournalSnapshot {
    * @return the first journal log sequence number that is not yet checkpointed
    * @throws IOException if any I/O errors occur
    */
-  static long getNextLogSequenceToCheckpoint(UfsJournal journal) throws IOException {
+  static long getNextLogSequenceNumberToCheckpoint(UfsJournal journal) throws IOException {
     List<UfsJournalFile> checkpoints = new ArrayList<>();
     UnderFileStatus[] statuses = journal.getUfs().listStatus(journal.getCheckpointDir().toString());
     if (statuses != null) {
