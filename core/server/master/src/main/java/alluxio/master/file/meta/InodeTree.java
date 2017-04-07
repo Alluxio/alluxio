@@ -624,6 +624,8 @@ public class InodeTree implements JournalCheckpointStreamable {
           break;
         default:
           // This should not be reachable.
+          LOG.warn("Unexpected lock mode encountered: {}",
+              extensibleInodePath.getLockMode().toString());
       }
       if (lastInode != null) {
         // inode to create already exists
