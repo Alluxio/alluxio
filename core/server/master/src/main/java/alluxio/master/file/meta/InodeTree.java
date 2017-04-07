@@ -614,10 +614,16 @@ public class InodeTree implements JournalCheckpointStreamable {
     Inode<?> lastInode = null;
     while (lastInode == null) {
       // Try to lock the last inode with the lock mode of the path.
-      if (extensibleInodePath.getLockMode() == LockMode.READ) {
-        lastInode = currentInodeDirectory.getChildReadLock(name, lockList);
-      } else {
-        lastInode = currentInodeDirectory.getChildWriteLock(name, lockList);
+      switch (extensibleInodePath.getLockMode()) {
+        case READ:
+          lastInode = currentInodeDirectory.getChildReadLock(name, lockList);
+          break;
+        case WRITE_PARENT:
+        case WRITE:
+          lastInode = currentInodeDirectory.getChildWriteLock(name, lockList);
+          break;
+        default:
+          // This should not be reachable.
       }
       if (lastInode != null) {
         // inode to create already exists
