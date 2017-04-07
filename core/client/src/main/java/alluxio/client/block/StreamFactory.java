@@ -33,7 +33,7 @@ public final class StreamFactory {
   private StreamFactory() {} // prevent instantiation
 
   /**
-   * Creates an {@link OutputStream} that writes to a block on local worker.
+   * Creates an {@link BlockOutStream} that writes to a block on local worker.
    *
    * @param context the file system context
    * @param blockId the block ID
@@ -43,13 +43,13 @@ public final class StreamFactory {
    * @return the {@link OutputStream} object
    * @throws IOException if it fails to create the output stream
    */
-  public static OutputStream createLocalBlockOutStream(FileSystemContext context, long blockId,
+  public static BlockOutStream createLocalBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     return BlockOutStream.createLocalBlockOutStream(blockId, blockSize, address, context, options);
   }
 
   /**
-   * Creates an {@link OutputStream} that writes to a remote worker.
+   * Creates an {@link BlockOutStream} that writes to a remote worker.
    *
    * @param context the file system context
    * @param blockId the block ID
@@ -59,13 +59,13 @@ public final class StreamFactory {
    * @return the {@link OutputStream} object
    * @throws IOException if it fails to create the output stream
    */
-  public static OutputStream createRemoteBlockOutStream(FileSystemContext context, long blockId,
+  public static BlockOutStream createRemoteBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     return BlockOutStream.createRemoteBlockOutStream(blockId, blockSize, address, context, options);
   }
 
   /**
-   * Creates an {@link InputStream} that writes to a local block.
+   * Creates an {@link BlockInStream} that reads from a local block.
    *
    * @param context the file system context
    * @param blockId the block ID
@@ -75,13 +75,13 @@ public final class StreamFactory {
    * @return the {@link InputStream} object
    * @throws IOException if it fails to create the input stream
    */
-  public static InputStream createLocalBlockInStream(FileSystemContext context, long blockId,
+  public static BlockInStream createLocalBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
     return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
   }
 
   /**
-   * Creates an {@link InputStream} that writes to a local block.
+   * Creates an {@link BlockInStream} that reads from a local block.
    *
    * @param context the file system context
    * @param blockId the block ID
@@ -91,15 +91,16 @@ public final class StreamFactory {
    * @return the {@link InputStream} object
    * @throws IOException if it fails to create the input stream
    */
-  public static InputStream createRemoteBlockInStream(FileSystemContext context, long blockId,
+  public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
     return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);
   }
 
   /**
-   * Creates an {@link InputStream} to read a block from UFS if that block is in UFS but not in
-   * Alluxio. If the block is cached to Alluxio while it attempts to create the {@link InputStream}
-   * that reads from UFS, it returns an {@link InputStream} that reads from Aluxio instead.
+   * Creates an {@link BlockInStream} to read a block from UFS if that block is in UFS but not in
+   * Alluxio. If the block is cached to Alluxio while it attempts to create the
+   * {@link BlockInStream} that reads from UFS, it returns an {@link BlockInStream} that reads from
+   * Alluxio instead.
    *
    * @param context the file system context
    * @param ufsPath the UFS path
@@ -111,7 +112,7 @@ public final class StreamFactory {
    * @return the input stream
    * @throws IOException if it fails to create the input stream
    */
-  public static InputStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
+  public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart, WorkerNetAddress address,
       InStreamOptions options) throws IOException {
     return BlockInStream.createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart,

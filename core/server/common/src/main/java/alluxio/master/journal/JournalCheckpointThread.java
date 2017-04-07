@@ -201,7 +201,11 @@ public final class JournalCheckpointThread extends Thread {
 
     LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(), nextSequenceNumber);
 
+<<<<<<< HEAD
     Iterator<JournalEntry> it = mMaster.getJournalEntryIterator();
+=======
+    Iterator<JournalEntry> it = mMaster.iterator();
+>>>>>>> upstream/journalv1
     JournalWriter journalWriter = null;
     IOException exception = null;
     try {

@@ -212,6 +212,15 @@ public abstract class AbstractAlluxioShellTest {
     LoginUserTestUtils.resetLoginUser(user);
   }
 
+  /**
+   * Reads content from the file that the uri points to.
+   *
+   * @param uri the path of the file to read
+   * @param length the length of content to read
+   * @return the content that has been read
+   * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an unexpected exception is thrown
+   */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
     try (FileInStream tfis = mFileSystem
         .openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {

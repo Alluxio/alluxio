@@ -9,21 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.client.block.stream;
 
-import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 /**
- * Something that can be located by an {@link InetSocketAddress}.
+ * A {@link PacketOutStream} which writes to a bytebuffer.
  */
-public interface Locatable {
-  /**
-   * @return the network location
-   */
-  InetSocketAddress location();
-
-  /**
-   * @return true if it is local
-   */
-  boolean isLocal();
+public class TestPacketOutStream extends PacketOutStream {
+  public TestPacketOutStream(ByteBuffer buffer, long length) {
+    super(new TestPacketWriter(buffer), length);
+  }
 }

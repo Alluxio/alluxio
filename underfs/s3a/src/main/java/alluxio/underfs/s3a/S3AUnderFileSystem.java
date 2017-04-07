@@ -152,6 +152,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // only be set with the client configuration.
     clientConf.setRequestTimeout(Configuration.getInt(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
 
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
+      clientConf.setSignerOverride(Configuration.get(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
+    }
+
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
     // Set a custom endpoint.
     if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {

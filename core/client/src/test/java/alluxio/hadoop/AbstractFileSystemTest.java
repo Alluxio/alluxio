@@ -282,6 +282,7 @@ public class AbstractFileSystemTest {
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
     assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
+    alluxioHadoopFs.close();
   }
 
   @Test
