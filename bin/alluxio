@@ -29,6 +29,7 @@ function printUsage {
   echo -e "  runMesosTest  \t Test the Alluxio integration with Mesos. Try 'alluxio mesosTest -help' for more help."
   echo -e "                \t NOTE: This command requires Mesos to be running and will stop any Alluxio servers that are currently running."
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
+  echo -e "  updateJournal \t Update an Alluxio v0 (< 1.5.0) journal to an Alluxio v1 (>= 1.5.0) journal."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
@@ -293,6 +294,11 @@ function main {
   ;;
   "readJournal")
     CLASS="alluxio.master.journal.JournalTool"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "updateJournal")
+    CLASS="alluxio.master.journal.JournalUpdater"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;

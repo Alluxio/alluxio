@@ -142,6 +142,9 @@ public enum ExceptionMessage {
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
+  JOURNAL_ENTRY_MISSING("Journal entry is missing between {0} and {1}."),
+  JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY(
+      "Journal entry is truncated unexpectedly. Last valid journal entry seen {0}."),
 
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
