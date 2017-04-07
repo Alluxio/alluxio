@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Represents the tree of Inode's.
+ * Utility methods for inodes.
  */
 public final class InodeUtils {
   private static final Logger LOG = LoggerFactory.getLogger(InodeUtils.class);
@@ -47,15 +47,17 @@ public final class InodeUtils {
    */
   public static void syncPersistDirectory(InodeDirectory dir, InodeTree inodeTree,
       MountTable mountTable, JournalContext journalContext) throws IOException {
-    RetryPolicy retry = new ExponentialBackoffRetry(2, 1000, 200);
+    RetryPolicy retry = new ExponentialBackoffRetry(2, 1000, 50);
     while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
       if (dir.compareAndSwap(PersistenceState.NOT_PERSISTED,
           PersistenceState.TO_BE_PERSISTED)) {
         boolean success = false;
+        String errorDetails = "Inode: " + dir.toString();
         try {
           AlluxioURI uri = inodeTree.getPath(dir);
           MountTable.Resolution resolution = mountTable.resolve(uri);
           String ufsUri = resolution.getUri().toString();
+          errorDetails += " ufsUri: " + ufsUri;
           UnderFileSystem ufs = resolution.getUfs();
           MkdirsOptions mkdirsOptions =
               MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
@@ -73,6 +75,8 @@ public final class InodeUtils {
           success = true;
         } catch (Exception e) {
           // Ignore
+          LOG.warn("Failed to persist directory to UFS: {} : {}", errorDetails, e.getMessage());
+          LOG.debug("Exception: ", e);
         } finally {
           if (!success) {
             // Failed to persist the inode, so set the state back to NOT_PERSISTED.
