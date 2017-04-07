@@ -15,6 +15,7 @@ package alluxio.exception;
  * The exception thrown when it fails to grab a UFS access token for a UFS block.
  */
 public class UfsBlockAccessTokenUnavailableException extends AlluxioException {
+  private static final long serialVersionUID = -1201441145283181017L;
   /**
    * Constructs a new exception with the specified detail message.
    *
