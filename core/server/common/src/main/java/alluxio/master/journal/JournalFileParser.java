@@ -30,6 +30,7 @@ public interface JournalFileParser extends Closeable {
    */
   final class Factory {
     private Factory() {}  // prevent instantiation
+
     /**
      * Creates a journal parser given the location.
      *

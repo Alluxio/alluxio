@@ -99,7 +99,6 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkState(mExecutorService == null);
     mExecutorService = mExecutorServiceFactory.create();
     mIsPrimary = isPrimary;
-    LOG.info("{}: Starting {} master.", getName(), mIsPrimary ? "primary" : "secondary");
     if (mIsPrimary) {
       /**
        * The sequence for dealing with the journal before starting as the primary:
@@ -110,6 +109,8 @@ public abstract class AbstractMaster implements Master {
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
        */
+
+      LOG.info("{}: Starting primary master.", getName());
 
       // Step 1. Replay the journal entries.
       long nextSequenceNumber =
@@ -123,7 +124,7 @@ public abstract class AbstractMaster implements Master {
         }
         nextSequenceNumber = journalReader.getNextSequenceNumber();
       } catch (InvalidJournalEntryException e) {
-        LOG.error("Invalid journal is found.", e);
+        LOG.error("Invalid journal entry is found.", e);
         // We found invalid journal, nothing we can do but crash.
         throw new RuntimeException(e);
       }
@@ -140,6 +141,8 @@ public abstract class AbstractMaster implements Master {
       }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
     } else {
+      LOG.info("{}: Starting secondary master.", getName());
+
       // This master is in secondary mode. Start the journal checkpoint thread. Since the master is
       // in secondary mode, its RPC server is NOT serving. Therefore, the only thread modifying the
       // master is this journal checkpoint thread (no concurrent access).
@@ -153,12 +156,14 @@ public abstract class AbstractMaster implements Master {
   public void stop() throws IOException {
     LOG.info("{}: Stopping {} master.", getName(), mIsPrimary ? "primary" : "secondary");
     if (mIsPrimary) {
+      LOG.info("{}: Stopping primary master.", getName());
       // Stop this primary master.
       if (mJournalWriter != null) {
         mJournalWriter.close();
         mJournalWriter = null;
       }
     } else {
+      LOG.info("{}: Stopping secondary master.", getName());
       if (mJournalCheckpointThread != null) {
         // Stop and wait for the journal checkpoint thread.
         mJournalCheckpointThread.awaitTermination();
