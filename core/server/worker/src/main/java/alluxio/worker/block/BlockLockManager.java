@@ -19,7 +19,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
@@ -128,7 +127,7 @@ public final class BlockLockManager {
     } catch (RuntimeException e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
-      throw Throwables.propagate(e);
+      throw e;
     }
   }
 
