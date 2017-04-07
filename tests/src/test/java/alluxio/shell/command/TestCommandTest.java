@@ -161,8 +161,6 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "/testDir");
     Assert.assertEquals(1, ret);
-    String expected = "test takes 1 option, not 0. Usage: test [-d|-f|-e|-s|-z] <path>\n";
-    Assert.assertEquals(expected, mOutput.toString());
   }
 
   @Test
@@ -170,7 +168,5 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "-dfesz", "/testDir");
     Assert.assertEquals(1, ret);
-    String expected = "test takes only 1 option. Usage: test [-d|-f|-e|-s|-z] <path>\n";
-    Assert.assertEquals(expected, mOutput.toString());
   }
 }

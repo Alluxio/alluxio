@@ -131,7 +131,6 @@ public final class TestCommand extends AbstractShellCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     if (cl.getOptions().length > 1) {
-      System.out.println("test takes only 1 option. Usage: test [-d|-f|-e|-s|-z] <path>");
       return 1;
     }
     String[] args = cl.getArgs();
@@ -157,9 +156,6 @@ public final class TestCommand extends AbstractShellCommand {
         if (isZeroLengthFile(status)) {
           testResult = true;
         }
-      } else {
-        System.out.println("test takes 1 option, not 0. Usage: test [-d|-f|-e|-s|-z] <path>");
-        return 1;
       }
       return testResult ? 0 : 1;
     } catch (AlluxioException | IOException e) {
