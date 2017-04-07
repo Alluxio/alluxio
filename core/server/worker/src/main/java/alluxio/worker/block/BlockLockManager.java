@@ -20,6 +20,7 @@ import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
+import com.google.common.base.Throwables;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +128,7 @@ public final class BlockLockManager {
     } catch (RuntimeException e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
-      throw e;
+      throw Throwables.propagate(e);
     }
   }
 
