@@ -339,8 +339,8 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry.getSequenceNumber() == 0) {
-      // The mount table is the only to clear. The inode tree is reset when it processes the ROOT
-      // journal entry.
+      // The mount table is the only structure to clear. The inode tree is reset when it
+      // processes the ROOT journal entry.
       mMountTable.clear();
     }
     if (entry.hasInodeFile()) {
@@ -454,7 +454,10 @@ public final class FileSystemMaster extends AbstractMaster {
             MountOptions.defaults().setShared(
                 UnderFileSystemUtils.isObjectStorage(defaultUFS) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
+      } catch (FileAlreadyExistsException e) {
+        // This can happen when a primary becomes a standby and then becomes a primary.
+        LOG.info("Root has already been mounted.");
+      } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS, e);
       }
     }
