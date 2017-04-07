@@ -1371,11 +1371,57 @@ public final class FileSystemMaster extends AbstractMaster {
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Inode<?>> delInodes = new ArrayList<>();
-    delInodes.add(inode);
+    long deletedCount = 0;
+    HashMap<AlluxioURI, Inode<?>> recursiveDeletes = new HashMap<>();
+    HashMap<AlluxioURI, Inode<?>> nonRecursiveDeletes = new HashMap<>();
+
+    if (inode.isFile()) {
+      nonRecursiveDeletes.put(inodePath.getUri(), inode);
+    } else {
+      // TODO(adit): put behind a check option
+      if (isUFSDeleteSafe(inodePath.getInode(), inodePath.getUri())) {
+        recursiveDeletes.put(inodePath.getUri(), inode);
+      } else {
+        nonRecursiveDeletes.put(inodePath.getUri(), inode);
+      }
+    }
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-      delInodes.addAll(lockList.getInodes());
+      for (Inode descendant : lockList.getInodes()) {
+        if (inode.isFile()) {
+          nonRecursiveDeletes.put(inodePath.getUri(), inode);
+        } else {
+          // TODO(adit): put behind a check option
+          AlluxioURI currentPath = mInodeTree.getPath(descendant);
+          if (isUFSDeleteSafe(descendant, currentPath)) {
+            recursiveDeletes.put(currentPath, descendant);
+          } else {
+            nonRecursiveDeletes.put(currentPath, descendant);
+            // Invalidate ancestor directories if not a mount point
+            if (!mMountTable.isMountPoint(currentPath)) {
+              for (AlluxioURI ancestor = currentPath.getParent(); ancestor != null
+                  && recursiveDeletes.containsKey(ancestor); ancestor = ancestor.getParent()) {
+                nonRecursiveDeletes.put(ancestor, recursiveDeletes.get(ancestor));
+                recursiveDeletes.remove(ancestor);
+              }
+            }
+          }
+        }
+      }
+
+      List<Inode<?>> delInodes = new ArrayList<>();
+      for (Map.Entry<AlluxioURI, Inode<?>> entry : nonRecursiveDeletes.entrySet()) {
+        AlluxioURI currentPath = entry.getKey();
+        if (!recursiveDeletes.containsKey(currentPath.getParent())) {
+          delInodes.add(entry.getValue());
+        }
+      }
+      for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveDeletes.entrySet()) {
+        AlluxioURI currentPath = entry.getKey();
+        if (!recursiveDeletes.containsKey(currentPath.getParent())) {
+          delInodes.add(entry.getValue());
+        }
+      }
 
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
@@ -1409,6 +1455,7 @@ public final class FileSystemMaster extends AbstractMaster {
                     }
                   }
                 } else {
+                  // TODO(adit): change this to recursive or non-recursive depending on map
                   if (!ufs.deleteDirectory(ufsUri, alluxio.underfs.options.DeleteOptions
                       .defaults().setRecursive(true))) {
                     failedToDelete = ufs.isDirectory(ufsUri);
@@ -1437,7 +1484,12 @@ public final class FileSystemMaster extends AbstractMaster {
       }
     }
 
-    Metrics.PATHS_DELETED.inc(delInodes.size());
+    // TODO(adit): get delete count
+    Metrics.PATHS_DELETED.inc(deletedCount);
+  }
+
+  private boolean isUFSDeleteSafe (Inode inodee, AlluxioURI path){
+    return true;
   }
 
   /**
