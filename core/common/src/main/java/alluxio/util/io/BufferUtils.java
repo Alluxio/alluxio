@@ -61,7 +61,7 @@ public final class BufferUtils {
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
   public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
-    Preconditions.checkNotNull(buffer);
+    Preconditions.checkNotNull(buffer, "buffer");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
     try {
       if (sByteBufferCleanerMethod == null) {
