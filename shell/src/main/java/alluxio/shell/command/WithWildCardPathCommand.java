@@ -56,7 +56,7 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
@@ -78,6 +78,7 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
     if (errorMessages.size() != 0) {
       throw new IOException(Joiner.on('\n').join(errorMessages));
     }
+    return 0;
   }
 
   private static Comparator<AlluxioURI> createAlluxioURIComparator() {

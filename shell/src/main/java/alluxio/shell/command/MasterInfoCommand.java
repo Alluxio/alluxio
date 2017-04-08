@@ -45,7 +45,7 @@ public final class MasterInfoCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) {
+  public int run(CommandLine cl) {
     FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
@@ -56,6 +56,7 @@ public final class MasterInfoCommand extends AbstractShellCommand {
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
+    return 0;
   }
 
   private void runWithoutFaultTolerance(FileSystemMasterClient client) {

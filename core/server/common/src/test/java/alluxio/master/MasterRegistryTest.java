@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MasterRegistryTest {
+public final class MasterRegistryTest {
 
   public abstract class TestMaster implements Master {
     @Override
