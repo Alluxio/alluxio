@@ -54,6 +54,9 @@ public final class LocalAlluxioMaster {
   private AlluxioMasterService mAlluxioMaster;
   private Thread mMasterThread;
 
+  private AlluxioSecondaryMaster mSecondaryMaster;
+  private Thread mSecondaryMasterThread;
+
   private LocalAlluxioMaster() throws IOException {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
@@ -111,6 +114,28 @@ public final class LocalAlluxioMaster {
   }
 
   /**
+   * Starts the secondary master.
+   */
+  public void startSecondary() {
+    mSecondaryMaster = new AlluxioSecondaryMaster();
+    Runnable runSecondaryMaster = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          mSecondaryMaster.start();
+        } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start secondary master error", e);
+          throw new RuntimeException(e + " \n Start Secondary Master Error \n" + e.getMessage(), e);
+        }
+      }
+    };
+
+    mSecondaryMasterThread = new Thread(runSecondaryMaster);
+    mSecondaryMasterThread.start();
+  }
+
+  /**
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
@@ -127,6 +152,12 @@ public final class LocalAlluxioMaster {
 
     mAlluxioMaster.stop();
     mMasterThread.interrupt();
+    if (mSecondaryMaster != null) {
+      mSecondaryMaster.stop();
+    }
+    if (mSecondaryMasterThread != null) {
+      mSecondaryMasterThread.interrupt();
+    }
 
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
