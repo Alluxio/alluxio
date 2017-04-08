@@ -177,7 +177,7 @@ public final class PermissionCheckTest {
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mBlockMaster = new BlockMaster(mRegistry, factory);
-    mFileSystemMaster = new FileSystemMaster(mRegistry, factory);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, factory);
     mRegistry.start(true);
 
     createDirAndFileForTest();

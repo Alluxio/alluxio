@@ -18,6 +18,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.master.AlluxioMasterService;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
 
@@ -193,9 +194,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("freeCapacity",
         FormatUtils.getSizeFromBytes(blockMaster.getCapacityBytes() - blockMaster.getUsedBytes()));
 
-    FileSystemMaster.StartupConsistencyCheck check = fileSystemMaster.getStartupConsistencyCheck();
+    StartupConsistencyCheck check = fileSystemMaster.getStartupConsistencyCheck();
     request.setAttribute("consistencyCheckStatus", check.getStatus());
-    if (check.getStatus() == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE) {
+    if (check.getStatus() == StartupConsistencyCheck.Status.COMPLETE) {
       request.setAttribute("inconsistentPaths", check.getInconsistentUris().size());
       request.setAttribute("inconsistentPathItems", check.getInconsistentUris());
     } else {

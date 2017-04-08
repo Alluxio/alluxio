@@ -12,7 +12,6 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
-import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.journal.JournalFactory;
@@ -46,9 +45,9 @@ public final class FileSystemMasterFactory implements MasterFactory {
   }
 
   @Override
-  public Master create(MasterRegistry registry, JournalFactory journalFactory) {
+  public FileSystemMaster create(MasterRegistry registry, JournalFactory journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
-    return new FileSystemMaster(registry, journalFactory);
+    return new DefaultFileSystemMaster(registry, journalFactory);
   }
 }
