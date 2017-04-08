@@ -1036,8 +1036,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method
-   * and that an exception is thrown when trying to set a TTL for a directory.
+   * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method and
+   * that an exception is thrown when trying to set a TTL for a directory.
    */
   @Test
   public void setAttribute() throws Exception {
@@ -1293,8 +1293,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#free} method with a directory with a file
-   * non-persisted.
+   * Tests the {@link FileSystemMaster#free} method with a directory with a file non-persisted.
    */
   @Test
   public void freeDirWithNonPersistedFile() throws Exception {
