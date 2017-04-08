@@ -94,6 +94,7 @@ import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
@@ -1379,7 +1380,7 @@ public final class FileSystemMaster extends AbstractMaster {
       nonRecursiveDeletes.put(inodePath.getUri(), inode);
     } else {
       // TODO(adit): put behind a check option
-      if (isUFSDeleteSafe(inodePath.getInode(), inodePath.getUri())) {
+      if (isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri())) {
         recursiveDeletes.put(inodePath.getUri(), inode);
       } else {
         nonRecursiveDeletes.put(inodePath.getUri(), inode);
@@ -1393,7 +1394,7 @@ public final class FileSystemMaster extends AbstractMaster {
         } else {
           // TODO(adit): put behind a check option
           AlluxioURI currentPath = mInodeTree.getPath(descendant);
-          if (isUFSDeleteSafe(descendant, currentPath)) {
+          if (isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
             recursiveDeletes.put(currentPath, descendant);
           } else {
             nonRecursiveDeletes.put(currentPath, descendant);
@@ -1488,8 +1489,38 @@ public final class FileSystemMaster extends AbstractMaster {
     Metrics.PATHS_DELETED.inc(deletedCount);
   }
 
-  private boolean isUFSDeleteSafe(Inode inode, AlluxioURI path) {
-    // TODO(adit): implement me
+  /**
+   * Check if immediate children of directory are in sync with UFS.
+   *
+   * @param inode directory to check
+   * @param path of directory to to check
+   * @return true is contents of directory match
+   */
+  private boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    if (!inode.isPersisted()) {
+      return true;
+    }
+
+    AlluxioURI alluxioUri = mInodeTree.getPath(inode);
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+    String ufsUri = resolution.getUri().toString();
+    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileStatus[] ufsChildren =
+        ufs.listStatus(ufsUri, ListOptions.defaults().setRecursive(false));
+
+    for (UnderFileStatus child : ufsChildren) {
+      AlluxioURI expectedPath = path.join(child.getName());
+      boolean found = false;
+      for (Inode<?> inodeChild : inode.getChildren()) {
+        if (expectedPath.equals(mInodeTree.getPath(inodeChild))) {
+          found = true;
+        }
+      }
+      if (!found) {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -1497,8 +1528,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * Gets the {@link FileBlockInfo} for all blocks of a file. If path is a directory, an exception
    * is thrown.
    * <p>
-   * This operation requires the client user to have {@link Mode.Bits#READ} permission on the
-   * the path.
+   * This operation requires the client user to have {@link Mode.Bits#READ} permission on the the
+   * path.
    *
    * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given path
