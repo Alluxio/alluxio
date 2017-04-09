@@ -118,7 +118,9 @@ public final class FileDataManager {
         return false;
       }
     } catch (IOException e) {
-      LOG.error("Failed to check if file {} exists in under storage system", fileId, e);
+      LOG.warn("Failed to check if file {} exists in under storage system: {}",
+               fileId, e.getMessage());
+      LOG.debug("Exception: ", e);
     }
     return true;
   }

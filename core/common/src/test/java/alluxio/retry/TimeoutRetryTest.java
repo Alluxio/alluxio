@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Tests for the {@link TimeoutRetry} class.
  */
-public class TimeoutRetryTest {
+public final class TimeoutRetryTest {
 
   /**
    * Tests that the provided timeout is respected.

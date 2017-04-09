@@ -13,7 +13,7 @@ package alluxio.hadoop.fs;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.hadoop.ConfUtils;
+import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.hadoop.FileSystem;
 
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -222,7 +222,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.getConf().set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
 
     // Store Alluxio configuration in Hadoop configuration
-    ConfUtils.storeToHadoopConfiguration(sBench.getConf());
+    HadoopConfigurationUtils.storeToHadoopConfiguration(sBench.getConf());
 
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
@@ -680,6 +680,11 @@ public class DFSIOIntegrationTest implements Tool {
     ioer.close();
   }
 
+  /**
+   * Runs the integration test for DFS IO.
+   *
+   * @param args arguments
+   */
   public static void main(String[] args) {
     DFSIOIntegrationTest bench = new DFSIOIntegrationTest();
     int res;

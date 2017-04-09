@@ -59,7 +59,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
     if (mClosed) {
       return;
     }
-    if (mCurrentBlockInStream != null && inStreamRemaining() == 0) {
+    if (mCurrentBlockInStream != null && mCurrentBlockInStream.remaining() == 0) {
       // Every byte was read from the input stream. Therefore, the read bytes is the length.
       // Complete the file with this new, known length.
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -80,7 +80,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   public long remaining() {
     if (mCurrentBlockInStream != null) {
-      return inStreamRemaining();
+      return mCurrentBlockInStream.remaining();
     }
     // A file of unknown length can only be one block.
     return mBlockSize - mPos;
@@ -105,6 +105,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   protected boolean shouldUpdateStreams(long currentBlockId) {
     // Return true either at the beginning of a file or the end of a file.
-    return mCurrentBlockInStream == null || inStreamRemaining() == 0;
+    return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
   }
 }
