@@ -227,7 +227,7 @@ public final class NettyPacketReader implements PacketReader {
           try {
             mChannel.close().sync();
           } catch (InterruptedException ee) {
-            throw new RuntimeException(ee);
+            throw Throwables.propagate(ee);
           }
           return;
         }
