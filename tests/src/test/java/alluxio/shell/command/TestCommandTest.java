@@ -160,13 +160,13 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   public void testWithoutOption() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "/testDir");
-    Assert.assertEquals(1, ret);
+    Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void testWrongOption() throws IOException, AlluxioException {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "-dfesz", "/testDir");
-    Assert.assertEquals(1, ret);
+    Assert.assertEquals(-1, ret);
   }
 }
