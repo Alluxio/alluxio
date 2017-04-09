@@ -159,8 +159,9 @@ public final class LockBlockResult implements Serializable {
    * @return the lock block operation result
    */
   public LockBlockResult setBlockPath(String blockPath) {
-    Preconditions.checkNotNull(blockPath);
-    mBlockPath = blockPath;
+
+    mBlockPath = Preconditions.checkNotNull(blockPath);
+
     return this;
   }
 
