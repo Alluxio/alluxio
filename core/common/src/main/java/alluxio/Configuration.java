@@ -396,7 +396,9 @@ public final class Configuration {
       return clazz;
     } catch (Exception e) {
       LOG.error("requested class could not be loaded: {}", rawValue, e);
-      throw Throwables.propagate(e);
+//    throw Throwables.propagate(e);
+      Throwables.propagateIfPossible(e);
+      throw new RuntimeException(e);
     }
   }
 
