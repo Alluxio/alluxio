@@ -106,8 +106,7 @@ public class FileOutStream extends AbstractOutStream {
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context,
       UnderFileSystemFileOutStream.Factory underOutStreamFactory) throws IOException {
     mCloser = Closer.create();
-    //mUri = Preconditions.checkNotNull(path);
-    mUri = Preconditions.checkNotNull(path,"path");
+    mUri = Preconditions.checkNotNull(path, "path");
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
