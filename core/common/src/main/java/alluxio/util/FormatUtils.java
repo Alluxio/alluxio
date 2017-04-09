@@ -205,36 +205,26 @@ public final class FormatUtils {
    */
   public static long parseTimeSize(String timeSize) {
     double alpha = 0.0001;
-    String ori = timeSize;
-    String end = "";
-    int index = timeSize.length() - 1;
-    while (index >= 0) {
-      if (timeSize.charAt(index) > '9' || timeSize.charAt(index) < '0') {
-        end = timeSize.charAt(index) + end;
-      } else {
-        break;
-      }
-      index--;
-    }
-    timeSize = timeSize.substring(0, index + 1);
-    double ret = Double.parseDouble(timeSize);
-    end = end.toLowerCase();
-    if (end.isEmpty() || end.equalsIgnoreCase("ms")
-            || end.equalsIgnoreCase("millisecond")) {
-      return (long) (ret + alpha);
-    } else if (end.equalsIgnoreCase("s") || end.equalsIgnoreCase("sec")
-            || end.equalsIgnoreCase("second")) {
-      return (long) (ret * Constants.SECOND + alpha);
-    } else if (end.equalsIgnoreCase("m") || end.equalsIgnoreCase("min")
-            || end.equalsIgnoreCase("minute")) {
-      return (long) (ret * Constants.MINUTE + alpha);
-    } else if (end.equalsIgnoreCase("h") || end.equalsIgnoreCase("hr")
-            || end.equalsIgnoreCase("hour")) {
-      return (long) (ret * Constants.HOUR + alpha);
-    } else if (end.equalsIgnoreCase("d") || end.equalsIgnoreCase("day")) {
-      return (long) (ret * Constants.DAY + alpha);
+    String time = timeSize.replaceAll("[a-zA-Z]", "");
+    String size = timeSize.replaceAll("[0-9]", "");
+    double douTime = Double.parseDouble(time);
+    size = size.toLowerCase();
+    if (size.isEmpty() || size.equalsIgnoreCase("ms")
+        || size.equalsIgnoreCase("millisecond")) {
+      return (long) (douTime + alpha);
+    } else if (size.equalsIgnoreCase("s") || size.equalsIgnoreCase("sec")
+        || size.equalsIgnoreCase("second")) {
+      return (long) (douTime * Constants.SECOND + alpha);
+    } else if (size.equalsIgnoreCase("m") || size.equalsIgnoreCase("min")
+        || size.equalsIgnoreCase("minute")) {
+      return (long) (douTime * Constants.MINUTE + alpha);
+    } else if (size.equalsIgnoreCase("h") || size.equalsIgnoreCase("hr")
+        || size.equalsIgnoreCase("hour")) {
+      return (long) (douTime * Constants.HOUR + alpha);
+    } else if (size.equalsIgnoreCase("d") || size.equalsIgnoreCase("day")) {
+      return (long) (douTime * Constants.DAY + alpha);
     } else {
-      throw new IllegalArgumentException("Fail to parse " + ori + " to milliseconds");
+      throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
     }
   }
 
