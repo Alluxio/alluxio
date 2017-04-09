@@ -23,7 +23,7 @@ import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+//import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -165,7 +165,8 @@ public final class NettyPacketReader implements PacketReader {
                   String.format("Timeout while reading packet from block %d @ %s.", mId, mAddress));
             }
           } catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            //throw Throwables.propagate(e);
+              throw new RuntimeException(e);
           }
         } else {
           if (buf.readableBytes() == 0) {
