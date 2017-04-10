@@ -817,7 +817,7 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
-	/**
+    /**
      * Constructs the concurrent freer.
      *
      * @param depth the depth of files to be freed
