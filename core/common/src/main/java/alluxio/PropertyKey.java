@@ -86,6 +86,7 @@ public enum PropertyKey {
   UNDERFS_S3A_SECURE_HTTP_ENABLED(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false),
   UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED,
       false),
+  UNDERFS_S3A_SIGNER_ALGORITHM(Name.UNDERFS_S3A_SIGNER_ALGORITHM, null),
   UNDERFS_S3A_SOCKET_TIMEOUT_MS(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS, 50000),
 
   //
@@ -300,7 +301,6 @@ public enum PropertyKey {
   USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS,
       16),
   USER_NETWORK_NETTY_READER_CANCEL_ENABLED(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true),
-  USER_PACKET_STREAMING_ENABLED(Name.USER_PACKET_STREAMING_ENABLED, true),
   USER_RPC_RETRY_BASE_SLEEP_MS(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50),
   USER_RPC_RETRY_MAX_NUM_RETRY(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20),
   USER_RPC_RETRY_MAX_SLEEP_MS(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000),
@@ -474,6 +474,8 @@ public enum PropertyKey {
         "alluxio.underfs.s3a.secure.http.enabled";
     public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
         "alluxio.underfs.s3a.server.side.encryption.enabled";
+    public static final String UNDERFS_S3A_SIGNER_ALGORITHM =
+        "alluxio.underfs.s3a.signer.algorithm";
     public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
         "alluxio.underfs.s3a.socket.timeout.ms";
     public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
@@ -771,8 +773,6 @@ public enum PropertyKey {
         "alluxio.user.network.netty.reader.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
         "alluxio.user.network.netty.reader.cancel.enabled";
-    public static final String USER_PACKET_STREAMING_ENABLED =
-        "alluxio.user.packet.streaming.enabled";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep.ms";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =

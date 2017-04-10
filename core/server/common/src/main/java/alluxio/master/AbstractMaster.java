@@ -274,10 +274,8 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
 
     RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, Constants.SECOND_MS);
-    int attempts = 0;
     while (retry.attemptRetry()) {
       try {
-        attempts++;
         mAsyncJournalWriter.flush(journalContext.getFlushCounter());
         return;
       } catch (IOException e) {
@@ -286,9 +284,9 @@ public abstract class AbstractMaster implements Master {
     }
     LOG.error(
         "Journal flush failed after {} attempts. Terminating process to prevent inconsistency.",
-        attempts);
+        retry.getRetryCount());
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      throw new RuntimeException("Journal flush failed after " + attempts
+      throw new RuntimeException("Journal flush failed after " + retry.getRetryCount()
           + " attempts. Terminating process to prevent inconsistency.");
     }
     System.exit(-1);

@@ -35,7 +35,8 @@ public final class GetConf {
       + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
       + "values of data size configuration will be converted to a quantity in the given unit."
       + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
-      + "and \"10MB\" will return 10240. Possible unit options include B, KB, MB, GB, TP, PB";
+      + "and with \"--unit S\", a configuration value of \"5000\" will return 5."
+      + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D";
 
   private static final String UNIT_OPTION_NAME = "unit";
   private static final Option UNIT_OPTION =
@@ -43,7 +44,7 @@ public final class GetConf {
           .desc("unit of the value to return.").build();
   private static final Options OPTIONS = new Options().addOption(UNIT_OPTION);
 
-  private enum Unit {
+  private enum ByteUnit {
     B(1L),
     KB(1L << 10),
     MB(1L << 20),
@@ -61,7 +62,37 @@ public final class GetConf {
       return mValue;
     }
 
-    Unit(long value) {
+    ByteUnit(long value) {
+      mValue = value;
+    }
+  }
+
+  private enum TimeUnit {
+    MS(1L),
+    MILLISECOND(1L),
+    S(1000L),
+    SEC(1000L),
+    SECOND(1000L),
+    M(60000L),
+    MIN(60000L),
+    MINUTE(60000L),
+    H(3600000L),
+    HR(3600000L),
+    HOUR(3600000L),
+    D(86400000L),
+    DAY(86400000L);
+
+    /** value associated with each unit. */
+    private long mValue;
+
+    /**
+     * @return the value of this unit
+     */
+    public long getValue() {
+      return mValue;
+    }
+
+    TimeUnit(long value) {
       mValue = value;
     }
   }
@@ -114,14 +145,24 @@ public final class GetConf {
         } else {
           if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
-            Unit unit;
             try {
-              unit = Unit.valueOf(arg);
-              System.out.println(Configuration.getBytes(key) / unit.getValue());
-            } catch (IllegalArgumentException e) {
-              printHelp(String.format("%s is not a valid unit", arg));
-              return 1;
+              TimeUnit timeUnit;
+              timeUnit = TimeUnit.valueOf(arg);
+              System.out.println(Configuration.getMs(key) / timeUnit.getValue());
+              break;
+            } catch (IllegalArgumentException ex) {
+              // try next unit parse
             }
+            try {
+              ByteUnit byteUnit;
+              byteUnit = ByteUnit.valueOf(arg);
+              System.out.println(Configuration.getBytes(key) / byteUnit.getValue());
+              break;
+            } catch (Exception e) {
+              // try next unit parse
+            }
+            printHelp(String.format("%s is not a valid unit", arg));
+            return 1;
           } else {
             System.out.println(Configuration.get(key));
           }

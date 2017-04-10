@@ -13,11 +13,11 @@ package alluxio.worker.netty;
 
 import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -34,6 +34,8 @@ import java.io.RandomAccessFile;
  */
 public abstract class DataServerWriteHandlerTest {
   protected static final int PACKET_SIZE = 1024;
+  protected static final int EOF = 0;
+  protected static final int CANCEL = -1;
 
   protected long mChecksum;
   protected EmbeddedChannel mChannel;
@@ -71,6 +73,26 @@ public abstract class DataServerWriteHandlerTest {
 
     Object writeResponse = waitForResponse(mChannel);
     checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
+    checkFileContent(len);
+  }
+
+  /**
+   * Writes an non-empty file.
+   */
+  @Test
+  public void cancel() throws Exception {
+    long len = 0;
+    for (int i = 0; i < 128; i++) {
+      mChannel.writeInbound(buildWriteRequest(len, PACKET_SIZE));
+      len += PACKET_SIZE;
+    }
+    // EOF.
+    mChannel.writeInbound(buildWriteRequest(len, -1));
+
+    Object writeResponse = waitForResponse(mChannel);
+    checkWriteResponse(writeResponse, Protocol.Status.Code.CANCELLED);
+    // Our current implementation does not really abort the file when the write is cancelled.
+    // The client issues another request to block worker to abort it.
     checkFileContent(len);
   }
 

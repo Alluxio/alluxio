@@ -366,6 +366,21 @@ public final class Configuration {
   }
 
   /**
+   * Gets the time of key in millisecond unit.
+   *
+   * @param key the key to get the value for
+   * @return the time of key in millisecond unit
+   */
+  public static long getMs(PropertyKey key) {
+    String rawValue = get(key);
+    try {
+      return (long) Double.parseDouble(rawValue);
+    } catch (Exception e) {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
+    }
+  }
+
+  /**
    * Gets the value for the given key as a class.
    *
    * @param key the key to get the value for

@@ -12,8 +12,6 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -22,12 +20,8 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.util.io.BufferUtils;
 
-import com.google.common.primitives.Ints;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem.Statistics;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
 import org.slf4j.Logger;
@@ -47,54 +41,35 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsFileInputStream.class);
 
-  private static final boolean PACKET_STREAMING_ENABLED =
-      Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
-
-  private long mCurrentPosition;
-  private Path mHdfsPath;
-  private org.apache.hadoop.conf.Configuration mHadoopConf;
-  private int mHadoopBufferSize;
-  private Statistics mStatistics;
-  private URIStatus mFileInfo;
-
-  private FSDataInputStream mHdfsInputStream = null;
-
-  private FileInStream mAlluxioFileInputStream = null;
+  private final Statistics mStatistics;
+  private final URIStatus mFileInfo;
+  private final FileInStream mInputStream;
 
   private boolean mClosed = false;
 
-  private int mBufferLimit = 0;
-  private int mBufferPosition = 0;
-  private byte[] mBuffer;
+  private long mCurrentPosition;
 
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
    * @param context the file system context
    * @param uri the Alluxio file URI
-   * @param conf Hadoop configuration
-   * @param bufferSize the buffer size
    * @param stats filesystem statistics
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
   public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri,
-      org.apache.hadoop.conf.Configuration conf, int bufferSize,
       org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
-    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
-    long bufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-    mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
+    LOG.debug("HdfsFileInputStream({}, {})", uri, stats);
+
     mCurrentPosition = 0;
-    FileSystem fs = FileSystem.Factory.get(context);
-    mHadoopConf = conf;
-    mHadoopBufferSize = bufferSize;
     mStatistics = stats;
+    FileSystem fs = FileSystem.Factory.get(context);
     try {
       mFileInfo = fs.getStatus(uri);
-      mHdfsPath = new Path(mFileInfo.getUfsPath());
-      mAlluxioFileInputStream = fs.openFile(uri, OpenFileOptions.defaults());
+      mInputStream = fs.openFile(uri, OpenFileOptions.defaults());
     } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException(
-          ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(mHdfsPath, uri));
+      // Transform the Alluxio exception to a Java exception to satisfy the HDFS API contract.
+      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -105,47 +80,16 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mClosed) {
       throw new IOException("Cannot query available bytes from a closed stream.");
     }
-    return (int) mAlluxioFileInputStream.remaining();
+    return (int) mInputStream.remaining();
   }
 
   @Override
   public void close() throws IOException {
-    if (mAlluxioFileInputStream != null) {
-      mAlluxioFileInputStream.close();
+    if (mClosed) {
+      return;
     }
-    if (mHdfsInputStream != null) {
-      mHdfsInputStream.close();
-    }
+    mInputStream.close();
     mClosed = true;
-  }
-
-  /**
-   * Sets {@link #mHdfsInputStream} to a stream from the under storage system with the stream
-   * starting at {@link #mCurrentPosition}.
-   *
-   * @throws IOException if opening the file fails
-   */
-  // TODO(calvin): Consider removing this when the recovery logic is available in FileInStream
-  private void getHdfsInputStream() throws IOException {
-    if (mHdfsInputStream == null) {
-      org.apache.hadoop.fs.FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      mHdfsInputStream.seek(mCurrentPosition);
-    }
-  }
-
-  /**
-   * Sets {@link #mHdfsInputStream} to a stream from the under storage system with the stream
-   * starting at position. The {@link #mCurrentPosition} is not modified to be position.
-   *
-   * @throws IOException if opening the file fails
-   */
-  private void getHdfsInputStream(long position) throws IOException {
-    if (mHdfsInputStream == null) {
-      org.apache.hadoop.fs.FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-    }
-    mHdfsInputStream.seek(position);
   }
 
   @Override
@@ -156,24 +100,17 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public int read() throws IOException {
     if (mClosed) {
-      throw new IOException("Cannot read from a closed stream.");
+      throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
-    if (mAlluxioFileInputStream != null) {
-      try {
-        int ret = mAlluxioFileInputStream.read();
-        if (mStatistics != null && ret != -1) {
-          mStatistics.incrementBytesRead(1);
-        }
-        mCurrentPosition++;
-        return ret;
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        mAlluxioFileInputStream.close();
-        mAlluxioFileInputStream = null;
+
+    int ret = mInputStream.read();
+    if (ret != -1) {
+      mCurrentPosition++;
+      if (mStatistics != null) {
+        mStatistics.incrementBytesRead(1);
       }
     }
-    getHdfsInputStream();
-    return readFromHdfsBuffer();
+    return ret;
   }
 
   @Override
@@ -184,32 +121,17 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public int read(byte[] buffer, int offset, int length) throws IOException {
     if (mClosed) {
-      throw new IOException("Cannot read from a closed stream.");
-    }
-    if (mAlluxioFileInputStream != null) {
-      try {
-        int ret = mAlluxioFileInputStream.read(buffer, offset, length);
-        if (mStatistics != null && ret != -1) {
-          mStatistics.incrementBytesRead(ret);
-        }
-        mCurrentPosition += ret;
-        return ret;
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        mAlluxioFileInputStream.close();
-        mAlluxioFileInputStream = null;
-      }
+      throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    getHdfsInputStream();
-    int byteRead = readFromHdfsBuffer();
-    // byteRead is an unsigned byte, if its -1 then we have hit EOF
-    if (byteRead == -1) {
-      return -1;
+    int ret = mInputStream.read(buffer, offset, length);
+    if (ret != -1) {
+      mCurrentPosition += ret;
+      if (mStatistics != null) {
+        mStatistics.incrementBytesRead(ret);
+      }
     }
-    // Convert byteRead back to a signed byte
-    buffer[offset] = (byte) byteRead;
-    return 1;
+    return ret;
   }
 
   @Override
@@ -218,116 +140,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    if (PACKET_STREAMING_ENABLED) {
-      return readWithPacketStreaming(position, buffer, offset, length);
-    } else {
-      return readWithoutPacketStreaming(position, buffer, offset, length);
-    }
-  }
-
-  /**
-   * Reads upto the specified number of bytes, from a given position within a file, and return the
-   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
-   * This is used if packet streaming is enabled.
-   *
-   * @param position the start position to read from the stream
-   * @param buffer the buffer to hold the data read
-   * @param offset the offset in the buffer
-   * @param length the number of bytes to read from the file
-   * @return the number of bytes read or -1 if EOF is reached
-   * @throws IOException if it fails to read
-   */
-  private int readWithPacketStreaming(long position, byte[] buffer, int offset,
-      int length) throws IOException {
-    int bytesRead = -1;
-
-    if (mAlluxioFileInputStream != null) {
-      bytesRead = mAlluxioFileInputStream.positionedRead(position, buffer, offset, length);
-    } else {
-      getHdfsInputStream();
-      bytesRead = mHdfsInputStream.read(position, buffer, offset, length);
-    }
+    int bytesRead = mInputStream.positionedRead(position, buffer, offset, length);
     if (mStatistics != null && bytesRead != -1) {
       mStatistics.incrementBytesRead(bytesRead);
     }
     return bytesRead;
-  }
-
-  /**
-   * Reads upto the specified number of bytes, from a given position within a file, and return the
-   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
-   * This is used if packet streaming is not enabled.
-   *
-   * @param position the start position to read from the stream
-   * @param buffer the buffer to hold the data read
-   * @param offset the offset in the buffer
-   * @param length the number of bytes to read from the file
-   * @return the number of bytes read or -1 if EOF is reached
-   * @throws IOException if it fails to read
-   */
-  private synchronized int readWithoutPacketStreaming(long position, byte[] buffer, int offset,
-      int length) throws IOException {
-    int ret = -1;
-    long oldPos = getPos();
-    if ((position < 0) || (position >= mFileInfo.getLength())) {
-      return ret;
-    }
-
-    if (mAlluxioFileInputStream != null) {
-      try {
-        mAlluxioFileInputStream.seek(position);
-        ret = mAlluxioFileInputStream.read(buffer, offset, length);
-        if (mStatistics != null && ret != -1) {
-          mStatistics.incrementBytesRead(ret);
-        }
-        return ret;
-      } finally {
-        mAlluxioFileInputStream.seek(oldPos);
-      }
-    }
-
-    try {
-      getHdfsInputStream(position);
-      ret = mHdfsInputStream.read(buffer, offset, length);
-      if (mStatistics != null && ret != -1) {
-        mStatistics.incrementBytesRead(ret);
-      }
-      return ret;
-    } finally {
-      if (mHdfsInputStream != null) {
-        mHdfsInputStream.seek(oldPos);
-      }
-    }
-  }
-
-  /**
-   * Similar to read(), returns a single unsigned byte from the hdfs buffer, or -1 if there is no
-   * more data to be read. This method also fills the hdfs buffer with new data if it is empty.
-   *
-   * @return the next value in the stream from 0 to 255 or -1 if there is no more data to be read
-   * @throws IOException if the bulk read from hdfs fails
-   */
-  private int readFromHdfsBuffer() throws IOException {
-    if (mBufferPosition < mBufferLimit) {
-      if (mStatistics != null) {
-        mStatistics.incrementBytesRead(1);
-      }
-      mCurrentPosition++;
-      return BufferUtils.byteToInt(mBuffer[mBufferPosition++]);
-    }
-    LOG.error("Reading from HDFS directly");
-    while ((mBufferLimit = mHdfsInputStream.read(mBuffer)) == 0) {
-      LOG.error("Read 0 bytes in readFromHdfsBuffer for {}", mHdfsPath);
-    }
-    if (mBufferLimit == -1) {
-      return -1;
-    }
-    mBufferPosition = 0;
-    if (mStatistics != null) {
-      mStatistics.incrementBytesRead(1);
-    }
-    mCurrentPosition++;
-    return BufferUtils.byteToInt(mBuffer[mBufferPosition++]);
   }
 
   @Override
@@ -367,15 +184,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.SEEK_PAST_EOF.getMessage(pos, mFileInfo.getLength()));
     }
 
-    if (mAlluxioFileInputStream != null) {
-      mAlluxioFileInputStream.seek(pos);
-    } else {
-      getHdfsInputStream(pos);
-      // TODO(calvin): Optimize for the case when the data is still valid in the buffer
-      // Invalidate buffer
-      mBufferLimit = -1;
-    }
-
+    mInputStream.seek(pos);
     mCurrentPosition = pos;
   }
 

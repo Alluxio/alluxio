@@ -21,7 +21,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link CompleteFileOptions}.
  */
-public class CompleteFileOptionsTest {
+public final class CompleteFileOptionsTest {
   /**
    * Tests the {@link CompleteFileOptions#defaults()} method.
    */

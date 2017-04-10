@@ -44,3 +44,9 @@ screenshot_hive_table_in_alluxio:
   ../img/screenshot_hive_table_in_alluxio.png
 screenshot_hive_query_result:
   ../img/screenshot_hive_query_result.png
+screenshot_presto_table_in_alluxio:
+  ../img/screenshot_presto_table_in_alluxio.png
+screenshot_presto_query_result:
+  ../img/screenshot_presto_query_result.png
+screenshot_presto_query_log:
+  ../img/screenshot_presto_query_log.png
