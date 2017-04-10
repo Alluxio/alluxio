@@ -134,7 +134,8 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @throws NoWorkerException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers, Map<String, Long> totalBytesOnTiers,
-      Map<String, Long> usedBytesOnTiers, Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException;
+      Map<String, Long> usedBytesOnTiers, Map<String, List<Long>> currentBlocksOnTiers)
+      throws NoWorkerException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.

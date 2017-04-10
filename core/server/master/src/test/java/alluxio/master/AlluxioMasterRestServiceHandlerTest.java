@@ -28,7 +28,6 @@ import alluxio.RuntimeConstants;
 import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.MutableJournal;

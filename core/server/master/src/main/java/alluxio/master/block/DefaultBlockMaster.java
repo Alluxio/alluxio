@@ -17,7 +17,6 @@ import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.clock.Clock;
-import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -44,7 +43,6 @@ import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.IdUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -74,7 +72,9 @@ import java.util.concurrent.Future;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
-
+/**
+ * The default implementation of {@link BlockMaster} interface.
+ */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultBlockMaster extends AbstractMaster implements BlockMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
@@ -104,11 +104,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       };
 
   /**
-   * Concurrency and locking in the BlockMaster
+   * Concurrency and locking in the {@link DefaultBlockMaster}
    *
    * The block master uses concurrent data structures to allow non-conflicting concurrent access.
    * This means each piece of metadata should be locked individually. There are two types of
-   * metadata in the {@link DefaultBlockMaster}; {@link MasterBlockInfo} and {@link MasterWorkerInfo}.
+   * metadata in {@link DefaultBlockMaster}; {@link MasterBlockInfo} and {@link MasterWorkerInfo}.
    * Individual objects must be locked before modifying the object, or reading a modifiable field
    * of an object. This will protect the internal integrity of the metadata object.
    *

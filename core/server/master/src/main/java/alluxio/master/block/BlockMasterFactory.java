@@ -14,7 +14,6 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
-import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.journal.JournalFactory;
@@ -66,7 +65,8 @@ public final class BlockMasterFactory implements MasterFactory {
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
-   */
+   * @return a new {@link BlockMaster} instance or null if the master is not enabled
+   **/
   public BlockMaster create(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
