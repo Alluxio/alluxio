@@ -49,7 +49,7 @@ public class CommandLineJob extends Job {
    */
   public CommandLineJob(String command, JobConf jobConf) {
     super(jobConf);
-    mCommand = command;
+    mCommand =  Preconditions.checkNotNull(command);
   }
 
   /**
