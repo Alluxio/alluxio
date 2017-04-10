@@ -14,7 +14,7 @@ package alluxio.worker;
 /**
  * Interface representing cleanup a special session.
  */
-public interface SessionCleanup {
+public interface SessionCleanable {
 
   /**
    * Cleans up the session.

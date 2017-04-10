@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SessionCleaner periodically checks if any session have become zombies, removes the zombie session
@@ -35,19 +37,21 @@ public final class SessionCleaner implements Runnable {
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
 
-  private final SessionCleanup mSessionCleanup;
+  private final List<SessionCleanable> mSessionCleanables = new ArrayList<>();
 
   /** Flag to indicate if the checking should continue. */
   private volatile boolean mRunning;
 
   /**
    * Creates a new instance of {@link SessionCleaner}.
-   * @param sessions the session clean up callback which will periodically be invoked
-   * @param sessionCleanup who want to cleanup the session
+   * @param sessions the worker's sessions will be clean up by callback if which has been timeout
+   * @param sessionCleanable who wants to cleanup the session
    */
-  public SessionCleaner(Sessions sessions, SessionCleanup sessionCleanup) {
+  public SessionCleaner(Sessions sessions, SessionCleanable... sessionCleanable) {
     mSessions = sessions;
-    mSessionCleanup = sessionCleanup;
+    for (SessionCleanable sc : sessionCleanable) {
+      mSessionCleanables.add(sc);
+    }
     mCheckIntervalMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
@@ -73,7 +77,9 @@ public final class SessionCleaner implements Runnable {
       lastCheckMs = System.currentTimeMillis();
       for (long session : mSessions.getTimedOutSessions()) {
         mSessions.removeSession(session);
-        mSessionCleanup.cleanupSession(session);
+        for (SessionCleanable sc : mSessionCleanables) {
+          sc.cleanupSession(session);
+        }
       }
     }
   }

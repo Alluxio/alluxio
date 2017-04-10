@@ -197,7 +197,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleaner = new SessionCleaner(mSessions, mBlockStore);
+    mSessionCleaner = new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore);
 
     // Setup space reserver
     if (Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
