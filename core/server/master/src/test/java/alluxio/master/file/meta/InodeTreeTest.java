@@ -23,6 +23,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -85,7 +86,7 @@ public final class InodeTreeTest {
     JournalFactory factory =
         new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
 
-    BlockMaster blockMaster = new BlockMaster(registry, factory);
+    BlockMaster blockMaster = new BlockMasterFactory().create(registry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);

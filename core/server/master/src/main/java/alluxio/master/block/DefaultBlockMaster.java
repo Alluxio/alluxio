@@ -163,22 +163,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    *
    * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
-   */
-  public DefaultBlockMaster(MasterRegistry registry, JournalFactory journalFactory) {
-    this(registry, journalFactory, new SystemClock(), ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
-  }
-
-  /**
-   * Creates a new instance of {@link DefaultBlockMaster}.
-   *
-   * @param registry the master registry
-   * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public DefaultBlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
+  DefaultBlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     registry.add(DefaultBlockMaster.class, this);

@@ -86,7 +86,7 @@ public class BlockMasterTest {
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mMaster = new BlockMaster(registry, factory, mClock,
+    mMaster = new BlockMasterFactory().create(registry, factory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mMaster.start(true);
   }

@@ -27,6 +27,8 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.MutableJournal;
@@ -116,7 +118,7 @@ public class AlluxioMasterRestServiceHandlerTest {
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new BlockMaster(registry, factory, mClock,
+    mBlockMaster = new BlockMasterFactory().create(registry, factory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mBlockMaster.start(true);
     when(mMaster.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
