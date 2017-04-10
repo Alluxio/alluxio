@@ -52,7 +52,8 @@ public final class ConfigurationUtils {
     try {
       properties.load(inputStream);
     } catch (IOException e) {
-      LOG.error("Unable to load default Alluxio properties file {}", resourceName, e);
+      LOG.warn("Unable to load default Alluxio properties file {} : {}", resourceName,
+          e.getMessage());
       return null;
     }
     return properties;
@@ -73,7 +74,7 @@ public final class ConfigurationUtils {
     } catch (FileNotFoundException e) {
       return null;
     } catch (IOException e) {
-      LOG.error("Unable to load properties file {}", filePath, e);
+      LOG.warn("Unable to load properties file {} : {}", filePath, e.getMessage());
       return null;
     }
     return properties;
