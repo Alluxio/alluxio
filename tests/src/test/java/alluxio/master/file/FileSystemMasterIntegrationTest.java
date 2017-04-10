@@ -830,6 +830,14 @@ public class FileSystemMasterIntegrationTest {
       Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
+    /**
+     * Executes the process of freeing all files in one directory by multiple concurrent threads.
+     *
+     * @param depth the depth of files to be freed in one directory
+     * @param concurrencyDepth the concurrency depth of files to be freed in one directory
+     * @param path the directory of files to be freed in
+     * @throws Exception if an exception occurs
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
