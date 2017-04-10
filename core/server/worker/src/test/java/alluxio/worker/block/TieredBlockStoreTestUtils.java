@@ -34,7 +34,7 @@ import java.util.Collections;
 /**
  * Utility methods for setting and testing {@link TieredBlockStore}.
  */
-public class TieredBlockStoreTestUtils {
+public final class TieredBlockStoreTestUtils {
   /**
    * Default configurations of a TieredBlockStore for use in {@link #defaultMetadataManager}. They
    * represent a block store with a MEM tier and a SSD tier, there are two directories with capacity
