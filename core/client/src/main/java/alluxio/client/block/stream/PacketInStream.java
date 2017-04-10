@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stream data packet by packet.
  */
 @NotThreadSafe
-public final class PacketInStream extends InputStream implements BoundedStream, Seekable,
+public class PacketInStream extends InputStream implements BoundedStream, Seekable,
     PositionedReadable {
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
@@ -62,7 +62,7 @@ public final class PacketInStream extends InputStream implements BoundedStream, 
    * @return the {@link PacketInStream} created
    * @throws IOException if it fails to create the object
    */
-  public static PacketInStream createLocalPacketInstream(String path, long id, long length)
+  public static PacketInStream createLocalPacketInStream(String path, long id, long length)
       throws IOException {
     return new PacketInStream(new LocalFilePacketReader.Factory(path), id, length);
   }

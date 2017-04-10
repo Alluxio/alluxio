@@ -15,6 +15,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.retry.CountingRetry;
 
+import com.google.common.collect.Lists;
+
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -106,6 +109,40 @@ public final class MasterRegistry {
     List<Master> masters = new ArrayList<>(mRegistry.values());
     Collections.sort(masters, new DependencyComparator());
     return masters;
+  }
+
+  /**
+   * Starts all masters in dependency order. If A depends on B, A is started before B.
+   *
+   * If a master fails to start, already-started masters will be stopped.
+   *
+   * @param isLeader whether to start the masters as leaders
+   * @throws IOException if an IO error occurs
+   */
+  public void start(boolean isLeader) throws IOException {
+    List<Master> started = new ArrayList<>();
+    for (Master master : getMasters()) {
+      try {
+        master.start(isLeader);
+        started.add(master);
+      } catch (IOException e) {
+        for (Master startedMaster: started) {
+          startedMaster.stop();
+          throw e;
+        }
+      }
+    }
+  }
+
+  /**
+   * Stops all masters in reverse dependency order. If A depends on B, B is stopped before A.
+   *
+   * @throws IOException if an IO error occurs
+   */
+  public void stop() throws IOException {
+    for (Master master : Lists.reverse(getMasters())) {
+      master.stop();
+    }
   }
 
   /**

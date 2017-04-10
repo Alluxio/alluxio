@@ -44,8 +44,9 @@ public interface ShellCommand {
    * @param cl the parsed command line for the arguments
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
+   * @return the result of running the command
    */
-  void run(CommandLine cl) throws AlluxioException, IOException;
+  int run(CommandLine cl) throws AlluxioException, IOException;
 
   /**
    * @return the usage information of the command

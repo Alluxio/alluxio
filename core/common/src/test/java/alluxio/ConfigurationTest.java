@@ -222,6 +222,11 @@ public class ConfigurationTest {
     Configuration.getBoolean(PropertyKey.WEB_THREADS);
   }
 
+  public void getMs() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "100");
+    Assert.assertEquals(100, Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
   @Test
   public void getClassTest() { // The name getClass is already reserved.
     Configuration.set(PropertyKey.WEB_THREADS, "java.lang.String");

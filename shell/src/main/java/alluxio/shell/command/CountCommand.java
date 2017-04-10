@@ -47,7 +47,7 @@ public final class CountCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
@@ -55,6 +55,7 @@ public final class CountCommand extends AbstractShellCommand {
     String format = "%-25s%-25s%-15s%n";
     System.out.format(format, "File Count", "Folder Count", "Total Bytes");
     System.out.format(format, values[0], values[1], values[2]);
+    return 0;
   }
 
   private long[] countHelper(AlluxioURI path) throws AlluxioException, IOException {

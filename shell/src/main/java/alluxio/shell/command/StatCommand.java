@@ -17,9 +17,16 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -43,29 +50,108 @@ public final class StatCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  protected Options getOptions() {
+    return new Options().addOption(
+        Option.builder("f")
+            .required(false)
+            .hasArg()
+            .desc("format")
+            .build()
+    );
+  }
+
+  @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
-    if (status.isFolder()) {
-      System.out.println(path + " is a directory path.");
-      System.out.println(status);
+    if (cl.hasOption('f')) {
+      System.out.println(formatOutput(cl, status));
     } else {
-      System.out.println(path + " is a file path.");
-      System.out.println(status);
-      System.out.println("Containing the following blocks: ");
-      AlluxioBlockStore blockStore = AlluxioBlockStore.create();
-      for (long blockId : status.getBlockIds()) {
-        System.out.println(blockStore.getInfo(blockId));
+      if (status.isFolder()) {
+        System.out.println(path + " is a directory path.");
+        System.out.println(status);
+      } else {
+        System.out.println(path + " is a file path.");
+        System.out.println(status);
+        System.out.println("Containing the following blocks: ");
+        AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+        for (long blockId : status.getBlockIds()) {
+          System.out.println(blockStore.getInfo(blockId));
+        }
       }
     }
   }
 
   @Override
   public String getUsage() {
-    return "stat <path>";
+    return "stat [-f <format>] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Displays info for the specified path both file and directory.";
+    return "Displays info for the specified path both file and directory."
+        + " Specify -f to display info in given format:"
+        + "   \"%N\": name of the file;"
+        + "   \"%z\": size of file in bytes;"
+        + "   \"%u\": owner;"
+        + "   \"%g\": group name of owner;"
+        + "   \"%y\" or \"%Y\": modification time,"
+        + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
+        + " %Y it shows milliseconds since January 1, 1970 UTC;"
+        + "   \"%b\": Number of blocks allocated for file";
+  }
+
+  private static final String FORMAT_REGEX = "%([bguyzNY])";
+  private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
+
+  private String formatOutput(CommandLine cl, URIStatus status) {
+    String format = cl.getOptionValue('f');
+    int formatLen = format.length();
+
+    StringBuilder output = new StringBuilder();
+    Matcher m = FORMAT_PATTERN.matcher(format);
+    int i = 0;
+    while (i < formatLen && m.find(i)) {
+      if (m.start() != i) {
+        output.append(format.substring(i, m.start()));
+      }
+      output.append(getField(m, status));
+      i = m.end();
+    }
+    if (i < formatLen) {
+      output.append(format.substring(i));
+    }
+    return output.toString();
+  }
+
+  private String getField(Matcher m, URIStatus status) {
+    char formatSpecifier = m.group(1).charAt(0);
+    String resp = null;
+    switch (formatSpecifier) {
+      case 'b':
+        resp = status.isFolder() ? "NA" : String.valueOf(status.getFileBlockInfos().size());
+        break;
+      case 'g':
+        resp = status.getGroup();
+        break;
+      case 'u':
+        resp = status.getOwner();
+        break;
+      case 'y':
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        resp = sdf.format(new Date(status.getLastModificationTimeMs()));
+        break;
+      case 'z':
+        resp = status.isFolder() ? "NA" : String.valueOf(status.getLength());
+        break;
+      case 'N':
+        resp = status.getName();
+        break;
+      case 'Y':
+        resp = String.valueOf(status.getLastModificationTimeMs());
+        break;
+      default:
+        Preconditions.checkArgument(false, "Unknown format specifier %c", formatSpecifier);
+    }
+    return resp;
   }
 }

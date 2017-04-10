@@ -127,7 +127,7 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
-  private FileSystemMaster createFsMasterFromJournal() throws Exception {
+  private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -136,7 +136,8 @@ public class JournalShutdownIntegrationTest {
    */
   private void reproduceAndCheckState(int successFiles) throws Exception {
     Assert.assertNotEquals(successFiles, 0);
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     int actualFiles =
         fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
@@ -146,7 +147,7 @@ public class JournalShutdownIntegrationTest {
       Assert.assertTrue(
           fsMaster.getFileId(new AlluxioURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
-    fsMaster.stop();
+    registry.stop();
   }
 
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {

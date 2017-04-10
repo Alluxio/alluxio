@@ -47,12 +47,13 @@ public final class UnsetTtlCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
     // Expiry doesn't matter in this case
     CommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL, TtlAction.DELETE);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
+    return 0;
   }
 
   @Override

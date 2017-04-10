@@ -29,8 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to write to a file in the under file system through an Alluxio
- * worker's data server. This class is based off of
- * {@link alluxio.client.block.BufferedBlockOutStream}.
+ * worker's data server.
  */
 // TODO(calvin): See if common logic in this class and buffered block out stream can be abstracted
 @NotThreadSafe
@@ -57,8 +56,6 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
    * Factory for creating an {@link UnderFileSystemFileOutStream}.
    */
   public static class Factory {
-    private static final boolean PACKET_STREAMING_ENABLED =
-        Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED);
     private static Factory sInstance;
 
     /**
@@ -82,12 +79,8 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
      */
     public OutputStream create(FileSystemContext context, InetSocketAddress address, long ufsFileId)
         throws IOException {
-      if (PACKET_STREAMING_ENABLED) {
-        return new alluxio.client.block.stream.UnderFileSystemFileOutStream(context, address,
-            ufsFileId);
-      } else {
-        return new UnderFileSystemFileOutStream(context, address, ufsFileId);
-      }
+      return new alluxio.client.block.stream.UnderFileSystemFileOutStream(context, address,
+          ufsFileId);
     }
   }
 
