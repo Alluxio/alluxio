@@ -16,7 +16,7 @@ import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+//import com.google.common.base.Throwables;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -290,7 +290,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       return acquire(100  /* no timeout */, TimeUnit.DAYS);
     } catch (TimeoutException e) {
       // Never should timeout in acquire().
-      throw Throwables.propagate(e);
+      //throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
