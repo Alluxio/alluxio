@@ -18,6 +18,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -63,7 +64,6 @@ public class FileOutStream extends AbstractOutStream {
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
-  private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
   /** The client to a file system worker, null if mUfsDelegation is false. */
@@ -84,27 +84,13 @@ public class FileOutStream extends AbstractOutStream {
   /**
    * Creates a new file output stream.
    *
-   * @param context the file system context
    * @param path the file path
    * @param options the client options
+   * @param context the file system context
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
+  public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
-    this(path, options, context, UnderFileSystemFileOutStream.Factory.get());
-  }
-
-  /**
-   * Creates a new file output stream.
-   *
-   * @param path the file path
-   * @param options the client options
-   * @param context the file system context
-   * @param underOutStreamFactory a factory for creating any necessary under storage out streams
-   * @throws IOException if an I/O error occurs
-   */
-  public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context,
-      UnderFileSystemFileOutStream.Factory underOutStreamFactory) throws IOException {
     mCloser = Closer.create();
     mUri = Preconditions.checkNotNull(path);
     mBlockSize = options.getBlockSizeBytes();
@@ -113,7 +99,6 @@ public class FileOutStream extends AbstractOutStream {
     mOptions = options;
     mContext = context;
     mBlockStore = AlluxioBlockStore.create(mContext);
-    mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mClosed = false;
     mCanceled = false;
@@ -131,8 +116,8 @@ public class FileOutStream extends AbstractOutStream {
         mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
             CreateUfsFileOptions.defaults().setOwner(options.getOwner())
                 .setGroup(options.getGroup()).setMode(options.getMode()));
-        mUnderStorageOutputStream = mCloser.register(mUnderOutStreamFactory
-            .create(mContext, mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
+        mUnderStorageOutputStream = mCloser.register(UnderFileSystemFileOutStream.create(mContext,
+            mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
       }
     } catch (AlluxioException | IOException e) {
       mCloser.close();
