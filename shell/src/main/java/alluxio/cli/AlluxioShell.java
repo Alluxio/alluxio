@@ -156,8 +156,7 @@ public final class AlluxioShell implements Closeable {
 
     // Handle the command
     try {
-      command.run(cmdline);
-      return 0;
+      return command.run(cmdline);
     } catch (Exception e) {
       System.out.println(e.getMessage());
       LOG.error("Error running " + StringUtils.join(argv, " "), e);
