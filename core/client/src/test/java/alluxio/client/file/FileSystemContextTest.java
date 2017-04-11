@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,8 +70,14 @@ public final class FileSystemContextTest {
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
+      FileSystemMasterClient client = null;
+      try {
+        client = FileSystemContext.INSTANCE.acquireMasterClient();
+      } catch (IOException e) {
+        Assert.fail("Failed to acquire a master client due to interruption occured.");
+      } finally {
+        FileSystemContext.INSTANCE.releaseMasterClient(client);
+      }
     }
   }
 }

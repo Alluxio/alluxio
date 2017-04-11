@@ -19,6 +19,8 @@ import alluxio.client.file.FileSystemMasterClient;
 
 import org.apache.commons.cli.CommandLine;
 
+import java.io.IOException;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -46,13 +48,16 @@ public final class MasterInfoCommand extends AbstractShellCommand {
 
   @Override
   public int run(CommandLine cl) {
-    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
+    FileSystemMasterClient client = null;
     try {
+      client = FileSystemContext.INSTANCE.acquireMasterClient();
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         runWithFaultTolerance(client);
       } else {
         runWithoutFaultTolerance(client);
       }
+    } catch (IOException e) {
+      System.err.println("Failed to get the leader master due to interruption occured.");
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }

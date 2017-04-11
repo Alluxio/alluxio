@@ -36,6 +36,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,9 +63,10 @@ public final class BaseFileSystemTest {
 
   /**
    * Sets up the file system and the context before a test runs.
+   * @throws IOException exception
    */
   @Before
-  public void before() {
+  public void before() throws IOException {
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
@@ -73,9 +75,10 @@ public final class BaseFileSystemTest {
 
   /**
    * Releases the client after a test ran.
+   * @throws IOException exception
    */
   @After
-  public void after() {
+  public void after() throws IOException {
     Mockito.verify(mFileContext).acquireMasterClient();
     Mockito.verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
   }
