@@ -75,6 +75,9 @@ message WriteRequest {
 
   optional bool eof = 6;
   optional bool cancel = 7;
+
+  // This is only applicable for ufs writes.
+  optional string ufs_path = 1000;
 }
 
 // The response.

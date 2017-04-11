@@ -2945,6 +2945,33 @@ public final class Protocol {
      * <code>optional bool cancel = 7;</code>
      */
     boolean getCancel();
+
+    // optional string ufs_path = 1000;
+    /**
+     * <code>optional string ufs_path = 1000;</code>
+     *
+     * <pre>
+     * This is only applicable for ufs writes.
+     * </pre>
+     */
+    boolean hasUfsPath();
+    /**
+     * <code>optional string ufs_path = 1000;</code>
+     *
+     * <pre>
+     * This is only applicable for ufs writes.
+     * </pre>
+     */
+    java.lang.String getUfsPath();
+    /**
+     * <code>optional string ufs_path = 1000;</code>
+     *
+     * <pre>
+     * This is only applicable for ufs writes.
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getUfsPathBytes();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
@@ -3040,6 +3067,11 @@ public final class Protocol {
             case 56: {
               bitField0_ |= 0x00000040;
               cancel_ = input.readBool();
+              break;
+            }
+            case 8002: {
+              bitField0_ |= 0x00000080;
+              ufsPath_ = input.readBytes();
               break;
             }
           }
@@ -3210,6 +3242,61 @@ public final class Protocol {
       return cancel_;
     }
 
+    // optional string ufs_path = 1000;
+    public static final int UFS_PATH_FIELD_NUMBER = 1000;
+    private java.lang.Object ufsPath_;
+    /**
+     * <code>optional string ufs_path = 1000;</code>
+     *
+     * <pre>
+     * This is only applicable for ufs writes.
+     * </pre>
+     */
+    public boolean hasUfsPath() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional string ufs_path = 1000;</code>
+     *
+     * <pre>
+     * This is only applicable for ufs writes.
+     * </pre>
+     */
+    public java.lang.String getUfsPath() {
+      java.lang.Object ref = ufsPath_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          ufsPath_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string ufs_path = 1000;</code>
+     *
+     * <pre>
+     * This is only applicable for ufs writes.
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getUfsPathBytes() {
+      java.lang.Object ref = ufsPath_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ufsPath_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private void initFields() {
       type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
@@ -3218,6 +3305,7 @@ public final class Protocol {
       tier_ = 0;
       eof_ = false;
       cancel_ = false;
+      ufsPath_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3251,6 +3339,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeBool(7, cancel_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeBytes(1000, getUfsPathBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -3288,6 +3379,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(7, cancel_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1000, getUfsPathBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3423,6 +3518,8 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000020);
         cancel_ = false;
         bitField0_ = (bitField0_ & ~0x00000040);
+        ufsPath_ = "";
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -3479,6 +3576,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000040;
         }
         result.cancel_ = cancel_;
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        result.ufsPath_ = ufsPath_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3515,6 +3616,11 @@ public final class Protocol {
         }
         if (other.hasCancel()) {
           setCancel(other.getCancel());
+        }
+        if (other.hasUfsPath()) {
+          bitField0_ |= 0x00000080;
+          ufsPath_ = other.ufsPath_;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3805,6 +3911,104 @@ public final class Protocol {
       public Builder clearCancel() {
         bitField0_ = (bitField0_ & ~0x00000040);
         cancel_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional string ufs_path = 1000;
+      private java.lang.Object ufsPath_ = "";
+      /**
+       * <code>optional string ufs_path = 1000;</code>
+       *
+       * <pre>
+       * This is only applicable for ufs writes.
+       * </pre>
+       */
+      public boolean hasUfsPath() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional string ufs_path = 1000;</code>
+       *
+       * <pre>
+       * This is only applicable for ufs writes.
+       * </pre>
+       */
+      public java.lang.String getUfsPath() {
+        java.lang.Object ref = ufsPath_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          ufsPath_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string ufs_path = 1000;</code>
+       *
+       * <pre>
+       * This is only applicable for ufs writes.
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getUfsPathBytes() {
+        java.lang.Object ref = ufsPath_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ufsPath_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string ufs_path = 1000;</code>
+       *
+       * <pre>
+       * This is only applicable for ufs writes.
+       * </pre>
+       */
+      public Builder setUfsPath(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000080;
+        ufsPath_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ufs_path = 1000;</code>
+       *
+       * <pre>
+       * This is only applicable for ufs writes.
+       * </pre>
+       */
+      public Builder clearUfsPath() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        ufsPath_ = getDefaultInstance().getUfsPath();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ufs_path = 1000;</code>
+       *
+       * <pre>
+       * This is only applicable for ufs writes.
+       * </pre>
+       */
+      public Builder setUfsPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000080;
+        ufsPath_ = value;
         onChanged();
         return this;
       }
@@ -4387,14 +4591,14 @@ public final class Protocol {
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
       "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\"\236\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
+      "\"\261\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
       "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001",
       "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
       "\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(" +
-      "\010\"<\n\010Response\0220\n\006status\030\001 \001(\0132 .alluxio." +
-      "proto.dataserver.Status*=\n\013RequestType\022\021" +
-      "\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_B" +
-      "LOCK\020\002"
+      "\010\022\021\n\010ufs_path\030\350\007 \001(\t\"<\n\010Response\0220\n\006stat" +
+      "us\030\001 \001(\0132 .alluxio.proto.dataserver.Stat" +
+      "us*=\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010" +
+      "UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4424,7 +4628,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
