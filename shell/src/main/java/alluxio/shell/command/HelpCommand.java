@@ -47,7 +47,7 @@ public final class HelpCommand extends AbstractShellCommand {
   private final Map<String, ShellCommand> mCommands = new HashMap<>();
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     SortedSet<String> sortedCmds = null;
     AlluxioShellUtils.loadCommands(mFileSystem, mCommands);
@@ -62,6 +62,7 @@ public final class HelpCommand extends AbstractShellCommand {
     } else {
       System.out.println(args[0] + " is an unknown command.");
     }
+    return 0;
   }
 
   private void printCommandInfo(String commandName) {

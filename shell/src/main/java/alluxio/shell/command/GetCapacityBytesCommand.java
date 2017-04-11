@@ -45,10 +45,11 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public int run(CommandLine cl) throws IOException {
     AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create();
     long capacityBytes = alluxioBlockStore.getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
+    return 0;
   }
 
   @Override

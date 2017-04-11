@@ -84,7 +84,7 @@ public final class FileBlockInfo implements Serializable {
    * @return the file block information
    */
   public FileBlockInfo setBlockInfo(BlockInfo blockInfo) {
-    Preconditions.checkNotNull(blockInfo);
+    Preconditions.checkNotNull(blockInfo, "blockInfo");
     mBlockInfo = blockInfo;
     return this;
   }
@@ -103,7 +103,7 @@ public final class FileBlockInfo implements Serializable {
    * @return the file block information
    */
   public FileBlockInfo setUfsLocations(List<String> ufsLocations) {
-    Preconditions.checkNotNull(ufsLocations);
+    Preconditions.checkNotNull(ufsLocations, "ufsLocations");
     mUfsLocations = new ArrayList<>(ufsLocations);
     return this;
   }
