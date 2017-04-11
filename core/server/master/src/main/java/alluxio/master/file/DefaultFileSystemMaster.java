@@ -1313,6 +1313,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
     UnderFileStatus[] ufsChildren =
         ufs.listStatus(ufsUri, ListOptions.defaults().setRecursive(false));
+    // Empty directories are not persisted
+    if (ufsChildren == null) {
+      return true;
+    }
 
     for (UnderFileStatus child : ufsChildren) {
       AlluxioURI expectedPath = path.join(child.getName());
