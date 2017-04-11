@@ -36,6 +36,7 @@ public abstract class ResourcePool<T> {
   private final Condition mNotEmpty;
   protected final int mMaxCapacity;
   protected final ConcurrentLinkedQueue<T> mResources;
+  /** It represents the total number of resources that have been created by this pool. */
   protected final AtomicInteger mCurrentCapacity;
 
   /**
@@ -102,6 +103,7 @@ public abstract class ResourcePool<T> {
       return createNewResource();
     }
 
+    mCurrentCapacity.decrementAndGet();
     // Otherwise, try to take a resource from the pool, blocking if none are available.
     try {
       mTakeLock.lockInterruptibly();
@@ -109,7 +111,6 @@ public abstract class ResourcePool<T> {
         while (true) {
           resource = mResources.poll();
           if (resource != null) {
-            mCurrentCapacity.decrementAndGet();
             return resource;
           }
           if (time != null) {
@@ -147,7 +148,6 @@ public abstract class ResourcePool<T> {
   public void release(T resource) {
     if (resource != null) {
       mResources.add(resource);
-      mCurrentCapacity.incrementAndGet();
       try (LockResource r = new LockResource(mTakeLock)) {
         mNotEmpty.signal();
       }
