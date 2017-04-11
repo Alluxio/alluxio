@@ -14,6 +14,7 @@ package alluxio.worker.netty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.file.FileSystemWorker;
 
 import com.codahale.metrics.Counter;
@@ -26,8 +27,15 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This handler handles file write request. Check more information in
- * {@link DataServerUFSFileWriteHandler}.
+ * This handler handles writes to a file in the under file system. Due to the semantics enforced
+ * on under file systems, the client must write all the data of a file through the same stream to
+ * the under file system. This prevents us from handling the writes at a block level.
+ *
+ * For more information about the implementation of read/write buffering, see
+ * {@link DataServerWriteHandler}.
+ *
+ * For more information about the implementation of the client side writer, see
+ * UnderFileSystemFileOutStream.
  */
 @NotThreadSafe
 final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
@@ -36,10 +44,12 @@ final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
   private static final long UNUSED_SESSION_ID = -1;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
+    private final UnderFileSystem mUnderFileSystem;
     OutputStream mOutputStream;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId(), UNUSED_SESSION_ID);
+      mUnderFileSystem = UnderFileSystem.Factory.get(request.get)
       mOutputStream = mWorker.getUfsOutputStream(mId);
     }
 
