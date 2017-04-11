@@ -69,7 +69,7 @@ public class ResourcePoolTest {
 
   /**
    * Tests the normal acquiration of resource pools.
-   * @throws Exception 
+   * @throws Exception
    */
   @Test
   public void resourcePoolNormal() throws Exception {
@@ -82,7 +82,7 @@ public class ResourcePoolTest {
 
   /**
    * Tests that an exception is thrown if the resource pool is used more than its size can take.
-   * @throws Exception 
+   * @throws Exception
    */
   @Test
   public void resourcePoolBlocking() throws Exception {
