@@ -94,13 +94,13 @@ public final class UfsJournalFileTest {
   public void sort() {
     List<UfsJournalFile> logs = new ArrayList<>();
     Random random = new Random();
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 100; i++) {
       logs.add(UfsJournalFile.createLogFile(mLocation, random.nextInt(), i + 1));
     }
 
     Collections.shuffle(logs);
     Collections.sort(logs);
-    for (int i = 0; i < logs.size(); ++i) {
+    for (int i = 0; i < logs.size(); i++) {
       Assert.assertEquals(i + 1, logs.get(i).getEnd());
     }
   }

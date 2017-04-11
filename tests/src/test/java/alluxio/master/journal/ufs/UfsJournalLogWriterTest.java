@@ -177,7 +177,7 @@ public final class UfsJournalLogWriterTest {
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     Assert.assertTrue(snapshot.getCheckpoints().isEmpty());
     Assert.assertEquals(10, snapshot.getLogs().size());
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x20 + i, 0x21 + i),
           snapshot.getLogs().get(i).getLocation());
     }

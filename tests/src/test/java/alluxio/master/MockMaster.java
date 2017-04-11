@@ -61,7 +61,7 @@ public final class MockMaster implements Master {
   }
 
   @Override
-  public Iterator<Journal.JournalEntry> iterator() {
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     return mEntries.iterator();
   }
 }

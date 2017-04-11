@@ -53,7 +53,7 @@ public final class UfsJournalSnapshotTest {
 
     long start = 0x11;
     Queue<String> expectedLogs = new ArrayDeque<>();
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       String l =
           UfsJournalFile.encodeLogFileLocation(mJournal, start + i, start + i + 2).toString();
       expectedLogs.add(l);
@@ -85,6 +85,6 @@ public final class UfsJournalSnapshotTest {
     Assert.assertEquals(currentLog,
         UfsJournalSnapshot.getCurrentLog(mJournal).getLocation().toString());
 
-    Assert.assertEquals(0x12, UfsJournalSnapshot.getNextLogSequenceToCheckpoint(mJournal));
+    Assert.assertEquals(0x12, UfsJournalSnapshot.getNextLogSequenceNumberToCheckpoint(mJournal));
   }
 }

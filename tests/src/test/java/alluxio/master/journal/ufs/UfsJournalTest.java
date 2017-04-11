@@ -47,7 +47,7 @@ public final class UfsJournalTest {
         .create(UfsJournalFile.encodeTemporaryCheckpointFileLocation(mJournal).toString()).close();
 
     long start = 0x11;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       String l =
           UfsJournalFile.encodeLogFileLocation(mJournal, start + i, start + i + 2).toString();
       mJournal.getUfs().create(l).close();
