@@ -92,6 +92,7 @@ import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
@@ -1161,11 +1162,74 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
+    // Number of inodes deleted
+    long deletedCount = 0;
+
+    // Inodes for un-persisted paths to be deleted
     List<Inode<?>> delInodes = new ArrayList<>();
-    delInodes.add(inode);
+
+    // AlluxioURIs and inodes for persisted paths
+    HashMap<AlluxioURI, Inode<?>> recursiveUFSDeletes = new HashMap<>();
+    HashMap<AlluxioURI, Inode<?>> nonRecursiveUFSDeletes = new HashMap<>();
+
+    if (!inode.isPersisted()) {
+      delInodes.add(inode);
+    } else if (!replayed) {
+      if (inode.isFile()) {
+        nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
+      } else {
+        // TODO(adit): put behind a check option
+        if (isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri())) {
+          recursiveUFSDeletes.put(inodePath.getUri(), inode);
+        } else {
+          nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
+        }
+      }
+    }
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-      delInodes.addAll(lockList.getInodes());
+      // Traverse inodes top-down
+      for (Inode descendant : lockList.getInodes()) {
+        if (!descendant.isPersisted()) {
+          delInodes.add(descendant);
+        } else if (!replayed) {
+          AlluxioURI currentPath = mInodeTree.getPath(descendant);
+          if (descendant.isFile()) {
+            nonRecursiveUFSDeletes.put(currentPath, inode);
+          } else {
+            // TODO(adit): put behind a check option
+            // Check if immediate children in UFS have inodes
+            if (isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
+              // Directory is a candidate for recursive deletes
+              recursiveUFSDeletes.put(currentPath, descendant);
+            } else {
+              nonRecursiveUFSDeletes.put(currentPath, descendant);
+              // Invalidate ancestor directories if not a mount point
+              if (!mMountTable.isMountPoint(currentPath)) {
+                for (AlluxioURI ancestor = currentPath.getParent(); ancestor != null
+                    && recursiveUFSDeletes.containsKey(ancestor); ancestor = ancestor.getParent()) {
+                  nonRecursiveUFSDeletes.put(ancestor, recursiveUFSDeletes.get(ancestor));
+                  recursiveUFSDeletes.remove(ancestor);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Remove entries covered by a recursive delete
+      for (Map.Entry<AlluxioURI, Inode<?>> entry : nonRecursiveUFSDeletes.entrySet()) {
+        AlluxioURI currentPath = entry.getKey();
+        if (recursiveUFSDeletes.containsKey(currentPath.getParent())) {
+          nonRecursiveUFSDeletes.remove(currentPath);
+        }
+      }
+      for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes.entrySet()) {
+        AlluxioURI currentPath = entry.getKey();
+        if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
+          recursiveUFSDeletes.remove(currentPath);
+        }
+      }
 
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
@@ -1228,6 +1292,41 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
+  }
+
+   /**
+   * Check if immediate children of directory are in sync with UFS.
+   *
+   * @param inode directory to check
+   * @param path of directory to to check
+   * @return true is contents of directory match
+   */
+  private boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    if (!inode.isPersisted()) {
+      return false;
+    }
+
+    AlluxioURI alluxioUri = mInodeTree.getPath(inode);
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+    String ufsUri = resolution.getUri().toString();
+    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileStatus[] ufsChildren =
+        ufs.listStatus(ufsUri, ListOptions.defaults().setRecursive(false));
+
+    for (UnderFileStatus child : ufsChildren) {
+      AlluxioURI expectedPath = path.join(child.getName());
+      boolean found = false;
+      for (Inode<?> inodeChild : inode.getChildren()) {
+        if (expectedPath.equals(mInodeTree.getPath(inodeChild))) {
+          found = true;
+        }
+      }
+      if (!found) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
