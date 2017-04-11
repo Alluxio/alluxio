@@ -130,6 +130,25 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   /**
+   * Creates file by given the temporary path and writes content to file.
+   *
+   * @param path the file path
+   * @param toWrite the file content
+   * @return the created file instance
+   * @throws IOException if error happens during writing to file
+   * @throws FileNotFoundException if file not found
+   */
+  protected File generateRelativeFileContent(String path, byte[] toWrite) throws IOException,
+      FileNotFoundException {
+    File testFile = new File(path);
+    testFile.createNewFile();
+    FileOutputStream fos = new FileOutputStream(testFile);
+    fos.write(toWrite);
+    fos.close();
+    return testFile;
+  }
+
+  /**
    * Get an output string displayed in shell according to the command.
    *
    * @param command a shell command
@@ -193,6 +212,15 @@ public abstract class AbstractAlluxioShellTest {
     LoginUserTestUtils.resetLoginUser(user);
   }
 
+  /**
+   * Reads content from the file that the uri points to.
+   *
+   * @param uri the path of the file to read
+   * @param length the length of content to read
+   * @return the content that has been read
+   * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an unexpected exception is thrown
+   */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
     try (FileInStream tfis = mFileSystem
         .openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {

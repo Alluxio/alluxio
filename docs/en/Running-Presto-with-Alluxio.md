@@ -22,7 +22,7 @@ from the top level `alluxio` directory with the following command:
 mvn clean package -Ppresto -DskipTests
 ```
 
-Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.160). And have finished
+Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.170). And have finished
 [Hive On Alluxio](http://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html)
 
 # Configuration
@@ -30,12 +30,12 @@ Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/pres
 Presto gets the database and table information by connecting Hive Metastore. At the same time,
 The file system location of table is obtained by the table's metadata. So you need to configure
 [Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html). In order to access hdfs,
-you need to add the hadoop conf file(core-site.xml、hdfs-site.xml), and use hive.config.resources
-point to the file's location.
+you need to add the hadoop conf files (core-site.xml,hdfs-site.xml), and use `hive.config.resources` in 
+file `/<PATH_TO_PRESTO>/etc/catalog/hive.properties` to point to the file's location for every Presto worker.
 
 #### Configure `core-site.xml`
 
-You need to add the following configuration items to the `core-site.xml` in your Presto directory:
+You need to add the following configuration items to the `core-site.xml` configured in `hive.properties`:
 
 ```xml
 <property>
@@ -56,15 +56,30 @@ If your Alluxio is HA, another configuration need to added:
   <description>The Alluxio FileSystem (Hadoop 1.x and 2.x) with fault tolerant support</description>
 </property>
 ```
+#### Configure additional Alluxio properties
+
+Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop configuration in Hadoop directory on each node.
+ For example, change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+
+```xml
+<property>
+<name>alluxio.user.file.writetype.default</name>
+<value>CACHE_THROUGH</value>
+</property>
+```
+
+Also, it's recommended to increase `alluxio.user.network.netty.timeout.ms` to a bigger value (e.g. 10 mins) to avoid the timeout
+ failure when reading large files from remote.
+
+#### Increase `hive.max-split-size`
+
+Presto's hive integration uses the config [`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html) to control the parallelism of the query. It's recommended to set this size no less than Alluxio's block size to avoid the read contention within the same block.
 
 # Distribute the Alluxio Client Jar
 
 Distribute the Alluxio client Jar to all worker nodes in Presto:
-- Because of Presto use guava's version is 18.0 and Alluxio use 14.0, So you need to update the Alluxio's client guava version
-to 18.0 and then recompile it.
-
 - You must put Alluxio client jar package `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-(in `/<PATH_TO_ALLUXIO>/core/client/target/` directory) into Presto cluster's worker directory `$PRESTO_HOME/plugin/hadoop/`
+(in `/<PATH_TO_ALLUXIO>/core/client/target/` directory) into Presto cluster's worker directory `$PRESTO_HOME/plugin/hive-hadoop2/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 
 # Presto cli examples
@@ -94,13 +109,13 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 
 Using a single query:
 ```
-/home/path/presto/presto-cli-0.159-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+/home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
 ```
 
 And you can see the query results from console:
 
 ![PrestoQueryResult]({{site.data.img.screenshot_presto_query_result}})
 
-Presto Server log：
+Presto Server log:
 
 ![PrestoQueryLog]({{site.data.img.screenshot_presto_query_log}})

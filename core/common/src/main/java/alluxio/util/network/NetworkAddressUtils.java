@@ -62,7 +62,7 @@ public final class NetworkAddressUtils {
 
   /**
    * Different types of services that client uses to connect. These types also indicate the service
-   * bind address
+   * bind address.
    */
   public enum ServiceType {
     /**
@@ -403,9 +403,9 @@ public final class NetworkAddressUtils {
           }
         }
 
-        LOG.warn("Your hostname, " + InetAddress.getLocalHost().getHostName() + " resolves to"
-            + " a loopback/non-reachable address: " + address.getHostAddress()
-            + ", but we couldn't find any external IP address!");
+        LOG.warn("Your hostname, {} resolves to a loopback/non-reachable address: {}, "
+                  +  "but we couldn't find any external IP address!",
+                  InetAddress.getLocalHost().getHostName(), address.getHostAddress());
       }
 
       sLocalIP = address.getHostAddress();

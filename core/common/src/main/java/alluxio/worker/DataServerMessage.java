@@ -405,7 +405,7 @@ public final class DataServerMessage {
    * @throws IOException when a non-Alluxio related exception occurs
    */
   public void send(SocketChannel socketChannel) throws IOException {
-    Preconditions.checkNotNull(socketChannel);
+    Preconditions.checkNotNull(socketChannel, "socketChannel");
     isSend(true);
 
     socketChannel.write(mHeader);
