@@ -33,7 +33,7 @@ public class TestBlockOutStream extends BlockOutStream {
     mCanceled = false;
   }
   /**
-   * return an array of bytes that is written to the out stream
+   * Returns an array of bytes that is written to the out stream
    */
   public byte[] getWrittenData() {
     try {
