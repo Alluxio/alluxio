@@ -731,6 +731,14 @@ public class FileSystemMasterIntegrationTest {
       this(depth, concurrencyDepth, initPath, CreateFileOptions.defaults());
     }
 
+    /**
+     * Constructs the concurrent creator.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param initPath the directory of files to be created in
+     * @param options method options
+     */
     ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath,
         CreateFileOptions options) {
       mDepth = depth;
