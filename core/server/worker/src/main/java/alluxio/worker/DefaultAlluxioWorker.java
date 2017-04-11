@@ -31,7 +31,6 @@ import alluxio.worker.file.DefaultFileSystemWorker;
 import alluxio.worker.file.FileSystemWorker;
 
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
@@ -138,7 +137,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
     } catch (Exception e) {
-      Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -282,7 +281,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     try {
       tTransportFactory = mTransportProvider.getServerTransportFactory();
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
     TThreadPoolServer.Args args = new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
@@ -305,7 +304,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     try {
       return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC));
     } catch (TTransportException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
