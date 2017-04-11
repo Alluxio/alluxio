@@ -69,9 +69,10 @@ public class ResourcePoolTest {
 
   /**
    * Tests the normal acquiration of resource pools.
+   * @throws Exception 
    */
   @Test
-  public void resourcePoolNormal() {
+  public void resourcePoolNormal() throws Exception {
     TestResourcePool testPool = new TestResourcePool(2);
     int resource1 = testPool.acquire();
     testPool.release(resource1);
@@ -81,9 +82,10 @@ public class ResourcePoolTest {
 
   /**
    * Tests that an exception is thrown if the resource pool is used more than its size can take.
+   * @throws Exception 
    */
   @Test
-  public void resourcePoolBlocking() throws InterruptedException {
+  public void resourcePoolBlocking() throws Exception {
     mThrown.expect(RuntimeException.class);
     final int POOL_SIZE = 2;
     @SuppressWarnings("unchecked")
