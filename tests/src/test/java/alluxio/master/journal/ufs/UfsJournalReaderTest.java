@@ -104,7 +104,7 @@ public final class UfsJournalReaderTest {
   public void readCompletedLog() throws Exception {
     long fileSize = 10;
     long endSN = 10 * fileSize;
-    for (long i = 0; i < endSN / fileSize; ++i) {
+    for (long i = 0; i < endSN / fileSize; i++) {
       buildCompletedLog(i * fileSize, i * fileSize + fileSize);
     }
     try (JournalReader reader = mJournal
@@ -211,7 +211,7 @@ public final class UfsJournalReaderTest {
     long fileSize = 10;
     buildCheckpoint(fileSize * 3 + 1);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       buildCompletedLog(i * fileSize, (i + 1) * fileSize);
     }
 
@@ -232,7 +232,7 @@ public final class UfsJournalReaderTest {
     long fileSize = 10;
     buildCheckpoint(fileSize * 3);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       buildCompletedLog(i * fileSize, (i + 1) * fileSize);
     }
 
@@ -253,7 +253,7 @@ public final class UfsJournalReaderTest {
     long fileSize = 10;
     buildCheckpoint(fileSize * 3);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       buildCompletedLog(i * fileSize, (i + 1) * fileSize);
     }
 
@@ -274,7 +274,7 @@ public final class UfsJournalReaderTest {
     long fileSize = 10;
     buildCheckpoint(fileSize * 3);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       buildCompletedLog(i * fileSize, (i + 1) * fileSize);
     }
 
@@ -289,7 +289,7 @@ public final class UfsJournalReaderTest {
   private void buildCheckpoint(long sequenceNumber) throws Exception {
     JournalWriter writer = mJournal.getWriter(
         JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(sequenceNumber));
-    for (int i = 0; i < CHECKPOINT_SIZE; ++i) {
+    for (int i = 0; i < CHECKPOINT_SIZE; i++) {
       writer.write(newEntry(i));
     }
     writer.close();
@@ -299,7 +299,7 @@ public final class UfsJournalReaderTest {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     JournalWriter writer = mJournal
         .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(start));
-    for (long i = start; i < end; ++i) {
+    for (long i = start; i < end; i++) {
       writer.write(newEntry(i));
     }
     writer.close();

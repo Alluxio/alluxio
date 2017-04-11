@@ -53,7 +53,7 @@ public final class UfsJournalSnapshotTest {
 
     long start = 0x11;
     Queue<String> expectedLogs = new ArrayDeque<>();
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; i++) {
       String l =
           UfsJournalFile.encodeLogFileLocation(mJournal, start + i, start + i + 2).toString();
       expectedLogs.add(l);

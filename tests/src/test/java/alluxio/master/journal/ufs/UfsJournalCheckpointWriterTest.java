@@ -59,7 +59,7 @@ public final class UfsJournalCheckpointWriterTest {
     long endSN = 0x20;
     JournalWriter writer = mJournal
         .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; i++) {
       writer.write(newEntry(i));
     }
     writer.close();
@@ -85,7 +85,7 @@ public final class UfsJournalCheckpointWriterTest {
     long endSN = 0x20;
     JournalWriter writer = mJournal
         .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
-    for (int i = 0; i < endSN + 10; ++i) {
+    for (int i = 0; i < endSN + 10; i++) {
       writer.write(newEntry(i));
     }
     writer.close();
@@ -108,7 +108,7 @@ public final class UfsJournalCheckpointWriterTest {
     long endSN = 0x20;
     JournalWriter writer = mJournal
         .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; i++) {
       writer.write(newEntry(i));
     }
     writer.cancel();
@@ -130,7 +130,7 @@ public final class UfsJournalCheckpointWriterTest {
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
     mJournal.getUfs().create(expectedCheckpoint).close();
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; i++) {
       writer.write(newEntry(i));
     }
     writer.close();
@@ -157,7 +157,7 @@ public final class UfsJournalCheckpointWriterTest {
     String expectedCheckpoint =
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; i++) {
       writer.write(newEntry(i));
     }
     writer.close();
@@ -182,7 +182,7 @@ public final class UfsJournalCheckpointWriterTest {
         .appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN + 1))
         .toString();
     mJournal.getUfs().create(newerCheckpoint).close();
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; i++) {
       writer.write(newEntry(i));
     }
     writer.close();
