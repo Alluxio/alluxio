@@ -93,7 +93,7 @@ public class SpaceReserver implements HeartbeatExecutor  {
         } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
             | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
           LOG.warn("SpaceReserver failed to free tier {} to {} bytes used",
-              tierAlias, reservedBytes, e);
+              tierAlias, reservedBytes, e.getMessage());
         }
       }
     }
