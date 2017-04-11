@@ -18,7 +18,9 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -506,7 +508,7 @@ public final class AlluxioMasterRestServiceHandler {
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
@@ -535,8 +537,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
-    FileSystemMaster.StartupConsistencyCheck check = mFileSystemMaster
-        .getStartupConsistencyCheck();
+    StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
     alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
     List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
     List<String> uris = new ArrayList<>(inconsistentUris.size());
