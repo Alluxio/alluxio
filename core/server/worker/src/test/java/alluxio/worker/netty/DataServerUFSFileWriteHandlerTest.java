@@ -16,9 +16,9 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
-import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -26,7 +26,11 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -35,24 +39,27 @@ import java.util.Random;
 /**
  * Unit tests for {@link DataServerUFSFileWriteHandler}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(UnderFileSystem.class)
 public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
-  private FileSystemWorker mFileSystemWorker;
   private OutputStream mOutputStream;
 
   @Before
   public void before() throws Exception {
-    mFileSystemWorker = Mockito.mock(FileSystemWorker.class);
     mFile = mTestFolder.newFile().getPath();
     mOutputStream = new FileOutputStream(mFile);
-    Mockito.when(mFileSystemWorker.getUfsOutputStream(Mockito.anyLong()))
-        .thenReturn(mOutputStream);
     mChecksum = 0;
     mChannel = new EmbeddedChannel(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
     mChannelNoException = new EmbeddedNoExceptionChannel(
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
+
+    UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
+    PowerMockito.mockStatic(UnderFileSystem.Factory.class);
+    Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(mockUfs);
+    Mockito.when(mockUfs.create(Mockito.anyString())).thenReturn(mOutputStream);
   }
 
   @After
@@ -75,7 +82,7 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
   @Override
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
+        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset).setUfsPath("/test")
             .setType(Protocol.RequestType.UFS_FILE).build();
     DataBuffer buffer = null;
     if (len > 0) {
