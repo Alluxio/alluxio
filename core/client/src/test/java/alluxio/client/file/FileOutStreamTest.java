@@ -15,6 +15,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -164,7 +165,7 @@ public class FileOutStreamTest {
     };
     mUnderStorageFlushed = underStorageFlushed;
 
-    when(mFactory.create(any(FileSystemContext.class), any(InetSocketAddress.class), anyLong()))
+    when(mFactory.create(any(FileSystemContext.class), any(InetSocketAddress.class), anyString()))
         .thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)

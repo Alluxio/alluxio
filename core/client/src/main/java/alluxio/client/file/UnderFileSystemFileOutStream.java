@@ -73,14 +73,13 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     /**
      * @param context the file system context
      * @param address the address of an Alluxio worker
-     * @param ufsFileId the file ID of the ufs file to write to
+     * @param path the path of the ufs file
      * @return a new {@link UnderFileSystemFileOutStream}
      * @throws IOException if it fails to create the out stream
      */
-    public OutputStream create(FileSystemContext context, InetSocketAddress address, long ufsFileId)
+    public OutputStream create(FileSystemContext context, InetSocketAddress address, String path)
         throws IOException {
-      return new alluxio.client.block.stream.UnderFileSystemFileOutStream(context, address,
-          ufsFileId);
+      return new alluxio.client.block.stream.UnderFileSystemFileOutStream(context, address, path);
     }
   }
 
