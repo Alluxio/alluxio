@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
@@ -148,7 +149,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
         .getStartupConsistencyCheck();
     Assert.assertEquals(
-        FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
+        StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
         status.getStatus());
     Assert.assertEquals(0, status.getInconsistentUris().size());
   }

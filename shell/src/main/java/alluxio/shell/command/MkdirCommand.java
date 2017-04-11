@@ -49,7 +49,7 @@ public final class MkdirCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String path : args) {
       AlluxioURI inputPath = new AlluxioURI(path);
@@ -58,6 +58,7 @@ public final class MkdirCommand extends AbstractShellCommand {
       mFileSystem.createDirectory(inputPath, options);
       System.out.println("Successfully created directory " + inputPath);
     }
+    return 0;
   }
 
   @Override

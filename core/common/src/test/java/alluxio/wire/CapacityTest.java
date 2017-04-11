@@ -21,6 +21,11 @@ import java.util.Random;
 
 public class CapacityTest {
 
+  /**
+   * Test to convert between a Capacity type and a json type.
+   *
+   * @throws Exception if an error occurs during conversion between Capacity type and json type
+   */
   @Test
   public void json() throws Exception {
     Capacity capacity = createRandom();
@@ -34,12 +39,23 @@ public class CapacityTest {
     CommonTestUtils.testEquals(AlluxioMasterInfo.class);
   }
 
+  /**
+   * Checks if the two Capacity objects are equal.
+   *
+   * @param a the first Capacity object to be checked
+   * @param b the second Capacity object to be checked
+   */
   private void checkEquality(Capacity a, Capacity b) {
     Assert.assertEquals(a.getTotal(), b.getTotal());
     Assert.assertEquals(a.getUsed(), b.getUsed());
     Assert.assertEquals(a, b);
   }
 
+  /**
+   * Randomly creates a Capacity object.
+   *
+   * @return the created Capacity object
+   */
   protected static Capacity createRandom() {
     Capacity result = new Capacity();
     Random random = new Random();

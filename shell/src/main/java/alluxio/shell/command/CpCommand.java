@@ -75,7 +75,7 @@ public final class CpCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
@@ -122,6 +122,7 @@ public final class CpCommand extends AbstractShellCommand {
       throw new InvalidPathException(
           "Schemes must be either file or alluxio, and at most one file scheme is allowed.");
     }
+    return 0;
   }
 
   /**
