@@ -102,8 +102,6 @@ public abstract class ResourcePool<T> {
       return createNewResource();
     }
 
-    mCurrentCapacity.decrementAndGet();
-
     // Otherwise, try to take a resource from the pool, blocking if none are available.
     try {
       mTakeLock.lockInterruptibly();
@@ -111,6 +109,7 @@ public abstract class ResourcePool<T> {
         while (true) {
           resource = mResources.poll();
           if (resource != null) {
+            mCurrentCapacity.decrementAndGet();
             return resource;
           }
           if (time != null) {
@@ -146,9 +145,12 @@ public abstract class ResourcePool<T> {
    * @param resource the resource to be released, it should not be reused after calling this method
    */
   public void release(T resource) {
-    mResources.add(resource);
-    try (LockResource r = new LockResource(mTakeLock)) {
-      mNotEmpty.signal();
+    if (resource != null) {
+      mResources.add(resource);
+      mCurrentCapacity.incrementAndGet();
+      try (LockResource r = new LockResource(mTakeLock)) {
+        mNotEmpty.signal();
+      }
     }
   }
 
