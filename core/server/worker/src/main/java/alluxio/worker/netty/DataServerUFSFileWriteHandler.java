@@ -39,25 +39,31 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
-  /** Filesystem worker which handles file level operations for the worker. */
-  private final FileSystemWorker mWorker;
   private static final long UNUSED_SESSION_ID = -1;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
+    private final String mPath;
     private final UnderFileSystem mUnderFileSystem;
-    OutputStream mOutputStream;
+    private final OutputStream mOutputStream;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId(), UNUSED_SESSION_ID);
-      mUnderFileSystem = UnderFileSystem.Factory.get(request.get)
-      mOutputStream = mWorker.getUfsOutputStream(mId);
+      mPath = request.getUfsPath();
+      mUnderFileSystem = UnderFileSystem.Factory.get(mPath);
+      mOutputStream = mUnderFileSystem.create(mPath);
     }
 
     @Override
-    public void close() throws IOException {}
+    public void close() throws IOException {
+      mOutputStream.close();
+    }
 
     @Override
-    void cancel() throws IOException {}
+    void cancel() throws IOException {
+      // TODO(calvin): Consider adding cancel to the ufs stream api.
+      mOutputStream.close();
+      mUnderFileSystem.deleteFile(mPath);
+    }
   }
 
   /**
@@ -68,7 +74,6 @@ final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
    */
   DataServerUFSFileWriteHandler(ExecutorService executorService, FileSystemWorker worker) {
     super(executorService);
-    mWorker = worker;
   }
 
   @Override
