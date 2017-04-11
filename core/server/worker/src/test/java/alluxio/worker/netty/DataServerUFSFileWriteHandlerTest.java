@@ -50,9 +50,9 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
         .thenReturn(mOutputStream);
     mChecksum = 0;
     mChannel = new EmbeddedChannel(
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
+        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
     mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, mFileSystemWorker));
+        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
   }
 
   @After

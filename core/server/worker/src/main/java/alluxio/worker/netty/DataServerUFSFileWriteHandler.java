@@ -15,7 +15,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.worker.file.FileSystemWorker;
 
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
@@ -70,9 +69,8 @@ final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
    * Creates an instance of {@link DataServerUFSFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
-   * @param worker the file system worker
    */
-  DataServerUFSFileWriteHandler(ExecutorService executorService, FileSystemWorker worker) {
+  DataServerUFSFileWriteHandler(ExecutorService executorService) {
     super(executorService);
   }
 
