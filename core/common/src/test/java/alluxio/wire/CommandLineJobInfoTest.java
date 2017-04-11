@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import java.util.Random;
 
-public class CommandLineJobInfoTest {
+public final class CommandLineJobInfoTest {
 
   @Test
   public void json() throws Exception {
