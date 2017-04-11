@@ -121,12 +121,13 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   /**
-   * Creates an instance of {@link NettyPacketWriter}
+   * Creates an instance of {@link NettyPacketWriter}.
    *
    * @param context the file system context
    * @param address the data server network address
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param partialRequest details of the write request which are constant for all requests
+   * @throws IOException it fails to acquire a netty channel
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long
       length, Protocol.WriteRequest partialRequest) throws IOException {
