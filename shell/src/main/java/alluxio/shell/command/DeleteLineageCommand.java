@@ -47,7 +47,7 @@ public final class DeleteLineageCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     long lineageId = Long.parseLong(args[0]);
@@ -55,6 +55,7 @@ public final class DeleteLineageCommand extends AbstractShellCommand {
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(cascade);
     tl.deleteLineage(lineageId, options);
     System.out.println("Lineage " + lineageId + " has been deleted.");
+    return 0;
   }
 
   @Override

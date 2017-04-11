@@ -25,13 +25,13 @@ import java.util.Properties;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utility class for {@link Configuration}.
+ * Utility class for merging Alluxio {@link Configuration} with Hadoop's Configuration class.
  */
 @ThreadSafe
-public final class ConfUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(ConfUtils.class);
+public final class HadoopConfigurationUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(HadoopConfigurationUtils.class);
 
-  private ConfUtils() {} // Prevent instantiation.
+  private HadoopConfigurationUtils() {} // Prevent instantiation.
 
   /**
    * Stores the Alluxio {@link Configuration} to the target

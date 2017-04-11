@@ -43,7 +43,7 @@ public final class LeaderCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) {
+  public int run(CommandLine cl) {
     FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       String hostName = client.getAddress().getHostName();
@@ -55,6 +55,7 @@ public final class LeaderCommand extends AbstractShellCommand {
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
+    return 0;
   }
 
   @Override

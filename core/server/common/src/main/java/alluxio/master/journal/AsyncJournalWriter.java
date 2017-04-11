@@ -14,6 +14,7 @@ package alluxio.master.journal;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 
@@ -108,8 +109,7 @@ public final class AsyncJournalWriter {
       return;
     }
     // Using reentrant lock, since it seems to result in higher throughput than using 'synchronized'
-    mFlushLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mFlushLock)) {
       long startTime = System.nanoTime();
       long flushCounter = mFlushCounter.get();
       if (targetCounter <= flushCounter) {
@@ -141,8 +141,6 @@ public final class AsyncJournalWriter {
       }
       mJournalWriter.flush();
       mFlushCounter.set(writeCounter);
-    } finally {
-      mFlushLock.unlock();
     }
   }
 }

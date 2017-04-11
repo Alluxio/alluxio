@@ -73,9 +73,11 @@ public class StartupConsistencyCheckTest {
   @Test
   public void consistent() throws Exception {
     mCluster.stopFS();
-    final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);
     Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
+    registry.stop();
   }
 
   /**
@@ -90,12 +92,15 @@ public class StartupConsistencyCheckTest {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(topLevelFileUfsPath);
     ufs.deleteFile(topLevelFileUfsPath);
     ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
-    final FileSystemMaster master = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);
-    List expected = Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);
-    List result = master.getStartupConsistencyCheck().getInconsistentUris();
+    List<AlluxioURI> expected =
+        Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);
+    List<AlluxioURI> result = master.getStartupConsistencyCheck().getInconsistentUris();
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
+    registry.stop();
   }
 }

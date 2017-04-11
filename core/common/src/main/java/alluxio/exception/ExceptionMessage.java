@@ -37,6 +37,7 @@ public enum ExceptionMessage {
   // general block
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
+  NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
@@ -120,7 +121,6 @@ public enum ExceptionMessage {
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
-  HDFS_FILE_NOT_FOUND("File {0} with URI {1} is not found"),
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
   // file system master
@@ -135,6 +135,7 @@ public enum ExceptionMessage {
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
   PATH_INVALID_CONCURRENT_RENAME("Path is no longer valid, possibly due to a concurrent rename."),
+  PATH_INVALID_CONCURRENT_DELETE("Path is no longer valid, possibly due to a concurrent delete."),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
   RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
@@ -180,6 +181,7 @@ public enum ExceptionMessage {
   KEY_NOT_FLOAT("Configuration cannot evaluate key {0} as float"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
+  KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 

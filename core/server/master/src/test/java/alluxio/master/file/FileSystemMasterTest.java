@@ -98,8 +98,9 @@ public final class FileSystemMasterTest {
   private static final String TEST_USER = "test";
 
   private CreateFileOptions mNestedFileOptions;
+  private MasterRegistry mRegistry;
+  private JournalFactory mJournalFactory;
   private BlockMaster mBlockMaster;
-  private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId1;
   private long mWorkerId2;
@@ -1448,10 +1449,16 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#stop()} method.
+   * Tests the {@link DefaultFileSystemMaster#stop()} method.
    */
   @Test
   public void stop() throws Exception {
+    mRegistry.stop();
+    ExecutorService mExecutorService = Executors
+        .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
+    mFileSystemMaster = new DefaultFileSystemMaster(mRegistry, mJournalFactory,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mRegistry.start(true);
     mFileSystemMaster.stop();
     Assert.assertTrue(mExecutorService.isShutdown());
     Assert.assertTrue(mExecutorService.isTerminated());
@@ -1566,16 +1573,12 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
-    MasterRegistry registry = new MasterRegistry();
-    JournalFactory factory = new MutableJournal.Factory(new URI(mJournalFolder));
-    mBlockMaster = new BlockMaster(registry, factory);
-    mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
-    mFileSystemMaster = new FileSystemMaster(registry, factory,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mRegistry = new MasterRegistry();
+    mJournalFactory = new MutableJournal.Factory(new URI(mJournalFolder));
+    mBlockMaster = new BlockMaster(mRegistry, mJournalFactory);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, mJournalFactory);
 
-    mBlockMaster.start(true);
-    mFileSystemMaster.start(true);
+    mRegistry.start(true);
 
     // set up workers
     mWorkerId1 = mBlockMaster.getWorkerId(
@@ -1593,7 +1596,6 @@ public final class FileSystemMasterTest {
   }
 
   private void stopServices() throws Exception {
-    mFileSystemMaster.stop();
-    mBlockMaster.stop();
+    mRegistry.stop();
   }
 }

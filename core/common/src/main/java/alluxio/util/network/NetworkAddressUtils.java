@@ -62,7 +62,7 @@ public final class NetworkAddressUtils {
 
   /**
    * Different types of services that client uses to connect. These types also indicate the service
-   * bind address
+   * bind address.
    */
   public enum ServiceType {
     /**
