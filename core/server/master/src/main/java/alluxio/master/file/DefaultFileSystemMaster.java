@@ -1174,7 +1174,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (!inode.isPersisted()) {
       delInodes.add(inode);
-    } else if (!replayed) {
+    } else {
       if (inode.isFile()) {
         nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
       } else {
