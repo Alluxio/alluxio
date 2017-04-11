@@ -1220,14 +1220,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Remove entries covered by a recursive delete
       for (Map.Entry<AlluxioURI, Inode<?>> entry : nonRecursiveUFSDeletes.entrySet()) {
         AlluxioURI currentPath = entry.getKey();
-        if (recursiveUFSDeletes.containsKey(currentPath.getParent())) {
-          nonRecursiveUFSDeletes.remove(currentPath);
+        if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
+          delInodes.add(entry.getValue());
         }
       }
       for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes.entrySet()) {
         AlluxioURI currentPath = entry.getKey();
         if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
-          recursiveUFSDeletes.remove(currentPath);
+          delInodes.add(entry.getValue());
         }
       }
 
