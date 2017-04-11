@@ -11,15 +11,15 @@
 
 package alluxio.client.lineage;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests {@link LineageContext}.
