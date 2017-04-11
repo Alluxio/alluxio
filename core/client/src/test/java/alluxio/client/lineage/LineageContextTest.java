@@ -11,13 +11,15 @@
 
 package alluxio.client.lineage;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-
-import org.junit.Test;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 
 /**
  * Tests {@link LineageContext}.
@@ -50,8 +52,14 @@ public final class LineageContextTest {
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      LineageMasterClient client = LineageContext.INSTANCE.acquireMasterClient();
-      LineageContext.INSTANCE.releaseMasterClient(client);
+      LineageMasterClient client = null;
+      try {
+        client = LineageContext.INSTANCE.acquireMasterClient();
+      } catch (IOException e) {
+        Assert.fail("Failed to acquire a lineage master client due to interruption occured.");
+      } finally {
+        LineageContext.INSTANCE.releaseMasterClient(client);
+      }
     }
   }
 }
