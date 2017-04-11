@@ -82,6 +82,14 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
     return new PacketOutStream(packetWriter, length);
   }
 
+  public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
+      InetSocketAddress address, long length, Protocol.WriteRequest partialRequest)
+      throws IOException {
+    NettyPacketWriter packetWriter =
+        new NettyPacketWriter(context, address, length, partialRequest);
+    return new PacketOutStream(packetWriter, length);
+  }
+
   /**
    * Constructs a new {@link PacketOutStream} with only one {@link PacketWriter}.
    *

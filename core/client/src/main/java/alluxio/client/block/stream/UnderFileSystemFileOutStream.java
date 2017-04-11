@@ -35,14 +35,14 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    *
    * @param context the file system context
    * @param address the data server address
-   * @param ufsFileId the UFS file ID
+   * @param path the ufs file path
    * @throws IOException if it fails to create the object
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
-      long ufsFileId) throws IOException {
-    super(PacketOutStream
-        .createNettyPacketOutStream(context, address, -1, ufsFileId, Long.MAX_VALUE, TIER_UNUSED,
-            Protocol.RequestType.UFS_FILE));
+      String path) throws IOException {
+    super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
+        Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
+            .setType(Protocol.RequestType.UFS_FILE).setUfsPath(path).buildPartial()));
     mOutStream = (PacketOutStream) out;
   }
 
