@@ -1319,10 +1319,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     for (UnderFileStatus child : ufsChildren) {
-      AlluxioURI expectedPath = path.join(child.getName());
       boolean found = false;
       for (Inode<?> inodeChild : inode.getChildren()) {
-        if (expectedPath.equals(mInodeTree.getPath(inodeChild))) {
+        if (child.getName().equals(inodeChild.getName())) {
           found = true;
         }
       }
