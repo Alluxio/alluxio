@@ -50,7 +50,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+    return new Options().addOption(RECURSIVE_OPTION).addOption(REMOVE_INCONSISTENT_OPTION);
   }
 
   @Override
@@ -66,6 +66,9 @@ public final class RmCommand extends WithWildCardPathCommand {
     }
 
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
+    if (cl.hasOption(REMOVE_INCONSISTENT_OPTION_CHAR)) {
+      options.setSkipConsistencyCheck(true);
+    }
     mFileSystem.delete(path, options);
     System.out.println(path + " has been removed");
   }
