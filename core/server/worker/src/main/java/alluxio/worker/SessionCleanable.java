@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 /**
- * Interface representing cleanup a special session.
+ * Interface for classes which track sessions and provide a method to clean any expired sessions.
  */
 public interface SessionCleanable {
 
