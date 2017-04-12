@@ -186,6 +186,9 @@ public final class JournalCheckpointThread extends Thread {
       return;
     }
     long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
+    if (nextSequenceNumber == 0 || nextSequenceNumber % mCheckpointPeriodEntries != 0) {
+      return;
+    }
     long nextSequenceNumberToCheckpoint;
     try {
       nextSequenceNumberToCheckpoint = mJournal.getNextSequenceNumberToCheckpoint();
@@ -194,8 +197,7 @@ public final class JournalCheckpointThread extends Thread {
           mMaster.getName(), e.getMessage());
       return;
     }
-    if (nextSequenceNumber <= nextSequenceNumberToCheckpoint
-        || nextSequenceNumber % mCheckpointPeriodEntries != 0) {
+    if (nextSequenceNumber <= nextSequenceNumberToCheckpoint) {
       return;
     }
 
