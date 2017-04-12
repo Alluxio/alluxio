@@ -16,6 +16,7 @@ import alluxio.proto.dataserver.Protocol;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -27,6 +28,18 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   private static final int TIER_UNUSED = -1;
+
+  /**
+   * @param context the file system context
+   * @param address the address of an Alluxio worker
+   * @param path the path of the ufs file
+   * @return a new {@link UnderFileSystemFileOutStream}
+   * @throws IOException if it fails to create the out stream
+   */
+  public static OutputStream create(FileSystemContext context, InetSocketAddress address,
+      String path) throws IOException {
+    return new UnderFileSystemFileOutStream(context, address, path);
+  }
 
   private final PacketOutStream mOutStream;
 
