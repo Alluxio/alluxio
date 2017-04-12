@@ -43,6 +43,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.authorization.Mode;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -166,7 +167,8 @@ public class FileOutStreamTest {
     PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
     PowerMockito.when(
         UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
-            any(InetSocketAddress.class), anyString())).thenReturn(mUnderStorageOutputStream);
+            any(InetSocketAddress.class), anyString(), anyString(), anyString(), any(Mode.class)))
+        .thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());

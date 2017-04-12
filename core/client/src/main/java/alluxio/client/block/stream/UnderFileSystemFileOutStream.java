@@ -34,6 +34,9 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param context the file system context
    * @param address the address of an Alluxio worker
    * @param path the path of the ufs file
+   * @param owner the owner of the ufs file
+   * @param group the group of the ufs file
+   * @param mode the mode of the ufs file
    * @return a new {@link UnderFileSystemFileOutStream}
    * @throws IOException if it fails to create the out stream
    */
@@ -50,6 +53,9 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param context the file system context
    * @param address the data server address
    * @param path the ufs file path
+   * @param owner the owner of the ufs file
+   * @param group the group of the ufs file
+   * @param mode the mode of the ufs file
    * @throws IOException if it fails to create the object
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
