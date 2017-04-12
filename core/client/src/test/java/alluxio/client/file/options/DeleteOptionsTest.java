@@ -32,6 +32,7 @@ public final class DeleteOptionsTest {
 
     Assert.assertFalse(options.isRecursive());
     Assert.assertFalse(options.isAlluxioOnly());
+    Assert.assertFalse(options.isSkipConsistencyCheck());
   }
 
   /**
@@ -42,12 +43,15 @@ public final class DeleteOptionsTest {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
     boolean alluxioOnly = random.nextBoolean();
+    boolean skipCheck = random.nextBoolean();
     DeleteOptions options = DeleteOptions.defaults();
 
     options.setRecursive(recursive);
     options.setAlluxioOnly(alluxioOnly);
+    options.setSkipConsistencyCheck(skipCheck);
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(alluxioOnly, options.isAlluxioOnly());
+    Assert.assertEquals(skipCheck, options.isSkipConsistencyCheck());
   }
 
   /**
