@@ -2300,7 +2300,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws InvalidPathException, FileDoesNotExistException, IOException {
     if (!unmountInternal(inodePath.getUri())) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
-          + " the path exists and not root.");
+          + " the path is an existing mount point and not root.");
     }
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
