@@ -2316,37 +2316,38 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param inodePath the Alluxio path to unmount, must be a mount point
    * @param journalContext the journal context
-   * @throws InvalidPathException if an invalid path is encountered
+   * @throws InvalidPathException if an invalid path is given to unmount
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws IOException if an I/O error occurs
    */
   private void unmountAndJournal(LockedInodePath inodePath, JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    if (unmountInternal(inodePath.getUri())) {
-      Inode<?> inode = inodePath.getInode();
-      // Use the internal delete API, setting {@code replayed} to true to prevent the delete
-      // operations from being persisted in the UFS.
-      long fileId = inode.getId();
-      long opTimeMs = System.currentTimeMillis();
-      deleteRecursiveInternal(inodePath, true /* replayed */, opTimeMs,
-          DeleteOptions.defaults().setRecursive(true));
-      DeleteFileEntry deleteFile =
-          DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true).setOpTimeMs(opTimeMs)
-              .build();
-      appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build(),
-          journalContext);
-      DeleteMountPointEntry deleteMountPoint =
-          DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
-      appendJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build(),
-          journalContext);
+    if (!unmountInternal(inodePath.getUri())) {
+      throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
+          + " the path is not root and exists");
     }
+    Inode<?> inode = inodePath.getInode();
+    // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
+    // operations from being persisted in the UFS.
+    long fileId = inode.getId();
+    long opTimeMs = System.currentTimeMillis();
+    deleteRecursiveInternal(inodePath, false, opTimeMs,
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true));
+    DeleteFileEntry deleteFile =
+        DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true).setOpTimeMs(opTimeMs)
+            .build();
+    appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build(),
+        journalContext);
+    DeleteMountPointEntry deleteMountPoint =
+        DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
+    appendJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build(),
+        journalContext);
   }
 
   /**
    * @param entry the entry to use
-   * @throws InvalidPathException if an invalid path is encountered
    */
-  private void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
+  private void unmountFromEntry(DeleteMountPointEntry entry) {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     if (!unmountInternal(alluxioURI)) {
       LOG.error("Failed to unmount {}", alluxioURI);
@@ -2356,9 +2357,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * @param uri the Alluxio mount point to remove from the mount table
    * @return true if successful, false otherwise
-   * @throws InvalidPathException if an invalid path is encountered
    */
-  private boolean unmountInternal(AlluxioURI uri) throws InvalidPathException {
+  private boolean unmountInternal(AlluxioURI uri) {
     return mMountTable.delete(uri);
   }
 
