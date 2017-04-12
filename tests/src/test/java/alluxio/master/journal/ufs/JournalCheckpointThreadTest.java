@@ -87,10 +87,8 @@ public final class JournalCheckpointThreadTest {
       }
     }, WaitForOptions.defaults().setTimeout(20000));
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-    Assert.assertEquals(5, snapshot.getCheckpoints().size());
-    for (int i = 0; i < 5; ++i) {
-      Assert.assertEquals(i * 2 + 2, snapshot.getCheckpoints().get(i).getEnd());
-    }
+    Assert.assertEquals(1, snapshot.getCheckpoints().size());
+    Assert.assertEquals(10, snapshot.getCheckpoints().get(0).getEnd());
     checkpointThread.awaitTermination();
   }
 

@@ -59,6 +59,11 @@ public final class JournalCheckpointThread extends Thread {
   private JournalReader mJournalReader;
 
   /**
+   * The next sequence number of the log journal entry to checkpoint.
+   */
+  private long mNextSequenceNumberToCheckpoint;
+
+  /**
    * Creates a new instance of {@link JournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
@@ -149,10 +154,10 @@ public final class JournalCheckpointThread extends Thread {
         continue;
       }
 
-      maybeCheckpoint();
-
       // Sleep for a while if no entry is found.
       if (entry == null) {
+        // Only try to checkpoint when it can keep up.
+        maybeCheckpoint();
         if (mShutdownInitiated) {
           if (quietPeriodWaited) {
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
@@ -186,18 +191,17 @@ public final class JournalCheckpointThread extends Thread {
       return;
     }
     long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
-    if (nextSequenceNumber == 0 || nextSequenceNumber % mCheckpointPeriodEntries != 0) {
+    if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {
       return;
     }
-    long nextSequenceNumberToCheckpoint;
     try {
-      nextSequenceNumberToCheckpoint = mJournal.getNextSequenceNumberToCheckpoint();
+      mNextSequenceNumberToCheckpoint = mJournal.getNextSequenceNumberToCheckpoint();
     } catch (IOException e) {
       LOG.warn("{}: Failed to get the next sequence number to checkpoint with error {}.",
           mMaster.getName(), e.getMessage());
       return;
     }
-    if (nextSequenceNumber <= nextSequenceNumberToCheckpoint) {
+    if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {
       return;
     }
 
@@ -227,6 +231,7 @@ public final class JournalCheckpointThread extends Thread {
           journalWriter.close();
           LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
               nextSequenceNumber);
+          mNextSequenceNumberToCheckpoint = nextSequenceNumber;
         }
       } catch (IOException e) {
         LOG.warn(
