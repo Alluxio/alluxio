@@ -17,6 +17,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
 
@@ -59,7 +60,8 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
     Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(mockUfs);
-    Mockito.when(mockUfs.create(Mockito.anyString())).thenReturn(mOutputStream);
+    Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class))).thenReturn(
+        mOutputStream);
   }
 
   @After
@@ -83,7 +85,8 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset).setUfsPath("/test")
-            .setType(Protocol.RequestType.UFS_FILE).build();
+            .setOwner("owner").setGroup("group").setMode(0).setType(Protocol.RequestType.UFS_FILE)
+            .build();
     DataBuffer buffer = null;
     if (len > 0) {
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len);
