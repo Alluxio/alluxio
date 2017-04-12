@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.security.authorization.Mode;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -37,8 +38,8 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @throws IOException if it fails to create the out stream
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
-      String path) throws IOException {
-    return new UnderFileSystemFileOutStream(context, address, path);
+      String path, String owner, String group, Mode mode) throws IOException {
+    return new UnderFileSystemFileOutStream(context, address, path, owner, group, mode);
   }
 
   private final PacketOutStream mOutStream;
@@ -52,10 +53,11 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @throws IOException if it fails to create the object
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
-      String path) throws IOException {
+      String path, String owner, String group, Mode mode) throws IOException {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
         Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
-            .setType(Protocol.RequestType.UFS_FILE).setUfsPath(path).buildPartial()));
+            .setType(Protocol.RequestType.UFS_FILE).setUfsPath(path).setOwner(owner)
+            .setGroup(group).setMode(mode.toShort()).buildPartial()));
     mOutStream = (PacketOutStream) out;
   }
 

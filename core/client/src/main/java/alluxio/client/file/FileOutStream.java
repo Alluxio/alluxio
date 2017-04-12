@@ -108,7 +108,8 @@ public class FileOutStream extends AbstractOutStream {
         mUfsPath = options.getUfsPath();
         mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
         mUnderStorageOutputStream = mCloser.register(UnderFileSystemFileOutStream.create(mContext,
-            mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsPath));
+            mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsPath, options.getOwner(),
+            options.getGroup(), options.getMode()));
       }
     } catch (IOException e) {
       mCloser.close();
