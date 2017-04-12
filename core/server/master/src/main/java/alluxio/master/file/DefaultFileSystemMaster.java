@@ -2307,7 +2307,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // operations from being persisted in the UFS.
       DeleteOptions deleteOptions =
           DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
-      deleteAndJournal(inodePath, deleteOptions,journalContext);
+      deleteAndJournal(inodePath, deleteOptions, journalContext);
     } catch (DirectoryNotEmptyException e) {
       // we should never reach here.
       // deleteAndJournal should never throw DirectoryNotEmptyException when recursive is true.
