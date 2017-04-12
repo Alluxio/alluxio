@@ -166,7 +166,7 @@ public final class NettyPacketWriter implements PacketWriter {
         try {
           if (!mBufferNotFullOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             throw new IOException(
-                String.format("Timeout to write packet %s to %s.", mPartialRequest, mAddress));
+                String.format("Timeout writing to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
           throw Throwables.propagate(e);
@@ -205,7 +205,7 @@ public final class NettyPacketWriter implements PacketWriter {
         }
         if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new IOException(
-              String.format("Timeout to flush packets: %s @ %s.", mPartialRequest, mAddress));
+              String.format("Timeout flushing to %s for request %s.", mAddress, mPartialRequest));
         }
       }
     } catch (InterruptedException e) {
@@ -234,8 +234,7 @@ public final class NettyPacketWriter implements PacketWriter {
           if (!mDoneOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             mChannel.close().sync();
             throw new IOException(String.format(
-                "Timeout to close the NettyPacketWriter (info: %s, address: %s).", mPartialRequest,
-                mAddress));
+                "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
           throw Throwables.propagate(e);
@@ -317,9 +316,8 @@ public final class NettyPacketWriter implements PacketWriter {
       Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
 
       if (!Status.isOk(status) && !Status.isCancelled(status)) {
-        throw new IOException(String
-            .format("Failed to write %s to %s with status %s.", mPartialRequest, mAddress,
-                status.toString()));
+        throw new IOException(String.format("Failed to write to %s with status %s for request %s.",
+            mAddress, status.toString(), mPartialRequest));
       }
       try (LockResource lr = new LockResource(mLock)) {
         mDone = true;
