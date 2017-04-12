@@ -1178,8 +1178,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (inode.isFile()) {
         nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
       } else {
-        // TODO(adit): put behind a check option
-        if (isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri())) {
+        if (deleteOptions.isSkipConsistencyCheck()
+            || isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri())) {
           recursiveUFSDeletes.put(inodePath.getUri(), inode);
         } else {
           nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
@@ -1197,9 +1197,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (descendant.isFile()) {
             nonRecursiveUFSDeletes.put(currentPath, inode);
           } else {
-            // TODO(adit): put behind a check option
             // Check if immediate children in UFS have inodes
-            if (isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
+            if (deleteOptions.isSkipConsistencyCheck()
+                || isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
               // Directory is a candidate for recursive deletes
               recursiveUFSDeletes.put(currentPath, descendant);
             } else {
