@@ -14,8 +14,10 @@ package alluxio.worker.netty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 
+import alluxio.underfs.options.CreateOptions;
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
 
@@ -49,7 +51,9 @@ final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
       super(request.getId(), UNUSED_SESSION_ID);
       mPath = request.getUfsPath();
       mUnderFileSystem = UnderFileSystem.Factory.get(mPath);
-      mOutputStream = mUnderFileSystem.create(mPath);
+      mOutputStream =
+          mUnderFileSystem.create(mPath, CreateOptions.defaults().setOwner(request.getOwner())
+              .setGroup(request.getGroup()).setMode(new Mode((short) request.getMode())));
     }
 
     @Override
