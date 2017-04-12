@@ -90,7 +90,7 @@ public abstract class AbstractClient implements Client {
    * @param mode the mode of the client for display
    */
   public AbstractClient(Subject subject, InetSocketAddress address, String mode) {
-    mAddress = Preconditions.checkNotNull(address);
+    mAddress = Preconditions.checkNotNull(address, "address");
     mMode = mode;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();

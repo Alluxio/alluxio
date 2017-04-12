@@ -177,6 +177,11 @@ the HTTP port for the provider, and remove the `alluxio.underfs.s3.endpoint.http
 If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and
 `<HTTPS_PORT>` defaults to port 443.
 
+### Using v2 S3 Signatures
+
+Some S3 service providers only support v2 signatures. For these S3 providers, you can enforce using
+the v2 signatures by setting the `alluxio.underfs.s3a.signer.algorithm` to `S3SignerType`.
+
 ### Configuring Distributed Applications Runtime
 
 When I/O is delegated to Alluxio workers (i.e., Alluxio configuration

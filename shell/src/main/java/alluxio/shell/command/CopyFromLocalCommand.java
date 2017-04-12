@@ -49,11 +49,12 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String srcPath = args[0];
     cl.getArgList().set(0, "file://" + new File(srcPath).getAbsolutePath());
     mCpCommand.run(cl);
+    return 0;
   }
 
   @Override

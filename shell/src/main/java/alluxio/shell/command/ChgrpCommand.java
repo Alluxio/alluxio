@@ -71,11 +71,12 @@ public final class ChgrpCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String group = args[0];
     AlluxioURI path = new AlluxioURI(args[1]);
     chgrp(path, group, cl.hasOption("R"));
+    return 0;
   }
 
   @Override

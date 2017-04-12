@@ -38,10 +38,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -53,8 +50,6 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Unit tests for {@link LineageMaster}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemMaster.class})
 public final class LineageMasterTest {
   private ExecutorService mExecutorService;
   private LineageMaster mLineageMaster;
