@@ -11,6 +11,8 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.DeleteTOptions;
 
@@ -41,7 +43,8 @@ public final class DeleteOptions {
   private DeleteOptions() {
     mRecursive = false;
     mAlluxioOnly = false;
-    mSkipConsistencyCheck = false;
+    mSkipConsistencyCheck =
+        Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK);
   }
 
   /**

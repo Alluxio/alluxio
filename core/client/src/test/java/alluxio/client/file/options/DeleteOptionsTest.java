@@ -12,6 +12,8 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.thrift.DeleteTOptions;
 
 import org.junit.Assert;
@@ -32,7 +34,9 @@ public final class DeleteOptionsTest {
 
     Assert.assertFalse(options.isRecursive());
     Assert.assertFalse(options.isAlluxioOnly());
-    Assert.assertFalse(options.isSkipConsistencyCheck());
+    Assert.assertEquals(
+        Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK),
+        options.isSkipConsistencyCheck());
   }
 
   /**
