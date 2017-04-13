@@ -98,7 +98,7 @@ public class FileOutStream extends AbstractOutStream {
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
     try {
-      if (mOptions.getUnderStorageType().isSyncPersist()) {
+      if (mUnderStorageType.isSyncPersist()) {
         WorkerNetAddress worker = // not storing data to Alluxio, so block size is 0
             options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
         InetSocketAddress location = new InetSocketAddress(worker.getHost(), worker.getDataPort());
@@ -131,7 +131,7 @@ public class FileOutStream extends AbstractOutStream {
       }
 
       CompleteFileOptions options = CompleteFileOptions.defaults();
-      if (mUnderStorageOutputStream != null) {
+      if (mUnderStorageType.isSyncPersist()) {
         mUnderStorageOutputStream.close();
         options.setUfsLength(getBytesWritten());
       }
@@ -172,7 +172,7 @@ public class FileOutStream extends AbstractOutStream {
   @Override
   public void flush() throws IOException {
     // TODO(yupeng): Handle flush for Alluxio storage stream as well.
-    if (mUnderStorageOutputStream != null) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.flush();
     }
   }
@@ -190,7 +190,7 @@ public class FileOutStream extends AbstractOutStream {
       }
     }
 
-    if (mUnderStorageOutputStream != null) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b);
       Metrics.BYTES_WRITTEN_UFS.inc();
     }
@@ -232,7 +232,7 @@ public class FileOutStream extends AbstractOutStream {
       }
     }
 
-    if (mUnderStorageOutputStream != null) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
       Metrics.BYTES_WRITTEN_UFS.inc(len);
     }
@@ -265,7 +265,7 @@ public class FileOutStream extends AbstractOutStream {
 
   private void handleCacheWriteException(IOException e) throws IOException {
     LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
-    if (mUnderStorageOutputStream == null) {
+    if (!mUnderStorageType.isSyncPersist()) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
