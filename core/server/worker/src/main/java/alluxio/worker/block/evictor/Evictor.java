@@ -19,8 +19,7 @@ import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 
-import com.google.common.base.Throwables;
-
+import java.lang.RuntimeException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -51,7 +50,7 @@ public interface Evictor {
             new Class[]{BlockMetadataManagerView.class, Allocator.class},
             new Object[]{view, allocator});
       } catch (Exception e) {
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
     }
   }
