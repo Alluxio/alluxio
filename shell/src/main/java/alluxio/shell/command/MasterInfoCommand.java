@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -48,13 +49,13 @@ public final class MasterInfoCommand extends AbstractShellCommand {
 
   @Override
   public int run(CommandLine cl) {
-    try (FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient()) {
+    try (CloseableResource<FileSystemMasterClient> client =
+        FileSystemContext.INSTANCE.acquireMasterClientResource()) {
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        runWithFaultTolerance(client);
+        runWithFaultTolerance(client.get());
       } else {
-        runWithoutFaultTolerance(client);
+        runWithoutFaultTolerance(client.get());
       }
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
     } catch (IOException e) {
       System.err.println("Failed to get the leader master due to interruption occured.");
     }
