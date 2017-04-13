@@ -19,10 +19,7 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
-import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.CompleteUfsFileOptions;
-import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -68,8 +65,6 @@ public class FileOutStream extends AbstractOutStream {
   private final OutStreamOptions mOptions;
   /** The client to a file system worker, null if mUfsDelegation is false. */
   private final FileSystemWorkerClient mFileSystemWorkerClient;
-  /** The worker file id for the ufs file, null if mUfsDelegation is false. */
-  private final Long mUfsFileId;
 
   private String mUfsPath;
 
@@ -92,7 +87,7 @@ public class FileOutStream extends AbstractOutStream {
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
     mCloser = Closer.create();
-    mUri = Preconditions.checkNotNull(path);
+    mUri = Preconditions.checkNotNull(path, "path");
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
@@ -109,17 +104,14 @@ public class FileOutStream extends AbstractOutStream {
         mUfsPath = null;
         mUnderStorageOutputStream = null;
         mFileSystemWorkerClient = null;
-        mUfsFileId = null;
       } else {
         mUfsPath = options.getUfsPath();
         mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
-        mUfsFileId = mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-            CreateUfsFileOptions.defaults().setOwner(options.getOwner())
-                .setGroup(options.getGroup()).setMode(options.getMode()));
         mUnderStorageOutputStream = mCloser.register(UnderFileSystemFileOutStream.create(mContext,
-            mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId));
+            mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsPath, options.getOwner(),
+            options.getGroup(), options.getMode()));
       }
-    } catch (AlluxioException | IOException e) {
+    } catch (IOException e) {
       mCloser.close();
       Throwables.propagateIfInstanceOf(e, IOException.class);
       throw new IOException(e);
@@ -145,14 +137,7 @@ public class FileOutStream extends AbstractOutStream {
       CompleteFileOptions options = CompleteFileOptions.defaults();
       if (mUnderStorageType.isSyncPersist()) {
         mUnderStorageOutputStream.close();
-        if (mCanceled) {
-          mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
-        } else {
-          long len =
-              mFileSystemWorkerClient
-                  .completeUfsFile(mUfsFileId, CompleteUfsFileOptions.defaults());
-          options.setUfsLength(len);
-        }
+        options.setUfsLength(getBytesWritten());
       }
 
       if (mAlluxioStorageType.isStore()) {

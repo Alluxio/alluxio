@@ -75,6 +75,12 @@ message WriteRequest {
 
   optional bool eof = 6;
   optional bool cancel = 7;
+
+  // The following are only applicable for ufs writes.
+  optional string ufs_path = 8;
+  optional string owner = 9;
+  optional string group = 10;
+  optional int32 mode = 11;
 }
 
 // The response.
