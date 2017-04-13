@@ -15,6 +15,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -33,7 +34,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
-import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
@@ -43,6 +43,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.authorization.Mode;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -166,7 +167,8 @@ public class FileOutStreamTest {
     PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
     PowerMockito.when(
         UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
-            any(InetSocketAddress.class), anyLong())).thenReturn(mUnderStorageOutputStream);
+            any(InetSocketAddress.class), anyString(), anyString(), anyString(), any(Mode.class)))
+        .thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
@@ -256,7 +258,6 @@ public class FileOutStreamTest {
     }
     // Don't persist or complete the file if the stream was canceled
     verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID, CompleteUfsFileOptions.defaults());
-    verify(mWorkerClient).cancelUfsFile(eq(UFS_FILE_ID), any(CancelUfsFileOptions.class));
   }
 
   /**
