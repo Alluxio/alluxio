@@ -15,6 +15,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -28,7 +29,7 @@ import java.util.Set;
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-interface BlockStore {
+interface BlockStore extends SessionCleanable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.

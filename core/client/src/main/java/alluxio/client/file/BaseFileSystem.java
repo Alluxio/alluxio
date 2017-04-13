@@ -111,7 +111,7 @@ public class BaseFileSystem implements FileSystem {
     }
     OutStreamOptions outStreamOptions = options.toOutStreamOptions();
     outStreamOptions.setUfsPath(status.getUfsPath());
-    return new FileOutStream(mFileSystemContext, path, outStreamOptions);
+    return new FileOutStream(path, outStreamOptions, mFileSystemContext);
   }
 
   @Override
