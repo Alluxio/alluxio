@@ -591,14 +591,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           mInodes.add(dir);
 
           // After creation and journaling, downgrade to a read lock.
-          lockList.unlockLast();
-
-          dir =
-              (InodeDirectory) currentInodeDirectory.getChildReadLock(pathComponents[k], lockList);
-          if (dir == null) {
-            // Could not get the child inode. Continue and try again.
-            continue;
-          }
+          lockList.downgradeLast();
         }
       }
 
@@ -683,12 +676,7 @@ public class InodeTree implements JournalCheckpointStreamable {
 
         if (extensibleInodePath.getLockMode() == LockMode.READ) {
           // After creating the inode, downgrade to a read lock
-          lockList.unlockLast();
-          lastInode = currentInodeDirectory.getChildReadLock(name, lockList);
-          if (lastInode == null) {
-            // Could not get the child inode. Continue and try again.
-            continue;
-          }
+          lockList.downgradeLast();
         }
 
         createdInodes.add(lastInode);
