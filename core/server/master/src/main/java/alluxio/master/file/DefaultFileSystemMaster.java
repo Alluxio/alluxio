@@ -124,6 +124,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1162,11 +1163,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    // Number of inodes deleted
-    long deletedCount = 0;
-
     // Inodes for un-persisted paths to be deleted
-    List<Inode<?>> delInodes = new ArrayList<>();
+    LinkedList<Inode<?>> delInodes = new LinkedList<>();
 
     // AlluxioURIs and inodes for persisted paths
     HashMap<AlluxioURI, Inode<?>> recursiveUFSDeletes = new HashMap<>();
@@ -1190,12 +1188,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
       for (Inode descendant : lockList.getInodes()) {
-        if (!descendant.isPersisted()) {
-          delInodes.add(descendant);
-        } else if (!replayed) {
-          AlluxioURI currentPath = mInodeTree.getPath(descendant);
-          if (descendant.isFile()) {
-            nonRecursiveUFSDeletes.put(currentPath, inode);
+        AlluxioURI currentPath = mInodeTree.getPath(descendant);
+        if (!descendant.isPersisted() || descendant.isFile()) {
+          nonRecursiveUFSDeletes.put(currentPath, descendant);
+        } else {
+          // Do not check UFS for replayed
+          if (replayed) {
+            nonRecursiveUFSDeletes.put(currentPath, descendant);
           } else {
             // Check if immediate children in UFS have inodes
             if (deleteOptions.isSkipConsistencyCheck()
@@ -1218,13 +1217,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
 
       // Remove entries covered by a recursive delete
-      for (Map.Entry<AlluxioURI, Inode<?>> entry : nonRecursiveUFSDeletes.entrySet()) {
+      for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes.entrySet()) {
         AlluxioURI currentPath = entry.getKey();
         if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
           delInodes.add(entry.getValue());
         }
       }
-      for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes.entrySet()) {
+      for (Map.Entry<AlluxioURI, Inode<?>> entry : nonRecursiveUFSDeletes.entrySet()) {
         AlluxioURI currentPath = entry.getKey();
         if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
           delInodes.add(entry.getValue());
