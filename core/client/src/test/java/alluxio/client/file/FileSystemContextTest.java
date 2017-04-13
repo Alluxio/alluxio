@@ -70,13 +70,10 @@ public final class FileSystemContextTest {
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      FileSystemMasterClient client = null;
-      try {
-        client = FileSystemContext.INSTANCE.acquireMasterClient();
+      try (FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient()) {
+        FileSystemContext.INSTANCE.releaseMasterClient(client);
       } catch (IOException e) {
         Assert.fail("Failed to acquire a master client due to interruption occured.");
-      } finally {
-        FileSystemContext.INSTANCE.releaseMasterClient(client);
       }
     }
   }

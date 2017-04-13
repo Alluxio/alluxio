@@ -63,7 +63,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Sets up the file system and the context before a test runs.
-   * @throws IOException exception
    */
   @Before
   public void before() throws IOException {
@@ -75,7 +74,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Releases the client after a test ran.
-   * @throws IOException exception
    */
   @After
   public void after() throws IOException {

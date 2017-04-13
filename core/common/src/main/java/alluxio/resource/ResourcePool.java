@@ -161,9 +161,6 @@ public abstract class ResourcePool<T> implements Pool<T> {
     }
   }
 
-  /**
-   * @return the current pool size
-   */
   @Override
   public int size() {
     return mCurrentCapacity.get();

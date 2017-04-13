@@ -48,18 +48,15 @@ public final class MasterInfoCommand extends AbstractShellCommand {
 
   @Override
   public int run(CommandLine cl) {
-    FileSystemMasterClient client = null;
-    try {
-      client = FileSystemContext.INSTANCE.acquireMasterClient();
+    try (FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient()) {
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         runWithFaultTolerance(client);
       } else {
         runWithoutFaultTolerance(client);
       }
+      FileSystemContext.INSTANCE.releaseMasterClient(client);
     } catch (IOException e) {
       System.err.println("Failed to get the leader master due to interruption occured.");
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
     return 0;
   }

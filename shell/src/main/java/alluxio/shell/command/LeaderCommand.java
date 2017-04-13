@@ -46,19 +46,16 @@ public final class LeaderCommand extends AbstractShellCommand {
 
   @Override
   public int run(CommandLine cl) {
-    FileSystemMasterClient client = null;
-    try {
-      client = FileSystemContext.INSTANCE.acquireMasterClient();
+    try (FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient()) {
       String hostName = client.getAddress().getHostName();
       if (hostName != null) {
         System.out.println(hostName);
       } else {
         System.out.println("Failed to get the leader master.");
       }
+      FileSystemContext.INSTANCE.releaseMasterClient(client);
     } catch (IOException e) {
       System.err.println("Failed to get the leader master due to interruption occured.");
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
     return 0;
   }
