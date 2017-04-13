@@ -27,7 +27,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue.CompletePartitionEntry;
 import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
@@ -44,13 +43,16 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -129,25 +131,9 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   @Override
-  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
-      throws IOException {
-    for (Map.Entry<Long, List<PartitionInfo>> entry : mCompleteStoreToPartitions.entrySet()) {
-      long fileId = entry.getKey();
-      List<PartitionInfo> partitions = entry.getValue();
-      outputStream.write(newCreateStoreEntry(fileId));
-      for (PartitionInfo info : partitions) {
-        outputStream.write(newCompletePartitionEntry(fileId, info));
-      }
-      outputStream.write(newCompleteStoreEntry(fileId));
-    }
-    for (Map.Entry<Long, List<PartitionInfo>> entry : mIncompleteStoreToPartitions.entrySet()) {
-      long fileId = entry.getKey();
-      List<PartitionInfo> partitions = entry.getValue();
-      outputStream.write(newCreateStoreEntry(fileId));
-      for (PartitionInfo info : partitions) {
-        outputStream.write(newCompletePartitionEntry(fileId, info));
-      }
-    }
+  public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(getStoreIterator(mCompleteStoreToPartitions),
+        getStoreIterator(mIncompleteStoreToPartitions));
   }
 
   @Override
@@ -453,5 +439,55 @@ public final class KeyValueMaster extends AbstractMaster {
     MergeStoreEntry mergeStore = MergeStoreEntry.newBuilder().setFromStoreId(fromFileId)
         .setToStoreId(toFileId).build();
     return JournalEntry.newBuilder().setMergeStore(mergeStore).build();
+  }
+
+  private Iterator<JournalEntry> getStoreIterator(
+      Map<Long, List<PartitionInfo>> storeToPartitions) {
+    final Iterator<Map.Entry<Long, List<PartitionInfo>>> it =
+        storeToPartitions.entrySet().iterator();
+    return new Iterator<JournalEntry>() {
+      // Initial state: mEntry == null, mInfoIterator == null
+      // hasNext: mEntry == null, mInfoIterator == null, it.hasNext()
+      // mEntry == null, mInfoIterator == null, => create
+      // mEntry != null, mInfoIterator.hasNext() => partitions
+      // mEntry != null, !mInfoIterator.hasNext() => complete
+      private Map.Entry<Long, List<PartitionInfo>> mEntry;
+      private Iterator<PartitionInfo> mInfoIterator;
+
+      @Override
+      public boolean hasNext() {
+        if (mEntry == null && mInfoIterator == null && !it.hasNext()) {
+          return false;
+        }
+        return true;
+      }
+
+      @Override
+      public JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        if (mEntry == null) {
+          Preconditions.checkState(mInfoIterator == null);
+          mEntry = it.next();
+          mInfoIterator = mEntry.getValue().iterator();
+          return newCreateStoreEntry(mEntry.getKey());
+        }
+
+        if (mInfoIterator.hasNext()) {
+          return newCompletePartitionEntry(mEntry.getKey(), mInfoIterator.next());
+        }
+
+        JournalEntry completeEntry = newCompleteStoreEntry(mEntry.getKey());
+        mEntry = null;
+        mInfoIterator = null;
+        return completeEntry;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("remove is not supported.");
+      }
+    };
   }
 }

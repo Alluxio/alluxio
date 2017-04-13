@@ -15,15 +15,16 @@ import alluxio.collections.DirectedAcyclicGraph;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.Job;
-import alluxio.master.journal.JournalCheckpointStreamable;
-import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.JournalEntryIterable;
+import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Lineage.LineageEntry;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * TODO(yupeng): relax locking
  */
 @ThreadSafe
-public final class LineageStore implements JournalCheckpointStreamable {
+public final class LineageStore implements JournalEntryIterable {
   private final LineageIdGenerator mLineageIdGenerator;
   private final DirectedAcyclicGraph<Lineage> mLineageDAG;
 
@@ -200,13 +201,35 @@ public final class LineageStore implements JournalCheckpointStreamable {
     return mLineageDAG.getAllInTopologicalOrder();
   }
 
+  /**
+   * Note that this method is not threadsafe. But we should never checkpoint while the lineage
+   * master is serving.
+   *
+   * @return the iterator
+   */
   @Override
-  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
-      throws IOException {
-    // write the lineages out in a topological order
-    for (Lineage lineage : mLineageDAG.getAllInTopologicalOrder()) {
-      outputStream.write(lineage.toJournalEntry());
-    }
+  public synchronized Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    // Write the lineages out in a topological order
+    final Iterator<Lineage> it = mLineageDAG.getAllInTopologicalOrder().iterator();
+    return new Iterator<Journal.JournalEntry>() {
+      @Override
+      public boolean hasNext() {
+        return it.hasNext();
+      }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        return it.next().toJournalEntry();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("LineageStore#Iterator#remove is not supported.");
+      }
+    };
   }
 
   /**
