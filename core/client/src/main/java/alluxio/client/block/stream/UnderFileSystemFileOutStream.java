@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 
@@ -33,16 +34,14 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   /**
    * @param context the file system context
    * @param address the address of an Alluxio worker
-   * @param path the path of the ufs file
-   * @param owner the owner of the ufs file
-   * @param group the group of the ufs file
-   * @param mode the mode of the ufs file
+   * @param options the options to construct this stream with
    * @return a new {@link UnderFileSystemFileOutStream}
    * @throws IOException if it fails to create the out stream
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
-      String path, String owner, String group, Mode mode) throws IOException {
-    return new UnderFileSystemFileOutStream(context, address, path, owner, group, mode);
+      OutStreamOptions options) throws IOException {
+    return new UnderFileSystemFileOutStream(context, address, options.getUfsPath(),
+        options.getOwner(), options.getGroup(), options.getMode());
   }
 
   private final PacketOutStream mOutStream;

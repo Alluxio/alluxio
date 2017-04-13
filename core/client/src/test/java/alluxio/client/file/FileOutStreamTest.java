@@ -167,8 +167,8 @@ public class FileOutStreamTest {
     PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
     PowerMockito.when(
         UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
-            any(InetSocketAddress.class), anyString(), anyString(), anyString(), any(Mode.class)))
-        .thenReturn(mUnderStorageOutputStream);
+            any(InetSocketAddress.class), any(OutStreamOptions.class))).thenReturn(
+        mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());

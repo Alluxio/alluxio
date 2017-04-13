@@ -27,6 +27,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 
+import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -63,10 +65,6 @@ public class FileOutStream extends AbstractOutStream {
   private final AlluxioBlockStore mBlockStore;
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
-  /** The client to a file system worker, null if mUfsDelegation is false. */
-  private final FileSystemWorkerClient mFileSystemWorkerClient;
-
-  private String mUfsPath;
 
   private boolean mCanceled;
   private boolean mClosed;
@@ -100,18 +98,16 @@ public class FileOutStream extends AbstractOutStream {
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
     try {
-      if (!mUnderStorageType.isSyncPersist()) {
-        mUfsPath = null;
-        mUnderStorageOutputStream = null;
-        mFileSystemWorkerClient = null;
+      if (mOptions.getUnderStorageType().isSyncPersist()) {
+        WorkerNetAddress worker = // not storing data to Alluxio, so block size is 0
+            options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
+        InetSocketAddress location = new InetSocketAddress(worker.getHost(), worker.getDataPort());
+        mUnderStorageOutputStream =
+            mCloser.register(UnderFileSystemFileOutStream.create(mContext, location, mOptions));
       } else {
-        mUfsPath = options.getUfsPath();
-        mFileSystemWorkerClient = mCloser.register(mContext.createFileSystemWorkerClient());
-        mUnderStorageOutputStream = mCloser.register(UnderFileSystemFileOutStream.create(mContext,
-            mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsPath, options.getOwner(),
-            options.getGroup(), options.getMode()));
+        mUnderStorageOutputStream = null;
       }
-    } catch (IOException e) {
+    } catch (AlluxioException | IOException e) {
       mCloser.close();
       Throwables.propagateIfInstanceOf(e, IOException.class);
       throw new IOException(e);
@@ -176,7 +172,7 @@ public class FileOutStream extends AbstractOutStream {
   @Override
   public void flush() throws IOException {
     // TODO(yupeng): Handle flush for Alluxio storage stream as well.
-    if (mUnderStorageType.isSyncPersist()) {
+    if (mUnderStorageOutputStream != null) {
       mUnderStorageOutputStream.flush();
     }
   }
@@ -194,7 +190,7 @@ public class FileOutStream extends AbstractOutStream {
       }
     }
 
-    if (mUnderStorageType.isSyncPersist()) {
+    if (mUnderStorageOutputStream != null) {
       mUnderStorageOutputStream.write(b);
       Metrics.BYTES_WRITTEN_UFS.inc();
     }
@@ -236,7 +232,7 @@ public class FileOutStream extends AbstractOutStream {
       }
     }
 
-    if (mUnderStorageType.isSyncPersist()) {
+    if (mUnderStorageOutputStream != null) {
       mUnderStorageOutputStream.write(b, off, len);
       Metrics.BYTES_WRITTEN_UFS.inc(len);
     }
