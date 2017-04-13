@@ -131,7 +131,7 @@ public class FileOutStream extends AbstractOutStream {
       }
 
       CompleteFileOptions options = CompleteFileOptions.defaults();
-      if (mUnderStorageType.isSyncPersist()) {
+      if (mUnderStorageOutputStream != null) {
         mUnderStorageOutputStream.close();
         options.setUfsLength(getBytesWritten());
       }
@@ -265,7 +265,7 @@ public class FileOutStream extends AbstractOutStream {
 
   private void handleCacheWriteException(IOException e) throws IOException {
     LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
-    if (!mUnderStorageType.isSyncPersist()) {
+    if (mUnderStorageOutputStream == null) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
     }
 
