@@ -63,6 +63,7 @@ public class FileOutStream extends AbstractOutStream {
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
+  /** Stream to the file in the under storage, null if not writing to the under storage. */
   private final OutputStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
 
@@ -97,20 +98,21 @@ public class FileOutStream extends AbstractOutStream {
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
-    try {
-      if (mUnderStorageType.isSyncPersist()) {
+
+    if (!mUnderStorageType.isSyncPersist()) {
+      mUnderStorageOutputStream = null;
+    } else { // Write is through to the under storage, create mUnderStorageOutputStream
+      try {
         WorkerNetAddress worker = // not storing data to Alluxio, so block size is 0
             options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
         InetSocketAddress location = new InetSocketAddress(worker.getHost(), worker.getDataPort());
         mUnderStorageOutputStream =
             mCloser.register(UnderFileSystemFileOutStream.create(mContext, location, mOptions));
-      } else {
-        mUnderStorageOutputStream = null;
+      } catch (AlluxioException | IOException e) {
+        mCloser.close();
+        Throwables.propagateIfInstanceOf(e, IOException.class);
+        throw new IOException(e);
       }
-    } catch (AlluxioException | IOException e) {
-      mCloser.close();
-      Throwables.propagateIfInstanceOf(e, IOException.class);
-      throw new IOException(e);
     }
   }
 
