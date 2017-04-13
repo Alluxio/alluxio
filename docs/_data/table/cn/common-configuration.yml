@@ -64,6 +64,8 @@ alluxio.underfs.s3a.secure.http.enabled:
   是否使用HTTPS协议与S3进行通信。默认值为false。
 alluxio.underfs.s3a.server.side.encryption.enabled:
   是否加密存储在S3中的数据。默认值为false。
+alluxio.underfs.s3a.signer.algorithm:
+  该签名算法被用于签署对s3服务的请求。这是可选配置，如果没有设置，客户端会自动设置。对于默认只支持v2签名的s3节点通信，设置其为"S3SignerType"。
 alluxio.underfs.s3a.socket.timeout.ms:
   与S3通信时socket超时的时间长度。默认值为50000。
 alluxio.web.resources:
