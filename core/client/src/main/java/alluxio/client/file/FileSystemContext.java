@@ -220,9 +220,8 @@ public final class FileSystemContext implements Closeable {
    * Acquires a file system master client from the file system master client pool.
    *
    * @return the acquired file system master client
-   * @throws IOException if an interruption occurs
    */
-  public FileSystemMasterClient acquireMasterClient() throws IOException {
+  public FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
   }
 
@@ -240,10 +239,8 @@ public final class FileSystemContext implements Closeable {
    * {@code Closeable}.
    *
    * @return the acquired file system master client resource
-   * @throws IOException if an interruption occurs
    */
-  public CloseableResource<FileSystemMasterClient> acquireMasterClientResource()
-      throws IOException {
+  public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
     return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
       @Override
       public void close() {

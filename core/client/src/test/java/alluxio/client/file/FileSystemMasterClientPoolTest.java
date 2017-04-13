@@ -19,7 +19,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.security.auth.Subject;
@@ -28,7 +27,7 @@ import javax.security.auth.Subject;
 @PrepareForTest(FileSystemMasterClient.Factory.class)
 public class FileSystemMasterClientPoolTest {
   @Test
-  public void create() throws IOException {
+  public void create() {
     FileSystemMasterClient expectedClient = Mockito.mock(FileSystemMasterClient.class);
     PowerMockito.mockStatic(FileSystemMasterClient.Factory.class);
     Mockito.when(FileSystemMasterClient.Factory

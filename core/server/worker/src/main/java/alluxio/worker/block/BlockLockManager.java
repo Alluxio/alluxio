@@ -25,7 +25,6 @@ import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -179,23 +178,19 @@ public final class BlockLockManager {
       // Acquire the lock outside the synchronized section because #acquire might need to block.
       // We shouldn't wait indefinitely in acquire because the another lock for this block could be
       // allocated to another thread, in which case we could just use that lock.
-      try {
-        blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
-        if (blockLock != null) {
-          synchronized (mSharedMapsLock) {
-            // Check if someone else acquired a block lock for blockId while we were acquiring one.
-            if (mLocks.containsKey(blockId)) {
-              mLockPool.release(blockLock);
-              blockLock = mLocks.get(blockId);
-            } else {
-              mLocks.put(blockId, blockLock);
-            }
-            blockLock.addReference();
-            return blockLock;
+      blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
+      if (blockLock != null) {
+        synchronized (mSharedMapsLock) {
+          // Check if someone else acquired a block lock for blockId while we were acquiring one.
+          if (mLocks.containsKey(blockId)) {
+            mLockPool.release(blockLock);
+            blockLock = mLocks.get(blockId);
+          } else {
+            mLocks.put(blockId, blockLock);
           }
+          blockLock.addReference();
+          return blockLock;
         }
-      } catch (IOException e) {
-        LOG.warn("IOException occurs while acquiring block lock: " + e.getMessage());
       }
     }
   }

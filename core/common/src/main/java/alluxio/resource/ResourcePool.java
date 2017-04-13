@@ -13,7 +13,6 @@ package alluxio.resource;
 
 import com.google.common.base.Preconditions;
 
-import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,10 +69,9 @@ public abstract class ResourcePool<T> implements Pool<T> {
    * the pool.
    *
    * @return a resource taken from the pool
-   * @throws IOException if an interruption occurs while acquiring resources
    */
   @Override
-  public T acquire() throws IOException {
+  public T acquire() {
     return acquire(WAIT_INDEFINITELY, null);
   }
 
@@ -86,10 +84,9 @@ public abstract class ResourcePool<T> implements Pool<T> {
    * @param time an amount of time to wait, <= 0 to wait indefinitely
    * @param unit the unit to use for time, null to wait indefinitely
    * @return a resource taken from the pool, or null if the operation times out
-   * @throws IOException if an interruption occurs while acquiring resources
    */
   @Override
-  public T acquire(long time, TimeUnit unit) throws IOException {
+  public T acquire(long time, TimeUnit unit) {
     // If either time or unit are null, the other should also be null.
     Preconditions.checkState((time <= 0) == (unit == null));
     long endTimeMs = 0;
@@ -134,7 +131,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
         mTakeLock.unlock();
       }
     } catch (InterruptedException e) {
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
   }
 

@@ -20,8 +20,6 @@ import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -56,8 +54,6 @@ public final class MasterInfoCommand extends AbstractShellCommand {
       } else {
         runWithoutFaultTolerance(client.get());
       }
-    } catch (IOException e) {
-      System.err.println("Failed to get the leader master due to interruption occured.");
     }
     return 0;
   }

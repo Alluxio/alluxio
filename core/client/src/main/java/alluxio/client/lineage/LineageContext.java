@@ -14,7 +14,6 @@ package alluxio.client.lineage;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -40,9 +39,8 @@ public enum LineageContext {
    * Acquires a lineage master client from the lineage master client pool.
    *
    * @return the acquired lineage master client
-   * @throws IOException if an interruption occurs
    */
-  public LineageMasterClient acquireMasterClient() throws IOException {
+  public LineageMasterClient acquireMasterClient() {
     return mLineageMasterClientPool.acquire();
   }
 

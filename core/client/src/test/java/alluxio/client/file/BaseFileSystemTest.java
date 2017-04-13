@@ -65,7 +65,7 @@ public final class BaseFileSystemTest {
    * Sets up the file system and the context before a test runs.
    */
   @Before
-  public void before() throws IOException {
+  public void before() {
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
@@ -76,7 +76,7 @@ public final class BaseFileSystemTest {
    * Releases the client after a test ran.
    */
   @After
-  public void after() throws IOException {
+  public void after() {
     Mockito.verify(mFileContext).acquireMasterClient();
     Mockito.verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
   }
