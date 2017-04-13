@@ -103,8 +103,9 @@ public abstract class AbstractMaster implements Master {
       /**
        * The sequence for dealing with the journal before starting as the primary:
        *
-       * 1. Create a journal reader to replay the logs from the next sequence number.
-       * 2. Start the journal writer.
+       * 1. Replay the journal entries.
+       * 2. Start the journal writer and optionally journal the master bootstrap states
+       // if this is a fresh start.
        *
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
@@ -124,15 +125,17 @@ public abstract class AbstractMaster implements Master {
         }
         nextSequenceNumber = journalReader.getNextSequenceNumber();
       } catch (InvalidJournalEntryException e) {
-        LOG.error("Invalid journal entry is found.", e);
+        LOG.error("{}: Invalid journal entry is found.", getName(), e);
         // We found invalid journal, nothing we can do but crash.
         throw new RuntimeException(e);
       }
 
-      // Step 2: Start the journal writer.
+      // Step 2: Start the journal writer and optionally journal the master bootstrap states
+      // if this is a fresh start.
       mJournalWriter = mJournal.getWriter(
           JournalWriterOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
               .setPrimary(true));
+      // Journal master bootstrap states if this is a fresh start.
       if (nextSequenceNumber == 0) {
         Iterator<JournalEntry> it = getJournalEntryIterator();
         while (it.hasNext()) {
@@ -154,7 +157,6 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info("{}: Stopping {} master.", getName(), mIsPrimary ? "primary" : "secondary");
     if (mIsPrimary) {
       LOG.info("{}: Stopping primary master.", getName());
       // Stop this primary master.
