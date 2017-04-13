@@ -19,6 +19,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.security.auth.Subject;
@@ -27,7 +28,7 @@ import javax.security.auth.Subject;
 @PrepareForTest(BlockMasterClient.Factory.class)
 public class BlockMasterClientPoolTest {
   @Test
-  public void create() {
+  public void create() throws IOException {
     BlockMasterClient expectedClient = Mockito.mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
     Mockito.when(BlockMasterClient.Factory
