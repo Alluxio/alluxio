@@ -70,7 +70,7 @@ import javax.ws.rs.core.Response;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
-public class AlluxioMasterRestServiceHandlerTest {
+public final class AlluxioMasterRestServiceHandlerTest {
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(80).setDataPort(81).setWebPort(82);
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")

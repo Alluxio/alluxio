@@ -32,6 +32,7 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
+import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -90,7 +91,6 @@ public class FileOutStreamTest {
   private Map<Long, TestBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
-  private UnderFileSystemFileOutStream.Factory mFactory;
 
   private FileOutStream mTestStream;
 
@@ -106,7 +106,6 @@ public class FileOutStreamTest {
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mFactory = PowerMockito.mock(UnderFileSystemFileOutStream.Factory.class);
 
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mFileSystemContext)).thenReturn(mBlockStore);
@@ -164,8 +163,10 @@ public class FileOutStreamTest {
     };
     mUnderStorageFlushed = underStorageFlushed;
 
-    when(mFactory.create(any(FileSystemContext.class), any(InetSocketAddress.class), anyLong()))
-        .thenReturn(mUnderStorageOutputStream);
+    PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
+    PowerMockito.when(
+        UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
+            any(InetSocketAddress.class), anyLong())).thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
@@ -429,6 +430,6 @@ public class FileOutStreamTest {
 
   private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    return new FileOutStream(path, options, mFileSystemContext, mFactory);
+    return new FileOutStream(path, options, mFileSystemContext);
   }
 }

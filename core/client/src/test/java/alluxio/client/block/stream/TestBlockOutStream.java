@@ -25,6 +25,13 @@ public class TestBlockOutStream extends BlockOutStream {
   private boolean mClosed;
   private boolean mCanceled;
 
+  /**
+   * Constructs a new {@link TestBlockOutStream} to be used in tests.
+   *
+   * @param data the data to test
+   * @param id the block id
+   * @param blockSize the block size
+   */
   public TestBlockOutStream(ByteBuffer data, long id, long blockSize) {
     super(new TestPacketOutStream(data, blockSize), id, blockSize, new TestBlockWorkerClient(),
         OutStreamOptions.defaults());
