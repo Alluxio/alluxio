@@ -52,13 +52,10 @@ public final class LineageContextTest {
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      LineageMasterClient client = null;
-      try {
-        client = LineageContext.INSTANCE.acquireMasterClient();
+      try (LineageMasterClient client = LineageContext.INSTANCE.acquireMasterClient()) {
+        LineageContext.INSTANCE.releaseMasterClient(client);
       } catch (IOException e) {
         Assert.fail("Failed to acquire a lineage master client due to interruption occured.");
-      } finally {
-        LineageContext.INSTANCE.releaseMasterClient(client);
       }
     }
   }
