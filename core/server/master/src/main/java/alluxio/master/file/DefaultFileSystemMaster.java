@@ -2309,9 +2309,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
       deleteAndJournal(inodePath, deleteOptions, journalContext);
     } catch (DirectoryNotEmptyException e) {
-      // we should never reach here.
-      // deleteAndJournal should never throw DirectoryNotEmptyException when recursive is true.
-      Preconditions.checkState(false);
+      throw new RuntimeException(String.format(
+          "We should never see this exception because %s should never be thrown when recursive "
+              + "is true.", e.getClass()));
     }
     DeleteMountPointEntry deleteMountPoint =
         DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
