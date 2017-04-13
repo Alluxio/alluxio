@@ -105,7 +105,7 @@ public abstract class AbstractMaster implements Master {
        *
        * 1. Replay the journal entries.
        * 2. Start the journal writer and optionally journal the master bootstrap states
-       // if this is a fresh start.
+       *    if this is a fresh start.
        *
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
