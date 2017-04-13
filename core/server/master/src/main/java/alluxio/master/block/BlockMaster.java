@@ -207,6 +207,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry.getSequenceNumber() == 0) {
+      // This is the first journal entry, clear the master state.
       mBlocks.clear();
     }
     // TODO(gene): A better way to process entries besides a huge switch?
