@@ -22,7 +22,6 @@ import alluxio.client.WriteType;
 import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
@@ -66,7 +65,6 @@ public class JournalShutdownIntegrationTest {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
     BlockWorkerClientTestUtils.reset();
-    FileSystemWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
 
