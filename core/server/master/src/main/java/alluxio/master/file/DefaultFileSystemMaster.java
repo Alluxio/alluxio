@@ -1195,19 +1195,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // Directory is a candidate for recursive deletes
           recursiveUFSDeletes.put(currentPath, descendant);
         } else {
-          nonRecursiveUFSDeletes.put(currentPath, descendant);
           // Invalidate ancestor directories if not a mount point
+          // Put ancestors into nonRecursiveDeletes before descendants
+          Stack<Pair<AlluxioURI, Inode<?>>> toAdd = new Stack<>();
+          toAdd.add(new Pair<AlluxioURI, Inode<?>>(currentPath, descendant));
           if (!mMountTable.isMountPoint(currentPath)) {
             for (AlluxioURI ancestor = currentPath.getParent(); ancestor != null
                 && recursiveUFSDeletes.containsKey(ancestor); ancestor = ancestor.getParent()) {
-              nonRecursiveUFSDeletes.put(ancestor, recursiveUFSDeletes.get(ancestor));
+              toAdd
+                  .add(new Pair<AlluxioURI, Inode<?>>(ancestor, recursiveUFSDeletes.get(ancestor)));
               recursiveUFSDeletes.remove(ancestor);
             }
+          }
+          for (Pair<AlluxioURI, Inode<?>> pair : toAdd) {
+            nonRecursiveUFSDeletes.put(pair.getFirst(), pair.getSecond());
           }
         }
       }
 
       // Remove entries covered by a recursive delete
+      // TODO(adit): make sure any is added to delInodes before its descendants
       for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes.entrySet()) {
         AlluxioURI currentPath = entry.getKey();
         if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
