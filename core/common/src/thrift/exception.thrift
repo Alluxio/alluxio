@@ -116,7 +116,6 @@ enum TExceptionStatus {
 }
 
 exception AlluxioTException {
-  1: string type // deprecated since 1.1 and will be removed in 2.0
   2: string message
-  3: string className
+  4: TExceptionStatus status
 }
