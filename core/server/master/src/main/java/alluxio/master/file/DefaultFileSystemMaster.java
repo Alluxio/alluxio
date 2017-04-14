@@ -1165,7 +1165,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     List<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
     // Persisted directories which can safely be deleted recursively from the UFS
-    List<Pair<AlluxioURI, Inode<?>>> safeRecursiveUFSDeletes = new LinkedList<>();
+    Map<AlluxioURI, Inode<?>> safeRecursiveUFSDeletes = new HashMap<>();
 
     Pair<AlluxioURI, Inode<?>> inodePair =
         new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
@@ -1173,7 +1173,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (inode.isPersisted() && !replayed && inode.isDirectory()) {
       if (deleteOptions.isSkipConsistencyCheck()
           || isUFSDeleteSafe(inodePath.getInode(), inodePath.getUri())) {
-        safeRecursiveUFSDeletes.add(inodePair);
+        safeRecursiveUFSDeletes.put(inodePath.getUri(), inode);
       }
     }
 
@@ -1188,17 +1188,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (deleteOptions.isSkipConsistencyCheck()
               || isUFSDeleteSafe(descendant, descendantPath)) {
             // Directory is a candidate for recursive deletes
-            safeRecursiveUFSDeletes.add(descendantPair);
+            safeRecursiveUFSDeletes.put(descendantPath, descendant);
           } else {
             // Invalidate ancestor directories if not a mount point
             AlluxioURI currentPath = descendantPath;
-            while (currentPath.getParent() != null && !mMountTable.isMountPoint(currentPath)) {
-              Pair<AlluxioURI, Inode<?>> ancestorPair =
-                  findInPairList(safeRecursiveUFSDeletes, currentPath.getParent());
-              if (ancestorPair == null) {
-                break;
-              }
-              safeRecursiveUFSDeletes.remove(ancestorPair);
+            while (currentPath.getParent() != null && !mMountTable.isMountPoint(currentPath)
+                && safeRecursiveUFSDeletes.containsKey(currentPath.getParent())) {
+              safeRecursiveUFSDeletes.remove(currentPath.getParent());
               currentPath = currentPath.getParent();
             }
           }
@@ -1226,7 +1222,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               UnderFileSystem ufs = resolution.getUfs();
               AlluxioURI parentURI = alluxioUriToDel.getParent();
               // Check if parent is deleted recursively
-              if (isMount || findInPairList(safeRecursiveUFSDeletes, parentURI) == null) {
+              if (isMount || !safeRecursiveUFSDeletes.containsKey(parentURI)) {
                 boolean failedToDelete = false;
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
@@ -1236,11 +1232,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                     }
                   }
                 } else {
-                  boolean recursiveSafe =
-                      findInPairList(safeRecursiveUFSDeletes, alluxioUriToDel) != null;
                   // TODO(adit): if mount point then do not delete directory itself
                   if (!ufs.deleteDirectory(ufsUri, alluxio.underfs.options.DeleteOptions
-                      .defaults().setRecursive(recursiveSafe))) {
+                      .defaults().setRecursive(safeRecursiveUFSDeletes.containsKey(alluxioUriToDel)))) {
                     failedToDelete = ufs.isDirectory(ufsUri);
                     if (!failedToDelete) {
                       LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
@@ -1308,26 +1302,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     return true;
-  }
-
-  /**
-   * Check is path matches any pair.first in list of pairs.
-   *
-   * @param recursiveList list to search in
-   * @param path to search for
-   * @return pair if found, null otherwise
-   */
-  private Pair<AlluxioURI, Inode<?>> findInPairList(List<Pair<AlluxioURI, Inode<?>>> recursiveList,
-      AlluxioURI path) {
-    if (path == null) {
-      return null;
-    }
-    for (Pair<AlluxioURI, Inode<?>> pair : recursiveList) {
-      if (pair.getFirst().equals(path)) {
-        return pair;
-      }
-    }
-    return null;
   }
 
   @Override
