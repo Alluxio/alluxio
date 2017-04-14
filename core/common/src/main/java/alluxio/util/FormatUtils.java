@@ -17,6 +17,8 @@ import alluxio.security.authorization.Mode;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -194,6 +196,47 @@ public final class FormatUtils {
       return pBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
       throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
+    }
+  }
+
+  /**
+   * Regular expression pattern to separate digits and letters in a string.
+   */
+  private static final Pattern SEP_DIGIT_LETTER = Pattern.compile("([0-9]*)([a-zA-Z]*)");
+
+  /**
+   * Parses a String size to Milliseconds.
+   *
+   * @param timeSize the size of a time, e.g. 1M, 5H, 10D
+   * @return the time size in milliseconds
+   */
+  public static long parseTimeSize(String timeSize) {
+    double alpha = 0.0001;
+    String time = "";
+    String size = "";
+    Matcher m = SEP_DIGIT_LETTER.matcher(timeSize);
+    if (m.matches()) {
+      time = m.group(1);
+      size = m.group(2);
+    }
+    double douTime = Double.parseDouble(time);
+    size = size.toLowerCase();
+    if (size.isEmpty() || size.equalsIgnoreCase("ms")
+        || size.equalsIgnoreCase("millisecond")) {
+      return (long) (douTime + alpha);
+    } else if (size.equalsIgnoreCase("s") || size.equalsIgnoreCase("sec")
+        || size.equalsIgnoreCase("second")) {
+      return (long) (douTime * Constants.SECOND + alpha);
+    } else if (size.equalsIgnoreCase("m") || size.equalsIgnoreCase("min")
+        || size.equalsIgnoreCase("minute")) {
+      return (long) (douTime * Constants.MINUTE + alpha);
+    } else if (size.equalsIgnoreCase("h") || size.equalsIgnoreCase("hr")
+        || size.equalsIgnoreCase("hour")) {
+      return (long) (douTime * Constants.HOUR + alpha);
+    } else if (size.equalsIgnoreCase("d") || size.equalsIgnoreCase("day")) {
+      return (long) (douTime * Constants.DAY + alpha);
+    } else {
+      throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
     }
   }
 
