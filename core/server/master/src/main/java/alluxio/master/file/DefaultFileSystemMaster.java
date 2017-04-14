@@ -1163,12 +1163,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    // Inodes for un-persisted paths to be deleted
-    LinkedList<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
+    // Un-persisted paths to be deleted
+    List<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
 
-    // AlluxioURIs and inodes for persisted paths
-    LinkedList<Pair<AlluxioURI, Inode<?>>> recursiveUFSDeletes = new LinkedList<>();
-    LinkedList<Pair<AlluxioURI, Inode<?>>> nonRecursiveUFSDeletes = new LinkedList<>();
+    // Persisted paths to be deleted
+    List<Pair<AlluxioURI, Inode<?>>> recursiveUFSDeletes = new LinkedList<>();
+    List<Pair<AlluxioURI, Inode<?>>> nonRecursiveUFSDeletes = new LinkedList<>();
 
     Pair<AlluxioURI, Inode<?>> inodePair =
         new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
@@ -1304,13 +1304,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param path of directory to to check
    * @return true is contents of directory match
    */
-  private boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI path)
+  private boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI alluxioUri)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     if (!inode.isPersisted()) {
       return false;
     }
 
-    AlluxioURI alluxioUri = mInodeTree.getPath(inode);
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     String ufsUri = resolution.getUri().toString();
     UnderFileSystem ufs = resolution.getUfs();
@@ -1343,7 +1342,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @return pair if found, null otherwise
    */
   private Pair<AlluxioURI, Inode<?>> findPathInPairList(
-      LinkedList<Pair<AlluxioURI, Inode<?>>> recursiveList, AlluxioURI path) {
+      List<Pair<AlluxioURI, Inode<?>>> recursiveList, AlluxioURI path) {
     for (Pair<AlluxioURI, Inode<?>> pair : recursiveList) {
       if (pair.getFirst().equals(path)) {
         return pair;
