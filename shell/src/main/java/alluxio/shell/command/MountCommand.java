@@ -130,7 +130,7 @@ public final class MountCommand extends AbstractShellCommand {
 
     if (cl.hasOption("option")) {
       Map<String, String> properties = new HashMap<>();
-      String optionValues[] = cl.getOptionValues("option");
+      String[] optionValues = cl.getOptionValues("option");
       for (String option : optionValues) {
         Matcher matcher = OPTION_PATTERN.matcher(option);
         Preconditions.checkArgument(matcher.matches(), "Unrecognized property %s", option);
