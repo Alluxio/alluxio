@@ -39,21 +39,21 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MountCommand extends AbstractShellCommand {
   private static final Pattern OPTION_PATTERN = Pattern.compile("(.*)=(.*)");
 
-  private static final Option MOUNT_READONLY_OPTION =
+  private static final Option READONLY_OPTION =
       Option.builder()
           .longOpt("readonly")
           .required(false)
           .hasArg(false)
           .desc("readonly")
           .build();
-  private static final Option MOUNT_SHARED_OPTION =
+  private static final Option SHARED_OPTION =
       Option.builder()
           .longOpt("shared")
           .required(false)
           .hasArg(false)
           .desc("shared")
           .build();
-  private static final Option MOUNT_OPTION_OPTION =
+  private static final Option OPTION_OPTION =
       Option.builder()
           .longOpt("option")
           .required(false)
@@ -88,8 +88,8 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(MOUNT_READONLY_OPTION)
-        .addOption(MOUNT_SHARED_OPTION).addOption(MOUNT_OPTION_OPTION);
+    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(READONLY_OPTION)
+        .addOption(SHARED_OPTION).addOption(OPTION_OPTION);
   }
 
   @Override
