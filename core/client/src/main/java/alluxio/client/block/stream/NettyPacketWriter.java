@@ -75,26 +75,26 @@ public final class NettyPacketWriter implements PacketWriter {
   private final long mLength;
   private final Protocol.WriteRequest mPartialRequest;
 
-  private boolean mClosed = false;
+  private boolean mClosed;
 
   private ReentrantLock mLock = new ReentrantLock();
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
-  private long mPosToWrite = 0;
+  private long mPosToWrite;
   /**
    * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the data sitting
    * in the netty buffer.
    */
   @GuardedBy("mLock")
-  private long mPosToQueue = 0;
+  private long mPosToQueue;
   @GuardedBy("mLock")
-  private Throwable mPacketWriteException = null;
+  private Throwable mPacketWriteException;
   @GuardedBy("mLock")
-  private boolean mDone = false;
+  private boolean mDone;
   @GuardedBy("mLock")
-  private boolean mEOFSent = false;
+  private boolean mEOFSent;
   @GuardedBy("mLock")
-  private boolean mCancelSent = false;
+  private boolean mCancelSent;
   /** This condition is met if mPacketWriteException != null or mDone = true. */
   private Condition mDoneOrFailed = mLock.newCondition();
   /** This condition is met if mPacketWriteException != null or the buffer is not full. */
