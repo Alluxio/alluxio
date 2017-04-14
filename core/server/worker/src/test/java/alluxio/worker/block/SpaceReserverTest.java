@@ -78,7 +78,7 @@ public class SpaceReserverTest {
         new int[]{0, 1}, new String[] {"MEM", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
         new long[][]{new long[]{0}, new long[]{0}}, "/");
-
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_NEWVERSION, true);
     PropertyKey highWatermarkRatioProp =
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
     Configuration.set(highWatermarkRatioProp, "1");
@@ -122,7 +122,7 @@ public class SpaceReserverTest {
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
-
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_NEWVERSION, true);
     PropertyKey highWatermarkRatioProp =
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
@@ -174,7 +174,7 @@ public class SpaceReserverTest {
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
-
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_NEWVERSION, true);
     PropertyKey highWatermarkRatioProp =
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
