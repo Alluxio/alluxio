@@ -16,7 +16,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.FileInputStream;
@@ -25,6 +27,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,6 +37,37 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MountCommand extends AbstractShellCommand {
+  private static final Pattern OPTION_PATTERN = Pattern.compile("(.*)=(.*)");
+
+  private static final Option MOUNT_READONLY_OPTION =
+      Option.builder()
+          .longOpt("readonly")
+          .required(false)
+          .hasArg(false)
+          .desc("readonly")
+          .build();
+  private static final Option MOUNT_SHARED_OPTION =
+      Option.builder()
+          .longOpt("shared")
+          .required(false)
+          .hasArg(false)
+          .desc("shared")
+          .build();
+  private static final Option MOUNT_OPTION_OPTION =
+      Option.builder()
+          .longOpt("option")
+          .required(false)
+          .hasArg(true)
+          .desc("option")
+          .build();
+  // TODO(gpang): Investigate property=value style of cmdline options. They didn't seem to
+  // support spaces in values.
+  private static final Option PROPERTY_FILE_OPTION =
+      Option.builder("P")
+          .required(false)
+          .numberOfArgs(1)
+          .desc("properties file name")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -53,8 +88,8 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(READONLY_OPTION)
-        .addOption(MOUNT_SHARED_OPTION);
+    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(MOUNT_READONLY_OPTION)
+        .addOption(MOUNT_SHARED_OPTION).addOption(MOUNT_OPTION_OPTION);
   }
 
   @Override
@@ -92,6 +127,19 @@ public final class MountCommand extends AbstractShellCommand {
       options.setShared(true);
     }
 
+    if (cl.hasOption("option")) {
+      Map<String, String> properties = new HashMap<>();
+      String optionValues[] = cl.getOptionValues("option");
+      for (String option : optionValues) {
+        Matcher matcher = OPTION_PATTERN.matcher(option);
+        Preconditions.checkArgument(matcher.matches(), "Unrecognized property %s", option);
+        String key = matcher.group(1);
+        String value = matcher.group(2);
+        properties.put(key, value);
+      }
+      options.setProperties(properties);
+    }
+
     mFileSystem.mount(alluxioPath, ufsPath, options);
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     return 0;
@@ -99,7 +147,7 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "mount [-readonly] [-shared] [-P <properties file name>] <alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--option <key=val>] [-P <path>] <alluxioPath> <ufsURI>";
   }
 
   @Override
