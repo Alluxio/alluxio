@@ -6,6 +6,9 @@ group: Frameworks
 priority: 0
 ---
 
+* 内容列表
+{:toc}
+
 该指南描述了如何在Alluxio上运行[Apache Spark](http://spark-project.org/)。HDFS作为一个分布式底层存储系统的一个例子。请注意，Alluxio除HDFS之外也支持其它的底层存储系统，计算框架(如Spark)可以通过Alluxio从任意数量的底层存储系统读写数据。
 
 ## 兼容性
@@ -26,7 +29,7 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
 
-###针对HDFS的额外设置
+### 针对HDFS的额外设置
 
 * 如果Alluxio运行Hadoop 1.x集群之上，创建一个新文件`spark/conf/core-site.xml`包含以下内容：
 
@@ -59,7 +62,7 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 每一行是由文件`LICENSE`的对应行复制2次得到。
 
 ### 使用来自HDFS的数据
- 
+
 Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是/alluxio）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的alluxio-env.sh文件中的 `ALLUXIO_UNDERFS_ADDRESS`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
 
 {% include Running-Spark-on-Alluxio/license-hdfs.md %}

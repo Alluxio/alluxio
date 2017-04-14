@@ -11,7 +11,10 @@
 
 package alluxio.client.block;
 
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -21,21 +24,22 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.resource.CloseableResource;
+import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -45,10 +49,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AlluxioBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioBlockStore.class);
 
   private final FileSystemContext mContext;
   private String mLocalHostName;
+  private Random mRandom;
 
   /**
    * Creates an Alluxio block store with default file system context and default local host name.
@@ -57,7 +62,7 @@ public final class AlluxioBlockStore {
    */
   public static AlluxioBlockStore create() {
     return new AlluxioBlockStore(FileSystemContext.INSTANCE,
-        NetworkAddressUtils.getLocalHostName());
+        NetworkAddressUtils.getClientHostName());
   }
 
   /**
@@ -67,7 +72,7 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create(FileSystemContext context) {
-    return new AlluxioBlockStore(context, NetworkAddressUtils.getLocalHostName());
+    return new AlluxioBlockStore(context, NetworkAddressUtils.getClientHostName());
   }
 
   /**
@@ -79,6 +84,7 @@ public final class AlluxioBlockStore {
   public AlluxioBlockStore(FileSystemContext context, String localHostName) {
     mContext = context;
     mLocalHostName = localHostName;
+    mRandom = new Random();
   }
 
   /**
@@ -122,7 +128,7 @@ public final class AlluxioBlockStore {
    * @return an {@link InputStream} which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
-  public InputStream getInStream(long blockId, InStreamOptions options)
+  public BlockInStream getInStream(long blockId, InStreamOptions options)
       throws IOException {
     BlockInfo blockInfo;
     try (CloseableResource<BlockMasterClient> masterClientResource =
@@ -142,23 +148,27 @@ public final class AlluxioBlockStore {
     // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
-    for (BlockLocation location : blockInfo.getLocations()) {
-      WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-      if (workerNetAddress.getHost().equals(mLocalHostName)) {
-        // There is a local worker and the block is local.
-        try {
-          return StreamFactory
-              .createLocalBlockInStream(mContext, blockId, blockInfo.getLength(), workerNetAddress,
-                  options);
-        } catch (IOException e) {
-          LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
-          // Getting a local stream failed, do not try again
-          break;
+    if (Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
+      for (BlockLocation location : blockInfo.getLocations()) {
+        WorkerNetAddress workerNetAddress = location.getWorkerAddress();
+        if (workerNetAddress.getHost().equals(mLocalHostName)) {
+          // There is a local worker and the block is local.
+          try {
+            return StreamFactory.createLocalBlockInStream(mContext, blockId, blockInfo.getLength(),
+                workerNetAddress, options);
+          } catch (IOException e) {
+            LOG.warn("Failed to open local stream for block {}: {}", blockId, e.getMessage());
+            // Getting a local stream failed, do not try again
+            break;
+          }
         }
       }
     }
-    // No local worker/block, get the first location since it's nearest to memory tier.
-    WorkerNetAddress workerNetAddress = blockInfo.getLocations().get(0).getWorkerAddress();
+    // No local worker/block, choose a random location. In the future we could change this to
+    // only randomize among locations in the highest tier, or have the master randomize the order.
+    List<BlockLocation> locations = blockInfo.getLocations();
+    WorkerNetAddress workerNetAddress =
+        locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
     return StreamFactory
         .createRemoteBlockInStream(mContext, blockId, blockInfo.getLength(), workerNetAddress,
             options);
@@ -173,11 +183,11 @@ public final class AlluxioBlockStore {
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @param options the output stream options
-   * @return an {@link OutputStream} which can be used to write data to the block in a
+   * @return an {@link BlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public OutputStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
+  public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
     if (blockSize == -1) {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
@@ -189,10 +199,12 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
+          FormatUtils.getSizeFromBytes(blockSize)));
     }
     // Location is local.
-    if (mLocalHostName.equals(address.getHost())) {
+    if (mLocalHostName.equals(address.getHost()) && Configuration
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
       return StreamFactory
           .createLocalBlockOutStream(mContext, blockId, blockSize, address, options);
     }
@@ -209,11 +221,11 @@ public final class AlluxioBlockStore {
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
    *        stream is just storing the block in Alluxio again)
    * @param options the output stream option
-   * @return an {@link OutputStream} which can be used to write data to the block in a
+   * @return a {@link BlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public OutputStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
+  public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
       throws IOException {
     WorkerNetAddress address;
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),

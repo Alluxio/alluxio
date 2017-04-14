@@ -26,6 +26,8 @@ import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
@@ -36,13 +38,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
+@JsonInclude(Include.NON_EMPTY)
 public final class CreateFileOptions {
   private boolean mRecursive;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
   private long mTtl;
   private TtlAction mTtlAction;
-  private Mode mMode; // null if creating the file using system default mode
+  private Mode mMode;
   private int mWriteTier;
   private WriteType mWriteType;
 
@@ -67,7 +70,7 @@ public final class CreateFileOptions {
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
-    mMode = null;
+    mMode = Mode.defaults().applyFileUMask();
   }
 
   /**
@@ -286,7 +289,7 @@ public final class CreateFileOptions {
   public CreateFileTOptions toThrift() {
     CreateFileTOptions options = new CreateFileTOptions();
     options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
+    options.setPersisted(mWriteType.isThrough());
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
     options.setTtlAction(ThriftUtils.toThrift(mTtlAction));

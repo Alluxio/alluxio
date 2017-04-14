@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
@@ -53,7 +55,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftUnderFileSystem.class);
 
   /** Regexp for Swift container ACL separator, including optional whitespaces. */
   private static final String ACL_SEPARATOR_REGEXP = "\\s*,\\s*";
@@ -86,8 +88,9 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * Constructs a new Swift {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @throws FileDoesNotExistException when specified container does not exist
    */
-  public SwiftUnderFileSystem(AlluxioURI uri) {
+  public SwiftUnderFileSystem(AlluxioURI uri) throws FileDoesNotExistException {
     super(uri);
     String containerName = getContainerName(uri);
     LOG.debug("Constructor init: {}", containerName);
@@ -151,7 +154,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     mAccess = mAccount.authenticate();
     Container container = mAccount.getContainer(containerName);
     if (!container.exists()) {
-      container.create();
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
+          .getMessage("Container %s does not exist", containerName));
     }
 
     // Assume the Swift user name has 1-1 mapping to Alluxio username.

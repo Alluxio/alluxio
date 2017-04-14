@@ -5,6 +5,9 @@ nickname: 开发者上手指南
 group: Resources
 ---
 
+* 内容列表
+{:toc}
+
 欢迎来到Alluxio社区，我们热烈欢迎你参与到我们的社区和对社区进行贡献。本页面提供了如何参与到Alluxio开源项目社区并成为其中一员的指导。
 
 ## 系统需要
@@ -47,6 +50,16 @@ Alluxio源码托管在GitHub上，仓库地址为[Alluxio repository](https://gi
 ### Jira账户
 
 Alluxio开源项目使用[JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)来跟踪特性、bug以及问题。请[创建一个Alluxio JIRA账户](https://alluxio.atlassian.net/admin/users/sign-up)，从而能够新建、跟踪以及修复ticket。
+
+请[创建一个Alluxio JIRA账户](https://alluxio.atlassian.net/admin/users/sign-up)来新建tickets,跟踪tickets以及为tickets提供修复。如果不能通过上述链接建立JIRA账户，请按下述格式发送邮件至jira-admin@alluxio.org：
+
+```
+Subject: JIRA Account Request
+Body:
+	Email Address: example@example.com
+	Username: JohnS
+	Full Name: John Smith
+```
 
 ## Fork Alluxio源代码库
 

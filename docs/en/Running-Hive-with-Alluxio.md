@@ -6,10 +6,13 @@ group: Frameworks
 priority: 2
 ---
 
+* Table of Contents
+{:toc}
+
 This guide describes how to run [Apache Hive](http://hive.apache.org/) with Alluxio, so
 that you can easily store Hive tables in Alluxio's tiered storage.
 
-# Prerequisites
+## Prerequisites
 
 The prerequisite for this part is that you have
 [Java](Java-Setup.html). Alluxio cluster should also be
@@ -18,12 +21,12 @@ set up in accordance to these guides for either [Local Mode](Running-Alluxio-Loc
 
 Please [Download Hive](http://hive.apache.org/downloads.html).
 
-# Configuration
+## Configuration
 
 Apache Hive allows you to use Alluxio through a generic file system wrapper for the Hadoop file system.
 Therefore, the configuration of Alluxio is done mostly in Hive and its under computing frameworks.
 
-#### Configure Hive
+### Configure Hive
 
 Add the following property to `hive-site.xml` in your Hive installation `conf` directory
 
@@ -34,17 +37,17 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-#### Configure Hadoop MapReduce
+### Configure Hadoop MapReduce
 
 If you run Hive on Hadoop MapReduce, Hive can read configurations from Hadoop configuration files. In addition,
 Hive's Hadoop jobs will store its intermediate results in Alluxio. Please follow instructions in
 [running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop MapReduce can run with Alluxio.
 
 
-#### Add additional Alluxio site properties to Hive
+### Add additional Alluxio site properties to Hive
 
-If there are any Alluxio site properties you want to specify for Hive, add those to `hive-site.xml`. For example,
-change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+If there are any Alluxio site properties you want to specify for Hive, add those to `core-site.xml` to Hadoop configuration
+ directory on each node. For example, change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
 
 ```xml
 <property>
@@ -53,7 +56,7 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 </property>
 ```
 
-# Using Alluxio with Hive
+## Using Alluxio with Hive
 
 Create Directories in Alluxio for Hive:
 
@@ -66,7 +69,7 @@ $ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 
 Then you can follow the [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted) to use Hive
 
-# Hive cli examples
+## Hive cli examples
 
 Create a table in Hive and load a file in local path into Hive:
 

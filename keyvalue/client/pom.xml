@@ -22,14 +22,17 @@
   <description>Client of Alluxio Key Value Store</description>
 
   <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.keyvalue.client</shading.prefix>
   </properties>
 
   <dependencies>
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client</artifactId>
@@ -41,7 +44,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Other projects' test-jars -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -72,13 +75,6 @@
         <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-          </exclusions>
         </dependency>
       </dependencies>
     </profile>
@@ -93,51 +89,18 @@
       <dependencies>
         <dependency>
           <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-          <version>${apache.curator.version}</version>
+          <artifactId>curator-client</artifactId>
           <scope>provided</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava</artifactId>
-            </exclusion>
-          </exclusions>
         </dependency>
         <dependency>
           <groupId>org.apache.curator</groupId>
-          <artifactId>curator-client</artifactId>
-          <version>${apache.curator.version}</version>
+          <artifactId>curator-framework</artifactId>
           <scope>provided</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava</artifactId>
-            </exclusion>
-          </exclusions>
         </dependency>
-        <dependency>
+       <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-recipes</artifactId>
-          <version>${apache.curator.version}</version>
           <scope>provided</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava</artifactId>
-            </exclusion>
-          </exclusions>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -153,7 +116,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
         <executions>
           <execution>
             <id>uber-jar</id>
@@ -172,7 +134,7 @@
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
+                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>

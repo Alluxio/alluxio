@@ -6,25 +6,28 @@ group: Frameworks
 priority: 2
 ---
 
-This guide describes how to run [Apache HBase](http://hbase.apache.org/), so
-that you can easily store HBase tables into Alluxio at various storage level.
+* Table of Contents
+{:toc}
 
-# Prerequisites
+This guide describes how to run [Apache HBase](http://hbase.apache.org/), so
+that you can easily store HBase tables into Alluxio at various storage levels.
+
+## Prerequisites
 
 The prerequisite for this part is that you have
-[Java](Java-Setup.html). Alluxio cluster should also be
+[Java](Java-Setup.html). Your Alluxio cluster should also be
 set up in accordance to these guides for either [Local Mode](Running-Alluxio-Locally.html) or
 [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
 Please follow the guides for setting up HBase on
 [Apache HBase Configuration](https://hbase.apache.org/book.html#configuration).
 
-# Configuration
+## Configuration
 
 Apache HBase allows you to use Alluxio through a generic file system wrapper for the Hadoop file system.
 Therefore, the configuration of Alluxio is done mostly in HBase configuration files.
 
-#### Set property in `hbase-site.xml`
+### Set property in `hbase-site.xml`
 
 You need to add the following three properties to `hbase-site.xml` in your HBase installation `conf` directory
 (make sure these properties are configured in all HBase cluster nodes):
@@ -46,7 +49,7 @@ Tips:You do not need to create the /hbase directory in Alluxio, HBase will do th
 </property>
 ```
 
-# Distribute the Alluxio Client jar
+## Distribute the Alluxio Client jar
 
 We need to make the Alluxio client `jar` file available to HBase, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
@@ -62,7 +65,7 @@ on all cluster nodes). For example:
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
-#### Add additional Alluxio site properties to HBase
+### Add additional Alluxio site properties to HBase
 
 If there are any Alluxio site properties you want to specify for HBase, add those to `hbase-site.xml`. For example,
 change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
@@ -74,7 +77,7 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 </property>
 ```
 
-# Using Alluxio with HBase
+## Using Alluxio with HBase
 
 Start HBase:
 
@@ -92,7 +95,7 @@ on Alluxio, including data and WALs:
 
 ![HBaseRootDirectoryOnAlluxio]({{site.data.img.screenshot_start_hbase_alluxio_webui}})
 
-# HBase shell examples
+## HBase shell examples
 
 Create a text file `simple_test.txt` and write these commands into it:
 
@@ -126,4 +129,3 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 After this mapreduce job finishes, you can see a result like this:
 
 ![HBaseHadoopOutput]({{site.data.img.screenshot_hbase_hadoop_output}})
-

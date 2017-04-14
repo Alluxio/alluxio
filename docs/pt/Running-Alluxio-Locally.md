@@ -6,7 +6,8 @@ group: Deploying Alluxio
 priority: 1
 ---
 
-# Rodar o Aluxio Standalone em um Única Máquina.
+* Table of Contents
+{:toc}
 
 O pré-requisito para isto é que você possua o [Java](Java-Setup.html) (JDK 7 ou superior).
 

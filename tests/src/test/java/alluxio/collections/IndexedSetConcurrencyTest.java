@@ -52,10 +52,17 @@ public class IndexedSetConcurrencyTest {
   /** Used to stop concurrent threads. */
   private AtomicBoolean mStopThreads;
 
+  /**
+   * Base class for testing different behaviours of {@link IndexedSet} concurrently.
+   */
   private abstract class ConcurrentTask implements Callable<Void> {
-    private long mCount = 0;
+    /** Number of items added or deleted in this single task. */
+    private volatile long mCount = 0;
     private CyclicBarrier mBarrier;
 
+    /**
+     * @param barrier the CyclicBarrier
+     */
     public ConcurrentTask(CyclicBarrier barrier) {
       mBarrier = barrier;
     }
@@ -173,15 +180,27 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Helper class for testing {@link IndexedSet}.
+   */
   private final class TestInfo {
-    private long mId;
-    private int mSize;
+    private final long mId;
+    private final int mSize;
 
+    /**
+     * Creates an instance of {@link TestInfo} randomly.
+     */
     private TestInfo() {
       this(ThreadLocalRandom.current().nextLong(),
           ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
     }
 
+    /**
+     * Creates an instance of {@link TestInfo} by giving its id and size fields.
+     *
+     * @param id the id
+     * @param size the size
+     */
     private TestInfo(long id, int size) {
       mId = id;
       mSize = size;
@@ -359,7 +378,7 @@ public class IndexedSetConcurrencyTest {
   }
 
   @Test
-  public void concurrentAddTest() throws Exception {
+  public void concurrentAdd() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
@@ -384,7 +403,7 @@ public class IndexedSetConcurrencyTest {
    * index.
    */
   @Test
-  public void nonUniqueConcurrentUpdateTest() throws Exception {
+  public void nonUniqueConcurrentUpdate() throws Exception {
     mIndexedSet = new IndexedSet<>(mSizeIndex, mIdIndex);
     List<Future<?>> futures = new ArrayList<>();
     int[] tasksNumbers = new int[5];

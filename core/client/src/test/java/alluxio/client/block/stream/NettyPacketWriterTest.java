@@ -50,7 +50,8 @@ import java.util.concurrent.Future;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
 public final class NettyPacketWriterTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(NettyPacketWriterTest.class);
+
   private static final int PACKET_SIZE = 1024;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4,
       ThreadFactoryUtils.build("test-executor-%d", true));
@@ -245,7 +246,7 @@ public final class NettyPacketWriterTest {
                     return channel.readOutbound();
                   }
                 }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
-            validateWriteRequest((Protocol.WriteRequest) request.getMessage(), pos);
+            validateWriteRequest(request.getMessage().<Protocol.WriteRequest>getMessage(), pos);
 
             DataBuffer buffer = request.getPayloadDataBuffer();
             // Last packet.

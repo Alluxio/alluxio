@@ -12,10 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.annotation.PublicApi;
-import alluxio.client.block.BlockInStream;
-import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
@@ -34,10 +30,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * TODO(gpang): This class should probably not implement BoundedStream, since remaining() does
  * not make sense for a file of unknown length. Investigate an alternative class hierarchy.
  */
-@PublicApi
 @NotThreadSafe
 public final class UnknownLengthFileInStream extends FileInStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(UnknownLengthFileInStream.class);
   /**
    * Since the file length is unknown, the actual length of the block is also unknown. Simply
    * using the maximum block size does not work well for allocation, since the maximum block size
@@ -64,7 +59,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
     if (mClosed) {
       return;
     }
-    if (mCurrentBlockInStream != null && inStreamRemaining() == 0) {
+    if (mCurrentBlockInStream != null && mCurrentBlockInStream.remaining() == 0) {
       // Every byte was read from the input stream. Therefore, the read bytes is the length.
       // Complete the file with this new, known length.
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -85,7 +80,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   public long remaining() {
     if (mCurrentBlockInStream != null) {
-      return inStreamRemaining();
+      return mCurrentBlockInStream.remaining();
     }
     // A file of unknown length can only be one block.
     return mBlockSize - mPos;
@@ -103,13 +98,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
   }
 
   @Override
-  protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
-      throws IOException {
-    return new UnderStoreBlockInStream(mContext, blockStart, Constants.UNKNOWN_SIZE, length,
-        getUnderStoreStreamFactory(path, mContext));
-  }
-
-  @Override
   protected long getBlockSize(long pos) {
     return mBlockSize;
   }
@@ -117,6 +105,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   protected boolean shouldUpdateStreams(long currentBlockId) {
     // Return true either at the beginning of a file or the end of a file.
-    return mCurrentBlockInStream == null || inStreamRemaining() == 0;
+    return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
   }
 }

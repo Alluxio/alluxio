@@ -6,20 +6,23 @@ group: Frameworks
 priority: 2
 ---
 
+* 内容列表
+{:toc}
+
 该指南介绍如何在Alluxio上运行[Apache Flink](http://flink.apache.org/),以便你在Flink中使用Alluxio的文件。
 
-# 前期准备
+## 前期准备
 
 开始之前你需要安装好[Java](Java-Setup.html)。同时使用[本地模式](Running-Alluxio-Locally.html)或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
 
 请在[Apache Flink](http://flink.apache.org/)网站上阅读Flink安装说明。
 
-# 配置
+## 配置
 
 Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系统）来使用Alluxio。因此，Alluxio的配置主要在Hadoop配置文件中完成。
 
 
-#### 在`core-site.xml`中设置属性
+### 在`core-site.xml`中设置属性
 
 如果你安装Flink的同时安装了Hadoop，将如下属性加到`core-site.xml`配置文件：
 
@@ -29,13 +32,13 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 {% include Running-Flink-on-Alluxio/create-core-site.md %}
 
-#### 在`conf/flink-conf.yaml`中指定`core-site.xml`的路径
+### 在`conf/flink-conf.yaml`中指定`core-site.xml`的路径
 
-接下来需要指定Flink中Hadoop配置的路径。打开Flink根目录下`conf/flink-conf.yaml`文件，设置`fs.hdfs.hadoopconf`的值为`core-site.xml`的**目录**（对于新的Hadoop版本，该目录通常以`etc/hadoop`结尾）。 
+接下来需要指定Flink中Hadoop配置的路径。打开Flink根目录下`conf/flink-conf.yaml`文件，设置`fs.hdfs.hadoopconf`的值为`core-site.xml`的**目录**（对于新的Hadoop版本，该目录通常以`etc/hadoop`结尾）。
 
-#### 构建及布置Alluxio客户端Jar包
+### 构建及布置Alluxio客户端Jar包
 
-为了与Alluxio通信，需要提供带有Alluxio核心客户端Jar包的Flink程序。要构建与Flink兼容的客户端Jar包，需在Alluxio工程根目录下指定Flink选项构建整个工程：
+为了与Alluxio通信，需要提供带有Alluxio核心客户端Jar包的Flink程序。要构建与Flink兼容的客户端Jar包，需在Alluxio工程根目录下构建整个工程：
 
 {% include Running-Flink-on-Alluxio/flink-profile-build.md %}
 
@@ -49,18 +52,18 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
-#### 将Alluxio额外属性转化为Flink属性
+### 将Alluxio额外属性转化为Flink属性
 
 除此以外，如果`conf/alluxio-site.properties`配置文件中有任何指定的属性，请在`{FLINK_HOME}/conf/flink-conf.yaml`文件中将这些属性转化为`env.java.opts`，从而方便Flink使用Alluxio的配置。
 
-# 在Flink中使用Alluxio
+## 在Flink中使用Alluxio
 
 Flink中使用Alluxio，指定路径时使用`alluxio://`前缀。
 
 如果Alluxio是本地安装，有效路径类似于：
 `alluxio://localhost:19998/user/hduser/gutenberg`。
 
-## Wordcount示例
+### Wordcount示例
 
 该示例假定你已经按前文指导安装了Alluxio和Flink。
 

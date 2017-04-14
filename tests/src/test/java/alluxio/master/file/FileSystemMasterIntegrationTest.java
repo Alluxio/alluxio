@@ -24,16 +24,18 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
+import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -51,7 +53,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 import org.mockito.internal.util.reflection.Whitebox;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -109,8 +110,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFsMaster =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mFsMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        .getMaster(FileSystemMaster.class);
     AuthenticatedClientUser.set(TEST_USER);
     mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
   }
@@ -156,7 +157,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
-  private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
+  private MasterRegistry createFileSystemMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -171,12 +172,14 @@ public class FileSystemMasterIntegrationTest {
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
 
-      FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
+      MasterRegistry registry = createFileSystemMasterFromJournal();
+      FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
       for (FileInfo info : mFsMaster.listStatus(new AlluxioURI("/"),
           ListStatusOptions.defaults())) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
+      registry.stop();
       before();
     }
   }
@@ -188,6 +191,11 @@ public class FileSystemMasterIntegrationTest {
     concurrentCreator.call();
   }
 
+  /**
+   * Tests concurrent delete of files.
+   *
+   * @throws Exception if an error occurs during creating or deleting files
+   */
   @Test
   public void concurrentDelete() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -202,16 +210,27 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
+  /**
+   * Tests concurrent free of files.
+   *
+   * @throws Exception if an error occurs during creating or freeing files
+   */
   @Test
   public void concurrentFree() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
+            CreateFileOptions.defaults().setPersisted(true));
     concurrentCreator.call();
 
     ConcurrentFreer concurrentFreer = new ConcurrentFreer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentFreer.call();
   }
 
+  /**
+   * Tests concurrent rename of files.
+   *
+   * @throws Exception if an error occurs during creating or renaming files
+   */
   @Test
   public void concurrentRename() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -300,7 +319,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
-    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
+        .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
@@ -320,7 +340,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder/testFolder2"), false);
+      mFsMaster.delete(new AlluxioURI("/testFolder/testFolder2"), DeleteOptions.defaults()
+          .setRecursive(false));
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -341,7 +362,8 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
-    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
+        .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -354,7 +376,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder"), false);
+      mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
+          .setRecursive(false));
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -369,7 +392,8 @@ public class FileSystemMasterIntegrationTest {
   public void deleteEmptyDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
-    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
+        .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -378,7 +402,7 @@ public class FileSystemMasterIntegrationTest {
   public void deleteFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
-    mFsMaster.delete(new AlluxioURI("/testFile"), true);
+    mFsMaster.delete(new AlluxioURI("/testFile"), DeleteOptions.defaults().setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new AlluxioURI("/testFile")));
   }
 
@@ -386,13 +410,13 @@ public class FileSystemMasterIntegrationTest {
   public void deleteRoot() throws Exception {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
-    mFsMaster.delete(new AlluxioURI("/"), true);
+    mFsMaster.delete(new AlluxioURI("/"), DeleteOptions.defaults().setRecursive(true));
   }
 
   @Test
   public void getCapacityBytes() {
-    BlockMaster blockMaster =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
+    BlockMaster blockMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        .getMaster(BlockMaster.class);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
@@ -400,10 +424,8 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCompleteFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_TIME_MS;
-    try (LockedInodePath inodePath =
-        mInodeTree.lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
-      mFsMaster.completeFileInternal(new ArrayList<Long>(), inodePath, 0, opTimeMs);
-    }
+    mFsMaster.completeFile(new AlluxioURI("/testFile"),
+        CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
   }
@@ -413,10 +435,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long opTimeMs = TEST_TIME_MS;
     CreateFileOptions options = CreateFileOptions.defaults().setOperationTimeMs(opTimeMs);
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
-      mFsMaster.createFileInternal(inodePath, options);
-    }
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), options);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
@@ -431,26 +450,22 @@ public class FileSystemMasterIntegrationTest {
     long folderId = mFsMaster.getFileId(new AlluxioURI("/testFolder"));
     long modificationTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
     CommonUtils.sleepMs(2);
-    mFsMaster.delete(new AlluxioURI("/testFolder/testFile"), true);
+    mFsMaster.delete(new AlluxioURI("/testFolder/testFile"), DeleteOptions.defaults()
+        .setRecursive(true));
     long modificationTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
     Assert.assertTrue(modificationTimeBeforeDelete < modificationTimeAfterDelete);
   }
 
   @Test
   public void lastModificationTimeRename() throws Exception {
+    AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
+    AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
-    long opTimeMs = TEST_TIME_MS;
-
-    try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
-        new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
-        new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
-      LockedInodePath srcPath = inodePathPair.getFirst();
-      LockedInodePath dstPath = inodePathPair.getSecond();
-      mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
-    }
+    mFsMaster.createFile(srcPath, CreateFileOptions.defaults());
+    RenameOptions options = RenameOptions.defaults().setOperationTimeMs(TEST_TIME_MS);
+    mFsMaster.rename(srcPath, dstPath, options);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
-    Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
+    Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastModificationTimeMs());
   }
 
   @Test
@@ -517,7 +532,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFile1"), CreateFileOptions.defaults());
     mFsMaster.createFile(new AlluxioURI("/testFile2"), CreateFileOptions.defaults());
     try {
-      mFsMaster.rename(new AlluxioURI("/testFile1"), new AlluxioURI("/testFile2"));
+      mFsMaster.rename(new AlluxioURI("/testFile1"), new AlluxioURI("/testFile2"),
+          RenameOptions.defaults());
       Assert.fail("Should not be able to rename to an existing file");
     } catch (Exception e) {
       // expected
@@ -540,7 +556,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testDir1/testDir2/testDir3/testFile3"),
         createFileOptions);
     mFsMaster.rename(new AlluxioURI("/testDir1/testDir2"),
-        new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"));
+        new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"), RenameOptions.defaults());
   }
 
   @Test
@@ -549,10 +565,7 @@ public class FileSystemMasterIntegrationTest {
     long ttl = 100;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     options.setTtlAction(TtlAction.FREE);
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
-      mFsMaster.createFileInternal(inodePath, options);
-    }
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
@@ -577,11 +590,11 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  public void ttlExpiredCreateFileWithFreeActionTest() throws Exception {
+  public void ttlExpiredCreateFileWithFreeAction() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    options.setTtlAction(TtlAction.FREE);
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setPersisted(true).setTtl(ttl).setTtlAction(TtlAction.FREE);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
@@ -600,19 +613,14 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void ttlRename() throws Exception {
+    AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
+    AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 1;
-    CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
-
-    long opTimeMs = TEST_TIME_MS;
-    try (InodePathPair inodePathPair = mInodeTree.lockInodePathPair(
-        new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
-        new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
-      LockedInodePath srcPath = inodePathPair.getFirst();
-      LockedInodePath dstPath = inodePathPair.getSecond();
-      mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
-    }
+    CreateFileOptions createOptions = CreateFileOptions.defaults().setTtl(ttl);
+    mFsMaster.createFile(srcPath, createOptions);
+    RenameOptions renameOptions = RenameOptions.defaults().setOperationTimeMs(TEST_TIME_MS);
+    mFsMaster.rename(srcPath, dstPath, renameOptions);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
@@ -703,17 +711,49 @@ public class FileSystemMasterIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
 
+  /**
+   * This class provides multiple concurrent threads to create all files in one directory.
+   */
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
+    private CreateFileOptions mCreateFileOptions;
 
+    /**
+     * Constructs the concurrent creator.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param initPath the directory of files to be created in
+     */
     ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath) {
+      this(depth, concurrencyDepth, initPath, CreateFileOptions.defaults());
+    }
+
+    /**
+     * Constructs the concurrent creator.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param initPath the directory of files to be created in
+     * @param options method options
+     */
+    ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath,
+        CreateFileOptions options) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mInitPath = initPath;
+      mCreateFileOptions = options;
     }
 
+    /**
+     * Authenticates the client user named TEST_USER and executes the process of creating all
+     * files in one directory by multiple concurrent threads.
+     *
+     * @return null
+     * @throws Exception if an exception occurs
+     */
     @Override
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
@@ -721,11 +761,19 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
+    /**
+     * Executes the process of creating all files in one directory by multiple concurrent threads.
+     *
+     * @param depth the depth of files to be created in one directory
+     * @param concurrencyDepth the concurrency depth of files to be created in one directory
+     * @param path the directory of files to be created in
+     * @throws Exception if an exception occurs
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
       } else if (depth == 1) {
-        long fileId = mFsMaster.createFile(path, CreateFileOptions.defaults());
+        long fileId = mFsMaster.createFile(path, mCreateFileOptions);
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -747,7 +795,7 @@ public class FileSystemMasterIntegrationTest {
           ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
           for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-                path.join(Integer.toString(i))));
+                path.join(Integer.toString(i)), mCreateFileOptions));
             futures.add(executor.submit(call));
           }
           for (Future<Void> f : futures) {
@@ -764,7 +812,7 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
-  /*
+  /**
    * This class provides multiple concurrent threads to free all files in one directory.
    */
   class ConcurrentFreer implements Callable<Void> {
@@ -786,10 +834,18 @@ public class FileSystemMasterIntegrationTest {
     }
 
     private void doFree(AlluxioURI path) throws Exception {
-      mFsMaster.free(path, true);
+      mFsMaster.free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
       Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
+    /**
+     * Executes the process of freeing all files in one directory by multiple concurrent threads.
+     *
+     * @param depth the depth of files to be freed in one directory
+     * @param concurrencyDepth the concurrency depth of files to be freed in one directory
+     * @param path the directory of files to be freed in
+     * @throws Exception if an exception occurs
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
@@ -822,7 +878,8 @@ public class FileSystemMasterIntegrationTest {
       }
     }
   }
-  /*
+
+  /**
    * This class provides multiple concurrent threads to delete all files in one directory.
    */
   class ConcurrentDeleter implements Callable<Void> {
@@ -830,6 +887,13 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent deleter.
+     *
+     * @param depth the depth of files to be deleted in one directory
+     * @param concurrencyDepth the concurrency depth of files to be deleted in one directory
+     * @param initPath the directory of files to be deleted in
+     */
     ConcurrentDeleter(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
@@ -844,10 +908,18 @@ public class FileSystemMasterIntegrationTest {
     }
 
     private void doDelete(AlluxioURI path) throws Exception {
-      mFsMaster.delete(path, true);
+      mFsMaster.delete(path, DeleteOptions.defaults().setRecursive(true));
       Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
+    /**
+     * Executes the process of deleting all files in one directory by multiple concurrent threads.
+     *
+     * @param depth the depth of files to be deleted in one directory
+     * @param concurrencyDepth the concurrency depth of files to be deleted in one directory
+     * @param path the directory of files to be deleted in
+     * @throws Exception if an exception occurs
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
@@ -881,6 +953,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * This class runs multiple concurrent threads to rename all files in one directory.
+   */
   class ConcurrentRenamer implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
@@ -888,6 +963,15 @@ public class FileSystemMasterIntegrationTest {
     private AlluxioURI mRootPath2;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent renamer.
+     *
+     * @param depth the depth of files to be renamed in one directory
+     * @param concurrencyDepth the concurrency depth of files to be renamed in one directory
+     * @param rootPath  the source root path of the files to be renamed
+     * @param rootPath2 the destination root path of the files to be renamed
+     * @param initPath the directory of files to be renamed in under root path
+     */
     ConcurrentRenamer(int depth, int concurrencyDepth, AlluxioURI rootPath, AlluxioURI rootPath2,
         AlluxioURI initPath) {
       mDepth = depth;
@@ -904,6 +988,13 @@ public class FileSystemMasterIntegrationTest {
       return null;
     }
 
+    /**
+     * Renames all files in one directory using multiple concurrent threads.
+     *
+     * @param depth the depth of files to be renamed in one directory
+     * @param concurrencyDepth the concurrency depth of files to be renamed in one directory
+     * @param path the directory of files to be renamed in under root path
+     */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
         return;
@@ -924,7 +1015,7 @@ public class FileSystemMasterIntegrationTest {
           // InvalidPathException: This could happen if we are renaming something that's a child of
           // the root.
         }
-        mFsMaster.rename(srcPath, dstPath);
+        mFsMaster.rename(srcPath, dstPath, RenameOptions.defaults());
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -949,6 +1040,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * A class to start a thread that creates a file, completes the file and then deletes the file.
+   */
   private class ConcurrentCreateDelete implements Callable<Void> {
     private final CyclicBarrier mStartBarrier;
     private final AtomicBoolean mStopThread;
@@ -973,7 +1067,7 @@ public class FileSystemMasterIntegrationTest {
           mFsMaster.createFile(mFiles[id], CreateFileOptions.defaults());
           mFsMaster.completeFile(mFiles[id], CompleteFileOptions.defaults());
         } catch (FileAlreadyExistsException | FileDoesNotExistException
-            | FileAlreadyCompletedException e) {
+            | FileAlreadyCompletedException | InvalidPathException e) {
           // Ignore
         } catch (Exception e) {
           throw e;
@@ -981,8 +1075,8 @@ public class FileSystemMasterIntegrationTest {
         id = random.nextInt(mFiles.length);
         try {
           // Delete a random file.
-          mFsMaster.delete(mFiles[id], false);
-        } catch (FileDoesNotExistException e) {
+          mFsMaster.delete(mFiles[id], DeleteOptions.defaults().setRecursive(false));
+        } catch (FileDoesNotExistException | InvalidPathException e) {
           // Ignore
         } catch (Exception e) {
           throw e;

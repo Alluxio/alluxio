@@ -22,7 +22,7 @@ import java.nio.channels.FileChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * HDFS implementation for {@link UnderFileInputStream}.
+ * HDFS implementation for {@link alluxio.underfs.UnderFileSystem}.
  */
 @NotThreadSafe
 public class LocalUnderFileInputStream extends FilterInputStream implements Seekable {

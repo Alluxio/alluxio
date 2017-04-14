@@ -1,0 +1,90 @@
+syntax = "proto2";
+
+package alluxio.proto.dataserver;
+
+// Data server messages.
+message Exception {
+  optional string class_name = 1;
+  optional string message = 2;
+}
+
+message Status {
+  // See descriptions of the statuses in http://www.grpc.io/grpc-java/javadoc/io/grpc/Status.Code.html
+  // TODO(peis): Come up with a story for this. The objective is here is to standarize the error codes in Alluxio.
+  enum Code {
+    OK = 0;
+    CANCELLED = 1;
+    UNKNOWN = 2;
+    INVALID_ARGUMENT = 3;
+    PERMISSION_DENIED = 6;
+    INTERNAL = 13;
+
+    // The following are unused for now.
+    NOT_FOUND = 4;
+    ALREADY_EXISTS = 5;
+    UNAUTHENTICATED = 7;
+    RESOURCE_EXHAUSTED = 8;
+    FAILED_PRECONDITION = 9;
+    ABORTED = 10;
+    OUT_OF_RANGE = 11;
+    UNIMPLEMENTED = 12;
+    UNAVAILABLE = 14;
+    DATA_LOSS = 15;
+    DO_NOT_USE = 16;
+  }
+  optional Code code = 1 [default = OK];
+  optional string message = 2;
+
+  // The cause. Only one level is preserved.
+  optional Exception cause = 3;
+}
+
+// The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+enum RequestType {
+  ALLUXIO_BLOCK = 0;
+  UFS_FILE = 1;
+  UFS_BLOCK = 2;
+}
+
+// The read request.
+message ReadRequest {
+  optional RequestType type = 1;
+  // The block ID or UFS file ID.
+  optional int64 id = 2;
+  optional int64 offset = 3;
+  optional int64 length = 4;
+  // If set, this request is to cancel the reading request for the id.
+  optional bool cancel = 5;
+
+  optional int64 lock_id = 6;
+  optional int64 session_id = 7;
+  // If set, do not try to cache the block locally when reading the data from the UFS.
+  optional bool no_cache = 8;
+}
+
+// The write request.
+message WriteRequest {
+  optional RequestType type = 1;
+  // The block ID or UFS file ID.
+  optional int64 id = 2;
+  optional int64 offset = 3;
+  optional int64 session_id = 4;
+
+  // This is only applicable for block write.
+  optional int32 tier = 5;
+
+  optional bool eof = 6;
+  optional bool cancel = 7;
+
+  // The following are only applicable for ufs writes.
+  optional string ufs_path = 8;
+  optional string owner = 9;
+  optional string group = 10;
+  optional int32 mode = 11;
+}
+
+// The response.
+message Response {
+  optional Status status = 1;
+}
+

@@ -12,7 +12,6 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
@@ -44,7 +43,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public abstract class AbstractLineageClient implements LineageClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractLineageClient.class);
+
   protected LineageContext mContext;
 
   /**
@@ -106,7 +106,7 @@ public abstract class AbstractLineageClient implements LineageClient {
    * where each string is {@link AlluxioURI#getPath()}.
    *
    * @param uris the list of {@link AlluxioURI}s to be stripped
-   * @return a new list of strings mapping the input URIs to theri path component
+   * @return a new list of strings mapping the input URIs to their path component
    */
   private List<String> stripURIList(List<AlluxioURI> uris) {
     final List<String> pathStrings = new ArrayList<>(uris.size());

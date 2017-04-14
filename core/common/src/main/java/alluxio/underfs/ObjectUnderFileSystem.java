@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.options.CreateOptions;
@@ -40,11 +39,12 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A object based abstract {@link UnderFileSystem}.
+ * An object based abstract {@link UnderFileSystem}. Object Stores implementing the
+ * {@link UnderFileSystem} interface should derive from this class.
  */
 @ThreadSafe
 public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ObjectUnderFileSystem.class);
 
   /** Default maximum length for a single listing query. */
   private static final int DEFAULT_MAX_LISTING_CHUNK_LENGTH = 1000;

@@ -33,7 +33,9 @@ import javax.annotation.concurrent.ThreadSafe;
  *     * E:\path\to\skip\..\file
  *   * URI with multiple scheme components
  *     * scheme://host:123/path
+ *     * scheme:part2//host:123/path
  *     * scheme:part2://host:123/path
+ *     * scheme:part2:part3//host:123/path
  *     * scheme:part2:part3://host:123/path
  *
  * Does not support fragment in the URI.

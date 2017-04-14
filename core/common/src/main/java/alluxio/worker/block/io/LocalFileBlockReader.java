@@ -13,6 +13,7 @@ package alluxio.worker.block.io;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -32,6 +33,7 @@ public final class LocalFileBlockReader implements BlockReader {
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
   private final long mFileSize;
+  private boolean mClosed;
 
   /**
    * Constructs a Block reader given the file path of the block.
@@ -56,6 +58,9 @@ public final class LocalFileBlockReader implements BlockReader {
     return mFileSize;
   }
 
+  /**
+   * @return the file path
+   */
   public String getFilePath() {
     return mFilePath;
   }
@@ -72,7 +77,24 @@ public final class LocalFileBlockReader implements BlockReader {
   }
 
   @Override
+  public int transferTo(ByteBuf buf) throws IOException {
+    return buf.writeBytes(mLocalFileChannel, buf.writableBytes());
+  }
+
+  @Override
   public void close() throws IOException {
-    mCloser.close();
+    if (mClosed) {
+      return;
+    }
+    try {
+      mCloser.close();
+    } finally {
+      mClosed = true;
+    }
+  }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
   }
 }

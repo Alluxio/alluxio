@@ -19,10 +19,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
-import alluxio.client.block.RetryHandlingBlockWorkerClientTestUtils;
+import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
@@ -41,8 +40,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test master journal for cluster terminating. Assert that test can replay the editlog and
- * reproduce the correct state. Test both the single master(alluxio) and multi masters(alluxio-ft).
+ * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
+ * the correct state. Test both the single master (alluxio) and multi masters (alluxio-ft).
  */
 public class JournalShutdownIntegrationTest {
   @Rule
@@ -65,8 +64,7 @@ public class JournalShutdownIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    RetryHandlingBlockWorkerClientTestUtils.reset();
-    FileSystemWorkerClientTestUtils.reset();
+    BlockWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
 
@@ -109,7 +107,7 @@ public class JournalShutdownIntegrationTest {
     runCreateFileThread(cluster.getClient());
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      cluster.waitForNewMaster(60 * Constants.SECOND_MS);
+      cluster.waitForNewMaster(120 * Constants.SECOND_MS);
       Assert.assertTrue(cluster.stopLeader());
     }
     cluster.stopFS();
@@ -127,7 +125,7 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
-  private FileSystemMaster createFsMasterFromJournal() throws IOException {
+  private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -136,7 +134,8 @@ public class JournalShutdownIntegrationTest {
    */
   private void reproduceAndCheckState(int successFiles) throws Exception {
     Assert.assertNotEquals(successFiles, 0);
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     int actualFiles =
         fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
@@ -146,7 +145,7 @@ public class JournalShutdownIntegrationTest {
       Assert.assertTrue(
           fsMaster.getFileId(new AlluxioURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
-    fsMaster.stop();
+    registry.stop();
   }
 
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
@@ -192,11 +191,22 @@ public class JournalShutdownIntegrationTest {
     private final int mOpType; // 0: create file
     private final FileSystem mFileSystem;
 
+    /**
+     * Constructs the client thread.
+     *
+     * @param opType the create operation type
+     * @param fs a file system client to use for creating files
+     */
     public ClientThread(int opType, FileSystem fs) {
       mOpType = opType;
       mFileSystem = fs;
     }
 
+    /**
+     * Gets the number of files which are successfully created.
+     *
+     * @return the number of files successfully created
+     */
     public int getSuccessNum() {
       return mSuccessNum;
     }

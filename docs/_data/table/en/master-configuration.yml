@@ -10,6 +10,10 @@ alluxio.master.format.file_prefix:
   The file prefix of the file generated in the journal directory when the journal is
   formatted. The master will search for a file with this prefix when determining of the journal
   was once formatted.
+alluxio.master.journal.flush.batch.time.ms:
+  Time (in milliseconds) to wait for batching journal writes.
+alluxio.master.journal.flush.timeout.ms:
+  The amount of time (in milliseconds) to keep retrying journal writes before giving up and shutting down the master.
 alluxio.master.journal.folder:
   The path to store master journal logs.
 alluxio.master.journal.formatter.class:
@@ -36,7 +40,8 @@ alluxio.master.lineage.recompute.log.path:
 alluxio.master.port:
   The port that Alluxio master node runs on.
 alluxio.master.retry:
-  The number of retries that the client connects to master
+  "The number of retries that the client connects to master. (NOTE: this property is deprecated, use
+  `alluxio.user.rpc.retry.max.num.retry` instead)"
 alluxio.master.startup.consistency.check.enabled:
   Whether the system should be checked for consistency with the underlying storage on startup.
   During the time the check is running, Alluxio will be in read only mode. Enabled by default.
@@ -72,3 +77,5 @@ alluxio.master.keytab.file:
   Kerberos keytab file for Alluxio master.
 alluxio.master.principal:
   Kerberos principal for Alluxio master.
+alluxio.master.connection.timeout.ms:
+  Timeout (in milliseconds) between master and client，the default value is 0, that time is unlimited

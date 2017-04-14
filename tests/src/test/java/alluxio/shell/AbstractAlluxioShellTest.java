@@ -81,6 +81,11 @@ public abstract class AbstractAlluxioShellTest {
     System.setOut(mNewOutput);
   }
 
+  /**
+   * Tests the "copyToLocal" {@link AlluxioShell} command.
+   *
+   * @param bytes file size
+   */
   protected void copyToLocalWithBytes(int bytes) throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
@@ -90,6 +95,12 @@ public abstract class AbstractAlluxioShellTest {
     fileReadTest("/testFile", 10);
   }
 
+  /**
+   * Reads the local file copied from Alluxio and checks all the data.
+   *
+   * @param fileName file name
+   * @param size file size
+   */
   protected void fileReadTest(String fileName, int size) throws IOException {
     File testFile = new File(PathUtils.concatPath(mLocalAlluxioCluster.getAlluxioHome(), fileName));
     FileInputStream fis = new FileInputStream(testFile);
@@ -99,6 +110,15 @@ public abstract class AbstractAlluxioShellTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, read));
   }
 
+  /**
+   * Creates file by given path and writes content to file.
+   *
+   * @param path the file path
+   * @param toWrite the file content
+   * @return the created file instance
+   * @throws IOException if error happens during writing to file
+   * @throws FileNotFoundException if file not found
+   */
   protected File generateFileContent(String path, byte[] toWrite) throws IOException,
       FileNotFoundException {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + path);
@@ -109,6 +129,31 @@ public abstract class AbstractAlluxioShellTest {
     return testFile;
   }
 
+  /**
+   * Creates file by given the temporary path and writes content to file.
+   *
+   * @param path the file path
+   * @param toWrite the file content
+   * @return the created file instance
+   * @throws IOException if error happens during writing to file
+   * @throws FileNotFoundException if file not found
+   */
+  protected File generateRelativeFileContent(String path, byte[] toWrite) throws IOException,
+      FileNotFoundException {
+    File testFile = new File(path);
+    testFile.createNewFile();
+    FileOutputStream fos = new FileOutputStream(testFile);
+    fos.write(toWrite);
+    fos.close();
+    return testFile;
+  }
+
+  /**
+   * Get an output string displayed in shell according to the command.
+   *
+   * @param command a shell command
+   * @return the output string
+   */
   protected String getCommandOutput(String[] command) {
     String cmd = command[0];
     if (command.length == 2) {
@@ -131,8 +176,10 @@ public abstract class AbstractAlluxioShellTest {
         case "mv":
           return "Renamed " + command[1] + " to " + command[2] + "\n";
         case "copyFromLocal":
-          return "Copied " + command[1] + " to " + command[2] + "\n";
+          return "Copied " + "file://" + command[1] + " to " + command[2] + "\n";
         case "copyToLocal":
+          return "Copied " + command[1] + " to " + "file://" + command[2] + "\n";
+        case "cp":
           return "Copied " + command[1] + " to " + command[2] + "\n";
         default:
           return null;
@@ -165,6 +212,15 @@ public abstract class AbstractAlluxioShellTest {
     LoginUserTestUtils.resetLoginUser(user);
   }
 
+  /**
+   * Reads content from the file that the uri points to.
+   *
+   * @param uri the path of the file to read
+   * @param length the length of content to read
+   * @return the content that has been read
+   * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an unexpected exception is thrown
+   */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
     try (FileInStream tfis = mFileSystem
         .openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {

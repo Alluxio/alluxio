@@ -8,7 +8,7 @@ There are many companies and organizations that use Alluxio. Here is a list of s
 users. If your organization is using Alluxio, please feel free to 
 [edit this list](https://github.com/alluxio/alluxio/edit/master/docs/en/Powered-By-Alluxio.md)
 or let us know by email (project.alluxio@gmail.com) or
-[survey](http://alluxio.org/resources/survey-users/).
+[survey](https://docs.google.com/forms/d/e/1FAIpQLSfRTSKlysTNq9Zg-_Q87tRvs9CPWc49LjdMkEYUW-DlXSxPig/viewform).
 
 * [Alibaba](http://www.alibaba.com/)
 * [Alluxio](http://www.alluxio.com/)
@@ -17,8 +17,12 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
 * [Barclays](http://www.barclays.co.uk/)
+* [EMC](https://www.emc.com/)
+* [ESRI](http://www.esri.com/)
 * [GBICC](http://www.gbicc.net/)
+* [Guardant Health](http://www.guardanthealth.com/)
 * [Huawei](http://www.huawei.com/)
+* [IBM](http://www.ibm.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
 * [JD](http://www.jd.com/)
@@ -27,7 +31,9 @@ or let us know by email (project.alluxio@gmail.com) or
 * [PerceptIn](http://www.perceptin.io/)
 * [Qunar](http://www.qunar.com/)
 * [Radicalbit](http://www.radicalbit.io)
+* [Samsung](http://www.samsung.com/us/)
 * [Talend](https://www.talend.com/)
+* [Tencent](https://www.tencent.com)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 

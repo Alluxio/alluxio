@@ -13,7 +13,6 @@ package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.WriteType;
@@ -162,10 +161,11 @@ public final class JournalCrashTest {
     }
   }
 
+  private static final Logger LOG = LoggerFactory.getLogger(JournalCrashTest.class);
+
   // The two Exit Codes are used to tell script if the test runs well.
   private static final int EXIT_FAILED = 1;
   private static final int EXIT_SUCCESS = 0;
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static CreateFileOptions sCreateFileOptions = null;
   private static List<ClientThread> sClientThreadList = null;
@@ -246,8 +246,8 @@ public final class JournalCrashTest {
     // Set NO_STORE and NO_PERSIST so that this test can work without AlluxioWorker.
     sCreateFileOptions = CreateFileOptions.defaults().setWriteType(WriteType.NONE);
     // Set the max retry to avoid long pending for client disconnect.
-    if (System.getProperty(PropertyKey.MASTER_RETRY.toString()) == null) {
-      System.setProperty(PropertyKey.MASTER_RETRY.toString(), "10");
+    if (System.getProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY.toString()) == null) {
+      System.setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY.toString(), "10");
     }
 
     System.out.println("Start Journal Crash Test...");

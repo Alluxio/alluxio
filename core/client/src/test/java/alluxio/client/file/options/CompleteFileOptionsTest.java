@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * Tests for the {@link CompleteFileOptions} class.
  */
-public class CompleteFileOptionsTest {
+public final class CompleteFileOptionsTest {
   /**
    * Tests that building a {@link CompleteFileOptions} with the defaults works.
    */

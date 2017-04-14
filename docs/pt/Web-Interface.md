@@ -8,20 +8,20 @@ priority: 6
 * Table of Contents
 {:toc}
 
-O Alluxio possui uma interface `web` amigável permitindo aos usuários observar e gerenciar o sistema 
-através desta. Cada um dos `master` e `workers` possui sua própria interface de usuário `web`. A porta 
+O Alluxio possui uma interface `web` amigável permitindo aos usuários observar e gerenciar o sistema
+através desta. Cada um dos `master` e `workers` possui sua própria interface de usuário `web`. A porta
 padrão para a `web` é 19999 para o `master` e 30000 para os `workers`.
 
-# Interface Web do Alluxio Master
+## Interface Web do Alluxio Master
 
-O Alluxio `master` oferece uma interface `web` para ajudar na gestão do sistema. A porta padrão para a 
-interface `web` do Alluxio `master` é a 19999, então para acessar esta, visite `http://<MASTER IP>:19999`. 
+O Alluxio `master` oferece uma interface `web` para ajudar na gestão do sistema. A porta padrão para a
+interface `web` do Alluxio `master` é a 19999, então para acessar esta, visite `http://<MASTER IP>:19999`.
 Por exemplo, se você está rodando o Alluxio localmente, a interface `web` pode ser acessar através de  
 [localhost:19999](http://localhost:19999).
 
 A interface `web` do Alluxio `master` possui várias páginas, conforme descrito abaixo.
 
-## Home Page
+### Home Page
 
 A `home page` possui a aparência abaixo:
 
@@ -35,18 +35,18 @@ A `home page` informa a visão geral do `status` do sistema. Isto inclui as seç
 
 * **Cluster Usage Summary**
 
-	Informação de armazenamento do sistema Alluxio e também do armazenamento inferior. A utilização 
-	do armazenamento do Alluxio pode estar próximo do 100% porém o armazenamento inferior não deve 
+	Informação de armazenamento do sistema Alluxio e também do armazenamento inferior. A utilização
+	do armazenamento do Alluxio pode estar próximo do 100% porém o armazenamento inferior não deve
 	alcançar 100% de utilização.
 
 * **Storage Usage Summary**
 
-	Informação de armazenamento por camada do sistema Alluxio que pode informar a quantidade de espaço 
+	Informação de armazenamento por camada do sistema Alluxio que pode informar a quantidade de espaço
 	utilizado por camada no sistema.
 
-## Configuration Page
+### Configuration Page
 
-Para checar as informações atuais de configuração do sistema, clique em "System Configuration" na barra 
+Para checar as informações atuais de configuração do sistema, clique em "System Configuration" na barra
 de navegação no topo da tela.
 
 ![configurations]({{site.data.img.screenshot_systemConfiguration}})
@@ -59,32 +59,32 @@ A página de configuração possui duas seções:
 
 * **White List**
 
-	Contém todos os elegíveis diretórios pré-definidos do Alluxio para serem armazenados no Alluxio. Uma 
-	requisição ainda pode ser feita em um arquivo não pré-definido por um caminho que está no `white list`. 
+	Contém todos os elegíveis diretórios pré-definidos do Alluxio para serem armazenados no Alluxio. Uma
+	requisição ainda pode ser feita em um arquivo não pré-definido por um caminho que está no `white list`.
 	Apenas os arquivos da `white list` serão armazenados no Alluxio.
 
 ## Browse File System Page
 
-Você pode navegar pelo `file system` do Alluxio através da `UI`. Quando selecionar a aba 
+Você pode navegar pelo `file system` do Alluxio através da `UI`. Quando selecionar a aba
 "Browse File System" na barra de navegação, você verá algo como isso:
 
 ![browse]({{site.data.img.screenshot_browseFileSystem}})
 
-Os arquivos no diretório atual estão listados com o nome do arquivo, tamanho do arquivo, tamanho de 
-cada bloco, percentual do dado em memória, tempo de criação e tempo de modificação. Para visualizar o 
+Os arquivos no diretório atual estão listados com o nome do arquivo, tamanho do arquivo, tamanho de
+cada bloco, percentual do dado em memória, tempo de criação e tempo de modificação. Para visualizar o
 conteúdo de um arquivo, clique neste arquivo.
 
-## Browse In-Memory Files Page
+### Browse In-Memory Files Page
 
 Para navegar em todos os arquivos em memória, clique na aba "In-Memory Files" dentro da barra de navegação.
 
 ![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
 
-Os arquivos atualmente na camada de memória são listados com o nome do arquivo, o tamanho do arquivo, 
-tamanho de cada bloco, se o arquivo foi ou não fixado em memória, a data de criação e modificação 
+Os arquivos atualmente na camada de memória são listados com o nome do arquivo, o tamanho do arquivo,
+tamanho de cada bloco, se o arquivo foi ou não fixado em memória, a data de criação e modificação
 do arquivo.
 
-## Workers Page
+### Workers Page
 
 O `master` também visualiza todos os Alluxio `workers` do sistema e os mostra na aba "Workers".
 
@@ -94,16 +94,16 @@ A página dos `workers` sede uma visão geral de todos os servidores Alluxio `wo
 
 * **Live Nodes**
 
-	Uma lista de todos os atuais `workers` que servem requisições do Alluxio. Clicando no nome do 
+	Uma lista de todos os atuais `workers` que servem requisições do Alluxio. Clicando no nome do
 	`worker` irá redirecionar para a interface `web` de usuário deste `worker`.
 
 * **Dead Nodes**
 
-	Ima lista de todos os `workers` declarados como "mortos" pelo `master`, geralmente, devido a 
-	uma longa espera de `timeout` de `heartbeat` do `worker`. Possíveis causas incluem o `reboot` 
+	Ima lista de todos os `workers` declarados como "mortos" pelo `master`, geralmente, devido a
+	uma longa espera de `timeout` de `heartbeat` do `worker`. Possíveis causas incluem o `reboot`
 	do servidor ou falhas na rede.
-    
-## Master Metrics 
+
+### Master Metrics
 
 Para acessar a seção de métricas do `master`, clique na aba “Metrics” dentro da aba de navegação.
 
@@ -123,28 +123,28 @@ Esta seção informa todas as métricas do `master`. Isto inclui as seções seg
 
 	Número de invocações `RPC` por operação.
 
-# Interface Web dos Alluxio Workers
+## Interface Web dos Alluxio Workers
 
-Cada Alluxio `worker` também oferece uma interface `web` para prover informações do `worker`. A porta 
-padrão da interface `web` é 30000 e pode ser acessar em `http://<WORKER IP>:30000`. Por exemplo, 
-se você iniciar o Alluxio locamente, a interface `web` do `worker` pode ser visualizada em 
+Cada Alluxio `worker` também oferece uma interface `web` para prover informações do `worker`. A porta
+padrão da interface `web` é 30000 e pode ser acessar em `http://<WORKER IP>:30000`. Por exemplo,
+se você iniciar o Alluxio locamente, a interface `web` do `worker` pode ser visualizada em
 [localhost:30000](http://localhost:30000).
 
-## Home Page
+### Home Page
 
-A `home page` para a interface `web` do Alluxio `worker` é semelhante a `home page` do Alluxio 
-`master` mas esta contém informação específica de um único `worker`. Sendo assim, esta possui 
+A `home page` para a interface `web` do Alluxio `worker` é semelhante a `home page` do Alluxio
+`master` mas esta contém informação específica de um único `worker`. Sendo assim, esta possui
 seções semelhantes: **Worker Summary**, **Storage Usage Summary**, **Tiered Storage Details**.
 
-## BlockInfo Page
+### BlockInfo Page
 
-Na página "BlockInfo", você pode ver os arquivos do `worker` e outras informações como tamanho 
-do arquivo e em que camada este está armazenado. Se você clicar em um arquivo, você pode 
+Na página "BlockInfo", você pode ver os arquivos do `worker` e outras informações como tamanho
+do arquivo e em que camada este está armazenado. Se você clicar em um arquivo, você pode
 visualizar todos os blocos daquele arquivo.
 
-## Worker Metrics 
+### Worker Metrics
 
-Para acessar a seção de métricas do `worker`, clique na aba “Metrics” dentro da barra de 
+Para acessar a seção de métricas do `worker`, clique na aba “Metrics” dentro da barra de
 navegação.
 
 ![workerMetrics]({{site.data.img.screenshot_workerMetrics}})

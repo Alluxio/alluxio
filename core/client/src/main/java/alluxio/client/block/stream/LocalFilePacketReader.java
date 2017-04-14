@@ -89,6 +89,11 @@ public final class LocalFilePacketReader implements PacketReader {
     public PacketReader create(long offset, long len) throws IOException {
       return new LocalFilePacketReader(new LocalFileBlockReader(mPath), offset, len);
     }
+
+    @Override
+    public boolean isShortCircuit() {
+      return true;
+    }
   }
 }
 

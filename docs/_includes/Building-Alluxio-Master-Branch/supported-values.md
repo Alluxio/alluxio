@@ -1,4 +1,4 @@
-```bash
+```
 Not Specified # [Default] Tests against local file system
 swiftTest     # Tests against a simulated Swift cluster
 hdfsTest      # Tests against HDFS minicluster

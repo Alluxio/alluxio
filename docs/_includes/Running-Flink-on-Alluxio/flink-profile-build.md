@@ -1,3 +1,3 @@
 ```bash
-mvn clean package -Pflink -DskipTests
+$ mvn clean package -DskipTests
 ```

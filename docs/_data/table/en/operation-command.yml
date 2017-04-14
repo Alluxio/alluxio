@@ -46,6 +46,8 @@ ls:
 lsr:
   Recursively list all the files and directories under the given path with information such
   as size.
+masterInfo:
+  Prints information regarding master fault tolerance such as leader address, list of master addresses, and the configured Zookeeper address.
 mkdir:
   Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
   command will fail if any of the given paths already exist.
@@ -71,7 +73,7 @@ rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
 setTtl:
-  Set the TTL (time to live) in milliseconds to a file. Allowing to perform either "delete"
+  Set the TTL (time to live) in milliseconds to a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
 tail:
   Print the last 1KB of the specified file to the console.

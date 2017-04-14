@@ -15,23 +15,19 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
+import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Tests for the {@link CreateOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-// Need to mock Permission to use CommonTestUtils#testEquals.
-@PrepareForTest(Permission.class)
 public final class CreateOptionsTest {
   /**
    * Tests for default {@link CreateOptions}.
@@ -40,13 +36,11 @@ public final class CreateOptionsTest {
   public void defaults() throws IOException {
     CreateOptions options = CreateOptions.defaults();
 
-    Permission expectedPs = Permission.defaults().applyFileUMask();
-
-    // Verify that the owner and group are not set.
-    Assert.assertEquals("", options.getPermission().getOwner());
-    Assert.assertEquals("", options.getPermission().getGroup());
-    Assert.assertEquals(expectedPs.getMode().toShort(),
-        options.getPermission().getMode().toShort());
+    Assert.assertFalse(options.getCreateParent());
+    Assert.assertTrue(options.isEnsureAtomic());
+    Assert.assertEquals("", options.getOwner());
+    Assert.assertEquals("", options.getGroup());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**
@@ -63,13 +57,11 @@ public final class CreateOptionsTest {
 
     CreateOptions options = CreateOptions.defaults();
 
-    Permission expectedPs = Permission.defaults().applyFileUMask();
-
-    // Verify that the owner and group are not set.
-    Assert.assertEquals("", options.getPermission().getOwner());
-    Assert.assertEquals("", options.getPermission().getGroup());
-    Assert.assertEquals(expectedPs.getMode().toShort(),
-        options.getPermission().getMode().toShort());
+    Assert.assertFalse(options.getCreateParent());
+    Assert.assertTrue(options.isEnsureAtomic());
+    Assert.assertEquals("", options.getOwner());
+    Assert.assertEquals("", options.getGroup());
+    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**
@@ -77,12 +69,25 @@ public final class CreateOptionsTest {
    */
   @Test
   public void fields() {
-    Permission perm = Permission.defaults();
+    Random random = new Random();
+    boolean createParent = random.nextBoolean();
+    boolean ensureAtomic = random.nextBoolean();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    Mode mode = new Mode((short) random.nextInt());
 
     CreateOptions options = CreateOptions.defaults();
-    options.setPermission(perm);
+    options.setCreateParent(createParent);
+    options.setEnsureAtomic(ensureAtomic);
+    options.setOwner(owner);
+    options.setGroup(group);
+    options.setMode(mode);
 
-    Assert.assertEquals(perm, options.getPermission());
+    Assert.assertEquals(createParent, options.getCreateParent());
+    Assert.assertEquals(ensureAtomic, options.isEnsureAtomic());
+    Assert.assertEquals(owner, options.getOwner());
+    Assert.assertEquals(group, options.getGroup());
+    Assert.assertEquals(mode, options.getMode());
   }
 
   @Test

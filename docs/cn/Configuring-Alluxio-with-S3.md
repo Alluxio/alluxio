@@ -6,9 +6,12 @@ group: Under Store
 priority: 0
 ---
 
+* 内容列表
+{:toc}
+
 该指南介绍如何配置Alluxio从而使用[Amazon S3](https://aws.amazon.com/s3/)作为底层文件系统。
 
-# 初始步骤
+## 初始步骤
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
@@ -24,7 +27,7 @@ priority: 0
 
 另外，为了在S3上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该向导中，S3 bucket的名称为`S3_BUCKET`，在该bucket里的目录名称为`S3_DIRECTORY`。
 
-# 配置Alluxio
+## 配置Alluxio
 
 若要在Alluxio中使用S3作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定一个**已有的**S3 bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-env.sh`中添加如下语句指定它：
 
@@ -44,7 +47,7 @@ priority: 0
 
 更改完成后，Alluxio应该能够将S3作为底层文件系统运行，你可以尝试[使用S3在本地运行Alluxio](#running-alluxio-locally-with-s3)
 
-## 通过代理访问S3
+### 通过代理访问S3
 
 若要通过代理与S3交互，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 
@@ -54,14 +57,14 @@ priority: 0
 
 如果运行Alluxio client的JVM不在Alluxio Master和Workers上，也要为其进行这些设置，参考[配置分布式应用](#configuring-distributed-applications)
 
-# 配置应用
+## 配置应用
 
 当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
 
-## 启用Hadoop S3客户端（代替本地S3客户端）
+### 启用Hadoop S3客户端（代替本地S3客户端）
 
 Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配置为底层文件系统时，该本地客户端会被使用。
 
@@ -75,7 +78,7 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 
 `jets3t 0.9.0`适用于Hadoop `2.3.0`，而`jets3t 0.7.1`应适用于更旧版本的Hadoop。要确认支持你的Hadoop版本的具体`jets3t`版本号，可以参考[MvnRepository](http://mvnrepository.com/)。
 
-## 使用非亚马逊服务提供商
+### 使用非亚马逊服务提供商
 
 如果需要使用一个不是来自"s3.amazonaws.com"的S3服务，用户需要修改`conf/alluxio-env.sh`文件中的`ALLUXIO_JAVA_OPTS`部分，具体添加如下：
 
@@ -85,13 +88,17 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 
 将`<USE_HTTPS>`设置为`true`或者`false`。如果设置为`true` (使用HTTPS)，同时需要设置`<HTTPS_PORT>`为服务提供商给定的HTTPS port，并且删除`alluxio.underfs.s3.endpoint.http.port`参数。 如果你将`<USE_HTTPS>`设置为`false`（即使用HTTP），同时也需要设置`<HTTPS_PORT>`为服务提供商给定的HTTPS port，并且删除`alluxio.underfs.s3.endpoint.https.port`参数。如果HTTP或HTTPS的port值没有设定，那么`<HTTP_PORT>`采用的默认端口为80，`<HTTPS_PORT>`采用的默认端口为443.
 
-## 配置分布式应用
+### 使用v2的S3签名
+
+一些S3服务提供商仅仅支持v2签名。对这些S3提供商来说，可以通过设置`alluxio.underfs.s3a.signer.algorithm`为`S3SignerType`来强制使用v2签名。
+
+### 配置分布式应用
 
 如果你使用的Alluxio Client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了AWS证书，最简单的方法是在启动client JVM时添加如下选项：
 
 {% include Configuring-Alluxio-with-S3/java-bash.md %}
 
-# 使用S3在本地运行Alluxio
+## 使用S3在本地运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 

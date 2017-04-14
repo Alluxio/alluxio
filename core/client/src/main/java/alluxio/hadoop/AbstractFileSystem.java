@@ -13,7 +13,6 @@ package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -72,8 +71,9 @@ import javax.security.auth.Subject;
  */
 @NotThreadSafe
 abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystem.class);
+
   public static final String FIRST_COM_PATH = "alluxio_dep/";
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */
@@ -128,7 +128,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public void close() throws IOException {
-    if (mContext != FileSystemContext.INSTANCE) {
+    if (mContext != null && mContext != FileSystemContext.INSTANCE) {
       mContext.close();
     }
     super.close();
@@ -249,7 +249,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException | FileDoesNotExistException e) {
-      LOG.error("delete failed: {}", e.getMessage());
+      LOG.warn("delete failed: {}", e.getMessage());
       return false;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -422,15 +422,27 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
-    Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
-    Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
+    // NOTE, we must switch the context classloader to the one provided by Hadoop configuration
+    // first before anything else. This ensures all Alluxio classes are loaded by the same
+    // classloader, given this class is already loaded by the Hadoop configuration classloader.
+    Thread.currentThread().setContextClassLoader(conf.getClassLoader());
+
+    // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
+    // configuration property, so the user doesn't need to specify the authority.
+    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
+      Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
+    }
 
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addS3Credentials(conf);
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
-    mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
+
+    // HDFS doesn't allow the authority to be empty; it must be "/" instead.
+    String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
+    mAlluxioHeader = getScheme() + "://" + authority;
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
@@ -474,10 +486,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    ConfUtils.mergeHadoopConfiguration(conf);
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf);
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
+    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+    }
 
     // These must be reset to pick up the change to the master address.
     // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
@@ -614,10 +628,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Attempts to open the specified file for reading.
    *
    * @param path the file name to open
-   * @param bufferSize the size in bytes of the buffer to be used
+   * @param bufferSize stream buffer size in bytes, currently unused
    * @return an {@link FSDataInputStream} at the indicated path of a file
    * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
+  // TODO(calvin): Consider respecting the buffer size option
   @Override
   public FSDataInputStream open(Path path, int bufferSize) throws IOException {
     LOG.debug("open({}, {})", path, bufferSize);
@@ -626,8 +641,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    return new FSDataInputStream(
-        new HdfsFileInputStream(mContext, uri, getConf(), bufferSize, mStatistics));
+    return new FSDataInputStream(new HdfsFileInputStream(mContext, uri, mStatistics));
   }
 
   @Override
@@ -642,7 +656,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     try {
       mFileSystem.rename(srcPath, dstPath);
     } catch (FileDoesNotExistException e) {
-      LOG.error("Failed to rename {} to {}", src, dst);
+      LOG.warn("rename failed: {}", e.getMessage());
       return false;
     } catch (AlluxioException e) {
       ensureExists(srcPath);
@@ -650,14 +664,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       try {
         dstStatus = mFileSystem.getStatus(dstPath);
       } catch (IOException | AlluxioException e2) {
-        LOG.error("Failed to rename {} to {}", src, dst);
+        LOG.warn("rename failed: {}", e.getMessage());
         return false;
       }
       // If the destination is an existing folder, try to move the src into the folder
       if (dstStatus != null && dstStatus.isFolder()) {
         dstPath = dstPath.join(srcPath.getName());
       } else {
-        LOG.error("Failed to rename {} to {}", src, dst);
+        LOG.warn("rename failed: {}", e.getMessage());
         return false;
       }
       try {

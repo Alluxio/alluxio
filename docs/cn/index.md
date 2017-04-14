@@ -4,6 +4,9 @@ title: 概览
 group: Home
 ---
 
+* 内容列表
+{:toc}
+
 Alluxio（之前名为Tachyon）是世界上第一个以内存为中心的虚拟的分布式存储系统。它统一了数据访问的方式，为上层计算框架和底层存储系统构建了桥梁。
 应用只需要连接Alluxio即可访问存储在底层任意存储系统中的数据。此外，Alluxio的以内存为中心的架构使得数据的访问速度能比现有常规方案快几个数量级。
 
@@ -21,7 +24,7 @@ Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](h
 
 Alluxio与Hadoop是兼容的。现有的数据分析应用，如Spark和MapReduce程序，可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过100个组织机构的
-[400多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
+[450多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
 [阿里巴巴](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [百度](https://www.baidu.com),
 [卡内基梅隆大学](https://www.cmu.edu/)，[IBM](https://www.ibm.com)，[Intel](http://www.intel.com/),
 [南京大学](http://pasa-bigdata.nju.edu.cn/),
@@ -71,12 +74,12 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，以及单节点本地文件系统，�
 系统。在调试模式下，管理员可以查看每一个文件的详细信息，包括存放位置，检查点路径等等。用户也可以通
 过``./bin/alluxio fs``与Alluxio交互，例如：将数据从文件系统拷入拷出。
 
-# 快速入门
+## 快速入门
 
 如果要快速地架设alluxio并运行，请阅读[快速入门](Getting-Started.html)页面，该页面描述了如何部署Alluxio并
 在本地环境下运行几个基本的样例。
 
-# 下载
+## 下载
 
 你可以从[Alluxio下载页面](http://alluxio.org/download)获取已发布版本。每个版本都是由已编译二进制文件组成，与各种Hadoop版本兼容。如果你想从源码编译生成Alluxio，请前往
 [从Master分支构建Alluxio](Building-Alluxio-Master-Branch.html)。

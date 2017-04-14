@@ -64,7 +64,7 @@ public final class NettyPacketReaderTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(InetSocketAddress.class);
     mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
-        Protocol.RequestType.ALLUXIO_BLOCK);
+        false, Protocol.RequestType.ALLUXIO_BLOCK);
 
     mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
@@ -216,8 +216,7 @@ public final class NettyPacketReaderTest {
     Assert.assertTrue(request != null);
     Assert.assertTrue(request instanceof RPCProtoMessage);
     Assert.assertEquals(null, ((RPCProtoMessage) request).getPayloadDataBuffer());
-    Protocol.ReadRequest readRequest =
-        (Protocol.ReadRequest) ((RPCProtoMessage) request).getMessage();
+    Protocol.ReadRequest readRequest = ((RPCProtoMessage) request).getMessage().getMessage();
     Assert.assertEquals(BLOCK_ID, readRequest.getId());
     Assert.assertEquals(offset, readRequest.getOffset());
     Assert.assertEquals(length, readRequest.getLength());

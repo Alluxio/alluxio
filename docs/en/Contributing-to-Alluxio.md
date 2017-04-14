@@ -10,27 +10,21 @@ group: Resources
 
 Thank you for your interest in Alluxio! We greatly appreciate any new features or fixes.
 
-### New Contributors
+## New Contributors
 
 If you are a new contributor to the Alluxio open source project, please visit the
 [Contributing Getting Started Guide](Contributing-Getting-Started.html) for a tutorial on how to
 contribute to Alluxio.
 
-### Alluxio Getting Started Tasks
+## Alluxio Getting Started Tasks
 
 There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
 1.  [Run Alluxio Locally](Running-Alluxio-Locally.html)
-
 2.  [Run Alluxio on a Cluster](Running-Alluxio-on-a-Cluster.html)
-
 3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
-
-4.  Read a
-    [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-
+4.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
-
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
 Here is a list of
@@ -42,21 +36,17 @@ For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
-### Submitting Code
+## Submitting Code
 
 -   We encourage you to break your work into small, single-purpose patches if possible. It is much
     harder to merge in a large change with a lot of disjoint features.
-
 -   We track issues and features in our [JIRA](https://alluxio.atlassian.net/). If you have not
     registered an account, please do so!
-
 -   Open a ticket in [JIRA](https://alluxio.atlassian.net/) detailing the proposed change and what
     purpose it serves.
-
 -   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
-
 -   In your pull request title, make sure to reference the JIRA ticket. This will connect the
     ticket to the proposed code changes. for example:
 
@@ -65,7 +55,6 @@ For a tutorial, see the GitHub guides on
 ~~~~~
 
 -   In the description field of the pull request, please include a link to the JIRA ticket.
-
 
 Note that for some minor changes it is not required to create corresponding JIRA tickets before
 submiting the pull requests. For instance:
@@ -86,7 +75,7 @@ submiting the pull requests. For instance:
 [DOCFIX] Improve documentation of how to contribute to Alluxio
 ~~~~~
 
-#### Testing
+### Testing
 
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem and
 HDFS 1.0.4 as the under filesystem in the HDFS module). ``mvn -Dhadoop.version=2.4.0 test`` will
@@ -111,10 +100,10 @@ leverage the Scala shell, as discussed in this
 -   Run tests with Hadoop FileSystem contract tests (uses hadoop 2.6.0):
 `mvn -PcontractTest clean test`
 
-#### Coding Style
+### Coding Style
 
 -   Please follow the style of the existing codebase. Specifically, we use
-    [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
+    [Google Java style](https://google.github.io/styleguide/javaguide.html),
     with the following changes or deviations:
     -  Maximum line length of **100** characters.
     -  Third-party imports are grouped together to make IDE formatting much simpler.
@@ -147,14 +136,14 @@ leverage the Scala shell, as discussed in this
 
 {% include Contributing-to-Alluxio/checkstyle.md %}
 
-#### FindBugs
+### FindBugs
 
 Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
 {% include Contributing-to-Alluxio/findbugs.md %}
 
-### IDE
+## IDE
 
 You can generate an Eclipse configuration file by running:
 

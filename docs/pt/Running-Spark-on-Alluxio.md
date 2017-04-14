@@ -6,6 +6,9 @@ group: Frameworks
 priority: 0
 ---
 
+* Table of Contents
+{:toc}
+
 Este guia descreve como rodar o [Apache Spark](http://spark-project.org/) no Alluxio e utilizar
 o `HDFS` como o sistema de armazenamento inferior. Atente que o Alluxio suporta vários
 `under storage systems` além do HDFS e permite que estruturas como o `Spark` leiam ou
@@ -40,7 +43,7 @@ projeto inteiro a partir do diretório raiz do Alluxio com o comando:
 
 {% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-xml.md %}
 
-E as linhas seguintes em `spark/conf/spark-env.sh`:
+E as linhas seguintes em `spark/conf/spark-defaults.conf`:
 
 {% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-bash.md %}
 
@@ -99,4 +102,3 @@ De qualquer forma, os endereços do `Spark Worker` serão o `hostname` e o `Loca
 ![hostname]({{site.data.img.screenshot_datalocality_sparkwebui}})
 
 ![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
-

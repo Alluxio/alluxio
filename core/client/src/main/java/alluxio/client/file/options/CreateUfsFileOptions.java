@@ -12,9 +12,9 @@
 package alluxio.client.file.options;
 
 import alluxio.Constants;
-import alluxio.annotation.PublicApi;
-import alluxio.security.authorization.Permission;
+import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateUfsFileTOptions;
+import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
 
@@ -26,11 +26,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Options for creating a UFS file. Currently we do not allow user to set arbitrary owner and
  * group options. The owner and group will be set to the user login.
  */
-@PublicApi
 @NotThreadSafe
 public final class CreateUfsFileOptions {
-  /** The ufs file permission, including owner, group and mode. */
-  private Permission mPermission;
+  private String mOwner;
+  private String mGroup;
+  private Mode mMode;
 
   /**
    * Creates a default {@link CreateUfsFileOptions} with owner, group from login module and
@@ -44,26 +44,58 @@ public final class CreateUfsFileOptions {
   }
 
   private CreateUfsFileOptions() throws IOException {
-    mPermission = Permission.defaults();
-    // Set owner and group from user login module, apply default file UMask.
-    mPermission.setOwnerFromLoginModule().applyFileUMask();
+    mOwner = SecurityUtils.getOwnerFromLoginModule();
+    mGroup = SecurityUtils.getGroupFromLoginModule();
+    mMode = Mode.defaults().applyFileUMask();
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
   }
 
   /**
-   * @return the permission of the UFS file
+   * @return the owner
    */
-  public Permission getPermission() {
-    return mPermission;
+  public String getOwner() {
+    return mOwner;
   }
 
-    /**
-   * @param permission the permission to be set
-   * @return the updated options object
+  /**
+   * @return the group
    */
-  public CreateUfsFileOptions setPermission(Permission permission) {
-    mPermission = permission;
+  public String getGroup() {
+    return mGroup;
+  }
+
+  /**
+   * @return the mode
+   */
+  public Mode getMode() {
+    return mMode;
+  }
+
+  /**
+   * @param owner the owner to set
+   * @return the updated object
+   */
+  public CreateUfsFileOptions setOwner(String owner) {
+    mOwner = owner;
+    return this;
+  }
+
+  /**
+   * @param group the group to set
+   * @return the updated object
+   */
+  public CreateUfsFileOptions setGroup(String group) {
+    mGroup = group;
+    return this;
+  }
+
+  /**
+   * @param mode the mode to set
+   * @return the updated object
+   */
+  public CreateUfsFileOptions setMode(Mode mode) {
+    mMode = mode;
     return this;
   }
 
@@ -76,18 +108,22 @@ public final class CreateUfsFileOptions {
       return false;
     }
     CreateUfsFileOptions that = (CreateUfsFileOptions) o;
-    return Objects.equal(mPermission, that.mPermission);
+    return Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mMode, that.mMode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPermission);
+    return Objects.hashCode(mOwner, mGroup, mMode);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("permission", mPermission)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("mode", mMode)
         .toString();
   }
 
@@ -96,15 +132,14 @@ public final class CreateUfsFileOptions {
    */
   public CreateUfsFileTOptions toThrift() {
     CreateUfsFileTOptions options = new CreateUfsFileTOptions();
-    if (!mPermission.getOwner().isEmpty()) {
-      options.setOwner(mPermission.getOwner());
+    if (!mOwner.isEmpty()) {
+      options.setOwner(mOwner);
     }
-    if (!mPermission.getGroup().isEmpty()) {
-      options.setGroup(mPermission.getGroup());
+    if (!mGroup.isEmpty()) {
+      options.setGroup(mGroup);
     }
-    short mode = mPermission.getMode().toShort();
-    if (mode != Constants.INVALID_MODE) {
-      options.setMode(mode);
+    if (mMode != null && mMode.toShort() != Constants.INVALID_MODE) {
+      options.setMode(mMode.toShort());
     }
     return options;
   }

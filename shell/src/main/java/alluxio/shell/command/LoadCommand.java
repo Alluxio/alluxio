@@ -29,7 +29,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Loads a file or directory in Alluxio space, makes it resident in memory.
+ * Loads a file or directory in Alluxio space, making it resident in memory.
  */
 @ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {

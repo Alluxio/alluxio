@@ -5,6 +5,9 @@ group: User Guide
 priority: 0
 ---
 
+* Table of Contents
+{:toc}
+
 The simplest way to quickly try out Alluxio is to install it locally on a single machine. In this
 quick start guide, we will install Alluxio on your local machine, mount example data, and
 perform basic tasks with the data in Alluxio. During this guide, you will:

@@ -15,10 +15,14 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
@@ -29,9 +33,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
+@JsonInclude(Include.NON_EMPTY)
 public final class OpenFileOptions {
-  private FileWriteLocationPolicy mLocationPolicy;
+  private FileWriteLocationPolicy mCacheLocationPolicy;
   private ReadType mReadType;
+  /** The maximum UFS read concurrency for one block on one Alluxio worker. */
+  private int mMaxUfsReadConcurrency;
+  /** The location policy to determine the worker location to serve UFS block reads. */
+  private BlockLocationPolicy mUfsReadLocationPolicy;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -47,27 +56,57 @@ public final class OpenFileOptions {
     mReadType =
         Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
-      mLocationPolicy = CommonUtils.createNewClassInstance(
+      mCacheLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+
+    CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
+        .setLocationPolicyClassName(
+            Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
+        .setDeterministicHashPolicyNumShards(Configuration
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
+    mMaxUfsReadConcurrency =
+        Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX);
+  }
+
+  /**
+   * @return the location policy used when storing data to Alluxio
+   * @deprecated since version 1.5 and will be removed in version 2.0. Use
+   *             {@link OpenFileOptions#getCacheLocationPolicy()}.
+   */
+  @JsonIgnore
+  @Deprecated
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mCacheLocationPolicy;
   }
 
   /**
    * @return the location policy used when storing data to Alluxio
    */
   @JsonIgnore
-  public FileWriteLocationPolicy getLocationPolicy() {
-    return mLocationPolicy;
+  public FileWriteLocationPolicy getCacheLocationPolicy() {
+    return mCacheLocationPolicy;
+  }
+
+  /**
+   * @return the location policy class used when storing data to Alluxio
+   * @deprecated since version 1.5 and will be removed in version 2.0. Use
+   *             {@link OpenFileOptions#getCacheLocationPolicyClass()}.
+   */
+  @Deprecated
+  public String getLocationPolicyClass() {
+    return mCacheLocationPolicy.getClass().getCanonicalName();
   }
 
   /**
    * @return the location policy class used when storing data to Alluxio
    */
-  public String getLocationPolicyClass() {
-    return mLocationPolicy.getClass().getCanonicalName();
+  public String getCacheLocationPolicyClass() {
+    return mCacheLocationPolicy.getClass().getCanonicalName();
   }
 
   /**
@@ -78,28 +117,101 @@ public final class OpenFileOptions {
   }
 
   /**
+   * @return the maximum UFS read concurrency
+   */
+  public int getMaxUfsReadConcurrency() {
+    return mMaxUfsReadConcurrency;
+  }
+
+  /**
+   * @return the UFS read location policy
+   */
+  public BlockLocationPolicy getUfsReadLocationPolicy() {
+    return mUfsReadLocationPolicy;
+  }
+
+  /**
+   * @return the location policy class name of the UFS read location policy
+   */
+  public String getUfsReadLocationPolicyClass() {
+    return mUfsReadLocationPolicy.getClass().getCanonicalName();
+  }
+
+  /**
+   * @param locationPolicy the location policy to use when storing data to Alluxio
+   * @return the updated options object
+   * @deprecated since version 1.5 and will be removed in version 2.0. Use
+   *             {@link OpenFileOptions#setCacheLocationPolicy(FileWriteLocationPolicy)}.
+   */
+  @JsonIgnore
+  @Deprecated
+  public OpenFileOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+    mCacheLocationPolicy = locationPolicy;
+    return this;
+  }
+
+  /**
    * @param locationPolicy the location policy to use when storing data to Alluxio
    * @return the updated options object
    */
   @JsonIgnore
-  public OpenFileOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
-    mLocationPolicy = locationPolicy;
+  public OpenFileOptions setCacheLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+    mCacheLocationPolicy = locationPolicy;
+    return this;
+  }
+
+  /**
+   * @param policy the block location policy for the UFS read
+   * @return the UFS read location policy
+   */
+  @JsonIgnore
+  public OpenFileOptions setUfsReadLocationPolicy(BlockLocationPolicy policy) {
+    mUfsReadLocationPolicy = policy;
     return this;
   }
 
   /**
    * @param className the location policy class to use when storing data to Alluxio
    * @return the updated options object
+   * @deprecated since version 1.5 and will be removed in version 2.0. Use
+   *             {@link OpenFileOptions#setCacheLocationPolicyClass(String)}.
    */
+  @Deprecated
   public OpenFileOptions setLocationPolicyClass(String className) {
     try {
       @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
           (Class<FileWriteLocationPolicy>) Class.forName(className);
-      mLocationPolicy = CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
+      mCacheLocationPolicy =
+          CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
       return this;
     } catch (Exception e) {
-      Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * @param className the location policy class to use when storing data to Alluxio
+   * @return the updated options object
+   */
+  public OpenFileOptions setCacheLocationPolicyClass(String className) {
+    try {
+      @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
+          (Class<FileWriteLocationPolicy>) Class.forName(className);
+      mCacheLocationPolicy =
+          CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
+      return this;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * @param className the location policy class to determine where to read a UFS block
+   * @return the updated options object
+   */
+  public OpenFileOptions setUfsReadLocationPolicyClass(String className) {
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory
+        .create(CreateOptions.defaults().setLocationPolicyClassName(className));
     return this;
   }
 
@@ -113,10 +225,21 @@ public final class OpenFileOptions {
   }
 
   /**
+   * @param maxUfsReadConcurrency the maximum UFS read concurrency
+   * @return the updated options object
+   */
+  public OpenFileOptions setMaxUfsReadConcurrency(int maxUfsReadConcurrency) {
+    mMaxUfsReadConcurrency = maxUfsReadConcurrency;
+    return this;
+  }
+
+  /**
    * @return the {@link InStreamOptions} representation of this object
    */
   public InStreamOptions toInStreamOptions() {
-    return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy);
+    return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mCacheLocationPolicy)
+        .setMaxUfsReadConcurrency(mMaxUfsReadConcurrency)
+        .setUfsReadLocationPolicy(mUfsReadLocationPolicy);
   }
 
   @Override
@@ -128,20 +251,24 @@ public final class OpenFileOptions {
       return false;
     }
     OpenFileOptions that = (OpenFileOptions) o;
-    return Objects.equal(mLocationPolicy, that.mLocationPolicy)
-        && Objects.equal(mReadType, that.mReadType);
+    return Objects.equal(mCacheLocationPolicy, that.mCacheLocationPolicy)
+        && Objects.equal(mReadType, that.mReadType)
+        && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
+        && Objects.equal(mUfsReadLocationPolicy, that.mUfsReadLocationPolicy);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLocationPolicy, mReadType);
+    return Objects.hashCode(mCacheLocationPolicy, mReadType, mMaxUfsReadConcurrency);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("locationPolicy", mLocationPolicy)
+        .add("cacheLocationPolicy", mCacheLocationPolicy)
+        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
         .add("readType", mReadType)
+        .add("ufsReadLocationPolicy", mUfsReadLocationPolicy)
         .toString();
   }
 }

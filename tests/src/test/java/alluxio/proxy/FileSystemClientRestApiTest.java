@@ -22,12 +22,14 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.rest.TestCaseOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -62,7 +64,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getProxy().getWebLocalPort();
-    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mFileSystemMaster =
+        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
   }
 
   @Test
@@ -180,7 +183,9 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.SET_ATTRIBUTE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults()).run();
+        HttpMethod.POST, null, TestCaseOptions.defaults()
+        .setBody(SetAttributeOptions.defaults().setMode(Mode.defaults())))
+        .run();
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri);
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
   }

@@ -26,9 +26,12 @@ import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.block.BlockMaster;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;
@@ -69,10 +72,13 @@ public class SpecificTierWriteIntegrationTest {
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   private FileSystem mFileSystem = null;
+  private BlockMaster mBlockMaster;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mBlockMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        .getMaster(BlockMaster.class);
   }
 
   /**
@@ -97,12 +103,12 @@ public class SpecificTierWriteIntegrationTest {
 
     long totalBytes = memBytes + ssdBytes + hddBytes;
     Assert.assertEquals("Total bytes used", totalBytes,
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster()
-            .getUsedBytes());
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+            .getMaster(BlockMaster.class).getUsedBytes());
 
     Map<String, Long> bytesOnTiers =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster()
-            .getUsedBytesOnTiers();
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+            .getMaster(BlockMaster.class).getUsedBytesOnTiers();
     Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
     Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());
     Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());
@@ -116,6 +122,19 @@ public class SpecificTierWriteIntegrationTest {
     }
     // Trigger a worker heartbeat to delete the blocks.
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    CommonUtils.waitFor("files to be deleted", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        try {
+          // Trigger a worker heartbeat to report removed blocks.
+          HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+        } catch (InterruptedException e) {
+          // ignore the exception
+        }
+        return mBlockMaster.getUsedBytes() == 0;
+      }
+    }, WaitForOptions.defaults().setTimeout(10 * Constants.SECOND_MS));
   }
 
   @Test

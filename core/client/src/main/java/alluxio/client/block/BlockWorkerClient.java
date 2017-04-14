@@ -11,8 +11,10 @@
 
 package alluxio.client.block;
 
+import alluxio.client.block.options.LockBlockOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
-import alluxio.wire.LockBlockResult;
+import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.Closeable;
@@ -25,9 +27,29 @@ import java.net.InetSocketAddress;
 public interface BlockWorkerClient extends Closeable {
 
   /**
-   * @return the address of the worker
+   * Factory for {@link BlockWorkerClient}.
    */
-  WorkerNetAddress getWorkerNetAddress();
+  class Factory {
+
+    private Factory() {} // prevent instantiation
+
+    /**
+     * Factory method for {@link BlockWorkerClient}.
+     *
+     * @param clientPool the client pool
+     * @param clientHeartbeatPool the client pool for heartbeat
+     * @param workerNetAddress the worker address to connect to
+     * @param sessionId the session id to use, this should be unique
+     * @return new {@link BlockWorkerClient} instance
+     * @throws IOException if it fails to register the session with the worker specified
+     */
+    public static BlockWorkerClient create(BlockWorkerThriftClientPool clientPool,
+        BlockWorkerThriftClientPool clientHeartbeatPool, WorkerNetAddress workerNetAddress,
+        Long sessionId) throws IOException {
+      return RetryHandlingBlockWorkerClient
+          .create(clientPool, clientHeartbeatPool, workerNetAddress, sessionId);
+    }
+  }
 
   /**
    * Updates the latest block access time on the worker.
@@ -66,15 +88,36 @@ public interface BlockWorkerClient extends Closeable {
   long getSessionId();
 
   /**
+   * @return the address of the worker
+   */
+  WorkerNetAddress getWorkerNetAddress();
+
+  /**
    * Locks the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    *
    * @param blockId the ID of the block
-   * @return the path of the block file locked
+   * @param options the lock block options
+   * @return the lock block result
    * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  LockBlockResult lockBlock(final long blockId) throws IOException, AlluxioException;
+  LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException;
+
+  /**
+   * A wrapper over {@link BlockWorkerClient#lockBlock(long, LockBlockOptions)} to lock a block
+   * that is not in Alluxio but in UFS. It retries if it fails to lock because of contention for
+   * the block on the worker.
+   *
+   * @param blockId the block ID
+   * @param options the lock block options
+   * @return the lock block result
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio error occurs
+   */
+  LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException;
 
   /**
    * Promotes block back to the top StorageTier.
@@ -131,14 +174,9 @@ public interface BlockWorkerClient extends Closeable {
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
    * locks and temporary files.
    *
+   * @param retryPolicy the retry policy to use
    * @throws IOException if an I/O error occurs
    * @throws InterruptedException if this thread is interrupted
    */
-  void sessionHeartbeat() throws IOException, InterruptedException;
-
-  /**
-   * Closes the client.
-   */
-  @Override
-  void close();
+  void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException;
 }

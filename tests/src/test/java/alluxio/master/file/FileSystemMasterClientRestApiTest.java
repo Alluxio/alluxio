@@ -52,7 +52,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX;
-    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mFileSystemMaster =
+        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
   }
 
   @Test
@@ -144,7 +145,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void free() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    // Mark the file as persisted so the "free" works.
+    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults().setPersisted(true));
     mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
 
     Map<String, String> params = new HashMap<>();
@@ -278,6 +280,6 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
     new TestCase(mHostname, mPort, getEndpoint(FileSystemMasterClientRestServiceHandler.UNMOUNT),
-        params, HttpMethod.POST, true).run();
+        params, HttpMethod.POST, null).run();
   }
 }

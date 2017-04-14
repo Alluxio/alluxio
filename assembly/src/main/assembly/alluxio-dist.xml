@@ -59,8 +59,8 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../core/server/src/main/webapp</directory>
-      <outputDirectory>/core/server/src/main/webapp</outputDirectory>
+      <directory>${basedir}/../core/server/common/src/main/webapp</directory>
+      <outputDirectory>/core/server/common/src/main/webapp</outputDirectory>
     </fileSet>
   </fileSets>
   <!-- If bundled dependencies gets supported, uncomment -->
