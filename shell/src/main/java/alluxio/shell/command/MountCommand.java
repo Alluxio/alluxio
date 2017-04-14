@@ -44,21 +44,22 @@ public final class MountCommand extends AbstractShellCommand {
           .longOpt("readonly")
           .required(false)
           .hasArg(false)
-          .desc("readonly")
+          .desc("mount point is readonly in Alluxio")
           .build();
   private static final Option SHARED_OPTION =
       Option.builder()
           .longOpt("shared")
           .required(false)
           .hasArg(false)
-          .desc("shared")
+          .desc("mount point is shared")
           .build();
   private static final Option OPTION_OPTION =
       Option.builder()
           .longOpt("option")
+          .argName("key=value")
           .required(false)
           .hasArg(true)
-          .desc("option")
+          .desc("options associated with this mount point")
           .build();
   // TODO(gpang): Investigate property=value style of cmdline options. They didn't seem to
   // support spaces in values.
