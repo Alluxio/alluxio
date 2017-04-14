@@ -1208,7 +1208,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 findPathInPairList(recursiveUFSDeletes, ancestor);
             while (ancestor != null && ancestorPair != null) {
               toAdd.add(ancestorPair);
-              recursiveUFSDeletes.remove(ancestor);
+              recursiveUFSDeletes.remove(ancestorPair);
               ancestor = ancestor.getParent();
               ancestorPair = findPathInPairList(recursiveUFSDeletes, ancestor);
             }
