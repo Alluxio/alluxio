@@ -1298,7 +1298,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     for (UnderFileStatus child : ufsChildren) {
       boolean found = false;
-      for (Inode<?> inodeChild : ((InodeDirectory)inode).getChildren()) {
+      for (Inode<?> inodeChild : ((InodeDirectory) inode).getChildren()) {
         if (child.getName().equals(inodeChild.getName())) {
           found = true;
         }
