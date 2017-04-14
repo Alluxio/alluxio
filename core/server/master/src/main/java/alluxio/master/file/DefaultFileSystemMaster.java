@@ -1167,64 +1167,70 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     LinkedList<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
 
     // AlluxioURIs and inodes for persisted paths
-    HashMap<AlluxioURI, Inode<?>> recursiveUFSDeletes = new HashMap<>();
-    HashMap<AlluxioURI, Inode<?>> nonRecursiveUFSDeletes = new HashMap<>();
+    LinkedList<Pair<AlluxioURI, Inode<?>>> recursiveUFSDeletes = new LinkedList<>();
+    LinkedList<Pair<AlluxioURI, Inode<?>>> nonRecursiveUFSDeletes = new LinkedList<>();
 
+    Pair<AlluxioURI, Inode<?>> inodePair =
+        new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
     if (!inode.isPersisted() || replayed) {
-      delInodes.add(new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode));
+      delInodes.add(inodePair);
     } else if (inode.isFile()) {
-      nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
+      nonRecursiveUFSDeletes.add(inodePair);
     } else if (deleteOptions.isSkipConsistencyCheck()
         || isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri())) {
-      recursiveUFSDeletes.put(inodePath.getUri(), inode);
+      recursiveUFSDeletes.add(inodePair);
     } else {
-      nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
+      nonRecursiveUFSDeletes.add(inodePair);
     }
-
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
       for (Inode descendant : lockList.getInodes()) {
         AlluxioURI currentPath = mInodeTree.getPath(descendant);
+        Pair<AlluxioURI, Inode<?>> descendantPair =
+            new Pair<AlluxioURI, Inode<?>>(currentPath, descendant);
         if (!descendant.isPersisted() || replayed) {
-          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, descendant));
+          delInodes.add(descendantPair);
         } else if (descendant.isFile()) {
-          nonRecursiveUFSDeletes.put(currentPath, descendant);
+          nonRecursiveUFSDeletes.add(descendantPair);
         } else if (deleteOptions.isSkipConsistencyCheck()
             || isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
           // Directory is a candidate for recursive deletes
-          recursiveUFSDeletes.put(currentPath, descendant);
+          recursiveUFSDeletes.add(descendantPair);
         } else {
           // Invalidate ancestor directories if not a mount point
           // Put ancestors into nonRecursiveDeletes before descendants
           Stack<Pair<AlluxioURI, Inode<?>>> toAdd = new Stack<>();
           toAdd.add(new Pair<AlluxioURI, Inode<?>>(currentPath, descendant));
           if (!mMountTable.isMountPoint(currentPath)) {
-            for (AlluxioURI ancestor = currentPath.getParent(); ancestor != null
-                && recursiveUFSDeletes.containsKey(ancestor); ancestor = ancestor.getParent()) {
-              toAdd
-                  .add(new Pair<AlluxioURI, Inode<?>>(ancestor, recursiveUFSDeletes.get(ancestor)));
+            AlluxioURI ancestor = currentPath.getParent();
+            Pair<AlluxioURI, Inode<?>> ancestorPair =
+                findPathInPairList(recursiveUFSDeletes, ancestor);
+            while (ancestor != null && ancestorPair != null) {
+              toAdd.add(ancestorPair);
               recursiveUFSDeletes.remove(ancestor);
+              ancestor = ancestor.getParent();
+              ancestorPair = findPathInPairList(recursiveUFSDeletes, ancestor);
             }
           }
           for (Pair<AlluxioURI, Inode<?>> pair : toAdd) {
-            nonRecursiveUFSDeletes.put(pair.getFirst(), pair.getSecond());
+            nonRecursiveUFSDeletes.add(pair);
           }
         }
       }
 
       // Remove entries covered by a recursive delete
       // TODO(adit): make sure any is added to delInodes before its descendants
-      for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes.entrySet()) {
-        AlluxioURI currentPath = entry.getKey();
-        if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
-          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, entry.getValue()));
+      for (Pair<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes) {
+        AlluxioURI currentPath = entry.getFirst();
+        if (findPathInPairList(recursiveUFSDeletes, currentPath.getParent()) != null) {
+          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, entry.getSecond()));
         }
       }
-      for (Map.Entry<AlluxioURI, Inode<?>> entry : nonRecursiveUFSDeletes.entrySet()) {
-        AlluxioURI currentPath = entry.getKey();
-        if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
-          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, entry.getValue()));
+      for (Pair<AlluxioURI, Inode<?>> entry : nonRecursiveUFSDeletes) {
+        AlluxioURI currentPath = entry.getFirst();
+        if (findPathInPairList(recursiveUFSDeletes, currentPath.getParent()) != null) {
+          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, entry.getSecond()));
         }
       }
 
@@ -1327,6 +1333,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     return true;
+  }
+
+  /**
+   * Check is path matches any pair.first in list of pairs.
+   *
+   * @param recursiveList list to search in
+   * @param path to search for
+   * @return pair if found, null otherwise
+   */
+  private Pair<AlluxioURI, Inode<?>> findPathInPairList(
+      LinkedList<Pair<AlluxioURI, Inode<?>>> recursiveList, AlluxioURI path) {
+    for (Pair<AlluxioURI, Inode<?>> pair : recursiveList) {
+      if (pair.getFirst().equals(path)) {
+        return pair;
+      }
+    }
+    return null;
   }
 
   @Override
