@@ -103,6 +103,7 @@ public final class LineageInfo implements Serializable {
   /**
    * @return the lineage children
    */
+
   public List<Long> getChildren() {
     return mChildren;
   }
@@ -122,7 +123,7 @@ public final class LineageInfo implements Serializable {
    */
   public LineageInfo setInputFiles(List<String> inputFiles) {
     Preconditions.checkNotNull(inputFiles);
-    mInputFiles = new ArrayList<>(inputFiles);
+    mInputFiles = new ArrayList<>(Preconditions.checkNotNull(inputFiles));
     return this;
   }
 
