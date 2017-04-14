@@ -28,6 +28,9 @@ public enum PropertyKeyFormat {
       "alluxio.worker.tieredstore.level%d.watermark.high.ratio"),
   WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT(
       "alluxio.worker.tieredstore.level%d.watermark.low.ratio"),
+  @Deprecated
+  WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT(
+      "alluxio.worker.tieredstore.level%d.reserved.ratio"),
   ;
 
   private final String mFormat;

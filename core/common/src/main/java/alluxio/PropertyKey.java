@@ -260,6 +260,7 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVELS(Name.WORKER_TIERED_STORE_LEVELS, 1),
   WORKER_TIERED_STORE_RESERVER_ENABLED(Name.WORKER_TIERED_STORE_RESERVER_ENABLED, false),
   WORKER_TIERED_STORE_RESERVER_INTERVAL_MS(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000),
+  WORKER_TIERED_STORE_RESERVER_NEWVERSION(Name.WORKER_TIERED_STORE_RESERVER_NEWVERSION, false),
   WORKER_TIERED_STORE_RETRY(Name.WORKER_TIERED_STORE_RETRY, 3),
   WORKER_TIERED_STORE_FREE_SPACE_RATIO(Name.WORKER_TIERED_STORE_FREE_SPACE_RATIO, 0.0f),
   WORKER_WEB_BIND_HOST(Name.WORKER_WEB_BIND_HOST, "0.0.0.0"),
@@ -731,6 +732,8 @@ public enum PropertyKey {
         "alluxio.worker.tieredstore.reserver.enabled";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval.ms";
+    public static final String WORKER_TIERED_STORE_RESERVER_NEWVERSION =
+        "alluxio.worker.tieredstore.reserver.newversion";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
     public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO
         = "alluxio.worker.tieredstore.free.space.ratio";
