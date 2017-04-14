@@ -40,7 +40,7 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
   public PlainSaslServerCallbackHandler(AuthenticationProvider authenticationProvider,
       Runnable callback) {
     mAuthenticationProvider = Preconditions.checkNotNull(authenticationProvider,
-                                                         "authenticationProvider");
+        "authenticationProvider");
     mCallback = callback;
   }
 
