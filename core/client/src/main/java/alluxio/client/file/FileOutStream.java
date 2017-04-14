@@ -109,7 +109,7 @@ public class FileOutStream extends AbstractOutStream {
         mUnderStorageOutputStream =
             mCloser.register(UnderFileSystemFileOutStream.create(mContext, location, mOptions));
       } catch (AlluxioException | IOException e) {
-        CommonUtils.closeQuitely(mCloser);
+        CommonUtils.closeQuietly(mCloser);
         throw CommonUtils.castToIOException(e);
       }
     }
