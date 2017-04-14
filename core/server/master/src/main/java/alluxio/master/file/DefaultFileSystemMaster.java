@@ -1186,34 +1186,34 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
       for (Inode descendant : lockList.getInodes()) {
-        AlluxioURI currentPath = mInodeTree.getPath(descendant);
+        AlluxioURI descendantPath = mInodeTree.getPath(descendant);
         Pair<AlluxioURI, Inode<?>> descendantPair =
-            new Pair<AlluxioURI, Inode<?>>(currentPath, descendant);
+            new Pair<AlluxioURI, Inode<?>>(descendantPath, descendant);
         if (!descendant.isPersisted() || replayed) {
           delInodes.add(descendantPair);
         } else if (descendant.isFile()) {
           nonRecursiveUFSDeletes.add(descendantPair);
         } else if (deleteOptions.isSkipConsistencyCheck()
-            || isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
+            || isUFSDeleteSafe((InodeDirectory) descendant, descendantPath)) {
           // Directory is a candidate for recursive deletes
           recursiveUFSDeletes.add(descendantPair);
         } else {
           // Invalidate ancestor directories if not a mount point
           // Put ancestors into nonRecursiveDeletes before descendants
-          Stack<Pair<AlluxioURI, Inode<?>>> toAdd = new Stack<>();
-          toAdd.add(new Pair<AlluxioURI, Inode<?>>(currentPath, descendant));
-          if (!mMountTable.isMountPoint(currentPath)) {
-            AlluxioURI ancestor = currentPath.getParent();
+          Stack<Pair<AlluxioURI, Inode<?>>> deleteStack = new Stack<>();
+          deleteStack.add(descendantPair);
+          AlluxioURI currentPath = descendantPath;
+          while (currentPath.getParent() != null && !mMountTable.isMountPoint(currentPath)) {
             Pair<AlluxioURI, Inode<?>> ancestorPair =
-                findPathInPairList(recursiveUFSDeletes, ancestor);
-            while (ancestor != null && ancestorPair != null) {
-              toAdd.add(ancestorPair);
-              recursiveUFSDeletes.remove(ancestorPair);
-              ancestor = ancestor.getParent();
-              ancestorPair = findPathInPairList(recursiveUFSDeletes, ancestor);
+                findPathInPairList(recursiveUFSDeletes, currentPath.getParent());
+            if (ancestorPair == null) {
+              break;
             }
+            deleteStack.add(ancestorPair);
+            recursiveUFSDeletes.remove(ancestorPair);
+            currentPath = currentPath.getParent();
           }
-          for (Pair<AlluxioURI, Inode<?>> pair : toAdd) {
+          for (Pair<AlluxioURI, Inode<?>> pair : deleteStack) {
             nonRecursiveUFSDeletes.add(pair);
           }
         }
