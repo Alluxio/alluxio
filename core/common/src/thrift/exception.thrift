@@ -120,7 +120,3 @@ exception AlluxioTException {
   2: string message
   3: string className
 }
-
-exception ThriftIOException {
-  1: string message
-}

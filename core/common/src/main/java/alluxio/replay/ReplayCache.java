@@ -14,7 +14,6 @@ package alluxio.replay;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
@@ -175,7 +174,7 @@ public final class ReplayCache<V> {
    * @throws ThriftIOException when {@link IOException} is thrown by the handler call
    */
   public V run(String key, final ReplayCallableThrowsIOException<V> replayCallable)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTExceptionException {
     try {
       return mCache.get(key, new Callable<V>() {
         @Override
