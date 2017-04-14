@@ -50,6 +50,10 @@ public class SpaceReserver implements HeartbeatExecutor  {
   /** Mapping from tier alias to space size to be reserved on the tier. */
   private final Map<String, Long> mReservedBytesOnTiers = new HashMap<>();
 
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * This switch representing use new version space reserver.
+   */
   @Deprecated
   private final boolean mNewVersion;
 
