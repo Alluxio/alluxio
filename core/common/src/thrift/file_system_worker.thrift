@@ -36,7 +36,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     /** the worker specific file id of the ufs file */ 2: i64 tempUfsFileId,
     /** the options for canceling the file */ 3: CancelUfsFileTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Closes a file in the under file system which was previously opened for reading.
@@ -46,7 +46,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     /** the worker specific file id of the ufs file */ 2: i64 tempUfsFileId,
     /** the options for closing the file */ 3: CloseUfsFileTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Completes a file in the under file system.
@@ -56,7 +56,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     /** the worker specific file id of the ufs file */ 2: i64 tempUfsFileId,
     /** the options for completing the file */ 3: CompleteUfsFileTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Creates a file in the under file system.
@@ -66,7 +66,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     /** the path of the file in the ufs */ 2: string ufsPath,
     /** the options for creating the file */ 3: CreateUfsFileTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Opens an existing file in the under file system for reading.
@@ -76,7 +76,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     /** the path of the file in the ufs */ 2: string ufsPath,
     /** the options for opening the file */ 3: OpenUfsFileTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Local session send heartbeat to local worker to keep its state.
