@@ -120,7 +120,7 @@ public class SpaceReserverTest {
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
     TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
-        new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}}, 
+        new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
 
     PropertyKey highWatermarkRatioProp =
@@ -164,7 +164,8 @@ public class SpaceReserverTest {
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
-    Map<String, Long> usedCapacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 100L, "HDD", 0L);
+    Map<String, Long> usedCapacityBytesOnTiers =
+        ImmutableMap.of("MEM", 100L, "SSD", 100L, "HDD", 0L);
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
     Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
@@ -201,10 +202,11 @@ public class SpaceReserverTest {
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
     // 1000 * 0.4 + 200 * 0.3 + 100 * 0.2 = 480
-    Mockito.verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 
+    Mockito.verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID,
         480L, "HDD");
     // 200 * 0.3 + 100 * 0.2 = 80
-    Mockito.verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "SSD");
+    Mockito.verify(blockWorker, Mockito.times(0)).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID,
+        80L, "SSD");
     // 100 * 0.2 = 20
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
   }
