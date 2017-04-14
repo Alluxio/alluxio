@@ -72,6 +72,7 @@ final class UfsJournalReader implements JournalReader {
 
     JournalInputStream(UfsJournalFile file) throws IOException {
       mFile = file;
+      LOG.info("Reading journal file {}.", file.getLocation());
       mStream = mUfs.open(file.getLocation().toString());
     }
 
