@@ -80,12 +80,16 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    Mode mode = null;
     try {
-      format(Mode.valueOf(args[0].toUpperCase()));
+      mode = Mode.valueOf(args[0].toUpperCase());
     } catch (IllegalArgumentException e) {
       LOG.error("Unrecognized format mode: {}", args[0]);
       LOG.error("Usage: {}", USAGE);
       System.exit(-1);
+    }
+    try {
+      format(mode);
     } catch (Exception e) {
       LOG.error("Failed to format", e);
       System.exit(-1);
