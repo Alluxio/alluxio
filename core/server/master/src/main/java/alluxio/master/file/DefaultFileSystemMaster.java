@@ -1233,8 +1233,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   }
                 } else {
                   // TODO(adit): if mount point then do not delete directory itself
-                  if (!ufs.deleteDirectory(ufsUri, alluxio.underfs.options.DeleteOptions
-                      .defaults().setRecursive(safeRecursiveUFSDeletes.containsKey(alluxioUriToDel)))) {
+                  if (!ufs.deleteDirectory(ufsUri, alluxio.underfs.options.DeleteOptions.defaults()
+                      .setRecursive(safeRecursiveUFSDeletes.containsKey(alluxioUriToDel)))) {
                     failedToDelete = ufs.isDirectory(ufsUri);
                     if (!failedToDelete) {
                       LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
