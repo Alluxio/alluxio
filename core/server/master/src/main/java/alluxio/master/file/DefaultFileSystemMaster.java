@@ -1164,7 +1164,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     List<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
-    // Persisted directories which can safely be deleted recursivelyi from the UFS
+    // Persisted directories which can safely be deleted recursively from the UFS
     List<Pair<AlluxioURI, Inode<?>>> safeRecursiveUFSDeletes = new LinkedList<>();
 
     Pair<AlluxioURI, Inode<?>> inodePair =
@@ -1194,7 +1194,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             AlluxioURI currentPath = descendantPath;
             while (currentPath.getParent() != null && !mMountTable.isMountPoint(currentPath)) {
               Pair<AlluxioURI, Inode<?>> ancestorPair =
-                  findPathInPairList(safeRecursiveUFSDeletes, currentPath.getParent());
+                  findInPairList(safeRecursiveUFSDeletes, currentPath.getParent());
               if (ancestorPair == null) {
                 break;
               }
@@ -1226,7 +1226,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               UnderFileSystem ufs = resolution.getUfs();
               AlluxioURI parentURI = alluxioUriToDel.getParent();
               // Check if parent is deleted recursively
-              if (isMount || findPathInPairList(safeRecursiveUFSDeletes, parentURI) == null) {
+              if (isMount || findInPairList(safeRecursiveUFSDeletes, parentURI) == null) {
                 boolean failedToDelete = false;
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
@@ -1237,7 +1237,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   }
                 } else {
                   boolean recursiveSafe =
-                      findPathInPairList(safeRecursiveUFSDeletes, alluxioUriToDel) != null;
+                      findInPairList(safeRecursiveUFSDeletes, alluxioUriToDel) != null;
                   // TODO(adit): if mount point then do not delete directory itself
                   if (!ufs.deleteDirectory(ufsUri, alluxio.underfs.options.DeleteOptions
                       .defaults().setRecursive(recursiveSafe))) {
@@ -1317,8 +1317,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param path to search for
    * @return pair if found, null otherwise
    */
-  private Pair<AlluxioURI, Inode<?>> findPathInPairList(
-      List<Pair<AlluxioURI, Inode<?>>> recursiveList, AlluxioURI path) {
+  private Pair<AlluxioURI, Inode<?>> findInPairList(List<Pair<AlluxioURI, Inode<?>>> recursiveList,
+      AlluxioURI path) {
     if (path == null) {
       return null;
     }
