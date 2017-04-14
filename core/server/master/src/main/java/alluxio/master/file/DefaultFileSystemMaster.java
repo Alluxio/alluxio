@@ -1164,14 +1164,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // Inodes for un-persisted paths to be deleted
-    LinkedList<Inode<?>> delInodes = new LinkedList<>();
+    LinkedList<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
 
     // AlluxioURIs and inodes for persisted paths
     HashMap<AlluxioURI, Inode<?>> recursiveUFSDeletes = new HashMap<>();
     HashMap<AlluxioURI, Inode<?>> nonRecursiveUFSDeletes = new HashMap<>();
 
     if (!inode.isPersisted()) {
-      delInodes.add(inode);
+      delInodes.add(new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode));
     } else {
       if (inode.isFile()) {
         nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
@@ -1220,13 +1220,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       for (Map.Entry<AlluxioURI, Inode<?>> entry : recursiveUFSDeletes.entrySet()) {
         AlluxioURI currentPath = entry.getKey();
         if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
-          delInodes.add(entry.getValue());
+          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, entry.getValue()));
         }
       }
       for (Map.Entry<AlluxioURI, Inode<?>> entry : nonRecursiveUFSDeletes.entrySet()) {
         AlluxioURI currentPath = entry.getKey();
         if (!recursiveUFSDeletes.containsKey(currentPath.getParent())) {
-          delInodes.add(entry.getValue());
+          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, entry.getValue()));
         }
       }
 
@@ -1234,9 +1234,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = delInodes.size() - 1; i >= 0; i--) {
-        Inode<?> delInode = delInodes.get(i);
-        // the path to delInode for getPath should already be locked.
-        AlluxioURI alluxioUriToDel = mInodeTree.getPath(delInode);
+        Pair<AlluxioURI, Inode<?>> delInodePair = delInodes.get(i);
+        AlluxioURI alluxioUriToDel = delInodePair.getFirst();
+        Inode<?> delInode = delInodePair.getSecond();
         tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
         // TODO(jiri): What should the Alluxio behavior be when a UFS delete operation fails?
