@@ -1170,47 +1170,38 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     HashMap<AlluxioURI, Inode<?>> recursiveUFSDeletes = new HashMap<>();
     HashMap<AlluxioURI, Inode<?>> nonRecursiveUFSDeletes = new HashMap<>();
 
-    if (!inode.isPersisted()) {
+    if (!inode.isPersisted() || replayed) {
       delInodes.add(new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode));
+    } else if (inode.isFile()) {
+      nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
+    } else if (deleteOptions.isSkipConsistencyCheck()
+        || isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri())) {
+      recursiveUFSDeletes.put(inodePath.getUri(), inode);
     } else {
-      if (inode.isFile()) {
-        nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
-      } else {
-        if (deleteOptions.isSkipConsistencyCheck()
-            || isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri())) {
-          recursiveUFSDeletes.put(inodePath.getUri(), inode);
-        } else {
-          nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
-        }
-      }
+      nonRecursiveUFSDeletes.put(inodePath.getUri(), inode);
     }
+
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
       for (Inode descendant : lockList.getInodes()) {
         AlluxioURI currentPath = mInodeTree.getPath(descendant);
-        if (!descendant.isPersisted() || descendant.isFile()) {
+        if (!descendant.isPersisted() || replayed) {
+          delInodes.add(new Pair<AlluxioURI, Inode<?>>(currentPath, descendant));
+        } else if (descendant.isFile()) {
           nonRecursiveUFSDeletes.put(currentPath, descendant);
+        } else if (deleteOptions.isSkipConsistencyCheck()
+            || isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
+          // Directory is a candidate for recursive deletes
+          recursiveUFSDeletes.put(currentPath, descendant);
         } else {
-          // Do not check UFS for replayed
-          if (replayed) {
-            nonRecursiveUFSDeletes.put(currentPath, descendant);
-          } else {
-            // Check if immediate children in UFS have inodes
-            if (deleteOptions.isSkipConsistencyCheck()
-                || isUFSDeleteSafe((InodeDirectory) descendant, currentPath)) {
-              // Directory is a candidate for recursive deletes
-              recursiveUFSDeletes.put(currentPath, descendant);
-            } else {
-              nonRecursiveUFSDeletes.put(currentPath, descendant);
-              // Invalidate ancestor directories if not a mount point
-              if (!mMountTable.isMountPoint(currentPath)) {
-                for (AlluxioURI ancestor = currentPath.getParent(); ancestor != null
-                    && recursiveUFSDeletes.containsKey(ancestor); ancestor = ancestor.getParent()) {
-                  nonRecursiveUFSDeletes.put(ancestor, recursiveUFSDeletes.get(ancestor));
-                  recursiveUFSDeletes.remove(ancestor);
-                }
-              }
+          nonRecursiveUFSDeletes.put(currentPath, descendant);
+          // Invalidate ancestor directories if not a mount point
+          if (!mMountTable.isMountPoint(currentPath)) {
+            for (AlluxioURI ancestor = currentPath.getParent(); ancestor != null
+                && recursiveUFSDeletes.containsKey(ancestor); ancestor = ancestor.getParent()) {
+              nonRecursiveUFSDeletes.put(ancestor, recursiveUFSDeletes.get(ancestor));
+              recursiveUFSDeletes.remove(ancestor);
             }
           }
         }
