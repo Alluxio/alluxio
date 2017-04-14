@@ -1217,7 +1217,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // Remove corresponding blocks from workers and delete metadata in master.
           mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
         }
-
         if (i == 0) {
           // Journal right before deleting the "root" of the sub-tree from the parent, since the
           // parent is read locked.

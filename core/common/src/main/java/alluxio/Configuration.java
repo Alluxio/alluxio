@@ -374,7 +374,7 @@ public final class Configuration {
   public static long getMs(PropertyKey key) {
     String rawValue = get(key);
     try {
-      return (long) Double.parseDouble(rawValue);
+      return FormatUtils.parseTimeSize(rawValue);
     } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
     }

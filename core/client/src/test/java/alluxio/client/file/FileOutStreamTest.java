@@ -33,10 +33,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
-import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.CompleteUfsFileOptions;
-import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
@@ -80,13 +77,10 @@ public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
-  /** Used if ufs operation delegation is enabled. */
-  private static final long UFS_FILE_ID = 1L;
 
   private FileSystemContext mFileSystemContext;
   private AlluxioBlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private FileSystemWorkerClient mWorkerClient;
 
   private Map<Long, TestBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
@@ -114,12 +108,6 @@ public class FileOutStreamTest {
         .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
     when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
-
-    // Worker file client mocking
-    mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
-    when(mFileSystemContext.createFileSystemWorkerClient()).thenReturn(mWorkerClient);
-    when(mWorkerClient.createUfsFile(any(AlluxioURI.class), any(CreateUfsFileOptions.class)))
-        .thenReturn(UFS_FILE_ID);
 
     // Return sequentially increasing numbers for new block ids
     when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
@@ -166,7 +154,8 @@ public class FileOutStreamTest {
     PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
     PowerMockito.when(
         UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
-            any(InetSocketAddress.class), anyLong())).thenReturn(mUnderStorageOutputStream);
+            any(InetSocketAddress.class), any(OutStreamOptions.class))).thenReturn(
+        mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
@@ -254,9 +243,9 @@ public class FileOutStreamTest {
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
-    // Don't persist or complete the file if the stream was canceled
-    verify(mWorkerClient, times(0)).completeUfsFile(UFS_FILE_ID, CompleteUfsFileOptions.defaults());
-    verify(mWorkerClient).cancelUfsFile(eq(UFS_FILE_ID), any(CancelUfsFileOptions.class));
+    // Don't complete the file if the stream was canceled
+    verify(mFileSystemMasterClient, times(0)).completeFile(any(AlluxioURI.class),
+        any(CompleteFileOptions.class));
   }
 
   /**

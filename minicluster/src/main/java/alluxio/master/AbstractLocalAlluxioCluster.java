@@ -21,7 +21,6 @@ import alluxio.cli.Format;
 import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.proxy.AlluxioProxyService;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -360,7 +359,6 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void resetClientPools() {
     BlockWorkerClientTestUtils.reset();
-    FileSystemWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
 
