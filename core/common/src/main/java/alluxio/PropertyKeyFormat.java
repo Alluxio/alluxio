@@ -28,6 +28,11 @@ public enum PropertyKeyFormat {
       "alluxio.worker.tieredstore.level%d.watermark.high.ratio"),
   WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT(
       "alluxio.worker.tieredstore.level%d.watermark.low.ratio"),
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT} and
+   * {@link #WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT} instead.
+   */
   @Deprecated
   WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT(
       "alluxio.worker.tieredstore.level%d.reserved.ratio"),
