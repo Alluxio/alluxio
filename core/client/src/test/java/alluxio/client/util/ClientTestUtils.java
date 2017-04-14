@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.hadoop.HadoopClientTestUtils;
 
-
 /**
  * Utility methods for the client tests.
  */
