@@ -278,7 +278,7 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setPath(String path) {
-    Preconditions.checkNotNull(path,"path");
+    Preconditions.checkNotNull(path);
     mPath = path;
     return this;
   }
@@ -288,7 +288,7 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setUfsPath(String ufsPath) {
-    Preconditions.checkNotNull(ufsPath,"ufsPath");
+    Preconditions.checkNotNull(ufsPath);
     mUfsPath = ufsPath;
     return this;
   }
@@ -370,7 +370,7 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setBlockIds(List<Long> blockIds) {
-    Preconditions.checkNotNull(blockIds,"blockIds");
+    Preconditions.checkNotNull(blockIds);
     mBlockIds = new ArrayList<>(blockIds);
     return this;
   }
@@ -416,7 +416,7 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setOwner(String owner) {
-    Preconditions.checkNotNull(owner,"owner");
+    Preconditions.checkNotNull(owner);
     mOwner = owner;
     return this;
   }
@@ -426,7 +426,7 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setGroup(String group) {
-    Preconditions.checkNotNull(group,"group");
+    Preconditions.checkNotNull(group);
     mGroup = group;
     return this;
   }
@@ -445,7 +445,7 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setPersistenceState(String persistenceState) {
-    Preconditions.checkNotNull(persistenceState,"persistenceState");
+    Preconditions.checkNotNull(persistenceState);
     mPersistenceState = persistenceState;
     return this;
   }
