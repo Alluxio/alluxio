@@ -46,7 +46,7 @@ public class AlluxioException extends Exception {
    *
    * @param message the message
    */
-  protected AlluxioException(String message) {
+  public AlluxioException(String message) {
     super(message);
   }
 
