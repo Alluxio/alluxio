@@ -85,7 +85,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     FileSystemCommand command;
     try {
       command = mMasterClient.heartbeat(mWorkerId.get(), persistedFiles);
-    } catch (IOException | AlluxioException e) {
+    } catch (Exception e) {
       LOG.error("Failed to heartbeat to master", e);
       return;
     }
