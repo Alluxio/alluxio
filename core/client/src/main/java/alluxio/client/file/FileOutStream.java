@@ -108,9 +108,7 @@ public class FileOutStream extends AbstractOutStream {
         WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
             options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
         SocketAddress address;
-        boolean local = workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
-        if (local && NettyClient.isDomainSocketEnabled() && !workerNetAddress.getDomainSocketPath()
-            .isEmpty()) {
+        if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
           address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
         } else {
           address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);

@@ -69,7 +69,7 @@ public final class NettyUtils {
    * {@link ChannelType}.
    *
    * @param type Selector for which form of low-level IO we should use
-   * @param type whether this is a domain socket server
+   * @param isDomainSocket whether this is a domain socket server
    * @return ServerSocketChannel matching the requirements
    */
   public static Class<? extends ServerChannel> getServerChannelClass(ChannelType type,

@@ -79,21 +79,19 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
    * @param context the file system context
-   * @param isLocal whether the worker is local
    * @param options the options
    * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createNettyBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, boolean isLocal,
-      OutStreamOptions options) throws IOException {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
+      throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
 
       SocketAddress address;
-      if (isLocal && NettyClient.isDomainSocketEnabled() && !workerNetAddress.getDomainSocketPath()
-          .isEmpty()) {
+      if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
         address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
       } else {
         address = client.getDataServerAddress();

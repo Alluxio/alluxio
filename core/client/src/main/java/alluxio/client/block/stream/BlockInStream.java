@@ -103,15 +103,14 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param blockSize the block size
    * @param workerNetAddress the worker network address
    * @param context the file system context
-   * @param isLocal whether the worker is local
    * @param options the options
    * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, boolean isLocal,
-      InStreamOptions options) throws IOException {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+      throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -119,8 +118,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       LockBlockResource lockBlockResource =
           closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
       SocketAddress address;
-      if (isLocal && NettyClient.isDomainSocketEnabled() && !workerNetAddress.getDomainSocketPath()
-          .isEmpty()) {
+      if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
         address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
       } else {
         address = blockWorkerClient.getDataServerAddress();
@@ -173,20 +171,17 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       LockBlockResult lockBlockResult =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       PacketInStream inStream;
-
-      boolean local = blockWorkerClient.getDataServerAddress().getHostName()
-          .equals(NetworkAddressUtils.getClientHostName());
       SocketAddress address;
-      if (local && NettyClient.isDomainSocketEnabled() && !workerNetAddress.getDomainSocketPath()
-          .isEmpty()) {
+      if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
         address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
       } else {
         address = blockWorkerClient.getDataServerAddress();
       }
       if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
-        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && (
-            workerNetAddress.getDomainSocketPath().isEmpty() || !NettyClient
-                .isDomainSocketEnabled())) {
+        boolean local = blockWorkerClient.getDataServerAddress().getHostName()
+            .equals(NetworkAddressUtils.getClientHostName());
+        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)
+            && !NettyClient.isDomainSocketSupported(workerNetAddress)) {
           inStream = closer.register(PacketInStream
               .createLocalPacketInStream(lockBlockResult.getBlockPath(), blockId, blockSize));
         } else {

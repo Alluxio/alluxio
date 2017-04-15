@@ -175,6 +175,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     return ((InetSocketAddress) mDataServer.getBindAddress()).getPort();
   }
 
+  @Override
   public String getDataDomainSocketPath() {
     if (mDomainSocketDataServer != null) {
       return ((DomainSocketAddress) mDomainSocketDataServer.getBindAddress()).path();

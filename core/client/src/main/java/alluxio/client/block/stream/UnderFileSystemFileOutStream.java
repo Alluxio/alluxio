@@ -19,7 +19,6 @@ import alluxio.security.authorization.Mode;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;

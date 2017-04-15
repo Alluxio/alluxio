@@ -18,6 +18,8 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCMessageEncoder;
 import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -92,10 +94,13 @@ public final class NettyClient {
   }
 
   /**
+   * @param workerNetAddress the worker address
    * @return true if the domain socket is enabled on this client
    */
-  public static boolean isDomainSocketEnabled() {
-    return getChannelType() == ChannelType.EPOLL;
+  public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
+    return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName())
+        && !workerNetAddress.getDomainSocketPath().isEmpty()
+        && getChannelType() == ChannelType.EPOLL;
   }
 
   /**

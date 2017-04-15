@@ -16,13 +16,13 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.network.protocol.databuffer.DataFileChannelV2;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
@@ -192,7 +192,7 @@ public abstract class DataServerReadHandlerTest {
           }
           buf.release();
         } else {
-          Assert.assertTrue(buffer instanceof DataFileChannel);
+          Assert.assertTrue(buffer instanceof DataFileChannelV2);
           ByteBuffer buf = buffer.getReadOnlyByteBuffer();
           byte[] array = new byte[buf.remaining()];
           buf.get(array);

@@ -46,9 +46,9 @@ public final class StreamFactory {
    */
   public static BlockOutStream createLocalBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
-    if (!address.getDomainSocketPath().isEmpty() && NettyClient.isDomainSocketEnabled()) {
+    if (NettyClient.isDomainSocketSupported(address)) {
       return BlockOutStream
-          .createNettyBlockOutStream(blockId, blockSize, address, context, true, options);
+          .createNettyBlockOutStream(blockId, blockSize, address, context, options);
     }
     return BlockOutStream.createLocalBlockOutStream(blockId, blockSize, address, context, options);
   }
@@ -67,7 +67,7 @@ public final class StreamFactory {
   public static BlockOutStream createRemoteBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     return BlockOutStream
-        .createNettyBlockOutStream(blockId, blockSize, address, context, false, options);
+        .createNettyBlockOutStream(blockId, blockSize, address, context, options);
   }
 
   /**
@@ -83,9 +83,9 @@ public final class StreamFactory {
    */
   public static BlockInStream createLocalBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
-    if (!address.getDomainSocketPath().isEmpty() && NettyClient.isDomainSocketEnabled()) {
+    if (NettyClient.isDomainSocketSupported(address)) {
       return BlockInStream
-          .createNettyBlockInStream(blockId, blockSize, address, context, true, options);
+          .createNettyBlockInStream(blockId, blockSize, address, context, options);
     }
     return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
   }
@@ -104,7 +104,7 @@ public final class StreamFactory {
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
     return BlockInStream
-        .createNettyBlockInStream(blockId, blockSize, address, context, false, options);
+        .createNettyBlockInStream(blockId, blockSize, address, context, options);
   }
 
   /**
