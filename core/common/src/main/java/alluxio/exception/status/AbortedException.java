@@ -16,7 +16,7 @@ package alluxio.exception.status;
  * sequencer check failures, transaction aborts, etc.
  *
  * See litmus test in {@link FailedPreconditionException} for deciding between
- * FailedPreconditionException, AbortedException, and UnavailableException.
+ * {@link FailedPreconditionException}, {@link AbortedException}, and {@link UnavailableException}.
  */
 public class AbortedException extends AlluxioStatusException {
   private static final long serialVersionUID = -7705340466444818294L;
