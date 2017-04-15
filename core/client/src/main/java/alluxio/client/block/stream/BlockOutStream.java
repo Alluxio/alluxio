@@ -19,6 +19,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.netty.NettyClient;
 import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
@@ -66,7 +67,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {
-      closer.close();
+      CommonUtils.closeQuietly(closer);
       throw e;
     }
   }
@@ -103,7 +104,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {
-      closer.close();
+      CommonUtils.closeQuietly(closer);
       throw e;
     }
   }

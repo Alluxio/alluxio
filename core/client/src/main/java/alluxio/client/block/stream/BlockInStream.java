@@ -91,7 +91,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeQuitely(closer);
+      CommonUtils.closeQuietly(closer);
       throw CommonUtils.castToIOException(e);
     }
   }
@@ -131,7 +131,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK));
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeQuitely(closer);
+      CommonUtils.closeQuietly(closer);
       throw CommonUtils.castToIOException(e);
     }
   }
@@ -205,7 +205,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeQuitely(closer);
+      CommonUtils.closeQuietly(closer);
       throw CommonUtils.castToIOException(e);
     }
   }
