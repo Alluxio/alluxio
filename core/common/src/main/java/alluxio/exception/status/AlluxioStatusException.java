@@ -92,6 +92,35 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
+   * @return a specific {@link AlluxioException} corresponding to this exception if there is one;
+   *         otherwise return a generic {@link AlluxioException}
+   */
+  public AlluxioException toAlluxioException() {
+    switch (mStatus) {
+      // Fall throughs are intentional.
+      case PERMISSION_DENIED:
+      case UNAUTHENTICATED:
+        return new AccessControlException(getMessage());
+      case ABORTED:
+      case ALREADY_EXISTS:
+      case CANCELED:
+      case DATA_LOSS:
+      case DEADLINE_EXCEEDED:
+      case FAILED_PRECONDITION:
+      case INTERNAL:
+      case INVALID_ARGUMENT:
+      case NOT_FOUND:
+      case OUT_OF_RANGE:
+      case RESOURCE_EXHAUSTED:
+      case UNAVAILABLE:
+      case UNIMPLEMENTED:
+      case UNKNOWN:
+      default:
+        return new AlluxioException(getMessage());
+    }
+  }
+
+  /**
    * Converts an Alluxio exception from Thrift representation to native representation.
    *
    * @param e the Alluxio Thrift exception
