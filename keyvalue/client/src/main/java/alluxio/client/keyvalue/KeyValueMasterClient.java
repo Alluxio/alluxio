@@ -14,7 +14,6 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
@@ -85,8 +84,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the key-value store
    */
-  public synchronized void completeStore(final AlluxioURI path)
-      throws IOException, AlluxioException {
+  public synchronized void completeStore(final AlluxioURI path) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

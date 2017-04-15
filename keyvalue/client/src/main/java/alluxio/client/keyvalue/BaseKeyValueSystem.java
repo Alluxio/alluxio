@@ -48,7 +48,7 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
   public KeyValueStoreReader openStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     try {
-    return new BaseKeyValueStoreReader(uri);
+      return new BaseKeyValueStoreReader(uri);
     } catch (UnavailableException e) {
       throw new IOException(e);
     } catch (AlluxioStatusException e) {
