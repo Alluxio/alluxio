@@ -37,10 +37,10 @@ public final class RpcUtils {
       return callable.call();
     } catch (AlluxioException e) {
       logger.debug("{}, Error={}", callable, e.getMessage());
-      throw AlluxioStatusException.fromAlluxioException(e);
+      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (RuntimeException e) {
       logger.error("{}", callable, e);
-      throw AlluxioStatusException.fromRuntimeException(e);
+      throw AlluxioStatusException.fromRuntimeException(e).toThrift();
     }
   }
 
@@ -59,14 +59,14 @@ public final class RpcUtils {
       return callable.call();
     } catch (AlluxioException e) {
       logger.debug("{}, Error={}", callable, e.getMessage());
-      throw AlluxioStatusException.fromAlluxioException(e);
+      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
       logger.warn("{}, Error={}", callable, e.getMessage());
       logger.debug("{}", callable, e);
-      throw AlluxioStatusException.fromIOException(e);
+      throw AlluxioStatusException.fromIOException(e).toThrift();
     } catch (RuntimeException e) {
       logger.error("{}", callable, e);
-      throw AlluxioStatusException.fromRuntimeException(e);
+      throw AlluxioStatusException.fromRuntimeException(e).toThrift();
     }
   }
 
