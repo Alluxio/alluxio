@@ -100,7 +100,7 @@ public class AlluxioStatusException extends RuntimeException {
       // Fall throughs are intentional.
       case PERMISSION_DENIED:
       case UNAUTHENTICATED:
-        return new AccessControlException(getMessage());
+        return new AccessControlException(getMessage(), this);
       case ABORTED:
       case ALREADY_EXISTS:
       case CANCELED:
@@ -116,7 +116,7 @@ public class AlluxioStatusException extends RuntimeException {
       case UNIMPLEMENTED:
       case UNKNOWN:
       default:
-        return new AlluxioException(getMessage());
+        return new AlluxioException(this);
     }
   }
 

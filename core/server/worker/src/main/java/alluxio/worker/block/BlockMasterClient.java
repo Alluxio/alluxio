@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
@@ -93,8 +92,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param address the net address to get a worker id for
    * @return a worker id
    */
-  public synchronized long getId(final WorkerNetAddress address)
-      throws IOException, ConnectionFailedException {
+  public synchronized long getId(final WorkerNetAddress address) {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
