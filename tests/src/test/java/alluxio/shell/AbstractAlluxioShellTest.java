@@ -204,10 +204,19 @@ public abstract class AbstractAlluxioShellTest {
     return null;
   }
 
+  /**
+   * Resets the singleton {@link alluxio.security.LoginUser} to null.
+   */
   protected void clearLoginUser() {
     LoginUserTestUtils.resetLoginUser();
   }
 
+  /**
+   * Clears the {@link alluxio.security.LoginUser} and re-login with new user.
+   *
+   * @param user the new user
+   * @throws IOException if login fails
+   */
   protected void clearAndLogin(String user) throws IOException {
     LoginUserTestUtils.resetLoginUser(user);
   }
