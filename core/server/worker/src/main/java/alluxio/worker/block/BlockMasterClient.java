@@ -77,13 +77,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param tierAlias the alias of the tier the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
-   * @throws AlluxioTException if it fails to commit the block
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length)
-          throws AlluxioTException, IOException, ConnectionFailedException {
+      final String tierAlias, final long blockId, final long length) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -149,7 +145,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
   public synchronized void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+    retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,

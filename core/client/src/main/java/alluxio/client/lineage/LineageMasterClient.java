@@ -85,7 +85,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
   public synchronized long createLineage(final List<String> inputFiles,
       final List<String> outputFiles, final CommandLineJob job) throws IOException,
       AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
+    return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.createLineage(inputFiles, outputFiles,
@@ -105,7 +105,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
    */
   public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
       throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
+    return retryRPC(new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws AlluxioTException, TException {
         return mClient.deleteLineage(lineageId, cascade);
@@ -128,7 +128,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
       final long ttl, final TtlAction ttlAction)
       throws IOException, LineageDoesNotExistException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
+    return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl,
@@ -166,7 +166,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized void reportLostFile(final String path) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+    retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.reportLostFile(path);

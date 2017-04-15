@@ -21,8 +21,8 @@ import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -191,7 +191,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void cacheBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
+    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
           throws AlluxioTException, TException {
@@ -203,7 +203,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void cancelBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
+    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
           throws AlluxioTException, TException {
@@ -228,7 +228,7 @@ public final class RetryHandlingBlockWorkerClient
   public LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
       throws IOException, AlluxioException {
     LockBlockResult result = retryRPC(
-        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService.Client>() {
+        new RpcCallable<LockBlockResult, BlockWorkerClientService.Client>() {
           @Override
           public LockBlockResult call(BlockWorkerClientService.Client client)
               throws AlluxioTException, TException {
@@ -261,7 +261,7 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public boolean promoteBlock(final long blockId) throws IOException, AlluxioException {
     return retryRPC(
-        new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
+        new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
           @Override
           public Boolean call(BlockWorkerClientService.Client client)
               throws AlluxioTException, TException {
@@ -272,7 +272,7 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public void removeBlock(final long blockId) throws IOException, AlluxioException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
+    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
           throws AlluxioTException, TException {
@@ -284,43 +284,37 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public String requestBlockLocation(final long blockId, final long initialBytes,
-      final int writeTier) throws IOException {
+      final int writeTier) {
     try {
       return retryRPC(
-          new RpcCallableThrowsAlluxioTException<String, BlockWorkerClientService.Client>() {
+          new RpcCallable<String, BlockWorkerClientService.Client>() {
             @Override
             public String call(BlockWorkerClientService.Client client)
                 throws AlluxioTException, TException {
               return client.requestBlockLocation(getSessionId(), blockId, initialBytes, writeTier);
             }
           });
-    } catch (WorkerOutOfSpaceException e) {
-      throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE
+    } catch (ResourceExhaustedException e) {
+      throw new ResourceExhaustedException(ExceptionMessage.CANNOT_REQUEST_SPACE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId));
-    } catch (AlluxioException e) {
-      throw new IOException(e);
     }
   }
 
   @Override
   public boolean requestSpace(final long blockId, final long requestBytes) throws IOException {
-    try {
-      boolean success = retryRPC(
-          new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
-            @Override
-            public Boolean call(BlockWorkerClientService.Client client)
-                throws AlluxioTException, TException {
-              return client.requestSpace(getSessionId(), blockId, requestBytes);
-            }
-          });
-      if (!success) {
-        throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE
-            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId));
-      }
-      return true;
-    } catch (AlluxioException e) {
-      throw new IOException(e);
+    boolean success = retryRPC(
+        new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
+          @Override
+          public Boolean call(BlockWorkerClientService.Client client)
+              throws AlluxioTException, TException {
+            return client.requestSpace(getSessionId(), blockId, requestBytes);
+          }
+        });
+    if (!success) {
+      throw new ResourceExhaustedException(ExceptionMessage.CANNOT_REQUEST_SPACE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId));
     }
+    return true;
   }
 
   @Override

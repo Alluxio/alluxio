@@ -109,7 +109,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    */
   public synchronized BlockInfo getBlockInfo(final long blockId)
       throws AlluxioException, IOException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<BlockInfo>() {
+    return retryRPC(new RpcCallable<BlockInfo>() {
       @Override
       public BlockInfo call() throws AlluxioTException, TException {
         return ThriftUtils.fromThrift(mClient.getBlockInfo(blockId));
