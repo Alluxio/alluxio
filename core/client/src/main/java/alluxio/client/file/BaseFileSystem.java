@@ -145,7 +145,7 @@ public class BaseFileSystem implements FileSystem {
       masterClient.delete(path, options);
       LOG.debug("Deleted {}, options: {}", path.getPath(), options);
     } catch (FailedPreconditionException e) {
-      // A little sketchy, but this should be the only case that throws FailedPrecondition
+      // A little sketchy, but this should be the only case that throws FailedPrecondition.
       throw new DirectoryNotEmptyException(e.getMessage());
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());

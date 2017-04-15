@@ -24,7 +24,6 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
@@ -88,7 +87,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
-      final CheckConsistencyOptions options) throws AlluxioException, IOException {
+      final CheckConsistencyOptions options) {
     return retryRPC(new RpcCallable<List<AlluxioURI>>() {
       @Override
       public List<AlluxioURI> call() throws AlluxioTException, TException {
@@ -105,7 +104,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void createDirectory(final AlluxioURI path,
-      final CreateDirectoryOptions options) throws IOException, AlluxioException {
+      final CreateDirectoryOptions options) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -116,8 +115,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void createFile(final AlluxioURI path, final CreateFileOptions options)
-      throws IOException, AlluxioException {
+  public synchronized void createFile(final AlluxioURI path, final CreateFileOptions options) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -128,8 +126,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options)
-      throws IOException, AlluxioException {
+  public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -140,8 +137,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void delete(final AlluxioURI path, final DeleteOptions options)
-      throws IOException, AlluxioException {
+  public synchronized void delete(final AlluxioURI path, final DeleteOptions options) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -152,8 +148,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void free(final AlluxioURI path, final FreeOptions options)
-      throws IOException, AlluxioException {
+  public synchronized void free(final AlluxioURI path, final FreeOptions options) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -164,8 +159,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized URIStatus getStatus(final AlluxioURI path) throws IOException,
-      AlluxioException {
+  public synchronized URIStatus getStatus(final AlluxioURI path) {
     return retryRPC(new RpcCallable<URIStatus>() {
       @Override
       public URIStatus call() throws AlluxioTException, TException {
@@ -175,8 +169,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized long getNewBlockIdForFile(final AlluxioURI path)
-      throws IOException, AlluxioException {
+  public synchronized long getNewBlockIdForFile(final AlluxioURI path) {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
@@ -187,7 +180,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<URIStatus> listStatus(final AlluxioURI path,
-      final ListStatusOptions options) throws IOException, AlluxioException {
+      final ListStatusOptions options) {
     return retryRPC(new RpcCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws AlluxioTException, TException {
@@ -203,7 +196,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void loadMetadata(final AlluxioURI path,
-      final LoadMetadataOptions options) throws IOException, AlluxioException {
+      final LoadMetadataOptions options) {
     retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
@@ -214,8 +207,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
-      final MountOptions options)
-      throws AlluxioException, IOException {
+      final MountOptions options) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -226,8 +218,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
-      throws IOException, AlluxioException {
+  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -238,8 +229,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options)
-      throws IOException, AlluxioException {
+  public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -250,8 +240,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void scheduleAsyncPersist(final AlluxioURI path)
-      throws AlluxioException, IOException {
+  public synchronized void scheduleAsyncPersist(final AlluxioURI path) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
@@ -262,8 +251,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void unmount(final AlluxioURI alluxioPath)
-      throws AlluxioException, IOException {
+  public synchronized void unmount(final AlluxioURI alluxioPath) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {

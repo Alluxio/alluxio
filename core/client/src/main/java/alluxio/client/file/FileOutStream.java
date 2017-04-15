@@ -161,7 +161,7 @@ public class FileOutStream extends AbstractOutStream {
       if (mUnderStorageType.isAsyncPersist()) {
         scheduleAsyncPersist();
       }
-    } catch (AlluxioException e) {
+    } catch (AlluxioStatusException e) {
       throw mCloser.rethrow(new IOException(e));
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is
@@ -260,7 +260,7 @@ public class FileOutStream extends AbstractOutStream {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
       return masterClient.get().getNewBlockIdForFile(mUri);
-    } catch (AlluxioException e) {
+    } catch (AlluxioStatusException e) {
       throw new IOException(e);
     }
   }
@@ -286,7 +286,7 @@ public class FileOutStream extends AbstractOutStream {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
       masterClient.get().scheduleAsyncPersist(mUri);
-    } catch (AlluxioException e) {
+    } catch (AlluxioStatusException e) {
       throw new IOException(e);
     }
   }
