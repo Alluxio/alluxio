@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -76,12 +75,6 @@ public final class FileSystemContext implements Closeable {
   private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
       mBlockWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
 
-  // The file system worker client pools.
-  private final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      mFileSystemWorkerClientPools = new ConcurrentHashMapV8<>();
-  private final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      mFileSystemWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
-
   // The netty data server channel pools.
   private final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMapV8<>();
@@ -89,10 +82,6 @@ public final class FileSystemContext implements Closeable {
   /** The shared master address associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
   private InetSocketAddress mMasterAddress;
-
-  /** A list of valid workers, if there is a local worker, only the local worker addresses. */
-  @GuardedBy("this")
-  private List<WorkerNetAddress> mWorkerAddresses;
 
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
@@ -170,16 +159,6 @@ public final class FileSystemContext implements Closeable {
     }
     mBlockWorkerClientHeartbeatPools.clear();
 
-    for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientPools.values()) {
-      pool.close();
-    }
-    mFileSystemWorkerClientPools.clear();
-
-    for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientHeartbeatPools.values()) {
-      pool.close();
-    }
-    mFileSystemWorkerClientHeartbeatPools.clear();
-
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
       pool.close();
     }
@@ -187,7 +166,6 @@ public final class FileSystemContext implements Closeable {
 
     synchronized (this) {
       mMasterAddress = null;
-      mWorkerAddresses = null;
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
     }
@@ -311,48 +289,6 @@ public final class FileSystemContext implements Closeable {
 
     return BlockWorkerClient.Factory.create(mBlockWorkerClientPools.get(rpcAddress),
         mBlockWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
-  }
-
-  /**
-   * Creates a new file system worker client, prioritizing local workers if available. This method
-   * initializes the list of worker addresses if it has not been initialized.
-   *
-   * @return a file system worker client to a worker in the system
-   * @throws IOException if an error occurs getting the list of workers in the system
-   */
-  public FileSystemWorkerClient createFileSystemWorkerClient() throws IOException {
-    WorkerNetAddress address;
-    synchronized (this) {
-      if (mWorkerAddresses == null) {
-        mWorkerAddresses = getWorkerAddresses();
-      }
-      address = mWorkerAddresses.get(ThreadLocalRandom.current().nextInt(mWorkerAddresses.size()));
-    }
-
-    InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
-    if (!mFileSystemWorkerClientPools.containsKey(rpcAddress)) {
-      FileSystemWorkerThriftClientPool pool =
-          new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
-              Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
-              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mFileSystemWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
-        pool.close();
-      }
-    }
-
-    if (!mFileSystemWorkerClientHeartbeatPools.containsKey(rpcAddress)) {
-      FileSystemWorkerThriftClientPool pool =
-          new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
-              Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
-              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mFileSystemWorkerClientHeartbeatPools.putIfAbsent(rpcAddress, pool) != null) {
-        pool.close();
-      }
-    }
-
-    long sessionId = IdUtils.getRandomNonNegativeLong();
-    return FileSystemWorkerClient.Factory.create(mFileSystemWorkerClientPools.get(rpcAddress),
-        mFileSystemWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
   }
 
   /**

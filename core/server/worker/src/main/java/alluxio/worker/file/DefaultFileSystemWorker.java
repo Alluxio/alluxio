@@ -26,7 +26,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.options.CompleteUfsFileOptions;
 import alluxio.worker.file.options.CreateUfsFileOptions;
@@ -92,18 +91,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
     // Setup session cleaner
-    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
-      /**
-       * Cleans up after sessions, to prevent zombie sessions holding ufs resources.
-       */
-      @Override
-      public void cleanupSessions() {
-        for (long session : mSessions.getTimedOutSessions()) {
-          mSessions.removeSession(session);
-          mUnderFileSystemManager.cleanupSession(session);
-        }
-      }
-    });
+    mSessionCleaner = new SessionCleaner(mSessions, mUnderFileSystemManager);
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
   }

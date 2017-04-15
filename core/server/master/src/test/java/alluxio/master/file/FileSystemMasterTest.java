@@ -1420,20 +1420,54 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests unmounting operation.
+   * Tests unmount operation.
    */
   @Test
   public void unmount() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
-    AlluxioURI dirURI = new AlluxioURI("dir");
-    mFileSystemMaster.createDirectory(new AlluxioURI(alluxioURI, dirURI),
+    mFileSystemMaster.createDirectory(alluxioURI.join("dir"),
         CreateDirectoryOptions.defaults().setPersisted(true));
     mFileSystemMaster.unmount(alluxioURI);
-    AlluxioURI ufsDirURI = new AlluxioURI(ufsURI, dirURI);
-    File file = new File(ufsDirURI.toString());
+    // after unmount, ufs path under previous mount point should still exist
+    File file = new File(ufsURI.join("dir").toString());
     Assert.assertTrue(file.exists());
+    // after unmount, alluxio path under previous mount point should not exist
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(alluxioURI.join("dir"));
+  }
+
+  /**
+   * Tests unmount operation failed when unmounting root.
+   */
+  @Test
+  public void unmountRootWithException() throws Exception {
+    mThrown.expect(InvalidPathException.class);
+    mFileSystemMaster.unmount(new AlluxioURI("/"));
+  }
+
+  /**
+   * Tests unmount operation failed when unmounting non-mount point.
+   */
+  @Test
+  public void unmountNonMountPointWithException() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    AlluxioURI dirURI = alluxioURI.join("dir");
+    mFileSystemMaster.createDirectory(dirURI, CreateDirectoryOptions.defaults().setPersisted(true));
+    mThrown.expect(InvalidPathException.class);
+    mFileSystemMaster.unmount(dirURI);
+  }
+
+  /**
+   * Tests unmount operation failed when unmounting non-existing dir.
+   */
+  @Test
+  public void unmountNonExistingPathWithException() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.unmount(new AlluxioURI("/FileNotExists"));
   }
 
   /**
