@@ -86,7 +86,7 @@ function mac_hfs_provision_sectors() {
   quota_groups_file_size=$(((n_gb * 32 + 1) * 64))
 
   metadata_size=$((alloc_bitmap_size + ext_overflow_file_size + journal_file_size + \
-    catalog_file_size + hot_file_size + quota_users_file_size + quota_groups_file_size))
+    catalog_file_size + hot_files_size + quota_users_file_size + quota_groups_file_size))
 
   alloc_size=$((request_size + metadata_size))
   echo $((alloc_size / sector_size))
