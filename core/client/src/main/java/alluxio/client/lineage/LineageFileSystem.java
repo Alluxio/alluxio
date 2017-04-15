@@ -20,7 +20,9 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDoesNotExistException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 
 import java.io.IOException;
 
@@ -67,6 +69,12 @@ public final class LineageFileSystem extends BaseFileSystem {
     try {
       return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
           options.getTtl(), options.getTtlAction());
+    } catch (NotFoundException e) {
+      throw new LineageDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw new IOException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     } finally {
       mLineageContext.releaseMasterClient(masterClient);
     }
@@ -91,6 +99,10 @@ public final class LineageFileSystem extends BaseFileSystem {
     } catch (NotFoundException e) {
       // not a lineage file
       return super.createFile(path, options);
+    } catch (UnavailableException e) {
+      throw new IOException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     }
     if (fileId == -1) {
       return new DummyFileOutputStream(path, options.toOutStreamOptions());
@@ -111,6 +123,12 @@ public final class LineageFileSystem extends BaseFileSystem {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       masterClient.reportLostFile(path.getPath());
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw new IOException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     } finally {
       mLineageContext.releaseMasterClient(masterClient);
     }

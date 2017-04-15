@@ -17,11 +17,13 @@ import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.lineage.options.GetLineageInfoListOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
@@ -69,6 +71,12 @@ public abstract class AbstractLineageClient implements LineageClient {
           stripURIList(outputFiles), (CommandLineJob) job);
       LOG.info("Created lineage {}", lineageId);
       return lineageId;
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw new IOException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -82,6 +90,10 @@ public abstract class AbstractLineageClient implements LineageClient {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
       LOG.info("{} delete lineage {}", result ? "Succeeded to " : "Failed to ", lineageId);
       return result;
+    } catch (NotFoundException e) {
+      throw new LineageDoesNotExistException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new LineageDeletionException(e.getMessage());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -94,8 +106,6 @@ public abstract class AbstractLineageClient implements LineageClient {
 
     try {
       return masterClient.getLineageInfoList();
-    } catch (ConnectionFailedException e) {
-      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

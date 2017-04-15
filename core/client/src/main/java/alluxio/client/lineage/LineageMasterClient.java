@@ -13,12 +13,8 @@ package alluxio.client.lineage;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.CommandLineJob;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.ThriftUtils;
@@ -79,15 +75,12 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @param outputFiles the list of output file names
    * @param job the job used for the creation
    * @return the value of the lineage creation result
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized long createLineage(final List<String> inputFiles,
-      final List<String> outputFiles, final CommandLineJob job) throws IOException,
-      AlluxioException {
+      final List<String> outputFiles, final CommandLineJob job) {
     return retryRPC(new RpcCallable<Long>() {
       @Override
-      public Long call() throws AlluxioTException, TException {
+      public Long call() throws TException {
         return mClient.createLineage(inputFiles, outputFiles,
             ThriftUtils.toThrift(job.generateCommandLineJobInfo()));
       }
@@ -100,14 +93,11 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @param lineageId the id of the lineage
    * @param cascade true if the deletion is cascading, false otherwise
    * @return true if the deletion was successful, false otherwise
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an Alluxio exception occurs
    */
-  public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
-      throws IOException, AlluxioException {
+  public synchronized boolean deleteLineage(final long lineageId, final boolean cascade) {
     return retryRPC(new RpcCallable<Boolean>() {
       @Override
-      public Boolean call() throws AlluxioTException, TException {
+      public Boolean call() throws TException {
         return mClient.deleteLineage(lineageId, cascade);
       }
     });
@@ -121,16 +111,12 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @param ttl the time to live for the file
    * @param ttlAction Action to take after Ttl expiry
    * @return the value of the lineage creation result
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws LineageDoesNotExistException if the file does not exist
-   * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl, final TtlAction ttlAction)
-      throws IOException, LineageDoesNotExistException, AlluxioException {
+      final long ttl, final TtlAction ttlAction) {
     return retryRPC(new RpcCallable<Long>() {
       @Override
-      public Long call() throws AlluxioTException, TException {
+      public Long call() throws TException {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl,
             ThriftUtils.toThrift(ttlAction));
       }
@@ -141,11 +127,8 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * Retrieves the list of lineage information.
    *
    * @return a list of lineage information
-   * @throws ConnectionFailedException if the connection fails
-   * @throws IOException if a non-Alluxio exception occurs
    */
-  public synchronized List<LineageInfo> getLineageInfoList()
-      throws ConnectionFailedException, IOException {
+  public synchronized List<LineageInfo> getLineageInfoList() {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
@@ -162,13 +145,11 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * Reports a file as lost.
    *
    * @param path the path to the lost file
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an Alluxio exception occurs
    */
-  public synchronized void reportLostFile(final String path) throws IOException, AlluxioException {
+  public synchronized void reportLostFile(final String path) {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.reportLostFile(path);
         return null;
       }
