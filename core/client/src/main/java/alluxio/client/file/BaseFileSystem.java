@@ -34,6 +34,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -94,6 +95,8 @@ public class BaseFileSystem implements FileSystem {
       throw new FileAlreadyExistsException(e.getMessage());
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -118,6 +121,8 @@ public class BaseFileSystem implements FileSystem {
       throw new FileAlreadyExistsException(e.getMessage());
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -144,6 +149,8 @@ public class BaseFileSystem implements FileSystem {
       throw new DirectoryNotEmptyException(e.getMessage());
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -167,6 +174,8 @@ public class BaseFileSystem implements FileSystem {
       return false;
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -187,6 +196,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Freed {}, options: {}", path.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -206,6 +217,8 @@ public class BaseFileSystem implements FileSystem {
       return masterClient.getStatus(path);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -226,6 +239,8 @@ public class BaseFileSystem implements FileSystem {
       return masterClient.listStatus(path, options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -258,6 +273,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Loaded metadata {}, options: {}", path.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -277,6 +294,8 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Make this fail on the master side
       masterClient.mount(alluxioPath, ufsPath, options);
       LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -316,6 +335,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -336,6 +357,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -353,6 +376,8 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.unmount(path);
       LOG.debug("Unmounted {}, options: {}", path.getPath(), options);
+    } catch (AlluxioStatusException e) {
+      throw new AlluxioException(e.getMessage());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
