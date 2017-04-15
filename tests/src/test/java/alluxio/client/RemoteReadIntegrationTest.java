@@ -25,7 +25,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -43,6 +42,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -562,7 +562,7 @@ public class RemoteReadIntegrationTest {
         is2 =
             BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(),
                 workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
-      } catch (NotFoundException e) {
+      } catch (IOException e) {
         // Expected since the file has been deleted.
       } finally {
         if (is2 != null) {

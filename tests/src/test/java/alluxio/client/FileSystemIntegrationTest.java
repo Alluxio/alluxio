@@ -21,11 +21,11 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -204,7 +204,7 @@ public final class FileSystemIntegrationTest {
     try {
       mFileSystem.mount(new AlluxioURI("/dir"), new AlluxioURI(ufsSubdir));
       Assert.fail("Cannot remount primary ufs.");
-    } catch (InvalidArgumentException e) {
+    } catch (AlluxioException e) {
       // Exception expected
     }
 
@@ -218,14 +218,14 @@ public final class FileSystemIntegrationTest {
       try {
         mFileSystem.mount(new AlluxioURI("/inner"), new AlluxioURI(innerDirPath));
         Assert.fail("Cannot mount suffix of already-mounted directory");
-      } catch (InvalidArgumentException e) {
+      } catch (AlluxioException e) {
         // Exception expected, continue
       }
       // Cannot mount prefix of already-mounted directory
       try {
         mFileSystem.mount(new AlluxioURI("/root"), new AlluxioURI(alternateUfsRoot));
         Assert.fail("Cannot mount prefix of already-mounted directory");
-      } catch (InvalidArgumentException e) {
+      } catch (AlluxioException e) {
         // Exception expected, continue
       }
     } finally {
@@ -310,12 +310,6 @@ public final class FileSystemIntegrationTest {
     mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "file"))).close();
     mThrown.expect(DirectoryNotEmptyException.class);
     mFileSystem.delete(dir, DeleteOptions.defaults().setRecursive(false));
-  }
-
-  @Test
-  public void existsInvalidPath() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mFileSystem.exists(new AlluxioURI("not a path"));
   }
 
   @Test
