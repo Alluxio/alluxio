@@ -16,7 +16,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
 
@@ -70,14 +69,11 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the key-value store
    * @param info information of this completed partition
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info)
-      throws IOException, AlluxioException {
+  public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info) {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.completePartition(path.getPath(), info);
         return null;
       }
@@ -88,14 +84,12 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * Marks a key-value store complete.
    *
    * @param path URI of the key-value store
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
   public synchronized void completeStore(final AlluxioURI path)
       throws IOException, AlluxioException {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.completeStore(path.getPath());
         return null;
       }
@@ -106,13 +100,11 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * Creates a new key-value store.
    *
    * @param path URI of the key-value store
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized void createStore(final AlluxioURI path) throws IOException, AlluxioException {
+  public synchronized void createStore(final AlluxioURI path) {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.createStore(path.getPath());
         return null;
       }
@@ -124,14 +116,11 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the key-value store
    * @return a list of partition information
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized List<PartitionInfo> getPartitionInfo(final AlluxioURI path)
-      throws IOException, AlluxioException {
+  public synchronized List<PartitionInfo> getPartitionInfo(final AlluxioURI path) {
     return retryRPC(new RpcCallable<List<PartitionInfo>>() {
       @Override
-      public List<PartitionInfo> call() throws AlluxioTException, TException {
+      public List<PartitionInfo> call() throws TException {
         return mClient.getPartitionInfo(path.getPath());
       }
     });
@@ -141,13 +130,11 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * Deletes a completed key-value store.
    *
    * @param path URI of the store
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if other Alluxio error occurs
    */
-  public synchronized void deleteStore(final AlluxioURI path) throws IOException, AlluxioException {
+  public synchronized void deleteStore(final AlluxioURI path) {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.deleteStore(path.getPath());
         return null;
       }
@@ -159,14 +146,11 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param oldPath old URI of the store
    * @param newPath new URI of the store
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if other Alluxio error occurs
    */
-  public synchronized void renameStore(final AlluxioURI oldPath, final AlluxioURI newPath)
-      throws IOException, AlluxioException {
+  public synchronized void renameStore(final AlluxioURI oldPath, final AlluxioURI newPath) {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.renameStore(oldPath.getPath(), newPath.getPath());
         return null;
       }
@@ -179,11 +163,10 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param fromPath URI of the store to be merged
    * @param toPath URI of the store to be merged to
    */
-  void mergeStore(final AlluxioURI fromPath, final AlluxioURI toPath)
-      throws IOException, AlluxioException {
+  void mergeStore(final AlluxioURI fromPath, final AlluxioURI toPath) {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.mergeStore(fromPath.getPath(), toPath.getPath());
         return null;
       }
