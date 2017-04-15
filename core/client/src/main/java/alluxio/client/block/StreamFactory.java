@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class StreamFactory {
 
-  private StreamFactory() {} // prevent instantiatioe
+  private StreamFactory() {} // prevent instantiation
 
   /**
    * Creates an {@link BlockOutStream} that writes to a block on local worker.
