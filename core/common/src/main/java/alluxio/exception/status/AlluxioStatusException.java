@@ -116,7 +116,7 @@ public class AlluxioStatusException extends RuntimeException {
       case UNIMPLEMENTED:
       case UNKNOWN:
       default:
-        return new AlluxioException(this);
+        return new AlluxioException(getMessage(), this);
     }
   }
 
