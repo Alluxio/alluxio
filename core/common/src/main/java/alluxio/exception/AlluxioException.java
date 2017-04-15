@@ -37,7 +37,7 @@ public class AlluxioException extends Exception {
    *
    * @param cause the cause
    */
-  protected AlluxioException(Throwable cause) {
+  public AlluxioException(Throwable cause) {
     super(cause);
   }
 
