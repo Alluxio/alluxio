@@ -51,9 +51,21 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mount() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-
     Assert.assertEquals(0, mFsShell.run("mount", mountPoint.toString(), ufsPath));
     checkMountPoint(mountPoint, ufsPath);
+  }
+
+  @Test
+  public void mountWithWrongArgs() throws Exception {
+    AlluxioURI mountPoint = new AlluxioURI("/mnt");
+    String ufsPath = mFolder.getRoot().getAbsolutePath();
+    // alluxio, ufs path missing
+    Assert.assertEquals(-1, mFsShell.run("mount"));
+    // ufs missing
+    Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString()));
+    // --option with wrong argument format
+    Assert.assertEquals(-1,
+        mFsShell.run("mount", "--option wrongArgFormat", mountPoint.toString(), ufsPath));
   }
 
   @Test

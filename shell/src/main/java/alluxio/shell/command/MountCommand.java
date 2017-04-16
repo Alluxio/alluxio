@@ -34,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MountCommand extends AbstractShellCommand {
+  /** the pattern to parse key=value as argument of --option. */
   private static final Pattern OPTION_PATTERN = Pattern.compile("(.*)=(.*)");
 
   private static final Option READONLY_OPTION =
@@ -89,8 +90,12 @@ public final class MountCommand extends AbstractShellCommand {
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
     MountOptions options = MountOptions.defaults();
 
-    options.setReadOnly(cl.hasOption(READONLY_OPTION.getLongOpt()));
-    options.setShared(cl.hasOption(SHARED_OPTION.getLongOpt()));
+    if (cl.hasOption(READONLY_OPTION.getLongOpt())) {
+      options.setReadOnly(true);
+    }
+    if (cl.hasOption(SHARED_OPTION.getLongOpt())) {
+      options.setShared(true);
+    }
     if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
       Map<String, String> properties = new HashMap<>();
       String[] optionValues = cl.getOptionValues("option");
