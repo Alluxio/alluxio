@@ -16,16 +16,13 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,8 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MountCommand extends AbstractShellCommand {
-  /** the pattern to parse key=value as argument of --option. */
-  private static final Pattern OPTION_PATTERN = Pattern.compile("(.*)=(.*)");
 
   private static final Option READONLY_OPTION =
       Option.builder()
@@ -56,7 +51,9 @@ public final class MountCommand extends AbstractShellCommand {
           .longOpt("option")
           .required(false)
           .hasArg(true)
+          .numberOfArgs(2)
           .argName("key=value")
+          .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
 
@@ -97,16 +94,8 @@ public final class MountCommand extends AbstractShellCommand {
       options.setShared(true);
     }
     if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
-      Map<String, String> properties = new HashMap<>();
-      String[] optionValues = cl.getOptionValues("option");
-      for (String option : optionValues) {
-        Matcher matcher = OPTION_PATTERN.matcher(option);
-        Preconditions.checkArgument(matcher.matches(), "Unrecognized property %s", option);
-        String key = matcher.group(1);
-        String value = matcher.group(2);
-        properties.put(key, value);
-      }
-      options.setProperties(properties);
+      Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
+      options.setProperties(Maps.fromProperties(properties));
     }
 
     mFileSystem.mount(alluxioPath, ufsPath, options);
