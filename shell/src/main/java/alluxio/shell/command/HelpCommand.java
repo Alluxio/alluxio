@@ -53,7 +53,7 @@ public final class HelpCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     SortedSet<String> sortedCmds = null;
     AlluxioShellUtils.loadCommands(mFileSystem, mCommands);
-    try (PrintWriter pw = new PrintWriter(System.err)) {
+    try (PrintWriter pw = new PrintWriter(System.out)) {
       if (args.length == 0) {
         // print help messages for all supported commands.
         sortedCmds = new TreeSet<>(mCommands.keySet());

@@ -105,10 +105,10 @@ public final class AlluxioShell implements Closeable {
    * Prints usage for all shell commands.
    */
   private void printUsage() {
-    System.err.println("Usage: alluxio fs [generic options]");
+    System.out.println("Usage: alluxio fs [generic options]");
     SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
     for (String cmd : sortedCmds) {
-      System.err.format("%-60s%n", "       [" + mCommands.get(cmd).getUsage() + "]");
+      System.out.format("%-60s%n", "       [" + mCommands.get(cmd).getUsage() + "]");
     }
   }
 
@@ -131,14 +131,14 @@ public final class AlluxioShell implements Closeable {
     if (command == null) { // Unknown command (we didn't find the cmd in our dict)
       String[] replacementCmd = getReplacementCmd(cmd);
       if (replacementCmd == null) {
-        System.err.println(cmd + " is an unknown command.\n");
+        System.out.println(cmd + " is an unknown command.\n");
         printUsage();
         return -1;
       }
       // Handle command alias, and print out WARNING message for deprecated cmd.
       String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
                              + StringUtils.join(replacementCmd, " ") + " instead.";
-      System.err.println(deprecatedMsg);
+      System.out.println(deprecatedMsg);
       LOG.warn(deprecatedMsg);
 
       String[] replacementArgv = (String[]) ArrayUtils.addAll(replacementCmd,
@@ -149,7 +149,7 @@ public final class AlluxioShell implements Closeable {
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
     CommandLine cmdline = command.parseAndValidateArgs(args);
     if (cmdline == null) {
-      System.err.println("Usage: " + command.getUsage());
+      System.out.println("Usage: " + command.getUsage());
       return -1;
     }
 
@@ -157,7 +157,7 @@ public final class AlluxioShell implements Closeable {
     try {
       return command.run(cmdline);
     } catch (Exception e) {
-      System.err.println(e.getMessage());
+      System.out.println(e.getMessage());
       LOG.error("Error running " + StringUtils.join(argv, " "), e);
       return -1;
     }
