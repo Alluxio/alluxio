@@ -81,7 +81,8 @@ public final class BufferUtils {
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
-      LOG.warn("Failed to unmap direct ByteBuffer: {}", buffer.getClass().getName(), e);
+      LOG.warn("Failed to unmap direct ByteBuffer: {}, error message: {}",
+                buffer.getClass().getName(), e.getMessage());
     } finally {
       // Force to drop reference to the buffer to clean
       buffer = null;

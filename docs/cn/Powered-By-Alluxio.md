@@ -4,7 +4,7 @@ title: Powered By Alluxio
 group: Resources
 ---
 
-目前有许多公司和组织都在使用Alluxio，下面列出了其中一部分。如果你的组织也在使用，可以自由地[编辑这个列表](https://github.com/alluxio/alluxio/edit/master/docs/cn/Powered-By-Alluxio.md)，或者通过邮件告诉我们(project.alluxio@gmail.com)，或者填写[调查](http://alluxio.org/resources/survey-users/)让我们知道。
+目前有许多公司和组织都在使用Alluxio，下面列出了其中一部分。如果你的组织也在使用，可以自由地[编辑这个列表](https://github.com/alluxio/alluxio/edit/master/docs/cn/Powered-By-Alluxio.md)，或者通过邮件告诉我们(project.alluxio@gmail.com)，或者填写[调查](https://docs.google.com/forms/d/e/1FAIpQLSfRTSKlysTNq9Zg-_Q87tRvs9CPWc49LjdMkEYUW-DlXSxPig/viewform)让我们知道。
 
 * [Alibaba](http://www.alibaba.com/)
 * [Alluxio](http://www.alluxio.com/)
@@ -14,7 +14,9 @@ group: Resources
 * [Baidu](http://www.baidu.com/)
 * [Barclays](http://www.barclays.co.uk/)
 * [EMC](https://www.emc.com/)
+* [ESRI](http://www.esri.com/)
 * [GBICC](http://www.gbicc.net/)
+* [Guardant Health](http://www.guardanthealth.com/)
 * [Huawei](http://www.huawei.com/)
 * [IBM](http://www.ibm.com/)
 * [IBM Research](http://www.research.ibm.com/)
@@ -27,6 +29,7 @@ group: Resources
 * [Radicalbit](http://www.radicalbit.io)
 * [Samsung](http://www.samsung.com/us/)
 * [Talend](https://www.talend.com/)
+* [Tencent](https://www.tencent.com)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 

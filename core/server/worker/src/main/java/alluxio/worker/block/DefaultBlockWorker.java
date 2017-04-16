@@ -34,7 +34,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -198,19 +197,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
-      /**
-       * Cleans up after sessions, to prevent zombie sessions holding local resources.
-       */
-      @Override
-      public void cleanupSessions() {
-        for (long session : mSessions.getTimedOutSessions()) {
-          mSessions.removeSession(session);
-          mBlockStore.cleanupSession(session);
-          mUnderFileSystemBlockStore.cleanupSession(session);
-        }
-      }
-    });
+    mSessionCleaner = new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore);
 
     // Setup space reserver
     if (Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
@@ -313,7 +300,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
-      throws BlockDoesNotExistException, IOException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException {
     return mBlockStore.getBlockWriter(sessionId, blockId);
   }
 
@@ -447,8 +435,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, InvalidWorkerStateException, IOException,
-      WorkerOutOfSpaceException {
+      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
     if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
       try {
@@ -456,6 +443,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       } catch (BlockDoesNotExistException e) {
         // This can only happen if the session is expired. Ignore this exception if that happens.
         LOG.warn("Block {} does not exist while being committed.", blockId);
+      } catch (InvalidWorkerStateException e) {
+        // This can happen if there are multiple sessions writing to the same block.
+        // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
+        // the sessionId.
+        LOG.debug("Invalid worker state while committing block.", e);
       }
     }
     mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);

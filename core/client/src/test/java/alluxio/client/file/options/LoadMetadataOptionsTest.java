@@ -21,7 +21,7 @@ import java.util.Random;
 /**
  * Tests for the {@link LoadMetadataOptions} class.
  */
-public class LoadMetadataOptionsTest {
+public final class LoadMetadataOptionsTest {
   /**
    * Tests that building a {@link LoadMetadataOptions} with the defaults works.
    */

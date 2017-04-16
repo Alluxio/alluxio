@@ -168,6 +168,7 @@ public abstract class AbstractJournalFormatterTest {
                 .build())
         .add(JournalEntry.newBuilder()
             .setDeleteFile(DeleteFileEntry.newBuilder()
+                .setAlluxioOnly(false)
                 .setId(TEST_FILE_ID)
                 .setRecursive(true)
                 .setOpTimeMs(TEST_OP_TIME_MS))
@@ -326,7 +327,7 @@ public abstract class AbstractJournalFormatterTest {
    */
   protected JournalEntry read() throws IOException {
     JournalInputStream jis = mFormatter.deserialize(mIs);
-    JournalEntry entry = jis.getNextEntry();
+    JournalEntry entry = jis.read();
     Assert.assertEquals(TEST_SEQUENCE_NUMBER, jis.getLatestSequenceNumber());
     return entry;
   }

@@ -58,11 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class HdfsUnderFileSystem extends BaseUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
-
   private static final int MAX_TRY = 5;
-  // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
-  private static final FsPermission PERMISSION = new FsPermission((short) 0777)
-      .applyUMask(FsPermission.createImmutable((short) 0000));
 
   private FileSystem mFileSystem;
 
@@ -90,7 +86,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     try {
       mFileSystem = path.getFileSystem(hadoopConf);
     } catch (IOException e) {
-      LOG.error("Exception thrown when trying to get FileSystem for {}", ufsPrefix, e);
+      LOG.warn("Exception thrown when trying to get FileSystem for {} : {}", ufsPrefix,
+          e.getMessage());
       throw Throwables.propagate(e);
     }
   }
@@ -150,13 +147,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        LOG.debug("Creating HDFS file at {} with owner {}, group {}, mode {}", path,
-            options.getOwner(), options.getGroup(), options.getMode());
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         return FileSystem.create(mFileSystem, new Path(path),
             new FsPermission(options.getMode().toShort()));
       } catch (IOException e) {
-        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
+        LOG.warn("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage());
         te = e;
       }
     }
@@ -216,7 +211,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.error("Unable to get file location for {}", path, e);
+      LOG.warn("Unable to get file location for {} : {}", path, e.getMessage());
     }
     return ret;
   }
@@ -230,8 +225,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         FileStatus fs = mFileSystem.getFileStatus(tPath);
         return fs.getLen();
       } catch (IOException e) {
-        LOG.error("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage(), e);
+        LOG.warn("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
+            e.getMessage());
       }
     }
     return -1;
@@ -266,7 +261,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           // FileSystem.getStatus().getRemaining() will be the new one.
           return ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
         default:
-          throw new IOException("Unknown getSpace parameter: " + type);
+          throw new IOException("Unknown space type: " + type);
       }
     }
     return -1;
@@ -368,8 +363,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         }
         return true;
       } catch (IOException e) {
-        LOG.error("{} try to make directory for {} : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage(), e);
+        LOG.warn("{} try to make directory for {} : {}", retryPolicy.getRetryCount(), path,
+            e.getMessage());
         te = e;
       }
     }
@@ -391,7 +386,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         }
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
+        LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
         te = e;
       }
     }
@@ -400,9 +395,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    LOG.debug("Renaming directory from {} to {}", src, dst);
     if (!isDirectory(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a file", src, dst);
+      LOG.warn("Unable to rename {} to {} because source does not exist or is a file", src, dst);
       return false;
     }
     return rename(src, dst);
@@ -411,11 +405,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
     if (!isFile(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a directory",
-          src, dst);
+      LOG.warn("Unable to rename {} to {} because source does not exist or is a directory", src,
+          dst);
       return false;
     }
-    LOG.debug("Renaming file from {} to {}", src, dst);
     return rename(src, dst);
   }
 
@@ -428,18 +421,17 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public void setOwner(String path, String user, String group) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      LOG.debug("Changing file '{}' user from: {} to {}, group from: {} to {}",
-          fileStatus.getPath(), fileStatus.getOwner(), user, fileStatus.getGroup(), group);
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
-      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
-      LOG.warn("In order for Alluxio to set HDFS files with the correct user and groups, "
-          + "Alluxio should be added to the HDFS superusers.");
+      LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
+      LOG.debug("Exception : ", e);
+      LOG.warn("In order for Alluxio to modify ownership of local files, "
+          + "Alluxio should be the local file system superuser.");
       if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
         throw e;
       } else {
-        LOG.warn("Proceeding... but this may cause permission inconsistency between Alluxio and "
-            + "HDFS.");
+        LOG.warn("Failure is ignored, which may cause permission inconsistency between "
+            + "Alluxio and HDFS.");
       }
     }
   }
@@ -448,11 +440,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public void setMode(String path, short mode) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      LOG.debug("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
-          fileStatus.getPermission(), mode);
       mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
-      LOG.error("Fail to set permission for {} with perm {}", path, mode, e);
+      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
       throw e;
     }
   }
@@ -462,7 +452,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     try {
       return mFileSystem.getFileStatus(new Path(path)).getOwner();
     } catch (IOException e) {
-      LOG.error("Fail to get owner for {} ", path, e);
+      LOG.warn("Fail to get owner for {} : {}", path, e.getMessage());
       throw e;
     }
   }
@@ -472,7 +462,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     try {
       return mFileSystem.getFileStatus(new Path(path)).getGroup();
     } catch (IOException e) {
-      LOG.error("Fail to get group for {} ", path, e);
+      LOG.warn("Fail to get group for {} : {}", path, e.getMessage());
       throw e;
     }
   }
@@ -482,7 +472,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     try {
       return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
     } catch (IOException e) {
-      LOG.error("Fail to get permission for {} ", path, e);
+      LOG.warn("Fail to get permission for {} : {}", path, e.getMessage());
       throw e;
     }
   }
@@ -501,14 +491,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @throws IOException when a non-alluxio error occurs
    */
   private boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("deleting {} {}", path, recursive);
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
         return mFileSystem.delete(new Path(path), recursive);
       } catch (IOException e) {
-        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage(), e);
+        LOG.warn("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage());
         te = e;
       }
     }
@@ -552,8 +541,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       try {
         return mFileSystem.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
-        LOG.error("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
-            e.getMessage(), e);
+        LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
+            e.getMessage());
         te = e;
       }
     }

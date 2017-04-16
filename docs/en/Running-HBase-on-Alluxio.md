@@ -10,12 +10,12 @@ priority: 2
 {:toc}
 
 This guide describes how to run [Apache HBase](http://hbase.apache.org/), so
-that you can easily store HBase tables into Alluxio at various storage level.
+that you can easily store HBase tables into Alluxio at various storage levels.
 
 ## Prerequisites
 
 The prerequisite for this part is that you have
-[Java](Java-Setup.html). Alluxio cluster should also be
+[Java](Java-Setup.html). Your Alluxio cluster should also be
 set up in accordance to these guides for either [Local Mode](Running-Alluxio-Locally.html) or
 [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 

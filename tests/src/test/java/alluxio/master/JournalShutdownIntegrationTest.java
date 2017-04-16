@@ -22,7 +22,6 @@ import alluxio.client.WriteType;
 import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemWorkerClientTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
@@ -41,8 +40,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test master journal for cluster terminating. Assert that test can replay the editlog and
- * reproduce the correct state. Test both the single master(alluxio) and multi masters(alluxio-ft).
+ * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
+ * the correct state. Test both the single master (alluxio) and multi masters (alluxio-ft).
  */
 public class JournalShutdownIntegrationTest {
   @Rule
@@ -66,7 +65,6 @@ public class JournalShutdownIntegrationTest {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
     BlockWorkerClientTestUtils.reset();
-    FileSystemWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
 
@@ -127,10 +125,14 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
+<<<<<<< HEAD
   /**
    * Create file system master from journal.
    */
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
+=======
+  private MasterRegistry createFsMasterFromJournal() throws Exception {
+>>>>>>> amplab/master
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -139,7 +141,8 @@ public class JournalShutdownIntegrationTest {
    */
   private void reproduceAndCheckState(int successFiles) throws Exception {
     Assert.assertNotEquals(successFiles, 0);
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     int actualFiles =
         fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
@@ -149,7 +152,7 @@ public class JournalShutdownIntegrationTest {
       Assert.assertTrue(
           fsMaster.getFileId(new AlluxioURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
-    fsMaster.stop();
+    registry.stop();
   }
 
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {

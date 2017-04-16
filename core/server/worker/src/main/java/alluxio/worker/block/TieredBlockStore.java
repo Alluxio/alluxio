@@ -74,6 +74,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </li>
  * <li>Method {@link #createBlock} does not acquire the block lock, because it only creates a
  * temp block which is only visible to its writer before committed (thus no concurrent access).</li>
+ * <li>Method {@link #abortBlock(long, long)} does not acquire the block lock, because only
+ * temporary blocks can be aborted, and they are only visible to their writers (thus no concurrent
+ * access).
  * <li>Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
@@ -173,11 +176,13 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockWriter getBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, IOException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException {
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
     try (LockResource r = new LockResource(mMetadataReadLock)) {
+      checkTempBlockOwnedBySession(sessionId, blockId);
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       return new LocalFileBlockWriter(tempBlockMeta.getPath());
     }
@@ -456,26 +461,23 @@ public final class TieredBlockStore implements BlockStore {
    */
   private void abortBlockInternal(long sessionId, long blockId) throws BlockDoesNotExistException,
       BlockAlreadyExistsException, InvalidWorkerStateException, IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-    try {
-      String path;
-      TempBlockMeta tempBlockMeta;
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
-        checkTempBlockOwnedBySession(sessionId, blockId);
-        tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-        path = tempBlockMeta.getPath();
-      }
 
-      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      Files.delete(Paths.get(path));
+    String path;
+    TempBlockMeta tempBlockMeta;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      checkTempBlockOwnedBySession(sessionId, blockId);
+      tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+      path = tempBlockMeta.getPath();
+    }
 
-      try (LockResource r = new LockResource(mMetadataWriteLock)) {
-        mMetaManager.abortTempBlockMeta(tempBlockMeta);
-      } catch (BlockDoesNotExistException e) {
-        throw Throwables.propagate(e); // We shall never reach here
-      }
-    } finally {
-      mLockManager.unlockBlock(lockId);
+    // The metadata lock is released during heavy IO. The temp block is private to one session, so
+    // we do not lock it.
+    Files.delete(Paths.get(path));
+
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      mMetaManager.abortTempBlockMeta(tempBlockMeta);
+    } catch (BlockDoesNotExistException e) {
+      throw Throwables.propagate(e); // We shall never reach here
     }
   }
 

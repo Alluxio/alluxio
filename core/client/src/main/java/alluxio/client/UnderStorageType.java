@@ -11,18 +11,13 @@
 
 package alluxio.client;
 
-import alluxio.annotation.PublicApi;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Specifies the type of data interaction with Alluxio's Under Storage. This is not applicable for
  * reads. Only writing temporary data is suggested to use type {@link #NO_PERSIST} where writing to
  * Under Storage will be skipped and data may be lost when evicted from Alluxio storage.
- *
- * This option is for developers and advanced users. See {@link WriteType} and {@link ReadType}.
  */
-@PublicApi
 @ThreadSafe
 public enum UnderStorageType {
   /** Persist data to the under storage synchronously. */

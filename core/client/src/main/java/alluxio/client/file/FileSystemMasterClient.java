@@ -37,7 +37,7 @@ import javax.security.auth.Subject;
 public interface FileSystemMasterClient extends MasterClient {
 
   /**
-   * Factory for {@link FileSystemWorkerClient}.
+   * Factory for {@link FileSystemMasterClient}.
    */
   class Factory {
 

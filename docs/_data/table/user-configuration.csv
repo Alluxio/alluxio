@@ -22,13 +22,12 @@ alluxio.user.lineage.enabled,false
 alluxio.user.lineage.master.client.threads,10
 alluxio.user.network.netty.timeout.ms,30000
 alluxio.user.network.netty.worker.threads,0
-alluxio.user.ufs.delegation.enabled,true
 alluxio.user.ufs.delegation.read.buffer.size.bytes,8MB
 alluxio.user.ufs.delegation.write.buffer.size.bytes,2MB
 alluxio.user.ufs.file.reader.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileReader
 alluxio.user.ufs.file.writer.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileWriter
-alluxio.user.packet.streaming.enabled,false
 alluxio.user.rpc.retry.base.sleep.ms,50
 alluxio.user.rpc.retry.max.sleep.ms,5000
 alluxio.user.rpc.retry.max.num.retry,20
 alluxio.user.date.format.pattern,MM-dd-yyyy HH:mm:ss:SSS
+alluxio.user.short.circuit.enabled,true

@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Tests for the {@link MountOptions} class.
  */
-public class MountOptionsTest {
+public final class MountOptionsTest {
   /**
    * Tests creating a default {@link MountOptions} instance.
    */

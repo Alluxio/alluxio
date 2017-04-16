@@ -14,6 +14,7 @@ package alluxio.master.journal;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 
@@ -41,7 +42,7 @@ public final class AsyncJournalWriter {
    */
   private final AtomicLong mWriteCounter;
   /** Maximum number of nanoseconds for a batch flush. */
-  private final long mFlushBatchTime;
+  private final long mFlushBatchTimeNs;
 
   /**
    * Use a {@link ReentrantLock} to guard the journal writing. Using the fairness policy seems to
@@ -61,7 +62,7 @@ public final class AsyncJournalWriter {
     mFlushCounter = new AtomicLong(0);
     mWriteCounter = new AtomicLong(0);
     // convert milliseconds to nanoseconds.
-    mFlushBatchTime =
+    mFlushBatchTimeNs =
         1000000L * Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
@@ -108,8 +109,7 @@ public final class AsyncJournalWriter {
       return;
     }
     // Using reentrant lock, since it seems to result in higher throughput than using 'synchronized'
-    mFlushLock.lock();
-    try {
+    try (LockResource lr = new LockResource(mFlushLock)) {
       long startTime = System.nanoTime();
       long flushCounter = mFlushCounter.get();
       if (targetCounter <= flushCounter) {
@@ -125,13 +125,13 @@ public final class AsyncJournalWriter {
             // No more entries in the queue. Break out of the infinite for-loop.
             break;
           }
-          mJournalWriter.writeEntry(entry);
+          mJournalWriter.write(entry);
           // Remove the head entry, after the entry was successfully written.
           mQueue.poll();
           writeCounter = mWriteCounter.incrementAndGet();
 
           if (writeCounter >= targetCounter) {
-            if ((System.nanoTime() - startTime) >= mFlushBatchTime) {
+            if ((System.nanoTime() - startTime) >= mFlushBatchTimeNs) {
               // This thread has been writing to the journal for enough time. Break out of the
               // infinite for-loop.
               break;
@@ -139,10 +139,8 @@ public final class AsyncJournalWriter {
           }
         }
       }
-      mJournalWriter.flushEntryStream();
+      mJournalWriter.flush();
       mFlushCounter.set(writeCounter);
-    } finally {
-      mFlushLock.unlock();
     }
   }
 }

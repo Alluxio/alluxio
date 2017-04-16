@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
@@ -31,7 +30,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * TODO(gpang): This class should probably not implement BoundedStream, since remaining() does
  * not make sense for a file of unknown length. Investigate an alternative class hierarchy.
  */
-@PublicApi
 @NotThreadSafe
 public final class UnknownLengthFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(UnknownLengthFileInStream.class);
@@ -61,7 +59,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
     if (mClosed) {
       return;
     }
-    if (mCurrentBlockInStream != null && inStreamRemaining() == 0) {
+    if (mCurrentBlockInStream != null && mCurrentBlockInStream.remaining() == 0) {
       // Every byte was read from the input stream. Therefore, the read bytes is the length.
       // Complete the file with this new, known length.
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -82,7 +80,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   public long remaining() {
     if (mCurrentBlockInStream != null) {
-      return inStreamRemaining();
+      return mCurrentBlockInStream.remaining();
     }
     // A file of unknown length can only be one block.
     return mBlockSize - mPos;
@@ -107,6 +105,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   protected boolean shouldUpdateStreams(long currentBlockId) {
     // Return true either at the beginning of a file or the end of a file.
-    return mCurrentBlockInStream == null || inStreamRemaining() == 0;
+    return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
   }
 }

@@ -76,19 +76,12 @@ alluxio.user.network.netty.channel.pool.gc.threshold.ms:
   A netty channel is closed if it has been idle for more than this threshold.
 alluxio.user.network.netty.channel.pool.disabled:
   Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.
-alluxio.user.ufs.delegation.enabled:
-  Flag for delegating ufs data operations to the worker, enabled by default. When enabled, the
-  client does not require any under storage libraries. Set this to false to use the client to
-  directly communicate with the ufs, which requires the client to have the necessary under storage
-  system libraries.
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
   Size of the read buffer when reading from the ufs through the Alluxio worker. Each read request
-  will fetch at least this many bytes. This property has no effect if the delegation flag is turned
-  off.
+  will fetch at least this many bytes, unless the read reaches the end of the file.
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
   Size of the write buffer when writing to the ufs through the Alluxio worker. Each write request
-  will write at least this many bytes, unless the write is at the end of the file. This property
-  has no effect if the delegation flag is turned off.
+  will write at least this many bytes, unless the write is at the end of the file.
 alluxio.user.ufs.file.reader.class:
   Selects networking stack to run the client with for reading from under file system through a
   worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader`
@@ -97,9 +90,6 @@ alluxio.user.ufs.file.writer.class:
   Selects networking stack to run the client with for writing to under file system through a
   worker's data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter`
   (remote write using netty) is valid.
-alluxio.user.packet.streaming.enabled:
-  If set to true, the packet streaming data transfer protocol is used. Packet streaming is an experimental feature. It
-  provides a more efficient data transfer mechanism.
 alluxio.user.rpc.retry.base.sleep.ms:
   Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property detemines
   the base time in milliseconds in the exponential backoff.
@@ -111,3 +101,6 @@ alluxio.user.rpc.retry.max.num.retry:
   the maximum number of retries.
 alluxio.user.date.format.pattern:
   Display formatted date in cli command and web UI by given date format pattern.
+alluxio.user.short.circuit.enabled:
+  The short circuit read/write which allows the clients to read/write data without going through Alluxio
+  workers if the data is local is enabled if set to true.

@@ -19,11 +19,13 @@ import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,13 +35,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -63,12 +62,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class NettyPacketReader implements PacketReader {
   private static final Logger LOG = LoggerFactory.getLogger(NettyPacketReader.class);
 
-  private static final boolean CANCEL_ENABLED =
-      Configuration.getBoolean(PropertyKey.USER_NETWORK_NETTY_READER_CANCEL_ENABLED);
   private static final int MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
   private static final long READ_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+
+  /** Special packet that indicates an exception is caught. */
+  private static final ByteBuf THROWABLE = Unpooled.buffer(0);
+  /** Special packet that indicates the EOF is reached or the stream is cancelled. */
+  private static final ByteBuf EOF_OR_CANCELLED = Unpooled.buffer(0);
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
@@ -79,19 +81,28 @@ public final class NettyPacketReader implements PacketReader {
   private final long mBytesToRead;
   private final boolean mNoCache;
 
-  // TODO(peis): Investigate whether we can remove this lock. The main reason to keep this lock
-  // is to protect mPacketReaderException.
-  private final ReentrantLock mLock = new ReentrantLock();
-  @GuardedBy("mLock")
-  private final Queue<ByteBuf> mPackets = new LinkedList<>();
-  @GuardedBy("mLock")
-  private Throwable mPacketReaderException = null;
-  /** The condition is met when mPackets.size() > 0 or mPacketReaderException != null. */
-  private final Condition mNotEmptyOrFailed = mLock.newCondition();
+  /**
+   * This queue contains buffers read from netty. Its length is bounded by MAX_PACKETS_IN_FLIGHT.
+   * Only the netty I/O thread can push to the queue. Only the client thread can poll from the
+   * queue.
+   */
+  private final BlockingQueue<ByteBuf> mPackets = new LinkedBlockingQueue<>();
+  /**
+   * The exception caught when reading packets from the netty channel. This is only updated
+   * by the netty I/O thread. The client thread only reads it after THROWABLE is found in
+   * mPackets queue.
+   */
+  private volatile Throwable mPacketReaderException;
 
-  /** The next pos to read. */
+  /**
+   * The next pos to read. This is only updated by the client thread (not touched by the netty
+   * I/O thread).
+   */
   private long mPosToRead;
-  /** This is true only when an empty packet is received. */
+  /**
+   * This is true only when an empty packet (EOF or CANCELLED) is received. This is only updated
+   * by the client thread (not touched by the netty I/O thread).
+   */
   private boolean mDone = false;
 
   private boolean mClosed = false;
@@ -144,55 +155,37 @@ public final class NettyPacketReader implements PacketReader {
   @Override
   public DataBuffer readPacket() throws IOException {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
-    ByteBuf buf = null;
-    mLock.lock();
-    try {
-      while (true) {
-        if (mDone) {
-          return null;
-        }
-        if (mPacketReaderException != null) {
-          throw new IOException(mPacketReaderException);
-        }
-        buf = mPackets.poll();
+    ByteBuf buf;
 
-        // TODO(peis): Have a better criteria to resume so that we can have fewer state changes.
-        if (!tooManyPacketsPending()) {
-          resume();
-        }
-        // Queue is empty.
-        if (buf == null) {
-          try {
-            if (!mNotEmptyOrFailed.await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-              throw new IOException(
-                  String.format("Timeout while reading packet from block %d @ %s.", mId, mAddress));
-            }
-          } catch (InterruptedException e) {
-            throw Throwables.propagate(e);
-          }
-        } else {
-          if (buf.readableBytes() == 0) {
-            buf.release();
-            mDone = true;
-            return null;
-          }
-          mPosToRead += buf.readableBytes();
-          Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
-          return new DataNettyBufferV2(buf);
-        }
-      }
-    } catch (Throwable e) {
-      if (buf != null) {
-        buf.release();
-      }
-      throw e;
-    } finally {
-      mLock.unlock();
+    // TODO(peis): Have a better criteria to resume so that we can have fewer state changes.
+    if (!tooManyPacketsPending()) {
+      NettyUtils.enableAutoRead(mChannel);
     }
+    try {
+      buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    if (buf == null) {
+      throw new IOException(String.format("Timeout to read %d from %s.", mId, mChannel.toString()));
+    }
+    if (buf == THROWABLE) {
+      throw CommonUtils.castToIOException(Preconditions.checkNotNull(mPacketReaderException));
+    }
+    if (buf == EOF_OR_CANCELLED) {
+      mDone = true;
+      return null;
+    }
+    mPosToRead += buf.readableBytes();
+    Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
+    return new DataNettyBufferV2(buf);
   }
 
   @Override
   public void close() {
+    if (mClosed) {
+      return;
+    }
     try {
       if (mDone) {
         return;
@@ -200,52 +193,48 @@ public final class NettyPacketReader implements PacketReader {
       if (!mChannel.isOpen()) {
         return;
       }
-      try {
-        if (!CANCEL_ENABLED) {
-          mChannel.close().sync();
-          return;
-        }
-        if (remaining() > 0) {
-          Protocol.ReadRequest cancelRequest =
-              Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
-                  .setNoCache(mNoCache).build();
-          mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
-              .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-        }
-      } catch (InterruptedException e) {
-        mChannel.close();
-        throw Throwables.propagate(e);
+      if (remaining() > 0) {
+        Protocol.ReadRequest cancelRequest =
+            Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
+                .setNoCache(mNoCache).build();
+        mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
+            .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
       }
 
-      while (true) {
-        try {
-          DataBuffer buf = readPacket();
-          // A null packet indicates the end of the stream.
-          if (buf == null) {
-            return;
-          }
-          buf.release();
-        } catch (IOException e) {
-          LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}).",
-              mId, mAddress, e);
-          try {
-            mChannel.close().sync();
-          } catch (InterruptedException ee) {
-            throw Throwables.propagate(ee);
-          }
-          return;
-        }
+      try {
+        readAndDiscardAll();
+      } catch (IOException e) {
+        LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}) with exception {}.",
+            mId, mAddress, e.getMessage());
+        mChannel.close();
+        return;
       }
     } finally {
       if (mChannel.isOpen()) {
         mChannel.pipeline().removeLast();
 
-        // Make sure "autoread" is on before realsing the channel.
-        resume();
+        // Make sure "autoread" is on before releasing the channel.
+        NettyUtils.enableAutoRead(mChannel);
       }
       mContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
     }
+  }
+
+  /**
+   * Reads and discards everything read from the channel until it reaches end of the stream.
+   *
+   * @throws IOException if any I/O related errors occur
+   */
+  private void readAndDiscardAll() throws IOException {
+    DataBuffer buf;
+    do {
+      buf = readPacket();
+      if (buf != null) {
+        buf.release();
+      }
+      // A null packet indicates the end of the stream.
+    } while (buf != null);
   }
 
   /**
@@ -269,66 +258,68 @@ public final class NettyPacketReader implements PacketReader {
     /**
      * Default constructor.
      */
-    public PacketReadHandler() {}
+    PacketReadHandler() {}
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-      Preconditions.checkState(acceptMessage(msg), "Incorrect response type %s, %s.",
-          msg.getClass().getCanonicalName(), msg);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
+      // Precondition check is not used here to avoid calling msg.getClass().getCanonicalName()
+      // all the time.
+      if (!acceptMessage(msg)) {
+        throw new IllegalStateException(String
+            .format("Incorrect response type %s, %s.", msg.getClass().getCanonicalName(), msg));
+      }
 
       RPCProtoMessage response = (RPCProtoMessage) msg;
       Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
-      if (!Status.isOk(status)) {
-        ctx.fireExceptionCaught(new IOException(String
+      if (!Status.isOk(status) && !Status.isCancelled(status)) {
+        throw new IOException(String
             .format("Failed to read block %d from %s with status %s.", mId, mAddress,
-                status.toString())));
+                status.toString()));
       }
-      mLock.lock();
-      try {
-        Preconditions.checkState(mPacketReaderException == null);
-        DataBuffer dataBuffer = response.getPayloadDataBuffer();
-        ByteBuf buf;
-        if (dataBuffer == null) {
-          buf = ctx.alloc().buffer(0, 0);
-        } else {
-          Preconditions.checkState(dataBuffer.getLength() > 0);
-          assert dataBuffer.getNettyOutput() instanceof ByteBuf;
-          buf = (ByteBuf) dataBuffer.getNettyOutput();
-        }
-        mPackets.offer(buf);
-        mNotEmptyOrFailed.signal();
 
-        if (tooManyPacketsPending()) {
-          pause();
-        }
-      } finally {
-        mLock.unlock();
+      DataBuffer dataBuffer = response.getPayloadDataBuffer();
+      ByteBuf buf;
+      if (dataBuffer == null) {
+        buf = EOF_OR_CANCELLED;
+      } else {
+        Preconditions.checkState(
+            dataBuffer.getLength() > 0 && (dataBuffer.getNettyOutput() instanceof ByteBuf));
+        buf = (ByteBuf) dataBuffer.getNettyOutput();
       }
+
+      if (tooManyPacketsPending()) {
+        NettyUtils.disableAutoRead(ctx.channel());
+      }
+      mPackets.offer(buf);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception caught while reading response from netty channel.", cause);
-      mLock.lock();
-      try {
+      LOG.error("Exception caught while reading from {}.", mId, cause);
+
+      // NOTE: The netty I/O thread associated with mChannel is the only thread that can update
+      // mPacketReaderException and push to mPackets. So it is safe to do the following without
+      // synchronization.
+      // Make sure to set mPacketReaderException before pushing THROWABLE to mPackets.
+      if (mPacketReaderException == null) {
         mPacketReaderException = cause;
-        mNotEmptyOrFailed.signal();
-      } finally {
-        mLock.unlock();
+        mPackets.offer(THROWABLE);
       }
       ctx.close();
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-      mLock.lock();
-      try {
-        if (mPacketReaderException == null) {
-          mPacketReaderException = new IOException("ChannelClosed");
-        }
-        mNotEmptyOrFailed.signal();
-      } finally {
-        mLock.unlock();
+      LOG.warn("Channel {} is closed while reading from {}.", mChannel, mId);
+
+      // NOTE: The netty I/O thread associated with mChannel is the only thread that can update
+      // mPacketReaderException and push to mPackets. So it is safe to do the following without
+      // synchronization.
+      // Make sure to set mPacketReaderException before pushing THROWABLE to mPackets.
+      if (mPacketReaderException == null) {
+        mPacketReaderException =
+            new IOException(String.format("Channel %s is closed.", mChannel.toString()));
+        mPackets.offer(THROWABLE);
       }
       ctx.fireChannelUnregistered();
     }
@@ -342,23 +333,6 @@ public final class NettyPacketReader implements PacketReader {
         return ((RPCProtoMessage) msg).getMessage().getType() == ProtoMessage.Type.RESPONSE;
       }
       return false;
-    }
-  }
-
-  /**
-   * Pauses the underlying packet reader.
-   */
-  private void pause() {
-    mChannel.config().setAutoRead(false);
-  }
-
-  /**
-   * Resumes the underlying packet reader.
-   */
-  private void resume() {
-    if (!mChannel.config().isAutoRead()) {
-      mChannel.config().setAutoRead(true);
-      mChannel.read();
     }
   }
 
@@ -400,6 +374,11 @@ public final class NettyPacketReader implements PacketReader {
     public PacketReader create(long offset, long len) throws IOException {
       return new NettyPacketReader(mContext, mAddress, mId, offset, len, mLockId, mSessionId,
           mNoCache, mRequestType);
+    }
+
+    @Override
+    public boolean isShortCircuit() {
+      return false;
     }
   }
 }
