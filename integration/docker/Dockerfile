@@ -10,7 +10,6 @@
 #
 
 FROM openjdk:7-jdk-alpine
-MAINTAINER Andrew Audibert (aaudibert10@gmail.com)
 
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz
 
@@ -21,8 +20,10 @@ ADD ${ALLUXIO_TARBALL} /opt/
 
 # if the tarball was remote, it needs to be untarred
 RUN cd /opt && \
-    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi)
+    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
+    mv alluxio-* alluxio
 
+COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]

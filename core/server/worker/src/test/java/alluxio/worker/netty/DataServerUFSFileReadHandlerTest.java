@@ -36,9 +36,11 @@ public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandle
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
     mFileSystemWorker = Mockito.mock(FileSystemWorker.class);
     mChannel = new EmbeddedChannel(
-        new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
+        new DataServerUFSFileReadHandler(NettyExecutors.UFS_BLOCK_READER_EXECUTOR,
+            mFileSystemWorker));
     mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerUFSFileReadHandler(NettyExecutors.FILE_READER_EXECUTOR, mFileSystemWorker));
+        new DataServerUFSFileReadHandler(NettyExecutors.UFS_BLOCK_READER_EXECUTOR,
+            mFileSystemWorker));
   }
 
   @After

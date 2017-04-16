@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -53,7 +52,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX;
-    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mFileSystemMaster =
+        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
   }
 
   @Test
@@ -142,12 +142,11 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Assert.assertEquals(0, fileInfo.getLength());
   }
 
-  // TODO(binfan): re-enable this test
   @Test
-  @Ignore
   public void free() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    // Mark the file as persisted so the "free" works.
+    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults().setPersisted(true));
     mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
 
     Map<String, String> params = new HashMap<>();

@@ -28,7 +28,7 @@ import javax.security.auth.login.LoginException;
  * Unit test for the login modules defined in {@link AlluxioLoginModule} and
  * used in {@link LoginModuleConfiguration}.
  */
-public class LoginModuleTest {
+public final class LoginModuleTest {
 
   /**
    * The exception expected to be thrown.

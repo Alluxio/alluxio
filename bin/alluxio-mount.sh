@@ -86,7 +86,7 @@ function mac_hfs_provision_sectors() {
   quota_groups_file_size=$(((n_gb * 32 + 1) * 64))
 
   metadata_size=$((alloc_bitmap_size + ext_overflow_file_size + journal_file_size + \
-    catalog_file_size + hot_file_size + quota_users_file_size + quota_groups_file_size))
+    catalog_file_size + hot_files_size + quota_users_file_size + quota_groups_file_size))
 
   alloc_size=$((request_size + metadata_size))
   echo $((alloc_size / sector_size))
@@ -102,16 +102,46 @@ function mount_ramfs_linux() {
 
   echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
   if mount | grep ${TIER_PATH} > /dev/null; then
-    umount -f ${TIER_PATH}
+    if [[ "$1" == "SudoMount" ]]; then
+      sudo umount -l -f ${TIER_PATH}
+    else
+      umount -l -f ${TIER_PATH}
+    fi
     if [[ $? -ne 0 ]]; then
       echo "ERROR: umount RamFS ${TIER_PATH} failed" >&2
       exit 1
     fi
   else
-    mkdir -p ${TIER_PATH}
+    if [[ "$1" == "SudoMount" ]]; then
+      sudo mkdir -p ${TIER_PATH}
+    else
+      mkdir -p ${TIER_PATH}
+    fi
+    if [[ $? -ne 0 ]]; then
+      echo "ERROR: mkdir ${TIER_PATH} failed" >&2
+      exit 1
+    fi
   fi
 
-  mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH} ; chmod a+w ${TIER_PATH} ;
+  if [[ "$1" == "SudoMount" ]]; then
+    sudo mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+  else
+    mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+  fi
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: mount RamFS ${TIER_PATH} failed" >&2
+    exit 1
+  fi
+
+  if [[ "$1" == "SudoMount" ]]; then
+    sudo chmod a+w ${TIER_PATH}
+  else
+    chmod a+w ${TIER_PATH}
+  fi
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: chmod RamFS ${TIER_PATH} failed" >&2
+    exit 1
+  fi
 }
 
 function mount_ramfs_mac() {
@@ -142,19 +172,14 @@ function mount_ramfs_local() {
     mount_ramfs_mac
   else
     # Assuming Linux
-    if [[ "$1" == "SudoMount" ]]; then
-      DECL_MOUNT_LINUX=$(declare -f mount_ramfs_linux)
-      sudo bash -c "MEM_SIZE=${MEM_SIZE};TIER_PATH=${TIER_PATH};${DECL_MOUNT_LINUX};mount_ramfs_linux"
-    else
-      mount_ramfs_linux
-    fi
+    mount_ramfs_linux $1
   fi
 }
 
 function main {
-  case "${1}" in
+  case "$1" in
     Mount|SudoMount)
-      case "${2}" in
+      case "$2" in
         ""|local)
           mount_ramfs_local $1
           ;;

@@ -12,7 +12,6 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
@@ -44,7 +43,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public abstract class AbstractLineageClient implements LineageClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractLineageClient.class);
+
   protected LineageContext mContext;
 
   /**

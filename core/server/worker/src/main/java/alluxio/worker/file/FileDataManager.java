@@ -13,12 +13,10 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.UnderFileSystemUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -26,7 +24,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
@@ -58,9 +55,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class FileDataManager {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private final UnderFileSystem mUfs;
+  private static final Logger LOG = LoggerFactory.getLogger(FileDataManager.class);
 
   /** Block worker handler for access block info. */
   private final BlockWorker mBlockWorker;
@@ -84,15 +79,12 @@ public final class FileDataManager {
    * Creates a new instance of {@link FileDataManager}.
    *
    * @param blockWorker the block worker handle
-   * @param ufs the under file system to persist files to
    * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
    */
-  public FileDataManager(BlockWorker blockWorker, UnderFileSystem ufs,
-      RateLimiter persistenceRateLimiter) {
+  public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
-    mUfs = ufs;
     mPersistenceRateLimiter = persistenceRateLimiter;
   }
 
@@ -126,7 +118,9 @@ public final class FileDataManager {
         return false;
       }
     } catch (IOException e) {
-      LOG.error("Failed to check if file {} exists in under storage system", fileId, e);
+      LOG.warn("Failed to check if file {} exists in under storage system: {}",
+               fileId, e.getMessage());
+      LOG.debug("Exception: ", e);
     }
     return true;
   }
@@ -162,11 +156,11 @@ public final class FileDataManager {
    * @throws IOException an I/O exception occurs
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    String dstPath = fileInfo.getUfsPath();
 
-    return mUfs.isFile(dstPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
+    return ufs.isFile(dstPath);
   }
 
   /**
@@ -233,10 +227,11 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    OutputStream outputStream = mUfs.create(dstPath,
-        CreateOptions.defaults().setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
-            .setMode(new Mode((short) fileInfo.getMode())));
+    OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
+        .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
+        .setMode(new Mode((short) fileInfo.getMode())));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();
@@ -271,6 +266,7 @@ public final class FileDataManager {
         }
       }
 
+      // Process any errors
       if (!errors.isEmpty()) {
         StringBuilder errorStr = new StringBuilder();
         errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
@@ -305,7 +301,8 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, mUfs);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath);
+    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }
 

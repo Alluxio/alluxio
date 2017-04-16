@@ -16,7 +16,7 @@ group: Resources
 
 ## How to write a unit test
 
-1\. If creating an instance of the class takes some work, create a `@Before` method to perform common setup. The `@Before` method gets run automatically before each unit test. Only do general setup which will apply to every test. Test-specific setup should be done locally in the tests that need it. In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and executor service. The executor service and journal we provide are real implementations, and the `TestClock` is a fake clock which can be controlled by unit tests.
+1. If creating an instance of the class takes some work, create a `@Before` method to perform common setup. The `@Before` method gets run automatically before each unit test. Only do general setup which will apply to every test. Test-specific setup should be done locally in the tests that need it. In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and executor service. The executor service and journal we provide are real implementations, and the `TestClock` is a fake clock which can be controlled by unit tests.
 
 ```java
 @Before
@@ -30,7 +30,7 @@ public void before() throws Exception {
 }
 ```
 
-2\. If anything created in `@Before` creates something which needs to be cleaned up (e.g. a `BlockMaster`), create an `@After` method to do the cleanup. This method is automatically called after each test.
+2. If anything created in `@Before` creates something which needs to be cleaned up (e.g. a `BlockMaster`), create an `@After` method to do the cleanup. This method is automatically called after each test.
 
 ```java
 @After
@@ -39,15 +39,15 @@ public void after() throws Exception {
 }
 ```
 
-3\. Decide on an element of functionality to test. The functionality you decide to test should be part of the public API and should not care about implementation details. Tests should be focused on testing only one thing.
+3. Decide on an element of functionality to test. The functionality you decide to test should be part of the public API and should not care about implementation details. Tests should be focused on testing only one thing.
 
-4\. Give your test a name that describes what functionality it's testing. The functionality being tested should ideally be simple enough to fit into a name, e.g. `removeNonexistentBlockThrowsException`, `mkdirCreatesDirectory`, or `cannotMkdirExistingFile`.
+4. Give your test a name that describes what functionality it's testing. The functionality being tested should ideally be simple enough to fit into a name, e.g. `removeNonexistentBlockThrowsException`, `mkdirCreatesDirectory`, or `cannotMkdirExistingFile`.
 
 ```java
 @Test
 public void detectLostWorker() throws Exception {
 ```
-5\. Set up the situation you want to test. Here we register a worker and then simulate an hour passing. The `HeartbeatScheduler` section enforces that the lost worker heartbeat runs at least once.
+5. Set up the situation you want to test. Here we register a worker and then simulate an hour passing. The `HeartbeatScheduler` section enforces that the lost worker heartbeat runs at least once.
 
 ```java
   // Register a worker.
@@ -66,7 +66,7 @@ public void detectLostWorker() throws Exception {
   HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
   HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
 ```
-6\. Check that the class behaved correctly:
+6. Check that the class behaved correctly:
 
 ```java
   // Make sure the worker is detected as lost.
@@ -74,7 +74,7 @@ public void detectLostWorker() throws Exception {
   Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
 }
 ```
-7\. Loop back to step #3 until the class's entire public API has been tested.
+7. Loop back to step #3 until the class's entire public API has been tested.
 
 # Conventions
 1. The tests for `src/main/java/ClassName.java` should go in `src/test/java/ClassNameTest.java`
@@ -92,6 +92,7 @@ public void detectLostWorker() throws Exception {
 All tests in a module run in the same JVM, so it's important to properly manage global state so that tests don't interfere with each other. Global state includes system properties, Alluxio configuration, and any static fields. Our solution to managing global state is to use JUnit's support for `@Rules`.
 
 ### Changing Alluxio configuration during tests
+
 Some unit tests want to test Alluxio under different configurations. This requires modifying the global `Configuration` object. When all tests in a suite need configuration parameters set a certain way, use `ConfigurationRule` to set them.
 
 ```java
@@ -116,6 +117,7 @@ public void testSomething() {
 ```
 
 ### Changing System properties during tests
+
 If you need to change a system property for the duration of a test suite, use `SystemPropertyRule`.
 
 ```java
@@ -135,4 +137,5 @@ public void test() {
 ```
 
 ### Other global state
+
 If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).

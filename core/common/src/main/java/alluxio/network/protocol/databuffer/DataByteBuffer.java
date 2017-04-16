@@ -34,7 +34,7 @@ public final class DataByteBuffer implements DataBuffer {
    * @param length The length of the ByteBuffer
    */
   public DataByteBuffer(ByteBuffer buffer, long length) {
-    mBuffer = Preconditions.checkNotNull(buffer);
+    mBuffer = Preconditions.checkNotNull(buffer, "buffer");
     mLength = length;
   }
 

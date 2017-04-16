@@ -49,8 +49,8 @@ the directory usually ends with `etc/hadoop`.)
 
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
 jar.
-Generate the Flink compatible client jar by building the entire project with the Flink profile from
-the top level `alluxio` directory:
+Generate the Flink compatible client jar by building the entire project from the top level `alluxio`
+directory:
 
 {% include Running-Flink-on-Alluxio/flink-profile-build.md %}
 

@@ -32,16 +32,27 @@ public abstract class AbstractInodeTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * @param containerId the container id to create the InodeFile id with
+   * @return the InodeFile id constructed with the container id
+   */
   protected long createInodeFileId(long containerId) {
     return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
 
+  /**
+   * @return the {@link InodeDirectory} representation
+   */
   protected static InodeDirectory createInodeDirectory() {
     return InodeDirectory.create(1, 0, "test1",
         CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
             .setMode(TEST_DIR_MODE));
   }
 
+  /**
+   * @param id block container id of this inode
+   * @return the {@link InodeFile} representation
+   */
   protected InodeFile createInodeFile(long id) {
     return InodeFile.create(id, 1, "testFile" + id, 0,
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_OWNER)

@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -30,6 +29,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -77,7 +77,7 @@ public class BlockServiceHandlerIntegrationTest {
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
-    mBlockMasterClient = new RetryHandlingBlockMasterClient(null,
+    mBlockMasterClient = BlockMasterClient.Factory.create(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }
@@ -156,7 +156,9 @@ public class BlockServiceHandlerIntegrationTest {
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 
-    String localPath = mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID).getBlockPath();
+    String localPath =
+        mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID, new LockBlockTOptions())
+            .getBlockPath();
 
     // The local path should exist
     Assert.assertNotNull(localPath);
@@ -182,7 +184,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     Exception exception = null;
     try {
-      mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
+      mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID, new LockBlockTOptions());
     } catch (AlluxioTException e) {
       exception = e;
     }

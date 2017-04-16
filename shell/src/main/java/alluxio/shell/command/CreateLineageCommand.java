@@ -63,7 +63,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     // TODO(yupeng) more validation
@@ -89,6 +89,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
     CommandLineJob job = new CommandLineJob(cmd, new JobConf(outputPath));
     long lineageId = tl.createLineage(inputFiles, outputFiles, job);
     System.out.println("Lineage " + lineageId + " has been created.");
+    return 0;
   }
 
   @Override

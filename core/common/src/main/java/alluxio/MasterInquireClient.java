@@ -34,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MasterInquireClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(MasterInquireClient.class);
 
   /** Map from key spliced by the address for Zookeeper and path of leader to created client. */
   private static HashMap<String, MasterInquireClient> sCreatedClients = new HashMap<>();
@@ -99,7 +99,7 @@ public final class MasterInquireClient {
         ZooKeeper zookeeper = curatorClient.getZooKeeper();
         if (zookeeper.exists(mLeaderPath, false) != null) {
           List<String> masters = zookeeper.getChildren(mLeaderPath, null);
-          LOG.info("Master addresses: {}", masters);
+          LOG.debug("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
               return masters.get(0);
@@ -114,7 +114,7 @@ public final class MasterInquireClient {
                 leader = master;
               }
             }
-            LOG.info("The leader master: {}", leader);
+            LOG.debug("The leader master: {}", leader);
             return leader;
           }
         } else {

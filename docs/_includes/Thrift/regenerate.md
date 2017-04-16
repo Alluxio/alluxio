@@ -1,3 +1,3 @@
 ```bash
-    $ ./bin/alluxio thriftGen
+$ ./bin/alluxio thriftGen
 ```

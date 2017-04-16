@@ -17,7 +17,6 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -37,7 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * streams data packet by packet.
  */
 @NotThreadSafe
-public final class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
+public class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
   private final Closer mCloser;
   /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
   private final long mLength;
@@ -84,32 +83,21 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   }
 
   /**
-   * Creates a {@link PacketOutStream} that writes to a list of locations.
+   * Creates a {@link PacketOutStream} that writes to a netty data server.
    *
    * @param context the file system context
-   * @param clients a list of block worker clients
-   * @param id the ID (block ID or UFS file ID)
+   * @param address the netty data server address
    * @param length the block or file length
-   * @param tier the target tier
-   * @param type the request type (either block write or UFS file write)
+   * @param partialRequest details of the write request which are constant for all requests
    * @return the {@link PacketOutStream} created
    * @throws IOException if it fails to create the object
    */
-  public static PacketOutStream createReplicatedPacketOutStream(FileSystemContext context,
-      List<BlockWorkerClient> clients, long id, long length, int tier,
-      Protocol.RequestType type) throws IOException {
-    String localHost = NetworkAddressUtils.getLocalHostName();
-
-    List<PacketWriter> packetWriters = new ArrayList<>();
-    for (BlockWorkerClient client : clients) {
-      if (client.getWorkerNetAddress().getHost().equals(localHost)) {
-        packetWriters.add(LocalFilePacketWriter.create(client, id, tier));
-      } else {
-        packetWriters.add(new NettyPacketWriter(context, client.getDataServerAddress(), id, length,
-            client.getSessionId(), tier, type));
-      }
-    }
-    return new PacketOutStream(packetWriters, length);
+  public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
+      InetSocketAddress address, long length, Protocol.WriteRequest partialRequest)
+      throws IOException {
+    NettyPacketWriter packetWriter =
+        new NettyPacketWriter(context, address, length, partialRequest);
+    return new PacketOutStream(packetWriter, length);
   }
 
   /**
@@ -118,28 +106,12 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
    * @param packetWriter the packet writer
    * @param length the length of the stream
    */
-  private PacketOutStream(PacketWriter packetWriter, long length) {
+  protected PacketOutStream(PacketWriter packetWriter, long length) {
     mCloser = Closer.create();
     mLength = length;
     mPacketWriters = new ArrayList<>(1);
     mPacketWriters.add(packetWriter);
     mCloser.register(packetWriter);
-    mClosed = false;
-  }
-
-  /**
-   * Constructs a new {@link PacketOutStream} with multiple {@link PacketWriter}s.
-   *
-   * @param packetWriters the packet writers
-   * @param length the length of the stream
-   */
-  private PacketOutStream(List<PacketWriter> packetWriters, long length) {
-    mCloser = Closer.create();
-    mLength = length;
-    mPacketWriters = packetWriters;
-    for (PacketWriter packetWriter : packetWriters) {
-      mCloser.register(packetWriter);
-    }
     mClosed = false;
   }
 
@@ -277,7 +249,7 @@ public final class PacketOutStream extends OutputStream implements BoundedStream
   }
 
   /**
-   * Release the current packet.
+   * Releases the current packet.
    */
   private void releaseCurrentPacket() {
     if (mCurrentPacket != null) {

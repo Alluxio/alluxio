@@ -11,9 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.Constants;
-import alluxio.util.proto.ProtoUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.proto.ProtoUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ProtoBufJournalFormatter implements JournalFormatter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(ProtoBufJournalFormatter.class);
 
   /**
    * Constructs a new {@link ProtoBufJournalFormatter}.
@@ -51,7 +50,7 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
       private long mLatestSequenceNumber;
 
       @Override
-      public JournalEntry getNextEntry() throws IOException {
+      public JournalEntry read() throws IOException {
         int firstByte = inputStream.read();
         if (firstByte == -1) {
           return null;

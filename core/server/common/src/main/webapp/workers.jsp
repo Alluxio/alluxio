@@ -36,6 +36,7 @@
               <thead>
                 <th>Node Name</th>
                 <% if ((Boolean) request.getAttribute("debug")) { %>
+                  <th>[D]Worker Id</th>
                   <th>[D]Uptime</th>
                 <% } %>
                 <th>Last Heartbeat</th>
@@ -49,6 +50,7 @@
                   <tr>
                     <th><a href="http://<%= nodeInfo.getHost() %>:<%= nodeInfo.getWebPort() %>"><%= nodeInfo.getHost() %></a></th>
                     <% if ((Boolean) request.getAttribute("debug")) { %>
+                      <th><%= nodeInfo.getWorkerId() %></th>
                       <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <% } %>
                     <th><%= nodeInfo.getLastHeartbeat() %></th>
@@ -92,6 +94,7 @@
               <thead>
                 <th>Node Name</th>
                 <% if ((Boolean) request.getAttribute("debug")) { %>
+                  <th>[D]Worker Id</th>
                   <th>[D]Uptime</th>
                 <% } %>
                 <th>Last Heartbeat</th>
@@ -103,6 +106,7 @@
                   <tr>
                     <th><a href="http://<%= nodeInfo.getHost() %>:<%= nodeInfo.getWebPort() %>"><%= nodeInfo.getHost() %></a></th>
                     <% if ((Boolean) request.getAttribute("debug")) { %>
+                      <th><%= nodeInfo.getWorkerId() %></th>
                       <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <% } %>
                     <th><%= nodeInfo.getLastHeartbeat() %></th>

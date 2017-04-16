@@ -90,11 +90,11 @@ Open your browser and check [http://localhost:19999/browse](http://localhost:199
 should be an output file `LICENSE2` which doubles each line in the file `LICENSE`. Also, the
 `LICENSE` file now appears in the Alluxio file system space.
 
-NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
-it is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
-because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
-have each executor read a partial block. To avoid this behavior, you can specify the partition
-count in Spark. For this example, we would set it to 1 as there is only 1 block.
+> NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
+> it is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
+> because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
+> have each executor read a partial block. To avoid this behavior, you can specify the partition
+> count in Spark. For this example, we would set it to 1 as there is only 1 block.
 
 {% include Running-Spark-on-Alluxio/alluxio-one-partition.md %}
 

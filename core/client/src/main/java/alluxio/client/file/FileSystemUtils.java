@@ -37,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class FileSystemUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemUtils.class);
 
   // prevent instantiation
   private FileSystemUtils() {}
@@ -156,7 +156,8 @@ public final class FileSystemUtils {
         try {
           return fs.getStatus(uri).isPersisted();
         } catch (Exception e) {
-          throw Throwables.propagate(e);
+          Throwables.propagateIfPossible(e);
+          throw new RuntimeException(e);
         }
       }
     }, WaitForOptions.defaults().setTimeout(20 * Constants.MINUTE_MS)

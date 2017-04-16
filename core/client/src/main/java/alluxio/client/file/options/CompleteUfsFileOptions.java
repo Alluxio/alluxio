@@ -12,7 +12,6 @@
 package alluxio.client.file.options;
 
 import alluxio.Constants;
-import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.util.SecurityUtils;
@@ -27,7 +26,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Options for completing a UFS file. Currently we do not allow users to set arbitrary owner and
  * group options. The owner and group will be set to the user login.
  */
-@PublicApi
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
   private String mOwner;

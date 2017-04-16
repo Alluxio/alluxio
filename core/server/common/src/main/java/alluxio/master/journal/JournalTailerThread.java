@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.util.CommonUtils;
@@ -31,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class JournalTailerThread extends Thread {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(JournalTailerThread.class);
 
   /** The master to apply the journal entries to. */
   private final Master mMaster;
@@ -108,7 +107,7 @@ public final class JournalTailerThread extends Thread {
 
         // Load the checkpoint file.
         LOG.info("{}: Waiting to load the checkpoint file.", mMaster.getName());
-        mJournalTailer = new JournalTailer(mMaster, mJournal);
+        mJournalTailer = JournalTailer.Factory.create(mMaster, mJournal);
         while (!mJournalTailer.checkpointExists()) {
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           if (mInitiateShutdown) {
@@ -123,7 +122,7 @@ public final class JournalTailerThread extends Thread {
 
         // Continually process completed log files.
         while (mJournalTailer.isValid()) {
-          if (mJournalTailer.processNextJournalLogFiles() > 0) {
+          if (mJournalTailer.processNextJournalLogs() > 0) {
             // Reset the shutdown timer.
             waitForShutdownStart = -1;
           } else {

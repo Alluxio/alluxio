@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -29,7 +28,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -46,10 +44,11 @@ import java.util.Map.Entry;
  * running locally.
  */
 public final class AlluxioFrameworkIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioFrameworkIntegrationTest.class);
+
   private static final String JDK_URL =
       "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz";
   private static final String JDK_PATH = "jdk1.7.0_79.jdk/Contents/Home";
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Parameter(names = {"-m", "--mesos"}, required = true,
       description = "Address for locally-running Mesos, e.g. localhost:5050")
@@ -103,8 +102,7 @@ public final class AlluxioFrameworkIntegrationTest {
       String masterHostName = NetworkAddressUtils.getLocalHostName();
       int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
       InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
-      try (final BlockMasterClient client = new RetryHandlingBlockMasterClient(null,
-          masterAddress)) {
+      try (final BlockMasterClient client = BlockMasterClient.Factory.create(masterAddress)) {
         CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override
@@ -117,7 +115,7 @@ public final class AlluxioFrameworkIntegrationTest {
                     return false;
                   }
                 } catch (Exception e) {
-                  throw Throwables.propagate(e);
+                  throw new RuntimeException(e);
                 }
               }
             }, WaitForOptions.defaults().setTimeout(15 * Constants.MINUTE_MS));
@@ -140,7 +138,7 @@ public final class AlluxioFrameworkIntegrationTest {
     } catch (Exception e) {
       LOG.info("Failed to launch Alluxio on Mesos. Note that this test requires that "
           + "Mesos is currently running.");
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

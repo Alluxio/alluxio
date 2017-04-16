@@ -22,6 +22,8 @@ import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class BlockMasterClientServiceHandler implements BlockMasterClientService.Iface {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClientServiceHandler.class);
+
   private final BlockMaster mBlockMaster;
 
   /**
@@ -52,7 +56,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<List<WorkerInfo>>() {
+    return RpcUtils.call(LOG, new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws AlluxioException {
         List<WorkerInfo> workerInfos = new ArrayList<>();
@@ -66,7 +70,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
 
   @Override
   public long getCapacityBytes() throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<Long>() {
+    return RpcUtils.call(LOG, new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioException {
         return mBlockMaster.getCapacityBytes();
@@ -76,7 +80,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
 
   @Override
   public long getUsedBytes() throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<Long>() {
+    return RpcUtils.call(LOG, new RpcCallable<Long>() {
       @Override
       public Long call() throws AlluxioException {
         return mBlockMaster.getUsedBytes();
@@ -86,7 +90,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
 
   @Override
   public BlockInfo getBlockInfo(final long blockId) throws AlluxioTException {
-    return RpcUtils.call(new RpcCallable<BlockInfo>() {
+    return RpcUtils.call(LOG, new RpcCallable<BlockInfo>() {
       @Override
       public BlockInfo call() throws AlluxioException {
         return ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId));

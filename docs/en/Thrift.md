@@ -13,8 +13,7 @@ command-line support.  To do this, you will need to:
 
 Install Xcode from the Mac App Store
 
-Launch Xcode, open the Preferences, select Downloads, and install
-    the “Command Line Tools for Xcode” component.
+Launch Xcode, open the Preferences, select Downloads, and install the “Command Line Tools for Xcode” component.
 
 ### Homebrew
 

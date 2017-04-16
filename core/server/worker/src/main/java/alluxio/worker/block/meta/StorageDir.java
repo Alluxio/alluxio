@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.Constants;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -43,7 +42,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class StorageDir {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(StorageDir.class);
+
   private final long mCapacityBytes;
   /** A map from block id to block metadata. */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
@@ -253,14 +253,9 @@ public final class StorageDir {
    *
    * @param blockId the block id
    * @return {@link TempBlockMeta} of the given block or null
-   * @throws BlockDoesNotExistException if no temp block is found
    */
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
-    TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.get(blockId);
-    if (tempBlockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
-    }
-    return tempBlockMeta;
+  public TempBlockMeta getTempBlockMeta(long blockId) {
+    return mBlockIdToTempBlockMap.get(blockId);
   }
 
   /**

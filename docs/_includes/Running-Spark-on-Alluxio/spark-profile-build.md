@@ -1,3 +1,3 @@
 ```bash
-mvn clean package -Pspark -DskipTests
+$ mvn clean package -Pspark -DskipTests
 ```
