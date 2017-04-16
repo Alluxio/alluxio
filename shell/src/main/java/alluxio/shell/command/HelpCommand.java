@@ -16,8 +16,10 @@ import alluxio.exception.AlluxioException;
 import alluxio.shell.AlluxioShellUtils;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -51,23 +53,34 @@ public final class HelpCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     SortedSet<String> sortedCmds = null;
     AlluxioShellUtils.loadCommands(mFileSystem, mCommands);
-    if (args.length == 0) {
-      // print help messages for all supported commands.
-      sortedCmds = new TreeSet<>(mCommands.keySet());
-      for (String cmd : sortedCmds) {
-        printCommandInfo(cmd);
+    try (PrintWriter pw = new PrintWriter(System.err)) {
+      if (args.length == 0) {
+        // print help messages for all supported commands.
+        sortedCmds = new TreeSet<>(mCommands.keySet());
+        for (String cmd : sortedCmds) {
+          printCommandInfo(cmd, pw);
+          pw.println();
+        }
+      } else if (mCommands.containsKey(args[0])) {
+        printCommandInfo(args[0], pw);
+      } else {
+        pw.println(args[0] + " is an unknown command.");
       }
-    } else if (mCommands.containsKey(args[0])) {
-      printCommandInfo(args[0]);
-    } else {
-      System.out.println(args[0] + " is an unknown command.");
+      return 0;
     }
-    return 0;
   }
 
-  private void printCommandInfo(String commandName) {
-    System.out.format("%-60s%s%n", "       [" + mCommands.get(commandName).getUsage() + "]   ",
-        mCommands.get(commandName).getDescription());
+  private void printCommandInfo(String commandName, PrintWriter pw) {
+    ShellCommand command = mCommands.get(commandName);
+    String description = String.format("%s: %s", commandName, command.getDescription());
+    HelpFormatter help = new HelpFormatter();
+    int width = help.getWidth();
+    help.printWrapped(pw, width, description);
+    help.printUsage(pw, width, command.getUsage());
+    if (command.getOptions().getOptions().size() > 0) {
+      help.printOptions(pw, width, command.getOptions(), help.getLeftPadding(),
+          help.getDescPadding());
+    }
   }
 
   @Override
@@ -85,8 +98,9 @@ public final class HelpCommand extends AbstractShellCommand {
   public boolean validateArgs(String... args) {
     boolean valid = args.length <= getNumOfArgs();
     if (!valid) {
-      System.out.println(getCommandName() + " takes at most " + getNumOfArgs() + " arguments, "
-                           + " not " + args.length + "\n");
+      System.out.println(
+          getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
+              + args.length + "\n");
     }
     return valid;
   }

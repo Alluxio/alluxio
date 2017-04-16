@@ -57,7 +57,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(TTL_ACTION_OPTION);
   }
 
