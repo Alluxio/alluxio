@@ -130,7 +130,7 @@ public class JournalShutdownIntegrationTest {
   /**
    * Create file system master from journal.
    */
-  private MasterRegistry createFsMasterFromJournal() throws Exception {
+  private FileSystemMaster createFsMasterFromJournal() throws IOException {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
