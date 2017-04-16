@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,6 +42,16 @@ public final class MockBlockReader implements BlockReader {
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     return ByteBuffer.wrap(mBytes, (int) offset, (int) length);
+  }
+
+  @Override
+  public int transferTo(ByteBuf buf) throws IOException {
+    int remaining = buf.readableBytes();
+    return buf.writeBytes(mBytes).readableBytes() - remaining;
+  }
+
+  public boolean isClosed() {
+    return false;
   }
 
   @Override

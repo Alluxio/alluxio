@@ -29,7 +29,7 @@ public final class MockFileOutStream extends FileOutStream {
    * inspection during tests.
    */
   public MockFileOutStream() throws IOException {
-    super(FileSystemContext.INSTANCE, new AlluxioURI("/"), OutStreamOptions.defaults());
+    super(new AlluxioURI("/"), OutStreamOptions.defaults(), FileSystemContext.INSTANCE);
     mStream = new ByteArrayOutputStream();
   }
 
@@ -61,6 +61,9 @@ public final class MockFileOutStream extends FileOutStream {
     mStream.write(b, off, len);
   }
 
+  /**
+   * @return the bytes that have been written to the output stream
+   */
   public byte[] toByteArray() {
     return mStream.toByteArray();
   }

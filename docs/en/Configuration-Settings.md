@@ -24,7 +24,6 @@ Note that, configuration set through environment variables may not be realized b
 [supported Alluxio configuration properties](#appendix). Configuration in those files can be respected by Alluxio servers,
 as well as applications.
 
-
 The priority to load property values, from the highest to the lowest, is
 application settings (if any), environment variables, property files and the defaults.
 
@@ -45,10 +44,7 @@ Note that, setting Alluxio configuration in this way is application specific and
 
 ### Environment variables
 
-> When you want to
-> [start Alluxio server processes](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html)
-> with your specific configuration tuning, it is often fast and easy to set environment variables to customize basic Alluxio configuration.
-> However, these environment variables will not affect application processes like Spark or MapReduce that use Alluxio as a client.
+> When you want to [start Alluxio server processes](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html) with your specific configuration tuning, it is often fast and easy to set environment variables to customize basic Alluxio configuration. However, these environment variables will not affect application processes like Spark or MapReduce that use Alluxio as a client.
 
 
 Alluxio supports a few basic and very frequently used configuration properties via the environment variables in
@@ -112,9 +108,7 @@ Alternatively, you can create one from a template we provided in the source code
 
 ### Property files
 
-> Alluxio site property file `alluxio-site.properties` can overwrite Alluxio configuration regardless the JVM is an Alluxio server process or a job using Alluxio client.
-> For the site property file to be loaded, either the parent directory of this file is a part of the classpath of your target JVM process, or the file is in one of the pre-defined paths.
-
+> Alluxio site property file `alluxio-site.properties` can overwrite Alluxio configuration regardless the JVM is an Alluxio server process or a job using Alluxio client. For the site property file to be loaded, either the parent directory of this file is a part of the classpath of your target JVM process, or the file is in one of the pre-defined paths.
 
 Using Alluxio supported environment variables has two limitations:
 first it only provides basic Alluxio settings, and second it does not affect non-Alluxio JVMs like Spark or MapReduce.
@@ -149,6 +143,7 @@ across processes regardless the JVM is an Alluxio server or a job using Alluxio 
 
 
 ## Appendix
+
 All Alluxio configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
@@ -249,6 +244,6 @@ The security configuration specifies information regarding the security features
 {% endfor %}
 </table>
 
-### Configure multihomed networks
+### Configure Multihomed Networks
 
 Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Alluxio master to listen on all NICs, you can specify `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node from connecting to any of its NIC. This is also the same case for other properties suffixed with `bind.host`.

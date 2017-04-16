@@ -25,14 +25,17 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -104,6 +107,37 @@ public class BlockWorkerTest {
   @After
   public void after() throws IOException {
     ConfigurationTestUtils.resetConfiguration();
+  }
+
+  @Test
+  public void openUnderFileSystemBlock() throws Exception {
+    long blockId = mRandom.nextLong();
+    LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
+    lockBlockTOptions.setMaxUfsReadConcurrency(10);
+    lockBlockTOptions.setUfsPath("/a");
+    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(lockBlockTOptions);
+
+    long sessionId = 1;
+    for (; sessionId < 11; sessionId++) {
+      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+    }
+    Assert.assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+  }
+
+  @Test
+  public void closeUnderFileSystemBlock() throws Exception {
+    long blockId = mRandom.nextLong();
+    LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
+    lockBlockTOptions.setMaxUfsReadConcurrency(10);
+    lockBlockTOptions.setUfsPath("/a");
+    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(lockBlockTOptions);
+
+    long sessionId = 1;
+    for (; sessionId < 11; sessionId++) {
+      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+      mBlockWorker.closeUfsBlock(sessionId, blockId);
+    }
+    Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   /**
@@ -204,7 +238,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
@@ -227,7 +261,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
@@ -249,7 +283,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,

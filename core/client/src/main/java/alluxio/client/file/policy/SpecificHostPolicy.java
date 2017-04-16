@@ -12,6 +12,8 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -23,8 +25,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
  * hostname found.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class SpecificHostPolicy implements FileWriteLocationPolicy {
+public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final String mHostname;
 
   /**
@@ -46,6 +49,11 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   @Override

@@ -102,7 +102,7 @@ alluxio.worker.tieredstore.reserver.interval.ms:
   The time period (in milliseconds) of space reserver service, which keeps certain portion of
   available space on each layer.
 alluxio.worker.tieredstore.retry:
-  The number of retries that the worker to process blocks.
+  The number of retries that the worker uses to process blocks.
 alluxio.worker.web.bind.host:
   The hostname Alluxio worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
 alluxio.worker.web.hostname:

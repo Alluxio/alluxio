@@ -61,8 +61,7 @@ contain your credentials.
 
 If you are using s3a, you can specify credentials in 4 ways, from highest to lowest priority:
 
-* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
-`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
+* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and `AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
 * System Properties `aws.accessKeyId` and `aws.secretKey`
 * Profile file containing credentials at `~/.aws/credentials`
 * AWS Instance profile credentials, if you are using an EC2 instance
@@ -177,6 +176,11 @@ parameter. If you replace `<USE_HTTPS>` with `false` (using HTTP) also replace `
 the HTTP port for the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter.
 If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and
 `<HTTPS_PORT>` defaults to port 443.
+
+### Using v2 S3 Signatures
+
+Some S3 service providers only support v2 signatures. For these S3 providers, you can enforce using
+the v2 signatures by setting the `alluxio.underfs.s3a.signer.algorithm` to `S3SignerType`.
 
 ### Configuring Distributed Applications Runtime
 

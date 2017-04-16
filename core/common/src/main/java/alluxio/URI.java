@@ -27,7 +27,9 @@ import java.net.URISyntaxException;
  *     * E:\path\to\skip\..\file
  *   * URI with multiple scheme components
  *     * scheme://host:123/path
+ *     * scheme:part2//host:123/path
  *     * scheme:part2://host:123/path
+ *     * scheme:part2:part3//host:123/path
  *     * scheme:part2:part3://host:123/path
  *
  * Currently, does not support fragment in the URI.

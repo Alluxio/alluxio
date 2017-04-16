@@ -11,13 +11,13 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.resource.DummyCloseableResource;
@@ -149,15 +149,13 @@ public final class AlluxioBlockStoreTest {
 
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
-        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
+        new LockBlockResource(mBlockWorkerClient,
+            new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()),
+            BLOCK_ID));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
-    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
-      Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
-    } else {
-      Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
-    }
+    Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
   }
 
   /**
@@ -172,15 +170,13 @@ public final class AlluxioBlockStoreTest {
 
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
-        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
+        new LockBlockResource(mBlockWorkerClient,
+            new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()),
+            BLOCK_ID));
 
     InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
-    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
-      Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
-    } else {
-      Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
-    }
+    Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
   }
 
   @Test
@@ -227,11 +223,7 @@ public final class AlluxioBlockStoreTest {
             Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
         .setWriteType(WriteType.MUST_CACHE);
     OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
-      Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
-    } else {
-      Assert.assertEquals(LocalBlockOutStream.class, stream.getClass());
-    }
+    Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
   }
 
   @Test
@@ -241,10 +233,6 @@ public final class AlluxioBlockStoreTest {
             Lists.newArrayList(WORKER_NET_ADDRESS_REMOTE)))
         .setWriteType(WriteType.MUST_CACHE);
     OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    if (Configuration.getBoolean(PropertyKey.USER_PACKET_STREAMING_ENABLED)) {
-      Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
-    } else {
-      Assert.assertEquals(RemoteBlockOutStream.class, stream.getClass());
-    }
+    Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
   }
 }

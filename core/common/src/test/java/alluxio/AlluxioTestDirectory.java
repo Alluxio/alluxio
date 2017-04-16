@@ -26,7 +26,7 @@ import java.util.UUID;
  * class initialization it deletes files and directories older than the maximum age.
  */
 public final class AlluxioTestDirectory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioTestDirectory.class);
 
   private static final int MAX_FILE_AGE_HOURS = 1;
 
@@ -53,7 +53,8 @@ public final class AlluxioTestDirectory {
         try {
           alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
         } catch (IOException e) {
-          LOG.warn("Failed to clean up Alluxio test directory {}", file.getAbsolutePath(), e);
+          LOG.warn("Failed to clean up Alluxio test directory {} : {}", file.getAbsolutePath(),
+              e.getMessage());
         }
       }
     }));
@@ -92,7 +93,7 @@ public final class AlluxioTestDirectory {
         try {
           alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
         } catch (Exception e) {
-          LOG.warn("Failed to delete {}", file.getAbsolutePath(), e);
+          LOG.warn("Failed to delete {} : {}", file.getAbsolutePath(), e.getMessage());
         }
       }
     }

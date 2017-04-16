@@ -13,15 +13,15 @@ message Status {
   // TODO(peis): Come up with a story for this. The objective is here is to standarize the error codes in Alluxio.
   enum Code {
     OK = 0;
+    CANCELLED = 1;
+    UNKNOWN = 2;
     INVALID_ARGUMENT = 3;
+    PERMISSION_DENIED = 6;
     INTERNAL = 13;
 
     // The following are unused for now.
-    CANCELLED = 1;
-    UNKNOWN = 2;
     NOT_FOUND = 4;
     ALREADY_EXISTS = 5;
-    PERMISSION_DENIED = 6;
     UNAUTHENTICATED = 7;
     RESOURCE_EXHAUSTED = 8;
     FAILED_PRECONDITION = 9;
@@ -43,6 +43,7 @@ message Status {
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
+  UFS_BLOCK = 2;
 }
 
 // The read request.
@@ -57,6 +58,8 @@ message ReadRequest {
 
   optional int64 lock_id = 6;
   optional int64 session_id = 7;
+  // If set, do not try to cache the block locally when reading the data from the UFS.
+  optional bool no_cache = 8;
 }
 
 // The write request.
@@ -65,10 +68,19 @@ message WriteRequest {
   // The block ID or UFS file ID.
   optional int64 id = 2;
   optional int64 offset = 3;
-
-  // These are only applicable for block write.
   optional int64 session_id = 4;
+
+  // This is only applicable for block write.
   optional int32 tier = 5;
+
+  optional bool eof = 6;
+  optional bool cancel = 7;
+
+  // The following are only applicable for ufs writes.
+  optional string ufs_path = 8;
+  optional string owner = 9;
+  optional string group = 10;
+  optional int32 mode = 11;
 }
 
 // The response.
@@ -76,16 +88,3 @@ message Response {
   optional Status status = 1;
 }
 
-// The netty data server version.
-enum DataServerVersion {
-  V0 = 0; // Pre-proto version.
-  V1 = 1; // Proto version.
-}
-
-message VersionRequest {
-}
-
-message VersionResponse {
-  optional DataServerVersion version = 1 [default = V1];
-  optional Status status = 2;
-}

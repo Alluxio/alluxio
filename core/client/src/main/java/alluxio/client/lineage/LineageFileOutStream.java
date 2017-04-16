@@ -12,16 +12,11 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -34,8 +29,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public class LineageFileOutStream extends FileOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /**
    * Creates a new file output stream when lineage is enabled.
    *
@@ -46,8 +39,7 @@ public class LineageFileOutStream extends FileOutStream {
    */
   public LineageFileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    super(path, updateOutStreamOptions(options), context,
-        UnderFileSystemFileOutStream.Factory.get());
+    super(path, updateOutStreamOptions(options), context);
   }
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {

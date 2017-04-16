@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftUnderFileSystemFactory.class);
 
   /**
    * Constructs a new {@link SwiftUnderFileSystemFactory}.
@@ -47,7 +47,6 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
       try {
         return new SwiftUnderFileSystem(new AlluxioURI(path));
       } catch (Exception e) {
-        LOG.error("Failed to create SwiftUnderFileSystem.", e);
         throw Throwables.propagate(e);
       }
     }

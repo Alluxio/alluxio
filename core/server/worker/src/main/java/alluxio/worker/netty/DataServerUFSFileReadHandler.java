@@ -11,7 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -22,8 +21,6 @@ import alluxio.worker.file.FileSystemWorker;
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,8 +33,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final FileSystemWorker mWorker;
 
@@ -46,7 +41,7 @@ public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
    */
   private final class FileReadRequestInternal extends ReadRequestInternal {
     /** The UFS input stream. No need to close. */
-    public InputStream mInputStream = null;
+    final InputStream mInputStream;
 
     /**
      * Creates an instance of {@link FileReadRequestInternal}.
@@ -54,12 +49,9 @@ public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
      * @param request the block read request
      * @throws Exception if it fails to create the object
      */
-    public FileReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      mInputStream = mWorker.getUfsInputStream(request.getId(), request.getOffset());
-
-      mId = request.getId();
-      mStart = request.getOffset();
-      mEnd = mStart + request.getLength();
+    FileReadRequestInternal(Protocol.ReadRequest request) throws Exception {
+      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength());
+      mInputStream = mWorker.getUfsInputStream(mId, mStart);
     }
 
     @Override

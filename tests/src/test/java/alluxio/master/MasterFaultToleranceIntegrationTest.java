@@ -248,7 +248,8 @@ public class MasterFaultToleranceIntegrationTest {
     cluster.start();
     try {
       // Get the first block master
-      BlockMaster blockMaster1 = cluster.getMaster().getInternalMaster().getBlockMaster();
+      BlockMaster blockMaster1 =
+          cluster.getMaster().getInternalMaster().getMaster(BlockMaster.class);
       // Register worker 1
       long workerId1a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
@@ -274,7 +275,8 @@ public class MasterFaultToleranceIntegrationTest {
       cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
 
       // Get the new block master, after the failover
-      BlockMaster blockMaster2 = cluster.getMaster().getInternalMaster().getBlockMaster();
+      BlockMaster blockMaster2 = cluster.getMaster().getInternalMaster()
+          .getMaster(BlockMaster.class);
 
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       Assert.assertEquals(CommandType.Register, blockMaster2

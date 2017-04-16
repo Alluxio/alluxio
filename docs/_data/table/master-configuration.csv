@@ -1,5 +1,6 @@
 propertyName,defaultValue
 alluxio.master.bind.host,0.0.0.0
+alluxio.master.connection.timeout.ms,0
 alluxio.master.heartbeat.interval.ms,1000
 alluxio.master.hostname,localhost
 alluxio.master.file.async.persist.handler,alluxio.master.file.async.DefaultAsyncPersistHandler

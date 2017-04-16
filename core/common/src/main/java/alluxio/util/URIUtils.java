@@ -11,13 +11,13 @@
 
 package alluxio.util;
 
-import alluxio.Constants;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -27,15 +27,27 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utility methods for working with {@link alluxio.AlluxioURI}.
+ * Utility methods for working with URIs.
  */
 @ThreadSafe
 public final class URIUtils {
-  private URIUtils() {} // prevent instantiation
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final char QUERY_SEPARATOR = '&';
   public static final char QUERY_KEY_VALUE_SEPARATOR = '=';
+
+  private URIUtils() {} // prevent instantiation
+
+  /**
+   * Appends the given path to the given base URI.
+   *
+   * @param base the base URI
+   * @param path the path to append
+   * @return the URI resulting from appending the base and the path
+   * @throws URISyntaxException if URI syntax error is encountered
+   */
+  public static URI appendPath(URI base, String path) throws URISyntaxException {
+    return new URI(base.getScheme(), base.getAuthority(),
+        PathUtils.concatPath(base.getPath(), path), base.getQuery(), base.getFragment());
+  }
 
   /**
    * Generates a query string from a {@link Map <String, String>} of key/value pairs.

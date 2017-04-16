@@ -8,6 +8,10 @@ alluxio.master.file.async.persist.handler:
   处理异步持久化请求的处理类。
 alluxio.master.format.file_prefix:
   当journal被格式化时，在joural文件夹下生成的文件的文件名前缀。当判断journal是否被格式化时master会查找文件名以该前缀开头的文件。
+alluxio.master.journal.flush.batch.time.ms:
+  等待批处理日志写入的时间（以毫秒为单位）。
+alluxio.master.journal.flush.timeout.ms:
+  在放弃和关闭master之前保持重试日志写入的时间量（以毫秒为单位）。
 alluxio.master.journal.folder:
   存储master journal日志的路径。
 alluxio.master.journal.formatter.class:
@@ -29,7 +33,7 @@ alluxio.master.lineage.recompute.log.path:
 alluxio.master.port:
   Alluxio master的运行端口。
 alluxio.master.retry:
-  client尝试与master相连的最大重试次数。
+  "client尝试与master相连的最大重试次数。（注意：该配置项目前不推荐使用，建议使用`alluxio.user.rpc.retry.max.num.retry`替代该项）"
 alluxio.master.startup.consistency.check.enabled:
   当Alluxio启动时是否检查与底层存储系统的一致性，在该检查过程中，Alluxio会进入只读模式。该检查默认开启。
 alluxio.master.ttl.checker.interval.ms:
@@ -60,3 +64,5 @@ alluxio.master.keytab.file:
   Alluxio master的Kerberos密钥表文件。
 alluxio.master.principal:
   Alluxio master的Kerberos主体。
+alluxio.master.connection.timeout.ms:
+  Alluxio master设置Thrift的超时时间（单位：毫秒），超过该时间关闭连接,默认值是0,表示无时间限制

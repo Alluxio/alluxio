@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Constants;
-
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,9 +67,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderFileSystemRegistry {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemRegistry.class);
 
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private static boolean sInit = false;
 
   // prevent instantiation
@@ -111,9 +110,10 @@ public final class UnderFileSystemRegistry {
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
-        return factory.create(path, ufsConf);
+        return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
       } catch (Exception e) {
         errors.add(e);
+        LOG.warn("Failed to create ufs", e);
       }
     }
 

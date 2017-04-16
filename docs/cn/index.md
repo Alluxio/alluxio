@@ -24,7 +24,7 @@ Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](h
 
 Alluxio与Hadoop是兼容的。现有的数据分析应用，如Spark和MapReduce程序，可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过100个组织机构的
-[400多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
+[450多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
 [阿里巴巴](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [百度](https://www.baidu.com),
 [卡内基梅隆大学](https://www.cmu.edu/)，[IBM](https://www.ibm.com)，[Intel](http://www.intel.com/),
 [南京大学](http://pasa-bigdata.nju.edu.cn/),

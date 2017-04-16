@@ -16,10 +16,17 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.client.block.options.LockBlockOptions;
+import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.TimeoutRetry;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
@@ -31,7 +38,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +63,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingBlockWorkerClient
     extends AbstractThriftClient<BlockWorkerClientService.Client> implements BlockWorkerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingBlockWorkerClient.class);
+
   private static final ScheduledExecutorService HEARTBEAT_POOL = Executors.newScheduledThreadPool(
       Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
       ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
@@ -74,37 +81,48 @@ public final class RetryHandlingBlockWorkerClient
   private final WorkerNetAddress mWorkerNetAddress;
   private final InetSocketAddress mRpcAddress;
 
-  private final ScheduledFuture<?> mHeartbeat;
+  private ScheduledFuture<?> mHeartbeat;
 
   /**
-   * Creates a {@link RetryHandlingBlockWorkerClient}. Set sessionId to null if no session ID is
-   * required when using this client. For example, if you only call RPCs like promote, a session
-   * ID is not required.
+   * Factory method for {@link RetryHandlingBlockWorkerClient}.
    *
-   * @param clientPool the block worker client pool
-   * @param clientHeartbeatPool the block worker client heartbeat pool
-   * @param workerNetAddress to worker's location
-   * @param sessionId the ID of the session
+   * @param clientPool the client pool
+   * @param clientHeartbeatPool the client pool for heartbeat
+   * @param workerNetAddress the worker address to connect to
+   * @param sessionId the session id to use, this should be unique
    * @throws IOException if it fails to register the session with the worker specified
    */
-  public RetryHandlingBlockWorkerClient(
+  protected static RetryHandlingBlockWorkerClient create(BlockWorkerThriftClientPool clientPool,
+      BlockWorkerThriftClientPool clientHeartbeatPool, WorkerNetAddress workerNetAddress,
+      Long sessionId) throws IOException {
+    RetryHandlingBlockWorkerClient client =
+        new RetryHandlingBlockWorkerClient(clientPool, clientHeartbeatPool, workerNetAddress,
+            sessionId);
+    client.init();
+    return client;
+  }
+
+  private RetryHandlingBlockWorkerClient(
       BlockWorkerThriftClientPool clientPool,
       BlockWorkerThriftClientPool clientHeartbeatPool,
-      WorkerNetAddress workerNetAddress, final Long sessionId)
-      throws IOException {
+      WorkerNetAddress workerNetAddress, final Long sessionId) {
     mClientPool = clientPool;
     mClientHeartbeatPool = clientHeartbeatPool;
-    mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
-
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
+    mRpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
-    if (sessionId != null) {
+  }
+
+  private void init() throws IOException {
+    if (mSessionId != null) {
       // Register the session before any RPCs for this session start.
+      ExponentialBackoffRetry retryPolicy =
+          new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
       try {
-        sessionHeartbeat();
+        sessionHeartbeat(retryPolicy);
       } catch (InterruptedException e) {
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
 
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
@@ -113,19 +131,17 @@ public final class RetryHandlingBlockWorkerClient
             @Override
             public void run() {
               try {
-                sessionHeartbeat();
+                sessionHeartbeat(new CountingRetry(0));
               } catch (InterruptedException e) {
                 // Do nothing.
               } catch (Exception e) {
-                LOG.error("Failed to heartbeat for session " + sessionId, e);
+                LOG.warn("Failed to heartbeat for session {}", mSessionId, e.getMessage());
               }
             }
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
           Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
       NUM_ACTIVE_SESSIONS.incrementAndGet();
-    } else {
-      mHeartbeat = null;
     }
   }
 
@@ -134,7 +150,7 @@ public final class RetryHandlingBlockWorkerClient
     try {
       return mClientPool.acquire();
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -150,6 +166,7 @@ public final class RetryHandlingBlockWorkerClient
         @Override
         public void run() {
           mHeartbeat.cancel(true);
+          mHeartbeat = null;
           NUM_ACTIVE_SESSIONS.decrementAndGet();
         }
       });
@@ -203,21 +220,42 @@ public final class RetryHandlingBlockWorkerClient
 
   @Override
   public long getSessionId() {
-    Preconditions.checkNotNull(mSessionId, "SessionId is accessed when it is not supported");
+    Preconditions.checkNotNull(mSessionId, "Session ID is accessed when it is not supported");
     return mSessionId;
   }
 
   @Override
-  public LockBlockResult lockBlock(final long blockId) throws IOException, AlluxioException {
-    return retryRPC(
-        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService
-            .Client>() {
+  public LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException {
+    LockBlockResult result = retryRPC(
+        new RpcCallableThrowsAlluxioTException<LockBlockResult, BlockWorkerClientService.Client>() {
           @Override
           public LockBlockResult call(BlockWorkerClientService.Client client)
               throws AlluxioTException, TException {
-            return ThriftUtils.fromThrift(client.lockBlock(blockId, getSessionId()));
+            return ThriftUtils
+                .fromThrift(client.lockBlock(blockId, getSessionId(), options.toThrift()));
           }
         });
+    return new LockBlockResource(this, result, blockId);
+  }
+
+  @Override
+  public LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options)
+      throws IOException, AlluxioException {
+    int retryInterval = Constants.SECOND_MS;
+    RetryPolicy retryPolicy = new TimeoutRetry(Configuration
+        .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS), retryInterval);
+    do {
+      LockBlockResource resource = lockBlock(blockId, options);
+      if (resource.getResult().getLockBlockStatus().ufsTokenNotAcquired()) {
+        LOG.debug("Failed to acquire a UFS read token because of contention for block {} with "
+            + "LockBlockOptions {}", blockId, options);
+      } else {
+        return resource;
+      }
+    } while (retryPolicy.attemptRetry());
+    throw new UfsBlockAccessTokenUnavailableException(
+        ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE, blockId, options.getUfsPath());
   }
 
   @Override
@@ -302,21 +340,31 @@ public final class RetryHandlingBlockWorkerClient
    * @throws InterruptedException if heartbeat is interrupted
    */
   @Override
-  public void sessionHeartbeat() throws IOException, InterruptedException {
-    BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
-    try {
-      client.sessionHeartbeat(getSessionId(), null);
-    } catch (AlluxioTException e) {
-      throw Throwables.propagate(e);
-    } catch (ThriftIOException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      client.getOutputProtocol().getTransport().close();
-      throw new IOException(e);
-    } finally {
-      mClientHeartbeatPool.release(client);
-    }
-    Metrics.BLOCK_WORKER_HEATBEATS.inc();
+  public void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException {
+    TException exception;
+    do {
+      BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
+      try {
+        client.sessionHeartbeat(mSessionId, null);
+        Metrics.BLOCK_WORKER_HEATBEATS.inc();
+        return;
+      } catch (AlluxioTException e) {
+        AlluxioException ae = AlluxioException.fromThrift(e);
+        LOG.warn(ae.getMessage());
+        throw new IOException(ae);
+      } catch (ThriftIOException e) {
+        LOG.warn(e.getMessage());
+        throw new IOException(e);
+      } catch (TException e) {
+        client.getOutputProtocol().getTransport().close();
+        exception = e;
+        LOG.warn(e.getMessage());
+      } finally {
+        mClientHeartbeatPool.release(client);
+      }
+    } while (retryPolicy.attemptRetry());
+    Preconditions.checkNotNull(exception);
+    throw new IOException(exception);
   }
 
   /**
@@ -326,7 +374,6 @@ public final class RetryHandlingBlockWorkerClient
     private static final Counter BLOCK_WORKER_HEATBEATS =
         MetricsSystem.clientCounter("BlockWorkerHeartbeats");
 
-    private Metrics() {
-    } // prevent instantiation
+    private Metrics() {} // prevent instantiation
   }
 }

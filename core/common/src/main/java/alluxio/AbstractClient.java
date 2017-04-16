@@ -23,7 +23,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -45,18 +44,22 @@ import javax.security.auth.Subject;
 // TODO(peis): Consolidate this to ThriftClientPool.
 @ThreadSafe
 public abstract class AbstractClient implements Client {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
   /** The pattern of exception message when client and server transport frame sizes do not match. */
   private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
       Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
 
+  private static final int BASE_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+  private static final int MAX_SLEEP_MS =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+
   /** The number of times to retry a particular RPC. */
-  protected static final int RPC_MAX_NUM_RETRY = 30;
+  protected static final int RPC_MAX_NUM_RETRY =
+      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
   protected final String mMode;
-
   protected InetSocketAddress mAddress = null;
   protected TProtocol mProtocol = null;
 
@@ -87,7 +90,7 @@ public abstract class AbstractClient implements Client {
    * @param mode the mode of the client for display
    */
   public AbstractClient(Subject subject, InetSocketAddress address, String mode) {
-    mAddress = Preconditions.checkNotNull(address);
+    mAddress = Preconditions.checkNotNull(address, "address");
     mMode = mode;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
@@ -166,10 +169,8 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY);
-    final int BASE_SLEEP_MS = 50;
-    RetryPolicy retry =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     while (!mClosed) {
       mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
@@ -198,8 +199,8 @@ public abstract class AbstractClient implements Client {
         }
         throw e;
       } catch (TTransportException e) {
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "
-            + mMode + " @ " + mAddress + " : " + e.getMessage());
+        LOG.warn("Failed to connect ({}) to {} {} @ {}: {}", retryPolicy.getRetryCount(),
+            getServiceName(), mMode, mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
           String message = "Thrift transport open times out. Please check whether the "
@@ -208,14 +209,14 @@ public abstract class AbstractClient implements Client {
           throw new IOException(message, e);
         }
         // TODO(peis): Consider closing the connection here as well.
-        if (!retry.attemptRetry()) {
+        if (!retryPolicy.attemptRetry()) {
           break;
         }
       }
     }
     // Reaching here indicates that we did not successfully connect.
     throw new ConnectionFailedException("Failed to connect to " + getServiceName() + " " + mMode
-        + " @ " + mAddress + " after " + (retry.getRetryCount()) + " attempts");
+        + " @ " + mAddress + " after " + (retryPolicy.getRetryCount()) + " attempts");
   }
 
   /**
@@ -261,7 +262,7 @@ public abstract class AbstractClient implements Client {
   /**
    * @return the {@link InetSocketAddress} of the remote
    */
-  protected synchronized InetSocketAddress getAddress() {
+  public synchronized InetSocketAddress getAddress() {
     return mAddress;
   }
 
@@ -313,21 +314,25 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
       ConnectionFailedException {
-    int retry = 0;
-    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+    while (!mClosed) {
       connect();
       try {
         return rpc.call();
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (AlluxioTException e) {
-        throw Throwables.propagate(AlluxioException.fromThrift(e));
+        throw new RuntimeException(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         disconnect();
       }
+      if (!retryPolicy.attemptRetry()) {
+        break;
+      }
     }
-    throw new IOException("Failed after " + retry + " retries.");
+    throw new IOException("Failed after " + retryPolicy.getRetryCount() + " retries.");
   }
 
   /**
@@ -344,8 +349,9 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallableThrowsAlluxioTException<V> rpc)
       throws AlluxioException, IOException {
-    int retry = 0;
-    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+    while (!mClosed) {
       connect();
       try {
         return rpc.call();
@@ -357,7 +363,10 @@ public abstract class AbstractClient implements Client {
         LOG.error(e.getMessage(), e);
         disconnect();
       }
+      if (!retryPolicy.attemptRetry()) {
+        break;
+      }
     }
-    throw new IOException("Failed after " + retry + " retries.");
+    throw new IOException("Failed after " + retryPolicy.getRetryCount() + " retries.");
   }
 }

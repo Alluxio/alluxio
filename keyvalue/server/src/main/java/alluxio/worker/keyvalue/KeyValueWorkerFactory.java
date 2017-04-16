@@ -12,7 +12,6 @@
 package alluxio.worker.keyvalue;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
@@ -30,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorkerFactory implements WorkerFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(KeyValueWorkerFactory.class);
 
   /**
    * Constructs a new {@link KeyValueWorkerFactory}.

@@ -32,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterBlockInfo {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(MasterBlockInfo.class);
 
   /** The id of the block. */
   private final long mBlockId;

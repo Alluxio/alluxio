@@ -44,7 +44,7 @@ public final class MetricsSystemTest {
    * Tests the metrics for a master and a worker.
    */
   @Test
-  public void metricsSystemTest() {
+  public void metricsSystem() {
     MetricsSystem.startSinksFromConfig(mMetricsConfig);
 
     Assert.assertEquals(2, MetricsSystem.getNumSinks());

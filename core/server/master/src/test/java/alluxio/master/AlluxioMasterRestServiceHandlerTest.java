@@ -27,8 +27,9 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.MutableJournal;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -52,6 +53,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,7 +70,7 @@ import javax.ws.rs.core.Response;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
-public class AlluxioMasterRestServiceHandlerTest {
+public final class AlluxioMasterRestServiceHandlerTest {
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(80).setDataPort(81).setWebPort(82);
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
@@ -100,7 +102,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
@@ -108,16 +110,16 @@ public class AlluxioMasterRestServiceHandlerTest {
   public void before() throws Exception {
     mMaster = mock(AlluxioMasterService.class);
     mContext = mock(ServletContext.class);
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(mTestFolder.newFolder().getAbsolutePath());
+    MasterRegistry registry = new MasterRegistry();
+    JournalFactory factory =
+        new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster =
-        new BlockMaster(journalFactory, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mBlockMaster = new BlockMaster(registry, factory, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mBlockMaster.start(true);
-    when(mMaster.getBlockMaster()).thenReturn(mBlockMaster);
+    when(mMaster.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
     registerFileSystemMock();
@@ -188,7 +190,7 @@ public class AlluxioMasterRestServiceHandlerTest {
   public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     Gauge<Integer> filesPinnedGauge = new Gauge<Integer>() {
       @Override
       public Integer getValue() {

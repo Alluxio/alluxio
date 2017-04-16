@@ -16,13 +16,15 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Prints the relative information of the Alluxio masters.
+ * Prints information regarding master fault tolerance such as leader address, list of master
+ * addresses, and the configured Zookeeper address.
  */
 @ThreadSafe
 public final class MasterInfoCommand extends AbstractShellCommand {
@@ -44,17 +46,16 @@ public final class MasterInfoCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) {
-    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-    try {
+  public int run(CommandLine cl) {
+    try (CloseableResource<FileSystemMasterClient> client =
+        FileSystemContext.INSTANCE.acquireMasterClientResource()) {
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        runWithFaultTolerance(client);
+        runWithFaultTolerance(client.get());
       } else {
-        runWithoutFaultTolerance(client);
+        runWithoutFaultTolerance(client.get());
       }
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
+    return 0;
   }
 
   private void runWithoutFaultTolerance(FileSystemMasterClient client) {
@@ -86,6 +87,7 @@ public final class MasterInfoCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Prints the relative information of the Alluxio masters";
+    return "Prints information regarding master fault tolerance such as leader address, list of "
+        + "master addresses, and the configured Zookeeper address.";
   }
 }

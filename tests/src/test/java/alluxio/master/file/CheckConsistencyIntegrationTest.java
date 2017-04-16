@@ -54,8 +54,8 @@ public class CheckConsistencyIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFileSystemMaster =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mFileSystemMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        .getMaster(FileSystemMaster.class);
     AuthenticatedClientUser.set(TEST_USER);
     mFileSystem = FileSystem.Factory.get();
     CreateDirectoryOptions dirOptions =

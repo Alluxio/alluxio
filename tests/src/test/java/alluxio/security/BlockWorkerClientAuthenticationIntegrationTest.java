@@ -81,7 +81,9 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE,
           "CUSTOM", PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio",
+          PropertyKey.Name.USER_RPC_RETRY_MAX_NUM_RETRY, "1"
+      })
   public void customAuthenticationDenyConnect() throws Exception {
     boolean failedToConnect = false;
 

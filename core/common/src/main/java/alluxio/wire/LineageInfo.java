@@ -121,7 +121,7 @@ public final class LineageInfo implements Serializable {
    * @return the lineage information
    */
   public LineageInfo setInputFiles(List<String> inputFiles) {
-    Preconditions.checkNotNull(inputFiles);
+    Preconditions.checkNotNull(inputFiles, "inputFiles");
     mInputFiles = new ArrayList<>(inputFiles);
     return this;
   }

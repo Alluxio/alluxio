@@ -12,6 +12,8 @@
 package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -26,15 +28,16 @@ import javax.annotation.concurrent.ThreadSafe;
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
  */
+// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class LocalFirstPolicy implements FileWriteLocationPolicy {
+public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private String mLocalHostName;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
-    mLocalHostName = NetworkAddressUtils.getLocalHostName();
+    mLocalHostName = NetworkAddressUtils.getClientHostName();
   }
 
   @Override
@@ -57,6 +60,11 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   @Override

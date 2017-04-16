@@ -19,6 +19,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
@@ -88,7 +89,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     mFileSystemMaster = ((AlluxioMasterService) context
-        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getFileSystemMaster();
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
+        .getMaster(FileSystemMaster.class);
   }
 
   /**
@@ -392,7 +394,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.delete(new AlluxioURI(path), recursive);
+        mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
+            .setRecursive(recursive));
         return null;
       }
     });

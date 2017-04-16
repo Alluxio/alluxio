@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -29,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class PinListSync implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PinListSync.class);
 
   /** Block worker handle responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
@@ -56,7 +55,8 @@ public final class PinListSync implements HeartbeatExecutor {
       mBlockWorker.updatePinList(pinList);
     } catch (Exception e) {
       // An error occurred, retry after 1 second or error if sync timeout is reached
-      LOG.error("Failed to receive pinlist.", e);
+      LOG.warn("Failed to receive pinlist: {}", e.getMessage());
+      LOG.debug("Exception: ", e);
       // TODO(gene): Add this method to AbstractMasterClient.
       // mMasterClient.resetConnection();
     }

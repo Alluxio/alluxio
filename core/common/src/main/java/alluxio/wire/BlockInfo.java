@@ -97,8 +97,7 @@ public final class BlockInfo implements Serializable {
    * @return the block information
    */
   public BlockInfo setLocations(List<BlockLocation> locations) {
-    Preconditions.checkNotNull(locations);
-    mLocations = new ArrayList<>(locations);
+    mLocations = new ArrayList<>(Preconditions.checkNotNull(locations));
     return this;
   }
 

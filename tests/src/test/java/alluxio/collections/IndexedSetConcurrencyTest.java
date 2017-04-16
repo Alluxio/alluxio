@@ -378,7 +378,7 @@ public class IndexedSetConcurrencyTest {
   }
 
   @Test
-  public void concurrentAddTest() throws Exception {
+  public void concurrentAdd() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
@@ -403,7 +403,7 @@ public class IndexedSetConcurrencyTest {
    * index.
    */
   @Test
-  public void nonUniqueConcurrentUpdateTest() throws Exception {
+  public void nonUniqueConcurrentUpdate() throws Exception {
     mIndexedSet = new IndexedSet<>(mSizeIndex, mIdIndex);
     List<Future<?>> futures = new ArrayList<>();
     int[] tasksNumbers = new int[5];

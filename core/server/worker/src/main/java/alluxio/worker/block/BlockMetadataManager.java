@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -49,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 // TODO(bin): consider how to better expose information to Evictor and Allocator.
 public final class BlockMetadataManager {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(BlockMetadataManager.class);
 
   /** A list of managed {@link StorageTier}, in order from lowest tier ordinal to greatest. */
   private final List<StorageTier> mTiers;
@@ -245,10 +244,24 @@ public final class BlockMetadataManager {
    * Gets the metadata of a temp block.
    *
    * @param blockId the id of the temp block
-   * @return metadata of the block or null
+   * @return metadata of the block
    * @throws BlockDoesNotExistException when block id can not be found
    */
   public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+    TempBlockMeta blockMeta = getTempBlockMetaOrNull(blockId);
+    if (blockMeta == null) {
+      throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
+    }
+    return blockMeta;
+  }
+
+  /**
+   * Gets the metadata of a temp block.
+   *
+   * @param blockId the id of the temp block
+   * @return metadata of the block or null
+   */
+  public TempBlockMeta getTempBlockMetaOrNull(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
@@ -256,7 +269,7 @@ public final class BlockMetadataManager {
         }
       }
     }
-    throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
+    return null;
   }
 
   /**
