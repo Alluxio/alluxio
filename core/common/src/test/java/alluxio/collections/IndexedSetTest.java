@@ -25,6 +25,7 @@ import java.util.Set;
 /**
  * Tests the {@link IndexedSet} class.
  */
+
 public final class IndexedSetTest {
   private static class Pair {
     private int mInt;
