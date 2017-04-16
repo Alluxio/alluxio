@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
@@ -48,8 +47,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Before
   public void before() {
-    mFileSystemMaster =
-        mResource.get().getMaster().getInternalMaster().getMaster(FileSystemMaster.class);
+    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
@@ -149,7 +147,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
         .getStartupConsistencyCheck();
     Assert.assertEquals(
-        StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
+        FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
         status.getStatus());
     Assert.assertEquals(0, status.getInconsistentUris().size());
   }

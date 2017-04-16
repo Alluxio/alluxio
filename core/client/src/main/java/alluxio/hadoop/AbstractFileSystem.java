@@ -128,7 +128,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public void close() throws IOException {
-    if (mContext != null && mContext != FileSystemContext.INSTANCE) {
+    if (mContext != FileSystemContext.INSTANCE) {
       mContext.close();
     }
     super.close();
@@ -249,7 +249,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException | FileDoesNotExistException e) {
-      LOG.warn("delete failed: {}", e.getMessage());
+      LOG.error("delete failed: {}", e.getMessage());
       return false;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -486,7 +486,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf);
+    ConfUtils.mergeHadoopConfiguration(conf);
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
@@ -628,11 +628,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Attempts to open the specified file for reading.
    *
    * @param path the file name to open
-   * @param bufferSize stream buffer size in bytes, currently unused
+   * @param bufferSize the size in bytes of the buffer to be used
    * @return an {@link FSDataInputStream} at the indicated path of a file
    * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
-  // TODO(calvin): Consider respecting the buffer size option
   @Override
   public FSDataInputStream open(Path path, int bufferSize) throws IOException {
     LOG.debug("open({}, {})", path, bufferSize);
@@ -641,7 +640,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    return new FSDataInputStream(new HdfsFileInputStream(mContext, uri, mStatistics));
+    return new FSDataInputStream(
+        new HdfsFileInputStream(mContext, uri, getConf(), bufferSize, mStatistics));
   }
 
   @Override
@@ -656,7 +656,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     try {
       mFileSystem.rename(srcPath, dstPath);
     } catch (FileDoesNotExistException e) {
-      LOG.warn("rename failed: {}", e.getMessage());
+      LOG.error("Failed to rename {} to {}", src, dst);
       return false;
     } catch (AlluxioException e) {
       ensureExists(srcPath);
@@ -664,14 +664,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       try {
         dstStatus = mFileSystem.getStatus(dstPath);
       } catch (IOException | AlluxioException e2) {
-        LOG.warn("rename failed: {}", e.getMessage());
+        LOG.error("Failed to rename {} to {}", src, dst);
         return false;
       }
       // If the destination is an existing folder, try to move the src into the folder
       if (dstStatus != null && dstStatus.isFolder()) {
         dstPath = dstPath.join(srcPath.getName());
       } else {
-        LOG.warn("rename failed: {}", e.getMessage());
+        LOG.error("Failed to rename {} to {}", src, dst);
         return false;
       }
       try {

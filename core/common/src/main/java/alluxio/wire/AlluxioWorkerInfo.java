@@ -16,12 +16,9 @@ import com.google.common.base.Objects;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
  * Alluxio worker information.
  */
-@NotThreadSafe
 public class AlluxioWorkerInfo {
   private Capacity mCapacity;
   private Map<String, String> mConfiguration;

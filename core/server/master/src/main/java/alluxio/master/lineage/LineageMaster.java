@@ -30,7 +30,6 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
@@ -53,7 +52,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +62,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -74,39 +72,38 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(LineageMaster.class);
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
 
-  private final FileSystemMaster mFileSystemMaster;
   private final LineageStore mLineageStore;
+  private final FileSystemMaster mFileSystemMaster;
   private final LineageIdGenerator mLineageIdGenerator;
 
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory) {
-    this(registry, journalFactory, ExecutorServiceFactories
+  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+    this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory,
+  public LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
+    super(journalFactory.get(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
+
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
-    mFileSystemMaster = registry.get(FileSystemMaster.class);
-    registry.add(LineageMaster.class, this);
   }
 
   @Override
@@ -120,11 +117,6 @@ public final class LineageMaster extends AbstractMaster {
   @Override
   public String getName() {
     return Constants.LINEAGE_MASTER_NAME;
-  }
-
-  @Override
-  public Set<Class<?>> getDependencies() {
-    return DEPS;
   }
 
   @Override
@@ -158,7 +150,7 @@ public final class LineageMaster extends AbstractMaster {
   public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
       throws IOException {
     mLineageStore.streamToJournalCheckpoint(outputStream);
-    outputStream.write(mLineageIdGenerator.toJournalEntry());
+    outputStream.writeEntry(mLineageIdGenerator.toJournalEntry());
   }
 
   /**
@@ -286,8 +278,8 @@ public final class LineageMaster extends AbstractMaster {
       fileInfo = mFileSystemMaster.getFileInfo(fileId);
       if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
         LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-        return mFileSystemMaster
-            .reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl, ttlAction);
+        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl,
+            ttlAction);
       }
     } catch (FileDoesNotExistException e) {
       throw new LineageDoesNotExistException(

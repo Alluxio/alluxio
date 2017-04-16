@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.annotation.PublicApi;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -23,7 +21,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The network address of a worker.
  */
-@PublicApi
 @NotThreadSafe
 public final class WorkerNetAddress implements Serializable {
   private static final long serialVersionUID = 5822347646342091434L;

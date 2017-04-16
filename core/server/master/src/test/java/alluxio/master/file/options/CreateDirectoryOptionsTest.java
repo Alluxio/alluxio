@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link CreateDirectoryOptions}.
  */
-public final class CreateDirectoryOptionsTest {
+public class CreateDirectoryOptionsTest {
   /**
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
    */

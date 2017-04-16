@@ -75,7 +75,7 @@ public final class CpCommand extends AbstractShellCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
@@ -122,7 +122,6 @@ public final class CpCommand extends AbstractShellCommand {
       throw new InvalidPathException(
           "Schemes must be either file or alluxio, and at most one file scheme is allowed.");
     }
-    return 0;
   }
 
   /**
@@ -555,13 +554,7 @@ public final class CpCommand extends AbstractShellCommand {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
-    File outputFile;
-    if (dstFile.isDirectory()) {
-      outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(), srcPath.getName()));
-    } else {
-      outputFile = dstFile;
-    }
-    File tmpDst = new File(outputFile.getPath() + randomSuffix);
+    File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
@@ -573,11 +566,11 @@ public final class CpCommand extends AbstractShellCommand {
         out.write(buf, 0, t);
         t = is.read(buf);
       }
-      if (!tmpDst.renameTo(outputFile)) {
+      if (!tmpDst.renameTo(dstFile)) {
         throw new IOException(
-            "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
+            "Failed to rename " + tmpDst.getPath() + " to destination " + dstPath);
       }
-      System.out.println("Copied " + srcPath + " to " + "file://" + outputFile.getPath());
+      System.out.println("Copied " + srcPath + " to " + dstPath);
     } finally {
       tmpDst.delete();
     }

@@ -23,6 +23,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -90,7 +91,7 @@ public abstract class AbstractClient implements Client {
    * @param mode the mode of the client for display
    */
   public AbstractClient(Subject subject, InetSocketAddress address, String mode) {
-    mAddress = Preconditions.checkNotNull(address, "address");
+    mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
@@ -323,7 +324,7 @@ public abstract class AbstractClient implements Client {
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (AlluxioTException e) {
-        throw new RuntimeException(AlluxioException.fromThrift(e));
+        throw Throwables.propagate(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         disconnect();

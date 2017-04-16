@@ -59,14 +59,12 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void serviceName() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_NAME),
         NO_PARAMS, HttpMethod.GET, Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
-  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void serviceVersion() throws Exception {
     new TestCase(mHostname, mPort,
         getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_VERSION), NO_PARAMS,
@@ -91,7 +89,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void deleteLineage() throws Exception {
-    LineageMaster lineageMaster = mMaster.getMaster(LineageMaster.class);
+    LineageMaster lineageMaster = mMaster.getLineageMaster();
     long lineageId = lineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         new ArrayList<AlluxioURI>(), new CommandLineJob("test", new JobConf("/output")));
 
@@ -108,7 +106,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   public void getLineageInfoList() throws Exception {
     AlluxioURI input = new AlluxioURI("/input");
     AlluxioURI output = new AlluxioURI("/output");
-    LineageMaster lineageMaster = mMaster.getMaster(LineageMaster.class);
+    LineageMaster lineageMaster = mMaster.getLineageMaster();
     mLineageClient.createFile(new AlluxioURI("/input")).close();
     long lineageId = lineageMaster.createLineage(Lists.newArrayList(input),
         Lists.newArrayList(output), new CommandLineJob("test", new JobConf(output.getPath())));

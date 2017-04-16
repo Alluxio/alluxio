@@ -53,8 +53,7 @@ public final class AlluxioTestDirectory {
         try {
           alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
         } catch (IOException e) {
-          LOG.warn("Failed to clean up Alluxio test directory {} : {}", file.getAbsolutePath(),
-              e.getMessage());
+          LOG.warn("Failed to clean up Alluxio test directory {}", file.getAbsolutePath(), e);
         }
       }
     }));
@@ -93,7 +92,7 @@ public final class AlluxioTestDirectory {
         try {
           alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
         } catch (Exception e) {
-          LOG.warn("Failed to delete {} : {}", file.getAbsolutePath(), e.getMessage());
+          LOG.warn("Failed to delete {}", file.getAbsolutePath(), e);
         }
       }
     }

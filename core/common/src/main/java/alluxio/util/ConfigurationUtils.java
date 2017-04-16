@@ -51,8 +51,7 @@ public final class ConfigurationUtils {
     try {
       properties.load(inputStream);
     } catch (IOException e) {
-      LOG.warn("Unable to load default Alluxio properties file {} : {}", resourceName,
-          e.getMessage());
+      LOG.error("Unable to load default Alluxio properties file {}", resourceName, e);
       return null;
     }
     return properties;
@@ -73,7 +72,7 @@ public final class ConfigurationUtils {
     } catch (FileNotFoundException e) {
       return null;
     } catch (IOException e) {
-      LOG.warn("Unable to load properties file {} : {}", filePath, e.getMessage());
+      LOG.error("Unable to load properties file {}", filePath, e);
       return null;
     }
     return properties;
@@ -95,7 +94,7 @@ public final class ConfigurationUtils {
       String file = PathUtils.concatPath(path, propertiesFile);
       Properties properties = loadPropertiesFromFile(file);
       if (properties != null) {
-        // If a site conf is successfully loaded, stop trying different paths.
+        // If a site conf is successfully loaded, stop trying different paths
         LOG.info("Configuration file {} loaded.", file);
         return properties;
       }

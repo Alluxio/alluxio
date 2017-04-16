@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * Tests for the {@link LoadMetadataOptions} class.
  */
-public final class LoadMetadataOptionsTest {
+public class LoadMetadataOptionsTest {
   @Test
   public void defaults() {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();

@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Unit tests for {@link MountOptions}.
  */
-public final class MountOptionsTest {
+public class MountOptionsTest {
   public static final String PROPERTY_KEY = "A";
   public static final String PROPERTY_VALUE = "B";
 

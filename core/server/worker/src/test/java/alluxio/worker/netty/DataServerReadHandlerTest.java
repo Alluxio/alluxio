@@ -105,7 +105,7 @@ public abstract class DataServerReadHandlerTest {
    */
   @Test
   public void cancelRequest() throws Exception {
-    long fileSize = PACKET_SIZE * 100 + 1;
+    long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(fileSize, 0, fileSize - 1);
     RPCProtoMessage readRequest = buildReadRequest(0, fileSize);
     Protocol.ReadRequest request = readRequest.getMessage().getMessage();
@@ -120,10 +120,7 @@ public abstract class DataServerReadHandlerTest {
     long maxIterations = 100;
     while (maxIterations > 0) {
       Object response = waitForOneResponse(mChannel);
-      // There is small chance that we can still receive an OK response here because it is too
-      // fast to read all the data. If that ever happens, either increase the file size or allow it
-      // to be OK here.
-      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.CANCELLED);
+      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.OK);
       if (buffer == null) {
         eof = true;
         break;
@@ -218,15 +215,9 @@ public abstract class DataServerReadHandlerTest {
 
     ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
     Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
-    DataBuffer buffer = ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
-    if (buffer != null) {
-      Assert.assertEquals(Protocol.Status.Code.OK,
-          response.<Protocol.Response>getMessage().getStatus().getCode());
-    } else {
-      Assert.assertEquals(codeExpected,
-          response.<Protocol.Response>getMessage().getStatus().getCode());
-    }
-    return buffer;
+    Assert.assertEquals(codeExpected,
+        response.<Protocol.Response>getMessage().getStatus().getCode());
+    return ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
   }
 
   /**

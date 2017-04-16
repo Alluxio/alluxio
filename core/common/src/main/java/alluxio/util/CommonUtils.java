@@ -203,7 +203,7 @@ public final class CommonUtils {
     try {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
     } catch (ExitCodeException e) {
-      // if we didn't get the group - just return empty list
+      // if we didn't get the group - just return empty list;
       LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
       return groups;
     }
@@ -360,7 +360,7 @@ public final class CommonUtils {
    *
    * @param closer the closer
    */
-  public static void closeQuietly(Closer closer) {
+  public static void closeQuitely(Closer closer) {
     try {
       closer.close();
     } catch (IOException e) {

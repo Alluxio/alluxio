@@ -18,8 +18,6 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -30,10 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class UnderFileSystemCluster {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemCluster.class);
-
   class ShutdownHook extends Thread {
-
     UnderFileSystemCluster mUFSCluster = null;
 
     public ShutdownHook(UnderFileSystemCluster ufsCluster) {
@@ -46,7 +41,7 @@ public abstract class UnderFileSystemCluster {
         try {
           mUFSCluster.shutdown();
         } catch (IOException e) {
-          LOG.warn("Failed to shutdown underfs cluster: {}" + e.getMessage());
+          System.out.println("Failed to shutdown underfs cluster: " + e);
         }
       }
     }
@@ -101,15 +96,16 @@ public abstract class UnderFileSystemCluster {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class)
                 .newInstance(baseDir);
-        LOG.info("Initialized ufs cluster {} for integration testing.", sUnderFSClass);
+        System.out.println("Initialized under file system testing cluster of type "
+            + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
       } catch (Exception e) {
-        LOG.warn("Failed to initialize the ufs cluster {} for integration testing: {}",
-            sUnderFSClass, e.getMessage());
+        System.err.println("Failed to initialize the ufsCluster of " + sUnderFSClass
+            + " for integration test.");
         throw Throwables.propagate(e);
       }
     }
-    LOG.info("Using default {} for integration testing.", LocalFileSystemCluster.class.getName());
+    System.out.println("Using default LocalFilesystemCluster for integration testing");
     return new LocalFileSystemCluster(baseDir);
   }
 

@@ -366,21 +366,6 @@ public final class Configuration {
   }
 
   /**
-   * Gets the time of key in millisecond unit.
-   *
-   * @param key the key to get the value for
-   * @return the time of key in millisecond unit
-   */
-  public static long getMs(PropertyKey key) {
-    String rawValue = get(key);
-    try {
-      return FormatUtils.parseTimeSize(rawValue);
-    } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
-    }
-  }
-
-  /**
    * Gets the value for the given key as a class.
    *
    * @param key the key to get the value for
@@ -519,7 +504,7 @@ public final class Configuration {
     for (Map.Entry<String, String> entry : toMap().entrySet()) {
       String propertyName = entry.getKey();
       if (!PropertyKey.isValid(propertyName)) {
-        LOG.warn("Unsupported property {}", propertyName);
+        LOG.error("Unsupported property " + propertyName);
         valid = false;
       }
     }

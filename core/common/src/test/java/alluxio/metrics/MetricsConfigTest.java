@@ -41,7 +41,7 @@ public final class MetricsConfigTest {
    * correctly.
    */
   @Test
-  public void setProperties() {
+  public void setPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
 
     Properties masterProp = config.getProperties();
@@ -57,7 +57,7 @@ public final class MetricsConfigTest {
    * Tests the {@link MetricsConfig#subProperties(Properties, String)} method.
    */
   @Test
-  public void subProperties() {
+  public void subPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
 
     Properties properties = config.getProperties();

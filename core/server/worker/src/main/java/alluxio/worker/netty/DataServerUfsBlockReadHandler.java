@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link DataServerReadHandler}.
  */
 @NotThreadSafe
-final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
+public final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerUfsBlockReadHandler.class);
 
   /** The Block Worker. */
@@ -45,7 +45,7 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
    * The block read request internal representation.
    */
   private final class UfsBlockReadRequestInternal extends ReadRequestInternal {
-    final BlockReader mBlockReader;
+    public BlockReader mBlockReader = null;
 
     /**
      * Creates an instance of {@link UfsBlockReadRequestInternal}.
@@ -53,8 +53,10 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
      * @param request the block read request
      * @throws Exception if it fails to create the object
      */
-    UfsBlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength());
+    public UfsBlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
+      mId = request.getId();
+      mStart = request.getOffset();
+      mEnd = mStart + request.getLength();
       mBlockReader =
           mWorker.readUfsBlock(request.getSessionId(), mId, mStart, request.getNoCache());
       // Note that we do not need to seek to offset since the block worker is created at the offset.

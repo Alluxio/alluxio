@@ -24,11 +24,6 @@ public final class Constants {
   public static final long TB = GB * 1024L;
   public static final long PB = TB * 1024L;
 
-  public static final long SECOND = 1000;
-  public static final long MINUTE = SECOND * 60L;
-  public static final long HOUR = MINUTE * 60L;
-  public static final long DAY = HOUR * 24L;
-
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_BLACK = "\u001B[30m";
   public static final String ANSI_RED = "\u001B[31m";
@@ -117,6 +112,7 @@ public final class Constants {
   public static final String REST_API_PREFIX = "/api/v1";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
+  public static final String FORMAT_FILE_PREFIX = "_format_";
 
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";

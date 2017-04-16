@@ -11,61 +11,36 @@
 
 package alluxio;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 /**
  * A rule for setting a system property to a value and then restoring the property to its old value.
  */
-public final class SystemPropertyRule extends AbstractResourceRule {
-  private final Map<String, String> mProperties;
-  private final Map<String, String> mOriginalProperties = new HashMap<>();
-  private final Set<String> mOriginalNullProperties = new HashSet<>();
-
-  /**
-   * @param keyValuePairs map from system property keys to the values to set them to
-   */
-  public SystemPropertyRule(Map<String, String> keyValuePairs) {
-    mProperties = keyValuePairs;
-  }
+public final class SystemPropertyRule implements TestRule {
+  private final String mPropertyName;
+  private final String mValue;
 
   /**
    * @param propertyName the name of the property to set
-   * @param value the value to set it to, if null un-setting the propertyName
+   * @param value the value to set it to
    */
   public SystemPropertyRule(String propertyName, String value) {
-    mProperties = new HashMap<>();
-    mProperties.put(propertyName, value);
+    mPropertyName = propertyName;
+    mValue = value;
   }
 
   @Override
-  public void before() {
-    for (Map.Entry<String, String> entry : mProperties.entrySet()) {
-      String key = entry.getKey();
-      String value = entry.getValue();
-      String prevValue = System.getProperty(key);
-      if (prevValue == null) {
-        mOriginalNullProperties.add(key);
-      } else {
-        mOriginalProperties.put(key, prevValue);
+  public Statement apply(final Statement statement, Description description) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        try (SetAndRestoreSystemProperty c =
+            new SetAndRestoreSystemProperty(mPropertyName, mValue)) {
+          statement.evaluate();
+        }
       }
-      if (value == null) {
-        System.clearProperty(key);
-      } else {
-        System.setProperty(key, value);
-      }
-    }
-  }
-
-  @Override
-  public void after() {
-    for (Map.Entry<String, String> entry : mOriginalProperties.entrySet()) {
-      System.setProperty(entry.getKey(), entry.getValue());
-    }
-    for (String key : mOriginalNullProperties) {
-      System.clearProperty(key);
-    }
+    };
   }
 }

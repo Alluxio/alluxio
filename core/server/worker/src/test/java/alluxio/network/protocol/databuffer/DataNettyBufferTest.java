@@ -48,10 +48,10 @@ public class DataNettyBufferTest {
    */
   @After
   public final void after() {
-    releaseBufferHelper();
+    releaseBuffer();
   }
 
-  private void releaseBufferHelper() {
+  private void releaseBuffer() {
     if (mBuffer != null && mBuffer.refCnt() > 0) {
       mBuffer.release(mBuffer.refCnt());
     }
@@ -64,7 +64,7 @@ public class DataNettyBufferTest {
   public void singleNioBufferCheckFailed() {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Number of nioBuffers of this bytebuf is 2 (1 expected).");
-    releaseBufferHelper(); // not using the default ByteBuf given in Before()
+    releaseBuffer(); // not using the default ByteBuf given in Before()
     // creating a CompositeByteBuf with 2 NIO buffers
     mBuffer = Unpooled.compositeBuffer();
     ((CompositeByteBuf) mBuffer).addComponent(Unpooled.buffer(LENGTH));
@@ -119,7 +119,7 @@ public class DataNettyBufferTest {
    * Tests the {@link DataNettyBuffer#release()} method.
    */
   @Test
-  public void releaseBuffer() {
+  public void releaseBufferTest() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     mBuffer.release(); // this simulates a release performed by message channel
     data.release();

@@ -16,9 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
 import alluxio.master.AlluxioMasterService;
-import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.FormatUtils;
 
@@ -142,11 +140,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @return the list of {@link StorageTierInfo} objects, in order from highest tier to lowest
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
-    BlockMaster blockMaster = mMaster.getMaster(BlockMaster.class);
-    StorageTierAssoc globalStorageTierAssoc = blockMaster.getGlobalStorageTierAssoc();
+    StorageTierAssoc globalStorageTierAssoc = mMaster.getBlockMaster().getGlobalStorageTierAssoc();
     List<StorageTierInfo> infos = new ArrayList<>();
-    Map<String, Long> totalBytesOnTiers = blockMaster.getTotalBytesOnTiers();
-    Map<String, Long> usedBytesOnTiers = blockMaster.getUsedBytesOnTiers();
+    Map<String, Long> totalBytesOnTiers = mMaster.getBlockMaster().getTotalBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = mMaster.getBlockMaster().getUsedBytesOnTiers();
 
     for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal++) {
       String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
@@ -168,9 +165,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    BlockMaster blockMaster = mMaster.getMaster(BlockMaster.class);
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
-
     request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
 
     request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
@@ -183,20 +177,23 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("version", RuntimeConstants.VERSION);
 
     request.setAttribute("liveWorkerNodes",
-        Integer.toString(blockMaster.getWorkerCount()));
+        Integer.toString(mMaster.getBlockMaster().getWorkerCount()));
 
     request.setAttribute("capacity",
-        FormatUtils.getSizeFromBytes(blockMaster.getCapacityBytes()));
+        FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()));
 
     request.setAttribute("usedCapacity",
-        FormatUtils.getSizeFromBytes(blockMaster.getUsedBytes()));
+        FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getUsedBytes()));
 
-    request.setAttribute("freeCapacity",
-        FormatUtils.getSizeFromBytes(blockMaster.getCapacityBytes() - blockMaster.getUsedBytes()));
+    request
+        .setAttribute("freeCapacity",
+            FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
+                - mMaster.getBlockMaster().getUsedBytes()));
 
-    StartupConsistencyCheck check = fileSystemMaster.getStartupConsistencyCheck();
+    FileSystemMaster.StartupConsistencyCheck check =
+        mMaster.getFileSystemMaster().getStartupConsistencyCheck();
     request.setAttribute("consistencyCheckStatus", check.getStatus());
-    if (check.getStatus() == StartupConsistencyCheck.Status.COMPLETE) {
+    if (check.getStatus() == FileSystemMaster.StartupConsistencyCheck.Status.COMPLETE) {
       request.setAttribute("inconsistentPaths", check.getInconsistentUris().size());
       request.setAttribute("inconsistentPathItems", check.getInconsistentUris());
     } else {

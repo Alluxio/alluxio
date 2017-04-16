@@ -49,13 +49,12 @@ public final class ListLineagesCommand extends AbstractShellCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws IOException {
     AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     List<LineageInfo> infos = tl.getLineageInfoList();
     for (LineageInfo info : infos) {
       System.out.println(info);
     }
-    return 0;
   }
 
   @Override

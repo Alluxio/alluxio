@@ -78,7 +78,7 @@ public final class JournalTool {
     JournalFormatter formatter = new ProtoBufJournalFormatter();
     JournalInputStream journalStream = formatter.deserialize(System.in);
     JournalEntry entry;
-    while ((entry = journalStream.read()) != null) {
+    while ((entry = journalStream.getNextEntry()) != null) {
       System.out.print(entry);
       System.out.println(ENTRY_SEPARATOR);
     }

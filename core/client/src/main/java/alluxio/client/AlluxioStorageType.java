@@ -11,10 +11,13 @@
 
 package alluxio.client;
 
+import alluxio.annotation.PublicApi;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Specifies the type of data interaction with Alluxio.
+ * Specifies the type of data interaction with Alluxio. This option is for developers and advanced
+ * users. See {@link WriteType} and {@link ReadType}.
  * <ul>
  * <li>For a write operation, this determines whether the data will be written into Alluxio storage.
  * Metadata will always be updated in Alluxio space.</li>
@@ -22,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * storage.</li>
  * </ul>
  */
+@PublicApi
 @ThreadSafe
 public enum AlluxioStorageType {
   /** Put the data reading or writing in Alluxio storage. */

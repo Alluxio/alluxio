@@ -85,7 +85,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.createDirectory(path, options);
-      LOG.debug("Created directory {}, options: {}", path.getPath(), options);
+      LOG.debug("Created directory " + path.getPath());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -105,13 +105,13 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.createFile(path, options);
       status = masterClient.getStatus(path);
-      LOG.debug("Created file {}, options: {}", path.getPath(), options);
+      LOG.debug("Created file " + path.getPath());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
     OutStreamOptions outStreamOptions = options.toOutStreamOptions();
     outStreamOptions.setUfsPath(status.getUfsPath());
-    return new FileOutStream(path, outStreamOptions, mFileSystemContext);
+    return new FileOutStream(mFileSystemContext, path, outStreamOptions);
   }
 
   @Override
@@ -126,7 +126,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.delete(path, options);
-      LOG.debug("Deleted {}, options: {}", path.getPath(), options);
+      LOG.debug("Deleted file " + path.getName());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -165,7 +165,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
-      LOG.debug("Freed {}, options: {}", path.getPath(), options);
+      LOG.debug("Freed file " + path.getPath());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -234,7 +234,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
-      LOG.debug("Loaded metadata {}, options: {}", path.getPath(), options);
+      LOG.debug("loaded metadata {} with options {}", path.getParent(), options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -290,7 +290,7 @@ public class BaseFileSystem implements FileSystem {
     try {
       // TODO(calvin): Update this code on the master side.
       masterClient.rename(src, dst);
-      LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), options);
+      LOG.debug("Renamed file " + src.getPath() + " to " + dst.getPath());
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -308,7 +308,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
-      LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
+      LOG.debug("Set attributes for path {} with options {}", path.getPath(), options);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
@@ -325,7 +325,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.unmount(path);
-      LOG.debug("Unmounted {}, options: {}", path.getPath(), options);
+      LOG.info("Unmount " + path);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }

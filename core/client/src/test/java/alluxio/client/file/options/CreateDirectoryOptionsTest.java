@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * Tests for the {@link CreateDirectoryOptions} class.
  */
-public final class CreateDirectoryOptionsTest {
+public class CreateDirectoryOptionsTest {
   private final WriteType mDefaultWriteType =
       Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
 

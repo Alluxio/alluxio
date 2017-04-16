@@ -24,7 +24,10 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,8 @@ import java.util.List;
 /**
  * Tests {@link DefaultAsyncPersistHandler}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({FileSystemMaster.class})
 public class DefaultAsyncPersistHandlerTest {
   private FileSystemMaster mFileSystemMaster;
 

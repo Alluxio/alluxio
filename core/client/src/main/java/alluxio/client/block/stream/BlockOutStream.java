@@ -18,7 +18,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
@@ -34,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link alluxio.client.block.AlluxioBlockStore#getOutStream(long, long, OutStreamOptions)}.
  */
 @NotThreadSafe
-public class BlockOutStream extends FilterOutputStream implements BoundedStream, Cancelable {
+public final class BlockOutStream extends FilterOutputStream implements BoundedStream, Cancelable {
   private final long mBlockId;
   private final long mBlockSize;
   private final Closer mCloser;
@@ -64,7 +63,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {
-      CommonUtils.closeQuietly(closer);
+      closer.close();
       throw e;
     }
   }
@@ -93,7 +92,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (IOException e) {
-      CommonUtils.closeQuietly(closer);
+      closer.close();
       throw e;
     }
   }
@@ -180,7 +179,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param blockWorkerClient the block worker client
    * @param options the options
    */
-  protected BlockOutStream(PacketOutStream outStream, long blockId, long blockSize,
+  private BlockOutStream(PacketOutStream outStream, long blockId, long blockSize,
       BlockWorkerClient blockWorkerClient, OutStreamOptions options) {
     super(outStream);
 

@@ -607,7 +607,6 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     fileReadTest("/testDir/foobar3", 30);
   }
 
-  @Override
   protected void copyToLocalWithBytes(int bytes) throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     String[] cmd = new String[] {"cp", "/testFile",

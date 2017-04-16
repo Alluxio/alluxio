@@ -16,7 +16,7 @@ import org.junit.Test;
 /**
  * Tests the {@link SimpleAuthenticationProvider} class.
  */
-public final class SimpleAuthenticationProviderTest {
+public class SimpleAuthenticationProviderTest {
 
   /**
    * Tests the {@link SimpleAuthenticationProvider#authenticate(String, String)}.

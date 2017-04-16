@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.AlluxioMasterService;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
@@ -72,16 +71,14 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     request.setAttribute("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
-
-    List<AlluxioURI> inMemoryFiles = fileSystemMaster.getInMemoryFiles();
+    List<AlluxioURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
     Collections.sort(inMemoryFiles);
 
     List<UIFileInfo> fileInfos = new ArrayList<>(inMemoryFiles.size());
     for (AlluxioURI file : inMemoryFiles) {
       try {
-        long fileId = fileSystemMaster.getFileId(file);
-        FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
+        long fileId = mMaster.getFileSystemMaster().getFileId(file);
+        FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
           fileInfos.add(new UIFileInfo(fileInfo));
         }

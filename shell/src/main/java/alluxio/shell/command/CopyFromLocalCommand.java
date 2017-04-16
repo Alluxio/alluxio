@@ -17,8 +17,6 @@ import alluxio.exception.AlluxioException;
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -49,12 +47,11 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String srcPath = args[0];
-    cl.getArgList().set(0, "file://" + new File(srcPath).getAbsolutePath());
+    cl.getArgList().set(0, "file://" + srcPath);
     mCpCommand.run(cl);
-    return 0;
   }
 
   @Override

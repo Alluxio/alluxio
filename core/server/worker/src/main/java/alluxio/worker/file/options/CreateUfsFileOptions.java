@@ -12,6 +12,7 @@
 package alluxio.worker.file.options;
 
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.util.SecurityUtils;
@@ -26,6 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Options for creating a UFS file. Currently we do not allow user to set arbitrary owner and
  * group options. The owner and group will be set to the user login.
  */
+@PublicApi
 @NotThreadSafe
 public final class CreateUfsFileOptions {
   private String mOwner;

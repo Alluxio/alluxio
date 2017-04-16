@@ -92,8 +92,10 @@ public final class RetryHandlingBlockWorkerClient
    * @param sessionId the session id to use, this should be unique
    * @throws IOException if it fails to register the session with the worker specified
    */
-  protected static RetryHandlingBlockWorkerClient create(BlockWorkerThriftClientPool clientPool,
-      BlockWorkerThriftClientPool clientHeartbeatPool, WorkerNetAddress workerNetAddress,
+  protected static RetryHandlingBlockWorkerClient create(
+      BlockWorkerThriftClientPool clientPool,
+      BlockWorkerThriftClientPool clientHeartbeatPool,
+      WorkerNetAddress workerNetAddress,
       Long sessionId) throws IOException {
     RetryHandlingBlockWorkerClient client =
         new RetryHandlingBlockWorkerClient(clientPool, clientHeartbeatPool, workerNetAddress,

@@ -103,6 +103,108 @@ public final class Protocol {
     // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.RequestType)
   }
 
+  /**
+   * Protobuf enum {@code alluxio.proto.dataserver.DataServerVersion}
+   *
+   * <pre>
+   * The netty data server version.
+   * </pre>
+   */
+  public enum DataServerVersion
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>V0 = 0;</code>
+     *
+     * <pre>
+     * Pre-proto version.
+     * </pre>
+     */
+    V0(0, 0),
+    /**
+     * <code>V1 = 1;</code>
+     *
+     * <pre>
+     * Proto version.
+     * </pre>
+     */
+    V1(1, 1),
+    ;
+
+    /**
+     * <code>V0 = 0;</code>
+     *
+     * <pre>
+     * Pre-proto version.
+     * </pre>
+     */
+    public static final int V0_VALUE = 0;
+    /**
+     * <code>V1 = 1;</code>
+     *
+     * <pre>
+     * Proto version.
+     * </pre>
+     */
+    public static final int V1_VALUE = 1;
+
+
+    public final int getNumber() { return value; }
+
+    public static DataServerVersion valueOf(int value) {
+      switch (value) {
+        case 0: return V0;
+        case 1: return V1;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<DataServerVersion>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static com.google.protobuf.Internal.EnumLiteMap<DataServerVersion>
+        internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<DataServerVersion>() {
+            public DataServerVersion findValueByNumber(int number) {
+              return DataServerVersion.valueOf(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(index);
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.getDescriptor().getEnumTypes().get(1);
+    }
+
+    private static final DataServerVersion[] VALUES = values();
+
+    public static DataServerVersion valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int index;
+    private final int value;
+
+    private DataServerVersion(int index, int value) {
+      this.index = index;
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.DataServerVersion)
+  }
+
   public interface ExceptionOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -926,37 +1028,37 @@ public final class Protocol {
        */
       OK(0, 0),
       /**
-       * <code>CANCELLED = 1;</code>
-       */
-      CANCELLED(1, 1),
-      /**
-       * <code>UNKNOWN = 2;</code>
-       */
-      UNKNOWN(2, 2),
-      /**
        * <code>INVALID_ARGUMENT = 3;</code>
        */
-      INVALID_ARGUMENT(3, 3),
-      /**
-       * <code>PERMISSION_DENIED = 6;</code>
-       */
-      PERMISSION_DENIED(4, 6),
+      INVALID_ARGUMENT(1, 3),
       /**
        * <code>INTERNAL = 13;</code>
        */
-      INTERNAL(5, 13),
+      INTERNAL(2, 13),
       /**
-       * <code>NOT_FOUND = 4;</code>
+       * <code>CANCELLED = 1;</code>
        *
        * <pre>
        * The following are unused for now.
        * </pre>
        */
-      NOT_FOUND(6, 4),
+      CANCELLED(3, 1),
+      /**
+       * <code>UNKNOWN = 2;</code>
+       */
+      UNKNOWN(4, 2),
+      /**
+       * <code>NOT_FOUND = 4;</code>
+       */
+      NOT_FOUND(5, 4),
       /**
        * <code>ALREADY_EXISTS = 5;</code>
        */
-      ALREADY_EXISTS(7, 5),
+      ALREADY_EXISTS(6, 5),
+      /**
+       * <code>PERMISSION_DENIED = 6;</code>
+       */
+      PERMISSION_DENIED(7, 6),
       /**
        * <code>UNAUTHENTICATED = 7;</code>
        */
@@ -1000,7 +1102,19 @@ public final class Protocol {
        */
       public static final int OK_VALUE = 0;
       /**
+       * <code>INVALID_ARGUMENT = 3;</code>
+       */
+      public static final int INVALID_ARGUMENT_VALUE = 3;
+      /**
+       * <code>INTERNAL = 13;</code>
+       */
+      public static final int INTERNAL_VALUE = 13;
+      /**
        * <code>CANCELLED = 1;</code>
+       *
+       * <pre>
+       * The following are unused for now.
+       * </pre>
        */
       public static final int CANCELLED_VALUE = 1;
       /**
@@ -1008,29 +1122,17 @@ public final class Protocol {
        */
       public static final int UNKNOWN_VALUE = 2;
       /**
-       * <code>INVALID_ARGUMENT = 3;</code>
-       */
-      public static final int INVALID_ARGUMENT_VALUE = 3;
-      /**
-       * <code>PERMISSION_DENIED = 6;</code>
-       */
-      public static final int PERMISSION_DENIED_VALUE = 6;
-      /**
-       * <code>INTERNAL = 13;</code>
-       */
-      public static final int INTERNAL_VALUE = 13;
-      /**
        * <code>NOT_FOUND = 4;</code>
-       *
-       * <pre>
-       * The following are unused for now.
-       * </pre>
        */
       public static final int NOT_FOUND_VALUE = 4;
       /**
        * <code>ALREADY_EXISTS = 5;</code>
        */
       public static final int ALREADY_EXISTS_VALUE = 5;
+      /**
+       * <code>PERMISSION_DENIED = 6;</code>
+       */
+      public static final int PERMISSION_DENIED_VALUE = 6;
       /**
        * <code>UNAUTHENTICATED = 7;</code>
        */
@@ -1074,13 +1176,13 @@ public final class Protocol {
       public static Code valueOf(int value) {
         switch (value) {
           case 0: return OK;
+          case 3: return INVALID_ARGUMENT;
+          case 13: return INTERNAL;
           case 1: return CANCELLED;
           case 2: return UNKNOWN;
-          case 3: return INVALID_ARGUMENT;
-          case 6: return PERMISSION_DENIED;
-          case 13: return INTERNAL;
           case 4: return NOT_FOUND;
           case 5: return ALREADY_EXISTS;
+          case 6: return PERMISSION_DENIED;
           case 7: return UNAUTHENTICATED;
           case 8: return RESOURCE_EXHAUSTED;
           case 9: return FAILED_PRECONDITION;
@@ -2901,117 +3003,30 @@ public final class Protocol {
     // optional int64 session_id = 4;
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     boolean hasSessionId();
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     long getSessionId();
 
     // optional int32 tier = 5;
     /**
      * <code>optional int32 tier = 5;</code>
-     *
-     * <pre>
-     * This is only applicable for block write.
-     * </pre>
      */
     boolean hasTier();
     /**
      * <code>optional int32 tier = 5;</code>
-     *
-     * <pre>
-     * This is only applicable for block write.
-     * </pre>
      */
     int getTier();
-
-    // optional bool eof = 6;
-    /**
-     * <code>optional bool eof = 6;</code>
-     */
-    boolean hasEof();
-    /**
-     * <code>optional bool eof = 6;</code>
-     */
-    boolean getEof();
-
-    // optional bool cancel = 7;
-    /**
-     * <code>optional bool cancel = 7;</code>
-     */
-    boolean hasCancel();
-    /**
-     * <code>optional bool cancel = 7;</code>
-     */
-    boolean getCancel();
-
-    // optional string ufs_path = 8;
-    /**
-     * <code>optional string ufs_path = 8;</code>
-     *
-     * <pre>
-     * The following are only applicable for ufs writes.
-     * </pre>
-     */
-    boolean hasUfsPath();
-    /**
-     * <code>optional string ufs_path = 8;</code>
-     *
-     * <pre>
-     * The following are only applicable for ufs writes.
-     * </pre>
-     */
-    java.lang.String getUfsPath();
-    /**
-     * <code>optional string ufs_path = 8;</code>
-     *
-     * <pre>
-     * The following are only applicable for ufs writes.
-     * </pre>
-     */
-    com.google.protobuf.ByteString
-        getUfsPathBytes();
-
-    // optional string owner = 9;
-    /**
-     * <code>optional string owner = 9;</code>
-     */
-    boolean hasOwner();
-    /**
-     * <code>optional string owner = 9;</code>
-     */
-    java.lang.String getOwner();
-    /**
-     * <code>optional string owner = 9;</code>
-     */
-    com.google.protobuf.ByteString
-        getOwnerBytes();
-
-    // optional string group = 10;
-    /**
-     * <code>optional string group = 10;</code>
-     */
-    boolean hasGroup();
-    /**
-     * <code>optional string group = 10;</code>
-     */
-    java.lang.String getGroup();
-    /**
-     * <code>optional string group = 10;</code>
-     */
-    com.google.protobuf.ByteString
-        getGroupBytes();
-
-    // optional int32 mode = 11;
-    /**
-     * <code>optional int32 mode = 11;</code>
-     */
-    boolean hasMode();
-    /**
-     * <code>optional int32 mode = 11;</code>
-     */
-    int getMode();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
@@ -3097,36 +3112,6 @@ public final class Protocol {
             case 40: {
               bitField0_ |= 0x00000010;
               tier_ = input.readInt32();
-              break;
-            }
-            case 48: {
-              bitField0_ |= 0x00000020;
-              eof_ = input.readBool();
-              break;
-            }
-            case 56: {
-              bitField0_ |= 0x00000040;
-              cancel_ = input.readBool();
-              break;
-            }
-            case 66: {
-              bitField0_ |= 0x00000080;
-              ufsPath_ = input.readBytes();
-              break;
-            }
-            case 74: {
-              bitField0_ |= 0x00000100;
-              owner_ = input.readBytes();
-              break;
-            }
-            case 82: {
-              bitField0_ |= 0x00000200;
-              group_ = input.readBytes();
-              break;
-            }
-            case 88: {
-              bitField0_ |= 0x00000400;
-              mode_ = input.readInt32();
               break;
             }
           }
@@ -3230,12 +3215,20 @@ public final class Protocol {
     private long sessionId_;
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     public boolean hasSessionId() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>optional int64 session_id = 4;</code>
+     *
+     * <pre>
+     * These are only applicable for block write.
+     * </pre>
      */
     public long getSessionId() {
       return sessionId_;
@@ -3246,212 +3239,15 @@ public final class Protocol {
     private int tier_;
     /**
      * <code>optional int32 tier = 5;</code>
-     *
-     * <pre>
-     * This is only applicable for block write.
-     * </pre>
      */
     public boolean hasTier() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
      * <code>optional int32 tier = 5;</code>
-     *
-     * <pre>
-     * This is only applicable for block write.
-     * </pre>
      */
     public int getTier() {
       return tier_;
-    }
-
-    // optional bool eof = 6;
-    public static final int EOF_FIELD_NUMBER = 6;
-    private boolean eof_;
-    /**
-     * <code>optional bool eof = 6;</code>
-     */
-    public boolean hasEof() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    /**
-     * <code>optional bool eof = 6;</code>
-     */
-    public boolean getEof() {
-      return eof_;
-    }
-
-    // optional bool cancel = 7;
-    public static final int CANCEL_FIELD_NUMBER = 7;
-    private boolean cancel_;
-    /**
-     * <code>optional bool cancel = 7;</code>
-     */
-    public boolean hasCancel() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
-    }
-    /**
-     * <code>optional bool cancel = 7;</code>
-     */
-    public boolean getCancel() {
-      return cancel_;
-    }
-
-    // optional string ufs_path = 8;
-    public static final int UFS_PATH_FIELD_NUMBER = 8;
-    private java.lang.Object ufsPath_;
-    /**
-     * <code>optional string ufs_path = 8;</code>
-     *
-     * <pre>
-     * The following are only applicable for ufs writes.
-     * </pre>
-     */
-    public boolean hasUfsPath() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
-    }
-    /**
-     * <code>optional string ufs_path = 8;</code>
-     *
-     * <pre>
-     * The following are only applicable for ufs writes.
-     * </pre>
-     */
-    public java.lang.String getUfsPath() {
-      java.lang.Object ref = ufsPath_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          ufsPath_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string ufs_path = 8;</code>
-     *
-     * <pre>
-     * The following are only applicable for ufs writes.
-     * </pre>
-     */
-    public com.google.protobuf.ByteString
-        getUfsPathBytes() {
-      java.lang.Object ref = ufsPath_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ufsPath_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    // optional string owner = 9;
-    public static final int OWNER_FIELD_NUMBER = 9;
-    private java.lang.Object owner_;
-    /**
-     * <code>optional string owner = 9;</code>
-     */
-    public boolean hasOwner() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
-    }
-    /**
-     * <code>optional string owner = 9;</code>
-     */
-    public java.lang.String getOwner() {
-      java.lang.Object ref = owner_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          owner_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string owner = 9;</code>
-     */
-    public com.google.protobuf.ByteString
-        getOwnerBytes() {
-      java.lang.Object ref = owner_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        owner_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    // optional string group = 10;
-    public static final int GROUP_FIELD_NUMBER = 10;
-    private java.lang.Object group_;
-    /**
-     * <code>optional string group = 10;</code>
-     */
-    public boolean hasGroup() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
-    }
-    /**
-     * <code>optional string group = 10;</code>
-     */
-    public java.lang.String getGroup() {
-      java.lang.Object ref = group_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          group_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string group = 10;</code>
-     */
-    public com.google.protobuf.ByteString
-        getGroupBytes() {
-      java.lang.Object ref = group_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        group_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    // optional int32 mode = 11;
-    public static final int MODE_FIELD_NUMBER = 11;
-    private int mode_;
-    /**
-     * <code>optional int32 mode = 11;</code>
-     */
-    public boolean hasMode() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
-    }
-    /**
-     * <code>optional int32 mode = 11;</code>
-     */
-    public int getMode() {
-      return mode_;
     }
 
     private void initFields() {
@@ -3460,12 +3256,6 @@ public final class Protocol {
       offset_ = 0L;
       sessionId_ = 0L;
       tier_ = 0;
-      eof_ = false;
-      cancel_ = false;
-      ufsPath_ = "";
-      owner_ = "";
-      group_ = "";
-      mode_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3493,24 +3283,6 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt32(5, tier_);
-      }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeBool(6, eof_);
-      }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        output.writeBool(7, cancel_);
-      }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeBytes(8, getUfsPathBytes());
-      }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        output.writeBytes(9, getOwnerBytes());
-      }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        output.writeBytes(10, getGroupBytes());
-      }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        output.writeInt32(11, mode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3540,30 +3312,6 @@ public final class Protocol {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(5, tier_);
-      }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(6, eof_);
-      }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(7, cancel_);
-      }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(8, getUfsPathBytes());
-      }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(9, getOwnerBytes());
-      }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(10, getGroupBytes());
-      }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(11, mode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3695,18 +3443,6 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000008);
         tier_ = 0;
         bitField0_ = (bitField0_ & ~0x00000010);
-        eof_ = false;
-        bitField0_ = (bitField0_ & ~0x00000020);
-        cancel_ = false;
-        bitField0_ = (bitField0_ & ~0x00000040);
-        ufsPath_ = "";
-        bitField0_ = (bitField0_ & ~0x00000080);
-        owner_ = "";
-        bitField0_ = (bitField0_ & ~0x00000100);
-        group_ = "";
-        bitField0_ = (bitField0_ & ~0x00000200);
-        mode_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000400);
         return this;
       }
 
@@ -3755,30 +3491,6 @@ public final class Protocol {
           to_bitField0_ |= 0x00000010;
         }
         result.tier_ = tier_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-          to_bitField0_ |= 0x00000020;
-        }
-        result.eof_ = eof_;
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
-          to_bitField0_ |= 0x00000040;
-        }
-        result.cancel_ = cancel_;
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-          to_bitField0_ |= 0x00000080;
-        }
-        result.ufsPath_ = ufsPath_;
-        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
-          to_bitField0_ |= 0x00000100;
-        }
-        result.owner_ = owner_;
-        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
-          to_bitField0_ |= 0x00000200;
-        }
-        result.group_ = group_;
-        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
-          to_bitField0_ |= 0x00000400;
-        }
-        result.mode_ = mode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3809,30 +3521,6 @@ public final class Protocol {
         }
         if (other.hasTier()) {
           setTier(other.getTier());
-        }
-        if (other.hasEof()) {
-          setEof(other.getEof());
-        }
-        if (other.hasCancel()) {
-          setCancel(other.getCancel());
-        }
-        if (other.hasUfsPath()) {
-          bitField0_ |= 0x00000080;
-          ufsPath_ = other.ufsPath_;
-          onChanged();
-        }
-        if (other.hasOwner()) {
-          bitField0_ |= 0x00000100;
-          owner_ = other.owner_;
-          onChanged();
-        }
-        if (other.hasGroup()) {
-          bitField0_ |= 0x00000200;
-          group_ = other.group_;
-          onChanged();
-        }
-        if (other.hasMode()) {
-          setMode(other.getMode());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3983,18 +3671,30 @@ public final class Protocol {
       private long sessionId_ ;
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public boolean hasSessionId() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public long getSessionId() {
         return sessionId_;
       }
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public Builder setSessionId(long value) {
         bitField0_ |= 0x00000008;
@@ -4004,6 +3704,10 @@ public final class Protocol {
       }
       /**
        * <code>optional int64 session_id = 4;</code>
+       *
+       * <pre>
+       * These are only applicable for block write.
+       * </pre>
        */
       public Builder clearSessionId() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -4016,30 +3720,18 @@ public final class Protocol {
       private int tier_ ;
       /**
        * <code>optional int32 tier = 5;</code>
-       *
-       * <pre>
-       * This is only applicable for block write.
-       * </pre>
        */
       public boolean hasTier() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
        * <code>optional int32 tier = 5;</code>
-       *
-       * <pre>
-       * This is only applicable for block write.
-       * </pre>
        */
       public int getTier() {
         return tier_;
       }
       /**
        * <code>optional int32 tier = 5;</code>
-       *
-       * <pre>
-       * This is only applicable for block write.
-       * </pre>
        */
       public Builder setTier(int value) {
         bitField0_ |= 0x00000010;
@@ -4049,359 +3741,10 @@ public final class Protocol {
       }
       /**
        * <code>optional int32 tier = 5;</code>
-       *
-       * <pre>
-       * This is only applicable for block write.
-       * </pre>
        */
       public Builder clearTier() {
         bitField0_ = (bitField0_ & ~0x00000010);
         tier_ = 0;
-        onChanged();
-        return this;
-      }
-
-      // optional bool eof = 6;
-      private boolean eof_ ;
-      /**
-       * <code>optional bool eof = 6;</code>
-       */
-      public boolean hasEof() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
-      }
-      /**
-       * <code>optional bool eof = 6;</code>
-       */
-      public boolean getEof() {
-        return eof_;
-      }
-      /**
-       * <code>optional bool eof = 6;</code>
-       */
-      public Builder setEof(boolean value) {
-        bitField0_ |= 0x00000020;
-        eof_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bool eof = 6;</code>
-       */
-      public Builder clearEof() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        eof_ = false;
-        onChanged();
-        return this;
-      }
-
-      // optional bool cancel = 7;
-      private boolean cancel_ ;
-      /**
-       * <code>optional bool cancel = 7;</code>
-       */
-      public boolean hasCancel() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
-      }
-      /**
-       * <code>optional bool cancel = 7;</code>
-       */
-      public boolean getCancel() {
-        return cancel_;
-      }
-      /**
-       * <code>optional bool cancel = 7;</code>
-       */
-      public Builder setCancel(boolean value) {
-        bitField0_ |= 0x00000040;
-        cancel_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bool cancel = 7;</code>
-       */
-      public Builder clearCancel() {
-        bitField0_ = (bitField0_ & ~0x00000040);
-        cancel_ = false;
-        onChanged();
-        return this;
-      }
-
-      // optional string ufs_path = 8;
-      private java.lang.Object ufsPath_ = "";
-      /**
-       * <code>optional string ufs_path = 8;</code>
-       *
-       * <pre>
-       * The following are only applicable for ufs writes.
-       * </pre>
-       */
-      public boolean hasUfsPath() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
-      }
-      /**
-       * <code>optional string ufs_path = 8;</code>
-       *
-       * <pre>
-       * The following are only applicable for ufs writes.
-       * </pre>
-       */
-      public java.lang.String getUfsPath() {
-        java.lang.Object ref = ufsPath_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          ufsPath_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string ufs_path = 8;</code>
-       *
-       * <pre>
-       * The following are only applicable for ufs writes.
-       * </pre>
-       */
-      public com.google.protobuf.ByteString
-          getUfsPathBytes() {
-        java.lang.Object ref = ufsPath_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ufsPath_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string ufs_path = 8;</code>
-       *
-       * <pre>
-       * The following are only applicable for ufs writes.
-       * </pre>
-       */
-      public Builder setUfsPath(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000080;
-        ufsPath_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string ufs_path = 8;</code>
-       *
-       * <pre>
-       * The following are only applicable for ufs writes.
-       * </pre>
-       */
-      public Builder clearUfsPath() {
-        bitField0_ = (bitField0_ & ~0x00000080);
-        ufsPath_ = getDefaultInstance().getUfsPath();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string ufs_path = 8;</code>
-       *
-       * <pre>
-       * The following are only applicable for ufs writes.
-       * </pre>
-       */
-      public Builder setUfsPathBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000080;
-        ufsPath_ = value;
-        onChanged();
-        return this;
-      }
-
-      // optional string owner = 9;
-      private java.lang.Object owner_ = "";
-      /**
-       * <code>optional string owner = 9;</code>
-       */
-      public boolean hasOwner() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
-      }
-      /**
-       * <code>optional string owner = 9;</code>
-       */
-      public java.lang.String getOwner() {
-        java.lang.Object ref = owner_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          owner_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string owner = 9;</code>
-       */
-      public com.google.protobuf.ByteString
-          getOwnerBytes() {
-        java.lang.Object ref = owner_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          owner_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string owner = 9;</code>
-       */
-      public Builder setOwner(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000100;
-        owner_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string owner = 9;</code>
-       */
-      public Builder clearOwner() {
-        bitField0_ = (bitField0_ & ~0x00000100);
-        owner_ = getDefaultInstance().getOwner();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string owner = 9;</code>
-       */
-      public Builder setOwnerBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000100;
-        owner_ = value;
-        onChanged();
-        return this;
-      }
-
-      // optional string group = 10;
-      private java.lang.Object group_ = "";
-      /**
-       * <code>optional string group = 10;</code>
-       */
-      public boolean hasGroup() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
-      }
-      /**
-       * <code>optional string group = 10;</code>
-       */
-      public java.lang.String getGroup() {
-        java.lang.Object ref = group_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          group_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string group = 10;</code>
-       */
-      public com.google.protobuf.ByteString
-          getGroupBytes() {
-        java.lang.Object ref = group_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          group_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string group = 10;</code>
-       */
-      public Builder setGroup(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000200;
-        group_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string group = 10;</code>
-       */
-      public Builder clearGroup() {
-        bitField0_ = (bitField0_ & ~0x00000200);
-        group_ = getDefaultInstance().getGroup();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string group = 10;</code>
-       */
-      public Builder setGroupBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000200;
-        group_ = value;
-        onChanged();
-        return this;
-      }
-
-      // optional int32 mode = 11;
-      private int mode_ ;
-      /**
-       * <code>optional int32 mode = 11;</code>
-       */
-      public boolean hasMode() {
-        return ((bitField0_ & 0x00000400) == 0x00000400);
-      }
-      /**
-       * <code>optional int32 mode = 11;</code>
-       */
-      public int getMode() {
-        return mode_;
-      }
-      /**
-       * <code>optional int32 mode = 11;</code>
-       */
-      public Builder setMode(int value) {
-        bitField0_ |= 0x00000400;
-        mode_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int32 mode = 11;</code>
-       */
-      public Builder clearMode() {
-        bitField0_ = (bitField0_ & ~0x00000400);
-        mode_ = 0;
         onChanged();
         return this;
       }
@@ -4932,6 +4275,912 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.Response)
   }
 
+  public interface VersionRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.VersionRequest}
+   */
+  public static final class VersionRequest extends
+      com.google.protobuf.GeneratedMessage
+      implements VersionRequestOrBuilder {
+    // Use VersionRequest.newBuilder() to construct.
+    private VersionRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private VersionRequest(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final VersionRequest defaultInstance;
+    public static VersionRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public VersionRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private VersionRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.VersionRequest.class, alluxio.proto.dataserver.Protocol.VersionRequest.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<VersionRequest> PARSER =
+        new com.google.protobuf.AbstractParser<VersionRequest>() {
+      public VersionRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new VersionRequest(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<VersionRequest> getParserForType() {
+      return PARSER;
+    }
+
+    private void initFields() {
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.VersionRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.VersionRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.VersionRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.VersionRequest.class, alluxio.proto.dataserver.Protocol.VersionRequest.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.VersionRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionRequest_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.VersionRequest getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.VersionRequest.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.VersionRequest build() {
+        alluxio.proto.dataserver.Protocol.VersionRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.VersionRequest buildPartial() {
+        alluxio.proto.dataserver.Protocol.VersionRequest result = new alluxio.proto.dataserver.Protocol.VersionRequest(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.VersionRequest) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.VersionRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.VersionRequest other) {
+        if (other == alluxio.proto.dataserver.Protocol.VersionRequest.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.VersionRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.VersionRequest) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.VersionRequest)
+    }
+
+    static {
+      defaultInstance = new VersionRequest(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.VersionRequest)
+  }
+
+  public interface VersionResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];
+    /**
+     * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+     */
+    boolean hasVersion();
+    /**
+     * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+     */
+    alluxio.proto.dataserver.Protocol.DataServerVersion getVersion();
+
+    // optional .alluxio.proto.dataserver.Status status = 2;
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+     */
+    boolean hasStatus();
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+     */
+    alluxio.proto.dataserver.Protocol.Status getStatus();
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+     */
+    alluxio.proto.dataserver.Protocol.StatusOrBuilder getStatusOrBuilder();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.VersionResponse}
+   */
+  public static final class VersionResponse extends
+      com.google.protobuf.GeneratedMessage
+      implements VersionResponseOrBuilder {
+    // Use VersionResponse.newBuilder() to construct.
+    private VersionResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private VersionResponse(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final VersionResponse defaultInstance;
+    public static VersionResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public VersionResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private VersionResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+              alluxio.proto.dataserver.Protocol.DataServerVersion value = alluxio.proto.dataserver.Protocol.DataServerVersion.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(1, rawValue);
+              } else {
+                bitField0_ |= 0x00000001;
+                version_ = value;
+              }
+              break;
+            }
+            case 18: {
+              alluxio.proto.dataserver.Protocol.Status.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000002) == 0x00000002)) {
+                subBuilder = status_.toBuilder();
+              }
+              status_ = input.readMessage(alluxio.proto.dataserver.Protocol.Status.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(status_);
+                status_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000002;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.VersionResponse.class, alluxio.proto.dataserver.Protocol.VersionResponse.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<VersionResponse> PARSER =
+        new com.google.protobuf.AbstractParser<VersionResponse>() {
+      public VersionResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new VersionResponse(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<VersionResponse> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];
+    public static final int VERSION_FIELD_NUMBER = 1;
+    private alluxio.proto.dataserver.Protocol.DataServerVersion version_;
+    /**
+     * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+     */
+    public alluxio.proto.dataserver.Protocol.DataServerVersion getVersion() {
+      return version_;
+    }
+
+    // optional .alluxio.proto.dataserver.Status status = 2;
+    public static final int STATUS_FIELD_NUMBER = 2;
+    private alluxio.proto.dataserver.Protocol.Status status_;
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+     */
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+     */
+    public alluxio.proto.dataserver.Protocol.Status getStatus() {
+      return status_;
+    }
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+     */
+    public alluxio.proto.dataserver.Protocol.StatusOrBuilder getStatusOrBuilder() {
+      return status_;
+    }
+
+    private void initFields() {
+      version_ = alluxio.proto.dataserver.Protocol.DataServerVersion.V1;
+      status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeEnum(1, version_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeMessage(2, status_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, version_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, status_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.VersionResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.VersionResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.VersionResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.VersionResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionResponse_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.VersionResponse.class, alluxio.proto.dataserver.Protocol.VersionResponse.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.VersionResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getStatusFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        version_ = alluxio.proto.dataserver.Protocol.DataServerVersion.V1;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        if (statusBuilder_ == null) {
+          status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+        } else {
+          statusBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_VersionResponse_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.VersionResponse getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.VersionResponse.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.VersionResponse build() {
+        alluxio.proto.dataserver.Protocol.VersionResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.VersionResponse buildPartial() {
+        alluxio.proto.dataserver.Protocol.VersionResponse result = new alluxio.proto.dataserver.Protocol.VersionResponse(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.version_ = version_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        if (statusBuilder_ == null) {
+          result.status_ = status_;
+        } else {
+          result.status_ = statusBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.VersionResponse) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.VersionResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.VersionResponse other) {
+        if (other == alluxio.proto.dataserver.Protocol.VersionResponse.getDefaultInstance()) return this;
+        if (other.hasVersion()) {
+          setVersion(other.getVersion());
+        }
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.VersionResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.VersionResponse) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];
+      private alluxio.proto.dataserver.Protocol.DataServerVersion version_ = alluxio.proto.dataserver.Protocol.DataServerVersion.V1;
+      /**
+       * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+       */
+      public boolean hasVersion() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+       */
+      public alluxio.proto.dataserver.Protocol.DataServerVersion getVersion() {
+        return version_;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+       */
+      public Builder setVersion(alluxio.proto.dataserver.Protocol.DataServerVersion value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000001;
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.DataServerVersion version = 1 [default = V1];</code>
+       */
+      public Builder clearVersion() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        version_ = alluxio.proto.dataserver.Protocol.DataServerVersion.V1;
+        onChanged();
+        return this;
+      }
+
+      // optional .alluxio.proto.dataserver.Status status = 2;
+      private alluxio.proto.dataserver.Protocol.Status status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.dataserver.Protocol.Status, alluxio.proto.dataserver.Protocol.Status.Builder, alluxio.proto.dataserver.Protocol.StatusOrBuilder> statusBuilder_;
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public alluxio.proto.dataserver.Protocol.Status getStatus() {
+        if (statusBuilder_ == null) {
+          return status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public Builder setStatus(alluxio.proto.dataserver.Protocol.Status value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+          onChanged();
+        } else {
+          statusBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public Builder setStatus(
+          alluxio.proto.dataserver.Protocol.Status.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+          onChanged();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public Builder mergeStatus(alluxio.proto.dataserver.Protocol.Status value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) == 0x00000002) &&
+              status_ != alluxio.proto.dataserver.Protocol.Status.getDefaultInstance()) {
+            status_ =
+              alluxio.proto.dataserver.Protocol.Status.newBuilder(status_).mergeFrom(value).buildPartial();
+          } else {
+            status_ = value;
+          }
+          onChanged();
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public Builder clearStatus() {
+        if (statusBuilder_ == null) {
+          status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+          onChanged();
+        } else {
+          statusBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public alluxio.proto.dataserver.Protocol.Status.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return getStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      public alluxio.proto.dataserver.Protocol.StatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.dataserver.Protocol.Status, alluxio.proto.dataserver.Protocol.Status.Builder, alluxio.proto.dataserver.Protocol.StatusOrBuilder> 
+          getStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.dataserver.Protocol.Status, alluxio.proto.dataserver.Protocol.Status.Builder, alluxio.proto.dataserver.Protocol.StatusOrBuilder>(
+                  status_,
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.VersionResponse)
+    }
+
+    static {
+      defaultInstance = new VersionResponse(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.VersionResponse)
+  }
+
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_Exception_descriptor;
   private static
@@ -4957,6 +5206,16 @@ public final class Protocol {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_VersionRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_VersionRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_VersionResponse_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_VersionResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -4972,10 +5231,10 @@ public final class Protocol {
       "alluxio.proto.dataserver.Status.Code:\002OK" +
       "\022\017\n\007message\030\002 \001(\t\0222\n\005cause\030\003 \001(\0132#.allux" +
       "io.proto.dataserver.Exception\"\260\002\n\004Code\022\006" +
-      "\n\002OK\020\000\022\r\n\tCANCELLED\020\001\022\013\n\007UNKNOWN\020\002\022\024\n\020IN" +
-      "VALID_ARGUMENT\020\003\022\025\n\021PERMISSION_DENIED\020\006\022" +
-      "\014\n\010INTERNAL\020\r\022\r\n\tNOT_FOUND\020\004\022\022\n\016ALREADY_" +
-      "EXISTS\020\005\022\023\n\017UNAUTHENTICATED\020\007\022\026\n\022RESOURC",
+      "\n\002OK\020\000\022\024\n\020INVALID_ARGUMENT\020\003\022\014\n\010INTERNAL" +
+      "\020\r\022\r\n\tCANCELLED\020\001\022\013\n\007UNKNOWN\020\002\022\r\n\tNOT_FO" +
+      "UND\020\004\022\022\n\016ALREADY_EXISTS\020\005\022\025\n\021PERMISSION_" +
+      "DENIED\020\006\022\023\n\017UNAUTHENTICATED\020\007\022\026\n\022RESOURC",
       "E_EXHAUSTED\020\010\022\027\n\023FAILED_PRECONDITION\020\t\022\013" +
       "\n\007ABORTED\020\n\022\020\n\014OUT_OF_RANGE\020\013\022\021\n\rUNIMPLE" +
       "MENTED\020\014\022\017\n\013UNAVAILABLE\020\016\022\r\n\tDATA_LOSS\020\017" +
@@ -4984,15 +5243,18 @@ public final class Protocol {
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
       "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\"\334\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
+      "\"\201\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
       "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001",
       "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
-      "\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(" +
-      "\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005gr" +
-      "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\"<\n\010Response\0220\n\006s" +
-      "tatus\030\001 \001(\0132 .alluxio.proto.dataserver.S" +
-      "tatus*=\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020\000\022" +
-      "\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002"
+      "\n\004tier\030\005 \001(\005\"<\n\010Response\0220\n\006status\030\001 \001(\013" +
+      "2 .alluxio.proto.dataserver.Status\"\020\n\016Ve" +
+      "rsionRequest\"\205\001\n\017VersionResponse\022@\n\007vers" +
+      "ion\030\001 \001(\0162+.alluxio.proto.dataserver.Dat" +
+      "aServerVersion:\002V1\0220\n\006status\030\002 \001(\0132 .all" +
+      "uxio.proto.dataserver.Status*=\n\013RequestT" +
+      "ype\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\t" +
+      "UFS_BLOCK\020\002*#\n\021DataServerVersion\022\006\n\002V0\020\000" +
+      "\022\006\n\002V1\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5022,13 +5284,25 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Response_descriptor,
               new java.lang.String[] { "Status", });
+          internal_static_alluxio_proto_dataserver_VersionRequest_descriptor =
+            getDescriptor().getMessageTypes().get(5);
+          internal_static_alluxio_proto_dataserver_VersionRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_VersionRequest_descriptor,
+              new java.lang.String[] { });
+          internal_static_alluxio_proto_dataserver_VersionResponse_descriptor =
+            getDescriptor().getMessageTypes().get(6);
+          internal_static_alluxio_proto_dataserver_VersionResponse_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_VersionResponse_descriptor,
+              new java.lang.String[] { "Version", "Status", });
           return null;
         }
       };

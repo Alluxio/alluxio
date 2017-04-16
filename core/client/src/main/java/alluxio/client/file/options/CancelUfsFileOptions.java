@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.annotation.PublicApi;
 import alluxio.thrift.CancelUfsFileTOptions;
 
 import com.google.common.base.Objects;
@@ -20,6 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Options for canceling a UFS file.
  */
+@PublicApi
 @NotThreadSafe
 public final class CancelUfsFileOptions {
   /**

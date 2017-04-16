@@ -14,7 +14,6 @@ package alluxio.util.network;
 import alluxio.network.ChannelType;
 import alluxio.util.ThreadFactoryUtils;
 
-import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -94,26 +93,5 @@ public final class NettyUtils {
       default:
         throw new IllegalArgumentException("Unknown io type: " + type);
     }
-  }
-
-  /**
-   * Enables auto read for a netty channel.
-   *
-   * @param channel the netty channel
-   */
-  public static void enableAutoRead(Channel channel) {
-    if (!channel.config().isAutoRead()) {
-      channel.config().setAutoRead(true);
-      channel.read();
-    }
-  }
-
-  /**
-   * Disables auto read for a netty channel.
-   *
-   * @param channel the netty channel
-   */
-  public static void disableAutoRead(Channel channel) {
-    channel.config().setAutoRead(false);
   }
 }

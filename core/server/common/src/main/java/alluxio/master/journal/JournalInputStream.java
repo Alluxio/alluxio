@@ -16,16 +16,16 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import java.io.IOException;
 
 /**
- * This input stream retrieves {@link JournalEntry} from journal checkpoints and journal logs.
+ * This input stream retrieves {@link JournalEntry} from journal checkpoint files and journal log
+ * files.
  */
-public interface JournalInputStream extends AutoCloseable {
+public interface JournalInputStream {
   /**
-   * Reads the next journal entry.
-   *
-   * @return the next {@link JournalEntry} in the stream, or null if the are no more entries
+   * @return the next {@link JournalEntry} in the stream, null if the are no more entries in the
+   *         stream
    * @throws IOException if a non-Alluxio related exception occurs
    */
-  JournalEntry read() throws IOException;
+  JournalEntry getNextEntry() throws IOException;
 
   /**
    * Closes the stream.

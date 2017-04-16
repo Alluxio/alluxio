@@ -45,11 +45,10 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws IOException {
     AlluxioBlockStore blockStore = AlluxioBlockStore.create();
     long usedBytes = blockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
-    return 0;
   }
 
   @Override

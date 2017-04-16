@@ -67,8 +67,7 @@ public final class LineageMasterClientRestServiceHandler {
   public LineageMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     mLineageMaster = ((AlluxioMasterService) context
-        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
-        .getMaster(LineageMaster.class);
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getLineageMaster();
   }
 
   /**

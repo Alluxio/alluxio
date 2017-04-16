@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.annotation.PublicApi;
 import alluxio.thrift.OpenUfsFileTOptions;
 
 import com.google.common.base.Objects;
@@ -20,6 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Options for opening a UFS file.
  */
+@PublicApi
 @NotThreadSafe
 public final class OpenUfsFileOptions {
   /**

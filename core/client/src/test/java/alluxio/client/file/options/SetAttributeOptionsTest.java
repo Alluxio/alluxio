@@ -30,7 +30,7 @@ import java.util.Random;
 @RunWith(PowerMockRunner.class)
 // Need to mock Mode to use CommonTestUtils#testEquals.
 @PrepareForTest(Mode.class)
-public final class SetAttributeOptionsTest {
+public class SetAttributeOptionsTest {
   @Test
   public void defaults() {
     SetAttributeOptions options = SetAttributeOptions.defaults();

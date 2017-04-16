@@ -16,13 +16,15 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.MasterFactory;
-import alluxio.master.MasterRegistry;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -49,13 +51,23 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public Master create(MasterRegistry registry, JournalFactory journalFactory) {
+  public KeyValueMaster create(List<? extends Master> masters, JournalFactory journalFactory) {
     if (!isEnabled()) {
       return null;
     }
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
-    Journal journal = journalFactory.create(getName());
-    return new KeyValueMaster(registry, journal);
+
+    Journal journal = journalFactory.get(getName());
+
+    for (Master master : masters) {
+      if (master instanceof FileSystemMaster) {
+        LOG.info("{} is created", KeyValueMaster.class.getName());
+        return new KeyValueMaster((FileSystemMaster) master, journal);
+      }
+    }
+    LOG.error("Fail to create {} due to missing {}", KeyValueMaster.class.getName(),
+        FileSystemMaster.class.getName());
+    return null;
   }
 }

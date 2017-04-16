@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.authentication.AuthType;
@@ -76,13 +75,11 @@ public class ClusterInitializationTest {
     LoginUserTestUtils.resetLoginUser(SUPER_USER);
 
     // user alluxio can recover master from journal
-    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
 
     AuthenticatedClientUser.set(SUPER_USER);
     Assert.assertEquals(SUPER_USER,
         fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getOwner());
-    registry.stop();
   }
 
   /**

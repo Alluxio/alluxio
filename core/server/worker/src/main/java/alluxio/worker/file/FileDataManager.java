@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.UnderFileSystemUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -118,9 +119,7 @@ public final class FileDataManager {
         return false;
       }
     } catch (IOException e) {
-      LOG.warn("Failed to check if file {} exists in under storage system: {}",
-               fileId, e.getMessage());
-      LOG.debug("Exception: ", e);
+      LOG.error("Failed to check if file {} exists in under storage system", fileId, e);
     }
     return true;
   }

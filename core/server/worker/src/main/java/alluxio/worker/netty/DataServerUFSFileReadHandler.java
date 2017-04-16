@@ -41,7 +41,7 @@ public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
    */
   private final class FileReadRequestInternal extends ReadRequestInternal {
     /** The UFS input stream. No need to close. */
-    final InputStream mInputStream;
+    public InputStream mInputStream = null;
 
     /**
      * Creates an instance of {@link FileReadRequestInternal}.
@@ -49,9 +49,12 @@ public final class DataServerUFSFileReadHandler extends DataServerReadHandler {
      * @param request the block read request
      * @throws Exception if it fails to create the object
      */
-    FileReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength());
-      mInputStream = mWorker.getUfsInputStream(mId, mStart);
+    public FileReadRequestInternal(Protocol.ReadRequest request) throws Exception {
+      mInputStream = mWorker.getUfsInputStream(request.getId(), request.getOffset());
+
+      mId = request.getId();
+      mStart = request.getOffset();
+      mEnd = mStart + request.getLength();
     }
 
     @Override

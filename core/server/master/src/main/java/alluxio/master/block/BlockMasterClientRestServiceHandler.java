@@ -55,8 +55,7 @@ public final class BlockMasterClientRestServiceHandler {
   public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
     mBlockMaster = ((AlluxioMasterService) context
-        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
-        .getMaster(BlockMaster.class);
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getBlockMaster();
   }
 
   /**

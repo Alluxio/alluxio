@@ -21,7 +21,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link CompleteFileOptions}.
  */
-public final class RenameOptionsTest {
+public class RenameOptionsTest {
   /**
    * Tests getting and setting fields.
    */

@@ -47,27 +47,20 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
   private long mBytesReserved = 0;
 
   private class BlockWriteRequestInternal extends WriteRequestInternal {
-    final BlockWriter mBlockWriter;
+    public BlockWriter mBlockWriter;
 
-    BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      super(request.getId(), request.getSessionId());
-      Preconditions.checkState(request.getOffset() == 0);
+    public BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       mWorker.createBlockRemote(request.getSessionId(), request.getId(),
           mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
       mBytesReserved = FILE_BUFFER_SIZE;
       mBlockWriter = mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId());
+      mSessionId = request.getSessionId();
+      mId = request.getId();
     }
 
     @Override
     public void close() throws IOException {
       mBlockWriter.close();
-      // TODO(peis): We can call mWorker.commitBlock() here.
-    }
-
-    @Override
-    void cancel() throws IOException {
-      mBlockWriter.close();
-      // TODO(peis): We can call mWorker.abortBlock() here.
     }
   }
 
@@ -77,7 +70,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
    * @param executorService the executor service to run {@link PacketWriter}s
    * @param blockWorker the block worker
    */
-  DataServerBlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
+  public DataServerBlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
     super(executorService);
     mWorker = blockWorker;
   }

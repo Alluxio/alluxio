@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.Locatable;
@@ -53,7 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stream is closed.
  */
 @NotThreadSafe
-public class BlockInStream extends FilterInputStream implements BoundedStream, Seekable,
+public final class BlockInStream extends FilterInputStream implements BoundedStream, Seekable,
     PositionedReadable, Locatable {
   /** Helper to manage closeables. */
   private final Closer mCloser;
@@ -83,12 +81,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       LockBlockResource lockBlockResource =
           closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
       PacketInStream inStream = closer.register(PacketInStream
-          .createLocalPacketInStream(lockBlockResource.getResult().getBlockPath(), blockId,
+          .createLocalPacketInstream(lockBlockResource.getResult().getBlockPath(), blockId,
               blockSize));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeQuietly(closer);
+      CommonUtils.closeQuitely(closer);
       throw CommonUtils.castToIOException(e);
     }
   }
@@ -121,7 +119,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeQuietly(closer);
+      CommonUtils.closeQuitely(closer);
       throw CommonUtils.castToIOException(e);
     }
   }
@@ -165,10 +163,10 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       PacketInStream inStream;
       if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
-            .equals(NetworkAddressUtils.getClientHostName());
-        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
+            .equals(NetworkAddressUtils.getLocalHostName());
+        if (local) {
           inStream = closer.register(PacketInStream
-              .createLocalPacketInStream(lockBlockResult.getBlockPath(), blockId, blockSize));
+              .createLocalPacketInstream(lockBlockResult.getBlockPath(), blockId, blockSize));
         } else {
           inStream = closer.register(PacketInStream
               .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
@@ -185,7 +183,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (AlluxioException | IOException e) {
-      CommonUtils.closeQuietly(closer);
+      CommonUtils.closeQuitely(closer);
       throw CommonUtils.castToIOException(e);
     }
   }
@@ -221,21 +219,15 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   }
 
   /**
-   * @return whether this stream is reading directly from a local file
-   */
-  public boolean isShortCircuit() {
-    return mInputStream.isShortCircuit();
-  }
-
-  /**
    * Creates an instance of {@link BlockInStream}.
    *
    * @param inputStream the packet inputstream
    * @param blockWorkerClient the block worker client
    * @param closer the closer registered with closable resources open so far
    * @param options the options
+   * @throws IOException if it fails to create an instance
    */
-  protected BlockInStream(PacketInStream inputStream, BlockWorkerClient blockWorkerClient,
+  private BlockInStream(PacketInStream inputStream, BlockWorkerClient blockWorkerClient,
       Closer closer, InStreamOptions options) {
     super(inputStream);
 

@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Unit tests for {@link BlockStoreMeta}.
  */
-public final class BlockStoreMetaTest {
+public class BlockStoreMetaTest {
   private static final long TEST_SESSION_ID = 33L;
   /** block size in Bytes for test. */
   private static final long TEST_BLOCK_SIZE = 200L;

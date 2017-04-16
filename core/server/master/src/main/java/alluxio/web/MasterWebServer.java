@@ -13,8 +13,6 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.master.AlluxioMasterService;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -49,17 +47,15 @@ public final class MasterWebServer extends WebServer {
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
-        new WebInterfaceWorkersServlet(master.getMaster(BlockMaster.class))), "/workers");
+        new WebInterfaceWorkersServlet(master.getBlockMaster())), "/workers");
     mWebAppContext.addServlet(new ServletHolder(
-            new WebInterfaceConfigurationServlet(master.getMaster(FileSystemMaster.class))),
-        "/configuration");
+        new WebInterfaceConfigurationServlet(master.getFileSystemMaster())), "/configuration");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(master)), "/browse");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(master)), "/memory");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(master)),
         "/dependency");
     mWebAppContext.addServlet(new ServletHolder(
-            new WebInterfaceDownloadServlet(master.getMaster(FileSystemMaster.class))),
-        "/download");
+        new WebInterfaceDownloadServlet(master.getFileSystemMaster())), "/download");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(true)),

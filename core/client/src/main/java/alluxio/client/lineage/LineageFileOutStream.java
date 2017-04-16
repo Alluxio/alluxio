@@ -16,6 +16,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 
 import java.io.IOException;
@@ -39,7 +40,8 @@ public class LineageFileOutStream extends FileOutStream {
    */
   public LineageFileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    super(path, updateOutStreamOptions(options), context);
+    super(path, updateOutStreamOptions(options), context,
+        UnderFileSystemFileOutStream.Factory.get());
   }
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {

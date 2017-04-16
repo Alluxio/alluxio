@@ -8,7 +8,7 @@ priority: 5
 * Table of Contents
 {:toc}
 
-This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net) as Alluxio's under
+This guide describes how to configure Alluxio with [NFS](http://nfs.sourceforge.net) as the under
 storage system.
 
 ## Initial Setup

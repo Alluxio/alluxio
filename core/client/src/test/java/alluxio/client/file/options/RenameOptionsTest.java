@@ -19,7 +19,7 @@ import org.junit.Test;
 /**
  * Tests for the {@link RenameOptions} class.
  */
-public final class RenameOptionsTest {
+public class RenameOptionsTest {
   @Test
   public void defaults() {
     RenameOptions options = RenameOptions.defaults();

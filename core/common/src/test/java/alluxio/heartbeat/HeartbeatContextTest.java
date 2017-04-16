@@ -18,7 +18,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link HeartbeatContext}.
  */
-public final class HeartbeatContextTest {
+public class HeartbeatContextTest {
   @Test
   public void allThreadsUseSleepingTimer() {
     for (String threadName : HeartbeatContext.getTimerClasses().keySet()) {

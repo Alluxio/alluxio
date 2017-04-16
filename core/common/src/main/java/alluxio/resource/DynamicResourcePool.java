@@ -52,11 +52,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   /**
    * A wrapper on the resource to include the last time at which it was used.
    *
-   * @param <R> the resource type
+   * @param <T> the resource type
    */
-  protected class ResourceInternal<R> {
+  protected class ResourceInternal<T> {
     /** The resource. */
-    private R mResource;
+    private T mResource;
 
     /** The last access time in ms. */
     private long mLastAccessTimeMs;
@@ -80,7 +80,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      *
      * @param resource the resource
      */
-    public ResourceInternal(R resource) {
+    public ResourceInternal(T resource) {
       mResource = resource;
       mLastAccessTimeMs = mClock.millis();
     }

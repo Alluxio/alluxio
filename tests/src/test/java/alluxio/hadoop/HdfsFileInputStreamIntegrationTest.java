@@ -25,6 +25,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Seekable;
 import org.junit.After;
 import org.junit.Assert;
@@ -74,7 +75,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     FileSystemTestUtils
         .createByteFile(mFileSystem, IN_MEMORY_FILE, WriteType.CACHE_THROUGH, FILE_LEN);
     mInMemInputStream = new HdfsFileInputStream(FileSystemContext.INSTANCE,
-        new AlluxioURI(IN_MEMORY_FILE), null);
+        new AlluxioURI(IN_MEMORY_FILE), new Configuration(), BUFFER_SIZE, null);
   }
 
   private void createUfsInStream(ReadType readType) throws IOException {
@@ -82,7 +83,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(FileSystemContext.INSTANCE,
-        new AlluxioURI(UFS_ONLY_FILE), null);
+        new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }
 
@@ -94,7 +95,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     alluxio.Configuration.set(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, "false");
     FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(FileSystemContext.INSTANCE,
-        new AlluxioURI(UFS_ONLY_FILE), null);
+        new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
     alluxio.Configuration
         .set(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, defaultPartialCache);

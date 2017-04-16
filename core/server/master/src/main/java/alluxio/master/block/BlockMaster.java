@@ -28,7 +28,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -80,7 +79,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class BlockMaster extends AbstractMaster implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMaster.class);
-
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
    * allows the master to return container ids within the reservation, without having to write to
@@ -163,27 +161,24 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public BlockMaster(MasterRegistry registry, JournalFactory journalFactory) {
-    this(registry, journalFactory, new SystemClock(), ExecutorServiceFactories
+  public BlockMaster(JournalFactory journalFactory) {
+    this(journalFactory, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public BlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
+  public BlockMaster(JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
-    registry.add(BlockMaster.class, this);
+    super(journalFactory.get(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }
 
@@ -232,12 +227,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    outputStream.write(getContainerIdJournalEntry());
+    outputStream.writeEntry(getContainerIdJournalEntry());
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       BlockInfoEntry blockInfoEntry =
           BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
               .setLength(blockInfo.getLength()).build();
-      outputStream.write(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
+      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }
 

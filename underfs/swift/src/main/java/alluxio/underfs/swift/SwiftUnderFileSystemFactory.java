@@ -47,6 +47,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
       try {
         return new SwiftUnderFileSystem(new AlluxioURI(path));
       } catch (Exception e) {
+        LOG.error("Failed to create SwiftUnderFileSystem.", e);
         throw Throwables.propagate(e);
       }
     }

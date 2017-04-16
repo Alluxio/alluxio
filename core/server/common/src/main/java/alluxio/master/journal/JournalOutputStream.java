@@ -17,16 +17,16 @@ import java.io.IOException;
 
 /**
  * This output stream writes {@link JournalEntry} objects to the journal. This output stream can
- * write to both the journal checkpoint and the journal logs.
+ * write to both the journal checkpoint file, or the journal log files.
  */
-public interface JournalOutputStream extends AutoCloseable {
+public interface JournalOutputStream {
   /**
    * Writes a {@link JournalEntry} to the journal.
    *
    * @param entry the entry to write to the journal
    * @throws IOException if an I/O error occurs
    */
-  void write(JournalEntry entry) throws IOException;
+  void writeEntry(JournalEntry entry) throws IOException;
 
   /**
    * Closes the stream.

@@ -54,11 +54,10 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
     checkConsistency(root, cl.hasOption("r"));
-    return 0;
   }
 
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws

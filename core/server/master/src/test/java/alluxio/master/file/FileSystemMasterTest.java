@@ -28,7 +28,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
@@ -43,7 +42,6 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
@@ -73,7 +71,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -98,9 +95,8 @@ public final class FileSystemMasterTest {
   private static final String TEST_USER = "test";
 
   private CreateFileOptions mNestedFileOptions;
-  private MasterRegistry mRegistry;
-  private JournalFactory mJournalFactory;
   private BlockMaster mBlockMaster;
+  private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId1;
   private long mWorkerId2;
@@ -1420,54 +1416,20 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests unmount operation.
+   * Tests unmounting operation.
    */
   @Test
   public void unmount() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
-    mFileSystemMaster.createDirectory(alluxioURI.join("dir"),
+    AlluxioURI dirURI = new AlluxioURI("dir");
+    mFileSystemMaster.createDirectory(new AlluxioURI(alluxioURI, dirURI),
         CreateDirectoryOptions.defaults().setPersisted(true));
     mFileSystemMaster.unmount(alluxioURI);
-    // after unmount, ufs path under previous mount point should still exist
-    File file = new File(ufsURI.join("dir").toString());
+    AlluxioURI ufsDirURI = new AlluxioURI(ufsURI, dirURI);
+    File file = new File(ufsDirURI.toString());
     Assert.assertTrue(file.exists());
-    // after unmount, alluxio path under previous mount point should not exist
-    mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.getFileInfo(alluxioURI.join("dir"));
-  }
-
-  /**
-   * Tests unmount operation failed when unmounting root.
-   */
-  @Test
-  public void unmountRootWithException() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mFileSystemMaster.unmount(new AlluxioURI("/"));
-  }
-
-  /**
-   * Tests unmount operation failed when unmounting non-mount point.
-   */
-  @Test
-  public void unmountNonMountPointWithException() throws Exception {
-    AlluxioURI alluxioURI = new AlluxioURI("/hello");
-    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
-    AlluxioURI dirURI = alluxioURI.join("dir");
-    mFileSystemMaster.createDirectory(dirURI, CreateDirectoryOptions.defaults().setPersisted(true));
-    mThrown.expect(InvalidPathException.class);
-    mFileSystemMaster.unmount(dirURI);
-  }
-
-  /**
-   * Tests unmount operation failed when unmounting non-existing dir.
-   */
-  @Test
-  public void unmountNonExistingPathWithException() throws Exception {
-    mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.unmount(new AlluxioURI("/FileNotExists"));
   }
 
   /**
@@ -1483,16 +1445,10 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link DefaultFileSystemMaster#stop()} method.
+   * Tests the {@link FileSystemMaster#stop()} method.
    */
   @Test
   public void stop() throws Exception {
-    mRegistry.stop();
-    ExecutorService mExecutorService = Executors
-        .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mRegistry, mJournalFactory,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
-    mRegistry.start(true);
     mFileSystemMaster.stop();
     Assert.assertTrue(mExecutorService.isShutdown());
     Assert.assertTrue(mExecutorService.isTerminated());
@@ -1607,12 +1563,15 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
-    mRegistry = new MasterRegistry();
-    mJournalFactory = new MutableJournal.Factory(new URI(mJournalFolder));
-    mBlockMaster = new BlockMaster(mRegistry, mJournalFactory);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, mJournalFactory);
+    JournalFactory journalFactory = new JournalFactory.ReadWrite(mJournalFolder);
+    mBlockMaster = new BlockMaster(journalFactory);
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, journalFactory,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
 
-    mRegistry.start(true);
+    mBlockMaster.start(true);
+    mFileSystemMaster.start(true);
 
     // set up workers
     mWorkerId1 = mBlockMaster.getWorkerId(
@@ -1630,6 +1589,7 @@ public final class FileSystemMasterTest {
   }
 
   private void stopServices() throws Exception {
-    mRegistry.stop();
+    mFileSystemMaster.stop();
+    mBlockMaster.stop();
   }
 }

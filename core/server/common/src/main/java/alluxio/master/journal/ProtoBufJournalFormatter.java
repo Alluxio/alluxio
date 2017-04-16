@@ -11,8 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.proto.ProtoUtils;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public final class ProtoBufJournalFormatter implements JournalFormatter {
       private long mLatestSequenceNumber;
 
       @Override
-      public JournalEntry read() throws IOException {
+      public JournalEntry getNextEntry() throws IOException {
         int firstByte = inputStream.read();
         if (firstByte == -1) {
           return null;

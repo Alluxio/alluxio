@@ -59,13 +59,12 @@ public final class PersistCommand extends AbstractShellCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String path : args) {
       AlluxioURI inputPath = new AlluxioURI(path);
       persist(inputPath);
     }
-    return 0;
   }
 
   /**

@@ -19,7 +19,6 @@ import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This interface contains common operations for all masters.
@@ -34,11 +33,6 @@ public interface Master extends JournalCheckpointStreamable {
    * @return the master's name
    */
   String getName();
-
-  /**
-   * @return the master dependencies
-   */
-  Set<Class<?>> getDependencies();
 
   /**
    * Processes the journal checkpoint file and applies the entries to the master.

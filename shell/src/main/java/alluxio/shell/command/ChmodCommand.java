@@ -77,12 +77,11 @@ public final class ChmodCommand extends AbstractShellCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String modeStr = args[0];
     AlluxioURI path = new AlluxioURI(args[1]);
     chmod(path, modeStr, cl.hasOption("R"));
-    return 0;
   }
 
   @Override

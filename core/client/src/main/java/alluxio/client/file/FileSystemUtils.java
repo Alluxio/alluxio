@@ -156,8 +156,7 @@ public final class FileSystemUtils {
         try {
           return fs.getStatus(uri).isPersisted();
         } catch (Exception e) {
-          Throwables.propagateIfPossible(e);
-          throw new RuntimeException(e);
+          throw Throwables.propagate(e);
         }
       }
     }, WaitForOptions.defaults().setTimeout(20 * Constants.MINUTE_MS)

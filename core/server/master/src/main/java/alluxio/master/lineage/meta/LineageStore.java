@@ -205,7 +205,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
       throws IOException {
     // write the lineages out in a topological order
     for (Lineage lineage : mLineageDAG.getAllInTopologicalOrder()) {
-      outputStream.write(lineage.toJournalEntry());
+      outputStream.writeEntry(lineage.toJournalEntry());
     }
   }
 

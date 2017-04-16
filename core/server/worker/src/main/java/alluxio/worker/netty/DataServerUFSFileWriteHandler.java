@@ -14,9 +14,7 @@ package alluxio.worker.netty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.security.authorization.Mode;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
+import alluxio.worker.file.FileSystemWorker;
 
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
@@ -28,54 +26,35 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This handler handles writes to a file in the under file system. Due to the semantics enforced
- * on under file systems, the client must write all the data of a file through the same stream to
- * the under file system. This prevents us from handling the writes at a block level.
- *
- * For more information about the implementation of read/write buffering, see
- * {@link DataServerWriteHandler}.
- *
- * For more information about the implementation of the client side writer, see
- * UnderFileSystemFileOutStream.
+ * This handler handles file write request. Check more information in
+ * {@link DataServerUFSFileWriteHandler}.
  */
 @NotThreadSafe
-final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
-  private static final long UNUSED_SESSION_ID = -1;
+public final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
+  /** Filesystem worker which handles file level operations for the worker. */
+  private final FileSystemWorker mWorker;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
-    private final String mPath;
-    private final UnderFileSystem mUnderFileSystem;
-    private final OutputStream mOutputStream;
+    public OutputStream mOutputStream;
 
-    FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      super(request.getId(), UNUSED_SESSION_ID);
-      mPath = request.getUfsPath();
-      mUnderFileSystem = UnderFileSystem.Factory.get(mPath);
-      mOutputStream =
-          mUnderFileSystem.create(mPath, CreateOptions.defaults().setOwner(request.getOwner())
-              .setGroup(request.getGroup()).setMode(new Mode((short) request.getMode())));
+    public FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
+      mOutputStream = mWorker.getUfsOutputStream(request.getId());
+      mId = request.getId();
     }
 
     @Override
-    public void close() throws IOException {
-      mOutputStream.close();
-    }
-
-    @Override
-    void cancel() throws IOException {
-      // TODO(calvin): Consider adding cancel to the ufs stream api.
-      mOutputStream.close();
-      mUnderFileSystem.deleteFile(mPath);
-    }
+    public void close() throws IOException {}
   }
 
   /**
    * Creates an instance of {@link DataServerUFSFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
+   * @param worker the file system worker
    */
-  DataServerUFSFileWriteHandler(ExecutorService executorService) {
+  public DataServerUFSFileWriteHandler(ExecutorService executorService, FileSystemWorker worker) {
     super(executorService);
+    mWorker = worker;
   }
 
   @Override

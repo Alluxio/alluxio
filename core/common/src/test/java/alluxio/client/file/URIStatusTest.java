@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Tests for the {@link URIStatus} class.
  */
-public final class URIStatusTest {
+public class URIStatusTest {
 
   @Test
   public void constructor() {
