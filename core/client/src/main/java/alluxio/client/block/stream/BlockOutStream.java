@@ -16,7 +16,6 @@ import alluxio.client.Cancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.status.UnavailableException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -50,12 +49,10 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param workerNetAddress the worker network address
    * @param context the file system context
    * @param options the options
-   * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createLocalBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
-      throws IOException {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
@@ -63,7 +60,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
           .createLocalPacketOutStream(client, blockId, blockSize, options.getWriteTier());
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
-    } catch (RuntimeException | IOException e) {
+    } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);
       throw e;
     }
@@ -77,12 +74,10 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param workerNetAddress the worker network address
    * @param context the file system context
    * @param options the options
-   * @throws IOException if an I/O error occurs
    * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createRemoteBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
-      throws IOException {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
@@ -92,7 +87,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
               blockId, blockSize, options.getWriteTier(), Protocol.RequestType.ALLUXIO_BLOCK);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
-    } catch (RuntimeException | IOException e) {
+    } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);
       throw e;
     }
@@ -151,7 +146,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -160,14 +155,8 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       if (remaining() < mBlockSize) {
         mBlockWorkerClient.cacheBlock(mBlockId);
       }
-    } catch (IOException e) {
-      throw new UnavailableException(e);
     } finally {
-      try {
-        mCloser.close();
-      } catch (IOException e) {
-        throw new UnavailableException(e);
-      }
+      mCloser.close();
       mClosed = true;
     }
   }

@@ -112,10 +112,9 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param sessionId the session ID
    * @param tier the target tier
    * @param type the request type (block or UFS file)
-   * @throws IOException it fails to acquire a netty channel
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
-      long length, long sessionId, int tier, Protocol.RequestType type) throws IOException {
+      long length, long sessionId, int tier, Protocol.RequestType type) {
     this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id)
         .setSessionId(sessionId).setTier(tier).setType(type).buildPartial());
   }
@@ -127,10 +126,9 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param address the data server network address
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param partialRequest details of the write request which are constant for all requests
-   * @throws IOException it fails to acquire a netty channel
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long
-      length, Protocol.WriteRequest partialRequest) throws IOException {
+      length, Protocol.WriteRequest partialRequest) {
     mContext = context;
     mAddress = address;
     mLength = length;

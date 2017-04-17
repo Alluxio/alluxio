@@ -49,11 +49,10 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
    * @param tier the target tier
-   * @throws IOException if it fails to create the packet writer
    * @return the {@link LocalFilePacketWriter} created
    */
   public static LocalFilePacketWriter create(BlockWorkerClient blockWorkerClient,
-      long blockId, int tier) throws IOException {
+      long blockId, int tier) {
     return new LocalFilePacketWriter(blockWorkerClient, blockId, tier);
   }
 
@@ -106,10 +105,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
    * @param tier the target tier
-   * @throws IOException if it fails to create the packet writer
    */
-  private LocalFilePacketWriter(BlockWorkerClient blockWorkerClient, long blockId, int tier)
-      throws IOException {
+  private LocalFilePacketWriter(BlockWorkerClient blockWorkerClient, long blockId, int tier) {
     String blockPath =
         blockWorkerClient.requestBlockLocation(blockId, FILE_BUFFER_BYTES, tier);
     mWriter = new LocalFileBlockWriter(blockPath);

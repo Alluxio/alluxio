@@ -296,10 +296,8 @@ public final class FileSystemContext implements Closeable {
    *
    * @param address the network address of the channel
    * @return the acquired netty channel
-   * @throws IOException if it fails to create a new client instance mostly because it fails to
-   *         connect to remote worker
    */
-  public Channel acquireNettyChannel(final InetSocketAddress address) throws IOException {
+  public Channel acquireNettyChannel(final InetSocketAddress address) {
     if (!mNettyChannelPools.containsKey(address)) {
       Bootstrap bs = NettyClient.createClientBootstrap();
       bs.remoteAddress(address);

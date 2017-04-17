@@ -53,10 +53,9 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
    * @param length the block or file length
    * @param tier the target tier
    * @return the {@link PacketOutStream} created
-   * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
-      long id, long length, int tier) throws IOException {
+      long id, long length, int tier) {
     PacketWriter packetWriter = LocalFilePacketWriter.create(client, id, tier);
     return new PacketOutStream(packetWriter, length);
   }
@@ -72,11 +71,10 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
    * @param tier the target tier
    * @param type the request type (either block write or UFS file write)
    * @return the {@link PacketOutStream} created
-   * @throws IOException if it fails to create the object
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
       InetSocketAddress address, long sessionId, long id, long length, int tier,
-      Protocol.RequestType type) throws IOException {
+      Protocol.RequestType type) {
     NettyPacketWriter packetWriter =
         new NettyPacketWriter(context, address, id, length, sessionId, tier, type);
     return new PacketOutStream(packetWriter, length);

@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
@@ -42,11 +43,14 @@ public final class LocalFileBlockWriter implements BlockWriter {
    * Constructs a Block writer given the file path of the block.
    *
    * @param path file path of the block
-   * @throws IOException if its file can not be open with "rw" mode
    */
-  public LocalFileBlockWriter(String path) throws IOException {
+  public LocalFileBlockWriter(String path) {
     mFilePath = Preconditions.checkNotNull(path);
-    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
+    try {
+      mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
