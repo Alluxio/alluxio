@@ -94,7 +94,6 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
         .run("mount", "--option", "key=valueWith\"Quotes\"", mountPoint.toString(), ufsPath));
   }
 
-
   @Test
   public void mountWithEqualsInOptionValues() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
