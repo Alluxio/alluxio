@@ -103,7 +103,7 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * options.
    *
    * @return the information about lineages
-   * @throws IOException if the master cannot list the lineage info
+   * @throws IOException if an IO error occurs
    */
   public List<LineageInfo> getLineageInfoList() throws IOException {
     return getLineageInfoList(GetLineageInfoListOptions.defaults());

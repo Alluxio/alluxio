@@ -228,7 +228,7 @@ public class FileOutStream extends AbstractOutStream {
             tLen -= currentBlockLeftBytes;
           }
         }
-      } catch (IOException e) {
+      } catch (Exception e) {
         handleCacheWriteException(e);
       }
     }
@@ -264,7 +264,7 @@ public class FileOutStream extends AbstractOutStream {
     }
   }
 
-  private void handleCacheWriteException(IOException e) throws IOException {
+  private void handleCacheWriteException(Exception e) throws IOException {
     LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (!mUnderStorageType.isSyncPersist()) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);

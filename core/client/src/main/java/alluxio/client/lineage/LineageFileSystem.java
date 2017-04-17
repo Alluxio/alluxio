@@ -96,13 +96,9 @@ public final class LineageFileSystem extends BaseFileSystem {
     long fileId;
     try {
       fileId = reinitializeFile(path, options);
-    } catch (NotFoundException e) {
+    } catch (LineageDoesNotExistException e) {
       // not a lineage file
       return super.createFile(path, options);
-    } catch (UnavailableException e) {
-      throw new IOException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
     }
     if (fileId == -1) {
       return new DummyFileOutputStream(path, options.toOutStreamOptions());
