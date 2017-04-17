@@ -262,9 +262,11 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
     registerServices(processor, mBlockWorker.getServices());
 
+    // Register a defunct file system worker service handler to inform old clients.
     HashMap<String, TProcessor> fsService = new HashMap<>();
     fsService.put(Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME, new
         FileSystemWorkerClientService.Processor<>(new FileSystemWorkerClientServiceHandler()));
+    registerServices(processor, fsService);
 
     // register additional workers for RPC service
     for (Worker worker: mAdditionalWorkers) {
