@@ -25,7 +25,7 @@ public interface PacketReader extends Closeable {
    * Reads a packet. The caller needs to release the packet.
    *
    * @return the data buffer or null if EOF is reached
-   * @throws IOException if it fails to read a packet
+   * @throws IOException if an IO error occurs
    */
   DataBuffer readPacket() throws IOException;
 
@@ -44,7 +44,7 @@ public interface PacketReader extends Closeable {
      * @param offset the stream offset
      * @param len the length of the stream
      * @return the created object
-     * @throws IOException if it fails to create the object
+     * @throws IOException if an IO error occurs
      */
     PacketReader create(long offset, long len) throws IOException;
 

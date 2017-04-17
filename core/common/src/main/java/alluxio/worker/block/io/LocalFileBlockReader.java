@@ -39,7 +39,7 @@ public final class LocalFileBlockReader implements BlockReader {
    * Constructs a Block reader given the file path of the block.
    *
    * @param path file path of the block
-   * @throws IOException if its file can not be open with "r" mode
+   * @throws IOException if an IO error occurs
    */
   public LocalFileBlockReader(String path) throws IOException {
     mFilePath = Preconditions.checkNotNull(path);

@@ -27,14 +27,14 @@ public interface PacketWriter extends Closeable, Cancelable {
    * the packet.
    *
    * @param packet the packet
-   * @throws IOException if it fails to write the packet
+   * @throws IOException if an IO error occurs
    */
   void writePacket(ByteBuf packet) throws IOException;
 
   /**
    *  Flushes all the pending packets.
    *
-   * @throws IOException if it fails to flush
+   * @throws IOException if an IO error occurs
    */
   void flush() throws IOException;
 

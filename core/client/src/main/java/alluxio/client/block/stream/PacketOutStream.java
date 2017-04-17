@@ -88,7 +88,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
    * @param length the block or file length
    * @param partialRequest details of the write request which are constant for all requests
    * @return the {@link PacketOutStream} created
-   * @throws IOException if it fails to create the object
+   * @throws IOException if an IO error occurs
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
       InetSocketAddress address, long length, Protocol.WriteRequest partialRequest)
@@ -208,7 +208,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
    * Updates the current packet.
    *
    * @param lastPacket if the current packet is the last packet
-   * @throws IOException if it fails to update the current packet
+   * @throws IOException if an IO error occurs
    */
   private void updateCurrentPacket(boolean lastPacket) throws IOException {
     // Early return for the most common case.

@@ -32,7 +32,7 @@ public final class DummyFileOutputStream extends FileOutStream {
    *
    * @param path the path of the file
    * @param options the set of options specific to this operation
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an IO error occurs
    */
   public DummyFileOutputStream(AlluxioURI path, OutStreamOptions options) throws IOException {
     super(path, options, FileSystemContext.INSTANCE);

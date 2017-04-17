@@ -51,8 +51,7 @@ public final class FileSystemUtils {
    * @param uri the URI of the file on which the thread should wait
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws IOException in case there are problems contacting the Alluxio master for the file
-   *         status
+   * @throws IOException if an IO error occurs
    * @throws AlluxioException if an Alluxio Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
@@ -89,7 +88,7 @@ public final class FileSystemUtils {
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws IOException in case there are problems contacting the Alluxio Master
+   * @throws IOException if an IO error occurs
    * @throws AlluxioException if an Alluxio exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion

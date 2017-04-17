@@ -338,7 +338,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @param length the length of the block
    * @param path the UFS path
    * @return the {@link InputStream} for the UFS
-   * @throws IOException if the stream cannot be created
+   * @throws IOException if an IO error occurs
    */
   protected BlockInStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
       String path) throws IOException {
@@ -481,7 +481,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * Call this function every read and seek unless you are sure about the block streams are
    * up-to-date.
    *
-   * @throws IOException if the next cache stream or block stream cannot be created
+   * @throws IOException if an IO error occurs
    */
   private void updateStreams() throws IOException {
     long currentBlockId = getCurrentBlockId();
@@ -514,7 +514,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * This function is only called by {@link #updateStreams()}.
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
-   * @throws IOException if the next cache stream cannot be created
+   * @throws IOException if an IO error occurs
    */
   private void updateCacheStream(long blockId) throws IOException {
     // We should really only close a cache stream here. This check is to verify this.
@@ -563,7 +563,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * called in {@link #updateStreams()}.
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
-   * @throws IOException if the next block in stream cannot be obtained
+   * @throws IOException if an IO error occurs
    */
   private void updateBlockInStream(long blockId) throws IOException {
     if (mCurrentBlockInStream != null) {
@@ -583,7 +583,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param blockId the block ID
    * @return the block in stream
-   * @throws IOException if the block in stream cannot be obtained
+   * @throws IOException if an IO error occurs
    */
   private BlockInStream getBlockInStream(long blockId) throws IOException {
     try {
@@ -622,7 +622,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param pos The position to seek to. It is guaranteed to be valid (pos >= 0 && pos != mPos &&
    *            pos <= mFileLength)
-   * @throws IOException if the seek fails due to an error accessing the stream at the position
+   * @throws IOException if an IO error occurs
    */
   private void seekInternal(long pos) throws IOException {
     closeOrCancelCacheStream();
@@ -642,7 +642,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param pos The position to seek to. It is guaranteed to be valid (pos >= 0 && pos != mPos &&
    *            pos <= mFileLength).
-   * @throws IOException if the seek fails due to an error accessing the stream at the position
+   * @throws IOException if an IO error occurs
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
@@ -689,7 +689,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * met first) if pos > mPos. Otherwise no-op.
    *
    * @param pos file offset
-   * @throws IOException if read or cache write fails
+   * @throws IOException if an IO error occurs
    */
   private void readCurrentBlockToPos(long pos) throws IOException {
     if (mCurrentBlockInStream == null) {
@@ -711,7 +711,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /**
    * Reads the remaining of the current block.
    *
-   * @throws IOException if read or cache write fails
+   * @throws IOException if an IO error occurs
    */
   private void readCurrentBlockToEnd() throws IOException {
     readCurrentBlockToPos(Long.MAX_VALUE);
