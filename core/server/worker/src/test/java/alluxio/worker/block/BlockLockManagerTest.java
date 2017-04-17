@@ -19,7 +19,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 
-import com.google.common.base.Throwables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -292,7 +291,7 @@ public final class BlockLockManagerTest {
             try {
               barrier.await();
             } catch (Exception e) {
-              throw Throwables.propagate(e);
+              throw new RuntimeException(e);
             }
             // Lock and unlock the block lockUnlocksPerThread times.
             for (int j = 0; j < lockUnlocksPerThread; j++) {
