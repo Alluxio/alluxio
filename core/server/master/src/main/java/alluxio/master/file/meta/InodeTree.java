@@ -660,6 +660,7 @@ public class InodeTree implements JournalCheckpointStreamable {
 
         if (!currentInodeDirectory.addChild(lastInode)) {
           // Could not add the child inode to the parent. Continue and try again.
+          // Cleanup is not necessary, since other state is updated later, after a successful add.
           lockList.unlockLast();
           lastInode = null;
           continue;
