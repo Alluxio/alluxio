@@ -168,6 +168,7 @@ public abstract class AbstractJournalFormatterTest {
                 .build())
         .add(JournalEntry.newBuilder()
             .setDeleteFile(DeleteFileEntry.newBuilder()
+                .setAlluxioOnly(false)
                 .setId(TEST_FILE_ID)
                 .setRecursive(true)
                 .setOpTimeMs(TEST_OP_TIME_MS))
