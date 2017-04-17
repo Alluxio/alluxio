@@ -44,19 +44,22 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   @Override
   protected void initChannel(SocketChannel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
+
+    // Decoders & Encoders
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
-    pipeline.addLast("dataServerBlockReadHandler",
-        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
-            mWorker.getBlockWorker(), mFileTransferType));
-    pipeline.addLast("dataServerUfsBlockReadHandler",
-        new DataServerUFSBlockReadHandler(NettyExecutors.UFS_BLOCK_READER_EXECUTOR,
-            mWorker.getBlockWorker()));
-    pipeline.addLast("dataServerBlockWriteHandler",
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR,
-            mWorker.getBlockWorker()));
-    pipeline.addLast("dataServerFileWriteHandler",
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
+
+    // Block Handlers
+    pipeline.addLast("dataServerBlockReadHandler", new DataServerBlockReadHandler(
+        NettyExecutors.BLOCK_READER_EXECUTOR, mWorker.getBlockWorker(), mFileTransferType));
+    pipeline.addLast("dataServerBlockWriteHandler", new DataServerBlockWriteHandler(
+        NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorker.getBlockWorker()));
+
+    // UFS Handlers
+    pipeline.addLast("dataServerUfsBlockReadHandler", new DataServerUFSBlockReadHandler(
+        NettyExecutors.UFS_BLOCK_READER_EXECUTOR, mWorker.getBlockWorker()));
+    pipeline.addLast("dataServerUfsFileWriteHandler", new DataServerUFSFileWriteHandler(
+        NettyExecutors.FILE_WRITER_EXECUTOR));
   }
 }
