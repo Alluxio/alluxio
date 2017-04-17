@@ -36,7 +36,11 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.TtlAction;
@@ -63,6 +67,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(jiri): Make this class thread-safe.
 public class InodeTree implements JournalCheckpointStreamable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
+  /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
+  private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
+  /** Maximum amount (exponential backoff) to sleep before retrying persisting an inode. */
+  private static final int PERSIST_WAIT_MAX_SLEEP_MS = 1000;
+  /** The maximum retries for persisting an inode. */
+  private static final int PERSIST_WAIT_MAX_RETRIES = 50;
 
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
@@ -533,7 +543,7 @@ public class InodeTree implements JournalCheckpointStreamable {
     if (options.isPersisted()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
-        InodeUtils.syncPersistDirectory((InodeDirectory) inode, this, mMountTable, journalContext);
+        syncPersistDirectory((InodeDirectory) inode, journalContext);
       }
     }
     if (pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null) {
@@ -584,7 +594,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           dir.setPinned(currentInodeDirectory.isPinned());
           if (options.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
-            InodeUtils.syncPersistDirectory(dir, this, mMountTable, NoopJournalContext.INSTANCE);
+            syncPersistDirectory(dir, NoopJournalContext.INSTANCE);
           }
           // Journal the new inode.
           journalContext.append(dir.toJournalEntry());
@@ -625,8 +635,7 @@ public class InodeTree implements JournalCheckpointStreamable {
             .isPersisted() && options.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
-          InodeUtils
-              .syncPersistDirectory((InodeDirectory) lastInode, this, mMountTable, journalContext);
+          syncPersistDirectory((InodeDirectory) lastInode, journalContext);
         } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
             && ((CreateDirectoryOptions) options).isAllowExists())) {
           String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
@@ -643,8 +652,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
           if (directoryOptions.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
-            InodeUtils.syncPersistDirectory((InodeDirectory) lastInode, this, mMountTable,
-                NoopJournalContext.INSTANCE);
+            syncPersistDirectory((InodeDirectory) lastInode, NoopJournalContext.INSTANCE);
           }
         } else if (options instanceof CreateFileOptions) {
           CreateFileOptions fileOptions = (CreateFileOptions) options;
@@ -945,6 +953,56 @@ public class InodeTree implements JournalCheckpointStreamable {
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {
       mPinnedInodeFileIds.add(inode.getId());
+    }
+  }
+
+  /**
+   * Synchronously persists an {@link InodeDirectory} to the UFS. If concurrent calls are made, only
+   * one thread will persist to UFS, and the others will wait until it is persisted.
+   *
+   * @param dir the {@link InodeDirectory} to persist
+   * @param journalContext the journal context
+   * @throws IOException if the file fails to persist
+   * @throws InvalidPathException if the path for the inode is invalid
+   * @throws FileDoesNotExistException if the path for the inode is invalid
+   */
+  public void syncPersistDirectory(InodeDirectory dir, JournalContext journalContext)
+      throws IOException, InvalidPathException, FileDoesNotExistException {
+    RetryPolicy retry =
+        new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
+            PERSIST_WAIT_MAX_RETRIES);
+    while (dir.getPersistenceState() != PersistenceState.PERSISTED) {
+      if (dir.compareAndSwap(PersistenceState.NOT_PERSISTED,
+          PersistenceState.TO_BE_PERSISTED)) {
+        boolean success = false;
+        try {
+          AlluxioURI uri = getPath(dir);
+          MountTable.Resolution resolution = mMountTable.resolve(uri);
+          String ufsUri = resolution.getUri().toString();
+          UnderFileSystem ufs = resolution.getUfs();
+          MkdirsOptions mkdirsOptions =
+              MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
+                  .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
+          ufs.mkdirs(ufsUri, mkdirsOptions);
+          dir.setPersistenceState(PersistenceState.PERSISTED);
+
+          // Append the persist entry to the journal.
+          File.PersistDirectoryEntry persistDirectory =
+              File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
+          journalContext.append(
+              Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+          success = true;
+        } finally {
+          if (!success) {
+            // Failed to persist the inode, so set the state back to NOT_PERSISTED.
+            dir.setPersistenceState(PersistenceState.NOT_PERSISTED);
+          }
+        }
+      } else {
+        if (!retry.attemptRetry()) {
+          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(dir.getName()));
+        }
+      }
     }
   }
 
