@@ -617,8 +617,7 @@ public class InodeTree implements JournalCheckpointStreamable {
           break;
         default:
           // This should not be reachable.
-          LOG.warn("Unexpected lock mode encountered: {}",
-              extensibleInodePath.getLockMode().toString());
+          LOG.warn("Unexpected lock mode encountered: {}", extensibleInodePath.getLockMode());
       }
       if (lastInode != null) {
         // inode to create already exists
@@ -653,10 +652,6 @@ public class InodeTree implements JournalCheckpointStreamable {
               currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
           lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
-          if (currentInodeDirectory.isPinned()) {
-            // Update set of pinned file ids.
-            mPinnedInodeFileIds.add(lastInode.getId());
-          }
           if (fileOptions.isCacheable()) {
             ((InodeFile) lastInode).setCacheable(true);
           }
@@ -672,7 +667,13 @@ public class InodeTree implements JournalCheckpointStreamable {
 
         // Journal the new inode.
         journalContext.append(lastInode.toJournalEntry());
+
+        // Update state while holding the write lock.
         mInodes.add(lastInode);
+        if (lastInode instanceof InodeFile && currentInodeDirectory.isPinned()) {
+          // Update set of pinned file ids.
+          mPinnedInodeFileIds.add(lastInode.getId());
+        }
 
         if (extensibleInodePath.getLockMode() == LockMode.READ) {
           // After creating the inode, downgrade to a read lock
