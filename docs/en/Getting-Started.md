@@ -29,8 +29,7 @@ difficult to incorporate in a local environment. If you are interested in runnin
 example which highlights the performance benefits of Alluxio, try out the instructions in either of
 these two whitepapers: [Accelerating on-demand data analytics with
 Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio),
-[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/resources
-/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
+[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
 
 ## Prerequisites
 
