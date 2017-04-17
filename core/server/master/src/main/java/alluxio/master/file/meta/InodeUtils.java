@@ -13,6 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
@@ -52,7 +54,8 @@ public final class InodeUtils {
    * @throws IOException if the file fails to persist
    */
   public static void syncPersistDirectory(InodeDirectory dir, InodeTree inodeTree,
-      MountTable mountTable, JournalContext journalContext) throws IOException {
+      MountTable mountTable, JournalContext journalContext) throws IOException,
+      InvalidPathException, FileDoesNotExistException {
     RetryPolicy retry =
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
             PERSIST_WAIT_MAX_RETRIES);
@@ -70,9 +73,7 @@ public final class InodeUtils {
           MkdirsOptions mkdirsOptions =
               MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
                   .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-          if (!ufs.isDirectory(ufsUri)) {
-            ufs.mkdirs(ufsUri, mkdirsOptions);
-          }
+          ufs.mkdirs(ufsUri, mkdirsOptions);
           dir.setPersistenceState(PersistenceState.PERSISTED);
 
           // Append the persist entry to the journal.
@@ -81,11 +82,6 @@ public final class InodeUtils {
           journalContext.append(
               Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
           success = true;
-        } catch (Exception e) {
-          // Ignore
-          LOG.warn("Failed to persist directory to UFS: {} : {}", errorDetails.toString(),
-              e.getMessage());
-          LOG.debug("Exception: ", e);
         } finally {
           if (!success) {
             // Failed to persist the inode, so set the state back to NOT_PERSISTED.
