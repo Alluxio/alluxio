@@ -19,7 +19,6 @@ import alluxio.ServerUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -28,7 +27,7 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.file.FileSystemWorkerClientServiceHandler;
+import alluxio.worker.file.DefaultFileSystemWorker;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -62,6 +60,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
   /** The worker serving blocks. */
   private BlockWorker mBlockWorker;
+
+  /** The worker serving file system operations. */
+  private DefaultFileSystemWorker mFileSystemWorker;
 
   /** Server for data requests and responses. */
   private DataServer mDataServer;
@@ -106,9 +107,10 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       mWorkerId = new AtomicReference<>();
       mStartTimeMs = System.currentTimeMillis();
       mBlockWorker = new DefaultBlockWorker(mWorkerId);
+      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId);
 
       mAdditionalWorkers = new ArrayList<>();
-      List<? extends Worker> workers = Lists.newArrayList(mBlockWorker);
+      List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
       for (WorkerFactory factory : ServerUtils.getWorkerServiceLoader()) {
         Worker worker = factory.create(workers);
         if (worker != null) {
@@ -217,6 +219,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private void startWorkers() throws Exception {
     mBlockWorker.init(getAddress());
     mBlockWorker.start();
+    mFileSystemWorker.start();
     // start additional workers
     for (Worker worker : mAdditionalWorkers) {
       worker.start();
@@ -228,6 +231,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     for (Worker worker : mAdditionalWorkers) {
       worker.stop();
     }
+    mFileSystemWorker.stop();
     mBlockWorker.stop();
   }
 
@@ -261,12 +265,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
 
     registerServices(processor, mBlockWorker.getServices());
-
-    // Register a defunct file system worker service handler to inform old clients.
-    HashMap<String, TProcessor> fsService = new HashMap<>();
-    fsService.put(Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME, new
-        FileSystemWorkerClientService.Processor<>(new FileSystemWorkerClientServiceHandler()));
-    registerServices(processor, fsService);
+    registerServices(processor, mFileSystemWorker.getServices());
 
     // register additional workers for RPC service
     for (Worker worker: mAdditionalWorkers) {
