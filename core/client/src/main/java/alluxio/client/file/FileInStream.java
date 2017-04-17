@@ -525,7 +525,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // End of file.
       return;
     }
-    Preconditions.checkNotNull(mCurrentBlockInStream);
+    Preconditions.checkNotNull(mCurrentBlockInStream, "mCurrentBlockInStream");
     if (!mShouldCache || mCurrentBlockInStream.isLocal()) {
       return;
     }
