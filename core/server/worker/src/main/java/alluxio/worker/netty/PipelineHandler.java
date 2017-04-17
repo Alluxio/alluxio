@@ -25,7 +25,7 @@ import io.netty.channel.socket.SocketChannel;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Adds the block server's pipeline into the channel.
+ * Adds the data server's pipeline into the channel.
  */
 @ThreadSafe
 final class PipelineHandler extends ChannelInitializer<SocketChannel> {
