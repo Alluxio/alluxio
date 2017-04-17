@@ -12,7 +12,9 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.security.authorization.Mode;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -32,13 +34,14 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   /**
    * @param context the file system context
    * @param address the address of an Alluxio worker
-   * @param ufsFileId the file ID of the ufs file to write to
+   * @param options the options to construct this stream with
    * @return a new {@link UnderFileSystemFileOutStream}
    * @throws IOException if it fails to create the out stream
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
-      long ufsFileId) throws IOException {
-    return new UnderFileSystemFileOutStream(context, address, ufsFileId);
+      OutStreamOptions options) throws IOException {
+    return new UnderFileSystemFileOutStream(context, address, options.getUfsPath(),
+        options.getOwner(), options.getGroup(), options.getMode());
   }
 
   private final PacketOutStream mOutStream;
@@ -48,14 +51,18 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    *
    * @param context the file system context
    * @param address the data server address
-   * @param ufsFileId the UFS file ID
+   * @param path the ufs file path
+   * @param owner the owner of the ufs file
+   * @param group the group of the ufs file
+   * @param mode the mode of the ufs file
    * @throws IOException if it fails to create the object
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
-      long ufsFileId) throws IOException {
-    super(PacketOutStream
-        .createNettyPacketOutStream(context, address, -1, ufsFileId, Long.MAX_VALUE, TIER_UNUSED,
-            Protocol.RequestType.UFS_FILE));
+      String path, String owner, String group, Mode mode) throws IOException {
+    super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
+        Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
+            .setType(Protocol.RequestType.UFS_FILE).setUfsPath(path).setOwner(owner)
+            .setGroup(group).setMode(mode.toShort()).buildPartial()));
     mOutStream = (PacketOutStream) out;
   }
 

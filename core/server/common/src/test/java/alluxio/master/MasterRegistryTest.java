@@ -12,8 +12,6 @@
 package alluxio.master;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.journal.JournalInputStream;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.Journal;
 
 import com.google.common.collect.ImmutableList;
@@ -24,6 +22,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +36,21 @@ public final class MasterRegistryTest {
     }
 
     @Override
-    public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-      return;
+    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+      return new Iterator<Journal.JournalEntry>() {
+        @Override
+        public boolean hasNext() {
+          return false;
+        }
+
+        @Override
+        public Journal.JournalEntry next() {
+          return null;
+        }
+
+        @Override
+        public void remove() {}
+      };
     }
 
     @Override
@@ -53,16 +65,6 @@ public final class MasterRegistryTest {
 
     @Override
     public void stop() throws IOException {
-      return;
-    }
-
-    @Override
-    public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-      return;
-    }
-
-    @Override
-    public void transitionToLeader() {
       return;
     }
   }

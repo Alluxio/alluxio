@@ -15,15 +15,15 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.Clock;
+import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.JournalTailer;
-import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalInputStream;
-import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalTailerThread;
-import alluxio.master.journal.MutableJournal;
+import alluxio.master.journal.JournalCheckpointThread;
+import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,8 +44,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
- * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
- * or journal writing when the master is the leader.
+ * mostly consists of journal operations, like initialization, journal tailing when in secondary
+ * mode, or journal writing when the master is the primary.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public abstract class AbstractMaster implements Master {
@@ -55,19 +56,22 @@ public abstract class AbstractMaster implements Master {
       Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
 
   /** A factory for creating executor services when they are needed. */
-  private ExecutorServiceFactory mExecutorServiceFactory = null;
+  private ExecutorServiceFactory mExecutorServiceFactory;
   /** The executor used for running maintenance threads for the master. */
-  private ExecutorService mExecutorService = null;
+  private ExecutorService mExecutorService;
   /** A handler to the journal for this master. */
   private Journal mJournal;
-  /** true if this master is in leader mode, and not standby mode. */
-  private boolean mIsLeader = false;
-  /** The thread that tails the journal when the master is in standby mode. */
-  private JournalTailerThread mStandbyJournalTailer = null;
-  /** The journal writer for when the master is the leader. */
-  private JournalWriter mJournalWriter = null;
+  /** true if this master is in primary mode, and not secondary mode. */
+  private boolean mIsPrimary = false;
+  /**
+   * The thread that replays the journal and periodically checkpoints when the master is in
+   * secondary mode.
+   */
+  private JournalCheckpointThread mJournalCheckpointThread;
+  /** The journal writer for when the master is the primary. */
+  private JournalWriter mJournalWriter;
   /** The {@link AsyncJournalWriter} for async journal writes. */
-  private AsyncJournalWriter mAsyncJournalWriter = null;
+  private AsyncJournalWriter mAsyncJournalWriter;
 
   /** The clock to use for determining the time. */
   protected final Clock mClock;
@@ -91,112 +95,80 @@ public abstract class AbstractMaster implements Master {
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    JournalEntry entry;
-    try {
-      while ((entry = inputStream.read()) != null) {
-        processJournalEntry(entry);
-      }
-    } finally {
-      inputStream.close();
-    }
-  }
-
-  @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(boolean isPrimary) throws IOException {
     Preconditions.checkState(mExecutorService == null);
     mExecutorService = mExecutorServiceFactory.create();
-    mIsLeader = isLeader;
-    LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
-    if (mIsLeader) {
-      Preconditions.checkState(mJournal instanceof MutableJournal);
-      mJournalWriter = ((MutableJournal) mJournal).getWriter();
-
+    mIsPrimary = isPrimary;
+    if (mIsPrimary) {
       /**
-       * The sequence for dealing with the journal before starting as the leader:
+       * The sequence for dealing with the journal before starting as the primary:
        *
-       * Phase 1. Recover from a backup checkpoint if the last startup failed while writing the
-       * checkpoint.
-       *
-       * Phase 2. Mark all the logs as completed. Since this master is the leader, it is allowed to
-       * write the journal, so it can mark the current log as completed. After this step, the
-       * current log will not exist, and all logs will be complete.
-       *
-       * Phase 3. Reconstruct the state from the journal. This uses the JournalTailer to process all
-       * of the checkpoint and the complete logs. Since all logs are complete, after this step,
-       * the master will reflect the state of all of the journal entries.
-       *
-       * Phase 4. Write out the checkpoint. Since this master is completely up-to-date, it
-       * writes out the checkpoint. When the checkpoint is closed, it will then delete the
-       * complete logs.
+       * 1. Replay the journal entries.
+       * 2. Start the journal writer and optionally journal the master bootstrap states
+       *    if this is a fresh start.
        *
        * Since this method is called before the master RPC server starts serving, there is no
        * concurrent access to the master during these phases.
        */
 
-      // Phase 1: Recover from a backup checkpoint if necessary.
-      mJournalWriter.recover();
+      LOG.info("{}: Starting primary master.", getName());
 
-      // Phase 2: Mark all logs as complete, including the current log. After this call, the current
-      // log should not exist, and all the logs will be complete.
-      mJournalWriter.completeLogs();
+      // Step 1. Replay the journal entries.
+      long nextSequenceNumber =
+          mJournalCheckpointThread != null ? mJournalCheckpointThread.getNextSequenceNumber() : 0;
+      try (JournalReader journalReader = mJournal.getReader(
+          JournalReaderOptions.defaults().setPrimary(true)
+              .setNextSequenceNumber(nextSequenceNumber))) {
+        JournalEntry entry;
+        while ((entry = journalReader.read()) != null) {
+          processJournalEntry(entry);
+        }
+        nextSequenceNumber = journalReader.getNextSequenceNumber();
+      } catch (InvalidJournalEntryException e) {
+        LOG.error("{}: Invalid journal entry is found.", getName(), e);
+        // We found invalid journal, nothing we can do but crash.
+        throw new RuntimeException(e);
+      }
 
-      // Phase 3: Replay all the state of the checkpoint and the completed logs.
-      JournalTailer catchupTailer;
-      if (mStandbyJournalTailer != null && mStandbyJournalTailer.getLatestJournalTailer() != null
-          && mStandbyJournalTailer.getLatestJournalTailer().isValid()) {
-        // This master was previously in standby mode, and processed some of the journal. Re-use the
-        // same tailer (still valid) to continue processing any remaining journal entries.
-        LOG.info("{}: finish processing remaining journal entries (standby -> master).",
-            getName());
-        catchupTailer = mStandbyJournalTailer.getLatestJournalTailer();
-        catchupTailer.processNextJournalLogs();
-      } else {
-        // This master has not successfully processed any of the journal, so create a fresh tailer
-        // to process the entire journal.
-        catchupTailer = JournalTailer.Factory.create(this, mJournal);
-        if (catchupTailer.checkpointExists()) {
-          LOG.info("{}: process entire journal before becoming leader master.", getName());
-          catchupTailer.processJournalCheckpoint(true);
-          catchupTailer.processNextJournalLogs();
-        } else {
-          LOG.info("{}: journal checkpoint does not exist, nothing to process.", getName());
+      // Step 2: Start the journal writer and optionally journal the master bootstrap states
+      // if this is a fresh start.
+      mJournalWriter = mJournal.getWriter(
+          JournalWriterOptions.defaults().setNextSequenceNumber(nextSequenceNumber)
+              .setPrimary(true));
+      // Journal master bootstrap states if this is a fresh start.
+      if (nextSequenceNumber == 0) {
+        Iterator<JournalEntry> it = getJournalEntryIterator();
+        while (it.hasNext()) {
+          mJournalWriter.write(it.next());
         }
       }
-      long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
-
-      // Phase 4: initialize the journal and write out the checkpoint (the state of all
-      // completed logs).
-      try (JournalOutputStream checkpointStream =
-          mJournalWriter.getCheckpointOutputStream(latestSequenceNumber)) {
-        LOG.info("{}: start writing checkpoint.", getName());
-        streamToJournalCheckpoint(checkpointStream);
-      }
-      LOG.info("{}: done with writing checkpoint.", getName());
-
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
     } else {
-      // This master is in standby mode. Start the journal tailer thread. Since the master is in
-      // standby mode, its RPC server is NOT serving. Therefore, the only thread modifying the
-      // master is this journal tailer thread (no concurrent access).
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
-      mStandbyJournalTailer.start();
+      LOG.info("{}: Starting secondary master.", getName());
+
+      // This master is in secondary mode. Start the journal checkpoint thread. Since the master is
+      // in secondary mode, its RPC server is NOT serving. Therefore, the only thread modifying the
+      // master is this journal checkpoint thread (no concurrent access).
+      // This thread keeps picking up new completed logs and optionally building new checkpoints.
+      mJournalCheckpointThread = new JournalCheckpointThread(this, mJournal);
+      mJournalCheckpointThread.start();
     }
   }
 
   @Override
   public void stop() throws IOException {
-    LOG.info("{}: Stopping {} master.", getName(), mIsLeader ? "leader" : "standby");
-    if (mIsLeader) {
-      // Stop this leader master.
+    if (mIsPrimary) {
+      LOG.info("{}: Stopping primary master.", getName());
+      // Stop this primary master.
       if (mJournalWriter != null) {
         mJournalWriter.close();
         mJournalWriter = null;
       }
     } else {
-      if (mStandbyJournalTailer != null) {
-        // Stop and wait for the journal tailer thread.
-        mStandbyJournalTailer.shutdownAndJoin();
+      LOG.info("{}: Stopping secondary master.", getName());
+      if (mJournalCheckpointThread != null) {
+        // Stop and wait for the journal checkpoint thread.
+        mJournalCheckpointThread.awaitTermination();
       }
     }
     // Shut down the executor service, interrupting any running threads.
@@ -216,11 +188,7 @@ public abstract class AbstractMaster implements Master {
         mExecutorService = null;
       }
     }
-  }
-
-  @Override
-  public void transitionToLeader() {
-    mJournal = MutableJournal.Factory.create(mJournal.getLocation());
+    LOG.info("{}: Stopped {} master.", getName(), mIsPrimary ? "primary" : "secondary");
   }
 
   /**

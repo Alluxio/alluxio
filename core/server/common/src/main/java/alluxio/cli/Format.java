@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
-import alluxio.master.journal.MutableJournal;
+import alluxio.master.journal.Journal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -79,12 +79,16 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    Mode mode = null;
     try {
-      format(Mode.valueOf(args[0].toUpperCase()));
+      mode = Mode.valueOf(args[0].toUpperCase());
     } catch (IllegalArgumentException e) {
       LOG.error("Unrecognized format mode: {}", args[0]);
       LOG.error("Usage: {}", USAGE);
       System.exit(-1);
+    }
+    try {
+      format(mode);
     } catch (Exception e) {
       LOG.error("Failed to format", e);
       System.exit(-1);
@@ -104,9 +108,9 @@ public final class Format {
       case MASTER:
         String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
         LOG.info("MASTER JOURNAL: {}", masterJournal);
-        MutableJournal.Factory factory;
+        Journal.Factory factory;
         try {
-          factory = new MutableJournal.Factory(new URI(masterJournal));
+          factory = new Journal.Factory(new URI(masterJournal));
         } catch (URISyntaxException e) {
           throw new IOException(e.getMessage());
         }

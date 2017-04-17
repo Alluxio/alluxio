@@ -146,19 +146,19 @@ public final class GetConf {
           if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
-              TimeUnit timeUnit;
-              timeUnit = TimeUnit.valueOf(arg);
-              System.out.println(Configuration.getMs(key) / timeUnit.getValue());
-              break;
-            } catch (IllegalArgumentException ex) {
-              // try next unit parse
-            }
-            try {
               ByteUnit byteUnit;
               byteUnit = ByteUnit.valueOf(arg);
               System.out.println(Configuration.getBytes(key) / byteUnit.getValue());
               break;
             } catch (Exception e) {
+              // try next unit parse
+            }
+            try {
+              TimeUnit timeUnit;
+              timeUnit = TimeUnit.valueOf(arg);
+              System.out.println(Configuration.getMs(key) / timeUnit.getValue());
+              break;
+            } catch (IllegalArgumentException ex) {
               // try next unit parse
             }
             printHelp(String.format("%s is not a valid unit", arg));
