@@ -63,9 +63,27 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(-1, mFsShell.run("mount"));
     // ufs missing
     Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString()));
+    // extra arg
+    Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString(), ufsPath, "extraArg"));
     // --option with wrong argument format
     Assert.assertEquals(-1,
-        mFsShell.run("mount", "--option wrongArgFormat", mountPoint.toString(), ufsPath));
+        mFsShell.run("mount", "--option", "wrongArgFormat", mountPoint.toString(), ufsPath));
+  }
+
+  @Test
+  public void mountWithMultipleOptions() throws Exception {
+    AlluxioURI mountPoint = new AlluxioURI("/mnt");
+    String ufsPath = mFolder.getRoot().getAbsolutePath();
+    Assert.assertEquals(0, mFsShell
+        .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
+  }
+
+  @Test
+  public void mountWithSpaceQuotedOption() throws Exception {
+    AlluxioURI mountPoint = new AlluxioURI("/mnt");
+    String ufsPath = mFolder.getRoot().getAbsolutePath();
+    Assert.assertEquals(0, mFsShell
+        .run("mount", "--option", "key=\" value with spaces\"", mountPoint.toString(), ufsPath));
   }
 
   @Test
