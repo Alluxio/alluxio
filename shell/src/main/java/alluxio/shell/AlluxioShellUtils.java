@@ -32,6 +32,7 @@ import org.reflections.Reflections;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -225,10 +226,10 @@ public final class AlluxioShellUtils {
    * Provides a way to gain these commands information by their CommandName.
    *
    * @param fileSystem a FileSystem as each ShellCommand constructor's parameter
-   * @param commandsMap a Map which is used to store "key = commandName, value = commandInstance"
-   *                    pairs
+   * @return a map mapping from commandName to commandInstance
    */
-  public static void loadCommands(FileSystem fileSystem, Map<String, ShellCommand> commandsMap) {
+  public static Map<String, ShellCommand> loadCommands(FileSystem fileSystem) {
+    Map<String, ShellCommand> commandsMap = new HashMap<>();
     String pkgName = ShellCommand.class.getPackage().getName();
     Reflections reflections = new Reflections(pkgName);
     for (Class<? extends ShellCommand> cls : reflections.getSubTypesOf(ShellCommand.class)) {
@@ -244,6 +245,7 @@ public final class AlluxioShellUtils {
         commandsMap.put(cmd.getCommandName(), cmd);
       }
     }
+    return commandsMap;
   }
 
   /**

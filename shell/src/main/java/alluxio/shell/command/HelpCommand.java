@@ -20,7 +20,6 @@ import org.apache.commons.cli.HelpFormatter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -33,6 +32,26 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HelpCommand extends AbstractShellCommand {
+  private static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
+
+  /**
+   * Prints the info about a command to the given print writer.
+   *
+   * @param command command to print info
+   * @param pw where to print the info
+   */
+  public static void printCommandInfo(ShellCommand command, PrintWriter pw) {
+    String description =
+        String.format("%s: %s", command.getCommandName(), command.getDescription());
+    // TODO(binfan): instead of using a constant, adjust the value according to console width
+    int width = HELP_FORMATTER.getWidth();
+    HELP_FORMATTER.printWrapped(pw, width, description);
+    HELP_FORMATTER.printUsage(pw, width, command.getUsage());
+    if (command.getOptions().getOptions().size() > 0) {
+      HELP_FORMATTER.printOptions(pw, width, command.getOptions(), HELP_FORMATTER.getLeftPadding(),
+          HELP_FORMATTER.getDescPadding());
+    }
+  }
 
   /**
    * @param fs the filesystem of Alluxio
@@ -46,40 +65,28 @@ public final class HelpCommand extends AbstractShellCommand {
     return "help";
   }
 
-  private final Map<String, ShellCommand> mCommands = new HashMap<>();
-
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    SortedSet<String> sortedCmds = null;
-    AlluxioShellUtils.loadCommands(mFileSystem, mCommands);
+    SortedSet<String> sortedCmds;
+    Map<String, ShellCommand> commands = AlluxioShellUtils.loadCommands(mFileSystem);
     try (PrintWriter pw = new PrintWriter(System.out)) {
       if (args.length == 0) {
         // print help messages for all supported commands.
-        sortedCmds = new TreeSet<>(mCommands.keySet());
-        for (String cmd : sortedCmds) {
-          printCommandInfo(cmd, pw);
+        sortedCmds = new TreeSet<>(commands.keySet());
+        for (String commandName : sortedCmds) {
+          ShellCommand command = commands.get(commandName);
+          printCommandInfo(command, pw);
           pw.println();
         }
-      } else if (mCommands.containsKey(args[0])) {
-        printCommandInfo(args[0], pw);
+      } else if (commands.containsKey(args[0])) {
+        ShellCommand command = commands.get(args[0]);
+        printCommandInfo(command, pw);
       } else {
         pw.println(args[0] + " is an unknown command.");
+        return -1;
       }
       return 0;
-    }
-  }
-
-  private void printCommandInfo(String commandName, PrintWriter pw) {
-    ShellCommand command = mCommands.get(commandName);
-    String description = String.format("%s: %s", commandName, command.getDescription());
-    HelpFormatter help = new HelpFormatter();
-    int width = help.getWidth();
-    help.printWrapped(pw, width, description);
-    help.printUsage(pw, width, command.getUsage());
-    if (command.getOptions().getOptions().size() > 0) {
-      help.printOptions(pw, width, command.getOptions(), help.getLeftPadding(),
-          help.getDescPadding());
     }
   }
 

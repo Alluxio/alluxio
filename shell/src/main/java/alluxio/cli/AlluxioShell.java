@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -72,7 +71,7 @@ public final class AlluxioShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Map<String, ShellCommand> mCommands = new HashMap<>();
+  private final Map<String, ShellCommand> mCommands;
   private final FileSystem mFileSystem;
 
   /**
@@ -80,7 +79,7 @@ public final class AlluxioShell implements Closeable {
    */
   public AlluxioShell() {
     mFileSystem = FileSystem.Factory.get();
-    AlluxioShellUtils.loadCommands(mFileSystem, mCommands);
+    mCommands = AlluxioShellUtils.loadCommands(mFileSystem);
   }
 
   @Override
