@@ -23,8 +23,6 @@ import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.resource.LockBlockResource;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -70,13 +68,11 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param workerNetAddress the worker network address
    * @param context the file system context
    * @param options the options
-   * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
-      throws IOException {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -88,9 +84,6 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (AlluxioStatusException | AlluxioException | IOException e) {
-      CommonUtils.closeQuietly(closer);
-      throw CommonUtils.castToIOException(e);
     } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);
       throw e;
@@ -105,13 +98,11 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param workerNetAddress the worker network address
    * @param context the file system context
    * @param options the options
-   * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
-    throws IOException {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -124,9 +115,6 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (AlluxioStatusException | AlluxioException | IOException e) {
-      CommonUtils.closeQuietly(closer);
-      throw CommonUtils.castToIOException(e);
     } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);
       throw e;
@@ -191,10 +179,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
                 !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (AlluxioStatusException | AlluxioException | IOException e) {
-      CommonUtils.closeQuietly(closer);
-      throw CommonUtils.castToIOException(e);
-    } catch (RuntimeException e) {
+    } catch (Exception e) {
       CommonUtils.closeQuietly(closer);
       throw e;
     }

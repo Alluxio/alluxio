@@ -29,15 +29,16 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.master.block.BlockId;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,7 +193,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       try {
         mCurrentCacheStream.write(data);
       } catch (IOException e) {
-        handleCacheStreamIOException(e);
+        handleCacheStreamException(e);
       }
     }
     return data;
@@ -228,7 +229,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           try {
             mCurrentCacheStream.write(b, currentOffset, bytesRead);
           } catch (IOException e) {
-            handleCacheStreamIOException(e);
+            handleCacheStreamException(e);
           }
         }
         mPos += bytesRead;
@@ -348,7 +349,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
               .setBlockSize(length));
       return StreamFactory.createUfsBlockInStream(mContext, path, blockId, length, blockStart,
           address, mInStreamOptions);
-    } catch (AlluxioException e) {
+    } catch (Exception e) {
       throw new IOException(e);
     }
   }
@@ -457,8 +458,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param e the exception to handle
    */
-  private void handleCacheStreamIOException(IOException e) {
-    if (e.getCause() instanceof BlockAlreadyExistsException) {
+  private void handleCacheStreamException(Exception e) {
+    if (Throwables.getRootCause(e) instanceof AlreadyExistsException) {
       // This can happen if there are two readers trying to cache the same block. The first one
       // created the block (either as temp block or committed block). The second sees this
       // exception.
@@ -552,10 +553,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           mCacheLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
       mCurrentCacheStream =
           mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
-    } catch (IOException e) {
-      handleCacheStreamIOException(e);
-    } catch (AlluxioException e) {
-      LOG.warn("The block with ID {} could not be cached into Alluxio storage.", blockId, e);
+    } catch (Exception e) {
+      handleCacheStreamException(e);
     }
   }
 
@@ -591,13 +590,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mAlluxioStorageType.isPromote()) {
         try {
           mBlockStore.promote(blockId);
-        } catch (IOException e) {
+        } catch (Exception e) {
           // Failed to promote.
           LOG.warn("Promotion of block with ID {} failed.", blockId, e);
         }
       }
       return mBlockStore.getInStream(blockId, mInStreamOptions);
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);
       if (!mStatus.isPersisted()) {

@@ -18,8 +18,8 @@ import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerThriftClientPool;
 import alluxio.client.netty.NettyClient;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
@@ -250,7 +250,7 @@ public final class FileSystemContext implements Closeable {
    * @throws IOException if it fails to create a worker client for a given hostname (e.g. no block
    *         worker is available for the given worker RPC address)
    */
-  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) throws IOException {
+  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) {
     return createBlockWorkerClient(address, IdUtils.getRandomNonNegativeLong());
   }
 
@@ -260,12 +260,10 @@ public final class FileSystemContext implements Closeable {
    * @param address the address of the worker to get a client to
    * @param sessionId the session ID
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
-   *         worker is available for the given worker RPC address)
    */
   // TODO(peis): Abstract the logic to operate on the pools.
   public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address,
-      Long sessionId) throws IOException {
+      Long sessionId) {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
 
@@ -373,7 +371,7 @@ public final class FileSystemContext implements Closeable {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       infos = blockMasterClient.getWorkerInfoList();
-    } catch (AlluxioException e) {
+    } catch (UnavailableException e) {
       throw new IOException(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);

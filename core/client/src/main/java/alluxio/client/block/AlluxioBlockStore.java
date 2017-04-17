@@ -19,11 +19,10 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -93,23 +92,18 @@ public final class AlluxioBlockStore {
    *
    * @param blockId the blockId to obtain information about
    * @return a {@link BlockInfo} containing the metadata of the block
-   * @throws IOException if the block does not exist
    */
   public BlockInfo getInfo(long blockId) throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       return masterClientResource.get().getBlockInfo(blockId);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
     }
   }
 
   /**
    * @return the info of all active block workers
-   * @throws IOException when work info list cannot be obtained from master
-   * @throws AlluxioException if network connection failed
    */
-  public List<BlockWorkerInfo> getWorkerInfoList() throws IOException, AlluxioException {
+  public List<BlockWorkerInfo> getWorkerInfoList() {
     List<BlockWorkerInfo> infoList = new ArrayList<>();
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
@@ -127,20 +121,16 @@ public final class AlluxioBlockStore {
    * @param blockId the block to read from
    * @param options the options
    * @return an {@link InputStream} which can be used to read the data in a streaming fashion
-   * @throws IOException if the block does not exist
    */
-  public BlockInStream getInStream(long blockId, InStreamOptions options)
-      throws IOException {
+  public BlockInStream getInStream(long blockId, InStreamOptions options) {
     BlockInfo blockInfo;
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
     }
 
     if (blockInfo.getLocations().isEmpty()) {
-      throw new IOException("Block " + blockId + " is not available in Alluxio");
+      throw new NotFoundException("Block " + blockId + " is not available in Alluxio");
     }
     // TODO(calvin): Get location via a policy.
     // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
@@ -186,7 +176,6 @@ public final class AlluxioBlockStore {
    * @param options the output stream options
    * @return an {@link BlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
-   * @throws IOException if the block cannot be written
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
@@ -194,8 +183,6 @@ public final class AlluxioBlockStore {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
           mContext.acquireBlockMasterClientResource()) {
         blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
-      } catch (AlluxioException e) {
-        throw new IOException(e);
       }
     }
     // No specified location to write to.
@@ -233,7 +220,7 @@ public final class AlluxioBlockStore {
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     try {
       address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockSize);
-    } catch (AlluxioException e) {
+    } catch (AlluxioStatusException e) {
       throw new IOException(e);
     }
     return getOutStream(blockId, blockSize, address, options);
@@ -243,14 +230,11 @@ public final class AlluxioBlockStore {
    * Gets the total capacity of Alluxio's BlockStore.
    *
    * @return the capacity in bytes
-   * @throws IOException when the connection to the client fails
    */
-  public long getCapacityBytes() throws IOException {
+  public long getCapacityBytes() {
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       return blockMasterClientResource.get().getCapacityBytes();
-    } catch (ConnectionFailedException e) {
-      throw new IOException(e);
     }
   }
 
@@ -258,14 +242,11 @@ public final class AlluxioBlockStore {
    * Gets the used bytes of Alluxio's BlockStore.
    *
    * @return the used bytes of Alluxio's BlockStore
-   * @throws IOException when the connection to the client fails
    */
-  public long getUsedBytes() throws IOException {
+  public long getUsedBytes() {
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       return blockMasterClientResource.get().getUsedBytes();
-    } catch (ConnectionFailedException e) {
-      throw new IOException(e);
     }
   }
 
@@ -275,15 +256,12 @@ public final class AlluxioBlockStore {
    * receive the promotion request.
    *
    * @param blockId the id of the block to promote
-   * @throws IOException if the block does not exist
    */
-  public void promote(long blockId) throws IOException {
+  public void promote(long blockId) {
     BlockInfo info;
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       info = blockMasterClientResource.get().getBlockInfo(blockId);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
     }
     if (info.getLocations().isEmpty()) {
       // Nothing to promote
@@ -295,8 +273,6 @@ public final class AlluxioBlockStore {
         info.getLocations().get(0).getWorkerAddress(), null  /* no session */);
     try {
       blockWorkerClient.promoteBlock(blockId);
-    } catch (AlluxioStatusException | AlluxioException e) {
-      throw new IOException(e);
     } finally {
       blockWorkerClient.close();
     }

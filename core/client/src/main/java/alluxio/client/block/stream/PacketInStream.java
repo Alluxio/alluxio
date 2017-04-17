@@ -60,10 +60,8 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @param id the ID
    * @param length the block or file length
    * @return the {@link PacketInStream} created
-   * @throws IOException if it fails to create the object
    */
-  public static PacketInStream createLocalPacketInStream(String path, long id, long length)
-      throws IOException {
+  public static PacketInStream createLocalPacketInStream(String path, long id, long length) {
     return new PacketInStream(new LocalFilePacketReader.Factory(path), id, length);
   }
 

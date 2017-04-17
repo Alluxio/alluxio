@@ -89,10 +89,9 @@ public final class StreamFactory {
    * @param address the Alluxio worker address
    * @param options the in stream options
    * @return the {@link InputStream} object
-   * @throws IOException if it fails to create the input stream
    */
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
-      long blockSize, WorkerNetAddress address, InStreamOptions options) throws IOException {
+      long blockSize, WorkerNetAddress address, InStreamOptions options) {
     return BlockInStream.createRemoteBlockInStream(blockId, blockSize, address, context, options);
   }
 

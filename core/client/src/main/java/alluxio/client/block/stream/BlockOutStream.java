@@ -16,7 +16,7 @@ import alluxio.client.Cancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.AlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -142,17 +142,16 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       mCloser.close();
     } catch (Throwable e) {
       // Ignore
-    } finally {
-      mClosed = true;
-      if (throwable instanceof IOException) {
-        throw (IOException) throwable;
-      }
-      throw new IOException(throwable);
     }
+    mClosed = true;
+    if (throwable instanceof IOException) {
+      throw (IOException) throwable;
+    }
+    throw new IOException(throwable);
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }
@@ -161,12 +160,14 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       if (remaining() < mBlockSize) {
         mBlockWorkerClient.cacheBlock(mBlockId);
       }
-    } catch (AlluxioException e) {
-      mCloser.rethrow(new IOException(e));
-    } catch (Throwable e) {
-      mCloser.rethrow(e);
+    } catch (IOException e) {
+      throw new UnavailableException(e);
     } finally {
-      mCloser.close();
+      try {
+        mCloser.close();
+      } catch (IOException e) {
+        throw new UnavailableException(e);
+      }
       mClosed = true;
     }
   }

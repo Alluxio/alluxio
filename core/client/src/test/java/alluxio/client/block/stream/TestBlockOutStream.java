@@ -58,7 +58,7 @@ public class TestBlockOutStream extends BlockOutStream {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     super.close();
     mClosed = true;
   }
