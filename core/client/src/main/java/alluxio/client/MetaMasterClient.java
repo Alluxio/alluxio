@@ -11,7 +11,6 @@
 
 package alluxio.client;
 
-import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
@@ -25,7 +24,6 @@ public interface MetaMasterClient extends Closeable {
   /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried
    * @return the requested master info
-   * @throws ConnectionFailedException if the connection fails during the call
    */
-  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields) throws ConnectionFailedException;
+  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields);
 }

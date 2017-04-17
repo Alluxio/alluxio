@@ -22,7 +22,7 @@ public interface Cancelable {
    * Cancels the write to Alluxio storage. This will delete all the temporary data and metadata
    * that has been written to the worker(s). This method should be called when a write is aborted.
    *
-   * @throws IOException if there is a failure when the worker invalidates the cache attempt
+   * @throws IOException if an IO exceptions occurs
    */
   void cancel() throws IOException;
 }
