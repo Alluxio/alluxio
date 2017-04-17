@@ -126,7 +126,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   /**
-   * Create file system master from journal.
+   * Creates file system master from journal.
    */
   private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
