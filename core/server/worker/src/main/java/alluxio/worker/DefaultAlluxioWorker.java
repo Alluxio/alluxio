@@ -28,8 +28,8 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
-
 import alluxio.worker.file.FileSystemWorkerClientServiceHandler;
+
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;

@@ -18,7 +18,6 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DataServer;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
