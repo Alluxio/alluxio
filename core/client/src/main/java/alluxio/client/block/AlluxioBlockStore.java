@@ -21,7 +21,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
@@ -35,7 +34,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +91,7 @@ public final class AlluxioBlockStore {
    * @param blockId the blockId to obtain information about
    * @return a {@link BlockInfo} containing the metadata of the block
    */
-  public BlockInfo getInfo(long blockId) throws IOException {
+  public BlockInfo getInfo(long blockId) {
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       return masterClientResource.get().getBlockInfo(blockId);
@@ -147,7 +145,7 @@ public final class AlluxioBlockStore {
           try {
             return StreamFactory.createLocalBlockInStream(mContext, blockId, blockInfo.getLength(),
                 workerNetAddress, options);
-          } catch (IOException e) {
+          } catch (Exception e) {
             LOG.warn("Failed to open local stream for block {}: {}", blockId, e.getMessage());
             // Getting a local stream failed, do not try again
             break;
@@ -178,7 +176,7 @@ public final class AlluxioBlockStore {
    *         streaming fashion
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
-      OutStreamOptions options) throws IOException {
+      OutStreamOptions options) {
     if (blockSize == -1) {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
           mContext.acquireBlockMasterClientResource()) {
@@ -211,18 +209,12 @@ public final class AlluxioBlockStore {
    * @param options the output stream option
    * @return a {@link BlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
-   * @throws IOException if the block cannot be written
    */
-  public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
-      throws IOException {
+  public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options) {
     WorkerNetAddress address;
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
-    try {
-      address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockSize);
-    } catch (AlluxioStatusException e) {
-      throw new IOException(e);
-    }
+    address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockSize);
     return getOutStream(blockId, blockSize, address, options);
   }
 

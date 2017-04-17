@@ -140,13 +140,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param blockStart the position at which the block starts in the file
    * @param workerNetAddress the worker network address
    * @param options the options
-   * @throws IOException if it fails to create an instance
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart,
-      WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {
+      WorkerNetAddress workerNetAddress, InStreamOptions options) {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
