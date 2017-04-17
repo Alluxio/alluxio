@@ -9,19 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journalv0;
 
-import java.io.IOException;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 /**
- * This interface enables streaming out to the journal checkpoint.
+ * This interface enables representing a class as a {@link JournalEntry}.
  */
-public interface JournalCheckpointStreamable {
+public interface JournalEntryRepresentable {
   /**
-   * Writes to the journal, in a streaming fashion, via the {@link JournalOutputStream}.
-   *
-   * @param outputStream the output stream to write to for the journal checkpoint
-   * @throws IOException if an I/O error occurs
+   * @return the {@link JournalEntry} representing this object
    */
-  void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException;
+  JournalEntry toJournalEntry();
 }

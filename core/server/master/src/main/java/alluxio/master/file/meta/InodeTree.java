@@ -28,9 +28,8 @@ import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.journal.JournalCheckpointStreamable;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -53,8 +52,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
@@ -65,7 +66,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public class InodeTree implements JournalCheckpointStreamable {
+public class InodeTree implements JournalEntryIterable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
   /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
   private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
@@ -871,18 +872,34 @@ public class InodeTree implements JournalCheckpointStreamable {
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     // Write tree via breadth-first traversal, so that during deserialization, it may be more
     // efficient than depth-first during deserialization due to parent directory's locality.
-    Queue<Inode<?>> inodes = new LinkedList<>();
+    final Queue<Inode<?>> inodes = new LinkedList<>();
     inodes.add(mRoot);
-    while (!inodes.isEmpty()) {
-      Inode<?> inode = inodes.poll();
-      outputStream.write(inode.toJournalEntry());
-      if (inode.isDirectory()) {
-        inodes.addAll(((InodeDirectory) inode).getChildren());
+    return new Iterator<Journal.JournalEntry>() {
+      @Override
+      public boolean hasNext() {
+        return !inodes.isEmpty();
       }
-    }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        Inode<?> inode = inodes.poll();
+        if (inode.isDirectory()) {
+          inodes.addAll(((InodeDirectory) inode).getChildren());
+        }
+        return inode.toJournalEntry();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("InodeTree#Iterator#remove is not supported");
+      }
+    };
   }
 
   /**

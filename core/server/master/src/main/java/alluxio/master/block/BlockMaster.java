@@ -34,8 +34,6 @@ import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalInputStream;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -44,6 +42,7 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -54,6 +53,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.apache.thrift.TProcessor;
@@ -67,8 +67,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Future;
 
@@ -204,14 +206,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    // clear state before processing checkpoint.
-    mBlocks.clear();
-    super.processJournalCheckpoint(inputStream);
-  }
-
-  @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      // This is the first journal entry, clear the master state.
+      mBlocks.clear();
+    }
     // TODO(gene): A better way to process entries besides a huge switch?
     if (entry.hasBlockContainerIdGenerator()) {
       mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
@@ -232,14 +231,34 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    outputStream.write(getContainerIdJournalEntry());
-    for (MasterBlockInfo blockInfo : mBlocks.values()) {
-      BlockInfoEntry blockInfoEntry =
-          BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
-              .setLength(blockInfo.getLength()).build();
-      outputStream.write(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
-    }
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    final Iterator<MasterBlockInfo> it = mBlocks.values().iterator();
+    Iterator<JournalEntry> blockIterator = new Iterator<JournalEntry>() {
+      @Override
+      public boolean hasNext() {
+        return it.hasNext();
+      }
+
+      @Override
+      public JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        MasterBlockInfo info = it.next();
+        BlockInfoEntry blockInfoEntry =
+            BlockInfoEntry.newBuilder().setBlockId(info.getBlockId())
+                .setLength(info.getLength()).build();
+        return JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("BlockMaster#Iterator#remove is not supported.");
+      }
+    };
+
+    return Iterators
+        .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator);
   }
 
   @Override

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.ufs;
+package alluxio.master.journalv0.ufs;
 
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;

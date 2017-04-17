@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.LeaderSelectorClient;
 import alluxio.PropertyKey;
-import alluxio.master.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -35,7 +34,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
   private static final Logger LOG = LoggerFactory.getLogger(FaultTolerantAlluxioMaster.class);
 
   /** The zookeeper client that handles selecting the leader. */
-  private LeaderSelectorClient mLeaderSelectorClient = null;
+  private LeaderSelectorClient mLeaderSelectorClient;
 
   /**
    * Creates a {@link FaultTolerantAlluxioMaster}.
@@ -55,7 +54,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
 
       // Check that the journal has been formatted.
-      checkJournalFormatted();
+      MasterUtils.checkJournalFormatted();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -78,10 +77,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
       if (mLeaderSelectorClient.isLeader()) {
         stopServing();
         stopMasters();
-        // Transitioning from standby to leader, replace read-only journal with writable journal.
-        for (Master master : mRegistry.getMasters()) {
-          master.transitionToLeader();
-        }
+
         startMasters(true);
         started = true;
         startServing("(gained leadership)", "(lost leadership)");
@@ -92,9 +88,6 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           stopServing();
           stopMasters();
 
-          // When transitioning from leader to standby, recreate the masters with a read-only
-          // journal.
-          createMasters(new Journal.Factory(getJournalLocation()));
           startMasters(false);
           started = true;
         }
