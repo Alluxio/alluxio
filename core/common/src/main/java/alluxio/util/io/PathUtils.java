@@ -106,7 +106,7 @@ public final class PathUtils {
     String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
-      // The parent is the root path
+      // The parent is the root path.
       return AlluxioURI.SEPARATOR;
     }
     return parent;
