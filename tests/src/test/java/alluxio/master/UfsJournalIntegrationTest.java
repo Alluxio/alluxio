@@ -680,10 +680,19 @@ public class UfsJournalIntegrationTest {
     registry.stop();
   }
 
+  /**
+   * Create File System Master from Journal.
+   * @return a MasterRegistry
+   * @throws Exception
+   */
   private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
+  /**
+   * Delete File System Master Journal Logs.
+   * @throws Exception
+   */
   private void deleteFsMasterJournalLogs() throws Exception {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
     UfsJournal journal = new UfsMutableJournal(
