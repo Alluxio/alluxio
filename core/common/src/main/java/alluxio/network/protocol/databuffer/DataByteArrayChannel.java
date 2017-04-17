@@ -31,7 +31,7 @@ public final class DataByteArrayChannel implements DataBuffer {
    * @param length the length of the data
    */
   public DataByteArrayChannel(byte[] byteArray, long offset, long length) {
-    mByteArray = Preconditions.checkNotNull(byteArray);
+    mByteArray = Preconditions.checkNotNull(byteArray, "byteArray");
     mOffset = offset;
     mLength = length;
   }
