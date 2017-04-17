@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.ufs;
+package alluxio.master.journalv0.ufs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.MutableJournal;
+import alluxio.master.journalv0.JournalWriter;
+import alluxio.master.journalv0.MutableJournal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;

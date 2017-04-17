@@ -9,24 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journalv0;
 
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.IOException;
 
 /**
- * This output stream writes {@link JournalEntry} objects to the journal. This output stream can
- * write to both the journal checkpoint and the journal logs.
+ * This input stream retrieves {@link JournalEntry} from journal checkpoints and journal logs.
  */
-public interface JournalOutputStream extends AutoCloseable {
+public interface JournalInputStream extends AutoCloseable {
   /**
-   * Writes a {@link JournalEntry} to the journal.
+   * Reads the next journal entry.
    *
-   * @param entry the entry to write to the journal
-   * @throws IOException if an I/O error occurs
+   * @return the next {@link JournalEntry} in the stream, or null if the are no more entries
+   * @throws IOException if a non-Alluxio related exception occurs
    */
-  void write(JournalEntry entry) throws IOException;
+  JournalEntry read() throws IOException;
 
   /**
    * Closes the stream.
@@ -36,9 +35,7 @@ public interface JournalOutputStream extends AutoCloseable {
   void close() throws IOException;
 
   /**
-   * Flushes the stream.
-   *
-   * @throws IOException if an I/O error occurs
+   * @return the sequence number of the latest journal entry seen in the stream
    */
-  void flush() throws IOException;
+  long getLatestSequenceNumber();
 }

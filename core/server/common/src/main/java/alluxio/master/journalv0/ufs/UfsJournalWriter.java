@@ -9,15 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.ufs;
+package alluxio.master.journalv0.ufs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.journal.JournalFormatter;
-import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.JournalWriter;
+import alluxio.master.journalv0.JournalFormatter;
+import alluxio.master.journalv0.JournalOutputStream;
+import alluxio.master.journalv0.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;

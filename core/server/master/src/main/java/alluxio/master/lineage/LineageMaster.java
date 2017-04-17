@@ -34,7 +34,6 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
 import alluxio.master.lineage.meta.Lineage;
@@ -46,6 +45,7 @@ import alluxio.master.lineage.recompute.RecomputePlanner;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.thrift.LineageMasterClientService;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -54,6 +54,7 @@ import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +79,7 @@ public final class LineageMaster extends AbstractMaster {
   private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
 
   private final FileSystemMaster mFileSystemMaster;
-  private final LineageStore mLineageStore;
+  private LineageStore mLineageStore;
   private final LineageIdGenerator mLineageIdGenerator;
 
   /**
@@ -129,6 +131,9 @@ public final class LineageMaster extends AbstractMaster {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      mLineageStore = new LineageStore(mLineageIdGenerator);
+    }
     if (entry.hasLineage()) {
       mLineageStore.addLineageFromJournal(entry.getLineage());
     } else if (entry.hasLineageIdGenerator()) {
@@ -155,10 +160,9 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
-      throws IOException {
-    mLineageStore.streamToJournalCheckpoint(outputStream);
-    outputStream.write(mLineageIdGenerator.toJournalEntry());
+  public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(mLineageStore.getJournalEntryIterator(),
+        CommonUtils.singleElementIterator(mLineageIdGenerator.toJournalEntry()));
   }
 
   /**

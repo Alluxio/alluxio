@@ -9,17 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
-
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doThrow;
+package alluxio.master.journal.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.UnderFileSystemSpy;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -28,11 +24,13 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsMutableJournal;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -52,7 +50,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
@@ -61,16 +58,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
- * followed by the checkpoint.
+ * Test master journal, including checkpoint and entry log.
  */
 public class UfsJournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB))
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-        .build();
+          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+              Integer.toString(Constants.KB))
+          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false").build();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -124,28 +121,22 @@ public class UfsJournalIntegrationTest {
    * Tests flushing the journal multiple times, without writing any data.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0"})
   public void multipleFlush() throws Exception {
-    // Set the max log size to 0 to force a flush to write a new file.
-    String existingMax = Configuration.get(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
-    try {
-      String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-      UfsMutableJournal journal = new UfsMutableJournal(
-          new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
-      JournalWriter writer = journal.getWriter();
-      writer.getCheckpointOutputStream(0).close();
+    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+    UfsJournal journal = new UfsJournal(
+        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+    try (JournalWriter writer =
+        journal.getWriter(JournalWriterOptions.defaults().setPrimary(true))) {
       // Flush multiple times, without writing to the log.
       writer.flush();
       writer.flush();
       writer.flush();
-      UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
-          .listStatus(journal.getCompletedLocation().toString());
-      // Make sure no new empty files were created.
-      Assert.assertTrue(paths == null || paths.length == 0);
-    } finally {
-      // Reset the max log size.
-      Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
     }
+    UnderFileStatus[] paths =
+        UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
+    Assert.assertTrue(paths == null || paths.length == 0);
   }
 
   /**
@@ -191,13 +182,13 @@ public class UfsJournalIntegrationTest {
 
     String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
         Constants.FILE_SYSTEM_MASTER_NAME);
-    UfsJournal journal = new UfsMutableJournal(new URI(journalFolder));
-    URI completedLocation = journal.getCompletedLocation();
+    UfsJournal journal = new UfsJournal(new URI(journalFolder));
+    URI completedLocation = journal.getLogDir();
     Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
     Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
-        .listStatus(completedLocation.toString()).length <= 1);
+        .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }
 
@@ -479,10 +470,10 @@ public class UfsJournalIntegrationTest {
     mFileSystem.mount(mountUri, ufsUri);
     mLocalAlluxioCluster.stopFS();
 
-    // Start a leader master, which will create a new checkpoint, with a mount entry.
+    // Start a leader master with a mount entry.
     MasterTestUtils.createLeaderFileSystemMasterFromJournal().stop();
 
-    // Start a standby master, which will replay the mount entry from the checkpoint.
+    // Start a standby master, which will replay the mount entry from the journal.
     MasterRegistry registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
     final FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     try {
@@ -593,84 +584,6 @@ public class UfsJournalIntegrationTest {
     aclTestUtil(status, user);
   }
 
-  @Test
-  public void failDuringCheckpointRename() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    mFileSystem.createFile(file).close();
-    // Restart the master once so that it creates a checkpoint file.
-    mLocalAlluxioCluster.stopFS();
-    createFsMasterFromJournal();
-    AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
-    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
-      doThrow(new RuntimeException("Failed to rename")).when(ufsSpy.get())
-          .renameFile(Mockito.contains("FileSystemMaster/checkpoint.data.tmp"), anyString());
-      try {
-        // Restart the master again, but with renaming the checkpoint file failing.
-        mLocalAlluxioCluster.stopFS();
-        createFsMasterFromJournal();
-        Assert.fail("Should have failed during rename");
-      } catch (RuntimeException e) {
-        Assert.assertEquals("Failed to rename", e.getMessage());
-      }
-    }
-    // We shouldn't lose track of the fact that the file is loaded into memory.
-    MasterRegistry registry = createFsMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-    Assert.assertTrue(fsMaster.getInMemoryFiles().contains(file));
-    registry.stop();
-  }
-
-  @Test
-  public void failDuringCheckpointDelete() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    mFileSystem.createFile(file).close();
-    // Restart the master once so that it creates a checkpoint file.
-    mLocalAlluxioCluster.stopFS();
-    createFsMasterFromJournal();
-    AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
-    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
-      doThrow(new RuntimeException("Failed to delete")).when(ufsSpy.get())
-          .deleteFile(Mockito.contains("FileSystemMaster/checkpoint.data"));
-      try {
-        // Restart the master again, but with deleting the checkpoint file failing.
-        mLocalAlluxioCluster.stopFS();
-        createFsMasterFromJournal();
-        Assert.fail("Should have failed during delete");
-      } catch (RuntimeException e) {
-        Assert.assertEquals("Failed to delete", e.getMessage());
-      }
-    }
-    // We shouldn't lose track of the fact that the file is loaded into memory.
-    MasterRegistry registry = createFsMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-    Assert.assertTrue(fsMaster.getInMemoryFiles().contains(file));
-    registry.stop();
-  }
-
-  @Test
-  public void failWhileDeletingCompletedLogs() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    mFileSystem.createFile(file).close();
-    AlluxioURI journal = new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
-    try (UnderFileSystemSpy ufsSpy = new UnderFileSystemSpy(journal)) {
-      doThrow(new RuntimeException("Failed to delete completed log")).when(ufsSpy.get())
-          .deleteFile(Mockito.contains("FileSystemMaster/completed"));
-      try {
-        // Restart the master again, but with deleting the checkpoint file failing.
-        mLocalAlluxioCluster.stopFS();
-        createFsMasterFromJournal();
-        Assert.fail("Should have failed during delete");
-      } catch (RuntimeException e) {
-        Assert.assertEquals("Failed to delete completed log", e.getMessage());
-      }
-    }
-    // We shouldn't lose track of the fact that the file is loaded into memory.
-    MasterRegistry registry = createFsMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-    Assert.assertTrue(fsMaster.getInMemoryFiles().contains(file));
-    registry.stop();
-  }
-
   private void aclTestUtil(URIStatus status, String user) throws Exception {
     MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
@@ -686,9 +599,12 @@ public class UfsJournalIntegrationTest {
 
   private void deleteFsMasterJournalLogs() throws Exception {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
-    UfsJournal journal = new UfsMutableJournal(
+    UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
-    UnderFileSystem.Factory.get(journalFolder).deleteFile(journal.getCurrentLog().toString());
+    if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
+      UnderFileSystem.Factory.get(journalFolder)
+          .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());
+    }
   }
 
   /**
@@ -698,7 +614,7 @@ public class UfsJournalIntegrationTest {
     // The fullly qualified class name of this group mapping service. This is needed to configure
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
-        "alluxio.master.UfsJournalIntegrationTest$FakeUserGroupsMapping";
+        "alluxio.master.journal.ufs.UfsJournalIntegrationTest$FakeUserGroupsMapping";
 
     private HashMap<String, String> mUserGroups = new HashMap<>();
 

@@ -26,9 +26,8 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalOutputStream;
-import alluxio.master.journal.MutableJournal;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 
@@ -42,11 +41,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -83,7 +82,7 @@ public final class InodeTreeTest {
   public void before() throws Exception {
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory =
-        new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
+        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
 
     BlockMaster blockMaster = new BlockMaster(registry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
@@ -662,12 +661,12 @@ public final class InodeTreeTest {
 
   // helper for verifying that correct objects were journaled to the output stream
   private static void verifyJournal(InodeTree root, List<Inode<?>> journaled) throws Exception {
-    JournalOutputStream mockOutputStream = Mockito.mock(JournalOutputStream.class);
-    root.streamToJournalCheckpoint(mockOutputStream);
+    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = root.getJournalEntryIterator();
     for (Inode<?> node : journaled) {
-      Mockito.verify(mockOutputStream).write(node.toJournalEntry());
+      Assert.assertTrue(it.hasNext());
+      Assert.assertEquals(node.toJournalEntry(), it.next());
     }
-    Mockito.verifyNoMoreInteractions(mockOutputStream);
+    Assert.assertTrue(!it.hasNext());
   }
 
   // verify that the tree has the given children

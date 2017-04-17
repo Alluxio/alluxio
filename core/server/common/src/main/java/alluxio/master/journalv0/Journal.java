@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journalv0;
 
-import alluxio.master.journal.ufs.UfsMutableJournal;
+import alluxio.master.journalv0.ufs.UfsJournal;
 import alluxio.util.URIUtils;
 
 import java.io.IOException;
@@ -21,21 +21,21 @@ import java.net.URISyntaxException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The read-write journal. This allows both reads and writes to the journal.
+ * The read-only journal. It prevents access to a {@link JournalWriter}.
  */
 @ThreadSafe
-public interface MutableJournal extends Journal {
+public interface Journal {
 
   /**
-   * A {@link MutableJournal} factory.
+   * A {@link Journal} factory.
    */
   @ThreadSafe
   final class Factory implements JournalFactory {
     private final URI mBase;
 
     /**
-     * Creates a read-write journal factory with the specified base location. When journals are
-     * created, their names are appended to the base path.
+     * Creates a read-only journal factory with the specified base location. When journals are
+     * created, their names are appended to the base location.
      *
      * @param base the base location for journals created by this factory
      */
@@ -44,34 +44,38 @@ public interface MutableJournal extends Journal {
     }
 
     @Override
-    public MutableJournal create(String name) {
+    public Journal create(String name) {
       try {
-        return new UfsMutableJournal(URIUtils.appendPath(mBase, name));
+        return new UfsJournal(URIUtils.appendPath(mBase, name));
       } catch (URISyntaxException e) {
         throw new RuntimeException(e);
       }
     }
 
     /**
-     * Creates a new read-write journal using the given location.
+     * Creates a new read-only journal using the given location.
      *
      * @param location the journal location
      * @return a new instance of {@link Journal}
      */
-    public static MutableJournal create(URI location) {
-      return new UfsMutableJournal(location);
+    public static Journal create(URI location) {
+      return new UfsJournal(location);
     }
   }
 
   /**
-   * Formats the journal.
-   *
-   * @throws IOException if an I/O error occurs
+   * @return the journal location
    */
-  void format() throws IOException;
+  URI getLocation();
 
   /**
-   * @return the {@link JournalWriter} for this journal
+   * @return the {@link JournalReader} for this journal
    */
-  JournalWriter getWriter();
+  JournalReader getReader();
+
+  /**
+   * @return whether the journal has been formatted
+   * @throws IOException if an I/O error occurs
+   */
+  boolean isFormatted() throws IOException;
 }
