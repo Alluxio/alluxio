@@ -16,7 +16,6 @@ import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -86,15 +85,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
     super();
     mFileSystem = fs;
-    // TODO(andrew): get rid of the MASTER_ADDRESS property key
-    if (Configuration.containsKey(PropertyKey.MASTER_HOSTNAME)) {
-      String masterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
-      String masterPort = Configuration.get(PropertyKey.MASTER_RPC_PORT);
-      boolean useZk = Boolean.parseBoolean(Configuration.get(PropertyKey.ZOOKEEPER_ENABLED));
-      String masterAddress =
-          (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-      Configuration.set(PropertyKey.MASTER_ADDRESS, masterAddress);
-    }
     mAlluxioMaster = Configuration.get(PropertyKey.MASTER_ADDRESS);
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
