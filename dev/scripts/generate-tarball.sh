@@ -44,14 +44,14 @@ git clean -fdx
 git reset --hard HEAD
 mkdir ${CLIENT_DIR}
 for PROFILE in "${FRAMEWORKS[@]}"; do
-	echo "Running build ${PROFILE} and logging to ${BUILD_LOG}"
-	mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${PROFILE} ${BUILD_OPTS} | tee ${BUILD_LOG} 2>&1
-	# Temporarily create alluxio-env.sh so that we can call bin/alluxio version
-	touch conf/alluxio-env.sh
-	VERSION=$(bin/alluxio version)
-	rm conf/alluxio-env.sh
-	mkdir ${CLIENT_DIR}/${PROFILE}
-  	cp core/client/target/alluxio-core-client-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar  
+echo "Running build ${PROFILE} and logging to ${BUILD_LOG}"
+  mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${PROFILE} ${BUILD_OPTS} | tee ${BUILD_LOG} 2>&1
+  # Temporarily create alluxio-env.sh so that we can call bin/alluxio version
+  touch conf/alluxio-env.sh
+  VERSION=$(bin/alluxio version)
+  rm conf/alluxio-env.sh
+  mkdir ${CLIENT_DIR}/${PROFILE}
+  cp core/client/target/alluxio-core-client-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar
 done
 PREFIX=alluxio-${VERSION}
 
