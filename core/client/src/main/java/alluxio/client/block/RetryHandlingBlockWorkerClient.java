@@ -41,7 +41,6 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -117,11 +116,7 @@ public final class RetryHandlingBlockWorkerClient
       // Register the session before any RPCs for this session start.
       ExponentialBackoffRetry retryPolicy =
           new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-      try {
-        sessionHeartbeat(retryPolicy);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
+      sessionHeartbeat(retryPolicy);
 
       // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
       // from the pool while it is not running.
@@ -130,8 +125,6 @@ public final class RetryHandlingBlockWorkerClient
             public void run() {
               try {
                 sessionHeartbeat(new CountingRetry(0));
-              } catch (InterruptedException e) {
-                // Do nothing.
               } catch (Exception e) {
                 LOG.warn("Failed to heartbeat for session {}", mSessionId, e.getMessage());
               }
@@ -144,7 +137,7 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public BlockWorkerClientService.Client acquireClient() throws IOException {
+  public BlockWorkerClientService.Client acquireClient() {
     try {
       return mClientPool.acquire();
     } catch (InterruptedException e) {
@@ -318,14 +311,18 @@ public final class RetryHandlingBlockWorkerClient
 
   /**
    * sessionHeartbeat is not retried because it is supposed to be called periodically.
-   *
-   * @throws InterruptedException if heartbeat is interrupted
    */
   @Override
-  public void sessionHeartbeat(RetryPolicy retryPolicy) throws InterruptedException {
+  public void sessionHeartbeat(RetryPolicy retryPolicy) {
     TException exception;
     do {
-      BlockWorkerClientService.Client client = mClientHeartbeatPool.acquire();
+      BlockWorkerClientService.Client client;
+      try {
+        client = mClientHeartbeatPool.acquire();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      }
       try {
         client.sessionHeartbeat(mSessionId, null);
         Metrics.BLOCK_WORKER_HEATBEATS.inc();

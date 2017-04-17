@@ -21,7 +21,6 @@ import alluxio.wire.WorkerInfo;
 
 import org.apache.thrift.TException;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = new BlockMasterClientService.Client(mProtocol);
   }
 

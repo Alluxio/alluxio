@@ -24,8 +24,6 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 /**
  * The base class for clients that use {@link alluxio.network.connection.ThriftClientPool}.
  *
@@ -47,7 +45,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
    *
    * @return a Thrift service client
    */
-  protected abstract C acquireClient() throws IOException;
+  protected abstract C acquireClient();
 
   /**
    * @param client the client to release
@@ -82,12 +80,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     do {
-      C client;
-      try {
-        client = acquireClient();
-      } catch (IOException e) {
-        throw new UnavailableException(e.getMessage());
-      }
+      C client = acquireClient();
       try {
         return rpc.call(client);
       } catch (AlluxioTException e) {
