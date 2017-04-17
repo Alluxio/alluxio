@@ -52,6 +52,8 @@ public final class InodeUtils {
    * @param mountTable the {@link MountTable}
    * @param journalContext the journal context
    * @throws IOException if the file fails to persist
+   * @throws InvalidPathException if the path for the inode is invalid
+   * @throws FileDoesNotExistException if the path for the inode is invalid
    */
   public static void syncPersistDirectory(InodeDirectory dir, InodeTree inodeTree,
       MountTable mountTable, JournalContext journalContext) throws IOException,
