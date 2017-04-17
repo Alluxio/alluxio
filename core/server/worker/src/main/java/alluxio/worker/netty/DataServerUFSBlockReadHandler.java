@@ -35,8 +35,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link DataServerReadHandler}.
  */
 @NotThreadSafe
-final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(DataServerUfsBlockReadHandler.class);
+final class DataServerUFSBlockReadHandler extends DataServerReadHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(DataServerUFSBlockReadHandler.class);
 
   /** The Block Worker. */
   private final BlockWorker mWorker;
@@ -78,7 +78,7 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
    * @param executorService the executor service to run {@link PacketReader}s
    * @param blockWorker the block worker
    */
-  public DataServerUfsBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker) {
+  public DataServerUFSBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker) {
     super(executorService);
     mWorker = blockWorker;
   }

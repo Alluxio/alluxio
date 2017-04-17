@@ -29,16 +29,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class PipelineHandler extends ChannelInitializer<SocketChannel> {
-  private final DataServerHandler mDataServerHandler;
   private final AlluxioWorkerService mWorker;
   private final FileTransferType mFileTransferType;
 
   /**
    * @param worker the Alluxio worker
-   * @param handler the handler for the main logic of the read path
    */
-  public PipelineHandler(AlluxioWorkerService worker, DataServerHandler handler) {
-    mDataServerHandler = handler;
+  public PipelineHandler(AlluxioWorkerService worker) {
     mWorker = worker;
     mFileTransferType = Configuration
         .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
@@ -50,20 +47,15 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
-    pipeline.addLast("dataServerHandler", mDataServerHandler);
     pipeline.addLast("dataServerBlockReadHandler",
         new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
             mWorker.getBlockWorker(), mFileTransferType));
     pipeline.addLast("dataServerUfsBlockReadHandler",
-        new DataServerUfsBlockReadHandler(NettyExecutors.UFS_BLOCK_READER_EXECUTOR,
+        new DataServerUFSBlockReadHandler(NettyExecutors.UFS_BLOCK_READER_EXECUTOR,
             mWorker.getBlockWorker()));
     pipeline.addLast("dataServerBlockWriteHandler",
         new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR,
             mWorker.getBlockWorker()));
-    // DataServerFileReadHandler is deprecated. It is here for backward compatibility.
-    pipeline.addLast("dataServerFileReadHandler",
-        new DataServerUFSFileReadHandler(NettyExecutors.UFS_BLOCK_READER_EXECUTOR,
-            mWorker.getFileSystemWorker()));
     pipeline.addLast("dataServerFileWriteHandler",
         new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
   }

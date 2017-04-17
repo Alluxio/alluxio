@@ -46,8 +46,6 @@ public final class NettyDataServer implements DataServer {
 
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
-  // Use a shared handler for all pipelines.
-  private final DataServerHandler mDataServerHandler;
 
   /**
    * Creates a new instance of {@link NettyDataServer}.
@@ -57,8 +55,7 @@ public final class NettyDataServer implements DataServer {
    *               operations
    */
   public NettyDataServer(final InetSocketAddress address, final AlluxioWorkerService worker) {
-    mDataServerHandler = new DataServerHandler(Preconditions.checkNotNull(worker));
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(worker, mDataServerHandler));
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(worker));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
