@@ -349,9 +349,7 @@ public final class RetryHandlingBlockWorkerClient
         Metrics.BLOCK_WORKER_HEATBEATS.inc();
         return;
       } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-        LOG.warn(se.getMessage());
-        throw new IOException(se);
+        throw new IOException(AlluxioStatusException.fromThrift(e));
       } catch (TException e) {
         client.getOutputProtocol().getTransport().close();
         exception = e;

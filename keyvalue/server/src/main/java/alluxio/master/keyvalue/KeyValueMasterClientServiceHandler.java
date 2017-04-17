@@ -109,8 +109,7 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
-  public void renameStore(final String oldPath, final String newPath)
-      throws AlluxioTException {
+  public void renameStore(final String oldPath, final String newPath) throws AlluxioTException {
     RpcUtils.call(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -121,8 +120,7 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
-  public void mergeStore(final String fromPath, final String toPath)
-      throws AlluxioTException {
+  public void mergeStore(final String fromPath, final String toPath) throws AlluxioTException {
     RpcUtils.call(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
