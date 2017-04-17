@@ -14,15 +14,21 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFormatter;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
+import alluxio.util.UnderFileSystemUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -30,29 +36,44 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implementation of UFS-based journal.
  *
  * The journal is made up of 2 components:
- * - The checkpoint: the full state of the master
- * - The entries: incremental entries to apply to the checkpoint.
+ * - The checkpoint:  a snapshot of the master state
+ * - The log entries: incremental entries to apply to the checkpoint.
  *
- * To construct the full state of the master, all the entries must be applied to the checkpoint in
- * order. The entry file most recently being written to is in the base journal folder, where the
- * completed entry files are in the "completed" folder.
+ * The journal log entries must be self-contained. Checkpoint is considered as a compaction of
+ * a set of journal log entries. If the master does not do any checkpoint, the journal should
+ * still be sufficient.
+ *
+ * Journal file structure:
+ * journal_folder/version/logs/StartSequenceNumber-EndSequenceNumber
+ * journal_folder/version/checkpoints/0-EndSequenceNumber
+ * journal_folder/version/.tmp/random_id
  */
 @ThreadSafe
 public class UfsJournal implements Journal {
-  /** The log number for the first completed log. */
-  protected static final long FIRST_COMPLETED_LOG_NUMBER = 1L;
-  /** The folder for completed logs. */
-  private static final String COMPLETED_LOCATION = "completed";
-  /** The file extension for the current log file. */
-  private static final String CURRENT_LOG_EXTENSION = ".out";
-  /** The file name of the checkpoint file. */
-  private static final String CHECKPOINT_FILENAME = "checkpoint.data";
-  /** The base of the entry log file names, without the file extension. */
-  private static final String ENTRY_LOG_FILENAME_BASE = "log";
+  private static final Logger LOG = LoggerFactory.getLogger(UfsJournal.class);
+  /**
+   * This is set to Long.MAX_VALUE such that the current log can be sorted after any other
+   * completed logs.
+   */
+  public static final long UNKNOWN_SEQUENCE_NUMBER = Long.MAX_VALUE;
+  /** The journal version. */
+  public static final String VERSION = "v1";
+
+  /** Directory for journal edit logs including the incomplete log file. */
+  private static final String LOG_DIRNAME = "logs";
+  /** Directory for committed checkpoints. */
+  private static final String CHECKPOINT_DIRNAME = "checkpoints";
+  /** Directory for temporary files. */
+  private static final String TMP_DIRNAME = ".tmp";
+
+  private final URI mLogDir;
+  private final URI mCheckpointDir;
+  private final URI mTmpDir;
+
   /** The location where this journal is stored. */
-  protected final URI mLocation;
-  /** The formatter for this journal. */
-  private final JournalFormatter mJournalFormatter;
+  private final URI mLocation;
+  /** The UFS where the journal is being written to. */
+  private final UnderFileSystem mUfs;
 
   /**
    * Creates a new instance of {@link UfsJournal}.
@@ -60,61 +81,22 @@ public class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    mLocation = location;
-    mJournalFormatter = JournalFormatter.Factory.create();
+    this(location, UnderFileSystem.Factory.get(location.toString()));
   }
 
   /**
-   * @return the location of the completed logs
+   * Creates a new instance of {@link UfsJournal}.
+   *
+   * @param location the location for this journal
+   * @param ufs the under file system
    */
-  public URI getCompletedLocation() {
-    try {
-      return URIUtils.appendPath(mLocation, COMPLETED_LOCATION);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
+  UfsJournal(URI location, UnderFileSystem ufs) {
+    mLocation = URIUtils.appendPathOrDie(location, VERSION);
+    mUfs = ufs;
 
-  /**
-   * @return the location of the journal checkpoint
-   */
-  protected URI getCheckpoint() {
-    try {
-      return URIUtils.appendPath(mLocation, CHECKPOINT_FILENAME);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * @return the location of the current log
-   */
-  public URI getCurrentLog() {
-    try {
-      return URIUtils.appendPath(mLocation, ENTRY_LOG_FILENAME_BASE + CURRENT_LOG_EXTENSION);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * @param logNumber the log number to get the path for
-   * @return the location of the completed log for a particular log number
-   */
-  protected URI getCompletedLog(long logNumber) {
-    try {
-      return URIUtils.appendPath(getCompletedLocation(),
-          String.format("%s.%020d", ENTRY_LOG_FILENAME_BASE, logNumber));
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * @return the {@link JournalFormatter} for this journal
-   */
-  protected JournalFormatter getJournalFormatter() {
-    return mJournalFormatter;
+    mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
+    mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
+    mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
   }
 
   @Override
@@ -123,8 +105,22 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public JournalReader getReader() {
-    return new UfsJournalReader(this);
+  public JournalReader getReader(JournalReaderOptions options) {
+    return new UfsJournalReader(this, options);
+  }
+
+  @Override
+  public JournalWriter getWriter(JournalWriterOptions options) throws IOException {
+    if (options.isPrimary()) {
+      return new UfsJournalLogWriter(this, options);
+    } else {
+      return new UfsJournalCheckpointWriter(this, options);
+    }
+  }
+
+  @Override
+  public long getNextSequenceNumberToCheckpoint() throws IOException {
+    return UfsJournalSnapshot.getNextLogSequenceNumberToCheckpoint(this);
   }
 
   @Override
@@ -142,5 +138,56 @@ public class UfsJournal implements Journal {
       }
     }
     return false;
+  }
+
+  @Override
+  public void format() throws IOException {
+    URI location = getLocation();
+    LOG.info("Formatting {}", location);
+    if (mUfs.isDirectory(location.toString())) {
+      for (UnderFileStatus status : mUfs.listStatus(location.toString())) {
+        String childPath = URIUtils.appendPathOrDie(location, status.getName()).toString();
+        if (status.isDirectory()
+            && !mUfs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true))
+            || status.isFile() && !mUfs.deleteFile(childPath)) {
+          throw new IOException(String.format("Failed to delete %s", childPath));
+        }
+      }
+    } else if (!mUfs.mkdirs(location.toString())) {
+      throw new IOException(String.format("Failed to create %s", location));
+    }
+
+    // Create a breadcrumb that indicates that the journal folder has been formatted.
+    UnderFileSystemUtils.touch(URIUtils.appendPathOrDie(location,
+        Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+        .toString());
+  }
+
+  /**
+   * @return the log directory location
+   */
+  URI getLogDir() {
+    return mLogDir;
+  }
+
+  /**
+   * @return the checkpoint directory location
+   */
+  URI getCheckpointDir() {
+    return mCheckpointDir;
+  }
+
+  /**
+   * @return the temporary directory location
+   */
+  URI getTmpDir() {
+    return mTmpDir;
+  }
+
+  /**
+   * @return the under file system instance
+   */
+  UnderFileSystem getUfs() {
+    return mUfs;
   }
 }

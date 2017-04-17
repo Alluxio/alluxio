@@ -134,6 +134,13 @@ $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。
 - 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration](Configuration-Settings.html#common-configuration) 获取更多信息。
 
+#### 问题： 当我正在写一个新的文件/目录，我的应用程序中出现日志错误。
+
+解决办法： 当你看见类似"Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being avilabe to try"。
+这是因为Alluxio master还没有根据`alluxio.master.journal.folder`属性来更新HDFS目录下的日志文件。有多种原因可以导致这种类型的错误，其中典型的原因是：
+一些用来管理日志文件的HDFS datanode处于高负载状态或者磁盘空间已经用完。当日志目录设置在HDFS中时，请确保HDFS部署处于连接状态并且能够让Alluxio正常存储日志文件。
+
+
 ## Alluxio性能常见问题
 
 #### 问题: 在Alluxio/Spark上进行测试（对大小为GBs的文件运行单词统计），相对于HDFS/Spark，性能并无明显差异。为什么?

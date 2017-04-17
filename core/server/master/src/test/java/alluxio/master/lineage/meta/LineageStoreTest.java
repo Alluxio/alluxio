@@ -16,7 +16,7 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
-import alluxio.master.journal.JournalOutputStream;
+import alluxio.proto.journal.Journal;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -24,9 +24,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -92,7 +92,7 @@ public final class LineageStoreTest {
   }
 
   /**
-   * Tests the {@link LineageStore#streamToJournalCheckpoint(JournalOutputStream)} method.
+   * Tests the {@link LineageStore#getJournalEntryIterator()}} method.
    */
   @Test
   public void journalEntrySerialization() throws Exception {
@@ -100,9 +100,10 @@ public final class LineageStoreTest {
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L),
         mJob);
 
-    JournalOutputStream outputStream = Mockito.mock(JournalOutputStream.class);
-    mLineageStore.streamToJournalCheckpoint(outputStream);
-    Mockito.verify(outputStream).write(mLineageStore.getLineage(l1).toJournalEntry());
-    Mockito.verify(outputStream).write(mLineageStore.getLineage(l2).toJournalEntry());
+    Iterator<Journal.JournalEntry> it = mLineageStore.getJournalEntryIterator();
+    Assert.assertTrue(it.hasNext());
+    Assert.assertEquals(mLineageStore.getLineage(l1).toJournalEntry(), it.next());
+    Assert.assertTrue(it.hasNext());
+    Assert.assertEquals(mLineageStore.getLineage(l2).toJournalEntry(), it.next());
   }
 }

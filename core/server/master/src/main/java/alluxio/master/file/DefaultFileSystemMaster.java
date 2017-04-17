@@ -65,7 +65,6 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
@@ -93,6 +92,7 @@ import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -112,6 +112,7 @@ import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
@@ -123,6 +124,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -225,7 +227,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * (D) private FromEntry methods used to replay entries from the journal:
    * These methods are used to replay entries from reading the journal. This is done on start, as
-   * well as for standby masters.
+   * well as for secondary masters.
    * (D) cannot call (A)
    * (D) cannot call (B)
    * (D) can call (C)
@@ -334,6 +336,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      // The mount table is the only structure to clear. The inode tree is reset when it
+      // processes the ROOT journal entry.
+      mMountTable.clear();
+    }
     if (entry.hasInodeFile()) {
       mInodeTree.addInodeFileFromJournal(entry.getInodeFile());
       // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
@@ -397,11 +404,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new RuntimeException(e);
       }
     } else if (entry.hasDeleteMountPoint()) {
-      try {
-        unmountFromEntry(entry.getDeleteMountPoint());
-      } catch (InvalidPathException e) {
-        throw new RuntimeException(e);
-      }
+      unmountFromEntry(entry.getDeleteMountPoint());
     } else if (entry.hasAsyncPersistRequest()) {
       try {
         long fileId = (entry.getAsyncPersistRequest()).getFileId();
@@ -422,21 +425,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    mInodeTree.streamToJournalCheckpoint(outputStream);
-    outputStream.write(mDirectoryIdGenerator.toJournalEntry());
-    // The mount table should be written to the checkpoint after the inodes are written, so that
-    // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
-    // entry traverses the inode tree.
-    mMountTable.streamToJournalCheckpoint(outputStream);
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(mInodeTree.getJournalEntryIterator(),
+        CommonUtils.singleElementIterator(mDirectoryIdGenerator.toJournalEntry()),
+        // The mount table should be written to the checkpoint after the inodes are written, so that
+        // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
+        // entry traverses the inode tree.
+        mMountTable.getJournalEntryIterator());
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
-    if (isLeader) {
-      // Only initialize root when isLeader because when initializing root, BlockMaster needs to
-      // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
-      // If it is standby, it should be able to load the inode tree from leader's checkpoint.
+  public void start(boolean isPrimary) throws IOException {
+    if (isPrimary) {
+      // Only initialize root when isPrimary because when initializing root, BlockMaster needs to
+      // write journal entry, if it is not primary, BlockMaster won't have a writable journal.
+      // If it is secondary, it should be able to load the inode tree from primary's checkpoint.
       mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
           SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
       String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
@@ -445,15 +448,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             MountOptions.defaults().setShared(
                 UnderFileSystemUtils.isObjectStorage(defaultUFS) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
-        throw new IOException("Failed to mount the default UFS " + defaultUFS);
+      } catch (FileAlreadyExistsException e) {
+        // This can happen when a primary becomes a standby and then becomes a primary.
+        LOG.info("Root has already been mounted.");
+      } catch (InvalidPathException e) {
+        throw new IOException("Failed to mount the default UFS " + defaultUFS, e);
       }
     }
     // Call super.start after mInodeTree is initialized because mInodeTree is needed to write
     // a journal entry during super.start. Call super.start before calling
     // getExecutorService() because the super.start initializes the executor service.
-    super.start(isLeader);
-    if (isLeader) {
+    super.start(isPrimary);
+    if (isPrimary) {
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree, mTtlBuckets),
@@ -1084,7 +1090,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     long opTimeMs = System.currentTimeMillis();
     deleteInternal(inodePath, false, opTimeMs, deleteOptions);
     DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId)
-        .setRecursive(deleteOptions.isRecursive()).setOpTimeMs(opTimeMs).build();
+        .setAlluxioOnly(deleteOptions.isAlluxioOnly())
+        .setRecursive(deleteOptions.isRecursive())
+        .setOpTimeMs(opTimeMs).build();
     appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build(), journalContext);
   }
 
@@ -1099,28 +1107,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()));
     } catch (Exception e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
-   * {@link #deleteInternal(LockedInodePath, boolean, long, DeleteOptions)}.
-   *
-   * @param inodePath the {@link LockedInodePath} to delete
-   * @param replayed whether the operation is a result of replaying the journal
-   * @param opTimeMs the time of the operation
-   * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws InvalidPathException if the fileId is for the root directory
-   * @throws IOException if an I/O error is encountered
-   */
-  private void deleteRecursiveInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
-      DeleteOptions deleteOptions) throws FileDoesNotExistException, IOException,
-      InvalidPathException {
-    try {
-      deleteInternal(inodePath, replayed, opTimeMs, deleteOptions);
-    } catch (DirectoryNotEmptyException e) {
-      throw new IllegalStateException(
-          "deleteInternal should never throw DirectoryNotEmptyException when recursive is true", e);
     }
   }
 
@@ -2315,37 +2301,37 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param inodePath the Alluxio path to unmount, must be a mount point
    * @param journalContext the journal context
-   * @throws InvalidPathException if an invalid path is encountered
+   * @throws InvalidPathException if the given path is not a mount point
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws IOException if an I/O error occurs
    */
   private void unmountAndJournal(LockedInodePath inodePath, JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    if (unmountInternal(inodePath.getUri())) {
-      Inode<?> inode = inodePath.getInode();
-      // Use the internal delete API, setting {@code replayed} to true to prevent the delete
-      // operations from being persisted in the UFS.
-      long fileId = inode.getId();
-      long opTimeMs = System.currentTimeMillis();
-      deleteRecursiveInternal(inodePath, true /* replayed */, opTimeMs,
-          DeleteOptions.defaults().setRecursive(true));
-      DeleteFileEntry deleteFile =
-          DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true).setOpTimeMs(opTimeMs)
-              .build();
-      appendJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build(),
-          journalContext);
-      DeleteMountPointEntry deleteMountPoint =
-          DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
-      appendJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build(),
-          journalContext);
+    if (!unmountInternal(inodePath.getUri())) {
+      throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
+          + " the path is an existing mount point and not root.");
     }
+    try {
+      // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
+      // operations from being persisted in the UFS.
+      DeleteOptions deleteOptions =
+          DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
+      deleteAndJournal(inodePath, deleteOptions, journalContext);
+    } catch (DirectoryNotEmptyException e) {
+      throw new RuntimeException(String.format(
+          "We should never see this exception because %s should never be thrown when recursive "
+              + "is true.", e.getClass()));
+    }
+    DeleteMountPointEntry deleteMountPoint =
+        DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
+    appendJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build(),
+        journalContext);
   }
 
   /**
    * @param entry the entry to use
-   * @throws InvalidPathException if an invalid path is encountered
    */
-  private void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
+  private void unmountFromEntry(DeleteMountPointEntry entry) {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
     if (!unmountInternal(alluxioURI)) {
       LOG.error("Failed to unmount {}", alluxioURI);
@@ -2355,9 +2341,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * @param uri the Alluxio mount point to remove from the mount table
    * @return true if successful, false otherwise
-   * @throws InvalidPathException if an invalid path is encountered
    */
-  private boolean unmountInternal(AlluxioURI uri) throws InvalidPathException {
+  private boolean unmountInternal(AlluxioURI uri) {
     return mMountTable.delete(uri);
   }
 

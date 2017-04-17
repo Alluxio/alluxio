@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link BlockStoreLocation}.
  */
-public class BlockStoreLocationTest {
+public final class BlockStoreLocationTest {
 
   /**
    * Tests that a new location can be created with the constructor.

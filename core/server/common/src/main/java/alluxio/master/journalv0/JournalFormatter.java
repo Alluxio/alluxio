@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journalv0;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
