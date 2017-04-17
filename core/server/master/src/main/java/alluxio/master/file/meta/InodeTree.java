@@ -488,6 +488,8 @@ public class InodeTree implements JournalCheckpointStreamable {
       JournalContext journalContext)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
+    // TODO(gpang): consider splitting this into createFilePath and createDirectoryPath, with a
+    // helper method for the shared logic.
     AlluxioURI path = inodePath.getUri();
     if (path.isRoot()) {
       String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
