@@ -21,6 +21,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.proto.ProtoMessage;
+
 import com.google.common.base.Function;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
@@ -62,7 +63,7 @@ public class DataServerUnsupportedMessageHandlerTest {
    */
   @Test
   public void testNonProtoUnsupported() throws Exception {
-    RPCMessage inboundRequest = new RPCBlockReadRequest(0,0,0,0,0);
+    RPCMessage inboundRequest = new RPCBlockReadRequest(0, 0, 0, 0, 0);
     mChannel.writeInbound(inboundRequest);
     Object response = waitForResponse(mChannel);
     Assert.assertTrue(response instanceof RPCErrorResponse);
