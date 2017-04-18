@@ -65,8 +65,9 @@ public abstract class AbstractLineageClient implements LineageClient {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob,
         PreconditionMessage.COMMAND_LINE_LINEAGE_ONLY);
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
+    LineageMasterClient masterClient = null;
     try {
+      masterClient = mContext.acquireMasterClient();
       long lineageId = masterClient.createLineage(stripURIList(inputFiles),
           stripURIList(outputFiles), (CommandLineJob) job);
       LOG.info("Created lineage {}", lineageId);
@@ -85,8 +86,9 @@ public abstract class AbstractLineageClient implements LineageClient {
   @Override
   public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
       throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException {
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
+    LineageMasterClient masterClient = null;
     try {
+      masterClient = mContext.acquireMasterClient();
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
       LOG.info("{} delete lineage {}", result ? "Succeeded to " : "Failed to ", lineageId);
       return result;
@@ -102,10 +104,12 @@ public abstract class AbstractLineageClient implements LineageClient {
   @Override
   public List<LineageInfo> getLineageInfoList(GetLineageInfoListOptions options)
       throws IOException {
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
-
+    LineageMasterClient masterClient = null;
     try {
+      masterClient = mContext.acquireMasterClient();
       return masterClient.getLineageInfoList();
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
