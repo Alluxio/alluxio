@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.InternalException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
@@ -312,14 +313,16 @@ public final class NettyPacketWriter implements PacketWriter {
     PacketWriteHandler() {}
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
       RPCProtoMessage response = (RPCProtoMessage) msg;
       Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
 
       if (!Status.isOk(status) && !Status.isCancelled(status)) {
-        throw new IOException(String.format("Failed to write to %s with status %s for request %s.",
-            mAddress, status.toString(), mPartialRequest));
+        // TODO(andrew): use AlluxioStatusException for Netty APIs.
+        throw new InternalException(
+            String.format("Failed to write to %s with status %s for request %s.", mAddress,
+                status.toString(), mPartialRequest));
       }
       try (LockResource lr = new LockResource(mLock)) {
         mDone = true;

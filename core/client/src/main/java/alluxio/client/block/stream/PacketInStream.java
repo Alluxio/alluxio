@@ -22,7 +22,6 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 
@@ -100,7 +99,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public int read() throws IOException {
+  public int read() {
     int bytesRead = read(mSingleByte);
     if (bytesRead == -1) {
       return -1;
@@ -110,12 +109,12 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public int read(byte[] b) throws IOException {
+  public int read(byte[] b) {
     return read(b, 0, b.length);
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
+  public int read(byte[] b, int off, int len) {
     checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
@@ -200,7 +199,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public long skip(long n) throws IOException {
+  public long skip(long n) {
     checkIfClosed();
     if (n <= 0) {
       return 0;
@@ -214,7 +213,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     closePacketReader();
     mClosed = true;
   }
@@ -228,10 +227,8 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
 
   /**
    * Reads a new packet from the channel if all of the current packet is read.
-   *
-   * @throws IOException if it fails to read the packet
    */
-  private void readPacket() throws IOException {
+  private void readPacket() {
     if (mPacketReader == null) {
       mPacketReader = mPacketReaderFactory.create(mPos, mLength - mPos);
     }

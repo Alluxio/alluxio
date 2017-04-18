@@ -24,7 +24,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.io.Closer;
 
 import java.io.FilterOutputStream;
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -98,7 +97,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   // FilterOutStream.
 
   @Override
-  public void write(byte[] b) throws IOException {
+  public void write(byte[] b) {
     mOutStream.write(b);
   }
 

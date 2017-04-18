@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.InternalException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
@@ -262,7 +263,7 @@ public final class NettyPacketReader implements PacketReader {
     PacketReadHandler() {}
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
       // Precondition check is not used here to avoid calling msg.getClass().getCanonicalName()
       // all the time.
       if (!acceptMessage(msg)) {
@@ -273,9 +274,9 @@ public final class NettyPacketReader implements PacketReader {
       RPCProtoMessage response = (RPCProtoMessage) msg;
       Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
       if (!Status.isOk(status) && !Status.isCancelled(status)) {
-        throw new IOException(String
-            .format("Failed to read block %d from %s with status %s.", mId, mAddress,
-                status.toString()));
+        // TODO(andrew): use AlluxioStatusException for Netty APIs.
+        throw new InternalException(String.format("Failed to read block %d from %s with status %s.",
+            mId, mAddress, status.toString()));
       }
 
       DataBuffer dataBuffer = response.getPayloadDataBuffer();

@@ -122,7 +122,6 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * Reserves enough space in the block worker.
    *
    * @param pos the pos of the file/block to reserve to
-   * @throws IOException if it fails to reserve the space
    */
   private void ensureReserved(long pos) {
     if (pos <= mPosReserved) {
