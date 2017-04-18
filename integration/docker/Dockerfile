@@ -11,19 +11,22 @@
 
 FROM openjdk:7-jdk-alpine
 
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz
+# ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz
 
 RUN apk add --update bash && \
     rm -rf /var/cache/apk/*
 
-ADD ${ALLUXIO_TARBALL} /opt/
+COPY alluxio.tar.gz /opt/
 
 # if the tarball was remote, it needs to be untarred
 RUN cd /opt && \
-    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
-    mv alluxio-* alluxio
+    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi)
 
-COPY conf /opt/alluxio/conf/
+# COPY conf /opt/alluxio/conf/
 COPY entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+EXPOSE 19998
+EXPOSE 19999
+

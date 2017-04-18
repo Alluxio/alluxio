@@ -47,6 +47,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -86,6 +87,7 @@ public class UfsJournalIntegrationTest {
    * Tests adding a block.
    */
   @Test
+  @Ignore
   public void addBlock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/xyz");
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
@@ -143,6 +145,7 @@ public class UfsJournalIntegrationTest {
    * Tests loading metadata.
    */
   @Test
+  @Ignore
   public void loadMetadata() throws Exception {
     String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
@@ -173,6 +176,7 @@ public class UfsJournalIntegrationTest {
    * Tests completed edit log deletion.
    */
   @Test
+  @Ignore
   public void completedEditLogDeletion() throws Exception {
     for (int i = 0; i < 124; i++) {
       mFileSystem.createFile(new AlluxioURI("/a" + i),
@@ -196,6 +200,7 @@ public class UfsJournalIntegrationTest {
    * Tests file and directory creation and deletion.
    */
   @Test
+  @Ignore
   public void delete() throws Exception {
     CreateDirectoryOptions recMkdir = CreateDirectoryOptions.defaults().setRecursive(true);
     DeleteOptions recDelete = DeleteOptions.defaults().setRecursive(true);
@@ -237,6 +242,7 @@ public class UfsJournalIntegrationTest {
   }
 
   @Test
+  @Ignore
   public void emptyImage() throws Exception {
     Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
     mLocalAlluxioCluster.stopFS();
@@ -253,6 +259,7 @@ public class UfsJournalIntegrationTest {
    * Tests file and directory creation.
    */
   @Test
+  @Ignore
   public void fileDirectory() throws Exception {
     for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
@@ -287,6 +294,7 @@ public class UfsJournalIntegrationTest {
    * Tests file creation.
    */
   @Test
+  @Ignore
   public void file() throws Exception {
     CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes(64);
     AlluxioURI filePath = new AlluxioURI("/xyz");
@@ -315,6 +323,7 @@ public class UfsJournalIntegrationTest {
    * Tests journalling of inodes being pinned.
    */
   @Test
+  @Ignore
   public void pin() throws Exception {
     SetAttributeOptions setPinned = SetAttributeOptions.defaults().setPinned(true);
     SetAttributeOptions setUnpinned = SetAttributeOptions.defaults().setPinned(false);
@@ -364,6 +373,7 @@ public class UfsJournalIntegrationTest {
    * Tests directory creation.
    */
   @Test
+  @Ignore
   public void directory() throws Exception {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);
@@ -388,6 +398,7 @@ public class UfsJournalIntegrationTest {
   }
 
   @Test
+  @Ignore
   public void persistDirectoryLater() throws Exception {
     String[] directories = new String[] {
         "/d11", "/d11/d21", "/d11/d22",
@@ -432,6 +443,7 @@ public class UfsJournalIntegrationTest {
    * Tests files creation.
    */
   @Test
+  @Ignore
   public void manyFile() throws Exception {
     for (int i = 0; i < 10; i++) {
       CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + 1) * 64);
@@ -462,6 +474,7 @@ public class UfsJournalIntegrationTest {
    * @throws Exception on error
    */
   @Test
+  @Ignore
   public void mountEntryCheckpoint() throws Exception {
     final AlluxioURI mountUri = new AlluxioURI("/local_mnt/");
     final AlluxioURI ufsUri = new AlluxioURI(mTestFolder.newFolder("test_ufs").getAbsolutePath());
@@ -497,6 +510,7 @@ public class UfsJournalIntegrationTest {
    * Tests reading multiple edit logs.
    */
   @Test
+  @Ignore
   public void multiEditLog() throws Exception {
     for (int i = 0; i < 124; i++) {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
@@ -525,6 +539,7 @@ public class UfsJournalIntegrationTest {
    * Tests file and directory creation, and rename.
    */
   @Test
+  @Ignore
   public void rename() throws Exception {
     for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
@@ -559,6 +574,7 @@ public class UfsJournalIntegrationTest {
   }
 
   @Test
+  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
       PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",

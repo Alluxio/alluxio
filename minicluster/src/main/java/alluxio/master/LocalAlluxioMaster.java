@@ -117,6 +117,7 @@ public final class LocalAlluxioMaster {
    * Starts the secondary master.
    */
   public void startSecondary() {
+    /*
     mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
@@ -133,6 +134,7 @@ public final class LocalAlluxioMaster {
 
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
     mSecondaryMasterThread.start();
+    */
   }
 
   /**

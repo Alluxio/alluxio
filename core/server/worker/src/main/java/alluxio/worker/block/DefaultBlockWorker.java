@@ -226,11 +226,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
+    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
+    getExecutorService().shutdownNow();
     mSessionCleaner.stop();
     mBlockMasterClient.close();
     mFileSystemMasterClient.close();
-    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
-    getExecutorService().shutdownNow();
   }
 
   @Override
