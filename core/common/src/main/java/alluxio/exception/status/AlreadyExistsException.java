@@ -29,7 +29,7 @@ public class AlreadyExistsException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public AlreadyExistsException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**

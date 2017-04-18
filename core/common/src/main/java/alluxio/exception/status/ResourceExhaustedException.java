@@ -30,7 +30,7 @@ public class ResourceExhaustedException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public ResourceExhaustedException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**

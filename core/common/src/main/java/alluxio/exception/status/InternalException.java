@@ -30,7 +30,7 @@ public class InternalException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public InternalException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**

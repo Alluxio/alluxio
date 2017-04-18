@@ -50,6 +50,9 @@ public class AlluxioStatusException extends RuntimeException {
   private static final long serialVersionUID = -7422144873058169662L;
 
   private final ExceptionStatus mStatus;
+  // If this exception was constructed from an IOException, the exceptions is stored here and
+  // reused if the exception is converted back to an IOException.
+  private final IOException mIOException;
 
   /**
    * @param status the status code for this exception
@@ -58,6 +61,7 @@ public class AlluxioStatusException extends RuntimeException {
   public AlluxioStatusException(ExceptionStatus status, String message) {
     super(message);
     mStatus = status;
+    mIOException = null;
   }
 
   /**
@@ -65,7 +69,11 @@ public class AlluxioStatusException extends RuntimeException {
    * @param cause the cause of the exception
    */
   public AlluxioStatusException(ExceptionStatus status, Throwable cause) {
-    this(status, cause.getMessage(), cause);
+    super(cause.getMessage(), cause);
+    mStatus = status;
+    // This AlluxioStatusException doesn't have its own message, so it's essentially just a wrapper
+    // around the cause. We save IOException causes in case we want to unwrap them later.
+    mIOException = cause instanceof IOException ? (IOException) cause : null;
   }
 
   /**
@@ -76,6 +84,7 @@ public class AlluxioStatusException extends RuntimeException {
   public AlluxioStatusException(ExceptionStatus status, String message, Throwable cause) {
     super(message, cause);
     mStatus = status;
+    mIOException = null;
   }
 
   /**
@@ -119,6 +128,17 @@ public class AlluxioStatusException extends RuntimeException {
       default:
         return new AlluxioException(getMessage(), this);
     }
+  }
+
+  /**
+   * @return this exception converted to an IOException
+   */
+  public IOException toIOException() {
+    // If this exception was
+    if (mIOException != null) {
+      return mIOException;
+    }
+    return new IOException(getMessage(), this);
   }
 
   /**

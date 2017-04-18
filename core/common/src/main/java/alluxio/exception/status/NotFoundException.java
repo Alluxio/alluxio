@@ -29,7 +29,7 @@ public class NotFoundException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public NotFoundException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**

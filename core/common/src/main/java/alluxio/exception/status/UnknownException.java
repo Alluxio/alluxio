@@ -32,7 +32,7 @@ public class UnknownException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public UnknownException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**

@@ -33,7 +33,7 @@ public class UnavailableException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public UnavailableException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**
