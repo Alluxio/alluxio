@@ -80,7 +80,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
   }
 
   @Override
-  public void cancel() throws IOException {
+  public void cancel() {
     close();
   }
 
@@ -88,7 +88,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
   public void flush() {}
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }

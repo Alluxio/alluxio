@@ -11,17 +11,17 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.Cancelable;
+import alluxio.QuietlyCloseable;
+import alluxio.client.QuietlyCancelable;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * The interface to write packets.
  */
-public interface PacketWriter extends Closeable, Cancelable {
+public interface PacketWriter extends QuietlyCloseable, QuietlyCancelable {
   /**
    * Writes a packet. This method takes the ownership of this packet even if it fails to write
    * the packet.

@@ -77,13 +77,17 @@ public final class LocalFileBlockWriter implements BlockWriter {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }
     mClosed = true;
 
-    mCloser.close();
+    try {
+      mCloser.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     mPosition = -1;
   }
 

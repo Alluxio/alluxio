@@ -17,7 +17,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.exception.AlluxioException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,7 +86,7 @@ public final class FileSystemTestUtils {
         arr[k] = (byte) k;
       }
       os.write(arr);
-    } catch (Exception e) {
+    } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
     }
   }
@@ -123,7 +125,7 @@ public final class FileSystemTestUtils {
         }
       }
       return res;
-    } catch (Exception e) {
+    } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
     }
   }

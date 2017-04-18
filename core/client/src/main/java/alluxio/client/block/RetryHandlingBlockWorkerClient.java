@@ -279,7 +279,7 @@ public final class RetryHandlingBlockWorkerClient
           });
     } catch (ResourceExhaustedException e) {
       throw new ResourceExhaustedException(ExceptionMessage.CANNOT_REQUEST_SPACE
-          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId));
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId), e);
     }
   }
 

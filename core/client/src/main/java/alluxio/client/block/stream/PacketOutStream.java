@@ -12,10 +12,11 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.BoundedStream;
-import alluxio.client.Cancelable;
+import alluxio.client.QuietlyCancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
@@ -36,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * streams data packet by packet.
  */
 @NotThreadSafe
-public class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
+public class PacketOutStream extends OutputStream implements BoundedStream, QuietlyCancelable {
   private final Closer mCloser;
   /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
   private final long mLength;
@@ -172,22 +173,22 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
   }
 
   @Override
-  public void cancel() throws IOException {
+  public void cancel() {
     if (mClosed) {
       return;
     }
     releaseCurrentPacket();
 
-    IOException exception = null;
+    Exception exception = null;
     for (PacketWriter packetWriter : mPacketWriters) {
       try {
         packetWriter.cancel();
-      } catch (IOException e) {
+      } catch (Exception e) {
         exception = e;
       }
     }
     if (exception != null) {
-      throw exception;
+      throw AlluxioStatusException.from(exception);
     }
 
     // NOTE: PacketOutStream#cancel doesn't imply PacketOutStream#close. PacketOutStream#close

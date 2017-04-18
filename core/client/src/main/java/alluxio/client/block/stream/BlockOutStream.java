@@ -12,10 +12,11 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.BoundedStream;
-import alluxio.client.Cancelable;
+import alluxio.client.QuietlyCancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -33,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link alluxio.client.block.AlluxioBlockStore#getOutStream(long, long, OutStreamOptions)}.
  */
 @NotThreadSafe
-public class BlockOutStream extends FilterOutputStream implements BoundedStream, Cancelable {
+public class BlockOutStream extends FilterOutputStream implements BoundedStream, QuietlyCancelable {
   private final long mBlockId;
   private final long mBlockSize;
   private final Closer mCloser;
@@ -112,41 +113,38 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   }
 
   @Override
-  public void cancel() throws IOException {
+  public void cancel() {
     if (mClosed) {
       return;
     }
-    Throwable throwable = null;
+    RuntimeException exception = null;
     try {
       mOutStream.cancel();
-    } catch (Throwable e) {
-      throwable = e;
+    } catch (RuntimeException e) {
+      exception = e;
     }
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (Throwable e) {
-      throwable = e;
+    } catch (RuntimeException e) {
+      exception = e;
     }
 
-    if (throwable == null) {
+    if (exception == null) {
       mClosed = true;
       return;
     }
 
     try {
       mCloser.close();
-    } catch (Throwable e) {
+    } catch (IOException | RuntimeException e) {
       // Ignore
     }
     mClosed = true;
-    if (throwable instanceof IOException) {
-      throw (IOException) throwable;
-    }
-    throw new IOException(throwable);
+    throw AlluxioStatusException.fromRuntimeException(exception);
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }
@@ -155,8 +153,10 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       if (remaining() < mBlockSize) {
         mBlockWorkerClient.cacheBlock(mBlockId);
       }
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
     } finally {
-      mCloser.close();
+      CommonUtils.close(mCloser);
       mClosed = true;
     }
   }

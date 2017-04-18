@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.status.AlluxioStatusException;
+
 import io.netty.buffer.ByteBuf;
 
 import java.io.ByteArrayOutputStream;
@@ -35,8 +37,12 @@ public final class MockBlockWriter implements BlockWriter {
   }
 
   @Override
-  public void close() throws IOException {
-    mOutputStream.close();
+  public void close() {
+    try {
+      mOutputStream.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     mPosition = -1;
   }
 

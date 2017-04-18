@@ -23,6 +23,7 @@ import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.resource.LockBlockResource;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -178,15 +179,19 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
                 !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);
       throw e;
     }
   }
 
   @Override
-  public void close() throws IOException {
-    mCloser.close();
+  public void close() {
+    try {
+      mCloser.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
   }
 
   @Override
@@ -195,12 +200,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   }
 
   @Override
-  public void seek(long pos) throws IOException {
+  public void seek(long pos) {
     mInputStream.seek(pos);
   }
 
   @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+  public int positionedRead(long pos, byte[] b, int off, int len) {
     return mInputStream.positionedRead(pos, b, off, len);
   }
 

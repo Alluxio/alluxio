@@ -157,6 +157,9 @@ public interface BlockWorkerClient extends Closeable {
    */
   void sessionHeartbeat(RetryPolicy retryPolicy) throws InterruptedException;
 
+  /**
+   * Overridden to indicate that this does not throw IOException.
+   */
   @Override
   void close();
 }

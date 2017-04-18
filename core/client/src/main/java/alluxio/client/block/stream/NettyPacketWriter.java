@@ -14,6 +14,8 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -182,7 +184,7 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void cancel() throws IOException {
+  public void cancel() {
     if (mClosed) {
       return;
     }
@@ -212,7 +214,7 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }
@@ -227,11 +229,11 @@ public final class NettyPacketWriter implements PacketWriter {
         try {
           if (mPacketWriteException != null) {
             mChannel.close().sync();
-            throw new IOException(mPacketWriteException);
+            throw new UnavailableException(mPacketWriteException);
           }
           if (!mDoneOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             mChannel.close().sync();
-            throw new IOException(String.format(
+            throw new DeadlineExceededException(String.format(
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {

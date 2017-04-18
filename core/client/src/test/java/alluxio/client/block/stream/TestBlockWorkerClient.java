@@ -84,7 +84,7 @@ public class TestBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public void sessionHeartbeat(RetryPolicy retryPolicy) throws InterruptedException {}
+  public void sessionHeartbeat(RetryPolicy retryPolicy) {}
 
   @Override
   public void close() {}

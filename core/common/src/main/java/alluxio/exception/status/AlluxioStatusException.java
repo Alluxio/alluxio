@@ -165,6 +165,26 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
+   * Converts exceptions to Alluxio status exceptions.
+   *
+   * @param ex an exception
+   * @return the converted {@link AlluxioStatusException}
+   */
+  public static AlluxioStatusException from(Exception ex) {
+    try {
+      throw ex;
+    } catch (IOException e) {
+      return fromIOException(e);
+    } catch (AlluxioException e) {
+      return fromAlluxioException(e);
+    } catch (RuntimeException e) {
+      return fromRuntimeException(e);
+    } catch (Exception e) {
+      throw new UnknownException(e);
+    }
+  }
+
+  /**
    * Converts checked Alluxio exceptions to Alluxio status exceptions.
    *
    * @param ae the Alluxio exception to convert

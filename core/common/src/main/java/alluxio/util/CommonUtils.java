@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
@@ -365,6 +366,19 @@ public final class CommonUtils {
       closer.close();
     } catch (IOException e) {
       // Ignore.
+    }
+  }
+
+  /**
+   * Closes a closer, converting any IOException to an {@link AlluxioStatusException}.
+   *
+   * @param closer the closer
+   */
+  public static void close(Closer closer) {
+    try {
+      closer.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
     }
   }
 

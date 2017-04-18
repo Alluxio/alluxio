@@ -139,7 +139,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+  public int positionedRead(long pos, byte[] b, int off, int len) {
     if (len == 0) {
       return 0;
     }
@@ -182,7 +182,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public void seek(long pos) throws IOException {
+  public void seek(long pos) {
     checkIfClosed();
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions
@@ -248,7 +248,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   /**
    * Close the current packet reader.
    */
-  private void closePacketReader() throws IOException {
+  private void closePacketReader() {
     if (mCurrentPacket != null) {
       mCurrentPacket.release();
       mCurrentPacket = null;

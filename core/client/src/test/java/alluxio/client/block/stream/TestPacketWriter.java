@@ -33,7 +33,7 @@ public class TestPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void cancel() throws IOException {
+  public void cancel() {
     return;
   }
 
@@ -53,7 +53,7 @@ public class TestPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     return;
   }
 }

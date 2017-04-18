@@ -14,12 +14,13 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.proto.ProtoMessage;
 
@@ -120,11 +121,10 @@ public final class NettyPacketReader implements PacketReader {
    * @param sessionId the session ID
    * @param noCache do not cache the block to the Alluxio worker if read from UFS when this is set
    * @param type the request type (block or UFS file)
-   * @throws IOException if it fails to acquire a netty channel
    */
   private NettyPacketReader(FileSystemContext context, InetSocketAddress address, long id,
       long offset, long len, long lockId, long sessionId, boolean noCache,
-      Protocol.RequestType type) throws IOException {
+      Protocol.RequestType type) {
     Preconditions.checkArgument(offset >= 0 && len > 0);
 
     mContext = context;
@@ -153,7 +153,7 @@ public final class NettyPacketReader implements PacketReader {
   }
 
   @Override
-  public DataBuffer readPacket() throws IOException {
+  public DataBuffer readPacket() {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
     ByteBuf buf;
 
@@ -167,10 +167,11 @@ public final class NettyPacketReader implements PacketReader {
       throw new RuntimeException(e);
     }
     if (buf == null) {
-      throw new IOException(String.format("Timeout to read %d from %s.", mId, mChannel.toString()));
+      throw new DeadlineExceededException(
+          String.format("Timeout to read %d from %s.", mId, mChannel.toString()));
     }
     if (buf == THROWABLE) {
-      throw CommonUtils.castToIOException(Preconditions.checkNotNull(mPacketReaderException));
+      throw new RuntimeException(Preconditions.checkNotNull(mPacketReaderException));
     }
     if (buf == EOF_OR_CANCELLED) {
       mDone = true;
@@ -203,7 +204,7 @@ public final class NettyPacketReader implements PacketReader {
 
       try {
         readAndDiscardAll();
-      } catch (IOException e) {
+      } catch (UnavailableException e) {
         LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}) with exception {}.",
             mId, mAddress, e.getMessage());
         mChannel.close();
@@ -223,10 +224,8 @@ public final class NettyPacketReader implements PacketReader {
 
   /**
    * Reads and discards everything read from the channel until it reaches end of the stream.
-   *
-   * @throws IOException if any I/O related errors occur
    */
-  private void readAndDiscardAll() throws IOException {
+  private void readAndDiscardAll() {
     DataBuffer buf;
     do {
       buf = readPacket();
@@ -371,7 +370,7 @@ public final class NettyPacketReader implements PacketReader {
     }
 
     @Override
-    public PacketReader create(long offset, long len) throws IOException {
+    public PacketReader create(long offset, long len) {
       return new NettyPacketReader(mContext, mAddress, mId, offset, len, mLockId, mSessionId,
           mNoCache, mRequestType);
     }
