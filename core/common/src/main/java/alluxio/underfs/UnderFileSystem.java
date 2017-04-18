@@ -27,10 +27,9 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -173,6 +172,22 @@ public interface UnderFileSystem {
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       return get(ufsRoot, ufsConf);
+    }
+
+    /**
+     * @param path journal path in ufs
+     * @return the instance of under file system for Alluxio journal directory
+     */
+    public static UnderFileSystem getJournal(URI path) {
+      return get(path.toString());
+    }
+
+    /**
+     * @param path journal path in ufs
+     * @return the instance of under file system for Alluxio journal directory
+     */
+    public static UnderFileSystem getJournal(String path) {
+      return get(path);
     }
   }
 

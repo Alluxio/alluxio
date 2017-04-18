@@ -81,7 +81,7 @@ public class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    this(location, UnderFileSystem.Factory.get(location.toString()));
+    this(location, UnderFileSystem.Factory.getJournal(location));
   }
 
   /**
@@ -125,7 +125,7 @@ public class UfsJournal implements Journal {
 
   @Override
   public boolean isFormatted() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
+    UnderFileSystem ufs = UnderFileSystem.Factory.getJournal(mLocation);
     UnderFileStatus[] files = ufs.listStatus(mLocation.toString());
     if (files == null) {
       return false;
