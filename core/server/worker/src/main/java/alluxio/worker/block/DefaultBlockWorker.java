@@ -227,6 +227,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
+    // Steps to shutdown:
+    // 1. Gracefully shutting down the runnables running in the executors first.
+    // 2. Shutdown the executors.
+    // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
+    //    runnables running in the executors might be using the clients.
+    mSessionCleaner.stop();
     // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
     getExecutorService().shutdownNow();
     try {
@@ -234,7 +240,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
-    mSessionCleaner.stop();
     mBlockMasterClient.close();
     mFileSystemMasterClient.close();
   }

@@ -100,13 +100,13 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
     }
+    // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
+    getExecutorService().shutdownNow();
     try {
       getExecutorService().awaitTermination(10, TimeUnit.MINUTES);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
     mFileSystemMasterWorkerClient.close();
-    // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
-    getExecutorService().shutdownNow();
   }
 }

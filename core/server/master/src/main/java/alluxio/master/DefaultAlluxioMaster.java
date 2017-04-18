@@ -209,6 +209,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       connectToUFS();
       mRegistry.start(isLeader);
     } catch (IOException e) {
+      LOG.error("PEIS: failed to start master with error.", e);
       throw Throwables.propagate(e);
     }
   }
