@@ -272,11 +272,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    */
   private void updateUnderFileSystemInputStream(long offset) {
     if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
-      try {
-        mUnderFileSystemInputStream.close();
-      } catch (IOException e) {
-        throw AlluxioStatusException.fromIOException(e);
-      }
+      CommonUtils.close(mUnderFileSystemInputStream);
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;
     }

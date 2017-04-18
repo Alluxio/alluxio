@@ -12,6 +12,7 @@
 package alluxio.worker.block.io;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
@@ -92,11 +93,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
     }
     mClosed = true;
 
-    try {
-      mCloser.close();
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
+    CommonUtils.close(mCloser);
     mPosition = -1;
   }
 
