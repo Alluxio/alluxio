@@ -40,7 +40,7 @@ public class DataServerUnsupportedMessageHandlerTest {
   }
 
   /**
-   * Tests a protobuf message with the unimplemented code is returned when a protobuf message
+   * Tests a protobuf message with the unimplemented status code is returned when a protobuf message
    * reaches the unsupported message handler.
    */
   @Test
@@ -58,7 +58,7 @@ public class DataServerUnsupportedMessageHandlerTest {
   }
 
   /**
-   * Tests a rpc message with the unimplemented code is returned when a non-protobuf rpc message
+   * Tests a rpc message with the unknown message status is returned when a non-protobuf rpc message
    * reaches the unsupported message handler.
    */
   @Test
