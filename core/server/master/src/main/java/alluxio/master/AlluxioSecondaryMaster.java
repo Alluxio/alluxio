@@ -91,7 +91,7 @@ public final class AlluxioSecondaryMaster implements Server {
    * @throws IOException if any I/O errors occur
    */
   private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
     ufs.connectFromMaster(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));

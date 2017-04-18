@@ -73,7 +73,7 @@ public class PropertyKey {
   //
   // UFS related properties
   //
-  // Deprecated
+  // Deprecated since 1.5.0 and will be removed in 2.0.
   public static final PropertyKey UNDERFS_ADDRESS =
       create(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR));
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =

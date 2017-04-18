@@ -116,7 +116,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest() throws IOException {
-    String underfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String underfsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
     UnderFileSystemUtils.deleteDirIfExists(underfsAddress);
@@ -154,7 +154,7 @@ public abstract class AbstractLocalAlluxioCluster {
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
       UnderFileSystemUtils.mkdirIfNotExists(ufsAddress);
-      Configuration.set(PropertyKey.UNDERFS_ADDRESS, ufsAddress);
+      Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsAddress);
     }
   }
 

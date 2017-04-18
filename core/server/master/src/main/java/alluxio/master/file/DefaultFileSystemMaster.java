@@ -442,7 +442,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // If it is secondary, it should be able to load the inode tree from primary's checkpoint.
       mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
           SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
-      String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+      String defaultUFS = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
             MountOptions.defaults().setShared(
@@ -1904,7 +1904,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public String getUfsAddress() {
-    return Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    return Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
   }
 
   @Override
@@ -2262,7 +2262,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-      String defaultUfsPath = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+      String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       UnderFileSystem defaultUfs = UnderFileSystem.Factory.get(defaultUfsPath);
       String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
       if (defaultUfs.exists(shadowPath)) {
@@ -2713,7 +2713,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
           });
 
-      final String ufsDataFolder = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+      final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       final UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsDataFolder);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),

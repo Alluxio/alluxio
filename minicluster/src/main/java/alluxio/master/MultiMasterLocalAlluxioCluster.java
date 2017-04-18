@@ -209,7 +209,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    mkdir(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    mkdir(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
