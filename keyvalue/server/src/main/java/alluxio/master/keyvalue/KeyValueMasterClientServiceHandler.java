@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
+import alluxio.thrift.ThriftIOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +99,7 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
-  public void deleteStore(final String path) throws AlluxioTException {
+  public void deleteStore(final String path) throws AlluxioTException, ThriftIOException {
     RpcUtils.call(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -109,7 +110,8 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
-  public void renameStore(final String oldPath, final String newPath) throws AlluxioTException {
+  public void renameStore(final String oldPath, final String newPath)
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.call(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -120,7 +122,8 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
-  public void mergeStore(final String fromPath, final String toPath) throws AlluxioTException {
+  public void mergeStore(final String fromPath, final String toPath)
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.call(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {

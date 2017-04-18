@@ -77,7 +77,7 @@ public class KeyValueMasterClientService {
      * 
      * @param path the path of the store
      */
-    public void deleteStore(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public void deleteStore(String path) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Renames a completed key-value store.
@@ -86,7 +86,7 @@ public class KeyValueMasterClientService {
      * 
      * @param newPath the new path of the store
      */
-    public void renameStore(String oldPath, String newPath) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public void renameStore(String oldPath, String newPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Merges one completed key-value store to another completed key-value store.
@@ -95,7 +95,7 @@ public class KeyValueMasterClientService {
      * 
      * @param toPath the path of the store to be merged to
      */
-    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
   }
 
@@ -233,7 +233,7 @@ public class KeyValueMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPartitionInfo failed: unknown result");
     }
 
-    public void deleteStore(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public void deleteStore(String path) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_deleteStore(path);
       recv_deleteStore();
@@ -246,17 +246,20 @@ public class KeyValueMasterClientService {
       sendBase("deleteStore", args);
     }
 
-    public void recv_deleteStore() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public void recv_deleteStore() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       deleteStore_result result = new deleteStore_result();
       receiveBase(result, "deleteStore");
       if (result.e != null) {
         throw result.e;
       }
+      if (result.ioe != null) {
+        throw result.ioe;
+      }
       return;
     }
 
-    public void renameStore(String oldPath, String newPath) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public void renameStore(String oldPath, String newPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_renameStore(oldPath, newPath);
       recv_renameStore();
@@ -270,17 +273,20 @@ public class KeyValueMasterClientService {
       sendBase("renameStore", args);
     }
 
-    public void recv_renameStore() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public void recv_renameStore() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       renameStore_result result = new renameStore_result();
       receiveBase(result, "renameStore");
       if (result.e != null) {
         throw result.e;
       }
+      if (result.ioe != null) {
+        throw result.ioe;
+      }
       return;
     }
 
-    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public void mergeStore(String fromPath, String toPath) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_mergeStore(fromPath, toPath);
       recv_mergeStore();
@@ -294,12 +300,15 @@ public class KeyValueMasterClientService {
       sendBase("mergeStore", args);
     }
 
-    public void recv_mergeStore() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public void recv_mergeStore() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       mergeStore_result result = new mergeStore_result();
       receiveBase(result, "mergeStore");
       if (result.e != null) {
         throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
       }
       return;
     }
@@ -475,7 +484,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -510,7 +519,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -545,7 +554,7 @@ public class KeyValueMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -693,6 +702,8 @@ public class KeyValueMasterClientService {
           iface.deleteStore(args.path);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
+        } catch (alluxio.thrift.ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -717,6 +728,8 @@ public class KeyValueMasterClientService {
           iface.renameStore(args.oldPath, args.newPath);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
+        } catch (alluxio.thrift.ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -741,6 +754,8 @@ public class KeyValueMasterClientService {
           iface.mergeStore(args.fromPath, args.toPath);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
+        } catch (alluxio.thrift.ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -1025,6 +1040,11 @@ public class KeyValueMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof alluxio.thrift.ThriftIOException) {
+                        result.ioe = (alluxio.thrift.ThriftIOException) e;
+                        result.setIoeIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -1081,6 +1101,11 @@ public class KeyValueMasterClientService {
                         result.setEIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof alluxio.thrift.ThriftIOException) {
+                        result.ioe = (alluxio.thrift.ThriftIOException) e;
+                        result.setIoeIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -1135,6 +1160,11 @@ public class KeyValueMasterClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof alluxio.thrift.ThriftIOException) {
+                        result.ioe = (alluxio.thrift.ThriftIOException) e;
+                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -4748,6 +4778,7 @@ public class KeyValueMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("deleteStore_result");
 
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4756,10 +4787,12 @@ public class KeyValueMasterClientService {
     }
 
     private alluxio.thrift.AlluxioTException e; // required
+    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4776,6 +4809,8 @@ public class KeyValueMasterClientService {
         switch(fieldId) {
           case 1: // E
             return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -4821,6 +4856,8 @@ public class KeyValueMasterClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(deleteStore_result.class, metaDataMap);
     }
@@ -4829,10 +4866,12 @@ public class KeyValueMasterClientService {
     }
 
     public deleteStore_result(
-      alluxio.thrift.AlluxioTException e)
+      alluxio.thrift.AlluxioTException e,
+      alluxio.thrift.ThriftIOException ioe)
     {
       this();
       this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -4841,6 +4880,9 @@ public class KeyValueMasterClientService {
     public deleteStore_result(deleteStore_result other) {
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -4851,6 +4893,7 @@ public class KeyValueMasterClientService {
     @Override
     public void clear() {
       this.e = null;
+      this.ioe = null;
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -4877,6 +4920,30 @@ public class KeyValueMasterClientService {
       }
     }
 
+    public alluxio.thrift.ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public deleteStore_result setIoe(alluxio.thrift.ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E:
@@ -4887,6 +4954,14 @@ public class KeyValueMasterClientService {
         }
         break;
 
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((alluxio.thrift.ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -4894,6 +4969,9 @@ public class KeyValueMasterClientService {
       switch (field) {
       case E:
         return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -4908,6 +4986,8 @@ public class KeyValueMasterClientService {
       switch (field) {
       case E:
         return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -4934,6 +5014,15 @@ public class KeyValueMasterClientService {
           return false;
       }
 
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
       return true;
     }
 
@@ -4945,6 +5034,11 @@ public class KeyValueMasterClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -4963,6 +5057,16 @@ public class KeyValueMasterClientService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4992,6 +5096,14 @@ public class KeyValueMasterClientService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -5046,6 +5158,15 @@ public class KeyValueMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new alluxio.thrift.ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -5064,6 +5185,11 @@ public class KeyValueMasterClientService {
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -5087,20 +5213,31 @@ public class KeyValueMasterClientService {
         if (struct.isSetE()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetIoe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetE()) {
           struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, deleteStore_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ioe = new alluxio.thrift.ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }
@@ -5595,6 +5732,7 @@ public class KeyValueMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("renameStore_result");
 
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -5603,10 +5741,12 @@ public class KeyValueMasterClientService {
     }
 
     private alluxio.thrift.AlluxioTException e; // required
+    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -5623,6 +5763,8 @@ public class KeyValueMasterClientService {
         switch(fieldId) {
           case 1: // E
             return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -5668,6 +5810,8 @@ public class KeyValueMasterClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(renameStore_result.class, metaDataMap);
     }
@@ -5676,10 +5820,12 @@ public class KeyValueMasterClientService {
     }
 
     public renameStore_result(
-      alluxio.thrift.AlluxioTException e)
+      alluxio.thrift.AlluxioTException e,
+      alluxio.thrift.ThriftIOException ioe)
     {
       this();
       this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -5688,6 +5834,9 @@ public class KeyValueMasterClientService {
     public renameStore_result(renameStore_result other) {
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -5698,6 +5847,7 @@ public class KeyValueMasterClientService {
     @Override
     public void clear() {
       this.e = null;
+      this.ioe = null;
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -5724,6 +5874,30 @@ public class KeyValueMasterClientService {
       }
     }
 
+    public alluxio.thrift.ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public renameStore_result setIoe(alluxio.thrift.ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E:
@@ -5734,6 +5908,14 @@ public class KeyValueMasterClientService {
         }
         break;
 
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((alluxio.thrift.ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -5741,6 +5923,9 @@ public class KeyValueMasterClientService {
       switch (field) {
       case E:
         return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -5755,6 +5940,8 @@ public class KeyValueMasterClientService {
       switch (field) {
       case E:
         return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -5781,6 +5968,15 @@ public class KeyValueMasterClientService {
           return false;
       }
 
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
       return true;
     }
 
@@ -5792,6 +5988,11 @@ public class KeyValueMasterClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -5810,6 +6011,16 @@ public class KeyValueMasterClientService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -5839,6 +6050,14 @@ public class KeyValueMasterClientService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -5893,6 +6112,15 @@ public class KeyValueMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new alluxio.thrift.ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -5911,6 +6139,11 @@ public class KeyValueMasterClientService {
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -5934,20 +6167,31 @@ public class KeyValueMasterClientService {
         if (struct.isSetE()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetIoe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetE()) {
           struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, renameStore_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ioe = new alluxio.thrift.ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }
@@ -6442,6 +6686,7 @@ public class KeyValueMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mergeStore_result");
 
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -6450,10 +6695,12 @@ public class KeyValueMasterClientService {
     }
 
     private alluxio.thrift.AlluxioTException e; // required
+    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -6470,6 +6717,8 @@ public class KeyValueMasterClientService {
         switch(fieldId) {
           case 1: // E
             return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -6515,6 +6764,8 @@ public class KeyValueMasterClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mergeStore_result.class, metaDataMap);
     }
@@ -6523,10 +6774,12 @@ public class KeyValueMasterClientService {
     }
 
     public mergeStore_result(
-      alluxio.thrift.AlluxioTException e)
+      alluxio.thrift.AlluxioTException e,
+      alluxio.thrift.ThriftIOException ioe)
     {
       this();
       this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -6535,6 +6788,9 @@ public class KeyValueMasterClientService {
     public mergeStore_result(mergeStore_result other) {
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -6545,6 +6801,7 @@ public class KeyValueMasterClientService {
     @Override
     public void clear() {
       this.e = null;
+      this.ioe = null;
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -6571,6 +6828,30 @@ public class KeyValueMasterClientService {
       }
     }
 
+    public alluxio.thrift.ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public mergeStore_result setIoe(alluxio.thrift.ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E:
@@ -6581,6 +6862,14 @@ public class KeyValueMasterClientService {
         }
         break;
 
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((alluxio.thrift.ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -6588,6 +6877,9 @@ public class KeyValueMasterClientService {
       switch (field) {
       case E:
         return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -6602,6 +6894,8 @@ public class KeyValueMasterClientService {
       switch (field) {
       case E:
         return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -6628,6 +6922,15 @@ public class KeyValueMasterClientService {
           return false;
       }
 
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
       return true;
     }
 
@@ -6639,6 +6942,11 @@ public class KeyValueMasterClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -6657,6 +6965,16 @@ public class KeyValueMasterClientService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -6686,6 +7004,14 @@ public class KeyValueMasterClientService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -6740,6 +7066,15 @@ public class KeyValueMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new alluxio.thrift.ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -6758,6 +7093,11 @@ public class KeyValueMasterClientService {
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -6781,20 +7121,31 @@ public class KeyValueMasterClientService {
         if (struct.isSetE()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetIoe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetE()) {
           struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, mergeStore_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ioe = new alluxio.thrift.ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }

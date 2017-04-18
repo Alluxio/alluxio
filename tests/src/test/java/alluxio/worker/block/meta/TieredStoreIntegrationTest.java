@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -35,6 +34,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -133,7 +133,7 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mFileSystem.getStatus(file).isPinned());
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
-    mThrown.expect(ResourceExhaustedException.class);
+    mThrown.expect(IOException.class);
     FileSystemTestUtils.createByteFile(mFileSystem, "/test2", WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
   }

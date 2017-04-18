@@ -22,6 +22,7 @@ import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.thrift.OpenUfsFileTOptions;
+import alluxio.thrift.ThriftIOException;
 import alluxio.worker.file.options.CompleteUfsFileOptions;
 import alluxio.worker.file.options.CreateUfsFileOptions;
 
@@ -67,11 +68,12 @@ public final class FileSystemWorkerClientServiceHandler
    *
    * @param tempUfsFileId the worker id of the ufs file
    * @param options the options for canceling the file
-   * @throws AlluxioTException if an error occurs
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
   public void cancelUfsFile(final long sessionId, final long tempUfsFileId,
-      final CancelUfsFileTOptions options) throws AlluxioTException {
+      final CancelUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -93,11 +95,12 @@ public final class FileSystemWorkerClientServiceHandler
    *
    * @param tempUfsFileId the worker specific file id of the ufs file
    * @param options the options for closing the file
-   * @throws AlluxioTException if an error occurs
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
   public void closeUfsFile(final long sessionId, final long tempUfsFileId,
-      final CloseUfsFileTOptions options) throws AlluxioTException {
+      final CloseUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -120,11 +123,12 @@ public final class FileSystemWorkerClientServiceHandler
    * @param tempUfsFileId the worker id of the ufs file
    * @param options the options for completing the file
    * @return the length of the completed file
-   * @throws AlluxioTException if an error occurs
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
   public long completeUfsFile(final long sessionId, final long tempUfsFileId,
-      final CompleteUfsFileTOptions options) throws AlluxioTException {
+      final CompleteUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
     return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
@@ -148,11 +152,12 @@ public final class FileSystemWorkerClientServiceHandler
    * @param options the options for creating the file
    * @return the temporary worker specific file id which references the in-progress ufs file, all
    *         future operations on the file use this id until it is canceled or completed
-   * @throws AlluxioTException if an error occurs
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
   public long createUfsFile(final long sessionId, final String ufsUri,
-      final CreateUfsFileTOptions options) throws AlluxioTException {
+      final CreateUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
     return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
@@ -175,11 +180,12 @@ public final class FileSystemWorkerClientServiceHandler
    * @param options the options for opening the file
    * @return the temporary worker specific file id which references the opened ufs file, all
    *         future operations from the reader should use this id until the file is closed
-   * @throws AlluxioTException if an error occurs
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
   public long openUfsFile(final long sessionId, final String ufsUri,
-      final OpenUfsFileTOptions options) throws AlluxioTException {
+      final OpenUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
     return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
@@ -199,7 +205,7 @@ public final class FileSystemWorkerClientServiceHandler
    *
    * @param sessionId the session id of the client sending the heartbeat
    * @param metrics a list of the client metrics that were collected since the last heartbeat
-   * @throws AlluxioTException if an error occurs
+   * @throws AlluxioTException if an internal Alluxio error occurs
    */
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)

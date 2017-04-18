@@ -41,6 +41,7 @@ import alluxio.thrift.FreeTOptions;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.thrift.MountTOptions;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
@@ -80,7 +81,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public List<String> checkConsistency(final String path, final CheckConsistencyTOptions options)
-      throws AlluxioTException {
+      throws AlluxioTException, ThriftIOException {
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<List<String>>() {
       @Override
       public List<String> call() throws AlluxioException, IOException {
@@ -119,7 +120,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public void createDirectory(final String path, final CreateDirectoryTOptions options)
-      throws AlluxioTException {
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -137,7 +138,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public void createFile(final String path, final CreateFileTOptions options)
-      throws AlluxioTException {
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -305,7 +306,7 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   @Deprecated
   public long loadMetadata(final String alluxioPath, final boolean recursive)
-      throws AlluxioTException {
+      throws AlluxioTException, ThriftIOException {
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
@@ -322,7 +323,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public void mount(final String alluxioPath, final String ufsPath, final MountTOptions options)
-      throws AlluxioTException {
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -341,7 +342,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public void remove(final String path, final boolean recursive, final DeleteTOptions options)
-      throws AlluxioTException {
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -366,7 +367,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public void rename(final String srcPath, final String dstPath)
-      throws AlluxioTException {
+      throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -417,7 +418,7 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void unmount(final String alluxioPath) throws AlluxioTException {
+  public void unmount(final String alluxioPath) throws AlluxioTException, ThriftIOException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
