@@ -18,7 +18,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -33,7 +34,7 @@ public final class HelpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void helpNotExist() throws IOException {
-    mFsShell.run("help", "notExistTestCommand");
+    Assert.assertEquals(-1, mFsShell.run("help", "notExistTestCommand"));
     String expected = "notExistTestCommand is an unknown command.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -43,10 +44,13 @@ public final class HelpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void help() throws IOException {
-    mFsShell.run("help", "help");
+    Assert.assertEquals(0, mFsShell.run("help", "help"));
     HelpCommand cmd = new HelpCommand(mFileSystem);
-    String expected = String.format("%-60s%s%n", "       [" + cmd.getUsage() + "]   ",
-            cmd.getDescription());
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    HelpCommand.printCommandInfo(cmd, printWriter);
+    printWriter.close();
+    String expected = stringWriter.toString();
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -55,14 +59,17 @@ public final class HelpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void helpAllCommand() throws IOException {
-    mFsShell.run("help");
-    final Map<String, ShellCommand> commands = new HashMap<>();
+    Assert.assertEquals(0, mFsShell.run("help"));
+    final Map<String, ShellCommand> commands = AlluxioShellUtils.loadCommands(mFileSystem);
     String expected = "";
-    AlluxioShellUtils.loadCommands(mFileSystem, commands);
     SortedSet<String> sortedCmds = new TreeSet<>(commands.keySet());
     for (String cmd : sortedCmds) {
-      expected += String.format("%-60s%s%n", "       [" + commands.get(cmd).getUsage() + "]   ",
-              commands.get(cmd).getDescription());
+      ShellCommand command = commands.get(cmd);
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter printWriter = new PrintWriter(stringWriter);
+      HelpCommand.printCommandInfo(command, printWriter);
+      printWriter.close();
+      expected += stringWriter.toString() + "\n";
     }
     Assert.assertEquals(expected, mOutput.toString());
   }

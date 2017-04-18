@@ -75,7 +75,7 @@ public final class MountCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
         .addOption(OPTION_OPTION);
   }

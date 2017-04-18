@@ -105,7 +105,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options()
         .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
