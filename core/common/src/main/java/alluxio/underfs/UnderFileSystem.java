@@ -163,6 +163,18 @@ public interface UnderFileSystem {
       return UFS_CACHE.get(path, ufsConf);
     }
 
+    /**
+     * Gets the UnderFileSystem instance according to its scheme and configuration.
+     *
+     * @param path the file path storing over the ufs
+     * @param ufsConf the configuration object for ufs only
+     * @return instance of the under layer file system
+     */
+    public static UnderFileSystem getMountPoint(String path, Object ufsConf) {
+      Preconditions.checkArgument(path != null, "path may not be null");
+
+      return UFS_CACHE.get(path, ufsConf);
+    }
 
     /**
      * @return the instance of under file system for Alluxio root directory
@@ -171,7 +183,7 @@ public interface UnderFileSystem {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return get(ufsRoot, ufsConf);
+      return getMountPoint(ufsRoot, ufsConf);
     }
 
     /**

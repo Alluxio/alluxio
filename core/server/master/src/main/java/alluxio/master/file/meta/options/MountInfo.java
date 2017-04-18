@@ -13,9 +13,12 @@ package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
 import alluxio.master.file.options.MountOptions;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -51,6 +54,32 @@ public final class MountInfo {
    */
   public MountOptions getOptions() {
     return mOptions;
+  }
+
+  /**
+   * @return the {@link MountPointInfo} for the mount point
+   */
+  public MountPointInfo toMountPointInfo() {
+    MountPointInfo info = new MountPointInfo();
+    UnderFileSystem ufs =
+        UnderFileSystem.Factory.getMountPoint(mUfsUri.toString(), getOptions().getProperties());
+    info.setUfsUri(mUfsUri.toString());
+    info.setUfsType(ufs.getUnderFSType());
+    try {
+      info.setUfsCapacityBytes(
+          ufs.getSpace(mUfsUri.toString(), UnderFileSystem.SpaceType.SPACE_TOTAL));
+    } catch (IOException e) {
+      // pass
+    }
+    try {
+      info.setUfsUsedBytes(ufs.getSpace(mUfsUri.toString(), UnderFileSystem.SpaceType.SPACE_USED));
+    } catch (IOException e) {
+      // pass
+    }
+    info.setReadOnly(mOptions.isReadOnly());
+    info.setProperties(mOptions.getProperties());
+    info.setShared(mOptions.isShared());
+    return info;
   }
 
   @Override

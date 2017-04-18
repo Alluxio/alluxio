@@ -2256,7 +2256,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!replayed) {
       // Check that the ufsPath exists and is a directory
       UnderFileSystem ufs =
-          UnderFileSystem.Factory.get(ufsPath.toString(), options.getProperties());
+          UnderFileSystem.Factory.getMountPoint(ufsPath.toString(), options.getProperties());
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));

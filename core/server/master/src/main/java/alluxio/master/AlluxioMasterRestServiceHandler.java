@@ -526,12 +526,7 @@ public final class AlluxioMasterRestServiceHandler {
     for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable()
         .entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
-      MountPointInfo info = new MountPointInfo();
-      info.setUfsInfo(mountInfo.getUfsUri().toString());
-      info.setReadOnly(mountInfo.getOptions().isReadOnly());
-      info.setProperties(mountInfo.getOptions().getProperties());
-      info.setShared(mountInfo.getOptions().isShared());
-      mountPoints.put(mountPoint.getKey(), info);
+      mountPoints.put(mountPoint.getKey(), mountInfo.toMountPointInfo());
     }
     return mountPoints;
   }
