@@ -12,7 +12,8 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.ExceptionStatus;
 import alluxio.network.connection.ThriftClientPool;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -106,16 +107,18 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       C client = acquireClient();
       try {
         return rpc.call(client);
-      } catch (UnavailableException e) {
-        throw new IOException(e);
       } catch (AlluxioTException e) {
-        AlluxioException ae = AlluxioException.fromThrift(e);
+        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+        if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
+          throw new IOException(e);
+        }
         try {
-          processException(client, ae);
-        } catch (AlluxioException ee) {
+          // TODO(andrew): figure out what's going on here and fix it
+          processException(client, se);
+        } catch (AlluxioStatusException ee) {
           throw new IOException(ee);
         }
-        exception = new TException(ae);
+        exception = new TException(se);
       } catch (TException e) {
         LOG.warn(e.getMessage());
         closeClient(client);
@@ -151,11 +154,12 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       try {
         return rpc.call(client);
       } catch (AlluxioTException e) {
-        AlluxioException ae = AlluxioException.fromThrift(e);
-        processException(client, ae);
-        exception = new TException(ae);
-      } catch (UnavailableException e) {
-        throw new IOException(e);
+        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+        if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
+          throw new IOException(e);
+        }
+        processException(client, se);
+        exception = new TException(se);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         closeClient(client);

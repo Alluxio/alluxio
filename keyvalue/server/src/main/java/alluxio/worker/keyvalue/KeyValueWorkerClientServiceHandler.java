@@ -72,8 +72,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @throws AlluxioTException if an exception occurs
    */
   @Override
-  public ByteBuffer get(final long blockId, final ByteBuffer key)
-      throws AlluxioTException {
+  public ByteBuffer get(final long blockId, final ByteBuffer key) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws AlluxioException, IOException {

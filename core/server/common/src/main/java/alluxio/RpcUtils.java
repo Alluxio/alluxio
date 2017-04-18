@@ -12,8 +12,7 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
 
 import org.slf4j.Logger;
@@ -31,17 +30,17 @@ public final class RpcUtils {
    * @param callable the callable to call
    * @param <T> the return type of the callable
    * @return the return value from calling the callable
-   * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
+   * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> T call(Logger logger, RpcCallable<T> callable) throws AlluxioTException {
     try {
       return callable.call();
     } catch (AlluxioException e) {
       logger.debug("{}, Error={}", callable, e.getMessage());
-      throw e.toThrift();
-    } catch (Exception e) {
+      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
+    } catch (RuntimeException e) {
       logger.error("{}", callable, e);
-      throw new UnexpectedAlluxioException(e).toThrift();
+      throw AlluxioStatusException.fromRuntimeException(e).toThrift();
     }
   }
 
@@ -60,14 +59,14 @@ public final class RpcUtils {
       return callable.call();
     } catch (AlluxioException e) {
       logger.debug("{}, Error={}", callable, e.getMessage());
-      throw e.toThrift();
+      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
       logger.warn("{}, Error={}", callable, e.getMessage());
       logger.debug("{}", callable, e);
-      throw new UnavailableException(e.getMessage());
-    } catch (Exception e) {
+      throw AlluxioStatusException.fromIOException(e).toThrift();
+    } catch (RuntimeException e) {
       logger.error("{}", callable, e);
-      throw new UnexpectedAlluxioException(e).toThrift();
+      throw AlluxioStatusException.fromRuntimeException(e).toThrift();
     }
   }
 
