@@ -27,7 +27,6 @@ import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
 import alluxio.thrift.LockBlockStatus;
 import alluxio.thrift.LockBlockTOptions;
-import alluxio.thrift.ThriftIOException;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import org.slf4j.Logger;
@@ -95,12 +94,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the commit
    * @param blockId the id of the block to commit
-   * @throws AlluxioTException if an Alluxio error occurs
-   * @throws ThriftIOException if an I/O error occurs
+   * @throws AlluxioTException if an error occurs
    */
   @Override
   public void cacheBlock(final long sessionId, final long blockId)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -121,12 +119,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the abort
    * @param blockId the id of the block to be aborted
-   * @throws AlluxioTException if an Alluxio error occurs
-   * @throws ThriftIOException if an I/O error occurs
+   * @throws AlluxioTException if an error occurs
    */
   @Override
   public void cancelBlock(final long sessionId, final long blockId)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -147,7 +144,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
    * @return the path of the block file locked
-   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws AlluxioTException if an error occurs
    */
   @Override
   public LockBlockResult lockBlock(final long blockId, final long sessionId,
@@ -193,12 +190,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param blockId the id of the block to move to the top layer
    * @return true if the block is successfully promoted, otherwise false
-   * @throws AlluxioTException if an Alluxio error occurs
-   * @throws ThriftIOException if an I/O error occurs
+   * @throws AlluxioTException if an error occurs
    */
   // TODO(calvin): This may be better as void.
   @Override
-  public boolean promoteBlock(final long blockId) throws AlluxioTException, ThriftIOException {
+  public boolean promoteBlock(final long blockId) throws AlluxioTException {
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException, IOException {
@@ -219,11 +215,10 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * reclaim space allocated to the block.
    *
    * @param blockId the id of the block to be removed
-   * @throws AlluxioTException if an Alluxio error occurs
-   * @throws ThriftIOException if an I/O error occurs
+   * @throws AlluxioTException if an error occurs
    */
   @Override
-  public void removeBlock(final long blockId) throws AlluxioTException, ThriftIOException {
+  public void removeBlock(final long blockId) throws AlluxioTException {
     RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
@@ -250,12 +245,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param initialBytes the initial number of bytes to allocate for this block
    * @param writeTier policy used to choose tier for this block
    * @return the temporary file path of the block file
-   * @throws AlluxioTException if an Alluxio error occurs
-   * @throws ThriftIOException if an I/O error occurs
+   * @throws AlluxioTException if an error occurs
    */
   @Override
   public String requestBlockLocation(final long sessionId, final long blockId,
-      final long initialBytes, final int writeTier) throws AlluxioTException, ThriftIOException {
+      final long initialBytes, final int writeTier) throws AlluxioTException {
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<String>() {
       @Override
       public String call() throws AlluxioException, IOException {
@@ -279,12 +273,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param requestBytes the amount of bytes to add to the block
    * @return true if the worker successfully allocates space for the block on block’s location,
    *         false if there is not enough space
-   * @throws AlluxioTException if an Alluxio error occurs
-   * @throws ThriftIOException if an I/O error occurs
+   * @throws AlluxioTException if an error occurs
    */
   @Override
   public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTException {
     return RpcUtils.callAndLog(LOG, new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException {
@@ -322,12 +315,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param sessionId the id of the client requesting the unlock
    * @return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block
-   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws AlluxioTException if an error occurs
    */
-  // TODO(andrew): This should return void
   @Override
   public boolean unlockBlock(final long blockId, final long sessionId)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTException {
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Boolean>() {
       @Override
       public Boolean call() throws AlluxioException, IOException {

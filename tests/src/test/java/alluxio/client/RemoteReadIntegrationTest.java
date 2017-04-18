@@ -24,7 +24,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -564,7 +563,7 @@ public class RemoteReadIntegrationTest {
             BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(),
                 workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
       } catch (IOException e) {
-        Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
+        // Expected since the file has been deleted.
       } finally {
         if (is2 != null) {
           is2.close();
