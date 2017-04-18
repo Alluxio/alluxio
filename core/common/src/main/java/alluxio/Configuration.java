@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
@@ -408,8 +409,8 @@ public final class Configuration {
    * @param prefixKey the prefix key
    * @return a map from nested properties aggregated by the prefix
    */
-  public static Properties getNestedProperties(PropertyKey prefixKey) {
-    Properties ret = new Properties();
+  public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
+    Map<String, String> ret = Maps.newHashMap();
     for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
       String key = entry.getKey();
       if (prefixKey.isNested(key)) {

@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -165,7 +166,7 @@ public interface UnderFileSystem {
 
     public static UnderFileSystem getRootUfs() {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      Properties ufsConf = Configuration.getNestedProperties(
+      Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       return get(ufsRoot, ufsConf);
     }

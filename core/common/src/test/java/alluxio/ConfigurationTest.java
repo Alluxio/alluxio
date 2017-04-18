@@ -25,6 +25,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -333,7 +334,7 @@ public class ConfigurationTest {
     Configuration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             PropertyKey.WEB_THREADS.toString()), "val");
-    Properties expected = new Properties();
+    Map<String, String> expected = new HashMap<>();
     expected.put(PropertyKey.WEB_THREADS.toString(), "val");
     Assert.assertThat(Configuration.getNestedProperties(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
@@ -344,7 +345,7 @@ public class ConfigurationTest {
   public void getNestedPropertiesEmptyTrailingProperty() {
     Configuration.set(PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY
         .format("foo", ""), "val");
-    Properties empty = new Properties();
+    Map<String, String> empty = new HashMap<>();
     Assert.assertThat(Configuration.getNestedProperties(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(empty));
@@ -355,7 +356,7 @@ public class ConfigurationTest {
     Configuration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             "alluxio.invalid.property"), "val");
-    Properties empty = new Properties();
+    Map<String, String> empty = new HashMap<>();
     Assert.assertThat(Configuration.getNestedProperties(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(empty));
@@ -367,7 +368,7 @@ public class ConfigurationTest {
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
             PropertyKey.WEB_THREADS.toString()),
         "val");
-    Properties empty = new Properties();
+    Map<String, String> empty = new HashMap<>();
     Assert.assertThat(Configuration.getNestedProperties(PropertyKey.HOME),
         CoreMatchers.is(empty));
     Assert.assertThat(Configuration.getNestedProperties(
