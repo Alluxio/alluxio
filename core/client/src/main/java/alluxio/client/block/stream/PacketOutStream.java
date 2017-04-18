@@ -18,13 +18,13 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -89,11 +89,9 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @param length the block or file length
    * @param partialRequest details of the write request which are constant for all requests
    * @return the {@link PacketOutStream} created
-   * @throws IOException if an I/O error occurs
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      InetSocketAddress address, long length, Protocol.WriteRequest partialRequest)
-      throws IOException {
+      InetSocketAddress address, long length, Protocol.WriteRequest partialRequest) {
     NettyPacketWriter packetWriter =
         new NettyPacketWriter(context, address, length, partialRequest);
     return new PacketOutStream(packetWriter, length);
@@ -127,19 +125,19 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   }
 
   @Override
-  public void write(int b) throws IOException {
+  public void write(int b) {
     Preconditions.checkState(remaining() > 0, PreconditionMessage.ERR_END_OF_BLOCK);
     updateCurrentPacket(false);
     mCurrentPacket.writeByte(b);
   }
 
   @Override
-  public void write(byte[] b) throws IOException {
+  public void write(byte[] b) {
     write(b, 0, b.length);
   }
 
   @Override
-  public void write(byte[] b, int off, int len) throws IOException {
+  public void write(byte[] b, int off, int len) {
     if (len == 0) {
       return;
     }
@@ -155,7 +153,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   }
 
   @Override
-  public void flush() throws IOException {
+  public void flush() {
     if (mClosed) {
       return;
     }
@@ -196,12 +194,12 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     try {
       updateCurrentPacket(true);
     } finally {
       mClosed = true;
-      mCloser.close();
+      CommonUtils.close(mCloser);
     }
   }
 

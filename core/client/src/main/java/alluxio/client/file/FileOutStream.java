@@ -108,9 +108,9 @@ public class FileOutStream extends AbstractOutStream {
         InetSocketAddress location = new InetSocketAddress(worker.getHost(), worker.getDataPort());
         mUnderStorageOutputStream =
             mCloser.register(UnderFileSystemFileOutStream.create(mContext, location, mOptions));
-      } catch (AlluxioStatusException | IOException e) {
+      } catch (AlluxioStatusException e) {
         CommonUtils.closeQuietly(mCloser);
-        throw CommonUtils.castToIOException(e);
+        throw e.toIOException();
       }
     }
   }

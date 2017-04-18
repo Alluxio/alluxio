@@ -261,7 +261,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         if (mCurrentCacheStream != null) {
           try {
             mCurrentCacheStream.write(b, currentOffset, bytesRead);
-          } catch (IOException e) {
+          } catch (Exception e) {
             handleCacheStreamException(e);
           }
         }

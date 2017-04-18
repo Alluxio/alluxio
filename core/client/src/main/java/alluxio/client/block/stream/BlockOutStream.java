@@ -103,7 +103,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   }
 
   @Override
-  public void write(byte[] b, int off, int len) throws IOException {
+  public void write(byte[] b, int off, int len) {
     mOutStream.write(b, off, len);
   }
 
@@ -153,8 +153,6 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       if (remaining() < mBlockSize) {
         mBlockWorkerClient.cacheBlock(mBlockId);
       }
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
     } finally {
       CommonUtils.close(mCloser);
       mClosed = true;
