@@ -161,7 +161,7 @@ public class FileOutStream extends AbstractOutStream {
         scheduleAsyncPersist();
       }
     } catch (AlluxioStatusException e) {
-      throw mCloser.rethrow(new IOException(e));
+      throw mCloser.rethrow(e.toIOException());
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
@@ -173,13 +173,44 @@ public class FileOutStream extends AbstractOutStream {
   @Override
   public void flush() throws IOException {
     // TODO(yupeng): Handle flush for Alluxio storage stream as well.
-    if (mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream.flush();
+    try {
+      if (mUnderStorageType.isSyncPersist()) {
+        mUnderStorageOutputStream.flush();
+      }
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     }
   }
 
   @Override
   public void write(int b) throws IOException {
+    try {
+      writeInternal(b);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
+    }
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+    try {
+      writeInternal(b, 0, b.length);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
+    }
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    try {
+      writeInternal(b, off, len);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
+    }
+  }
+
+  private void writeInternal(int b) throws IOException {
     if (mShouldCacheCurrentBlock) {
       try {
         if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
@@ -198,14 +229,7 @@ public class FileOutStream extends AbstractOutStream {
     mBytesWritten++;
   }
 
-  @Override
-  public void write(byte[] b) throws IOException {
-    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
-    write(b, 0, b.length);
-  }
-
-  @Override
-  public void write(byte[] b, int off, int len) throws IOException {
+  private void writeInternal(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
