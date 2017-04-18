@@ -32,9 +32,7 @@ public interface ShellCommand {
   String getCommandName();
 
   /**
-   * Gets the supported Options of the command.
-   *
-   * @return the Options
+   * @return the supported {@link Options} of the command
    */
   Options getOptions();
 
