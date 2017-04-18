@@ -16,8 +16,6 @@ import alluxio.client.QuietlyCancelable;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.IOException;
-
 /**
  * The interface to write packets.
  */
@@ -27,16 +25,13 @@ public interface PacketWriter extends QuietlyCloseable, QuietlyCancelable {
    * the packet.
    *
    * @param packet the packet
-   * @throws IOException if an I/O error occurs
    */
-  void writePacket(ByteBuf packet) throws IOException;
+  void writePacket(ByteBuf packet);
 
   /**
    *  Flushes all the pending packets.
-   *
-   * @throws IOException if an I/O error occurs
    */
-  void flush() throws IOException;
+  void flush();
 
   /**
    * @return the packet size in bytes used

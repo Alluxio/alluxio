@@ -209,9 +209,8 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * Updates the current packet.
    *
    * @param lastPacket if the current packet is the last packet
-   * @throws IOException if an I/O error occurs
    */
-  private void updateCurrentPacket(boolean lastPacket) throws IOException {
+  private void updateCurrentPacket(boolean lastPacket) {
     // Early return for the most common case.
     if (mCurrentPacket != null && mCurrentPacket.writableBytes() > 0 && !lastPacket) {
       return;

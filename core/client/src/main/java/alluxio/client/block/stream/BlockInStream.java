@@ -23,7 +23,6 @@ import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.resource.LockBlockResource;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -187,11 +186,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
 
   @Override
   public void close() {
-    try {
-      mCloser.close();
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
+    CommonUtils.close(mCloser);
   }
 
   @Override

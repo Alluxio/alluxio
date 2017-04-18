@@ -397,4 +397,22 @@ public final class CommonUtils {
   }
 
   private CommonUtils() {} // prevent instantiation
+
+  /**
+   * Propagates a Throwable by either converting to an {@link AlluxioStatusException} or re-throwing
+   * as an Error.
+   *
+   * @param t the throwable to propagate
+   * @return this method never returns; the return type is for ease of use in
+   *         {@code throw propagate(t);}
+   */
+  public static RuntimeException propagate(Throwable t) {
+    if (t instanceof Exception) {
+      throw AlluxioStatusException.from((Exception) t);
+    } else if (t instanceof Error) {
+      throw (Error) t;
+    } else {
+      throw new IllegalStateException("Encountered a non-Error, non-Exception Throwable", t);
+    }
+  }
 }

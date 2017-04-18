@@ -281,6 +281,8 @@ public class AlluxioStatusException extends RuntimeException {
       return new OutOfRangeException(e);
     } catch (RejectedExecutionException e) {
       return new ResourceExhaustedException(e);
+    } catch (AlluxioStatusException e) {
+      return e;
     } catch (RuntimeException e) {
       return new UnknownException(e);
     }

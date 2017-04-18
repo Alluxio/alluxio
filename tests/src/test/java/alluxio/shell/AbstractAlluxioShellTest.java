@@ -86,7 +86,7 @@ public abstract class AbstractAlluxioShellTest {
    *
    * @param bytes file size
    */
-  protected void copyToLocalWithBytes(int bytes) throws IOException {
+  protected void copyToLocalWithBytes(int bytes) throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile");

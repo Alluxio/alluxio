@@ -19,14 +19,12 @@ import alluxio.shell.AbstractAlluxioShellTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 /**
  * Test for du command.
  */
 public final class DuCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void du() throws IOException {
+  public void du() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",

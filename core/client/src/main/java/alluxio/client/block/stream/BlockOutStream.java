@@ -117,15 +117,15 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     if (mClosed) {
       return;
     }
-    RuntimeException exception = null;
+    Exception exception = null;
     try {
       mOutStream.cancel();
-    } catch (RuntimeException e) {
+    } catch (Exception e) {
       exception = e;
     }
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (RuntimeException e) {
+    } catch (Exception e) {
       exception = e;
     }
 
@@ -136,11 +136,11 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
 
     try {
       mCloser.close();
-    } catch (IOException | RuntimeException e) {
+    } catch (Exception e) {
       // Ignore
     }
     mClosed = true;
-    throw AlluxioStatusException.fromRuntimeException(exception);
+    throw AlluxioStatusException.from(exception);
   }
 
   @Override

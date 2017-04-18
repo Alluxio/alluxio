@@ -21,6 +21,7 @@ import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.proto.ProtoMessage;
 
@@ -171,7 +172,8 @@ public final class NettyPacketReader implements PacketReader {
           String.format("Timeout to read %d from %s.", mId, mChannel.toString()));
     }
     if (buf == THROWABLE) {
-      throw new RuntimeException(Preconditions.checkNotNull(mPacketReaderException));
+      Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
+      throw CommonUtils.propagate(mPacketReaderException);
     }
     if (buf == EOF_OR_CANCELLED) {
       mDone = true;

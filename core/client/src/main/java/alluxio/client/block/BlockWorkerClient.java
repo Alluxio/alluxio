@@ -11,18 +11,18 @@
 
 package alluxio.client.block;
 
+import alluxio.QuietlyCloseable;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
-import java.io.Closeable;
 import java.net.InetSocketAddress;
 
 /**
  * Interface for an Alluxio block worker client.
  */
-public interface BlockWorkerClient extends Closeable {
+public interface BlockWorkerClient extends QuietlyCloseable {
 
   /**
    * Factory for {@link BlockWorkerClient}.
@@ -153,13 +153,6 @@ public interface BlockWorkerClient extends Closeable {
    * locks and temporary files.
    *
    * @param retryPolicy the retry policy to use
-   * @throws InterruptedException if this thread is interrupted
    */
-  void sessionHeartbeat(RetryPolicy retryPolicy) throws InterruptedException;
-
-  /**
-   * Overridden to indicate that this does not throw IOException.
-   */
-  @Override
-  void close();
+  void sessionHeartbeat(RetryPolicy retryPolicy);
 }
