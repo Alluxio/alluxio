@@ -24,7 +24,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
@@ -109,7 +108,7 @@ public class FileOutStream extends AbstractOutStream {
         InetSocketAddress location = new InetSocketAddress(worker.getHost(), worker.getDataPort());
         mUnderStorageOutputStream =
             mCloser.register(UnderFileSystemFileOutStream.create(mContext, location, mOptions));
-      } catch (AlluxioStatusException | AlluxioException | IOException e) {
+      } catch (AlluxioException | IOException e) {
         CommonUtils.closeQuietly(mCloser);
         throw CommonUtils.castToIOException(e);
       }

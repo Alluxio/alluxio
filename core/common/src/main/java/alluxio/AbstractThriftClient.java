@@ -12,13 +12,12 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.ExceptionStatus;
 import alluxio.network.connection.ThriftClientPool;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -107,18 +106,16 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       C client = acquireClient();
       try {
         return rpc.call(client);
+      } catch (ThriftIOException e) {
+        throw new IOException(e);
       } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-        if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
-          throw new IOException(e);
-        }
+        AlluxioException ae = AlluxioException.fromThrift(e);
         try {
-          // TODO(andrew): figure out what's going on here and fix it
-          processException(client, se);
-        } catch (AlluxioStatusException ee) {
+          processException(client, ae);
+        } catch (AlluxioException ee) {
           throw new IOException(ee);
         }
-        exception = new TException(se);
+        exception = new TException(ae);
       } catch (TException e) {
         LOG.warn(e.getMessage());
         closeClient(client);
@@ -154,12 +151,11 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       try {
         return rpc.call(client);
       } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-        if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
-          throw new IOException(e);
-        }
-        processException(client, se);
-        exception = new TException(se);
+        AlluxioException ae = AlluxioException.fromThrift(e);
+        processException(client, ae);
+        exception = new TException(ae);
+      } catch (ThriftIOException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         closeClient(client);

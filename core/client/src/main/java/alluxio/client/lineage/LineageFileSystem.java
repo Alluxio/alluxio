@@ -20,7 +20,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDoesNotExistException;
-import alluxio.exception.status.NotFoundException;
 
 import java.io.IOException;
 
@@ -88,7 +87,7 @@ public final class LineageFileSystem extends BaseFileSystem {
     long fileId;
     try {
       fileId = reinitializeFile(path, options);
-    } catch (NotFoundException e) {
+    } catch (LineageDoesNotExistException e) {
       // not a lineage file
       return super.createFile(path, options);
     }
