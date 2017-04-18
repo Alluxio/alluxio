@@ -327,6 +327,21 @@ public final class CommonUtils {
   }
 
   /**
+   * Strips the leading and trailing quotes from the given string.
+   * E.g. return 'alluxio' for input '"alluxio"'.
+   *
+   * @param str The string to strip
+   * @return The string without the leading and trailing quotes
+   */
+  public static String stripLeadingAndTrailingQuotes(String str) {
+    int length = str.length();
+    if (length > 1 && str.startsWith("\"") && str.endsWith("\"")) {
+      str = str.substring(1, length - 1);
+    }
+    return str;
+  }
+
+  /**
    * Gets the value with a given key from a static key/value mapping in string format. E.g. with
    * mapping "id1=user1;id2=user2", it returns "user1" with key "id1". It returns null if the given
    * key does not exist in the mapping.
