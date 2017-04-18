@@ -117,7 +117,7 @@ public final class MasterRegistry {
    * If a master fails to start, already-started masters will be stopped.
    *
    * @param isLeader whether to start the masters as leaders
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   public void start(boolean isLeader) throws IOException {
     List<Master> started = new ArrayList<>();
@@ -137,7 +137,7 @@ public final class MasterRegistry {
   /**
    * Stops all masters in reverse dependency order. If A depends on B, B is stopped before A.
    *
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   public void stop() throws IOException {
     for (Master master : Lists.reverse(getMasters())) {

@@ -247,7 +247,7 @@ public final class FileSystemContext implements Closeable {
    *
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) {
     return createBlockWorkerClient(address, IdUtils.getRandomNonNegativeLong());

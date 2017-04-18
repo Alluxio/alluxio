@@ -36,7 +36,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param address the address of an Alluxio worker
    * @param options the options to construct this stream with
    * @return a new {@link UnderFileSystemFileOutStream}
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
       OutStreamOptions options) throws IOException {
@@ -55,7 +55,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param owner the owner of the ufs file
    * @param group the group of the ufs file
    * @param mode the mode of the ufs file
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
       String path, String owner, String group, Mode mode) throws IOException {

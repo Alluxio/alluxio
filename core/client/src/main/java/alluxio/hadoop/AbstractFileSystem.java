@@ -145,7 +145,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param blockSize block size in bytes
    * @param progress queryable progress
    * @return an {@link FSDataOutputStream} created at the indicated path of a file
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public FSDataOutputStream create(Path path, FsPermission permission, boolean overwrite,
@@ -198,7 +198,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param replication required block replication for the file
    * @param blockSize the size in bytes of the buffer to be used
    * @param progress queryable progress
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    * @see #setPermission(Path, FsPermission)
    * @deprecated API only for 0.20-append
    */
@@ -217,7 +217,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param path path to delete
    * @return true if one or more files/directories were deleted; false otherwise
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    * @deprecated Use {@link #delete(Path, boolean)} instead.
    */
   @Override
@@ -232,7 +232,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path path to delete
    * @param recursive if true, will attempt to delete all children of the path
    * @return true if one or more files/directories were deleted; false otherwise
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public boolean delete(Path path, boolean recursive) throws IOException {
@@ -337,7 +337,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path path to set owner or group
    * @param username username to be set
    * @param groupname groupname to be set
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void setOwner(Path path, final String username, final String groupname)
@@ -368,7 +368,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param path path to set permission
    * @param permission permission set to path
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
@@ -477,7 +477,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param uri the uri
    * @param conf the hadoop conf
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   void initializeInternal(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
@@ -601,7 +601,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path path to create
    * @param permission permissions to grant the created folder
    * @return true if the indicated folder is created successfully or already exists
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public boolean mkdirs(Path path, FsPermission permission) throws IOException {
@@ -627,7 +627,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path the file name to open
    * @param bufferSize stream buffer size in bytes, currently unused
    * @return an {@link FSDataInputStream} at the indicated path of a file
-   * @throws IOException if an IO error occurs
+   * @throws IOException if an I/O error occurs
    */
   // TODO(calvin): Consider respecting the buffer size option
   @Override
