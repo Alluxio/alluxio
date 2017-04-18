@@ -439,7 +439,7 @@ public class FileInStreamTest {
     try {
       mTestStream.seek(BLOCK_LENGTH);
       Assert.fail("block store should throw exception");
-    } catch (UnavailableException e) {
+    } catch (IOException e) {
       Assert.assertEquals("test IOException", e.getMessage());
     }
   }

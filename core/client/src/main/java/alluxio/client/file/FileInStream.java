@@ -172,7 +172,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       closeOrCancelCacheStream();
       mClosed = true;
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
@@ -181,7 +181,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       return readInternal();
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
@@ -190,7 +190,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       return read(b, 0, b.length);
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
@@ -199,7 +199,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       return readInternal(b, off, len);
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
@@ -284,7 +284,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       return positionedReadInternal(pos, b, off, len);
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
@@ -345,7 +345,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         seekInternalWithCachingPartiallyReadBlock(pos);
       }
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
@@ -360,7 +360,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       seek(mPos + toSkip);
       return toSkip;
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
