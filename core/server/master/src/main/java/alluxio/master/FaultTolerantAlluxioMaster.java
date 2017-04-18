@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.LeaderSelectorClient;
 import alluxio.PropertyKey;
+import alluxio.master.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -88,6 +89,9 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           stopServing();
           stopMasters();
 
+          // TODO(peis): Stop serving properly and remove this master recreation.
+          MasterUtils
+              .createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
           startMasters(false);
           started = true;
         }

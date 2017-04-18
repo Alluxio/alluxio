@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -226,11 +227,16 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
+    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
+    getExecutorService().shutdownNow();
+    try {
+      getExecutorService().awaitTermination(10, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     mSessionCleaner.stop();
     mBlockMasterClient.close();
     mFileSystemMasterClient.close();
-    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
-    getExecutorService().shutdownNow();
   }
 
   @Override
