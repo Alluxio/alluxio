@@ -2255,15 +2255,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (!replayed) {
       // Check that the ufsPath exists and is a directory
-      UnderFileSystem ufs = UnderFileSystem.Factory.get(
-          ufsPath.toString(), options.getProperties());
+      UnderFileSystem ufs =
+          UnderFileSystem.Factory.get(ufsPath.toString(), options.getProperties());
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
       String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      UnderFileSystem defaultUfs = UnderFileSystem.Factory.getRootUfs();
+      UnderFileSystem defaultUfs = UnderFileSystem.Factory.getRoot();
       String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
       if (defaultUfs.exists(shadowPath)) {
         throw new IOException(
@@ -2714,7 +2714,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           });
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      final UnderFileSystem ufs = UnderFileSystem.Factory.getRootUfs();
+      final UnderFileSystem ufs = UnderFileSystem.Factory.getRoot();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           new Gauge<Long>() {

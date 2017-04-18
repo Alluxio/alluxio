@@ -164,7 +164,11 @@ public interface UnderFileSystem {
       return UFS_CACHE.get(path, ufsConf);
     }
 
-    public static UnderFileSystem getRootUfs() {
+
+    /**
+     * @return the instance of under file system for Alluxio root directory
+     */
+    public static UnderFileSystem getRoot() {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
