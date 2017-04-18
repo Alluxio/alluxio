@@ -36,7 +36,6 @@ import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -310,7 +309,7 @@ public final class FileSystemContext implements Closeable {
     try {
       return mNettyChannelPools.get(address).acquire();
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new UnavailableException(e);
     }
   }
 
@@ -327,9 +326,8 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @return if there is a local worker running the same machine
-   * @throws IOException if it fails to get the workers
    */
-  public synchronized boolean hasLocalWorker() throws IOException {
+  public synchronized boolean hasLocalWorker() {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
@@ -338,16 +336,15 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @return a local worker running the same machine, or null if none is found
-   * @throws IOException if it fails to get the workers
    */
-  public synchronized WorkerNetAddress getLocalWorker() throws IOException {
+  public synchronized WorkerNetAddress getLocalWorker() {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
     return mLocalWorker;
   }
 
-  private void initializeLocalWorker() throws IOException {
+  private void initializeLocalWorker() {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
       if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName())) {
@@ -360,20 +357,17 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return if there are any local workers, the returned list will ONLY contain the local workers,
    *         otherwise a list of all remote workers will be returned
-   * @throws IOException if an error occurs communicating with the master
    */
-  private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
+  private List<WorkerNetAddress> getWorkerAddresses() {
     List<WorkerInfo> infos;
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       infos = blockMasterClient.getWorkerInfoList();
-    } catch (UnavailableException e) {
-      throw new IOException(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }
     if (infos.isEmpty()) {
-      throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
