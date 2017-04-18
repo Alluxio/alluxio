@@ -2263,7 +2263,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
       String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      UnderFileSystem defaultUfs = UnderFileSystem.Factory.get(defaultUfsPath);
+      UnderFileSystem defaultUfs = UnderFileSystem.Factory.getRootUfs();
       String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
       if (defaultUfs.exists(shadowPath)) {
         throw new IOException(

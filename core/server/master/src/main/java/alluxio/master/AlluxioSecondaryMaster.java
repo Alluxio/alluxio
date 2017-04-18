@@ -11,8 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.ServerUtils;
@@ -91,8 +89,7 @@ public final class AlluxioSecondaryMaster implements Server {
    * @throws IOException if any I/O errors occur
    */
   private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
+    UnderFileSystem ufs = UnderFileSystem.Factory.getRootUfs();
     ufs.connectFromMaster(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
   }

@@ -12,6 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -27,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -158,6 +161,13 @@ public interface UnderFileSystem {
       Preconditions.checkArgument(path != null, "path may not be null");
 
       return UFS_CACHE.get(path, ufsConf);
+    }
+
+    public static UnderFileSystem getRootUfs() {
+      String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      Properties ufsConf = Configuration.getNestedProperties(
+          PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      return get(ufsRoot, ufsConf);
     }
   }
 
