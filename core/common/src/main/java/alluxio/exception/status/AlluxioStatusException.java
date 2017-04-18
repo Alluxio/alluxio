@@ -36,6 +36,7 @@ import alluxio.thrift.AlluxioTException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
@@ -232,6 +233,8 @@ public class AlluxioStatusException extends RuntimeException {
       throw new InvalidArgumentException(e);
     } catch (UserPrincipalNotFoundException e) {
       throw new UnauthenticatedException(e);
+    } catch (ClosedChannelException e) {
+      throw new FailedPreconditionException(e);
     } catch (IOException e) {
       throw new UnavailableException(e);
     }
