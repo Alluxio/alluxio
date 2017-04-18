@@ -15,12 +15,13 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.ExceptionStatus;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -320,10 +321,12 @@ public abstract class AbstractClient implements Client {
       connect();
       try {
         return rpc.call();
-      } catch (ThriftIOException e) {
-        throw new IOException(e);
       } catch (AlluxioTException e) {
-        throw new RuntimeException(AlluxioException.fromThrift(e));
+        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+        if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
+          throw new IOException(e);
+        }
+        throw se;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         disconnect();
@@ -356,9 +359,11 @@ public abstract class AbstractClient implements Client {
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
-        throw AlluxioException.fromThrift(e);
-      } catch (ThriftIOException e) {
-        throw new IOException(e);
+        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+        if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
+          throw new IOException(e);
+        }
+        throw se;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         disconnect();

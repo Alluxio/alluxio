@@ -22,6 +22,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -29,7 +30,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
-import alluxio.thrift.ThriftIOException;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -349,12 +349,7 @@ public final class RetryHandlingBlockWorkerClient
         Metrics.BLOCK_WORKER_HEATBEATS.inc();
         return;
       } catch (AlluxioTException e) {
-        AlluxioException ae = AlluxioException.fromThrift(e);
-        LOG.warn(ae.getMessage());
-        throw new IOException(ae);
-      } catch (ThriftIOException e) {
-        LOG.warn(e.getMessage());
-        throw new IOException(e);
+        throw new IOException(AlluxioStatusException.fromThrift(e));
       } catch (TException e) {
         client.getOutputProtocol().getTransport().close();
         exception = e;

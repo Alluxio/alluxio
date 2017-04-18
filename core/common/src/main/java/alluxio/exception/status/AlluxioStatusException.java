@@ -31,6 +31,7 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.thrift.AlluxioTException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -81,6 +82,86 @@ public class AlluxioStatusException extends RuntimeException {
    */
   public ExceptionStatus getStatus() {
     return mStatus;
+  }
+
+  /**
+   * @return the Thrift representation of this exception
+   */
+  public AlluxioTException toThrift() {
+    return new AlluxioTException(getMessage(), ExceptionStatus.toThrift(mStatus));
+  }
+
+  /**
+   * @return a specific {@link AlluxioException} corresponding to this exception if there is one;
+   *         otherwise return a generic {@link AlluxioException}
+   */
+  public AlluxioException toAlluxioException() {
+    switch (mStatus) {
+      // Fall throughs are intentional.
+      case PERMISSION_DENIED:
+      case UNAUTHENTICATED:
+        return new AccessControlException(getMessage());
+      case ABORTED:
+      case ALREADY_EXISTS:
+      case CANCELED:
+      case DATA_LOSS:
+      case DEADLINE_EXCEEDED:
+      case FAILED_PRECONDITION:
+      case INTERNAL:
+      case INVALID_ARGUMENT:
+      case NOT_FOUND:
+      case OUT_OF_RANGE:
+      case RESOURCE_EXHAUSTED:
+      case UNAVAILABLE:
+      case UNIMPLEMENTED:
+      case UNKNOWN:
+      default:
+        return new AlluxioException(getMessage());
+    }
+  }
+
+  /**
+   * Converts an Alluxio exception from Thrift representation to native representation.
+   *
+   * @param e the Alluxio Thrift exception
+   * @return the native Alluxio exception
+   */
+  public static AlluxioStatusException fromThrift(AlluxioTException e) {
+    String m = e.getMessage();
+    switch (e.getStatus()) {
+      case CANCELED:
+        return new CanceledException(m);
+      case INVALID_ARGUMENT:
+        return new InvalidArgumentException(m);
+      case DEADLINE_EXCEEDED:
+        return new DeadlineExceededException(m);
+      case NOT_FOUND:
+        return new NotFoundException(m);
+      case ALREADY_EXISTS:
+        return new AlreadyExistsException(m);
+      case PERMISSION_DENIED:
+        return new PermissionDeniedException(m);
+      case UNAUTHENTICATED:
+        return new UnauthenticatedException(m);
+      case RESOURCE_EXHAUSTED:
+        return new ResourceExhaustedException(m);
+      case FAILED_PRECONDITION:
+        return new FailedPreconditionException(m);
+      case ABORTED:
+        return new AbortedException(m);
+      case OUT_OF_RANGE:
+        return new OutOfRangeException(m);
+      case UNIMPLEMENTED:
+        return new UnimplementedException(m);
+      case INTERNAL:
+        return new InternalException(m);
+      case UNAVAILABLE:
+        return new UnavailableException(m);
+      case DATA_LOSS:
+        return new DataLossException(m);
+      default:
+        return new UnknownException(m);
+    }
   }
 
   /**
