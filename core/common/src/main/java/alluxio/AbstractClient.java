@@ -11,13 +11,13 @@
 
 package alluxio;
 
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.ExceptionStatus;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.UnimplementedException;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
@@ -160,11 +160,8 @@ public abstract class AbstractClient implements Client {
 
   /**
    * Connects with the remote.
-   *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  public synchronized void connect() throws IOException, ConnectionFailedException {
+  public synchronized void connect() {
     if (mConnected) {
       return;
     }
@@ -197,9 +194,9 @@ public abstract class AbstractClient implements Client {
               + "Please consult %s for common solutions to address this problem.",
               getServiceName(), mMode, mAddress, e.getMessage(),
               RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-          throw new IOException(message, e);
+          throw new UnimplementedException(message, e);
         }
-        throw e;
+        throw AlluxioStatusException.fromIOException(e);
       } catch (TTransportException e) {
         LOG.warn("Failed to connect ({}) to {} {} @ {}: {}", retryPolicy.getRetryCount(),
             getServiceName(), mMode, mAddress, e.getMessage());
@@ -208,7 +205,7 @@ public abstract class AbstractClient implements Client {
           String message = "Thrift transport open times out. Please check whether the "
               + "authentication types match between client and server. Note that NOSASL client "
               + "is not able to connect to servers with SIMPLE security mode.";
-          throw new IOException(message, e);
+          throw new UnavailableException(message, e);
         }
         // TODO(peis): Consider closing the connection here as well.
         if (!retryPolicy.attemptRetry()) {
@@ -217,7 +214,7 @@ public abstract class AbstractClient implements Client {
       }
     }
     // Reaching here indicates that we did not successfully connect.
-    throw new ConnectionFailedException("Failed to connect to " + getServiceName() + " " + mMode
+    throw new UnavailableException("Failed to connect to " + getServiceName() + " " + mMode
         + " @ " + mAddress + " after " + (retryPolicy.getRetryCount()) + " attempts");
   }
 
@@ -298,11 +295,7 @@ public abstract class AbstractClient implements Client {
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     while (!mClosed) {
       Exception ex;
-      try {
-        connect();
-      } catch (IOException | ConnectionFailedException e) {
-        throw new UnavailableException(e.getMessage());
-      }
+      connect();
       try {
         return rpc.call();
       } catch (AlluxioTException e) {

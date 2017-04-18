@@ -50,8 +50,8 @@ public class AlluxioStatusException extends RuntimeException {
   private static final long serialVersionUID = -7422144873058169662L;
 
   private final ExceptionStatus mStatus;
-  // If this exception was constructed from an IOException, the exceptions is stored here and
-  // reused if the exception is converted back to an IOException.
+  // If this status exception was constructed from an IOException, the IOException is stored here
+  // and reused if the status exception is ever converted back to an IOException.
   private final IOException mIOException;
 
   /**

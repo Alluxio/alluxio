@@ -52,6 +52,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param path the ufs file path
    * @param owner the owner of the ufs file
    * @param group the group of the ufs file
+   * @param mode the mode of the ufs file
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
       String path, String owner, String group, Mode mode) {

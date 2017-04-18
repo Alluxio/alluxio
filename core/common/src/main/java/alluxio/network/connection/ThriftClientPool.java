@@ -243,7 +243,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
                 + "Please consult %s for common solutions to address this problem.",
             getServiceNameForLogging(), mAddress, e.getMessage(),
             RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-        throw new UnavailableException(message, e);
+        throw new UnimplementedException(message, e);
       }
       throw new UnavailableException(e);
     } catch (TException e) {

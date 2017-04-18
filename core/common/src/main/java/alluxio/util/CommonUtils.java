@@ -22,6 +22,7 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -377,6 +378,19 @@ public final class CommonUtils {
   public static void close(Closer closer) {
     try {
       closer.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
+  }
+
+  /**
+   * Closes a Closeable, converting any IOException to an {@link AlluxioStatusException}.
+   *
+   * @param closeable the Closeable
+   */
+  public static void close(Closeable closeable) {
+    try {
+      closeable.close();
     } catch (IOException e) {
       throw AlluxioStatusException.fromIOException(e);
     }

@@ -21,6 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -145,7 +146,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   @Override
-  public ByteBuffer read(long offset, long length) throws IOException {
+  public ByteBuffer read(long offset, long length) {
     Preconditions.checkState(!mClosed);
     updateUnderFileSystemInputStream(offset);
     updateBlockWriter(offset);
@@ -158,7 +159,12 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     int bytesRead = 0;
     Preconditions.checkNotNull(mUnderFileSystemInputStream);
     while (bytesRead < bytesToRead) {
-      int read = mUnderFileSystemInputStream.read(data, bytesRead, (int) (bytesToRead - bytesRead));
+      int read;
+      try {
+        read = mUnderFileSystemInputStream.read(data, bytesRead, (int) (bytesToRead - bytesRead));
+      } catch (IOException e) {
+        throw AlluxioStatusException.fromIOException(e);
+      }
       if (read == -1) {
         break;
       }
@@ -185,10 +191,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param buf the byte buffer
    * @return the number of bytes read, -1 if it reaches EOF and none was read
-   * @throws IOException if any I/O errors occur when reading the block
    */
   @Override
-  public int transferTo(ByteBuf buf) throws IOException {
+  public int transferTo(ByteBuf buf) {
     Preconditions.checkState(!mClosed);
     if (mUnderFileSystemInputStream == null) {
       return -1;
@@ -204,7 +209,12 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
     int bytesToRead =
         (int) Math.min((long) buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
-    int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
+    int bytesRead;
+    try {
+      bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
 
     if (bytesRead <= 0) {
       return bytesRead;
@@ -226,11 +236,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * Closes the block reader. After this, this block reader should not be used anymore.
    * This is recommended to be called after the client finishes reading the block. It is usually
    * triggered when the client unlocks the block.
-   *
-   * @throws IOException if any I/O errors occur
    */
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }
@@ -246,7 +254,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       if (mUnderFileSystemInputStream != null) {
         closer.register(mUnderFileSystemInputStream);
       }
-      closer.close();
+      CommonUtils.close(closer);
     } finally {
       mClosed = true;
     }
@@ -261,19 +269,26 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * Updates the UFS input stream given an offset to read.
    *
    * @param offset the read offset within the block
-   * @throws IOException any I/O errors occur while updating the input stream
    */
-  private void updateUnderFileSystemInputStream(long offset) throws IOException {
+  private void updateUnderFileSystemInputStream(long offset) {
     if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
-      mUnderFileSystemInputStream.close();
+      try {
+        mUnderFileSystemInputStream.close();
+      } catch (IOException e) {
+        throw AlluxioStatusException.fromIOException(e);
+      }
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
       UnderFileSystem ufs = UnderFileSystem.Factory.get(mBlockMeta.getUnderFileSystemPath());
-      mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
-          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
+      try {
+        mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
+            OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
+      } catch (IOException e) {
+        throw AlluxioStatusException.fromIOException(e);
+      }
       mInStreamPos = offset;
     }
   }
@@ -284,7 +299,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param offset the read offset
    */
-  private void updateBlockWriter(long offset) throws IOException {
+  private void updateBlockWriter(long offset) {
     try {
       if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
         mBlockWriter.close();
@@ -297,7 +312,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     } catch (BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
       // We cannot skip the exception here because we need to make sure that the user of this
       // reader does not commit the block if it fails to abort the block.
-      throw CommonUtils.castToIOException(e);
+      throw AlluxioStatusException.from(e);
     }
     try {
       if (mBlockWriter == null && offset == 0 && !mNoCache) {

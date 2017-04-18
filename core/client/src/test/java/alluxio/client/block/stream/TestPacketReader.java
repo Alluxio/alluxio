@@ -49,6 +49,5 @@ public class TestPacketReader implements PacketReader {
   }
 
   @Override
-  public void close() {
-  }
+  public void close() { }
 }

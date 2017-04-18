@@ -11,10 +11,10 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.QuietlyCloseable;
+
 import io.netty.buffer.ByteBuf;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
@@ -23,7 +23,7 @@ import java.nio.channels.ReadableByteChannel;
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockReader extends Closeable {
+public interface BlockReader extends QuietlyCloseable {
 
   /**
    * Reads data from the block.
@@ -31,9 +31,8 @@ public interface BlockReader extends Closeable {
    * @param offset the offset from starting of the block file in bytes
    * @param length the length of data to read in bytes, -1 for the rest of the block
    * @return {@link ByteBuffer} the data that was read
-   * @throws IOException if the operation fails
    */
-  ByteBuffer read(long offset, long length) throws IOException;
+  ByteBuffer read(long offset, long length);
 
   /**
    * Gets the length of the block in bytes.
@@ -55,9 +54,8 @@ public interface BlockReader extends Closeable {
    *
    * @param buf the byte buffer
    * @return the number of bytes transferred, -1 if the end of the block is reached
-   * @throws IOException if any I/O errors occur
    */
-  int transferTo(ByteBuf buf) throws IOException;
+  int transferTo(ByteBuf buf);
 
   /**
    * @return true if this reader is closed
