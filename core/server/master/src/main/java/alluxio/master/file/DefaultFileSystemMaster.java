@@ -2255,8 +2255,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (!replayed) {
       // Check that the ufsPath exists and is a directory
-      UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath.toString());
-      ufs.setProperties(options.getProperties());
+      UnderFileSystem ufs = UnderFileSystem.Factory.get(
+          ufsPath.toString(), options.getProperties());
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
@@ -2714,7 +2714,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           });
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      final UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsDataFolder);
+      final UnderFileSystem ufs = UnderFileSystem.Factory.getRootUfs();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           new Gauge<Long>() {
