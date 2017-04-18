@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -98,6 +99,11 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
   public void stop() {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
+    }
+    try {
+      getExecutorService().awaitTermination(10, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
     mFileSystemMasterWorkerClient.close();
     // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
