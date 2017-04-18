@@ -149,7 +149,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   /**
-   * Sets up and starts multiple master cluster.
+   * Sets up and starts a multi-master cluster.
    */
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
     // Setup and start the alluxio-ft cluster.
@@ -161,7 +161,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   /**
-   * Sets up and starts single master cluster.
+   * Sets up and starts a single master cluster.
    */
   private LocalAlluxioCluster setupSingleMasterCluster() throws Exception {
     // Setup and start the local alluxio cluster.
