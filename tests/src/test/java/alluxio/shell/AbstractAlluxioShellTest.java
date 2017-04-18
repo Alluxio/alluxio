@@ -230,10 +230,18 @@ public abstract class AbstractAlluxioShellTest {
     }
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file is in memory
+   */
   protected boolean isInMemoryTest(String path) throws IOException, AlluxioException {
     return (mFileSystem.getStatus(new AlluxioURI(path)).getInMemoryPercentage() == 100);
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file exists
+   */
   protected boolean fileExists(AlluxioURI path) {
     try {
       return mFileSystem.exists(path);
