@@ -16,9 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
 import alluxio.master.journal.Journal;
-import alluxio.underfs.UnderFileStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -27,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,25 +49,12 @@ public final class Format {
   }
 
   private static void formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
-    if (ufs.isDirectory(folder)) {
-      for (UnderFileStatus p : ufs.listStatus(folder)) {
-        String childPath = PathUtils.concatPath(folder, p.getName());
-        boolean failedToDelete;
-        if (p.isDirectory()) {
-          failedToDelete = !ufs.deleteDirectory(childPath,
-              DeleteOptions.defaults().setRecursive(true));
-        } else {
-          failedToDelete = !ufs.deleteFile(childPath);
-        }
-        if (failedToDelete) {
-          throw new IOException(String.format("Failed to delete %s", childPath));
-        }
-      }
-    } else if (!ufs.mkdirs(folder)) {
-      throw new IOException(String.format("Failed to create dir %s", folder));
+    Path path = Paths.get(folder);
+    if (Files.isDirectory(path)) {
+      FileUtils.deletePathRecursively(folder);
     }
+    Files.createDirectory(path);
   }
 
   /**
@@ -128,8 +116,7 @@ public final class Format {
           String name = "TIER_" + level + "_DIR_PATH";
           for (String dirPath : dirPaths) {
             String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-            UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
-            if (ufs.isDirectory(dirWorkerDataFolder)) {
+            if (Files.isDirectory(Paths.get(dirWorkerDataFolder))) {
               try {
                 formatFolder(name, dirWorkerDataFolder);
               } catch (IOException e) {
