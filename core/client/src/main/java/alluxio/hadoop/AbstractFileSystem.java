@@ -25,11 +25,11 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -500,10 +500,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     try {
       client.connect();
       // Connected, initialize.
-    } catch (ConnectionFailedException | IOException e) {
-      LOG.error("Failed to connect to the provided master address {}: {}.",
-          uri.toString(), e.toString());
-      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }

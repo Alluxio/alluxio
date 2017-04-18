@@ -20,7 +20,6 @@ import alluxio.wire.MasterInfo.MasterInfoField;
 
 import org.apache.thrift.TException;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
@@ -65,7 +64,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = new MetaMasterClientService.Client(mProtocol);
   }
 

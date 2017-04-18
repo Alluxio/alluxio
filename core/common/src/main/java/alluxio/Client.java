@@ -11,27 +11,17 @@
 
 package alluxio;
 
-import alluxio.exception.ConnectionFailedException;
-
-import java.io.Closeable;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
  * Interface for a client in the Alluxio system.
  */
-public interface Client extends Closeable {
-
-  @Override
-  void close();
+public interface Client extends QuietlyCloseable {
 
   /**
    * Connects with the remote.
-   *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  void connect() throws IOException, ConnectionFailedException;
+  void connect();
 
   /**
    * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
