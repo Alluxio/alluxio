@@ -112,7 +112,7 @@ public final class UfsJournalWriter implements JournalWriter {
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
           latestSequenceNumber, mNextEntrySequenceNumber);
-      UnderFileSystemUtils.deleteFileIfExists(mTempCheckpoint.toString());
+      UnderFileSystemUtils.deleteFileIfExists(mUfs, mTempCheckpoint.toString());
       mCheckpointOutputStream = new CheckpointOutputStream(
           new DataOutputStream(mUfs.create(mTempCheckpoint.toString())));
     }

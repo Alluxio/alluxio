@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.util.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -44,4 +46,10 @@ public final class LocalFileSystemCluster extends UnderFileSystemCluster {
 
   @Override
   public void start() throws IOException {}
+
+  @Override
+  public void cleanup() throws IOException {
+    FileUtils.deletePathRecursively(getUnderFilesystemAddress());
+    FileUtils.createDir(getUnderFilesystemAddress());
+  }
 }

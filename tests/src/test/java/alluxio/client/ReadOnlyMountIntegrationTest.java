@@ -24,6 +24,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
@@ -47,7 +48,7 @@ public class ReadOnlyMountIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
-
+  private UnderFileSystem mUfs;
   private String mAlternateUfsRoot;
 
   @Before
@@ -57,13 +58,16 @@ public class ReadOnlyMountIntegrationTest {
     // Add a readonly mount point.
     mAlternateUfsRoot = createAlternateUfs();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
-    UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir);
-    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH));
-    UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH));
-    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH));
+    UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsMountDir);
+    UnderFileSystemUtils.touch(mUfs, PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH));
+    UnderFileSystemUtils
+        .mkdirIfNotExists(mUfs, PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH));
+    UnderFileSystemUtils.touch(mUfs, PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH));
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
+    mUfs = UnderFileSystem.Factory.getRoot();
+
   }
 
   @After
@@ -286,7 +290,7 @@ public class ReadOnlyMountIntegrationTest {
     AlluxioURI parentURI =
         new AlluxioURI(Configuration.get(PropertyKey.UNDERFS_ADDRESS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
-    UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
+    UnderFileSystemUtils.mkdirIfNotExists(mUfs, alternateUfsRoot);
     return alternateUfsRoot;
   }
 
@@ -296,6 +300,6 @@ public class ReadOnlyMountIntegrationTest {
    * @param alternateUfsRoot the root of the alternate Ufs
    */
   private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
-    UnderFileSystemUtils.deleteDirIfExists(alternateUfsRoot);
+    UnderFileSystemUtils.deleteDirIfExists(mUfs, alternateUfsRoot);
   }
 }

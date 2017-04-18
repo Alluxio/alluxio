@@ -227,7 +227,7 @@ public final class FileUtils {
   }
 
   /**
-   * Deletes a path recursively.
+   * Deletes a file or a directory, recursively if it is a directory.
    *
    * @param path pathname to be deleted
    * @throws IOException when fails to delete

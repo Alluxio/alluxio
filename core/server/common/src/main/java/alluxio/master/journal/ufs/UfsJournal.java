@@ -158,7 +158,7 @@ public class UfsJournal implements Journal {
     }
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
-    UnderFileSystemUtils.touch(URIUtils.appendPathOrDie(location,
+    UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
         Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
   }

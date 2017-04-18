@@ -11,13 +11,9 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
-import alluxio.util.UnderFileSystemUtils;
 
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
@@ -30,48 +26,6 @@ import java.io.IOException;
  * cluster.
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
-  /**
-   * Tests the local minidfscluster only.
-   */
-  public static void main(String[] args) throws Exception {
-    LocalMiniDFSCluster cluster = null;
-    try {
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321);
-      cluster.start();
-      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
-      Thread.sleep(10);
-      DistributedFileSystem dfs = cluster.getDFSClient();
-      dfs.mkdirs(new Path("/1"));
-      mkdirs(cluster.getUnderFilesystemAddress() + "/1/2");
-      FileStatus[] fs = dfs.listStatus(new Path(AlluxioURI.SEPARATOR));
-      assert fs.length != 0;
-      System.out.println(fs[0].getPath().toUri());
-      dfs.close();
-
-      cluster.shutdown();
-
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 3);
-      cluster.start();
-      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
-
-      dfs = cluster.getDFSClient();
-      dfs.mkdirs(new Path("/1"));
-
-      UnderFileSystemUtils.touch(
-          cluster.getUnderFilesystemAddress() + "/1" + "/_format_" + System.currentTimeMillis());
-      fs = dfs.listStatus(new Path("/1"));
-      assert fs.length != 0;
-      System.out.println(fs[0].getPath().toUri());
-      dfs.close();
-
-      cluster.shutdown();
-    } finally {
-      if (cluster != null && cluster.isStarted()) {
-        cluster.shutdown();
-      }
-    }
-  }
-
   /**
    * Creates a directory in the under filesystem.
    *
@@ -193,9 +147,14 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     return mIsStarted;
   }
 
-  /**
-   * Shuts down the minidfscluster in teardown phase.
-   */
+  @Override
+  public void cleanup() throws IOException {
+    delete(mBaseDir, true);
+    if (!mkdirs(mBaseDir)) {
+      throw new IOException("Failed to make folder: " + mBaseDir);
+    }
+  }
+
   @Override
   public void shutdown() throws IOException {
     if (mIsStarted) {

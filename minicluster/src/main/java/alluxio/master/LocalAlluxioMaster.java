@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -70,12 +72,9 @@ public final class LocalAlluxioMaster {
    */
   public static LocalAlluxioMaster create() throws IOException {
     String workDirectory = uniquePath();
-    UnderFileSystemUtils.deleteDirIfExists(workDirectory);
-    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
-
+    FileUtils.deletePathRecursively(workDirectory);
     Configuration.set(PropertyKey.WORK_DIR, workDirectory);
-
-    return new LocalAlluxioMaster();
+    return create(workDirectory);
   }
 
   /**
@@ -86,8 +85,9 @@ public final class LocalAlluxioMaster {
    * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
-    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
-
+    if (!Files.isDirectory(Paths.get(workDirectory))) {
+      Files.createDirectory(Paths.get(workDirectory));
+    }
     return new LocalAlluxioMaster();
   }
 

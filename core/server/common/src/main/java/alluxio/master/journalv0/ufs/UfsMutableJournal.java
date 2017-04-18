@@ -73,7 +73,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     try {
-      UnderFileSystemUtils.touch(URIUtils.appendPath(mLocation,
+      UnderFileSystemUtils.touch(ufs, URIUtils.appendPath(mLocation,
           Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
           .toString());
     } catch (URISyntaxException e) {

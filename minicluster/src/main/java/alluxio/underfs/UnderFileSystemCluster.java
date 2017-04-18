@@ -11,10 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.io.PathUtils;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -138,20 +134,7 @@ public abstract class UnderFileSystemCluster {
    *
    * @throws IOException when the operation fails
    */
-  public void cleanup() throws IOException {
-    if (isStarted()) {
-      String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
-      UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-      for (UnderFileStatus p : ufs.listStatus(path)) {
-        String childPath = PathUtils.concatPath(path, p.getName());
-        if (p.isDirectory()) {
-          ufs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true));
-        } else {
-          ufs.deleteFile(childPath);
-        }
-      }
-    }
-  }
+  public abstract void cleanup() throws IOException;
 
   /**
    * @return the address of the UFS
