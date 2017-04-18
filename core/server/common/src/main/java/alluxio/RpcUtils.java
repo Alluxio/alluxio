@@ -13,8 +13,8 @@ package alluxio;
 
 import alluxio.exception.AlluxioException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
 
 import org.slf4j.Logger;
 
@@ -52,11 +52,10 @@ public final class RpcUtils {
    * @param callable the callable to call
    * @param <T> the return type of the callable
    * @return the return value from calling the callable
-   * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
-   * @throws ThriftIOException if the callable throws an IOException
+   * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> T call(Logger logger, RpcCallableThrowsIOException<T> callable)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTException {
     try {
       return callable.call();
     } catch (AlluxioException e) {
@@ -65,7 +64,7 @@ public final class RpcUtils {
     } catch (IOException e) {
       logger.warn("{}, Error={}", callable, e.getMessage());
       logger.debug("{}", callable, e);
-      throw new ThriftIOException(e.getMessage());
+      throw new UnavailableException(e.getMessage());
     } catch (Exception e) {
       logger.error("{}", callable, e);
       throw new UnexpectedAlluxioException(e).toThrift();
@@ -106,16 +105,15 @@ public final class RpcUtils {
    * @param <T> the return type of the callable
    * @return the return value from calling the callable
    * @throws AlluxioTException if the callable throws an Alluxio or runtime exception
-   * @throws ThriftIOException if the callable throws an IOException
    */
   public static <T> T callAndLog(Logger logger, RpcCallableThrowsIOException<T> callable)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTException {
     logger.debug("Enter: {}", callable);
     try {
       T ret = call(logger, callable);
       logger.debug("Exit (OK): {}", callable);
       return ret;
-    } catch (AlluxioTException | ThriftIOException e) {
+    } catch (AlluxioTException e) {
       logger.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
       throw e;
     }

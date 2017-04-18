@@ -12,12 +12,12 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.network.connection.ThriftClientPool;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -106,7 +106,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
       C client = acquireClient();
       try {
         return rpc.call(client);
-      } catch (ThriftIOException e) {
+      } catch (UnavailableException e) {
         throw new IOException(e);
       } catch (AlluxioTException e) {
         AlluxioException ae = AlluxioException.fromThrift(e);
@@ -154,7 +154,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
         AlluxioException ae = AlluxioException.fromThrift(e);
         processException(client, ae);
         exception = new TException(ae);
-      } catch (ThriftIOException e) {
+      } catch (UnavailableException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
