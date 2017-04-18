@@ -185,31 +185,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
   }
 
-  private int readInternal() throws IOException {
-    if (remaining() <= 0) {
-      return -1;
-    }
-    updateStreams();
-    Preconditions.checkState(mCurrentBlockInStream != null, PreconditionMessage.ERR_UNEXPECTED_EOF);
-
-    int data = mCurrentBlockInStream.read();
-
-    if (data == -1) {
-      // The underlying stream is done.
-      return -1;
-    }
-
-    mPos++;
-    if (mCurrentCacheStream != null) {
-      try {
-        mCurrentCacheStream.write(data);
-      } catch (IOException e) {
-        handleCacheStreamException(e);
-      }
-    }
-    return data;
-  }
-
   @Override
   public int read(byte[] b) throws IOException {
     try {
@@ -226,6 +201,36 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } catch (AlluxioStatusException e) {
       throw new IOException(e);
     }
+  }
+
+  private int readInternal() {
+    if (remaining() <= 0) {
+      return -1;
+    }
+    updateStreams();
+    Preconditions.checkState(mCurrentBlockInStream != null, PreconditionMessage.ERR_UNEXPECTED_EOF);
+
+    int data;
+    try {
+      data = mCurrentBlockInStream.read();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
+
+    if (data == -1) {
+      // The underlying stream is done.
+      return -1;
+    }
+
+    mPos++;
+    if (mCurrentCacheStream != null) {
+      try {
+        mCurrentCacheStream.write(data);
+      } catch (IOException e) {
+        handleCacheStreamException(e);
+      }
+    }
+    return data;
   }
 
   private int readInternal(byte[] b, int off, int len) {
@@ -283,7 +288,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
   }
 
-  public int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
+  private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
     if (pos < 0 || pos >= mFileLength) {
       return -1;
     }
