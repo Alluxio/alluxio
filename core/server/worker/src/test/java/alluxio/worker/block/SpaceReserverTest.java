@@ -106,7 +106,7 @@ public class SpaceReserverTest {
   }
 
   @Test
-  public void testLowWtermark() throws Exception {
+  public void testLowWatermark() throws Exception {
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
     BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
@@ -158,7 +158,7 @@ public class SpaceReserverTest {
   }
 
   @Test
-  public void testHighWtermark() throws Exception {
+  public void testHighWatermark() throws Exception {
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
     BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
