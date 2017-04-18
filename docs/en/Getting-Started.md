@@ -29,8 +29,7 @@ difficult to incorporate in a local environment. If you are interested in runnin
 example which highlights the performance benefits of Alluxio, try out the instructions in either of
 these two whitepapers: [Accelerating on-demand data analytics with
 Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio),
-[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/resources
-/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
+[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
 
 ## Prerequisites
 
@@ -362,7 +361,7 @@ Alluxio can be deployed in many different environments.
 * [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
-* [Alluxio with Mesos on EC2](Running-Alluxio-on-EC2-Mesos.html)
+* [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
 * [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
 * [Alluxio with YARN on EC2](Running-Alluxio-on-EC2-Yarn.html)
 

@@ -125,8 +125,14 @@ public class UfsJournalIntegrationTest {
       confParams = {PropertyKey.Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0"})
   public void multipleFlush() throws Exception {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+    mLocalAlluxioCluster.stop();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+
+    UnderFileStatus[] paths =
+        UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
+    int expectedSize = paths == null ? 0 : paths.length;
+
     try (JournalWriter writer =
         journal.getWriter(JournalWriterOptions.defaults().setPrimary(true))) {
       // Flush multiple times, without writing to the log.
@@ -134,9 +140,10 @@ public class UfsJournalIntegrationTest {
       writer.flush();
       writer.flush();
     }
-    UnderFileStatus[] paths =
-        UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
-    Assert.assertTrue(paths == null || paths.length == 0);
+    paths = UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
+    int actualSize = paths == null ? 0 : paths.length;
+    // No new files are created.
+    Assert.assertEquals(expectedSize, actualSize);
   }
 
   /**
