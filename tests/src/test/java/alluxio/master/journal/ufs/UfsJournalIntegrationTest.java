@@ -29,9 +29,12 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
+import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -112,6 +115,35 @@ public class UfsJournalIntegrationTest {
     Assert.assertEquals(status.getBlockSizeBytes(), fsMasterInfo.getBlockSizeBytes());
     Assert.assertEquals(status.getLength(), fsMasterInfo.getLength());
     registry.stop();
+  }
+
+  /**
+   * Tests flushing the journal multiple times, without writing any data.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0"})
+  public void multipleFlush() throws Exception {
+    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+    mLocalAlluxioCluster.stop();
+    UfsJournal journal = new UfsJournal(
+        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+
+    UnderFileStatus[] paths =
+        UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
+    int expectedSize = paths == null ? 0 : paths.length;
+
+    try (JournalWriter writer =
+        journal.getWriter(JournalWriterOptions.defaults().setPrimary(true))) {
+      // Flush multiple times, without writing to the log.
+      writer.flush();
+      writer.flush();
+      writer.flush();
+    }
+    paths = UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
+    int actualSize = paths == null ? 0 : paths.length;
+    // No new files are created.
+    Assert.assertEquals(expectedSize, actualSize);
   }
 
   /**
