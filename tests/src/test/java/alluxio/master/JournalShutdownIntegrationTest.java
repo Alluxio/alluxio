@@ -118,7 +118,10 @@ public class JournalShutdownIntegrationTest {
     // clean up
     cluster.stopUFS();
   }
-
+  
+  /**
+   * Waits for the client to terminate.
+   */
   private void awaitClientTermination() throws Exception {
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdownNow();
