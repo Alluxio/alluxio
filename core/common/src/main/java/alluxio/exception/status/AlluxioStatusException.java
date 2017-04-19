@@ -31,8 +31,9 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.proto.exception.Exception.PException;
 import alluxio.thrift.AlluxioTException;
+
+import com.google.common.base.Preconditions;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -102,15 +103,6 @@ public class AlluxioStatusException extends RuntimeException {
     return new AlluxioTException(getMessage(), Status.toThrift(mStatus));
   }
 
-
-  /**
-   * @return The protocol buffer representation of this exception
-   */
-  public PException toProto() {
-    return PException.newBuilder().setMessage(getMessage())
-        .setStatus(Status.toProto(mStatus)).build();
-  }
-
   /**
    * @return a specific {@link AlluxioException} corresponding to this exception if there is one;
    *         otherwise return a generic {@link AlluxioException}
@@ -152,14 +144,17 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
-   * Converts an Alluxio exception from Thrift representation to native representation.
+   * Converts an Alluxio exception from status and message representation to native representation.
+   * The status must not be null or {@link Status#OK}.
    *
-   * @param e the Alluxio Thrift exception
+   * @param status the status
+   * @param m the message
    * @return the native Alluxio exception
    */
-  public static AlluxioStatusException fromThrift(AlluxioTException e) {
-    String m = e.getMessage();
-    switch (e.getStatus()) {
+  public static AlluxioStatusException fromStatusAndMessage(Status status, String m) {
+    Preconditions.checkNotNull(status, "status");
+    Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
+    switch (status) {
       case CANCELED:
         return new CanceledException(m);
       case INVALID_ARGUMENT:

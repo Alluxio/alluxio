@@ -14,6 +14,7 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.InternalException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -229,12 +230,18 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Failed to write block.", cause);
-    pushAbortPacket(ctx.channel(), new Error(cause, true, Protocol.Status.Code.INTERNAL));
+    AlluxioStatusException se;
+    if (cause instanceof Exception) {
+      se = AlluxioStatusException.from((Exception) cause);
+    } else {
+      se = new InternalException(cause);
+    }
+    pushAbortPacket(ctx.channel(), new Error(se, true));
   }
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    pushAbortPacket(ctx.channel(), new Error(null, false, Protocol.Status.Code.INTERNAL));
+    pushAbortPacket(ctx.channel(), new Error(new InternalException("channel unregistered"), false));
     ctx.fireChannelUnregistered();
   }
 
@@ -327,7 +334,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
-          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
+          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
         } finally {
           release(buf);
         }

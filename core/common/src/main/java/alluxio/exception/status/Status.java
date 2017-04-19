@@ -11,6 +11,7 @@
 
 package alluxio.exception.status;
 
+import alluxio.proto.status.Status.PStatus;
 import alluxio.thrift.TStatus;
 
 /**
@@ -142,8 +143,6 @@ public enum Status {
    */
   public static TStatus toThrift(Status status) {
     switch (status) {
-      case OK:
-        return TStatus.OK;
       case ABORTED:
         return TStatus.ABORTED;
       case ALREADY_EXISTS:
@@ -162,6 +161,8 @@ public enum Status {
         return TStatus.INVALID_ARGUMENT;
       case NOT_FOUND:
         return TStatus.NOT_FOUND;
+      case OK:
+        return TStatus.OK;
       case OUT_OF_RANGE:
         return TStatus.OUT_OF_RANGE;
       case PERMISSION_DENIED:
@@ -187,10 +188,55 @@ public enum Status {
    * @param status the status to convert
    * @return the protocol buffer type status
    */
-  public static Status toProto(Status status) {
+  public static PStatus toProto(Status status) {
     switch (status) {
+      case ABORTED:
+        return PStatus.ABORTED;
+      case ALREADY_EXISTS:
+        return PStatus.ALREADY_EXISTS;
+      case CANCELED:
+        return PStatus.CANCELED;
+      case DATA_LOSS:
+        return PStatus.DATA_LOSS;
+      case DEADLINE_EXCEEDED:
+        return PStatus.DEADLINE_EXCEEDED;
+      case FAILED_PRECONDITION:
+        return PStatus.FAILED_PRECONDITION;
+      case INTERNAL:
+        return PStatus.INTERNAL;
+      case INVALID_ARGUMENT:
+        return PStatus.INVALID_ARGUMENT;
+      case NOT_FOUND:
+        return PStatus.NOT_FOUND;
       case OK:
-        return Status.OK;
+        return PStatus.OK;
+      case OUT_OF_RANGE:
+        return PStatus.OUT_OF_RANGE;
+      case PERMISSION_DENIED:
+        return PStatus.PERMISSION_DENIED;
+      case RESOURCE_EXHAUSTED:
+        return PStatus.RESOURCE_EXHAUSTED;
+      case UNAUTHENTICATED:
+        return PStatus.UNAUTHENTICATED;
+      case UNAVAILABLE:
+        return PStatus.UNAVAILABLE;
+      case UNIMPLEMENTED:
+        return PStatus.UNIMPLEMENTED;
+      case UNKNOWN:
+        return PStatus.UNKNOWN;
+      default:
+        return PStatus.UNKNOWN;
+    }
+  }
+
+  /**
+   * Creates a {@link Status} from a protocol buffer type status
+   *
+   * @param status the protocol buffer type status
+   * @return the corresponding {@link Status}
+   */
+  public static Status fromProto(PStatus status) {
+    switch (status) {
       case ABORTED:
         return Status.ABORTED;
       case ALREADY_EXISTS:
@@ -209,6 +255,8 @@ public enum Status {
         return Status.INVALID_ARGUMENT;
       case NOT_FOUND:
         return Status.NOT_FOUND;
+      case OK:
+        return Status.OK;
       case OUT_OF_RANGE:
         return Status.OUT_OF_RANGE;
       case PERMISSION_DENIED:
@@ -225,6 +273,7 @@ public enum Status {
         return Status.UNKNOWN;
       default:
         return Status.UNKNOWN;
+
     }
   }
 }
