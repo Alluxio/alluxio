@@ -42,6 +42,8 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
   private static final org.apache.thrift.protocol.TField OFFSET_FIELD_DESC = new org.apache.thrift.protocol.TField("offset", org.apache.thrift.protocol.TType.I64, (short)2);
   private static final org.apache.thrift.protocol.TField BLOCK_SIZE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSize", org.apache.thrift.protocol.TType.I64, (short)3);
   private static final org.apache.thrift.protocol.TField MAX_UFS_READ_CONCURRENCY_FIELD_DESC = new org.apache.thrift.protocol.TField("maxUfsReadConcurrency", org.apache.thrift.protocol.TType.I32, (short)4);
+  private static final org.apache.thrift.protocol.TField ALLUXIO_MOUNT_POINT_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioMountPoint", org.apache.thrift.protocol.TType.STRING, (short)5);
+  private static final org.apache.thrift.protocol.TField MOUNT_TABLE_VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("mountTableVersion", org.apache.thrift.protocol.TType.I64, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -53,13 +55,17 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
   private long offset; // required
   private long blockSize; // required
   private int maxUfsReadConcurrency; // required
+  private String alluxioMountPoint; // required
+  private long mountTableVersion; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     UFS_PATH((short)1, "ufsPath"),
     OFFSET((short)2, "offset"),
     BLOCK_SIZE((short)3, "blockSize"),
-    MAX_UFS_READ_CONCURRENCY((short)4, "maxUfsReadConcurrency");
+    MAX_UFS_READ_CONCURRENCY((short)4, "maxUfsReadConcurrency"),
+    ALLUXIO_MOUNT_POINT((short)5, "alluxioMountPoint"),
+    MOUNT_TABLE_VERSION((short)6, "mountTableVersion");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -82,6 +88,10 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
           return BLOCK_SIZE;
         case 4: // MAX_UFS_READ_CONCURRENCY
           return MAX_UFS_READ_CONCURRENCY;
+        case 5: // ALLUXIO_MOUNT_POINT
+          return ALLUXIO_MOUNT_POINT;
+        case 6: // MOUNT_TABLE_VERSION
+          return MOUNT_TABLE_VERSION;
         default:
           return null;
       }
@@ -125,6 +135,7 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
   private static final int __OFFSET_ISSET_ID = 0;
   private static final int __BLOCKSIZE_ISSET_ID = 1;
   private static final int __MAXUFSREADCONCURRENCY_ISSET_ID = 2;
+  private static final int __MOUNTTABLEVERSION_ISSET_ID = 3;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -137,6 +148,10 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.MAX_UFS_READ_CONCURRENCY, new org.apache.thrift.meta_data.FieldMetaData("maxUfsReadConcurrency", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.ALLUXIO_MOUNT_POINT, new org.apache.thrift.meta_data.FieldMetaData("alluxioMountPoint", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.MOUNT_TABLE_VERSION, new org.apache.thrift.meta_data.FieldMetaData("mountTableVersion", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(LockBlockTOptions.class, metaDataMap);
   }
@@ -148,7 +163,9 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
     String ufsPath,
     long offset,
     long blockSize,
-    int maxUfsReadConcurrency)
+    int maxUfsReadConcurrency,
+    String alluxioMountPoint,
+    long mountTableVersion)
   {
     this();
     this.ufsPath = ufsPath;
@@ -158,6 +175,9 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
     setBlockSizeIsSet(true);
     this.maxUfsReadConcurrency = maxUfsReadConcurrency;
     setMaxUfsReadConcurrencyIsSet(true);
+    this.alluxioMountPoint = alluxioMountPoint;
+    this.mountTableVersion = mountTableVersion;
+    setMountTableVersionIsSet(true);
   }
 
   /**
@@ -171,6 +191,10 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
     this.offset = other.offset;
     this.blockSize = other.blockSize;
     this.maxUfsReadConcurrency = other.maxUfsReadConcurrency;
+    if (other.isSetAlluxioMountPoint()) {
+      this.alluxioMountPoint = other.alluxioMountPoint;
+    }
+    this.mountTableVersion = other.mountTableVersion;
   }
 
   public LockBlockTOptions deepCopy() {
@@ -186,6 +210,9 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
     this.blockSize = 0;
     setMaxUfsReadConcurrencyIsSet(false);
     this.maxUfsReadConcurrency = 0;
+    this.alluxioMountPoint = null;
+    setMountTableVersionIsSet(false);
+    this.mountTableVersion = 0;
   }
 
   public String getUfsPath() {
@@ -281,6 +308,53 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MAXUFSREADCONCURRENCY_ISSET_ID, value);
   }
 
+  public String getAlluxioMountPoint() {
+    return this.alluxioMountPoint;
+  }
+
+  public LockBlockTOptions setAlluxioMountPoint(String alluxioMountPoint) {
+    this.alluxioMountPoint = alluxioMountPoint;
+    return this;
+  }
+
+  public void unsetAlluxioMountPoint() {
+    this.alluxioMountPoint = null;
+  }
+
+  /** Returns true if field alluxioMountPoint is set (has been assigned a value) and false otherwise */
+  public boolean isSetAlluxioMountPoint() {
+    return this.alluxioMountPoint != null;
+  }
+
+  public void setAlluxioMountPointIsSet(boolean value) {
+    if (!value) {
+      this.alluxioMountPoint = null;
+    }
+  }
+
+  public long getMountTableVersion() {
+    return this.mountTableVersion;
+  }
+
+  public LockBlockTOptions setMountTableVersion(long mountTableVersion) {
+    this.mountTableVersion = mountTableVersion;
+    setMountTableVersionIsSet(true);
+    return this;
+  }
+
+  public void unsetMountTableVersion() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MOUNTTABLEVERSION_ISSET_ID);
+  }
+
+  /** Returns true if field mountTableVersion is set (has been assigned a value) and false otherwise */
+  public boolean isSetMountTableVersion() {
+    return EncodingUtils.testBit(__isset_bitfield, __MOUNTTABLEVERSION_ISSET_ID);
+  }
+
+  public void setMountTableVersionIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MOUNTTABLEVERSION_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case UFS_PATH:
@@ -315,6 +389,22 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
       }
       break;
 
+    case ALLUXIO_MOUNT_POINT:
+      if (value == null) {
+        unsetAlluxioMountPoint();
+      } else {
+        setAlluxioMountPoint((String)value);
+      }
+      break;
+
+    case MOUNT_TABLE_VERSION:
+      if (value == null) {
+        unsetMountTableVersion();
+      } else {
+        setMountTableVersion((Long)value);
+      }
+      break;
+
     }
   }
 
@@ -331,6 +421,12 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
 
     case MAX_UFS_READ_CONCURRENCY:
       return getMaxUfsReadConcurrency();
+
+    case ALLUXIO_MOUNT_POINT:
+      return getAlluxioMountPoint();
+
+    case MOUNT_TABLE_VERSION:
+      return getMountTableVersion();
 
     }
     throw new IllegalStateException();
@@ -351,6 +447,10 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
       return isSetBlockSize();
     case MAX_UFS_READ_CONCURRENCY:
       return isSetMaxUfsReadConcurrency();
+    case ALLUXIO_MOUNT_POINT:
+      return isSetAlluxioMountPoint();
+    case MOUNT_TABLE_VERSION:
+      return isSetMountTableVersion();
     }
     throw new IllegalStateException();
   }
@@ -404,6 +504,24 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
         return false;
     }
 
+    boolean this_present_alluxioMountPoint = true && this.isSetAlluxioMountPoint();
+    boolean that_present_alluxioMountPoint = true && that.isSetAlluxioMountPoint();
+    if (this_present_alluxioMountPoint || that_present_alluxioMountPoint) {
+      if (!(this_present_alluxioMountPoint && that_present_alluxioMountPoint))
+        return false;
+      if (!this.alluxioMountPoint.equals(that.alluxioMountPoint))
+        return false;
+    }
+
+    boolean this_present_mountTableVersion = true;
+    boolean that_present_mountTableVersion = true;
+    if (this_present_mountTableVersion || that_present_mountTableVersion) {
+      if (!(this_present_mountTableVersion && that_present_mountTableVersion))
+        return false;
+      if (this.mountTableVersion != that.mountTableVersion)
+        return false;
+    }
+
     return true;
   }
 
@@ -430,6 +548,16 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
     list.add(present_maxUfsReadConcurrency);
     if (present_maxUfsReadConcurrency)
       list.add(maxUfsReadConcurrency);
+
+    boolean present_alluxioMountPoint = true && (isSetAlluxioMountPoint());
+    list.add(present_alluxioMountPoint);
+    if (present_alluxioMountPoint)
+      list.add(alluxioMountPoint);
+
+    boolean present_mountTableVersion = true;
+    list.add(present_mountTableVersion);
+    if (present_mountTableVersion)
+      list.add(mountTableVersion);
 
     return list.hashCode();
   }
@@ -482,6 +610,26 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetAlluxioMountPoint()).compareTo(other.isSetAlluxioMountPoint());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetAlluxioMountPoint()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.alluxioMountPoint, other.alluxioMountPoint);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetMountTableVersion()).compareTo(other.isSetMountTableVersion());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMountTableVersion()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mountTableVersion, other.mountTableVersion);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -520,6 +668,18 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
     if (!first) sb.append(", ");
     sb.append("maxUfsReadConcurrency:");
     sb.append(this.maxUfsReadConcurrency);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("alluxioMountPoint:");
+    if (this.alluxioMountPoint == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.alluxioMountPoint);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("mountTableVersion:");
+    sb.append(this.mountTableVersion);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -598,6 +758,22 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 5: // ALLUXIO_MOUNT_POINT
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.alluxioMountPoint = iprot.readString();
+              struct.setAlluxioMountPointIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // MOUNT_TABLE_VERSION
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.mountTableVersion = iprot.readI64();
+              struct.setMountTableVersionIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -626,6 +802,14 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(MAX_UFS_READ_CONCURRENCY_FIELD_DESC);
       oprot.writeI32(struct.maxUfsReadConcurrency);
+      oprot.writeFieldEnd();
+      if (struct.alluxioMountPoint != null) {
+        oprot.writeFieldBegin(ALLUXIO_MOUNT_POINT_FIELD_DESC);
+        oprot.writeString(struct.alluxioMountPoint);
+        oprot.writeFieldEnd();
+      }
+      oprot.writeFieldBegin(MOUNT_TABLE_VERSION_FIELD_DESC);
+      oprot.writeI64(struct.mountTableVersion);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -657,7 +841,13 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
       if (struct.isSetMaxUfsReadConcurrency()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetAlluxioMountPoint()) {
+        optionals.set(4);
+      }
+      if (struct.isSetMountTableVersion()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetUfsPath()) {
         oprot.writeString(struct.ufsPath);
       }
@@ -670,12 +860,18 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
       if (struct.isSetMaxUfsReadConcurrency()) {
         oprot.writeI32(struct.maxUfsReadConcurrency);
       }
+      if (struct.isSetAlluxioMountPoint()) {
+        oprot.writeString(struct.alluxioMountPoint);
+      }
+      if (struct.isSetMountTableVersion()) {
+        oprot.writeI64(struct.mountTableVersion);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, LockBlockTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.ufsPath = iprot.readString();
         struct.setUfsPathIsSet(true);
@@ -691,6 +887,14 @@ public class LockBlockTOptions implements org.apache.thrift.TBase<LockBlockTOpti
       if (incoming.get(3)) {
         struct.maxUfsReadConcurrency = iprot.readI32();
         struct.setMaxUfsReadConcurrencyIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.alluxioMountPoint = iprot.readString();
+        struct.setAlluxioMountPointIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.mountTableVersion = iprot.readI64();
+        struct.setMountTableVersionIsSet(true);
       }
     }
   }

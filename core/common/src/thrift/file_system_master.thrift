@@ -91,6 +91,8 @@ struct FileInfo {
   22: bool mountPoint
   23: list<FileBlockInfo> fileBlockInfos
   24: common.TTtlAction ttlAction
+  25: string alluxioMountPoint
+  26: i64 mountTableVersion
 }
 
 struct FileSystemCommand {

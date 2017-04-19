@@ -23,6 +23,8 @@ struct LockBlockTOptions {
   2: i64 offset
   3: i64 blockSize
   4: i32 maxUfsReadConcurrency
+  5: string alluxioMountPoint
+  6: i64 mountTableVersion
 }
 
 service BlockWorkerClientService extends common.AlluxioService {

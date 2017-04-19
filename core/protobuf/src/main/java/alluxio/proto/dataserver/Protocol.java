@@ -13,6 +13,7 @@ public final class Protocol {
    *
    * <pre>
    * The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+   * next available id: 3
    * </pre>
    */
   public enum RequestType
@@ -141,6 +142,7 @@ public final class Protocol {
    *
    * <pre>
    * Data server messages.
+   * next available id: 3
    * </pre>
    */
   public static final class Exception extends
@@ -449,6 +451,7 @@ public final class Protocol {
      *
      * <pre>
      * Data server messages.
+     * next available id: 3
      * </pre>
      */
     public static final class Builder extends
@@ -794,6 +797,10 @@ public final class Protocol {
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.Status}
+   *
+   * <pre>
+   * next available id: 4
+   * </pre>
    */
   public static final class Status extends
       com.google.protobuf.GeneratedMessage
@@ -1362,6 +1369,10 @@ public final class Protocol {
     }
     /**
      * Protobuf type {@code alluxio.proto.dataserver.Status}
+     *
+     * <pre>
+     * next available id: 4
+     * </pre>
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
@@ -1893,6 +1904,7 @@ public final class Protocol {
    *
    * <pre>
    * The read request.
+   * next available id: 9
    * </pre>
    */
   public static final class ReadRequest extends
@@ -2351,6 +2363,7 @@ public final class Protocol {
      *
      * <pre>
      * The read request.
+     * next available id: 9
      * </pre>
      */
     public static final class Builder extends
@@ -3012,12 +3025,38 @@ public final class Protocol {
      * <code>optional int32 mode = 11;</code>
      */
     int getMode();
+
+    // optional string alluxio_mount_point = 12;
+    /**
+     * <code>optional string alluxio_mount_point = 12;</code>
+     */
+    boolean hasAlluxioMountPoint();
+    /**
+     * <code>optional string alluxio_mount_point = 12;</code>
+     */
+    java.lang.String getAlluxioMountPoint();
+    /**
+     * <code>optional string alluxio_mount_point = 12;</code>
+     */
+    com.google.protobuf.ByteString
+        getAlluxioMountPointBytes();
+
+    // optional int64 mount_table_version = 13;
+    /**
+     * <code>optional int64 mount_table_version = 13;</code>
+     */
+    boolean hasMountTableVersion();
+    /**
+     * <code>optional int64 mount_table_version = 13;</code>
+     */
+    long getMountTableVersion();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
    *
    * <pre>
    * The write request.
+   * next available id: 14
    * </pre>
    */
   public static final class WriteRequest extends
@@ -3127,6 +3166,16 @@ public final class Protocol {
             case 88: {
               bitField0_ |= 0x00000400;
               mode_ = input.readInt32();
+              break;
+            }
+            case 98: {
+              bitField0_ |= 0x00000800;
+              alluxioMountPoint_ = input.readBytes();
+              break;
+            }
+            case 104: {
+              bitField0_ |= 0x00001000;
+              mountTableVersion_ = input.readInt64();
               break;
             }
           }
@@ -3454,6 +3503,65 @@ public final class Protocol {
       return mode_;
     }
 
+    // optional string alluxio_mount_point = 12;
+    public static final int ALLUXIO_MOUNT_POINT_FIELD_NUMBER = 12;
+    private java.lang.Object alluxioMountPoint_;
+    /**
+     * <code>optional string alluxio_mount_point = 12;</code>
+     */
+    public boolean hasAlluxioMountPoint() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    /**
+     * <code>optional string alluxio_mount_point = 12;</code>
+     */
+    public java.lang.String getAlluxioMountPoint() {
+      java.lang.Object ref = alluxioMountPoint_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          alluxioMountPoint_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string alluxio_mount_point = 12;</code>
+     */
+    public com.google.protobuf.ByteString
+        getAlluxioMountPointBytes() {
+      java.lang.Object ref = alluxioMountPoint_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        alluxioMountPoint_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // optional int64 mount_table_version = 13;
+    public static final int MOUNT_TABLE_VERSION_FIELD_NUMBER = 13;
+    private long mountTableVersion_;
+    /**
+     * <code>optional int64 mount_table_version = 13;</code>
+     */
+    public boolean hasMountTableVersion() {
+      return ((bitField0_ & 0x00001000) == 0x00001000);
+    }
+    /**
+     * <code>optional int64 mount_table_version = 13;</code>
+     */
+    public long getMountTableVersion() {
+      return mountTableVersion_;
+    }
+
     private void initFields() {
       type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
@@ -3466,6 +3574,8 @@ public final class Protocol {
       owner_ = "";
       group_ = "";
       mode_ = 0;
+      alluxioMountPoint_ = "";
+      mountTableVersion_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3511,6 +3621,12 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         output.writeInt32(11, mode_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        output.writeBytes(12, getAlluxioMountPointBytes());
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        output.writeInt64(13, mountTableVersion_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3564,6 +3680,14 @@ public final class Protocol {
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(11, mode_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(12, getAlluxioMountPointBytes());
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(13, mountTableVersion_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3648,6 +3772,7 @@ public final class Protocol {
      *
      * <pre>
      * The write request.
+     * next available id: 14
      * </pre>
      */
     public static final class Builder extends
@@ -3707,6 +3832,10 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000200);
         mode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000400);
+        alluxioMountPoint_ = "";
+        bitField0_ = (bitField0_ & ~0x00000800);
+        mountTableVersion_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00001000);
         return this;
       }
 
@@ -3779,6 +3908,14 @@ public final class Protocol {
           to_bitField0_ |= 0x00000400;
         }
         result.mode_ = mode_;
+        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+          to_bitField0_ |= 0x00000800;
+        }
+        result.alluxioMountPoint_ = alluxioMountPoint_;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00001000;
+        }
+        result.mountTableVersion_ = mountTableVersion_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3833,6 +3970,14 @@ public final class Protocol {
         }
         if (other.hasMode()) {
           setMode(other.getMode());
+        }
+        if (other.hasAlluxioMountPoint()) {
+          bitField0_ |= 0x00000800;
+          alluxioMountPoint_ = other.alluxioMountPoint_;
+          onChanged();
+        }
+        if (other.hasMountTableVersion()) {
+          setMountTableVersion(other.getMountTableVersion());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4406,6 +4551,113 @@ public final class Protocol {
         return this;
       }
 
+      // optional string alluxio_mount_point = 12;
+      private java.lang.Object alluxioMountPoint_ = "";
+      /**
+       * <code>optional string alluxio_mount_point = 12;</code>
+       */
+      public boolean hasAlluxioMountPoint() {
+        return ((bitField0_ & 0x00000800) == 0x00000800);
+      }
+      /**
+       * <code>optional string alluxio_mount_point = 12;</code>
+       */
+      public java.lang.String getAlluxioMountPoint() {
+        java.lang.Object ref = alluxioMountPoint_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          alluxioMountPoint_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string alluxio_mount_point = 12;</code>
+       */
+      public com.google.protobuf.ByteString
+          getAlluxioMountPointBytes() {
+        java.lang.Object ref = alluxioMountPoint_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          alluxioMountPoint_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string alluxio_mount_point = 12;</code>
+       */
+      public Builder setAlluxioMountPoint(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000800;
+        alluxioMountPoint_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string alluxio_mount_point = 12;</code>
+       */
+      public Builder clearAlluxioMountPoint() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        alluxioMountPoint_ = getDefaultInstance().getAlluxioMountPoint();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string alluxio_mount_point = 12;</code>
+       */
+      public Builder setAlluxioMountPointBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000800;
+        alluxioMountPoint_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 mount_table_version = 13;
+      private long mountTableVersion_ ;
+      /**
+       * <code>optional int64 mount_table_version = 13;</code>
+       */
+      public boolean hasMountTableVersion() {
+        return ((bitField0_ & 0x00001000) == 0x00001000);
+      }
+      /**
+       * <code>optional int64 mount_table_version = 13;</code>
+       */
+      public long getMountTableVersion() {
+        return mountTableVersion_;
+      }
+      /**
+       * <code>optional int64 mount_table_version = 13;</code>
+       */
+      public Builder setMountTableVersion(long value) {
+        bitField0_ |= 0x00001000;
+        mountTableVersion_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 mount_table_version = 13;</code>
+       */
+      public Builder clearMountTableVersion() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        mountTableVersion_ = 0L;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.WriteRequest)
     }
 
@@ -4439,6 +4691,7 @@ public final class Protocol {
    *
    * <pre>
    * The response.
+   * next available id: 2
    * </pre>
    */
   public static final class Response extends
@@ -4678,6 +4931,7 @@ public final class Protocol {
      *
      * <pre>
      * The response.
+     * next available id: 2
      * </pre>
      */
     public static final class Builder extends
@@ -4984,15 +5238,17 @@ public final class Protocol {
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
       "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\"\334\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
+      "\"\226\002\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
       "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001",
       "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
       "\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(" +
       "\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005gr" +
-      "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\"<\n\010Response\0220\n\006s" +
-      "tatus\030\001 \001(\0132 .alluxio.proto.dataserver.S" +
-      "tatus*=\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020\000\022" +
-      "\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002"
+      "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\033\n\023alluxio_mount" +
+      "_point\030\014 \001(\t\022\033\n\023mount_table_version\030\r \001(" +
+      "\003\"<\n\010Response\0220\n\006status\030\001 \001(\0132 .alluxio." +
+      "proto.dataserver.Status*=\n\013RequestType\022\021" +
+      "\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_B" +
+      "LOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5022,7 +5278,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "AlluxioMountPoint", "MountTableVersion", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
