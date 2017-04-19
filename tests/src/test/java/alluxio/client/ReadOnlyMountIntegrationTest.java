@@ -55,14 +55,21 @@ public class ReadOnlyMountIntegrationTest {
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
-    // Add a readonly mount point.
-    mAlternateUfsRoot = createAlternateUfs();
+    // Create another directory on the local filesystem, alongside the existing Ufs, to be used as
+    // a second Ufs.
+    AlluxioURI parentURI =
+        new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getParent();
+    mUfs = UnderFileSystem.Factory.getRoot();
+    mAlternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
+    UnderFileSystemUtils.mkdirIfNotExists(mUfs, mAlternateUfsRoot);
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsMountDir);
     UnderFileSystemUtils.touch(mUfs, PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH));
     UnderFileSystemUtils
         .mkdirIfNotExists(mUfs, PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH));
     UnderFileSystemUtils.touch(mUfs, PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH));
+
+    // Add a readonly mount point.
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
@@ -72,7 +79,8 @@ public class ReadOnlyMountIntegrationTest {
 
   @After
   public void after() throws Exception {
-    destroyAlternateUfs(mAlternateUfsRoot);
+    // Delete the alternate under file system directory.
+    UnderFileSystemUtils.deleteDirIfExists(mUfs, mAlternateUfsRoot);
   }
 
   @Test
@@ -278,28 +286,5 @@ public class ReadOnlyMountIntegrationTest {
     inStream = mFileSystem.openFile(fileUri);
     Assert.assertNotNull(inStream);
     inStream.close();
-  }
-
-  /**
-   * Creates another directory on the local filesystem, alongside the existing Ufs, to be used as a
-   * second Ufs.
-   *
-   * @return the path of the alternate Ufs directory
-   */
-  private String createAlternateUfs() throws Exception {
-    AlluxioURI parentURI =
-        new AlluxioURI(Configuration.get(PropertyKey.UNDERFS_ADDRESS)).getParent();
-    String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
-    UnderFileSystemUtils.mkdirIfNotExists(mUfs, alternateUfsRoot);
-    return alternateUfsRoot;
-  }
-
-  /**
-   * Deletes the alternate under file system directory.
-   *
-   * @param alternateUfsRoot the root of the alternate Ufs
-   */
-  private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
-    UnderFileSystemUtils.deleteDirIfExists(mUfs, alternateUfsRoot);
   }
 }
