@@ -133,11 +133,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       return;
     }
 
-    try {
-      mCloser.close();
-    } catch (Exception e) {
-      // Ignore
-    }
+    CommonUtils.closeQuietly(mCloser);
     mClosed = true;
     throw AlluxioStatusException.from(exception);
   }

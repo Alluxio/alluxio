@@ -358,14 +358,14 @@ public final class CommonUtils {
   }
 
   /**
-   * Closes a closer and ignores the IOException if it throws one.
+   * Closes a closer and ignores any thrown exceptions.
    *
    * @param closer the closer
    */
   public static void closeQuietly(Closer closer) {
     try {
       closer.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       // Ignore.
     }
   }
