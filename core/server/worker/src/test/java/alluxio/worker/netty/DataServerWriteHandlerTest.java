@@ -90,7 +90,7 @@ public abstract class DataServerWriteHandlerTest {
     mChannel.writeInbound(buildWriteRequest(len, -1));
 
     Object writeResponse = waitForResponse(mChannel);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.CANCELLED);
+    checkWriteResponse(writeResponse, Protocol.Status.Code.CANCELED);
     // Our current implementation does not really abort the file when the write is cancelled.
     // The client issues another request to block worker to abort it.
     checkFileContent(len);
