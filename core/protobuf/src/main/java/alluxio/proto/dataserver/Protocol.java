@@ -2742,19 +2742,30 @@ public final class Protocol {
   public interface ResponseOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // optional .alluxio.proto.exception.PException exception = 1;
+    // optional .alluxio.proto.status.PStatus status = 1;
     /**
-     * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+     * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
      */
-    boolean hasException();
+    boolean hasStatus();
     /**
-     * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+     * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
      */
-    alluxio.proto.exception.Exception.PException getException();
+    alluxio.proto.status.Status.PStatus getStatus();
+
+    // optional string message = 2;
     /**
-     * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+     * <code>optional string message = 2;</code>
      */
-    alluxio.proto.exception.Exception.PExceptionOrBuilder getExceptionOrBuilder();
+    boolean hasMessage();
+    /**
+     * <code>optional string message = 2;</code>
+     */
+    java.lang.String getMessage();
+    /**
+     * <code>optional string message = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getMessageBytes();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.Response}
@@ -2811,17 +2822,20 @@ public final class Protocol {
               }
               break;
             }
-            case 10: {
-              alluxio.proto.exception.Exception.PException.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000001) == 0x00000001)) {
-                subBuilder = exception_.toBuilder();
+            case 8: {
+              int rawValue = input.readEnum();
+              alluxio.proto.status.Status.PStatus value = alluxio.proto.status.Status.PStatus.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(1, rawValue);
+              } else {
+                bitField0_ |= 0x00000001;
+                status_ = value;
               }
-              exception_ = input.readMessage(alluxio.proto.exception.Exception.PException.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(exception_);
-                exception_ = subBuilder.buildPartial();
-              }
-              bitField0_ |= 0x00000001;
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              message_ = input.readBytes();
               break;
             }
           }
@@ -2864,30 +2878,68 @@ public final class Protocol {
     }
 
     private int bitField0_;
-    // optional .alluxio.proto.exception.PException exception = 1;
-    public static final int EXCEPTION_FIELD_NUMBER = 1;
-    private alluxio.proto.exception.Exception.PException exception_;
+    // optional .alluxio.proto.status.PStatus status = 1;
+    public static final int STATUS_FIELD_NUMBER = 1;
+    private alluxio.proto.status.Status.PStatus status_;
     /**
-     * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+     * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
      */
-    public boolean hasException() {
+    public boolean hasStatus() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+     * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
      */
-    public alluxio.proto.exception.Exception.PException getException() {
-      return exception_;
+    public alluxio.proto.status.Status.PStatus getStatus() {
+      return status_;
+    }
+
+    // optional string message = 2;
+    public static final int MESSAGE_FIELD_NUMBER = 2;
+    private java.lang.Object message_;
+    /**
+     * <code>optional string message = 2;</code>
+     */
+    public boolean hasMessage() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+     * <code>optional string message = 2;</code>
      */
-    public alluxio.proto.exception.Exception.PExceptionOrBuilder getExceptionOrBuilder() {
-      return exception_;
+    public java.lang.String getMessage() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          message_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string message = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMessageBytes() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        message_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     private void initFields() {
-      exception_ = alluxio.proto.exception.Exception.PException.getDefaultInstance();
+      status_ = alluxio.proto.status.Status.PStatus.OK;
+      message_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2902,7 +2954,10 @@ public final class Protocol {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeMessage(1, exception_);
+        output.writeEnum(1, status_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getMessageBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -2915,7 +2970,11 @@ public final class Protocol {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, exception_);
+          .computeEnumSize(1, status_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getMessageBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3029,7 +3088,6 @@ public final class Protocol {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-          getExceptionFieldBuilder();
         }
       }
       private static Builder create() {
@@ -3038,12 +3096,10 @@ public final class Protocol {
 
       public Builder clear() {
         super.clear();
-        if (exceptionBuilder_ == null) {
-          exception_ = alluxio.proto.exception.Exception.PException.getDefaultInstance();
-        } else {
-          exceptionBuilder_.clear();
-        }
+        status_ = alluxio.proto.status.Status.PStatus.OK;
         bitField0_ = (bitField0_ & ~0x00000001);
+        message_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -3075,11 +3131,11 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        if (exceptionBuilder_ == null) {
-          result.exception_ = exception_;
-        } else {
-          result.exception_ = exceptionBuilder_.build();
+        result.status_ = status_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
         }
+        result.message_ = message_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3096,8 +3152,13 @@ public final class Protocol {
 
       public Builder mergeFrom(alluxio.proto.dataserver.Protocol.Response other) {
         if (other == alluxio.proto.dataserver.Protocol.Response.getDefaultInstance()) return this;
-        if (other.hasException()) {
-          mergeException(other.getException());
+        if (other.hasStatus()) {
+          setStatus(other.getStatus());
+        }
+        if (other.hasMessage()) {
+          bitField0_ |= 0x00000002;
+          message_ = other.message_;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3126,121 +3187,114 @@ public final class Protocol {
       }
       private int bitField0_;
 
-      // optional .alluxio.proto.exception.PException exception = 1;
-      private alluxio.proto.exception.Exception.PException exception_ = alluxio.proto.exception.Exception.PException.getDefaultInstance();
-      private com.google.protobuf.SingleFieldBuilder<
-          alluxio.proto.exception.Exception.PException, alluxio.proto.exception.Exception.PException.Builder, alluxio.proto.exception.Exception.PExceptionOrBuilder> exceptionBuilder_;
+      // optional .alluxio.proto.status.PStatus status = 1;
+      private alluxio.proto.status.Status.PStatus status_ = alluxio.proto.status.Status.PStatus.OK;
       /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+       * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
        */
-      public boolean hasException() {
+      public boolean hasStatus() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+       * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
        */
-      public alluxio.proto.exception.Exception.PException getException() {
-        if (exceptionBuilder_ == null) {
-          return exception_;
-        } else {
-          return exceptionBuilder_.getMessage();
-        }
+      public alluxio.proto.status.Status.PStatus getStatus() {
+        return status_;
       }
       /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+       * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
        */
-      public Builder setException(alluxio.proto.exception.Exception.PException value) {
-        if (exceptionBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          exception_ = value;
-          onChanged();
-        } else {
-          exceptionBuilder_.setMessage(value);
+      public Builder setStatus(alluxio.proto.status.Status.PStatus value) {
+        if (value == null) {
+          throw new NullPointerException();
         }
         bitField0_ |= 0x00000001;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
-       */
-      public Builder setException(
-          alluxio.proto.exception.Exception.PException.Builder builderForValue) {
-        if (exceptionBuilder_ == null) {
-          exception_ = builderForValue.build();
-          onChanged();
-        } else {
-          exceptionBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
-       */
-      public Builder mergeException(alluxio.proto.exception.Exception.PException value) {
-        if (exceptionBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001) &&
-              exception_ != alluxio.proto.exception.Exception.PException.getDefaultInstance()) {
-            exception_ =
-              alluxio.proto.exception.Exception.PException.newBuilder(exception_).mergeFrom(value).buildPartial();
-          } else {
-            exception_ = value;
-          }
-          onChanged();
-        } else {
-          exceptionBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000001;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
-       */
-      public Builder clearException() {
-        if (exceptionBuilder_ == null) {
-          exception_ = alluxio.proto.exception.Exception.PException.getDefaultInstance();
-          onChanged();
-        } else {
-          exceptionBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000001);
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
-       */
-      public alluxio.proto.exception.Exception.PException.Builder getExceptionBuilder() {
-        bitField0_ |= 0x00000001;
+        status_ = value;
         onChanged();
-        return getExceptionFieldBuilder().getBuilder();
+        return this;
       }
       /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+       * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
        */
-      public alluxio.proto.exception.Exception.PExceptionOrBuilder getExceptionOrBuilder() {
-        if (exceptionBuilder_ != null) {
-          return exceptionBuilder_.getMessageOrBuilder();
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        status_ = alluxio.proto.status.Status.PStatus.OK;
+        onChanged();
+        return this;
+      }
+
+      // optional string message = 2;
+      private java.lang.Object message_ = "";
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public boolean hasMessage() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public java.lang.String getMessage() {
+        java.lang.Object ref = message_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          message_ = s;
+          return s;
         } else {
-          return exception_;
+          return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional .alluxio.proto.exception.PException exception = 1;</code>
+       * <code>optional string message = 2;</code>
        */
-      private com.google.protobuf.SingleFieldBuilder<
-          alluxio.proto.exception.Exception.PException, alluxio.proto.exception.Exception.PException.Builder, alluxio.proto.exception.Exception.PExceptionOrBuilder> 
-          getExceptionFieldBuilder() {
-        if (exceptionBuilder_ == null) {
-          exceptionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              alluxio.proto.exception.Exception.PException, alluxio.proto.exception.Exception.PException.Builder, alluxio.proto.exception.Exception.PExceptionOrBuilder>(
-                  exception_,
-                  getParentForChildren(),
-                  isClean());
-          exception_ = null;
+      public com.google.protobuf.ByteString
+          getMessageBytes() {
+        java.lang.Object ref = message_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          message_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
         }
-        return exceptionBuilder_;
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public Builder setMessage(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        message_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public Builder clearMessage() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        message_ = getDefaultInstance().getMessage();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public Builder setMessageBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        message_ = value;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.Response)
@@ -3279,20 +3333,21 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocol.proto\022\030alluxio.proto.dataserv" +
-      "er\032\017exception.proto\"\265\001\n\013ReadRequest\0223\n\004t" +
-      "ype\030\001 \001(\0162%.alluxio.proto.dataserver.Req" +
-      "uestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006" +
-      "length\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030" +
-      "\006 \001(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 " +
-      "\001(\010\"\334\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.all" +
-      "uxio.proto.dataserver.RequestType\022\n\n\002id\030" +
-      "\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(" +
-      "\003\022\014\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007",
-      " \001(\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n" +
-      "\005group\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\"B\n\010Response\0226" +
-      "\n\texception\030\001 \001(\0132#.alluxio.proto.except" +
-      "ion.PException*=\n\013RequestType\022\021\n\rALLUXIO" +
-      "_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002"
+      "er\032\014status.proto\"\265\001\n\013ReadRequest\0223\n\004type" +
+      "\030\001 \001(\0162%.alluxio.proto.dataserver.Reques" +
+      "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
+      "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
+      "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
+      "\"\334\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
+      "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001" +
+      "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
+      "\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(",
+      "\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005gr" +
+      "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\"J\n\010Response\022-\n\006s" +
+      "tatus\030\001 \001(\0162\035.alluxio.proto.status.PStat" +
+      "us\022\017\n\007message\030\002 \001(\t*=\n\013RequestType\022\021\n\rAL" +
+      "LUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK" +
+      "\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3316,14 +3371,14 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Response_descriptor,
-              new java.lang.String[] { "Exception", });
+              new java.lang.String[] { "Status", "Message", });
           return null;
         }
       };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          alluxio.proto.exception.Exception.getDescriptor(),
+          alluxio.proto.status.Status.getDescriptor(),
         }, assigner);
   }
 

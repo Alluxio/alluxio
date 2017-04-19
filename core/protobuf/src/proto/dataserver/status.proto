@@ -1,9 +1,9 @@
 syntax = "proto2";
 
-package alluxio.proto.exception;
+package alluxio.proto.status;
 
 // exception status for a response.
-enum Status {
+enum PStatus {
   // OK is returned on success.
   OK = 0;
 
@@ -119,9 +119,4 @@ enum Status {
 
   // DataLoss indicates unrecoverable data loss or corruption.
   DATA_LOSS = 15;
-}
-
-message PException {
-  optional Status status = 1;
-  optional string message = 2;
 }
