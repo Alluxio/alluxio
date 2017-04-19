@@ -17,7 +17,7 @@ package alluxio.exception.status;
  */
 public class UnauthenticatedException extends AlluxioStatusException {
   private static final long serialVersionUID = -8042434313008986493L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.UNAUTHENTICATED;
+  private static final Status STATUS = Status.UNAUTHENTICATED;
 
   /**
    * @param message the exception message

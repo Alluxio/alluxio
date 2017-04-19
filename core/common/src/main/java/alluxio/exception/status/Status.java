@@ -18,7 +18,7 @@ import alluxio.thrift.TExceptionStatus;
  * A class representing gRPC status codes. The definitions are from
  * https://github.com/grpc/grpc-go/blob/v1.2.0/codes/codes.go.
  */
-public enum ExceptionStatus {
+public enum Status {
   // OK is returned on success.
   OK,
 
@@ -141,7 +141,7 @@ public enum ExceptionStatus {
    * @param status the status to convert
    * @return the Thrift type status
    */
-  public static TExceptionStatus toThrift(ExceptionStatus status) {
+  public static TExceptionStatus toThrift(Status status) {
     switch (status) {
       case OK:
         return TExceptionStatus.OK;
@@ -188,7 +188,7 @@ public enum ExceptionStatus {
    * @param status the status to convert
    * @return the protocol buffer type status
    */
-  public static Status toProto(ExceptionStatus status) {
+  public static Status toProto(Status status) {
     switch (status) {
       case OK:
         return Status.OK;

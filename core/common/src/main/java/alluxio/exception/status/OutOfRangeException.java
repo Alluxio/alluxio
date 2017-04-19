@@ -27,7 +27,7 @@ package alluxio.exception.status;
  */
 public class OutOfRangeException extends AlluxioStatusException {
   private static final long serialVersionUID = 5703697898649540073L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.OUT_OF_RANGE;
+  private static final Status STATUS = Status.OUT_OF_RANGE;
 
   /**
    * @param message the exception message

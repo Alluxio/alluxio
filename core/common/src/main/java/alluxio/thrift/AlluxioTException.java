@@ -48,14 +48,14 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
   }
 
   private String message; // required
-  private TExceptionStatus status; // required
+  private TStatus status; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     MESSAGE((short)2, "message"),
     /**
      * 
-     * @see TExceptionStatus
+     * @see TStatus
      */
     STATUS((short)4, "status");
 
@@ -122,7 +122,7 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, TExceptionStatus.class)));
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, TStatus.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(AlluxioTException.class, metaDataMap);
   }
@@ -132,7 +132,7 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
 
   public AlluxioTException(
     String message,
-    TExceptionStatus status)
+    TStatus status)
   {
     this();
     this.message = message;
@@ -187,17 +187,17 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
 
   /**
    * 
-   * @see TExceptionStatus
+   * @see TStatus
    */
-  public TExceptionStatus getStatus() {
+  public TStatus getStatus() {
     return this.status;
   }
 
   /**
    * 
-   * @see TExceptionStatus
+   * @see TStatus
    */
-  public AlluxioTException setStatus(TExceptionStatus status) {
+  public AlluxioTException setStatus(TStatus status) {
     this.status = status;
     return this;
   }
@@ -231,7 +231,7 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
       if (value == null) {
         unsetStatus();
       } else {
-        setStatus((TExceptionStatus)value);
+        setStatus((TStatus)value);
       }
       break;
 
@@ -432,7 +432,7 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
             break;
           case 4: // STATUS
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.status = alluxio.thrift.TExceptionStatus.findByValue(iprot.readI32());
+              struct.status = alluxio.thrift.TStatus.findByValue(iprot.readI32());
               struct.setStatusIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -505,7 +505,7 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
         struct.setMessageIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.status = alluxio.thrift.TExceptionStatus.findByValue(iprot.readI32());
+        struct.status = alluxio.thrift.TStatus.findByValue(iprot.readI32());
         struct.setStatusIsSet(true);
       }
     }

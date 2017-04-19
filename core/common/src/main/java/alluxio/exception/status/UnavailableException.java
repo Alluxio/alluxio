@@ -20,7 +20,7 @@ package alluxio.exception.status;
  */
 public class UnavailableException extends AlluxioStatusException {
   private static final long serialVersionUID = -8183502434544959673L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.UNAVAILABLE;
+  private static final Status STATUS = Status.UNAVAILABLE;
 
   /**
    * @param message the exception message

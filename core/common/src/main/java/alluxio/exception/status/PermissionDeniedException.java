@@ -19,7 +19,7 @@ package alluxio.exception.status;
  */
 public class PermissionDeniedException extends AlluxioStatusException {
   private static final long serialVersionUID = -922867163727905735L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.PERMISSION_DENIED;
+  private static final Status STATUS = Status.PERMISSION_DENIED;
 
   /**
    * @param message the exception message

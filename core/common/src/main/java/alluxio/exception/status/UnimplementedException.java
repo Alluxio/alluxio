@@ -17,7 +17,7 @@ package alluxio.exception.status;
  */
 public class UnimplementedException extends AlluxioStatusException {
   private static final long serialVersionUID = 5175271592155540983L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.UNIMPLEMENTED;
+  private static final Status STATUS = Status.UNIMPLEMENTED;
 
   /**
    * @param message the exception message

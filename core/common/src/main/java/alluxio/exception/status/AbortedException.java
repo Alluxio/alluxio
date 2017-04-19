@@ -20,7 +20,7 @@ package alluxio.exception.status;
  */
 public class AbortedException extends AlluxioStatusException {
   private static final long serialVersionUID = -7705340466444818294L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.ABORTED;
+  private static final Status STATUS = Status.ABORTED;
 
   /**
    * @param message the exception message
