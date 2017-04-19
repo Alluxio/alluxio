@@ -38,11 +38,11 @@ import java.io.OutputStream;
 import java.util.Random;
 
 /**
- * Unit tests for {@link DataServerUFSFileWriteHandler}.
+ * Unit tests for {@link DataServerUfsFileWriteHandler}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UnderFileSystem.class)
-public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHandlerTest {
+public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
   private OutputStream mOutputStream;
@@ -53,9 +53,9 @@ public final class DataServerUFSFileWriteHandlerTest extends DataServerWriteHand
     mOutputStream = new FileOutputStream(mFile);
     mChecksum = 0;
     mChannel = new EmbeddedChannel(
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
+        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
     mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerUFSFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
+        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
