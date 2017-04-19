@@ -38,9 +38,9 @@ public class DirectedAcyclicGraphNode<T> {
    */
   public DirectedAcyclicGraphNode(T payload, List<DirectedAcyclicGraphNode<T>> parents,
       List<DirectedAcyclicGraphNode<T>> children) {
-    mPayload = Preconditions.checkNotNull(payload);
-    mParents = Preconditions.checkNotNull(parents);
-    mChildren = Preconditions.checkNotNull(children);
+    mPayload = Preconditions.checkNotNull(payload, "payload");
+    mParents = Preconditions.checkNotNull(parents, "parents");
+    mChildren = Preconditions.checkNotNull(children, "children");
   }
 
   /**
