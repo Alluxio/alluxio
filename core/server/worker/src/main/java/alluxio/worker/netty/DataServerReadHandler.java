@@ -13,6 +13,8 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.InternalException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -125,14 +127,12 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * reader thread.
    */
   private class Error {
-    final Throwable mCause;
+    final AlluxioStatusException mCause;
     final boolean mNotifyClient;
-    final Protocol.Status.Code mErrorCode;
 
-    Error(Throwable cause, boolean notifyClient, Protocol.Status.Code code) {
+    Error(AlluxioStatusException cause, boolean notifyClient) {
       mCause = cause;
       mNotifyClient = notifyClient;
-      mErrorCode = code;
     }
   }
 
@@ -165,7 +165,9 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    setError(ctx.channel(), new Error(null, false, Protocol.Status.Code.INTERNAL));
+    // TODO(andrew): talk to peis about whether this is the right exception type
+    setError(ctx.channel(),
+        new Error(new InternalException("Channel has been unregistered"), false));
     ctx.fireChannelUnregistered();
   }
 
@@ -465,7 +467,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
           LOG.error("Failed to close the request.", e);
         }
         if (error.mNotifyClient) {
-          replyError(error.mErrorCode, "", error.mCause);
+          replyError(error.mCause);
         }
       } else if (eof || cancel) {
         try {
@@ -485,8 +487,9 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     /**
      * Writes an error read response to the channel and closes the channel after that.
      */
-    private void replyError(Protocol.Status.Code code, String message) {
-      mChannel.writeAndFlush(RPCProtoMessage.createResponse(code, message, null))
+    private void replyError(Exception e) {
+      AlluxioStatusException se = AlluxioStatusException.from(e);
+      mChannel.writeAndFlush(RPCProtoMessage.createResponse(se.toProto(), null))
           .addListener(ChannelFutureListener.CLOSE);
     }
 
