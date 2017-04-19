@@ -11,6 +11,7 @@
 
 package alluxio.exception.status;
 
+import alluxio.proto.exception.Exception.Status;
 import alluxio.thrift.TExceptionStatus;
 
 /**
@@ -173,6 +174,51 @@ public enum ExceptionStatus {
         return TExceptionStatus.UNKNOWN;
       default:
         return TExceptionStatus.UNKNOWN;
+    }
+  }
+
+  /**
+   * Converts an internal exception status to a protocol buffer type status.
+   *
+   * @param status the status to convert
+   * @return the protocol buffer type status
+   */
+  public static Status toProto(ExceptionStatus status) {
+    switch (status) {
+      case ABORTED:
+        return Status.ABORTED;
+      case ALREADY_EXISTS:
+        return Status.ALREADY_EXISTS;
+      case CANCELED:
+        return Status.CANCELED;
+      case DATA_LOSS:
+        return Status.DATA_LOSS;
+      case DEADLINE_EXCEEDED:
+        return Status.DEADLINE_EXCEEDED;
+      case FAILED_PRECONDITION:
+        return Status.FAILED_PRECONDITION;
+      case INTERNAL:
+        return Status.INTERNAL;
+      case INVALID_ARGUMENT:
+        return Status.INVALID_ARGUMENT;
+      case NOT_FOUND:
+        return Status.NOT_FOUND;
+      case OUT_OF_RANGE:
+        return Status.OUT_OF_RANGE;
+      case PERMISSION_DENIED:
+        return Status.PERMISSION_DENIED;
+      case RESOURCE_EXHAUSTED:
+        return Status.RESOURCE_EXHAUSTED;
+      case UNAUTHENTICATED:
+        return Status.UNAUTHENTICATED;
+      case UNAVAILABLE:
+        return Status.UNAVAILABLE;
+      case UNIMPLEMENTED:
+        return Status.UNIMPLEMENTED;
+      case UNKNOWN:
+        return Status.UNKNOWN;
+      default:
+        return Status.UNKNOWN;
     }
   }
 }
