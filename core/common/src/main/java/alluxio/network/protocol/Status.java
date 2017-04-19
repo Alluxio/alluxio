@@ -33,7 +33,7 @@ public final class Status {
    * @return true if the status is in CANCELLED state
    */
   public static boolean isCancelled(Protocol.Status status) {
-    return status.getCode() == Protocol.Status.Code.CANCELLED;
+    return status.getCode() == Protocol.Status.Code.CANCELED;
   }
 
   private Status() {} // prevent instantiation

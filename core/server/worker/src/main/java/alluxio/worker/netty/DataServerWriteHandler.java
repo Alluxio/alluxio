@@ -414,7 +414,8 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
       if (error.mNotifyClient) {
         mChannel
-            .writeAndFlush(RPCProtoMessage.createResponse(error.mErrorCode, "", error.mCause, null))
+            .writeAndFlush(
+                RPCProtoMessage.createResponse(error.mErrorCode, error.mCause.getMessage(), null))
             .addListener(ChannelFutureListener.CLOSE);
       }
     }

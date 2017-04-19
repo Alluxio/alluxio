@@ -485,8 +485,8 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     /**
      * Writes an error read response to the channel and closes the channel after that.
      */
-    private void replyError(Protocol.Status.Code code, String message, Throwable e) {
-      mChannel.writeAndFlush(RPCProtoMessage.createResponse(code, message, e, null))
+    private void replyError(Protocol.Status.Code code, String message) {
+      mChannel.writeAndFlush(RPCProtoMessage.createResponse(code, message, null))
           .addListener(ChannelFutureListener.CLOSE);
     }
 

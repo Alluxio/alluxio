@@ -14,8 +14,9 @@ package alluxio.network.protocol;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol.Response;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -171,25 +172,13 @@ public final class RPCProtoMessage extends RPCMessage {
    *
    * @param code the status code
    * @param message the user provided message
-   * @param e the cause of this error
    * @param data the data buffer
    * @return the message created
    */
   public static RPCProtoMessage createResponse(Protocol.Status.Code code, String message,
-      Throwable e, DataBuffer data) {
-    Protocol.Status status = Protocol.Status.newBuilder().setCode(code).setMessage(message).build();
-    if (e != null) {
-      Protocol.Exception.Builder builder = Protocol.Exception.newBuilder();
-      String className = e.getClass().getCanonicalName();
-      if (className != null) {
-        builder.setClassName(className);
-      }
-      if (e.getMessage() != null) {
-        builder.setMessage(e.getMessage());
-      }
-      status = status.toBuilder().setCause(builder.build()).build();
-    }
-    Protocol.Response response = Protocol.Response.newBuilder().setStatus(status).build();
+      DataBuffer data) {
+    Response response = Protocol.Response.newBuilder()
+        .setStatus(Protocol.Status.newBuilder().setCode(code).setMessage(message)).build();
     return new RPCProtoMessage(new ProtoMessage(response), data);
   }
 
@@ -200,7 +189,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @return the message created
    */
   public static RPCProtoMessage createOkResponse(DataBuffer data) {
-    return createResponse(Protocol.Status.Code.OK, "", null, data);
+    return createResponse(Protocol.Status.Code.OK, "", data);
   }
 
   /**
@@ -209,7 +198,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @return the message created
    */
   public static RPCProtoMessage createCancelResponse() {
-    return createResponse(Protocol.Status.Code.CANCELLED, "", null, null);
+    return createResponse(Protocol.Status.Code.CANCELED, "canceled", null);
   }
 
   @Override

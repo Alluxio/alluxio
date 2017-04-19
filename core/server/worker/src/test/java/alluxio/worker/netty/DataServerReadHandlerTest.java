@@ -18,11 +18,11 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
@@ -123,7 +123,7 @@ public abstract class DataServerReadHandlerTest {
       // There is small chance that we can still receive an OK response here because it is too
       // fast to read all the data. If that ever happens, either increase the file size or allow it
       // to be OK here.
-      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.CANCELLED);
+      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.CANCELED);
       if (buffer == null) {
         eof = true;
         break;

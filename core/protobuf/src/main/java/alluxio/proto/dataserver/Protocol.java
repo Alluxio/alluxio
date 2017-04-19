@@ -103,489 +103,6 @@ public final class Protocol {
     // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.RequestType)
   }
 
-  /**
-   * Protobuf enum {@code alluxio.proto.dataserver.Status}
-   */
-  public enum Status
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>OK = 0;</code>
-     *
-     * <pre>
-     * OK is returned on success.
-     * </pre>
-     */
-    OK(0, 0),
-    /**
-     * <code>CANCELED = 1;</code>
-     *
-     * <pre>
-     * Canceled indicates the operation was cancelled (typically by the caller).
-     * </pre>
-     */
-    CANCELED(1, 1),
-    /**
-     * <code>UNKNOWN = 2;</code>
-     *
-     * <pre>
-     * Unknown error.  An example of where this error may be returned is
-     * if a Status value received from another address space belongs to
-     * an error-space that is not known in this address space.  Also
-     * errors raised by APIs that do not return enough error information
-     * may be converted to this error.
-     * </pre>
-     */
-    UNKNOWN(2, 2),
-    /**
-     * <code>INVALID_ARGUMENT = 3;</code>
-     *
-     * <pre>
-     * InvalidArgument indicates client specified an invalid argument.
-     * Note that this differs from FailedPrecondition. It indicates arguments
-     * that are problematic regardless of the state of the system
-     * (e.g., a malformed file name).
-     * </pre>
-     */
-    INVALID_ARGUMENT(3, 3),
-    /**
-     * <code>DEADLINE_EXCEEDED = 4;</code>
-     *
-     * <pre>
-     * DeadlineExceeded means operation expired before completion.
-     * For operations that change the state of the system, this error may be
-     * returned even if the operation has completed successfully. For
-     * example, a successful response from a server could have been delayed
-     * long enough for the deadline to expire.
-     * </pre>
-     */
-    DEADLINE_EXCEEDED(4, 4),
-    /**
-     * <code>NOT_FOUND = 5;</code>
-     *
-     * <pre>
-     * NotFound means some requested entity (e.g., file or directory) was
-     * not found.
-     * </pre>
-     */
-    NOT_FOUND(5, 5),
-    /**
-     * <code>ALREADY_EXISTS = 6;</code>
-     *
-     * <pre>
-     * AlreadyExists means an attempt to create an entity failed because one
-     * already exists.
-     * </pre>
-     */
-    ALREADY_EXISTS(6, 6),
-    /**
-     * <code>PERMISSION_DENIED = 7;</code>
-     *
-     * <pre>
-     * PermissionDenied indicates the caller does not have permission to
-     * execute the specified operation. It must not be used for rejections
-     * caused by exhausting some resource (use ResourceExhausted
-     * instead for those errors).  It must not be
-     * used if the caller cannot be identified (use Unauthenticated
-     * instead for those errors).
-     * </pre>
-     */
-    PERMISSION_DENIED(7, 7),
-    /**
-     * <code>UNAUTHENTICATED = 16;</code>
-     *
-     * <pre>
-     * Unauthenticated indicates the request does not have valid
-     * authentication credentials for the operation.
-     * </pre>
-     */
-    UNAUTHENTICATED(8, 16),
-    /**
-     * <code>RESOURCE_EXHAUSTED = 8;</code>
-     *
-     * <pre>
-     * ResourceExhausted indicates some resource has been exhausted, perhaps
-     * a per-user quota, or perhaps the entire file system is out of space.
-     * </pre>
-     */
-    RESOURCE_EXHAUSTED(9, 8),
-    /**
-     * <code>FAILED_PRECONDITION = 9;</code>
-     *
-     * <pre>
-     * FailedPrecondition indicates operation was rejected because the
-     * system is not in a state required for the operation's execution.
-     * For example, directory to be deleted may be non-empty, an rmdir
-     * operation is applied to a non-directory, etc.
-     *
-     * A litmus test that may help a service implementor in deciding
-     * between FailedPrecondition, Aborted, and Unavailable:
-     *  (a) Use Unavailable if the client can retry just the failing call.
-     *  (b) Use Aborted if the client should retry at a higher-level
-     *      (e.g., restarting a read-modify-write sequence).
-     *  (c) Use FailedPrecondition if the client should not retry until
-     *      the system state has been explicitly fixed.  E.g., if an "rmdir"
-     *      fails because the directory is non-empty, FailedPrecondition
-     *      should be returned since the client should not retry unless
-     *      they have first fixed up the directory by deleting files from it.
-     *  (d) Use FailedPrecondition if the client performs conditional
-     *      REST Get/Update/Delete on a resource and the resource on the
-     *      server does not match the condition. E.g., conflicting
-     *      read-modify-write on the same resource.
-     * </pre>
-     */
-    FAILED_PRECONDITION(10, 9),
-    /**
-     * <code>ABORTED = 10;</code>
-     *
-     * <pre>
-     * Aborted indicates the operation was aborted, typically due to a
-     * concurrency issue like sequencer check failures, transaction aborts,
-     * etc.
-     *
-     * See litmus test above for deciding between FailedPrecondition,
-     * Aborted, and Unavailable.
-     * </pre>
-     */
-    ABORTED(11, 10),
-    /**
-     * <code>OUT_OF_RANGE = 11;</code>
-     *
-     * <pre>
-     * OutOfRange means operation was attempted past the valid range.
-     * E.g., seeking or reading past end of file.
-     *
-     * Unlike InvalidArgument, this error indicates a problem that may
-     * be fixed if the system state changes. For example, a 32-bit file
-     * system will generate InvalidArgument if asked to read at an
-     * offset that is not in the range [0,2^32-1], but it will generate
-     * OutOfRange if asked to read from an offset past the current
-     * file size.
-     *
-     * There is a fair bit of overlap between FailedPrecondition and
-     * OutOfRange.  We recommend using OutOfRange (the more specific
-     * error) when it applies so that callers who are iterating through
-     * a space can easily look for an OutOfRange error to detect when
-     * they are done.
-     * </pre>
-     */
-    OUT_OF_RANGE(12, 11),
-    /**
-     * <code>UNIMPLEMENTED = 12;</code>
-     *
-     * <pre>
-     * Unimplemented indicates operation is not implemented or not
-     * supported/enabled in this service.
-     * </pre>
-     */
-    UNIMPLEMENTED(13, 12),
-    /**
-     * <code>INTERNAL = 13;</code>
-     *
-     * <pre>
-     * Internal errors.  Means some invariants expected by underlying
-     * system has been broken.  If you see one of these errors,
-     * something is very broken.
-     * </pre>
-     */
-    INTERNAL(14, 13),
-    /**
-     * <code>UNAVAILABLE = 14;</code>
-     *
-     * <pre>
-     * Unavailable indicates the service is currently unavailable.
-     * This is a most likely a transient condition and may be corrected
-     * by retrying with a backoff.
-     *
-     * See litmus test above for deciding between FailedPrecondition,
-     * Aborted, and Unavailable.
-     * </pre>
-     */
-    UNAVAILABLE(15, 14),
-    /**
-     * <code>DATA_LOSS = 15;</code>
-     *
-     * <pre>
-     * DataLoss indicates unrecoverable data loss or corruption.
-     * </pre>
-     */
-    DATA_LOSS(16, 15),
-    ;
-
-    /**
-     * <code>OK = 0;</code>
-     *
-     * <pre>
-     * OK is returned on success.
-     * </pre>
-     */
-    public static final int OK_VALUE = 0;
-    /**
-     * <code>CANCELED = 1;</code>
-     *
-     * <pre>
-     * Canceled indicates the operation was cancelled (typically by the caller).
-     * </pre>
-     */
-    public static final int CANCELED_VALUE = 1;
-    /**
-     * <code>UNKNOWN = 2;</code>
-     *
-     * <pre>
-     * Unknown error.  An example of where this error may be returned is
-     * if a Status value received from another address space belongs to
-     * an error-space that is not known in this address space.  Also
-     * errors raised by APIs that do not return enough error information
-     * may be converted to this error.
-     * </pre>
-     */
-    public static final int UNKNOWN_VALUE = 2;
-    /**
-     * <code>INVALID_ARGUMENT = 3;</code>
-     *
-     * <pre>
-     * InvalidArgument indicates client specified an invalid argument.
-     * Note that this differs from FailedPrecondition. It indicates arguments
-     * that are problematic regardless of the state of the system
-     * (e.g., a malformed file name).
-     * </pre>
-     */
-    public static final int INVALID_ARGUMENT_VALUE = 3;
-    /**
-     * <code>DEADLINE_EXCEEDED = 4;</code>
-     *
-     * <pre>
-     * DeadlineExceeded means operation expired before completion.
-     * For operations that change the state of the system, this error may be
-     * returned even if the operation has completed successfully. For
-     * example, a successful response from a server could have been delayed
-     * long enough for the deadline to expire.
-     * </pre>
-     */
-    public static final int DEADLINE_EXCEEDED_VALUE = 4;
-    /**
-     * <code>NOT_FOUND = 5;</code>
-     *
-     * <pre>
-     * NotFound means some requested entity (e.g., file or directory) was
-     * not found.
-     * </pre>
-     */
-    public static final int NOT_FOUND_VALUE = 5;
-    /**
-     * <code>ALREADY_EXISTS = 6;</code>
-     *
-     * <pre>
-     * AlreadyExists means an attempt to create an entity failed because one
-     * already exists.
-     * </pre>
-     */
-    public static final int ALREADY_EXISTS_VALUE = 6;
-    /**
-     * <code>PERMISSION_DENIED = 7;</code>
-     *
-     * <pre>
-     * PermissionDenied indicates the caller does not have permission to
-     * execute the specified operation. It must not be used for rejections
-     * caused by exhausting some resource (use ResourceExhausted
-     * instead for those errors).  It must not be
-     * used if the caller cannot be identified (use Unauthenticated
-     * instead for those errors).
-     * </pre>
-     */
-    public static final int PERMISSION_DENIED_VALUE = 7;
-    /**
-     * <code>UNAUTHENTICATED = 16;</code>
-     *
-     * <pre>
-     * Unauthenticated indicates the request does not have valid
-     * authentication credentials for the operation.
-     * </pre>
-     */
-    public static final int UNAUTHENTICATED_VALUE = 16;
-    /**
-     * <code>RESOURCE_EXHAUSTED = 8;</code>
-     *
-     * <pre>
-     * ResourceExhausted indicates some resource has been exhausted, perhaps
-     * a per-user quota, or perhaps the entire file system is out of space.
-     * </pre>
-     */
-    public static final int RESOURCE_EXHAUSTED_VALUE = 8;
-    /**
-     * <code>FAILED_PRECONDITION = 9;</code>
-     *
-     * <pre>
-     * FailedPrecondition indicates operation was rejected because the
-     * system is not in a state required for the operation's execution.
-     * For example, directory to be deleted may be non-empty, an rmdir
-     * operation is applied to a non-directory, etc.
-     *
-     * A litmus test that may help a service implementor in deciding
-     * between FailedPrecondition, Aborted, and Unavailable:
-     *  (a) Use Unavailable if the client can retry just the failing call.
-     *  (b) Use Aborted if the client should retry at a higher-level
-     *      (e.g., restarting a read-modify-write sequence).
-     *  (c) Use FailedPrecondition if the client should not retry until
-     *      the system state has been explicitly fixed.  E.g., if an "rmdir"
-     *      fails because the directory is non-empty, FailedPrecondition
-     *      should be returned since the client should not retry unless
-     *      they have first fixed up the directory by deleting files from it.
-     *  (d) Use FailedPrecondition if the client performs conditional
-     *      REST Get/Update/Delete on a resource and the resource on the
-     *      server does not match the condition. E.g., conflicting
-     *      read-modify-write on the same resource.
-     * </pre>
-     */
-    public static final int FAILED_PRECONDITION_VALUE = 9;
-    /**
-     * <code>ABORTED = 10;</code>
-     *
-     * <pre>
-     * Aborted indicates the operation was aborted, typically due to a
-     * concurrency issue like sequencer check failures, transaction aborts,
-     * etc.
-     *
-     * See litmus test above for deciding between FailedPrecondition,
-     * Aborted, and Unavailable.
-     * </pre>
-     */
-    public static final int ABORTED_VALUE = 10;
-    /**
-     * <code>OUT_OF_RANGE = 11;</code>
-     *
-     * <pre>
-     * OutOfRange means operation was attempted past the valid range.
-     * E.g., seeking or reading past end of file.
-     *
-     * Unlike InvalidArgument, this error indicates a problem that may
-     * be fixed if the system state changes. For example, a 32-bit file
-     * system will generate InvalidArgument if asked to read at an
-     * offset that is not in the range [0,2^32-1], but it will generate
-     * OutOfRange if asked to read from an offset past the current
-     * file size.
-     *
-     * There is a fair bit of overlap between FailedPrecondition and
-     * OutOfRange.  We recommend using OutOfRange (the more specific
-     * error) when it applies so that callers who are iterating through
-     * a space can easily look for an OutOfRange error to detect when
-     * they are done.
-     * </pre>
-     */
-    public static final int OUT_OF_RANGE_VALUE = 11;
-    /**
-     * <code>UNIMPLEMENTED = 12;</code>
-     *
-     * <pre>
-     * Unimplemented indicates operation is not implemented or not
-     * supported/enabled in this service.
-     * </pre>
-     */
-    public static final int UNIMPLEMENTED_VALUE = 12;
-    /**
-     * <code>INTERNAL = 13;</code>
-     *
-     * <pre>
-     * Internal errors.  Means some invariants expected by underlying
-     * system has been broken.  If you see one of these errors,
-     * something is very broken.
-     * </pre>
-     */
-    public static final int INTERNAL_VALUE = 13;
-    /**
-     * <code>UNAVAILABLE = 14;</code>
-     *
-     * <pre>
-     * Unavailable indicates the service is currently unavailable.
-     * This is a most likely a transient condition and may be corrected
-     * by retrying with a backoff.
-     *
-     * See litmus test above for deciding between FailedPrecondition,
-     * Aborted, and Unavailable.
-     * </pre>
-     */
-    public static final int UNAVAILABLE_VALUE = 14;
-    /**
-     * <code>DATA_LOSS = 15;</code>
-     *
-     * <pre>
-     * DataLoss indicates unrecoverable data loss or corruption.
-     * </pre>
-     */
-    public static final int DATA_LOSS_VALUE = 15;
-
-
-    public final int getNumber() { return value; }
-
-    public static Status valueOf(int value) {
-      switch (value) {
-        case 0: return OK;
-        case 1: return CANCELED;
-        case 2: return UNKNOWN;
-        case 3: return INVALID_ARGUMENT;
-        case 4: return DEADLINE_EXCEEDED;
-        case 5: return NOT_FOUND;
-        case 6: return ALREADY_EXISTS;
-        case 7: return PERMISSION_DENIED;
-        case 16: return UNAUTHENTICATED;
-        case 8: return RESOURCE_EXHAUSTED;
-        case 9: return FAILED_PRECONDITION;
-        case 10: return ABORTED;
-        case 11: return OUT_OF_RANGE;
-        case 12: return UNIMPLEMENTED;
-        case 13: return INTERNAL;
-        case 14: return UNAVAILABLE;
-        case 15: return DATA_LOSS;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<Status>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static com.google.protobuf.Internal.EnumLiteMap<Status>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<Status>() {
-            public Status findValueByNumber(int number) {
-              return Status.valueOf(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return alluxio.proto.dataserver.Protocol.getDescriptor().getEnumTypes().get(1);
-    }
-
-    private static final Status[] VALUES = values();
-
-    public static Status valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int index;
-    private final int value;
-
-    private Status(int index, int value) {
-      this.index = index;
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.Status)
-  }
-
   public interface ReadRequestOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -3222,18 +2739,18 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.WriteRequest)
   }
 
-  public interface ResponseOrBuilder
+  public interface StatusOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // optional .alluxio.proto.dataserver.Status status = 1;
+    // optional .alluxio.proto.dataserver.Status.Code code = 1;
     /**
-     * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
+     * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
      */
-    boolean hasStatus();
+    boolean hasCode();
     /**
-     * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
+     * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
      */
-    alluxio.proto.dataserver.Protocol.Status getStatus();
+    alluxio.proto.dataserver.Protocol.Status.Code getCode();
 
     // optional string message = 2;
     /**
@@ -3249,6 +2766,1047 @@ public final class Protocol {
      */
     com.google.protobuf.ByteString
         getMessageBytes();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.Status}
+   *
+   * <pre>
+   * Status for a response.
+   * </pre>
+   */
+  public static final class Status extends
+      com.google.protobuf.GeneratedMessage
+      implements StatusOrBuilder {
+    // Use Status.newBuilder() to construct.
+    private Status(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private Status(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final Status defaultInstance;
+    public static Status getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public Status getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Status(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+              alluxio.proto.dataserver.Protocol.Status.Code value = alluxio.proto.dataserver.Protocol.Status.Code.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(1, rawValue);
+              } else {
+                bitField0_ |= 0x00000001;
+                code_ = value;
+              }
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              message_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Status_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Status_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.Status.class, alluxio.proto.dataserver.Protocol.Status.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<Status> PARSER =
+        new com.google.protobuf.AbstractParser<Status>() {
+      public Status parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new Status(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Status> getParserForType() {
+      return PARSER;
+    }
+
+    /**
+     * Protobuf enum {@code alluxio.proto.dataserver.Status.Code}
+     */
+    public enum Code
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>OK = 0;</code>
+       *
+       * <pre>
+       * OK is returned on success.
+       * </pre>
+       */
+      OK(0, 0),
+      /**
+       * <code>CANCELED = 1;</code>
+       *
+       * <pre>
+       * Canceled indicates the operation was cancelled (typically by the caller).
+       * </pre>
+       */
+      CANCELED(1, 1),
+      /**
+       * <code>UNKNOWN = 2;</code>
+       *
+       * <pre>
+       * Unknown error.  An example of where this error may be returned is
+       * if a Status value received from another address space belongs to
+       * an error-space that is not known in this address space.  Also
+       * errors raised by APIs that do not return enough error information
+       * may be converted to this error.
+       * </pre>
+       */
+      UNKNOWN(2, 2),
+      /**
+       * <code>INVALID_ARGUMENT = 3;</code>
+       *
+       * <pre>
+       * InvalidArgument indicates client specified an invalid argument.
+       * Note that this differs from FailedPrecondition. It indicates arguments
+       * that are problematic regardless of the state of the system
+       * (e.g., a malformed file name).
+       * </pre>
+       */
+      INVALID_ARGUMENT(3, 3),
+      /**
+       * <code>DEADLINE_EXCEEDED = 4;</code>
+       *
+       * <pre>
+       * DeadlineExceeded means operation expired before completion.
+       * For operations that change the state of the system, this error may be
+       * returned even if the operation has completed successfully. For
+       * example, a successful response from a server could have been delayed
+       * long enough for the deadline to expire.
+       * </pre>
+       */
+      DEADLINE_EXCEEDED(4, 4),
+      /**
+       * <code>NOT_FOUND = 5;</code>
+       *
+       * <pre>
+       * NotFound means some requested entity (e.g., file or directory) was
+       * not found.
+       * </pre>
+       */
+      NOT_FOUND(5, 5),
+      /**
+       * <code>ALREADY_EXISTS = 6;</code>
+       *
+       * <pre>
+       * AlreadyExists means an attempt to create an entity failed because one
+       * already exists.
+       * </pre>
+       */
+      ALREADY_EXISTS(6, 6),
+      /**
+       * <code>PERMISSION_DENIED = 7;</code>
+       *
+       * <pre>
+       * PermissionDenied indicates the caller does not have permission to
+       * execute the specified operation. It must not be used for rejections
+       * caused by exhausting some resource (use ResourceExhausted
+       * instead for those errors).  It must not be
+       * used if the caller cannot be identified (use Unauthenticated
+       * instead for those errors).
+       * </pre>
+       */
+      PERMISSION_DENIED(7, 7),
+      /**
+       * <code>UNAUTHENTICATED = 16;</code>
+       *
+       * <pre>
+       * Unauthenticated indicates the request does not have valid
+       * authentication credentials for the operation.
+       * </pre>
+       */
+      UNAUTHENTICATED(8, 16),
+      /**
+       * <code>RESOURCE_EXHAUSTED = 8;</code>
+       *
+       * <pre>
+       * ResourceExhausted indicates some resource has been exhausted, perhaps
+       * a per-user quota, or perhaps the entire file system is out of space.
+       * </pre>
+       */
+      RESOURCE_EXHAUSTED(9, 8),
+      /**
+       * <code>FAILED_PRECONDITION = 9;</code>
+       *
+       * <pre>
+       * FailedPrecondition indicates operation was rejected because the
+       * system is not in a state required for the operation's execution.
+       * For example, directory to be deleted may be non-empty, an rmdir
+       * operation is applied to a non-directory, etc.
+       *
+       * A litmus test that may help a service implementor in deciding
+       * between FailedPrecondition, Aborted, and Unavailable:
+       *  (a) Use Unavailable if the client can retry just the failing call.
+       *  (b) Use Aborted if the client should retry at a higher-level
+       *      (e.g., restarting a read-modify-write sequence).
+       *  (c) Use FailedPrecondition if the client should not retry until
+       *      the system state has been explicitly fixed.  E.g., if an "rmdir"
+       *      fails because the directory is non-empty, FailedPrecondition
+       *      should be returned since the client should not retry unless
+       *      they have first fixed up the directory by deleting files from it.
+       *  (d) Use FailedPrecondition if the client performs conditional
+       *      REST Get/Update/Delete on a resource and the resource on the
+       *      server does not match the condition. E.g., conflicting
+       *      read-modify-write on the same resource.
+       * </pre>
+       */
+      FAILED_PRECONDITION(10, 9),
+      /**
+       * <code>ABORTED = 10;</code>
+       *
+       * <pre>
+       * Aborted indicates the operation was aborted, typically due to a
+       * concurrency issue like sequencer check failures, transaction aborts,
+       * etc.
+       *
+       * See litmus test above for deciding between FailedPrecondition,
+       * Aborted, and Unavailable.
+       * </pre>
+       */
+      ABORTED(11, 10),
+      /**
+       * <code>OUT_OF_RANGE = 11;</code>
+       *
+       * <pre>
+       * OutOfRange means operation was attempted past the valid range.
+       * E.g., seeking or reading past end of file.
+       *
+       * Unlike InvalidArgument, this error indicates a problem that may
+       * be fixed if the system state changes. For example, a 32-bit file
+       * system will generate InvalidArgument if asked to read at an
+       * offset that is not in the range [0,2^32-1], but it will generate
+       * OutOfRange if asked to read from an offset past the current
+       * file size.
+       *
+       * There is a fair bit of overlap between FailedPrecondition and
+       * OutOfRange.  We recommend using OutOfRange (the more specific
+       * error) when it applies so that callers who are iterating through
+       * a space can easily look for an OutOfRange error to detect when
+       * they are done.
+       * </pre>
+       */
+      OUT_OF_RANGE(12, 11),
+      /**
+       * <code>UNIMPLEMENTED = 12;</code>
+       *
+       * <pre>
+       * Unimplemented indicates operation is not implemented or not
+       * supported/enabled in this service.
+       * </pre>
+       */
+      UNIMPLEMENTED(13, 12),
+      /**
+       * <code>INTERNAL = 13;</code>
+       *
+       * <pre>
+       * Internal errors.  Means some invariants expected by underlying
+       * system has been broken.  If you see one of these errors,
+       * something is very broken.
+       * </pre>
+       */
+      INTERNAL(14, 13),
+      /**
+       * <code>UNAVAILABLE = 14;</code>
+       *
+       * <pre>
+       * Unavailable indicates the service is currently unavailable.
+       * This is a most likely a transient condition and may be corrected
+       * by retrying with a backoff.
+       *
+       * See litmus test above for deciding between FailedPrecondition,
+       * Aborted, and Unavailable.
+       * </pre>
+       */
+      UNAVAILABLE(15, 14),
+      /**
+       * <code>DATA_LOSS = 15;</code>
+       *
+       * <pre>
+       * DataLoss indicates unrecoverable data loss or corruption.
+       * </pre>
+       */
+      DATA_LOSS(16, 15),
+      ;
+
+      /**
+       * <code>OK = 0;</code>
+       *
+       * <pre>
+       * OK is returned on success.
+       * </pre>
+       */
+      public static final int OK_VALUE = 0;
+      /**
+       * <code>CANCELED = 1;</code>
+       *
+       * <pre>
+       * Canceled indicates the operation was cancelled (typically by the caller).
+       * </pre>
+       */
+      public static final int CANCELED_VALUE = 1;
+      /**
+       * <code>UNKNOWN = 2;</code>
+       *
+       * <pre>
+       * Unknown error.  An example of where this error may be returned is
+       * if a Status value received from another address space belongs to
+       * an error-space that is not known in this address space.  Also
+       * errors raised by APIs that do not return enough error information
+       * may be converted to this error.
+       * </pre>
+       */
+      public static final int UNKNOWN_VALUE = 2;
+      /**
+       * <code>INVALID_ARGUMENT = 3;</code>
+       *
+       * <pre>
+       * InvalidArgument indicates client specified an invalid argument.
+       * Note that this differs from FailedPrecondition. It indicates arguments
+       * that are problematic regardless of the state of the system
+       * (e.g., a malformed file name).
+       * </pre>
+       */
+      public static final int INVALID_ARGUMENT_VALUE = 3;
+      /**
+       * <code>DEADLINE_EXCEEDED = 4;</code>
+       *
+       * <pre>
+       * DeadlineExceeded means operation expired before completion.
+       * For operations that change the state of the system, this error may be
+       * returned even if the operation has completed successfully. For
+       * example, a successful response from a server could have been delayed
+       * long enough for the deadline to expire.
+       * </pre>
+       */
+      public static final int DEADLINE_EXCEEDED_VALUE = 4;
+      /**
+       * <code>NOT_FOUND = 5;</code>
+       *
+       * <pre>
+       * NotFound means some requested entity (e.g., file or directory) was
+       * not found.
+       * </pre>
+       */
+      public static final int NOT_FOUND_VALUE = 5;
+      /**
+       * <code>ALREADY_EXISTS = 6;</code>
+       *
+       * <pre>
+       * AlreadyExists means an attempt to create an entity failed because one
+       * already exists.
+       * </pre>
+       */
+      public static final int ALREADY_EXISTS_VALUE = 6;
+      /**
+       * <code>PERMISSION_DENIED = 7;</code>
+       *
+       * <pre>
+       * PermissionDenied indicates the caller does not have permission to
+       * execute the specified operation. It must not be used for rejections
+       * caused by exhausting some resource (use ResourceExhausted
+       * instead for those errors).  It must not be
+       * used if the caller cannot be identified (use Unauthenticated
+       * instead for those errors).
+       * </pre>
+       */
+      public static final int PERMISSION_DENIED_VALUE = 7;
+      /**
+       * <code>UNAUTHENTICATED = 16;</code>
+       *
+       * <pre>
+       * Unauthenticated indicates the request does not have valid
+       * authentication credentials for the operation.
+       * </pre>
+       */
+      public static final int UNAUTHENTICATED_VALUE = 16;
+      /**
+       * <code>RESOURCE_EXHAUSTED = 8;</code>
+       *
+       * <pre>
+       * ResourceExhausted indicates some resource has been exhausted, perhaps
+       * a per-user quota, or perhaps the entire file system is out of space.
+       * </pre>
+       */
+      public static final int RESOURCE_EXHAUSTED_VALUE = 8;
+      /**
+       * <code>FAILED_PRECONDITION = 9;</code>
+       *
+       * <pre>
+       * FailedPrecondition indicates operation was rejected because the
+       * system is not in a state required for the operation's execution.
+       * For example, directory to be deleted may be non-empty, an rmdir
+       * operation is applied to a non-directory, etc.
+       *
+       * A litmus test that may help a service implementor in deciding
+       * between FailedPrecondition, Aborted, and Unavailable:
+       *  (a) Use Unavailable if the client can retry just the failing call.
+       *  (b) Use Aborted if the client should retry at a higher-level
+       *      (e.g., restarting a read-modify-write sequence).
+       *  (c) Use FailedPrecondition if the client should not retry until
+       *      the system state has been explicitly fixed.  E.g., if an "rmdir"
+       *      fails because the directory is non-empty, FailedPrecondition
+       *      should be returned since the client should not retry unless
+       *      they have first fixed up the directory by deleting files from it.
+       *  (d) Use FailedPrecondition if the client performs conditional
+       *      REST Get/Update/Delete on a resource and the resource on the
+       *      server does not match the condition. E.g., conflicting
+       *      read-modify-write on the same resource.
+       * </pre>
+       */
+      public static final int FAILED_PRECONDITION_VALUE = 9;
+      /**
+       * <code>ABORTED = 10;</code>
+       *
+       * <pre>
+       * Aborted indicates the operation was aborted, typically due to a
+       * concurrency issue like sequencer check failures, transaction aborts,
+       * etc.
+       *
+       * See litmus test above for deciding between FailedPrecondition,
+       * Aborted, and Unavailable.
+       * </pre>
+       */
+      public static final int ABORTED_VALUE = 10;
+      /**
+       * <code>OUT_OF_RANGE = 11;</code>
+       *
+       * <pre>
+       * OutOfRange means operation was attempted past the valid range.
+       * E.g., seeking or reading past end of file.
+       *
+       * Unlike InvalidArgument, this error indicates a problem that may
+       * be fixed if the system state changes. For example, a 32-bit file
+       * system will generate InvalidArgument if asked to read at an
+       * offset that is not in the range [0,2^32-1], but it will generate
+       * OutOfRange if asked to read from an offset past the current
+       * file size.
+       *
+       * There is a fair bit of overlap between FailedPrecondition and
+       * OutOfRange.  We recommend using OutOfRange (the more specific
+       * error) when it applies so that callers who are iterating through
+       * a space can easily look for an OutOfRange error to detect when
+       * they are done.
+       * </pre>
+       */
+      public static final int OUT_OF_RANGE_VALUE = 11;
+      /**
+       * <code>UNIMPLEMENTED = 12;</code>
+       *
+       * <pre>
+       * Unimplemented indicates operation is not implemented or not
+       * supported/enabled in this service.
+       * </pre>
+       */
+      public static final int UNIMPLEMENTED_VALUE = 12;
+      /**
+       * <code>INTERNAL = 13;</code>
+       *
+       * <pre>
+       * Internal errors.  Means some invariants expected by underlying
+       * system has been broken.  If you see one of these errors,
+       * something is very broken.
+       * </pre>
+       */
+      public static final int INTERNAL_VALUE = 13;
+      /**
+       * <code>UNAVAILABLE = 14;</code>
+       *
+       * <pre>
+       * Unavailable indicates the service is currently unavailable.
+       * This is a most likely a transient condition and may be corrected
+       * by retrying with a backoff.
+       *
+       * See litmus test above for deciding between FailedPrecondition,
+       * Aborted, and Unavailable.
+       * </pre>
+       */
+      public static final int UNAVAILABLE_VALUE = 14;
+      /**
+       * <code>DATA_LOSS = 15;</code>
+       *
+       * <pre>
+       * DataLoss indicates unrecoverable data loss or corruption.
+       * </pre>
+       */
+      public static final int DATA_LOSS_VALUE = 15;
+
+
+      public final int getNumber() { return value; }
+
+      public static Code valueOf(int value) {
+        switch (value) {
+          case 0: return OK;
+          case 1: return CANCELED;
+          case 2: return UNKNOWN;
+          case 3: return INVALID_ARGUMENT;
+          case 4: return DEADLINE_EXCEEDED;
+          case 5: return NOT_FOUND;
+          case 6: return ALREADY_EXISTS;
+          case 7: return PERMISSION_DENIED;
+          case 16: return UNAUTHENTICATED;
+          case 8: return RESOURCE_EXHAUSTED;
+          case 9: return FAILED_PRECONDITION;
+          case 10: return ABORTED;
+          case 11: return OUT_OF_RANGE;
+          case 12: return UNIMPLEMENTED;
+          case 13: return INTERNAL;
+          case 14: return UNAVAILABLE;
+          case 15: return DATA_LOSS;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<Code>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<Code>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<Code>() {
+              public Code findValueByNumber(int number) {
+                return Code.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.Status.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final Code[] VALUES = values();
+
+      public static Code valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private Code(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.Status.Code)
+    }
+
+    private int bitField0_;
+    // optional .alluxio.proto.dataserver.Status.Code code = 1;
+    public static final int CODE_FIELD_NUMBER = 1;
+    private alluxio.proto.dataserver.Protocol.Status.Code code_;
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
+     */
+    public boolean hasCode() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
+     */
+    public alluxio.proto.dataserver.Protocol.Status.Code getCode() {
+      return code_;
+    }
+
+    // optional string message = 2;
+    public static final int MESSAGE_FIELD_NUMBER = 2;
+    private java.lang.Object message_;
+    /**
+     * <code>optional string message = 2;</code>
+     */
+    public boolean hasMessage() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string message = 2;</code>
+     */
+    public java.lang.String getMessage() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          message_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string message = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMessageBytes() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        message_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private void initFields() {
+      code_ = alluxio.proto.dataserver.Protocol.Status.Code.OK;
+      message_ = "";
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeEnum(1, code_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getMessageBytes());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, code_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getMessageBytes());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.Status parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.Status prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.Status}
+     *
+     * <pre>
+     * Status for a response.
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.StatusOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Status_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Status_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.Status.class, alluxio.proto.dataserver.Protocol.Status.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.Status.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        code_ = alluxio.proto.dataserver.Protocol.Status.Code.OK;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        message_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Status_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.Status getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.Status build() {
+        alluxio.proto.dataserver.Protocol.Status result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.Status buildPartial() {
+        alluxio.proto.dataserver.Protocol.Status result = new alluxio.proto.dataserver.Protocol.Status(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.code_ = code_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.message_ = message_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.Status) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.Status)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.Status other) {
+        if (other == alluxio.proto.dataserver.Protocol.Status.getDefaultInstance()) return this;
+        if (other.hasCode()) {
+          setCode(other.getCode());
+        }
+        if (other.hasMessage()) {
+          bitField0_ |= 0x00000002;
+          message_ = other.message_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.Status parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.Status) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional .alluxio.proto.dataserver.Status.Code code = 1;
+      private alluxio.proto.dataserver.Protocol.Status.Code code_ = alluxio.proto.dataserver.Protocol.Status.Code.OK;
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
+       */
+      public boolean hasCode() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
+       */
+      public alluxio.proto.dataserver.Protocol.Status.Code getCode() {
+        return code_;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
+       */
+      public Builder setCode(alluxio.proto.dataserver.Protocol.Status.Code value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000001;
+        code_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status.Code code = 1;</code>
+       */
+      public Builder clearCode() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        code_ = alluxio.proto.dataserver.Protocol.Status.Code.OK;
+        onChanged();
+        return this;
+      }
+
+      // optional string message = 2;
+      private java.lang.Object message_ = "";
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public boolean hasMessage() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public java.lang.String getMessage() {
+        java.lang.Object ref = message_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          message_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getMessageBytes() {
+        java.lang.Object ref = message_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          message_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public Builder setMessage(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        message_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public Builder clearMessage() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        message_ = getDefaultInstance().getMessage();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string message = 2;</code>
+       */
+      public Builder setMessageBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        message_ = value;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.Status)
+    }
+
+    static {
+      defaultInstance = new Status(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.Status)
+  }
+
+  public interface ResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional .alluxio.proto.dataserver.Status status = 1;
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
+     */
+    boolean hasStatus();
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
+     */
+    alluxio.proto.dataserver.Protocol.Status getStatus();
+    /**
+     * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
+     */
+    alluxio.proto.dataserver.Protocol.StatusOrBuilder getStatusOrBuilder();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.Response}
@@ -3305,20 +3863,17 @@ public final class Protocol {
               }
               break;
             }
-            case 8: {
-              int rawValue = input.readEnum();
-              alluxio.proto.dataserver.Protocol.Status value = alluxio.proto.dataserver.Protocol.Status.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(1, rawValue);
-              } else {
-                bitField0_ |= 0x00000001;
-                status_ = value;
+            case 10: {
+              alluxio.proto.dataserver.Protocol.Status.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000001) == 0x00000001)) {
+                subBuilder = status_.toBuilder();
               }
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              message_ = input.readBytes();
+              status_ = input.readMessage(alluxio.proto.dataserver.Protocol.Status.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(status_);
+                status_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000001;
               break;
             }
           }
@@ -3376,53 +3931,15 @@ public final class Protocol {
     public alluxio.proto.dataserver.Protocol.Status getStatus() {
       return status_;
     }
-
-    // optional string message = 2;
-    public static final int MESSAGE_FIELD_NUMBER = 2;
-    private java.lang.Object message_;
     /**
-     * <code>optional string message = 2;</code>
+     * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
      */
-    public boolean hasMessage() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string message = 2;</code>
-     */
-    public java.lang.String getMessage() {
-      java.lang.Object ref = message_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          message_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string message = 2;</code>
-     */
-    public com.google.protobuf.ByteString
-        getMessageBytes() {
-      java.lang.Object ref = message_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        message_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public alluxio.proto.dataserver.Protocol.StatusOrBuilder getStatusOrBuilder() {
+      return status_;
     }
 
     private void initFields() {
-      status_ = alluxio.proto.dataserver.Protocol.Status.OK;
-      message_ = "";
+      status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3437,10 +3954,7 @@ public final class Protocol {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeEnum(1, status_.getNumber());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getMessageBytes());
+        output.writeMessage(1, status_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3453,11 +3967,7 @@ public final class Protocol {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(1, status_.getNumber());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getMessageBytes());
+          .computeMessageSize(1, status_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3571,6 +4081,7 @@ public final class Protocol {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getStatusFieldBuilder();
         }
       }
       private static Builder create() {
@@ -3579,10 +4090,12 @@ public final class Protocol {
 
       public Builder clear() {
         super.clear();
-        status_ = alluxio.proto.dataserver.Protocol.Status.OK;
+        if (statusBuilder_ == null) {
+          status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+        } else {
+          statusBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000001);
-        message_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -3614,11 +4127,11 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.status_ = status_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
+        if (statusBuilder_ == null) {
+          result.status_ = status_;
+        } else {
+          result.status_ = statusBuilder_.build();
         }
-        result.message_ = message_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3636,12 +4149,7 @@ public final class Protocol {
       public Builder mergeFrom(alluxio.proto.dataserver.Protocol.Response other) {
         if (other == alluxio.proto.dataserver.Protocol.Response.getDefaultInstance()) return this;
         if (other.hasStatus()) {
-          setStatus(other.getStatus());
-        }
-        if (other.hasMessage()) {
-          bitField0_ |= 0x00000002;
-          message_ = other.message_;
-          onChanged();
+          mergeStatus(other.getStatus());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3671,7 +4179,9 @@ public final class Protocol {
       private int bitField0_;
 
       // optional .alluxio.proto.dataserver.Status status = 1;
-      private alluxio.proto.dataserver.Protocol.Status status_ = alluxio.proto.dataserver.Protocol.Status.OK;
+      private alluxio.proto.dataserver.Protocol.Status status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.dataserver.Protocol.Status, alluxio.proto.dataserver.Protocol.Status.Builder, alluxio.proto.dataserver.Protocol.StatusOrBuilder> statusBuilder_;
       /**
        * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
        */
@@ -3682,102 +4192,107 @@ public final class Protocol {
        * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
        */
       public alluxio.proto.dataserver.Protocol.Status getStatus() {
-        return status_;
+        if (statusBuilder_ == null) {
+          return status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
       }
       /**
        * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
        */
       public Builder setStatus(alluxio.proto.dataserver.Protocol.Status value) {
-        if (value == null) {
-          throw new NullPointerException();
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+          onChanged();
+        } else {
+          statusBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000001;
-        status_ = value;
-        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
+       */
+      public Builder setStatus(
+          alluxio.proto.dataserver.Protocol.Status.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+          onChanged();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
+       */
+      public Builder mergeStatus(alluxio.proto.dataserver.Protocol.Status value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001) &&
+              status_ != alluxio.proto.dataserver.Protocol.Status.getDefaultInstance()) {
+            status_ =
+              alluxio.proto.dataserver.Protocol.Status.newBuilder(status_).mergeFrom(value).buildPartial();
+          } else {
+            status_ = value;
+          }
+          onChanged();
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000001;
         return this;
       }
       /**
        * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
        */
       public Builder clearStatus() {
+        if (statusBuilder_ == null) {
+          status_ = alluxio.proto.dataserver.Protocol.Status.getDefaultInstance();
+          onChanged();
+        } else {
+          statusBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000001);
-        status_ = alluxio.proto.dataserver.Protocol.Status.OK;
-        onChanged();
         return this;
       }
-
-      // optional string message = 2;
-      private java.lang.Object message_ = "";
       /**
-       * <code>optional string message = 2;</code>
+       * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
        */
-      public boolean hasMessage() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+      public alluxio.proto.dataserver.Protocol.Status.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return getStatusFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional string message = 2;</code>
+       * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
        */
-      public java.lang.String getMessage() {
-        java.lang.Object ref = message_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          message_ = s;
-          return s;
+      public alluxio.proto.dataserver.Protocol.StatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
         } else {
-          return (java.lang.String) ref;
+          return status_;
         }
       }
       /**
-       * <code>optional string message = 2;</code>
+       * <code>optional .alluxio.proto.dataserver.Status status = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getMessageBytes() {
-        java.lang.Object ref = message_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          message_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.dataserver.Protocol.Status, alluxio.proto.dataserver.Protocol.Status.Builder, alluxio.proto.dataserver.Protocol.StatusOrBuilder> 
+          getStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.dataserver.Protocol.Status, alluxio.proto.dataserver.Protocol.Status.Builder, alluxio.proto.dataserver.Protocol.StatusOrBuilder>(
+                  status_,
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
         }
-      }
-      /**
-       * <code>optional string message = 2;</code>
-       */
-      public Builder setMessage(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        message_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string message = 2;</code>
-       */
-      public Builder clearMessage() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        message_ = getDefaultInstance().getMessage();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string message = 2;</code>
-       */
-      public Builder setMessageBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        message_ = value;
-        onChanged();
-        return this;
+        return statusBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.Response)
@@ -3801,6 +4316,11 @@ public final class Protocol {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_Status_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_Status_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_Response_descriptor;
   private static
@@ -3826,18 +4346,20 @@ public final class Protocol {
       " \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014\n\004tier\030\005 \001(\005\022\013" +
       "\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(\010\022\020\n\010ufs_path\030",
       "\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004m" +
-      "ode\030\013 \001(\005\"M\n\010Response\0220\n\006status\030\001 \001(\0162 ." +
-      "alluxio.proto.dataserver.Status\022\017\n\007messa" +
-      "ge\030\002 \001(\t*=\n\013RequestType\022\021\n\rALLUXIO_BLOCK" +
-      "\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002*\270\002\n\006Stat" +
-      "us\022\006\n\002OK\020\000\022\014\n\010CANCELED\020\001\022\013\n\007UNKNOWN\020\002\022\024\n" +
-      "\020INVALID_ARGUMENT\020\003\022\025\n\021DEADLINE_EXCEEDED" +
-      "\020\004\022\r\n\tNOT_FOUND\020\005\022\022\n\016ALREADY_EXISTS\020\006\022\025\n" +
-      "\021PERMISSION_DENIED\020\007\022\023\n\017UNAUTHENTICATED\020" +
-      "\020\022\026\n\022RESOURCE_EXHAUSTED\020\010\022\027\n\023FAILED_PREC",
-      "ONDITION\020\t\022\013\n\007ABORTED\020\n\022\020\n\014OUT_OF_RANGE\020" +
-      "\013\022\021\n\rUNIMPLEMENTED\020\014\022\014\n\010INTERNAL\020\r\022\017\n\013UN" +
-      "AVAILABLE\020\016\022\r\n\tDATA_LOSS\020\017"
+      "ode\030\013 \001(\005\"\207\003\n\006Status\0223\n\004code\030\001 \001(\0162%.all" +
+      "uxio.proto.dataserver.Status.Code\022\017\n\007mes" +
+      "sage\030\002 \001(\t\"\266\002\n\004Code\022\006\n\002OK\020\000\022\014\n\010CANCELED\020" +
+      "\001\022\013\n\007UNKNOWN\020\002\022\024\n\020INVALID_ARGUMENT\020\003\022\025\n\021" +
+      "DEADLINE_EXCEEDED\020\004\022\r\n\tNOT_FOUND\020\005\022\022\n\016AL" +
+      "READY_EXISTS\020\006\022\025\n\021PERMISSION_DENIED\020\007\022\023\n" +
+      "\017UNAUTHENTICATED\020\020\022\026\n\022RESOURCE_EXHAUSTED" +
+      "\020\010\022\027\n\023FAILED_PRECONDITION\020\t\022\013\n\007ABORTED\020\n" +
+      "\022\020\n\014OUT_OF_RANGE\020\013\022\021\n\rUNIMPLEMENTED\020\014\022\014\n",
+      "\010INTERNAL\020\r\022\017\n\013UNAVAILABLE\020\016\022\r\n\tDATA_LOS" +
+      "S\020\017\"<\n\010Response\0220\n\006status\030\001 \001(\0132 .alluxi" +
+      "o.proto.dataserver.Status*=\n\013RequestType" +
+      "\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS" +
+      "_BLOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3856,12 +4378,18 @@ public final class Protocol {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
               new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", });
-          internal_static_alluxio_proto_dataserver_Response_descriptor =
+          internal_static_alluxio_proto_dataserver_Status_descriptor =
             getDescriptor().getMessageTypes().get(2);
+          internal_static_alluxio_proto_dataserver_Status_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_Status_descriptor,
+              new java.lang.String[] { "Code", "Message", });
+          internal_static_alluxio_proto_dataserver_Response_descriptor =
+            getDescriptor().getMessageTypes().get(3);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Response_descriptor,
-              new java.lang.String[] { "Status", "Message", });
+              new java.lang.String[] { "Status", });
           return null;
         }
       };
