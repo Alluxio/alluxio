@@ -13,6 +13,8 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -114,12 +116,10 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   private class Error {
     final Throwable mCause;
     final boolean mNotifyClient;
-    final Protocol.Status.Code mErrorCode;
 
-    Error(Throwable cause, boolean notifyClient, Protocol.Status.Code code) {
+    Error(AlluxioStatusException cause, boolean notifyClient) {
       mCause = cause;
       mNotifyClient = notifyClient;
-      mErrorCode = code;
     }
   }
 
@@ -184,11 +184,11 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       initializeRequest(msg);
     }
 
-    // Validate msg and return error if invalid. Init variables if necessary.
-    String error = validateRequest(msg);
-    if (!error.isEmpty()) {
-      pushAbortPacket(ctx.channel(), new Error(new IllegalArgumentException(error), true,
-          Protocol.Status.Code.INVALID_ARGUMENT));
+    // Validate msg.
+    try {
+      validateRequest(msg);
+    } catch (Exception e) {
+      pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(e), true));
       return;
     }
 
@@ -247,23 +247,20 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Validates the block write request.
+   * Validates the block write request, throwing an exception if the request is invalid.
    *
    * @param msg the block write request
-   * @return empty string if the request valid
    */
-  private String validateRequest(RPCProtoMessage msg) {
+  private void validateRequest(RPCProtoMessage msg) {
     Protocol.WriteRequest request = msg.getMessage().getMessage();
     if (request.getOffset() != mPosToQueue) {
-      return String
-          .format("Offsets do not match [received: %d, expected: %d].", request.getOffset(),
-              mPosToQueue);
+      throw new InvalidArgumentException(String.format(
+          "Offsets do not match [received: %d, expected: %d].", request.getOffset(), mPosToQueue));
     }
     if (msg.getPayloadDataBuffer() != null && msg.getPayloadDataBuffer().getLength() > 0 && (
         request.getCancel() || request.getEof())) {
-      return String.format("Found data in a cancel/eof message.");
+      throw new InvalidArgumentException("Found data in a cancel/eof message.");
     }
-    return "";
   }
 
   /**
@@ -413,9 +410,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       }
 
       if (error.mNotifyClient) {
-        mChannel
-            .writeAndFlush(
-                RPCProtoMessage.createResponse(error.mErrorCode, error.mCause.getMessage(), null))
+        mChannel.writeAndFlush(RPCProtoMessage.createResponse(error.mCause, null))
             .addListener(ChannelFutureListener.CLOSE);
       }
     }
