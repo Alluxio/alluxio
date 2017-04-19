@@ -17,7 +17,7 @@ package alluxio.exception.status;
  */
 public class ResourceExhaustedException extends AlluxioStatusException {
   private static final long serialVersionUID = 192930091547587881L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.RESOURCE_EXHAUSTED;
+  private static final Status STATUS = Status.RESOURCE_EXHAUSTED;
 
   /**
    * @param message the exception message

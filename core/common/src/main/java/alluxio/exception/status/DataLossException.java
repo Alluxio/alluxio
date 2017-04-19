@@ -16,7 +16,7 @@ package alluxio.exception.status;
  */
 public class DataLossException extends AlluxioStatusException {
   private static final long serialVersionUID = -4649396237077502949L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.DATA_LOSS;
+  private static final Status STATUS = Status.DATA_LOSS;
 
   /**
    * @param message the exception message

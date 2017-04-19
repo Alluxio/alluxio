@@ -1,6 +1,6 @@
 namespace java alluxio.thrift
 
-enum TExceptionStatus {
+enum TStatus {
   // OK is returned on success.
   OK = 0,
 
@@ -120,5 +120,5 @@ enum TExceptionStatus {
 
 exception AlluxioTException {
   2: string message
-  4: TExceptionStatus status
+  4: TStatus status
 }

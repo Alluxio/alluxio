@@ -50,7 +50,7 @@ import java.util.concurrent.RejectedExecutionException;
 public class AlluxioStatusException extends RuntimeException {
   private static final long serialVersionUID = -7422144873058169662L;
 
-  private final ExceptionStatus mStatus;
+  private final Status mStatus;
   // If this status exception was constructed from an IOException, the IOException is stored here
   // and reused if the status exception is ever converted back to an IOException.
   private final IOException mIOException;
@@ -59,7 +59,7 @@ public class AlluxioStatusException extends RuntimeException {
    * @param status the status code for this exception
    * @param message the exception message
    */
-  public AlluxioStatusException(ExceptionStatus status, String message) {
+  public AlluxioStatusException(Status status, String message) {
     super(message);
     mStatus = status;
     mIOException = null;
@@ -69,7 +69,7 @@ public class AlluxioStatusException extends RuntimeException {
    * @param status the status code for this exception
    * @param cause the cause of the exception
    */
-  public AlluxioStatusException(ExceptionStatus status, Throwable cause) {
+  public AlluxioStatusException(Status status, Throwable cause) {
     super(cause.getMessage(), cause);
     mStatus = status;
     // This AlluxioStatusException doesn't have its own message, so it's essentially just a wrapper
@@ -82,7 +82,7 @@ public class AlluxioStatusException extends RuntimeException {
    * @param message the exception message
    * @param cause the cause of the exception
    */
-  public AlluxioStatusException(ExceptionStatus status, String message, Throwable cause) {
+  public AlluxioStatusException(Status status, String message, Throwable cause) {
     super(message, cause);
     mStatus = status;
     mIOException = null;
@@ -91,7 +91,7 @@ public class AlluxioStatusException extends RuntimeException {
   /**
    * @return the status code for this exception
    */
-  public ExceptionStatus getStatus() {
+  public Status getStatus() {
     return mStatus;
   }
 
@@ -99,7 +99,7 @@ public class AlluxioStatusException extends RuntimeException {
    * @return the Thrift representation of this exception
    */
   public AlluxioTException toThrift() {
-    return new AlluxioTException(getMessage(), ExceptionStatus.toThrift(mStatus));
+    return new AlluxioTException(getMessage(), Status.toThrift(mStatus));
   }
 
 
@@ -108,7 +108,7 @@ public class AlluxioStatusException extends RuntimeException {
    */
   public PException toProto() {
     return PException.newBuilder().setMessage(getMessage())
-        .setStatus(ExceptionStatus.toProto(mStatus)).build();
+        .setStatus(Status.toProto(mStatus)).build();
   }
 
   /**

@@ -16,7 +16,7 @@ package alluxio.exception.status;
  */
 public class NotFoundException extends AlluxioStatusException {
   private static final long serialVersionUID = 2565420784789460508L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.NOT_FOUND;
+  private static final Status STATUS = Status.NOT_FOUND;
 
   /**
    * @param message the exception message

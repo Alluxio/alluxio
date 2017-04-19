@@ -11,7 +11,8 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum TExceptionStatus implements org.apache.thrift.TEnum {
+public enum TStatus implements org.apache.thrift.TEnum {
+  OK(0),
   CANCELED(1),
   UNKNOWN(2),
   INVALID_ARGUMENT(3),
@@ -31,7 +32,7 @@ public enum TExceptionStatus implements org.apache.thrift.TEnum {
 
   private final int value;
 
-  private TExceptionStatus(int value) {
+  private TStatus(int value) {
     this.value = value;
   }
 
@@ -46,8 +47,10 @@ public enum TExceptionStatus implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static TExceptionStatus findByValue(int value) { 
+  public static TStatus findByValue(int value) { 
     switch (value) {
+      case 0:
+        return OK;
       case 1:
         return CANCELED;
       case 2:

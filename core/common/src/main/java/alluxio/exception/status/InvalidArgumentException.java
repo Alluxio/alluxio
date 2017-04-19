@@ -18,7 +18,7 @@ package alluxio.exception.status;
  */
 public class InvalidArgumentException extends AlluxioStatusException {
   private static final long serialVersionUID = -8484299420986871031L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.INVALID_ARGUMENT;
+  private static final Status STATUS = Status.INVALID_ARGUMENT;
 
   /**
    * @param message the exception message

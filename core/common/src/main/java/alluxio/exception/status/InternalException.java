@@ -17,7 +17,7 @@ package alluxio.exception.status;
  */
 public class InternalException extends AlluxioStatusException {
   private static final long serialVersionUID = -515848781797481231L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.INTERNAL;
+  private static final Status STATUS = Status.INTERNAL;
 
   /**
    * @param message the exception message

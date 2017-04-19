@@ -19,7 +19,7 @@ package alluxio.exception.status;
  */
 public class UnknownException extends AlluxioStatusException {
   private static final long serialVersionUID = 1310329692937489461L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.UNKNOWN;
+  private static final Status STATUS = Status.UNKNOWN;
 
   /**
    * @param message the exception message

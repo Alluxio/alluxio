@@ -21,7 +21,7 @@ package alluxio.exception.status;
  */
 public class DeadlineExceededException extends AlluxioStatusException {
   private static final long serialVersionUID = 4063822478910800317L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.DEADLINE_EXCEEDED;
+  private static final Status STATUS = Status.DEADLINE_EXCEEDED;
 
   /**
    * @param message the exception message

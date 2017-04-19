@@ -16,7 +16,7 @@ package alluxio.exception.status;
  */
 public class CanceledException extends AlluxioStatusException {
   private static final long serialVersionUID = 7530942095354551886L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.CANCELED;
+  private static final Status STATUS = Status.CANCELED;
 
   /**
    * @param message the exception message

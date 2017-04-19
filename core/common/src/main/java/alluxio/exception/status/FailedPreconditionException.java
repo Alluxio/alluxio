@@ -34,7 +34,7 @@ package alluxio.exception.status;
  */
 public class FailedPreconditionException extends AlluxioStatusException {
   private static final long serialVersionUID = 7049644985518518816L;
-  private static final ExceptionStatus STATUS = ExceptionStatus.FAILED_PRECONDITION;
+  private static final Status STATUS = Status.FAILED_PRECONDITION;
 
   /**
    * @param message the exception message
