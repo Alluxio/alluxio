@@ -11,11 +11,14 @@
 
 package alluxio.network.protocol;
 
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.dataserver.Protocol.Response;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Objects;
@@ -132,6 +135,17 @@ public final class RPCProtoMessage extends RPCMessage {
     return new RPCProtoMessage(serialized, prototype, new DataNettyBufferV2(in));
   }
 
+  /**
+   * Throws the exception represented by this {@link RPCProtoMessage} if there is one.
+   */
+  public void unwrapException() {
+    Response response = getMessage().<Protocol.Response>getMessage();
+    Status status = Status.fromProto(response.getStatus());
+    if (status != Status.OK) {
+      throw AlluxioStatusException.fromStatusAndMessage(status, response.getMessage());
+    }
+  }
+
   @Override
   public Type getType() {
     switch (mMessage.getType()) {
@@ -170,15 +184,14 @@ public final class RPCProtoMessage extends RPCMessage {
   /**
    * Creates a response for a given status.
    *
-   * @param code the status code
+   * @param status the status code
    * @param message the user provided message
    * @param data the data buffer
    * @return the message created
    */
-  public static RPCProtoMessage createResponse(Protocol.Status.Code code, String message,
+  public static RPCProtoMessage createResponse(Status status, String message,
       DataBuffer data) {
-    Response response = Protocol.Response.newBuilder()
-        .setStatus(Protocol.Status.newBuilder().setCode(code).setMessage(message)).build();
+    Response response = Protocol.Response.newBuilder().setStatus(Status.toProto(status)).setMessage(message)).build();
     return new RPCProtoMessage(new ProtoMessage(response), data);
   }
 

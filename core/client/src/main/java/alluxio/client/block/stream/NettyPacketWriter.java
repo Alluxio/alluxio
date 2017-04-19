@@ -15,11 +15,10 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.exception.status.InternalException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
@@ -316,14 +315,12 @@ public final class NettyPacketWriter implements PacketWriter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
       RPCProtoMessage response = (RPCProtoMessage) msg;
-      Protocol.Status status = response.getMessage().<Protocol.Response>getMessage().getStatus();
-
-      if (!Status.isOk(status) && !Status.isCancelled(status)) {
-        // TODO(andrew): use AlluxioStatusException for Netty APIs.
-        throw new InternalException(
-            String.format("Failed to write to %s with status %s for request %s.", mAddress,
-                status.toString(), mPartialRequest));
+      try {
+        response.unwrapException();
+      } catch (CanceledException e) {
+        // Handled below by signaling mDoneOrFailed.
       }
+
       try (LockResource lr = new LockResource(mLock)) {
         mDone = true;
         mDoneOrFailed.signal();
@@ -332,8 +329,7 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception caught while reading response from netty channel {}.",
-          cause);
+      LOG.error("Exception caught while reading response from netty channel {}.", cause);
       try (LockResource lr = new LockResource(mLock)) {
         mPacketWriteException = cause;
         mBufferNotFullOrFailed.signal();

@@ -14,6 +14,7 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.status.Status;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
@@ -210,20 +211,20 @@ public abstract class DataServerReadHandlerTest {
    * Checks the read response message given the expected error code.
    *
    * @param readResponse the read response
-   * @param codeExpected the expected error code
+   * @param statusExpected the expected error code
    * @return the data buffer extracted from the read response
    */
-  protected DataBuffer checkReadResponse(Object readResponse, Protocol.Status.Code codeExpected) {
+  protected DataBuffer checkReadResponse(Object readResponse, Status statusExpected) {
     Assert.assertTrue(readResponse instanceof RPCProtoMessage);
 
     ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
     Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
     DataBuffer buffer = ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
     if (buffer != null) {
-      Assert.assertEquals(Protocol.Status.Code.OK,
+      Assert.assertEquals(Status.OK,
           response.<Protocol.Response>getMessage().getStatus().getCode());
     } else {
-      Assert.assertEquals(codeExpected,
+      Assert.assertEquals(statusExpected,
           response.<Protocol.Response>getMessage().getStatus().getCode());
     }
     return buffer;
