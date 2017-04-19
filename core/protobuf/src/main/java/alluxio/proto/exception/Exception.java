@@ -18,13 +18,21 @@ public final class Exception {
   public enum Status
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
+     * <code>OK = 0;</code>
+     *
+     * <pre>
+     * OK is returned on success.
+     * </pre>
+     */
+    OK(0, 0),
+    /**
      * <code>CANCELED = 1;</code>
      *
      * <pre>
      * Canceled indicates the operation was cancelled (typically by the caller).
      * </pre>
      */
-    CANCELED(0, 1),
+    CANCELED(1, 1),
     /**
      * <code>UNKNOWN = 2;</code>
      *
@@ -36,7 +44,7 @@ public final class Exception {
      * may be converted to this error.
      * </pre>
      */
-    UNKNOWN(1, 2),
+    UNKNOWN(2, 2),
     /**
      * <code>INVALID_ARGUMENT = 3;</code>
      *
@@ -47,7 +55,7 @@ public final class Exception {
      * (e.g., a malformed file name).
      * </pre>
      */
-    INVALID_ARGUMENT(2, 3),
+    INVALID_ARGUMENT(3, 3),
     /**
      * <code>DEADLINE_EXCEEDED = 4;</code>
      *
@@ -59,7 +67,7 @@ public final class Exception {
      * long enough for the deadline to expire.
      * </pre>
      */
-    DEADLINE_EXCEEDED(3, 4),
+    DEADLINE_EXCEEDED(4, 4),
     /**
      * <code>NOT_FOUND = 5;</code>
      *
@@ -68,7 +76,7 @@ public final class Exception {
      * not found.
      * </pre>
      */
-    NOT_FOUND(4, 5),
+    NOT_FOUND(5, 5),
     /**
      * <code>ALREADY_EXISTS = 6;</code>
      *
@@ -77,7 +85,7 @@ public final class Exception {
      * already exists.
      * </pre>
      */
-    ALREADY_EXISTS(5, 6),
+    ALREADY_EXISTS(6, 6),
     /**
      * <code>PERMISSION_DENIED = 7;</code>
      *
@@ -90,7 +98,7 @@ public final class Exception {
      * instead for those errors).
      * </pre>
      */
-    PERMISSION_DENIED(6, 7),
+    PERMISSION_DENIED(7, 7),
     /**
      * <code>UNAUTHENTICATED = 16;</code>
      *
@@ -99,7 +107,7 @@ public final class Exception {
      * authentication credentials for the operation.
      * </pre>
      */
-    UNAUTHENTICATED(7, 16),
+    UNAUTHENTICATED(8, 16),
     /**
      * <code>RESOURCE_EXHAUSTED = 8;</code>
      *
@@ -108,7 +116,7 @@ public final class Exception {
      * a per-user quota, or perhaps the entire file system is out of space.
      * </pre>
      */
-    RESOURCE_EXHAUSTED(8, 8),
+    RESOURCE_EXHAUSTED(9, 8),
     /**
      * <code>FAILED_PRECONDITION = 9;</code>
      *
@@ -134,7 +142,7 @@ public final class Exception {
      *      read-modify-write on the same resource.
      * </pre>
      */
-    FAILED_PRECONDITION(9, 9),
+    FAILED_PRECONDITION(10, 9),
     /**
      * <code>ABORTED = 10;</code>
      *
@@ -147,7 +155,7 @@ public final class Exception {
      * Aborted, and Unavailable.
      * </pre>
      */
-    ABORTED(10, 10),
+    ABORTED(11, 10),
     /**
      * <code>OUT_OF_RANGE = 11;</code>
      *
@@ -169,7 +177,7 @@ public final class Exception {
      * they are done.
      * </pre>
      */
-    OUT_OF_RANGE(11, 11),
+    OUT_OF_RANGE(12, 11),
     /**
      * <code>UNIMPLEMENTED = 12;</code>
      *
@@ -178,7 +186,7 @@ public final class Exception {
      * supported/enabled in this service.
      * </pre>
      */
-    UNIMPLEMENTED(12, 12),
+    UNIMPLEMENTED(13, 12),
     /**
      * <code>INTERNAL = 13;</code>
      *
@@ -188,7 +196,7 @@ public final class Exception {
      * something is very broken.
      * </pre>
      */
-    INTERNAL(13, 13),
+    INTERNAL(14, 13),
     /**
      * <code>UNAVAILABLE = 14;</code>
      *
@@ -201,7 +209,7 @@ public final class Exception {
      * Aborted, and Unavailable.
      * </pre>
      */
-    UNAVAILABLE(14, 14),
+    UNAVAILABLE(15, 14),
     /**
      * <code>DATA_LOSS = 15;</code>
      *
@@ -209,9 +217,17 @@ public final class Exception {
      * DataLoss indicates unrecoverable data loss or corruption.
      * </pre>
      */
-    DATA_LOSS(15, 15),
+    DATA_LOSS(16, 15),
     ;
 
+    /**
+     * <code>OK = 0;</code>
+     *
+     * <pre>
+     * OK is returned on success.
+     * </pre>
+     */
+    public static final int OK_VALUE = 0;
     /**
      * <code>CANCELED = 1;</code>
      *
@@ -411,6 +427,7 @@ public final class Exception {
 
     public static Status valueOf(int value) {
       switch (value) {
+        case 0: return OK;
         case 1: return CANCELED;
         case 2: return UNKNOWN;
         case 3: return INVALID_ARGUMENT;
@@ -673,7 +690,7 @@ public final class Exception {
     }
 
     private void initFields() {
-      status_ = alluxio.proto.exception.Exception.Status.CANCELED;
+      status_ = alluxio.proto.exception.Exception.Status.OK;
       message_ = "";
     }
     private byte memoizedIsInitialized = -1;
@@ -827,7 +844,7 @@ public final class Exception {
 
       public Builder clear() {
         super.clear();
-        status_ = alluxio.proto.exception.Exception.Status.CANCELED;
+        status_ = alluxio.proto.exception.Exception.Status.OK;
         bitField0_ = (bitField0_ & ~0x00000001);
         message_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -919,7 +936,7 @@ public final class Exception {
       private int bitField0_;
 
       // optional .alluxio.proto.exception.Status status = 1;
-      private alluxio.proto.exception.Exception.Status status_ = alluxio.proto.exception.Exception.Status.CANCELED;
+      private alluxio.proto.exception.Exception.Status status_ = alluxio.proto.exception.Exception.Status.OK;
       /**
        * <code>optional .alluxio.proto.exception.Status status = 1;</code>
        */
@@ -949,7 +966,7 @@ public final class Exception {
        */
       public Builder clearStatus() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        status_ = alluxio.proto.exception.Exception.Status.CANCELED;
+        status_ = alluxio.proto.exception.Exception.Status.OK;
         onChanged();
         return this;
       }
@@ -1056,14 +1073,14 @@ public final class Exception {
       "\n\017exception.proto\022\027alluxio.proto.excepti" +
       "on\"N\n\nPException\022/\n\006status\030\001 \001(\0162\037.allux" +
       "io.proto.exception.Status\022\017\n\007message\030\002 \001" +
-      "(\t*\260\002\n\006Status\022\014\n\010CANCELED\020\001\022\013\n\007UNKNOWN\020\002" +
-      "\022\024\n\020INVALID_ARGUMENT\020\003\022\025\n\021DEADLINE_EXCEE" +
-      "DED\020\004\022\r\n\tNOT_FOUND\020\005\022\022\n\016ALREADY_EXISTS\020\006" +
-      "\022\025\n\021PERMISSION_DENIED\020\007\022\023\n\017UNAUTHENTICAT" +
-      "ED\020\020\022\026\n\022RESOURCE_EXHAUSTED\020\010\022\027\n\023FAILED_P" +
-      "RECONDITION\020\t\022\013\n\007ABORTED\020\n\022\020\n\014OUT_OF_RAN" +
-      "GE\020\013\022\021\n\rUNIMPLEMENTED\020\014\022\014\n\010INTERNAL\020\r\022\017\n",
-      "\013UNAVAILABLE\020\016\022\r\n\tDATA_LOSS\020\017"
+      "(\t*\270\002\n\006Status\022\006\n\002OK\020\000\022\014\n\010CANCELED\020\001\022\013\n\007U" +
+      "NKNOWN\020\002\022\024\n\020INVALID_ARGUMENT\020\003\022\025\n\021DEADLI" +
+      "NE_EXCEEDED\020\004\022\r\n\tNOT_FOUND\020\005\022\022\n\016ALREADY_" +
+      "EXISTS\020\006\022\025\n\021PERMISSION_DENIED\020\007\022\023\n\017UNAUT" +
+      "HENTICATED\020\020\022\026\n\022RESOURCE_EXHAUSTED\020\010\022\027\n\023" +
+      "FAILED_PRECONDITION\020\t\022\013\n\007ABORTED\020\n\022\020\n\014OU" +
+      "T_OF_RANGE\020\013\022\021\n\rUNIMPLEMENTED\020\014\022\014\n\010INTER",
+      "NAL\020\r\022\017\n\013UNAVAILABLE\020\016\022\r\n\tDATA_LOSS\020\017"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {

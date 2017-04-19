@@ -12,6 +12,7 @@ import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
 public enum TExceptionStatus implements org.apache.thrift.TEnum {
+  OK(0),
   CANCELED(1),
   UNKNOWN(2),
   INVALID_ARGUMENT(3),
@@ -48,6 +49,8 @@ public enum TExceptionStatus implements org.apache.thrift.TEnum {
    */
   public static TExceptionStatus findByValue(int value) { 
     switch (value) {
+      case 0:
+        return OK;
       case 1:
         return CANCELED;
       case 2:

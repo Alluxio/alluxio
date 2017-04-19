@@ -19,6 +19,9 @@ import alluxio.thrift.TExceptionStatus;
  * https://github.com/grpc/grpc-go/blob/v1.2.0/codes/codes.go.
  */
 public enum ExceptionStatus {
+  // OK is returned on success.
+  OK,
+
   // Canceled indicates the operation was cancelled (typically by the caller).
   CANCELED,
 
@@ -140,6 +143,8 @@ public enum ExceptionStatus {
    */
   public static TExceptionStatus toThrift(ExceptionStatus status) {
     switch (status) {
+      case OK:
+        return TExceptionStatus.OK;
       case ABORTED:
         return TExceptionStatus.ABORTED;
       case ALREADY_EXISTS:
@@ -185,6 +190,8 @@ public enum ExceptionStatus {
    */
   public static Status toProto(ExceptionStatus status) {
     switch (status) {
+      case OK:
+        return Status.OK;
       case ABORTED:
         return Status.ABORTED;
       case ALREADY_EXISTS:

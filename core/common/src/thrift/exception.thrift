@@ -1,6 +1,9 @@
 namespace java alluxio.thrift
 
 enum TExceptionStatus {
+  // OK is returned on success.
+  OK = 0,
+
   // Canceled indicates the operation was cancelled (typically by the caller).
   CANCELED = 1,
 
