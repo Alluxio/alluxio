@@ -31,6 +31,7 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.proto.exception.Exception.PException;
 import alluxio.thrift.AlluxioTException;
 
 import java.io.FileNotFoundException;
@@ -99,6 +100,15 @@ public class AlluxioStatusException extends RuntimeException {
    */
   public AlluxioTException toThrift() {
     return new AlluxioTException(getMessage(), ExceptionStatus.toThrift(mStatus));
+  }
+
+
+  /**
+   * @return The protocol buffer representation of this exception
+   */
+  public PException toProto() {
+    return PException.newBuilder().setMessage(getMessage())
+        .setStatus(ExceptionStatus.toProto(mStatus)).build();
   }
 
   /**
