@@ -201,7 +201,7 @@ public class AlluxioStatusException extends RuntimeException {
     } catch (RuntimeException e) {
       return fromRuntimeException(e);
     } catch (Exception e) {
-      throw new UnknownException(e);
+      return new UnknownException(e);
     }
   }
 
@@ -248,15 +248,15 @@ public class AlluxioStatusException extends RuntimeException {
     try {
       throw ioe;
     } catch (FileNotFoundException e) {
-      throw new NotFoundException(e);
+      return new NotFoundException(e);
     } catch (MalformedURLException e) {
-      throw new InvalidArgumentException(e);
+      return new InvalidArgumentException(e);
     } catch (UserPrincipalNotFoundException e) {
-      throw new UnauthenticatedException(e);
+      return new UnauthenticatedException(e);
     } catch (ClosedChannelException e) {
-      throw new FailedPreconditionException(e);
+      return new FailedPreconditionException(e);
     } catch (IOException e) {
-      throw new UnavailableException(e);
+      return new UnavailableException(e);
     }
   }
 
