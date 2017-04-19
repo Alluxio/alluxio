@@ -11,8 +11,7 @@
 
 package alluxio.exception.status;
 
-import alluxio.proto.exception.Exception.Status;
-import alluxio.thrift.TExceptionStatus;
+import alluxio.thrift.TStatus;
 
 /**
  * A class representing gRPC status codes. The definitions are from
@@ -141,44 +140,44 @@ public enum Status {
    * @param status the status to convert
    * @return the Thrift type status
    */
-  public static TExceptionStatus toThrift(Status status) {
+  public static TStatus toThrift(Status status) {
     switch (status) {
       case OK:
-        return TExceptionStatus.OK;
+        return TStatus.OK;
       case ABORTED:
-        return TExceptionStatus.ABORTED;
+        return TStatus.ABORTED;
       case ALREADY_EXISTS:
-        return TExceptionStatus.ALREADY_EXISTS;
+        return TStatus.ALREADY_EXISTS;
       case CANCELED:
-        return TExceptionStatus.CANCELED;
+        return TStatus.CANCELED;
       case DATA_LOSS:
-        return TExceptionStatus.DATA_LOSS;
+        return TStatus.DATA_LOSS;
       case DEADLINE_EXCEEDED:
-        return TExceptionStatus.DEADLINE_EXCEEDED;
+        return TStatus.DEADLINE_EXCEEDED;
       case FAILED_PRECONDITION:
-        return TExceptionStatus.FAILED_PRECONDITION;
+        return TStatus.FAILED_PRECONDITION;
       case INTERNAL:
-        return TExceptionStatus.INTERNAL;
+        return TStatus.INTERNAL;
       case INVALID_ARGUMENT:
-        return TExceptionStatus.INVALID_ARGUMENT;
+        return TStatus.INVALID_ARGUMENT;
       case NOT_FOUND:
-        return TExceptionStatus.NOT_FOUND;
+        return TStatus.NOT_FOUND;
       case OUT_OF_RANGE:
-        return TExceptionStatus.OUT_OF_RANGE;
+        return TStatus.OUT_OF_RANGE;
       case PERMISSION_DENIED:
-        return TExceptionStatus.PERMISSION_DENIED;
+        return TStatus.PERMISSION_DENIED;
       case RESOURCE_EXHAUSTED:
-        return TExceptionStatus.RESOURCE_EXHAUSTED;
+        return TStatus.RESOURCE_EXHAUSTED;
       case UNAUTHENTICATED:
-        return TExceptionStatus.UNAUTHENTICATED;
+        return TStatus.UNAUTHENTICATED;
       case UNAVAILABLE:
-        return TExceptionStatus.UNAVAILABLE;
+        return TStatus.UNAVAILABLE;
       case UNIMPLEMENTED:
-        return TExceptionStatus.UNIMPLEMENTED;
+        return TStatus.UNIMPLEMENTED;
       case UNKNOWN:
-        return TExceptionStatus.UNKNOWN;
+        return TStatus.UNKNOWN;
       default:
-        return TExceptionStatus.UNKNOWN;
+        return TStatus.UNKNOWN;
     }
   }
 
