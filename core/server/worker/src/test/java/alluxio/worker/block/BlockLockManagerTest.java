@@ -19,6 +19,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 
+import com.google.common.base.Throwables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
