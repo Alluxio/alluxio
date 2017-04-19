@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * UnderFileSystemFileOutStream.
  */
 @NotThreadSafe
-final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
+final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
   private static final long UNUSED_SESSION_ID = -1;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
@@ -70,11 +70,11 @@ final class DataServerUFSFileWriteHandler extends DataServerWriteHandler {
   }
 
   /**
-   * Creates an instance of {@link DataServerUFSFileWriteHandler}.
+   * Creates an instance of {@link DataServerUfsFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
    */
-  DataServerUFSFileWriteHandler(ExecutorService executorService) {
+  DataServerUfsFileWriteHandler(ExecutorService executorService) {
     super(executorService);
   }
 

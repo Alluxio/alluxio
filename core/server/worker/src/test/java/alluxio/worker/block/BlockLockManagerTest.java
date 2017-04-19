@@ -292,7 +292,7 @@ public final class BlockLockManagerTest {
             try {
               barrier.await();
             } catch (Exception e) {
-              throw Throwables.propagate(e);
+              throw new RuntimeException(e);
             }
             // Lock and unlock the block lockUnlocksPerThread times.
             for (int j = 0; j < lockUnlocksPerThread; j++) {

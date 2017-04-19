@@ -28,7 +28,6 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.file.DefaultFileSystemWorker;
-import alluxio.worker.file.FileSystemWorker;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -63,7 +62,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private BlockWorker mBlockWorker;
 
   /** The worker serving file system operations. */
-  private FileSystemWorker mFileSystemWorker;
+  private DefaultFileSystemWorker mFileSystemWorker;
 
   /** Server for data requests and responses. */
   private DataServer mDataServer;
@@ -178,11 +177,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   }
 
   @Override
-  public FileSystemWorker getFileSystemWorker() {
-    return mFileSystemWorker;
-  }
-
-  @Override
   public InetSocketAddress getRpcAddress() {
     return mRpcAddress;
   }
@@ -272,6 +266,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
     registerServices(processor, mBlockWorker.getServices());
     registerServices(processor, mFileSystemWorker.getServices());
+
     // register additional workers for RPC service
     for (Worker worker: mAdditionalWorkers) {
       registerServices(processor, worker.getServices());
