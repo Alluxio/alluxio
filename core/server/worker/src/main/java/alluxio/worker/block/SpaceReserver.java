@@ -51,20 +51,11 @@ public class SpaceReserver implements HeartbeatExecutor  {
   private final Map<String, Long> mReservedBytesOnTiers = new HashMap<>();
 
   /**
-   * @deprecated It will be removed in 2.0.0.
-   * This switch representing use new version space reserver.
-   */
-  @Deprecated
-  private final boolean mNewVersion;
-
-  /**
    * Creates a new instance of {@link SpaceReserver}.
    *
    * @param blockWorker the block worker handle
    */
   public SpaceReserver(BlockWorker blockWorker) {
-    mNewVersion =
-        Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_NEWVERSION);
     mBlockWorker = blockWorker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
     Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
@@ -73,12 +64,12 @@ public class SpaceReserver implements HeartbeatExecutor  {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long capOnTier = capOnTiers.get(tierAlias);
       long reservedBytes;
-      if (!mNewVersion) {
+      try {
         PropertyKey tierReservedSpaceProp =
             PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(ordinal);
         reservedBytes =
             (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
-      } else {
+      } catch (RuntimeException e) {
         // HighWatemark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
             PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(ordinal);
