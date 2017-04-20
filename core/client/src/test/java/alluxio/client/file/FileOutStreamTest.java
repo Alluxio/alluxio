@@ -385,7 +385,7 @@ public class FileOutStreamTest {
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
       mTestStream.flush();
-      Assert.assertEquals(BLOCK_LENGTH, mTestStream.getTotalBytesWritten());
+      Assert.assertEquals(BLOCK_LENGTH, mTestStream.getBytesWritten());
     }
   }
 
