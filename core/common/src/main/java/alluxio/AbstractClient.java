@@ -14,8 +14,8 @@ package alluxio;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -299,7 +299,8 @@ public abstract class AbstractClient implements Client {
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
+        AlluxioStatusException se = AlluxioStatusException
+            .fromStatusAndMessage(Status.fromThrift(e.getStatus()), e.getMessage());
         if (se.getStatus() == Status.UNAVAILABLE) {
           ex = se;
         } else {

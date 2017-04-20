@@ -146,6 +146,16 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
+   * Converts an Alluxio exception from Thrift representation to native representation.
+   *
+   * @param e the Thrift exception
+   * @return the native Alluxio exception
+   */
+  public static AlluxioStatusException fromThrift(AlluxioTException e) {
+    return fromStatusAndMessage(Status.fromThrift(e.getStatus()), e.getMessage());
+  }
+
+  /**
    * Converts an Alluxio exception from status and message representation to native representation.
    * The status must not be null or {@link Status#OK}.
    *
@@ -193,12 +203,12 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
-   * Converts exceptions to Alluxio status exceptions.
+   * Converts throwables to Alluxio status exceptions.
    *
-   * @param ex an exception
+   * @param ex a throwable
    * @return the converted {@link AlluxioStatusException}
    */
-  public static AlluxioStatusException from(Exception ex) {
+  public static AlluxioStatusException from(Throwable ex) {
     try {
       throw ex;
     } catch (IOException e) {
@@ -209,6 +219,8 @@ public class AlluxioStatusException extends RuntimeException {
       return fromRuntimeException(e);
     } catch (Exception e) {
       return new UnknownException(e);
+    } catch (Throwable t) {
+      return new InternalException(t);
     }
   }
 
