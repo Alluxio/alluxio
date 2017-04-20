@@ -39,6 +39,7 @@ import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +96,8 @@ public class BaseFileSystem implements FileSystem {
       throw new FileAlreadyExistsException(e.getMessage());
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -121,6 +124,8 @@ public class BaseFileSystem implements FileSystem {
       throw new FileAlreadyExistsException(e.getMessage());
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -149,6 +154,8 @@ public class BaseFileSystem implements FileSystem {
       throw new DirectoryNotEmptyException(e.getMessage());
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -176,6 +183,8 @@ public class BaseFileSystem implements FileSystem {
       // The server will throw this when a prefix of the path is a file.
       // TODO(andrew): Change the server so that a prefix being a file means the path does not exist
       return false;
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -198,6 +207,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Freed {}, options: {}", path.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -219,6 +230,8 @@ public class BaseFileSystem implements FileSystem {
       return masterClient.getStatus(path);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -241,6 +254,8 @@ public class BaseFileSystem implements FileSystem {
       return masterClient.listStatus(path, options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -275,6 +290,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Loaded metadata {}, options: {}", path.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -296,6 +313,8 @@ public class BaseFileSystem implements FileSystem {
       // TODO(calvin): Make this fail on the master side
       masterClient.mount(alluxioPath, ufsPath, options);
       LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -337,6 +356,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -359,6 +380,8 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -378,6 +401,8 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.unmount(path);
       LOG.debug("Unmounted {}, options: {}", path.getPath(), options);
+    } catch (UnavailableException e) {
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
