@@ -24,7 +24,7 @@ public class HFSUtilsTest {
    * Tests the {@link HFSUtils#getNumSector(String, String)} method.
    */
   @Test
-  public void getSectorTest1() {
+  public void getSectorTest0() {
     String testRequestSize = "0";
     String testSectorSize = "512";
     BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
@@ -32,7 +32,7 @@ public class HFSUtilsTest {
   }
 
   @Test
-  public void getSectorTest2() {
+  public void getSectorTest20() {
     String testRequestSize = "20";
     String testSectorSize = "512";
     BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
@@ -40,7 +40,7 @@ public class HFSUtilsTest {
   }
 
   @Test
-  public void getSectorTest3() {
+  public void getSectorTest512() {
     String testRequestSize = "512";
     String testSectorSize = "512";
     BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
@@ -48,7 +48,7 @@ public class HFSUtilsTest {
   }
 
   @Test
-  public void getSectorTest4() {
+  public void getSectorTestMB() {
     String testRequestSize = "1048576"; // 1MB
     String testSectorSize = "512";
     BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
@@ -56,7 +56,7 @@ public class HFSUtilsTest {
   }
 
   @Test
-  public void getSectorTest5() {
+  public void getSectorTestGB() {
     String testRequestSize = "1073741824"; // 1GB
     String testSectorSize = "512";
     BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
@@ -64,7 +64,7 @@ public class HFSUtilsTest {
   }
 
   @Test
-  public void getSectorTest6() {
+  public void getSectorTest100GB() {
     String testRequestSize = "107374182400"; // 100GB
     String testSectorSize = "512";
     BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
@@ -72,7 +72,7 @@ public class HFSUtilsTest {
   }
 
   @Test
-  public void getSectorTest7() {
+  public void getSectorTestTB() {
     String testRequestSize = "1099511627776"; // 1TB
     String testSectorSize = "512";
     BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
