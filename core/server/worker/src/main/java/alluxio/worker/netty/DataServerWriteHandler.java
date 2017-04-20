@@ -115,7 +115,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   private Error mError;
 
   private class Error {
-    final Throwable mCause;
+    final AlluxioStatusException mCause;
     final boolean mNotifyClient;
 
     Error(AlluxioStatusException cause, boolean notifyClient) {
@@ -357,8 +357,8 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
             complete();
             replySuccess();
           }
-        } catch (IOException e) {
-          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
+        } catch (Exception e) {
+          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
         }
       }
     }
