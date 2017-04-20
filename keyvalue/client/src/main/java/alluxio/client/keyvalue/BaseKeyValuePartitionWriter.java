@@ -122,7 +122,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   public long byteCount() {
     Preconditions.checkState(!mClosed);
     // last pointer to index
-    return mFileOutStream.getBytesWritten() + mIndex.byteCount() + Integer.SIZE / Byte.SIZE;
+    return mFileOutStream.getTotalBytesWritten() + mIndex.byteCount() + Integer.SIZE / Byte.SIZE;
   }
 
   private void build() throws IOException {

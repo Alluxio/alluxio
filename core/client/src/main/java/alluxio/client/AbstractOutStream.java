@@ -28,12 +28,20 @@ public abstract class AbstractOutStream extends OutputStream implements Cancelab
   // requires checking the codebase for this assumption (using int to denote an offset).
   // See ALLUXIO-1536.
   /** The number of bytes written. */
-  protected int mBytesWritten = 0;
+  protected long mBytesWritten = 0;
 
   /**
    * @return the number of bytes written to this stream
+   * @deprecated use {@link #getTotalBytesWritten()} to avoid integer overflow
    */
+  @Deprecated
   public int getBytesWritten() {
+    // Cast to int to preserve backwards compatibility. In 2.0 we should change this to long so that
+    // it can be correct.
+    return (int) mBytesWritten;
+  }
+
+  public long getTotalBytesWritten() {
     return mBytesWritten;
   }
 
