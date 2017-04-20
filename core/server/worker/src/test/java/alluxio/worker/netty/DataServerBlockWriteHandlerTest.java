@@ -16,6 +16,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockWorker;
@@ -71,7 +72,7 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
+    checkWriteResponse(writeResponse, PStatus.FAILED_PRECONDITION);
   }
 
   @Override

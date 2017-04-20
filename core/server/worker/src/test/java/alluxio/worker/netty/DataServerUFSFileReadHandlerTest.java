@@ -13,8 +13,9 @@ package alluxio.worker.netty;
 
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.file.FileSystemWorker;
 
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -58,7 +59,7 @@ public final class DataServerUFSFileReadHandlerTest extends DataServerReadHandle
     mInputStream.close();
     mChannelNoException.writeInbound(buildReadRequest(0, fileSize));
     Object response = waitForOneResponse(mChannelNoException);
-    checkReadResponse(response, Protocol.Status.Code.INTERNAL);
+    checkReadResponse(response, PStatus.UNAVAILABLE);
   }
 
   @Override
