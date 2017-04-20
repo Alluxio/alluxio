@@ -34,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -133,7 +132,7 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mFileSystem.getStatus(file).isPinned());
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
-    mThrown.expect(IOException.class);
+    mThrown.expect(Exception.class);
     FileSystemTestUtils.createByteFile(mFileSystem, "/test2", WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
   }
