@@ -39,7 +39,8 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("UfsInfo");
 
   private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I64, (short)1);
-  private static final org.apache.thrift.protocol.TField PROPERTIES_FIELD_DESC = new org.apache.thrift.protocol.TField("properties", org.apache.thrift.protocol.TType.MAP, (short)2);
+  private static final org.apache.thrift.protocol.TField URI_FIELD_DESC = new org.apache.thrift.protocol.TField("uri", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField PROPERTIES_FIELD_DESC = new org.apache.thrift.protocol.TField("properties", org.apache.thrift.protocol.TType.MAP, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,12 +49,14 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   }
 
   private long id; // optional
+  private String uri; // optional
   private Map<String,String> properties; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     ID((short)1, "id"),
-    PROPERTIES((short)2, "properties");
+    URI((short)2, "uri"),
+    PROPERTIES((short)3, "properties");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -70,7 +73,9 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       switch(fieldId) {
         case 1: // ID
           return ID;
-        case 2: // PROPERTIES
+        case 2: // URI
+          return URI;
+        case 3: // PROPERTIES
           return PROPERTIES;
         default:
           return null;
@@ -114,12 +119,14 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   // isset id assignments
   private static final int __ID_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.ID,_Fields.PROPERTIES};
+  private static final _Fields optionals[] = {_Fields.ID,_Fields.URI,_Fields.PROPERTIES};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.URI, new org.apache.thrift.meta_data.FieldMetaData("uri", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PROPERTIES, new org.apache.thrift.meta_data.FieldMetaData("properties", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
@@ -137,6 +144,9 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   public UfsInfo(UfsInfo other) {
     __isset_bitfield = other.__isset_bitfield;
     this.id = other.id;
+    if (other.isSetUri()) {
+      this.uri = other.uri;
+    }
     if (other.isSetProperties()) {
       Map<String,String> __this__properties = new HashMap<String,String>(other.properties);
       this.properties = __this__properties;
@@ -151,6 +161,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   public void clear() {
     setIdIsSet(false);
     this.id = 0;
+    this.uri = null;
     this.properties = null;
   }
 
@@ -175,6 +186,30 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
 
   public void setIdIsSet(boolean value) {
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
+  }
+
+  public String getUri() {
+    return this.uri;
+  }
+
+  public UfsInfo setUri(String uri) {
+    this.uri = uri;
+    return this;
+  }
+
+  public void unsetUri() {
+    this.uri = null;
+  }
+
+  /** Returns true if field uri is set (has been assigned a value) and false otherwise */
+  public boolean isSetUri() {
+    return this.uri != null;
+  }
+
+  public void setUriIsSet(boolean value) {
+    if (!value) {
+      this.uri = null;
+    }
   }
 
   public int getPropertiesSize() {
@@ -222,6 +257,14 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       }
       break;
 
+    case URI:
+      if (value == null) {
+        unsetUri();
+      } else {
+        setUri((String)value);
+      }
+      break;
+
     case PROPERTIES:
       if (value == null) {
         unsetProperties();
@@ -237,6 +280,9 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     switch (field) {
     case ID:
       return getId();
+
+    case URI:
+      return getUri();
 
     case PROPERTIES:
       return getProperties();
@@ -254,6 +300,8 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     switch (field) {
     case ID:
       return isSetId();
+    case URI:
+      return isSetUri();
     case PROPERTIES:
       return isSetProperties();
     }
@@ -282,6 +330,15 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
         return false;
     }
 
+    boolean this_present_uri = true && this.isSetUri();
+    boolean that_present_uri = true && that.isSetUri();
+    if (this_present_uri || that_present_uri) {
+      if (!(this_present_uri && that_present_uri))
+        return false;
+      if (!this.uri.equals(that.uri))
+        return false;
+    }
+
     boolean this_present_properties = true && this.isSetProperties();
     boolean that_present_properties = true && that.isSetProperties();
     if (this_present_properties || that_present_properties) {
@@ -302,6 +359,11 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     list.add(present_id);
     if (present_id)
       list.add(id);
+
+    boolean present_uri = true && (isSetUri());
+    list.add(present_uri);
+    if (present_uri)
+      list.add(uri);
 
     boolean present_properties = true && (isSetProperties());
     list.add(present_properties);
@@ -325,6 +387,16 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     }
     if (isSetId()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, other.id);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetUri()).compareTo(other.isSetUri());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetUri()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.uri, other.uri);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -362,6 +434,16 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     if (isSetId()) {
       sb.append("id:");
       sb.append(this.id);
+      first = false;
+    }
+    if (isSetUri()) {
+      if (!first) sb.append(", ");
+      sb.append("uri:");
+      if (this.uri == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.uri);
+      }
       first = false;
     }
     if (isSetProperties()) {
@@ -427,7 +509,15 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // PROPERTIES
+          case 2: // URI
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.uri = iprot.readString();
+              struct.setUriIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // PROPERTIES
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map58 = iprot.readMapBegin();
@@ -467,6 +557,13 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
         oprot.writeI64(struct.id);
         oprot.writeFieldEnd();
       }
+      if (struct.uri != null) {
+        if (struct.isSetUri()) {
+          oprot.writeFieldBegin(URI_FIELD_DESC);
+          oprot.writeString(struct.uri);
+          oprot.writeFieldEnd();
+        }
+      }
       if (struct.properties != null) {
         if (struct.isSetProperties()) {
           oprot.writeFieldBegin(PROPERTIES_FIELD_DESC);
@@ -503,12 +600,18 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       if (struct.isSetId()) {
         optionals.set(0);
       }
-      if (struct.isSetProperties()) {
+      if (struct.isSetUri()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetProperties()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetId()) {
         oprot.writeI64(struct.id);
+      }
+      if (struct.isSetUri()) {
+        oprot.writeString(struct.uri);
       }
       if (struct.isSetProperties()) {
         {
@@ -525,12 +628,16 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, UfsInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.id = iprot.readI64();
         struct.setIdIsSet(true);
       }
       if (incoming.get(1)) {
+        struct.uri = iprot.readString();
+        struct.setUriIsSet(true);
+      }
+      if (incoming.get(2)) {
         {
           org.apache.thrift.protocol.TMap _map64 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
           struct.properties = new HashMap<String,String>(2*_map64.size);

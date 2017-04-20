@@ -27,10 +27,8 @@ public final class OpenUfsBlockOptions {
   private final long mBlockSize;
   /** The maximum concurrent UFS reader on the UFS block allowed when opening the block. */
   private final int mMaxUfsReadConcurrency;
-  /** The mount point in Alluxio for the file that this block belonging to. */
-  private final String mAlluxioMountPoint;
-  /** The mount table version. */
-  private final long mMountTableVersion;
+  /** The id of the ufs which the mount of this file is mapped to. */
+  private final long mUfsId;
 
   /**
    * Creates an instance of {@link OpenUfsBlockOptions}.
@@ -42,8 +40,7 @@ public final class OpenUfsBlockOptions {
     mOffset = options.getOffset();
     mBlockSize = options.getBlockSize();
     mMaxUfsReadConcurrency = options.getMaxUfsReadConcurrency();
-    mAlluxioMountPoint = options.getAlluxioMountPoint();
-    mMountTableVersion = options.getMountTableVersion();
+    mUfsId = options.getUfsId();
   }
 
   /**
@@ -75,17 +72,10 @@ public final class OpenUfsBlockOptions {
   }
 
   /**
-   * @return the mount point in Alluxio for the file this block belonging to
+   * @return the id of the ufs which the mount of this file is mapped to
    */
-  public String getAlluxioMountPoint() {
-    return mAlluxioMountPoint;
-  }
-
-  /**
-   * @return the mount table version
-   */
-  public long getMountTableVersion() {
-    return mMountTableVersion;
+  public long getUfsId() {
+    return mUfsId;
   }
 
   @Override
@@ -97,28 +87,26 @@ public final class OpenUfsBlockOptions {
       return false;
     }
     OpenUfsBlockOptions that = (OpenUfsBlockOptions) o;
-    return Objects.equal(mAlluxioMountPoint, that.mAlluxioMountPoint)
-        && Objects.equal(mBlockSize, that.mBlockSize)
+    return Objects.equal(mBlockSize, that.mBlockSize)
         && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
-        && Objects.equal(mMountTableVersion, that.mMountTableVersion)
         && Objects.equal(mOffset, that.mOffset)
+        && Objects.equal(mUfsId, that.mUfsId)
         && Objects.equal(mUnderFileSystemPath, that.mUnderFileSystemPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAlluxioMountPoint, mBlockSize, mMaxUfsReadConcurrency,
-        mMountTableVersion, mOffset, mUnderFileSystemPath);
+    return Objects
+        .hashCode(mBlockSize, mMaxUfsReadConcurrency, mUfsId, mOffset, mUnderFileSystemPath);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("alluxioMountPoint", mAlluxioMountPoint)
         .add("blockSize", mBlockSize)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
-        .add("mountTableVersion", mMountTableVersion)
         .add("offset", mOffset)
+        .add("ufsId", mUfsId)
         .add("underFileSystemPath", mUnderFileSystemPath)
         .toString();
   }

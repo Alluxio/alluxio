@@ -17,7 +17,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.worker.file.FileDataManager;
+import alluxio.worker.UfsManager;
 
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
   private static final long UNUSED_SESSION_ID = -1;
-  private final FileDataManager mFileDataManager;
+  private final UfsManager mUfsManager;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
     private final String mUfsPath;
@@ -52,8 +52,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId(), UNUSED_SESSION_ID);
       mUfsPath = request.getUfsPath();
-      mUnderFileSystem = UnderFileSystem.Factory.getMountPoint(request.getAlluxioMountPoint(),
-          mFileDataManager.getUfsProperties(request.getAlluxioMountPoint()));
+      mUnderFileSystem = mUfsManager.getUfsById(request.getUfsId());
       mOutputStream =
           mUnderFileSystem.create(mUfsPath, CreateOptions.defaults().setOwner(request.getOwner())
               .setGroup(request.getGroup()).setMode(new Mode((short) request.getMode())));
@@ -76,11 +75,11 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
    * Creates an instance of {@link DataServerUfsFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
-   * @param fileDataManager the file data manager
+   * @param ufsManager the file data manager
    */
-  DataServerUfsFileWriteHandler(ExecutorService executorService, FileDataManager fileDataManager) {
+  DataServerUfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
     super(executorService);
-    mFileDataManager = fileDataManager;
+    mUfsManager = ufsManager;
   }
 
   @Override

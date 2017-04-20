@@ -34,6 +34,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
+import alluxio.worker.UfsManager;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -111,13 +112,14 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * Constructs a default block worker.
    *
    * @param workerId a reference for the id of this worker
-   *
+   * @param ufsManager ufs manager
    * @throws IOException if an IO exception occurs
    */
-  public DefaultBlockWorker(AtomicReference<Long> workerId) throws IOException {
+  public DefaultBlockWorker(AtomicReference<Long> workerId, UfsManager ufsManager)
+      throws IOException {
     this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new Sessions(), new TieredBlockStore(), workerId);
+        new Sessions(), new TieredBlockStore(), workerId, ufsManager);
   }
 
   /**
@@ -128,11 +130,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @param workerId a reference for the id of this worker
+   * @param ufsManager ufs manager
    * @throws IOException if an IO exception occurs
    */
   public DefaultBlockWorker(BlockMasterClient blockMasterClient,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      AtomicReference<Long> workerId) throws IOException {
+      AtomicReference<Long> workerId,  UfsManager ufsManager) throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;
@@ -146,7 +149,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
 
-    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore);
+    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
     Metrics.registerGauges(this);
   }
 

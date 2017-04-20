@@ -30,16 +30,19 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MountInfo {
   private final AlluxioURI mUfsUri;
   private final MountOptions mOptions;
+  private final long mUfsId;
 
   /**
    * Creates a new instance of {@code MountInfo}.
    *
    * @param ufsUri a UFS path URI
    * @param options the mount options
+   * @param ufsId the id of the ufs
    */
-  public MountInfo(AlluxioURI ufsUri, MountOptions options) {
+  public MountInfo(AlluxioURI ufsUri, MountOptions options, long ufsId) {
     mUfsUri = Preconditions.checkNotNull(ufsUri);
     mOptions = options;
+    mUfsId = ufsId;
   }
 
   /**
@@ -54,6 +57,13 @@ public final class MountInfo {
    */
   public MountOptions getOptions() {
     return mOptions;
+  }
+
+  /**
+   * @return the id of the ufs
+   */
+  public long getUfsId() {
+    return mUfsId;
   }
 
   /**

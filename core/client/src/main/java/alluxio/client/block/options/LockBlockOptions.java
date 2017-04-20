@@ -26,8 +26,7 @@ public final class LockBlockOptions {
   private long mOffset;
   private long mBlockSize;
   private int mMaxUfsReadConcurrency;
-  private String mAlluxioMountPoint;
-  private long mMountTableVersion;
+  private long mUfsId;
 
   /**
    * @return the default {@link LockBlockOptions}
@@ -70,17 +69,10 @@ public final class LockBlockOptions {
   }
 
   /**
-   * @return the mount point path in Alluxio for the file this block belonging to
+   * @return the id of the ufs which the mount of this file is mapped to
    */
-  public String getAlluxioMountPoint() {
-    return mAlluxioMountPoint;
-  }
-
-  /**
-   * @return the mount table version
-   */
-  public long getMountTableVersion() {
-    return mMountTableVersion;
+  public long getUfsId() {
+    return mUfsId;
   }
 
   /**
@@ -120,20 +112,11 @@ public final class LockBlockOptions {
   }
 
   /**
-   * @param alluxioMountPoint the mount point path in Alluxio for this file
+   * @param ufsId the id of the ufs which the mount of this file is mapped to
    * @return the updated options object
    */
-  public LockBlockOptions setAlluxioMountPoint(String alluxioMountPoint) {
-    mAlluxioMountPoint = alluxioMountPoint;
-    return this;
-  }
-
-  /**
-   * @param mountTableVersion the mount table version
-   * @return the updated options object
-   */
-   public LockBlockOptions setMountTableVersion(long mountTableVersion) {
-     mMountTableVersion = mountTableVersion;
+   public LockBlockOptions setUfsId(long ufsId) {
+     mUfsId = ufsId;
      return this;
    }
 
@@ -146,28 +129,25 @@ public final class LockBlockOptions {
       return false;
     }
     LockBlockOptions that = (LockBlockOptions) o;
-    return Objects.equal(mAlluxioMountPoint, that.mAlluxioMountPoint)
-        && Objects.equal(mUfsPath, that.mUfsPath)
-        && Objects.equal(mOffset, that.mOffset)
-        && Objects.equal(mBlockSize, that.mBlockSize)
+    return Objects.equal(mBlockSize, that.mBlockSize)
         && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
-        && Objects.equal(mMountTableVersion, that.mMountTableVersion);
+        && Objects.equal(mOffset, that.mOffset)
+        && Objects.equal(mUfsId, that.mUfsId)
+        && Objects.equal(mUfsPath, that.mUfsPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAlluxioMountPoint, mBlockSize, mMaxUfsReadConcurrency,
-        mMountTableVersion, mOffset, mUfsPath);
+    return Objects.hashCode(mBlockSize, mMaxUfsReadConcurrency, mUfsId, mOffset, mUfsPath);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("alluxioMountPoint", mAlluxioMountPoint)
         .add("blockSize", mBlockSize)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
-        .add("mountTableVersion", mMountTableVersion)
         .add("offset", mOffset)
+        .add("ufsId", mUfsId)
         .add("ufsPath", mUfsPath)
         .toString();
   }
@@ -179,10 +159,9 @@ public final class LockBlockOptions {
    */
   public LockBlockTOptions toThrift() {
     LockBlockTOptions options = new LockBlockTOptions();
-    options.setAlluxioMountPoint(mAlluxioMountPoint);
     options.setBlockSize(mBlockSize);
     options.setMaxUfsReadConcurrency(mMaxUfsReadConcurrency);
-    options.setMountTableVersion(mMountTableVersion);
+    options.setUfsId(mUfsId);
     options.setOffset(mOffset);
     options.setUfsPath(mUfsPath);
     return options;

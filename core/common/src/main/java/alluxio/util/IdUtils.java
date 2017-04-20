@@ -75,4 +75,11 @@ public final class IdUtils {
   public static synchronized long getRandomNonNegativeLong() {
     return Math.abs(sRandom.nextLong());
   }
+
+  /**
+   * @return a random long which is guaranteed to be non negative (zero is allowed)
+   */
+  public static long createUfsId() {
+    return getRandomNonNegativeLong();
+  }
 }

@@ -24,6 +24,7 @@ import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -58,13 +59,6 @@ public final class MountTable implements JournalEntryIterable {
   @GuardedBy("mLock")
   private final Map<String, MountInfo> mMountTable;
 
-  @GuardedBy("mLock")
-  private long mVersion;
-
-  private static long getCurrentVersion() {
-    return System.currentTimeMillis();
-  }
-
   /**
    * Creates a new instance of {@link MountTable}.
    */
@@ -74,7 +68,6 @@ public final class MountTable implements JournalEntryIterable {
     mLock = new ReentrantReadWriteLock();
     mReadLock = mLock.readLock();
     mWriteLock = mLock.writeLock();
-    mVersion = getCurrentVersion();
   }
 
   @Override
@@ -179,8 +172,7 @@ public final class MountTable implements JournalEntryIterable {
           }
         }
       }
-      mMountTable.put(alluxioPath, new MountInfo(ufsUri, options));
-      mVersion = getCurrentVersion();
+      mMountTable.put(alluxioPath, new MountInfo(ufsUri, options, IdUtils.createUfsId()));
     }
   }
 
@@ -195,7 +187,6 @@ public final class MountTable implements JournalEntryIterable {
       if (mountInfo != null) {
         mMountTable.put(ROOT, mountInfo);
       }
-      mVersion = getCurrentVersion();
     }
   }
 
@@ -216,7 +207,6 @@ public final class MountTable implements JournalEntryIterable {
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mMountTable.containsKey(path)) {
         mMountTable.remove(path);
-        mVersion = getCurrentVersion();
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
@@ -290,8 +280,7 @@ public final class MountTable implements JournalEntryIterable {
       UnderFileSystem ufs = UnderFileSystem.Factory.getMountPoint(ufsUri.toString(),
           info.getOptions().getProperties());
       AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-      return new Resolution(resolvedUri, ufs, info.getOptions().isShared(),
-          new AlluxioURI(mountPoint), mVersion);
+      return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getUfsId());
     }
   }
 
@@ -316,6 +305,23 @@ public final class MountTable implements JournalEntryIterable {
   }
 
   /**
+   * Returns the mount information based on the ufs id or null if not found.
+   *
+   * @param id the given ufs id
+   * @return the mount information with this id
+   */
+  public MountInfo getMountInfo(long id) {
+    try (LockResource r = new LockResource(mReadLock)) {
+      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+        if (entry.getValue().getUfsId() == id) {
+          return entry.getValue();
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
@@ -323,16 +329,13 @@ public final class MountTable implements JournalEntryIterable {
     private final AlluxioURI mUri;
     private final UnderFileSystem mUfs;
     private final boolean mShared;
-    private final AlluxioURI mMountPoint;
-    private final long mVersion;
+    private final long mUfsId;
 
-    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, AlluxioURI mountPoint,
-        long version) {
+    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, long id) {
       mUri = uri;
       mUfs = ufs;
       mShared = shared;
-      mMountPoint = mountPoint;
-      mVersion = version;
+      mUfsId = id;
     }
 
     /**
@@ -357,17 +360,10 @@ public final class MountTable implements JournalEntryIterable {
     }
 
     /**
-     * @return the mount point in Alluxio on the queried Uri
+     * @return the id of ufs for the mount point
      */
-    public AlluxioURI getMountPoint() {
-      return mMountPoint;
-    }
-
-    /**
-     * @return the version of mount table
-     */
-    public long getVersion() {
-      return mVersion;
+    public long getUfsId() {
+      return mUfsId;
     }
   }
 }

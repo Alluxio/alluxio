@@ -143,8 +143,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param blockId the block ID
    * @param blockSize the block size
    * @param blockStart the position at which the block starts in the file
-   * @param alluxioMountPoint the mount point of the file in Alluxio
-   * @param mountTableVersion the version of Alluxio mount table
+   * @param ufsId the version of Alluxio mount table
    * @param workerNetAddress the worker network address
    * @param options the options
    * @throws IOException if it fails to create an instance
@@ -152,8 +151,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
-      long blockId, long blockSize, long blockStart, String alluxioMountPoint,
-      long mountTableVersion,
+      long blockId, long blockSize, long blockStart, long ufsId,
       WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {
     Closer closer = Closer.create();
     try {
@@ -162,7 +160,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       LockBlockOptions lockBlockOptions =
           LockBlockOptions.defaults().setUfsPath(ufsPath).setOffset(blockStart)
               .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency())
-              .setAlluxioMountPoint(alluxioMountPoint).setMountTableVersion(mountTableVersion);
+              .setUfsId(ufsId);
 
       LockBlockResult lockBlockResult =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();

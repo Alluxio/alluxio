@@ -125,7 +125,8 @@ union FileSystemCommandOptions {
 
 struct UfsInfo {
   1: optional i64 id
-  2: optional map<string, string> properties
+  2: optional string uri
+  3: optional map<string, string> properties
 }
 
 /**

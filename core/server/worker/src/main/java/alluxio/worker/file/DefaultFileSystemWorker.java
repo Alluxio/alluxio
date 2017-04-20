@@ -21,6 +21,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.UfsManager;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -53,6 +54,8 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
 
   /** The service that persists files. */
   private Future<?> mFilePersistenceService;
+  /** Handler to the ufs manager. */
+  private final UfsManager mUfsManager;
 
   /**
    * Creates a new DefaultFileSystemWorker.
@@ -61,18 +64,18 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
    * @param workerId a reference to the id of this worker
    * @throws IOException if an I/O error occurs
    */
-  public DefaultFileSystemWorker(BlockWorker blockWorker, AtomicReference<Long> workerId)
-      throws IOException {
+  public DefaultFileSystemWorker(BlockWorker blockWorker, AtomicReference<Long> workerId,
+      UfsManager ufsManager) throws IOException {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = workerId;
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
-        RateLimiter.create(
-            Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
-
+    mUfsManager = ufsManager;
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
+        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
+        mUfsManager);
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler();
   }

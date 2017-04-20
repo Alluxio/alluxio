@@ -38,6 +38,7 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -343,6 +344,11 @@ public interface FileSystemMaster extends Master {
    * @return the ufs address for this master
    */
   String getUfsAddress();
+
+  /**
+   * @return the ufs information for the given ufs id
+   */
+  UfsInfo getUfsInfo(long ufsId);
 
   /**
    * @return the white list

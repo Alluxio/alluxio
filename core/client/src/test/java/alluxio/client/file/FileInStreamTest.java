@@ -459,7 +459,8 @@ public class FileInStreamTest {
     Mockito.when(
         StreamFactory.createUfsBlockInStream(Mockito.any(FileSystemContext.class),
             Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),
-            Mockito.any(WorkerNetAddress.class), Mockito.any(InStreamOptions.class))).thenReturn(
+            Mockito.any(WorkerNetAddress.class), Mockito.anyLong(),
+            Mockito.any(InStreamOptions.class))).thenReturn(
         Mockito.mock(BlockInStream.class));
     mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
   }

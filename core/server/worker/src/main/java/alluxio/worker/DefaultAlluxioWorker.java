@@ -28,7 +28,6 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.file.DefaultFileSystemWorker;
-import alluxio.worker.file.FileDataManager;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -94,6 +93,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
 
+  /** The manager for all ufs. */
+  private UfsManager mUfsManager;
+
   /**
    * The worker ID for this worker. This is set when the block worker is initialized and may be
    * updated by the block sync thread if the master requests re-registration.
@@ -107,8 +109,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     try {
       mWorkerId = new AtomicReference<>();
       mStartTimeMs = System.currentTimeMillis();
-      mBlockWorker = new DefaultBlockWorker(mWorkerId);
-      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId);
+      mUfsManager = new UfsManager();
+      mBlockWorker = new DefaultBlockWorker(mWorkerId, mUfsManager);
+      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId, mUfsManager);
 
       mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
@@ -178,8 +181,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   }
 
   @Override
-  public FileDataManager getFileDataManager() {
-    return mFileSystemWorker.getFileDataManager();
+  public UfsManager getUfsManager() {
+    return mUfsManager;
   }
 
   @Override
@@ -245,6 +248,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
+    mUfsManager.close();
     try {
       mWebServer.stop();
     } catch (Exception e) {

@@ -207,17 +207,10 @@ public class URIStatus {
   }
 
   /**
-   * @return the mount point path in Alluxio for this file
+   * @return the id of the ufs which the mount of this file is mapped to
    */
-  public String getAlluxioMountPoint() {
-    return mInfo.getAlluxioMountPoint();
-  }
-
-  /**
-   * @return the mount table version
-   */
-  public long getMountTableVersion() {
-    return mInfo.getMountTableVersion();
+  public long getUfsId() {
+    return mInfo.getUfsId();
   }
 
   /**

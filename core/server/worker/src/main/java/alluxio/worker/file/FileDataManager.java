@@ -25,6 +25,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
+import alluxio.worker.UfsManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
@@ -74,59 +75,23 @@ public final class FileDataManager {
 
   /** A per worker rate limiter to throttle async persistence. */
   private final RateLimiter mPersistenceRateLimiter;
-
-  private final Object mUfsConfigurationLock = new Object();
-
-  /** Map from Alluxio mount point to the corresponding ufs configuration. */
-  @GuardedBy("mUfsConfigurationLock")
-  private final Map<String, Map<String, String>> mUfsMap;
-
-  @GuardedBy("mUfsConfigurationLock")
-  private long mUfsMapVersion;
+  /** The manager for all ufs. */
+  private final UfsManager mUfsManager;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
    *
    * @param blockWorker the block worker handle
    * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
+   * @param ufsManager the ufs manager
    */
-  public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter) {
+  public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
+      UfsManager ufsManager) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
-    mUfsMap = new HashMap<>();
-    mUfsMapVersion = 0;
-  }
-
-  /**
-   * Gets the properties for the given Alluxio mount point.
-   *
-   * @param alluxioPath Uri for an Alluxio mount point
-   * @return the configuration of the UFS
-   */
-  public Map<String, String> getUfsProperties(String alluxioPath) {
-    synchronized (mUfsConfigurationLock) {
-      return getUfsProperties(alluxioPath, mUfsMapVersion);
-    }
-  }
-
-  /**
-   * Gets the properties for the given Alluxio mount point and a specific version.
-   *
-   * @param alluxioPath Uri for an Alluxio mount point
-   * @param version version of the mount table associated with the mount point
-   * @return the configuration of the UFS
-   */
-  public Map<String, String> getUfsProperties(String alluxioPath, long version) {
-    // TODO fill me
-    synchronized (mUfsConfigurationLock) {
-      if (version >= mUfsMapVersion || !mUfsMap.containsKey(alluxioPath)) {
-        // local copy is stale
-        // call master APi and update map
-      }
-      return mUfsMap.get(alluxioPath);
-    }
+    mUfsManager = ufsManager;
   }
 
   /**
@@ -198,11 +163,8 @@ public final class FileDataManager {
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    String mountPoint = fileInfo.getAlluxioMountPoint();
     String dstPath = fileInfo.getUfsPath();
-
-    UnderFileSystem ufs =
-        UnderFileSystem.Factory.getMountPoint(mountPoint, getUfsProperties(mountPoint));
+    UnderFileSystem ufs = mUfsManager.getUfsById(fileInfo.getUfsId());
     return ufs.isFile(dstPath);
   }
 
@@ -271,9 +233,7 @@ public final class FileDataManager {
 
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    String mountPoint = fileInfo.getAlluxioMountPoint();
-    UnderFileSystem ufs =
-        UnderFileSystem.Factory.getMountPoint(mountPoint, getUfsProperties(mountPoint));
+    UnderFileSystem ufs = mUfsManager.getUfsById(fileInfo.getUfsId());
     OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
         .setMode(new Mode((short) fileInfo.getMode())));
@@ -346,9 +306,7 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    String mountPoint = fileInfo.getAlluxioMountPoint();
-    UnderFileSystem ufs =
-        UnderFileSystem.Factory.getMountPoint(mountPoint, getUfsProperties(mountPoint));
+    UnderFileSystem ufs = mUfsManager.getUfsById(fileInfo.getUfsId());
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

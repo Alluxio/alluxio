@@ -60,7 +60,7 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("dataServerUfsBlockReadHandler", new DataServerUfsBlockReadHandler(
         NettyExecutors.UFS_BLOCK_READER_EXECUTOR, mWorker.getBlockWorker()));
     pipeline.addLast("dataServerUfsFileWriteHandler", new DataServerUfsFileWriteHandler(
-        NettyExecutors.FILE_WRITER_EXECUTOR, mWorker.getFileDataManager()));
+        NettyExecutors.FILE_WRITER_EXECUTOR, mWorker.getUfsManager()));
 
     // Unsupported Message Handler
     pipeline.addLast("dataServerUnsupportedMessageHandler", new

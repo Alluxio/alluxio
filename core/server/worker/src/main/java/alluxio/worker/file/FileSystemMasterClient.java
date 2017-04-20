@@ -19,6 +19,7 @@ import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -95,6 +96,21 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       @Override
       public Set<Long> call() throws TException {
         return mClient.getPinIdList();
+      }
+    });
+  }
+
+  /**
+   * @param ufsId the id of the ufs
+   * @return the ufs information for the give ufs
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized UfsInfo getUfsInfo(final long ufsId) throws AlluxioException, IOException {
+    return retryRPC(new RpcCallable<UfsInfo>() {
+      @Override
+      public UfsInfo call() throws TException {
+        return mClient.getUfsInfo(ufsId);
       }
     });
   }

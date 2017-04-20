@@ -16,6 +16,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.worker.SessionCleanable;
+import alluxio.worker.UfsManager;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -70,13 +71,18 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   /** The Local block store. */
   private final BlockStore mLocalBlockStore;
 
+  /** The manager for all ufs. */
+  private final UfsManager mUfsManager;
+
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
    * @param localBlockStore the local block store
+   * @param ufsManager the file manager
    */
-  public UnderFileSystemBlockStore(BlockStore localBlockStore) {
+  public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
+    mUfsManager = ufsManager;
   }
 
   /**
@@ -222,7 +228,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       }
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore,
+            mUfsManager);
     blockInfo.setBlockReader(reader);
     return reader;
   }

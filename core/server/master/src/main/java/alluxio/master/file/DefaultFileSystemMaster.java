@@ -88,6 +88,7 @@ import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
+import alluxio.thrift.UfsInfo;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
@@ -689,8 +690,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
-    fileInfo.setAlluxioMountPoint(resolution.getMountPoint().toString());
-    fileInfo.setMountTableVersion(resolution.getVersion());
+    fileInfo.setUfsId(resolution.getUfsId());
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -1904,6 +1904,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public String getUfsAddress() {
     return Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  }
+
+  @Override
+  public UfsInfo getUfsInfo(long ufsId) {
+    MountInfo info = mMountTable.getMountInfo(ufsId);
+    if (info == null) {
+      return new UfsInfo().setId(ufsId);
+    }
+    return new UfsInfo().setId(ufsId).setProperties(info.getOptions().getProperties());
   }
 
   @Override
