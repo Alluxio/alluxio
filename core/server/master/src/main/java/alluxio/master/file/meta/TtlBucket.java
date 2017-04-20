@@ -13,20 +13,20 @@ package alluxio.master.file.meta;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.collections.ConcurrentHashSet;
 
 import com.google.common.base.Objects;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A bucket with all inodes whose ttl value lies in the bucket's time interval. The bucket's time
  * interval starts at a certain time and lasts for
  * {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
   /** The time interval of this bucket is the same as ttl checker's interval. */
   private static long sTtlIntervalMs =
@@ -35,9 +35,9 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
-  private long mTtlIntervalStartTimeMs;
+  private final long mTtlIntervalStartTimeMs;
   /** A set of Inode whose ttl value is in the range of this bucket's interval. */
-  private Set<Inode<?>> mInodes;
+  private final ConcurrentHashSet<Inode<?>> mInodes;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -46,7 +46,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mInodes = new HashSet<>();
+    mInodes = new ConcurrentHashSet<>();
   }
 
   /**

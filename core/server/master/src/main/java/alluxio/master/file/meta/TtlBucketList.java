@@ -89,8 +89,19 @@ public final class TtlBucketList {
       // start time of this interval should be (ttlEndTimeMs / interval) * interval.
       long interval = TtlBucket.getTtlIntervalMs();
       bucket = new TtlBucket(interval == 0 ? ttlEndTimeMs : ttlEndTimeMs / interval * interval);
-      mBucketList.add(bucket);
+      synchronized (mBucketList) {
+        TtlBucket tmpBucket = getBucketContaining(inode);
+        if (tmpBucket != null) {
+          // The bucket has been inserted in another thread just now, so use the existing bucket.
+          bucket = tmpBucket;
+        } else {
+          mBucketList.add(bucket);
+        }
+      }
     }
+    // TODO(zhouyufa): Consider the concurrent situation that the bucket is expired and processed by
+    // the InodeTtlChecker, then adding the inode into the bucket is meaningless since the bucket
+    // will not be accessed again. (c.f. ALLUXIO-2821)
     bucket.addInode(inode);
   }
 
