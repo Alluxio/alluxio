@@ -230,13 +230,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Failed to write block.", cause);
-    AlluxioStatusException se;
-    if (cause instanceof Exception) {
-      se = AlluxioStatusException.from((Exception) cause);
-    } else {
-      se = new InternalException(cause);
-    }
-    pushAbortPacket(ctx.channel(), new Error(se, true));
+    pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(cause), true));
   }
 
   @Override
