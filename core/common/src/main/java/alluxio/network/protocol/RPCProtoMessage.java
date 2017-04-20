@@ -181,15 +181,14 @@ public final class RPCProtoMessage extends RPCMessage {
   }
 
   /**
-   * Creates a response for a given {@link AlluxioStatusException} and data buffer.
+   * Creates a response for a given {@link AlluxioStatusException}.
    *
    * @param se the {@link AlluxioStatusException}
-   * @param data the data buffer
    * @return the created {@link RPCProtoMessage}
    */
-  public static RPCProtoMessage createResponse(AlluxioStatusException se, DataBuffer data) {
+  public static RPCProtoMessage createResponse(AlluxioStatusException se) {
     String message = se.getMessage() != null ? se.getMessage() : "";
-    return createResponse(se.getStatus(), message, data);
+    return createResponse(se.getStatus(), message, null);
   }
 
   /**

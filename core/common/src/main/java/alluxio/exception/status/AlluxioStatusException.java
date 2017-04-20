@@ -205,12 +205,12 @@ public class AlluxioStatusException extends RuntimeException {
   /**
    * Converts throwables to Alluxio status exceptions.
    *
-   * @param ex a throwable
+   * @param throwable a throwable
    * @return the converted {@link AlluxioStatusException}
    */
-  public static AlluxioStatusException from(Throwable ex) {
+  public static AlluxioStatusException from(Throwable throwable) {
     try {
-      throw ex;
+      throw throwable;
     } catch (IOException e) {
       return fromIOException(e);
     } catch (AlluxioException e) {
