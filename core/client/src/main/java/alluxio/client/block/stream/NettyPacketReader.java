@@ -14,16 +14,13 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.proto.dataserver.Protocol.Response;
-import alluxio.proto.status.Status.PStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.proto.ProtoMessage;
@@ -274,10 +271,10 @@ public final class NettyPacketReader implements PacketReader {
       }
 
       RPCProtoMessage response = (RPCProtoMessage) msg;
-      Response r = response.getMessage().<Protocol.Response>getMessage();
-      if (r.getStatus() != PStatus.OK && r.getStatus() != PStatus.CANCELED) {
-        throw AlluxioStatusException.fromStatusAndMessage(Status.fromProto(r.getStatus()),
-            r.getMessage());
+      try {
+        response.unwrapException();
+      } catch (CanceledException e) {
+        // TODO(andrew): Ask pei why we ignore canceled status.
       }
 
       DataBuffer dataBuffer = response.getPayloadDataBuffer();
