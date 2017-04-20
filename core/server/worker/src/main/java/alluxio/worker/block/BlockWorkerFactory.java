@@ -40,6 +40,8 @@ public final class BlockWorkerFactory implements WorkerFactory {
   @Override
   public BlockWorker create(Registry<Worker> registry) {
     LOG.info("Creating {} ", BlockWorker.class.getName());
-    return new DefaultBlockWorker(registry);
+    BlockWorker blockWorker = new DefaultBlockWorker();
+    registry.add(BlockWorker.class, blockWorker);
+    return blockWorker;
   }
 }

@@ -23,13 +23,11 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
-import alluxio.Registry;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.Worker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -99,10 +97,8 @@ public class BlockWorkerTest {
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH,
         mFolder.newFolder().getAbsolutePath());
 
-    Registry<Worker> registry = new Registry<>();
     mBlockWorker =
-        new DefaultBlockWorker(registry, mBlockMasterClient, mFileSystemMasterClient, mSessions,
-            mBlockStore);
+        new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions, mBlockStore);
   }
 
   /**

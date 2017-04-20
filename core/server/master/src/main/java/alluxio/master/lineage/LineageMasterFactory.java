@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.Registry;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
 
 import com.google.common.base.Preconditions;
@@ -48,12 +49,15 @@ public final class LineageMasterFactory implements MasterFactory {
   }
 
   @Override
-  public Master create(Registry<Master> registry, JournalFactory journalFactory) {
+  public LineageMaster create(Registry<Master> registry, JournalFactory journalFactory) {
     if (!isEnabled()) {
       return null;
     }
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", LineageMaster.class.getName());
-    return new LineageMaster(registry, journalFactory);
+    FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
+    LineageMaster lineageMaster = new LineageMaster(fileSystemMaster, journalFactory);
+    registry.add(LineageMaster.class, lineageMaster);
+    return lineageMaster;
   }
 }

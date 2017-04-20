@@ -78,16 +78,15 @@ public final class KeyValueMaster extends AbstractMaster {
   private final Map<Long, List<PartitionInfo>> mIncompleteStoreToPartitions;
 
   /**
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journal a {@link Journal} to write journal entries to
    */
-  public KeyValueMaster(Registry<Master> registry, Journal journal) {
+  protected KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
-    mFileSystemMaster = registry.get(FileSystemMaster.class);
+    mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
-    registry.add(KeyValueMaster.class, this);
   }
 
   @Override

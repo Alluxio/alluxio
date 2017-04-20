@@ -12,11 +12,11 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.Registry;
 import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.Registry;
 import alluxio.master.Master;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
@@ -61,6 +61,7 @@ public class BlockMasterTest {
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
 
   private BlockMaster mBlockMaster;
+  private Registry<Master> mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
 
@@ -81,15 +82,16 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
-    Registry<Master> registry = new Registry<>();
+    mRegistry = new Registry<>();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new BlockMaster(registry, factory, mClock,
+    mBlockMaster = new BlockMaster(factory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
-    mBlockMaster.start(true);
+    mRegistry.add(BlockMaster.class, mBlockMaster);
+    mRegistry.start(true);
   }
 
   /**
@@ -97,7 +99,7 @@ public class BlockMasterTest {
    */
   @After
   public void after() throws Exception {
-    mBlockMaster.stop();
+    mRegistry.stop();
   }
 
   @Test
@@ -278,5 +280,12 @@ public class BlockMasterTest {
         .setLength(20L)
         .setLocations(ImmutableList.of(blockLocation));
     Assert.assertEquals(expectedBlockInfo, mBlockMaster.getBlockInfo(blockId));
+  }
+
+  @Test
+  public void stop() throws Exception {
+    mRegistry.stop();
+    Assert.assertTrue(mExecutorService.isShutdown());
+    Assert.assertTrue(mExecutorService.isTerminated());
   }
 }

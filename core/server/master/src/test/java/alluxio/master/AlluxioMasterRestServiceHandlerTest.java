@@ -27,6 +27,7 @@ import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
@@ -87,8 +88,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
       "SSD", 200L);
 
   private MasterProcess mMaster;
-  private ServletContext mContext;
   private BlockMaster mBlockMaster;
+  private Registry<Master> mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -103,17 +104,17 @@ public final class AlluxioMasterRestServiceHandlerTest {
   @Before
   public void before() throws Exception {
     mMaster = mock(MasterProcess.class);
-    mContext = mock(ServletContext.class);
-    Registry<Master> registry = new Registry<>();
+    ServletContext context = mock(ServletContext.class);
+    mRegistry = new Registry<>();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMaster(registry, factory);
-    mBlockMaster.start(true);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);
+    mRegistry.start(true);
     when(mMaster.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
-    when(mContext.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+    when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMaster);
     registerFileSystemMock();
-    mHandler = new AlluxioMasterRestServiceHandler(mContext);
+    mHandler = new AlluxioMasterRestServiceHandler(context);
     // Register two workers
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
@@ -143,7 +144,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   @After
-  public void after() {
+  public void after() throws Exception {
+    mRegistry.stop();
     ConfigurationTestUtils.resetConfiguration();
   }
 

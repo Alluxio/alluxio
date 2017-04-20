@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.Registry;
 import alluxio.Sessions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -35,7 +34,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -111,12 +109,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /**
    * Constructs a default block worker.
-   *
-   * @param registry the worker registry
    */
-  public DefaultBlockWorker(Registry<Worker> registry) {
-    this(registry,
-        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+  protected DefaultBlockWorker() {
+    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new Sessions(), new TieredBlockStore());
   }
@@ -124,13 +119,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * Constructs a default block worker.
    *
-   * @param registry the worker registry
    * @param blockMasterClient a client for talking to the block master
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    */
-  public DefaultBlockWorker(Registry<Worker> registry, BlockMasterClient blockMasterClient,
+  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore) {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
@@ -144,7 +138,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-    registry.add(BlockWorker.class, this);
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore);
 
     Metrics.registerGauges(this);

@@ -46,9 +46,11 @@ public final class BlockMasterFactory implements MasterFactory {
   }
 
   @Override
-  public Master create(Registry<Master> registry, JournalFactory journalFactory) {
+  public BlockMaster create(Registry<Master> registry, JournalFactory journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", BlockMaster.class.getName());
-    return new BlockMaster(registry, journalFactory);
+    BlockMaster master = new BlockMaster(journalFactory);
+    registry.add(BlockMaster.class, master);
+    return master;
   }
 }

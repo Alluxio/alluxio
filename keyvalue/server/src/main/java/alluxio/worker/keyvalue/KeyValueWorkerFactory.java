@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.Registry;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
+import alluxio.worker.block.BlockWorker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,9 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
       return null;
     }
     LOG.info("Creating {} ", KeyValueWorker.class.getName());
-    return new KeyValueWorker(registry);
+    BlockWorker blockWorker = registry.get(BlockWorker.class);
+    KeyValueWorker keyValueWorker = new KeyValueWorker(blockWorker);
+    registry.add(KeyValueWorker.class, keyValueWorker);
+    return keyValueWorker;
   }
 }

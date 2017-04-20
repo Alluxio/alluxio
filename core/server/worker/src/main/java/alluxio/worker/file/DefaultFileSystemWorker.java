@@ -14,7 +14,6 @@ package alluxio.worker.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.Registry;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.FileSystemWorkerClientService;
@@ -22,7 +21,6 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
-import alluxio.worker.Worker;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -44,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link FileSystemWorkerClientServiceHandler} which always returns UnsupportedOperation Exception.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class DefaultFileSystemWorker extends AbstractWorker {
+public final class DefaultFileSystemWorker extends AbstractWorker implements FileSystemWorker {
   private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(BlockWorker.class);
 
   /** Logic for managing file persistence. */
@@ -62,22 +60,20 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
   /**
    * Creates a new DefaultFileSystemWorker.
    *
-   * @param registry the worker registry
+   * @param blockWorker the block worker handle
    */
-  public DefaultFileSystemWorker(Registry<Worker> registry) {
+  protected DefaultFileSystemWorker(BlockWorker blockWorker) {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
-    mWorkerId = registry.get(BlockWorker.class).getWorkerId();
-    mFileDataManager =
-        new FileDataManager(Preconditions.checkNotNull(registry.get(BlockWorker.class)),
-            RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
+    mWorkerId = blockWorker.getWorkerId();
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
+        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler();
-    registry.add(DefaultFileSystemWorker.class, this);
   }
 
   @Override

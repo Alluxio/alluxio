@@ -86,30 +86,29 @@ public final class LineageMaster extends AbstractMaster {
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(Registry<Master> registry, JournalFactory journalFactory) {
-    this(registry, journalFactory, ExecutorServiceFactories
+  protected LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+    this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public LineageMaster(Registry<Master> registry, JournalFactory journalFactory,
+  protected LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
-    mFileSystemMaster = registry.get(FileSystemMaster.class);
-    registry.add(LineageMaster.class, this);
+    mFileSystemMaster = fileSystemMaster;
   }
 
   @Override

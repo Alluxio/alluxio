@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.Registry;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
+import alluxio.worker.block.BlockWorker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +39,11 @@ public final class FileSystemWorkerFactory implements WorkerFactory {
   }
 
   @Override
-  public DefaultFileSystemWorker create(Registry<Worker> registry) {
-    LOG.info("Creating {} ", DefaultFileSystemWorker.class.getName());
-    return new DefaultFileSystemWorker(registry);
+  public FileSystemWorker create(Registry<Worker> registry) {
+    LOG.info("Creating {} ", FileSystemWorker.class.getName());
+    BlockWorker blockWorker = registry.get(BlockWorker.class);
+    FileSystemWorker fileSystemWorker = new DefaultFileSystemWorker(blockWorker);
+    registry.add(FileSystemWorker.class, fileSystemWorker);
+    return fileSystemWorker;
   }
 }

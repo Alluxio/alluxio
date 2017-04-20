@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.Registry;
 import alluxio.PropertyKey;
-import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck;
@@ -62,7 +62,7 @@ public class MasterTestUtils {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     Registry<Master> registry = new Registry<>();
     JournalFactory factory = new Journal.Factory(new URI(masterJournal));
-    new BlockMaster(registry, factory);
+    new BlockMasterFactory().create(registry, factory);
     new FileSystemMasterFactory().create(registry, factory);
     registry.start(isLeader);
     return registry;
