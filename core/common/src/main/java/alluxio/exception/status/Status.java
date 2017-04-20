@@ -230,7 +230,7 @@ public enum Status {
   }
 
   /**
-   * Creates a {@link Status} from a Thrift type status
+   * Creates a {@link Status} from a Thrift type status.
    *
    * @param status the Thrift type status
    * @return the corresponding {@link Status}
@@ -277,7 +277,7 @@ public enum Status {
   }
 
   /**
-   * Creates a {@link Status} from a protocol buffer type status
+   * Creates a {@link Status} from a protocol buffer type status.
    *
    * @param status the protocol buffer type status
    * @return the corresponding {@link Status}
