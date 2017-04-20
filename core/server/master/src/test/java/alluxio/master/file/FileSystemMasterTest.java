@@ -28,7 +28,8 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterRegistry;
+import alluxio.Registry;
+import alluxio.master.Master;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
@@ -98,7 +99,7 @@ public final class FileSystemMasterTest {
   private static final String TEST_USER = "test";
 
   private CreateFileOptions mNestedFileOptions;
-  private MasterRegistry mRegistry;
+  private Registry<Master> mRegistry;
   private JournalFactory mJournalFactory;
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -1607,7 +1608,7 @@ public final class FileSystemMasterTest {
   }
 
   private void startServices() throws Exception {
-    mRegistry = new MasterRegistry();
+    mRegistry = new Registry<>();
     mJournalFactory = new Journal.Factory(new URI(mJournalFolder));
     mBlockMaster = new BlockMaster(mRegistry, mJournalFactory);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, mJournalFactory);

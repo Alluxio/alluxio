@@ -50,7 +50,6 @@ public final class MountTable implements JournalEntryIterable {
 
   public static final String ROOT = "/";
 
-  private final ReentrantReadWriteLock mLock;
   private final Lock mReadLock;
   private final Lock mWriteLock;
 
@@ -64,9 +63,9 @@ public final class MountTable implements JournalEntryIterable {
   public MountTable() {
     final int initialCapacity = 10;
     mMountTable = new HashMap<>(initialCapacity);
-    mLock = new ReentrantReadWriteLock();
-    mReadLock = mLock.readLock();
-    mWriteLock = mLock.writeLock();
+    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    mReadLock = lock.readLock();
+    mWriteLock = lock.writeLock();
   }
 
   @Override

@@ -60,7 +60,7 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
     String tierAlias = "MEM";
     long initialBytes = 3;
 
-    BlockWorker blockWorker = mResource.get().getWorker().getBlockWorker();
+    BlockWorker blockWorker = mResource.get().getWorker().getWorker(BlockWorker.class);
     String file = blockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes);
     FileOutputStream outStream = new FileOutputStream(file);
     outStream.write("abc".getBytes());

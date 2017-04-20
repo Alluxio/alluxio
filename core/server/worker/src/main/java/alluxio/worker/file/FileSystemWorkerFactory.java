@@ -9,10 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.keyvalue;
+package alluxio.worker.file;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.Registry;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
@@ -23,28 +21,25 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link KeyValueWorker} instance.
+ * Factory to create a {@link DefaultFileSystemWorker} instance.
  */
 @ThreadSafe
-public final class KeyValueWorkerFactory implements WorkerFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(KeyValueWorkerFactory.class);
+public final class FileSystemWorkerFactory implements WorkerFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemWorkerFactory.class);
 
   /**
-   * Constructs a new {@link KeyValueWorkerFactory}.
+   * Constructs a new {@link FileSystemWorkerFactory}.
    */
-  public KeyValueWorkerFactory() {}
+  public FileSystemWorkerFactory() {}
 
   @Override
   public boolean isEnabled() {
-    return Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
+    return true;
   }
 
   @Override
-  public KeyValueWorker create(Registry<Worker> registry) {
-    if (!isEnabled()) {
-      return null;
-    }
-    LOG.info("Creating {} ", KeyValueWorker.class.getName());
-    return new KeyValueWorker(registry);
+  public DefaultFileSystemWorker create(Registry<Worker> registry) {
+    LOG.info("Creating {} ", DefaultFileSystemWorker.class.getName());
+    return new DefaultFileSystemWorker(registry);
   }
 }

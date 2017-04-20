@@ -11,17 +11,22 @@
 
 package alluxio.worker;
 
-import java.util.List;
+import alluxio.Registry;
 
 /**
  * Interface for factory of {@link Worker}.
  */
 public interface WorkerFactory {
   /**
+   * @return whether the master is enabled
+   */
+  boolean isEnabled();
+
+  /**
    * Factory method to create a new worker instance.
    *
-   * @param workers a list of other workers that this worker depends on
+   * @param registry the worker registry
    * @return a new {@link Worker} instance or null if failed to launch the worker
    */
-  Worker create(List<? extends Worker> workers);
+  Worker create(Registry<Worker> registry);
 }

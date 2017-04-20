@@ -21,7 +21,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
+import alluxio.Registry;
+import alluxio.master.Master;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
@@ -80,7 +81,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @param registry the master registry
    * @param journal a {@link Journal} to write journal entries to
    */
-  public KeyValueMaster(MasterRegistry registry, Journal journal) {
+  public KeyValueMaster(Registry<Master> registry, Journal journal) {
     super(journal, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
     mFileSystemMaster = registry.get(FileSystemMaster.class);
@@ -137,7 +138,7 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
   }
 

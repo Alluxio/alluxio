@@ -33,7 +33,8 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
+import alluxio.Registry;
+import alluxio.master.Master;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
@@ -279,7 +280,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public DefaultFileSystemMaster(MasterRegistry registry, JournalFactory journalFactory) {
+  public DefaultFileSystemMaster(Registry<Master> registry, JournalFactory journalFactory) {
     this(registry, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
@@ -292,7 +293,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultFileSystemMaster(MasterRegistry registry, JournalFactory journalFactory,
+  DefaultFileSystemMaster(Registry<Master> registry, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
@@ -435,7 +436,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void start(boolean isPrimary) throws IOException {
+  public void start(Boolean isPrimary) throws IOException {
     if (isPrimary) {
       // Only initialize root when isPrimary because when initializing root, BlockMaster needs to
       // write journal entry, if it is not primary, BlockMaster won't have a writable journal.

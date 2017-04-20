@@ -11,34 +11,16 @@
 
 package alluxio.master;
 
+import alluxio.Server;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import org.apache.thrift.TProcessor;
-
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * This interface contains common operations for all masters.
  */
-public interface Master extends JournalEntryIterable {
-  /**
-   * @return a map from service names to {@link TProcessor}s that serve RPCs for this master
-   */
-  Map<String, TProcessor> getServices();
-
-  /**
-   * @return the master's name
-   */
-  String getName();
-
-  /**
-   * @return the master dependencies
-   */
-  Set<Class<?>> getDependencies();
-
+public interface Master extends JournalEntryIterable, Server<Boolean> {
   /**
    * Processes a journal entry and applies it to the master. These entries follow the checkpoint
    * entries.
@@ -47,25 +29,4 @@ public interface Master extends JournalEntryIterable {
    * @throws IOException if I/O error occurs
    */
   void processJournalEntry(JournalEntry entry) throws IOException;
-
-  /**
-   * Starts the master, as the primary master or the secondary master. Here, the master should
-   * initialize state and possibly start threads required for operation.
-   *
-   * If isPrimary is true, the master should also initialize the journal and write the checkpoint
-   * file.
-   *
-   * @param isPrimary if true, the master should behave as the primary master in the system. If
-   *        false, the master should act as a secondary master.
-   * @throws IOException if I/O error occurs
-   */
-  void start(boolean isPrimary) throws IOException;
-
-  /**
-   * Stops the master. Here, anything created or started in {@link #start(boolean)} should be
-   * cleaned up and shutdown.
-   *
-   * @throws IOException if I/O error occurs
-   */
-  void stop() throws IOException;
 }

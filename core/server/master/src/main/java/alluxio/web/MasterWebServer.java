@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Constants;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
@@ -43,7 +43,7 @@ public final class MasterWebServer extends WebServer {
    * @param master the Alluxio master
    */
   public MasterWebServer(String serviceName, InetSocketAddress address,
-      final AlluxioMasterService master) {
+      final MasterProcess master) {
     super(serviceName, address);
     Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 

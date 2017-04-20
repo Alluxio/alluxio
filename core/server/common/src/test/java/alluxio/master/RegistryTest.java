@@ -11,8 +11,9 @@
 
 package alluxio.master;
 
+import alluxio.Registry;
+import alluxio.Server;
 import alluxio.exception.ExceptionMessage;
-import alluxio.proto.journal.Journal;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.thrift.TProcessor;
@@ -22,54 +23,26 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public final class MasterRegistryTest {
+public final class RegistryTest {
 
-  public abstract class TestMaster implements Master {
+  public abstract class TestServer implements Server<Void> {
     @Override
     public Map<String, TProcessor> getServices() {
       return null;
     }
 
     @Override
-    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-      return new Iterator<Journal.JournalEntry>() {
-        @Override
-        public boolean hasNext() {
-          return false;
-        }
-
-        @Override
-        public Journal.JournalEntry next() {
-          return null;
-        }
-
-        @Override
-        public void remove() {}
-      };
-    }
+    public void start(Void unused) throws IOException {}
 
     @Override
-    public void processJournalEntry(Journal.JournalEntry entry) throws IOException {
-      return;
-    }
-
-    @Override
-    public void start(boolean isLeader) throws IOException {
-      return;
-    }
-
-    @Override
-    public void stop() throws IOException {
-      return;
-    }
+    public void stop() throws IOException {}
   }
 
-  public class MasterA extends TestMaster {
+  public class ServerA extends TestServer {
     @Override
     public String getName() {
       return "A";
@@ -78,12 +51,12 @@ public final class MasterRegistryTest {
     @Override
     public Set<Class<?>> getDependencies() {
       Set<Class<?>> deps = new HashSet<>();
-      deps.add(MasterB.class);
+      deps.add(ServerB.class);
       return deps;
     }
   }
 
-  public class MasterB extends TestMaster {
+  public class ServerB extends TestServer {
     @Override
     public String getName() {
       return "B";
@@ -92,12 +65,12 @@ public final class MasterRegistryTest {
     @Override
     public Set<Class<?>> getDependencies() {
       Set<Class<?>> deps = new HashSet<>();
-      deps.add(MasterC.class);
+      deps.add(ServerC.class);
       return deps;
     }
   }
 
-  public class MasterC extends TestMaster {
+  public class ServerC extends TestServer {
     @Override
     public String getName() {
       return "C";
@@ -106,12 +79,12 @@ public final class MasterRegistryTest {
     @Override
     public Set<Class<?>> getDependencies() {
       Set<Class<?>> deps = new HashSet<>();
-      deps.add(MasterD.class);
+      deps.add(ServerD.class);
       return deps;
     }
   }
 
-  public class MasterD extends TestMaster {
+  public class ServerD extends TestServer {
     @Override
     public String getName() {
       return "C";
@@ -120,36 +93,36 @@ public final class MasterRegistryTest {
     @Override
     public Set<Class<?>> getDependencies() {
       Set<Class<?>> deps = new HashSet<>();
-      deps.add(MasterA.class);
+      deps.add(ServerA.class);
       return deps;
     }
   }
 
   @Test
   public void registry() {
-    List<Master> masters = ImmutableList.<Master>of(new MasterC(), new MasterB(), new MasterA());
-    List<Master[]> permutations = new ArrayList<>();
-    computePermutations(masters.toArray(new Master[masters.size()]), 0, permutations);
+    List<Server> masters = ImmutableList.<Server>of(new ServerC(), new ServerB(), new ServerA());
+    List<Server[]> permutations = new ArrayList<>();
+    computePermutations(masters.toArray(new Server[masters.size()]), 0, permutations);
     // Make sure that the registry orders the masters independently of the order in which they
     // are registered.
-    for (Master[] permutation : permutations) {
-      MasterRegistry registry = new MasterRegistry();
+    for (Server[] permutation : permutations) {
+      Registry registry = new Registry();
       for (int i = 0; i < permutation.length; i++) {
         registry.add(permutation[i].getClass(), permutation[i]);
       }
-      Assert.assertEquals(masters, registry.getMasters());
+      Assert.assertEquals(masters, registry.getServers());
     }
   }
 
   @Test
   public void cycle() {
-    MasterRegistry registry = new MasterRegistry();
-    registry.add(MasterA.class, new MasterA());
-    registry.add(MasterB.class, new MasterB());
-    registry.add(MasterC.class, new MasterC());
-    registry.add(MasterC.class, new MasterD());
+    Registry registry = new Registry();
+    registry.add(ServerA.class, new ServerA());
+    registry.add(ServerB.class, new ServerB());
+    registry.add(ServerC.class, new ServerC());
+    registry.add(ServerC.class, new ServerD());
     try {
-      registry.getMasters();
+      registry.getServers();
       Assert.fail("Control flow should not reach here.");
     } catch (Exception e) {
       Assert.assertEquals(e.getMessage(), ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
@@ -158,21 +131,21 @@ public final class MasterRegistryTest {
 
   @Test
   public void unavailable() {
-    MasterRegistry registry = new MasterRegistry();
+    Registry registry = new Registry();
     try {
-      registry.get(MasterB.class);
+      registry.get(ServerB.class);
       Assert.fail("Control flow should not reach here.");
     } catch (Exception e) {
       Assert.assertEquals(e.getMessage(), ExceptionMessage.RESOURCE_UNAVAILABLE.getMessage());
     }
   }
 
-  private void computePermutations(Master[] input, int index, List<Master[]> permutations) {
+  private void computePermutations(Server[] input, int index, List<Server[]> permutations) {
     if (index == input.length) {
       permutations.add(input.clone());
     }
     for (int i = index; i < input.length; i++) {
-      Master tmp = input[i];
+      Server tmp = input[i];
       input[i] = input[index];
       input[index] = tmp;
       computePermutations(input, index + 1, permutations);

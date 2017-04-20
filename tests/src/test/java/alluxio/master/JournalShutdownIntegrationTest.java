@@ -16,6 +16,7 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
@@ -130,7 +131,7 @@ public class JournalShutdownIntegrationTest {
   /**
    * Creates file system master from journal.
    */
-  private MasterRegistry createFsMasterFromJournal() throws Exception {
+  private Registry<Master> createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -139,7 +140,7 @@ public class JournalShutdownIntegrationTest {
    */
   private void reproduceAndCheckState(int successFiles) throws Exception {
     Assert.assertNotEquals(successFiles, 0);
-    MasterRegistry registry = createFsMasterFromJournal();
+    Registry<Master> registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     int actualFiles =

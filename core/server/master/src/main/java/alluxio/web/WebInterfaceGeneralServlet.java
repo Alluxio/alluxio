@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
@@ -103,14 +103,14 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2335205655766736309L;
 
-  private final transient AlluxioMasterService mMaster;
+  private final transient MasterProcess mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
    *
    * @param master Alluxio master
    */
-  public WebInterfaceGeneralServlet(AlluxioMasterService master) {
+  public WebInterfaceGeneralServlet(MasterProcess master) {
     mMaster = master;
   }
 

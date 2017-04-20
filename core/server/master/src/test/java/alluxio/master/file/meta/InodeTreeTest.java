@@ -21,7 +21,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterRegistry;
+import alluxio.Registry;
+import alluxio.master.Master;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -80,7 +81,7 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
-    MasterRegistry registry = new MasterRegistry();
+    Registry<Master> registry = new Registry<>();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
 

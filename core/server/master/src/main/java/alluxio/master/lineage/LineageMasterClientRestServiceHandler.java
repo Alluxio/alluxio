@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
@@ -66,7 +66,7 @@ public final class LineageMasterClientRestServiceHandler {
    */
   public LineageMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mLineageMaster = ((AlluxioMasterService) context
+    mLineageMaster = ((MasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .getMaster(LineageMaster.class);
   }

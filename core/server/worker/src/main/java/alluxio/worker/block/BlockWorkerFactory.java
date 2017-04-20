@@ -9,10 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.keyvalue;
+package alluxio.worker.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.Registry;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
@@ -23,28 +21,25 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link KeyValueWorker} instance.
+ * Factory to create a {@link BlockWorker} instance.
  */
 @ThreadSafe
-public final class KeyValueWorkerFactory implements WorkerFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(KeyValueWorkerFactory.class);
+public final class BlockWorkerFactory implements WorkerFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerFactory.class);
 
   /**
-   * Constructs a new {@link KeyValueWorkerFactory}.
+   * Constructs a new {@link BlockWorkerFactory}.
    */
-  public KeyValueWorkerFactory() {}
+  public BlockWorkerFactory() {}
 
   @Override
   public boolean isEnabled() {
-    return Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
+    return true;
   }
 
   @Override
-  public KeyValueWorker create(Registry<Worker> registry) {
-    if (!isEnabled()) {
-      return null;
-    }
-    LOG.info("Creating {} ", KeyValueWorker.class.getName());
-    return new KeyValueWorker(registry);
+  public BlockWorker create(Registry<Worker> registry) {
+    LOG.info("Creating {} ", BlockWorker.class.getName());
+    return new DefaultBlockWorker(registry);
   }
 }

@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -35,7 +36,7 @@ public class MasterTestUtils {
    *
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  public static MasterRegistry createLeaderFileSystemMasterFromJournal() throws Exception {
+  public static Registry<Master> createLeaderFileSystemMasterFromJournal() throws Exception {
     return createFileSystemMasterFromJournal(true);
   }
 
@@ -45,7 +46,7 @@ public class MasterTestUtils {
    *
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  public static MasterRegistry createStandbyFileSystemMasterFromJournal() throws Exception {
+  public static Registry<Master> createStandbyFileSystemMasterFromJournal() throws Exception {
     return createFileSystemMasterFromJournal(false);
   }
 
@@ -56,10 +57,10 @@ public class MasterTestUtils {
    * @param isLeader whether to start as a leader
    * @return a master registry containing the created {@link FileSystemMaster} master
    */
-  private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
+  private static Registry<Master> createFileSystemMasterFromJournal(boolean isLeader)
       throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    MasterRegistry registry = new MasterRegistry();
+    Registry<Master> registry = new Registry<>();
     JournalFactory factory = new Journal.Factory(new URI(masterJournal));
     new BlockMaster(registry, factory);
     new FileSystemMasterFactory().create(registry, factory);

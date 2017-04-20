@@ -29,8 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class encapsulates the different worker services that are configured to run.
  */
 @NotThreadSafe
-public final class DefaultAlluxioProxy implements AlluxioProxyService {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultAlluxioProxy.class);
+public final class AlluxioProxyProcess implements ProxyProcess {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioProxyProcess.class);
 
   /** The web server. */
   private WebServer mWebServer = null;
@@ -41,7 +41,7 @@ public final class DefaultAlluxioProxy implements AlluxioProxyService {
   /**
    * Creates an instance of {@link AlluxioProxy}.
    */
-  public DefaultAlluxioProxy() {
+  public AlluxioProxyProcess() {
     mStartTimeMs = System.currentTimeMillis();
   }
 

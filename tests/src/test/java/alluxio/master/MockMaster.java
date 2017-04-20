@@ -53,12 +53,10 @@ public final class MockMaster implements Master {
   }
 
   @Override
-  public void start(boolean isPrimary) throws IOException {
-  }
+  public void start(Boolean isPrimary) throws IOException {}
 
   @Override
-  public void stop() throws IOException {
-  }
+  public void stop() throws IOException {}
 
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {

@@ -30,12 +30,12 @@ import java.util.Set;
 public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
 
-  private final AlluxioMasterService mAlluxioMaster;
+  private final MasterProcess mAlluxioMaster;
 
   /**
    * @param alluxioMaster the Alluxio master
    */
-  public MetaMasterClientServiceHandler(AlluxioMasterService alluxioMaster) {
+  public MetaMasterClientServiceHandler(MasterProcess alluxioMaster) {
     mAlluxioMaster = alluxioMaster;
   }
 

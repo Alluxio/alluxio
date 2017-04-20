@@ -51,10 +51,10 @@ public final class LocalAlluxioMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private AlluxioMasterService mAlluxioMaster;
+  private MasterProcess mAlluxioMaster;
   private Thread mMasterThread;
 
-  private AlluxioSecondaryMaster mSecondaryMaster;
+  private AlluxioSecondaryMasterProcess mSecondaryMaster;
   private Thread mSecondaryMasterThread;
 
   private LocalAlluxioMaster() throws IOException {
@@ -95,7 +95,7 @@ public final class LocalAlluxioMaster {
    * Starts the master.
    */
   public void start() {
-    mAlluxioMaster = AlluxioMasterService.Factory.create();
+    mAlluxioMaster = MasterProcess.Factory.create();
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
@@ -117,7 +117,7 @@ public final class LocalAlluxioMaster {
    * Starts the secondary master.
    */
   public void startSecondary() {
-    mSecondaryMaster = new AlluxioSecondaryMaster();
+    mSecondaryMaster = new AlluxioSecondaryMasterProcess();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
       public void run() {
@@ -180,9 +180,9 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * @return the internal {@link AlluxioMasterService}
+   * @return the internal {@link MasterProcess}
    */
-  public AlluxioMasterService getInternalMaster() {
+  public MasterProcess getInternalMaster() {
     return mAlluxioMaster;
   }
 

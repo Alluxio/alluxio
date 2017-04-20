@@ -30,7 +30,8 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
+import alluxio.Registry;
+import alluxio.master.Master;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
@@ -88,7 +89,7 @@ public final class LineageMaster extends AbstractMaster {
    * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory) {
+  public LineageMaster(Registry<Master> registry, JournalFactory journalFactory) {
     this(registry, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
@@ -101,7 +102,7 @@ public final class LineageMaster extends AbstractMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory,
+  public LineageMaster(Registry<Master> registry, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
@@ -146,7 +147,7 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,

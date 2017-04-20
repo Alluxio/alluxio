@@ -13,7 +13,7 @@ package alluxio.master;
 
 import alluxio.client.file.FileSystem;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +97,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   /**
    * @return the first worker
    */
-  public AlluxioWorkerService getWorker() {
+  public WorkerProcess getWorker() {
     return mWorkers.get(0);
   }
 
@@ -140,7 +140,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   public void stopWorkers() throws Exception {
-    for (AlluxioWorkerService worker : mWorkers) {
+    for (WorkerProcess worker : mWorkers) {
       worker.stop();
     }
   }

@@ -14,39 +14,14 @@ package alluxio;
 import alluxio.master.MasterFactory;
 import alluxio.worker.WorkerFactory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 
 /**
- * Utility methods for running server binaries.
+ * Utility methods for Alluxio services.
  */
-public final class ServerUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(ServerUtils.class);
-
-  /**
-   * Runs the given server.
-   *
-   * @param server the server to run
-   * @param name the server name
-   */
-  public static void run(Server server, String name) {
-    try {
-      server.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running {}, stopping it and exiting.", name, e);
-      try {
-        server.stop();
-      } catch (Exception e2) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping {}, simply exiting.", name, e2);
-      }
-      System.exit(-1);
-    }
-  }
+public final class ServiceUtils {
 
   /**
    * @return service loader for master factories
@@ -75,5 +50,5 @@ public final class ServerUtils {
     return ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
   }
 
-  private ServerUtils() {} // prevent instantiation
+  private ServiceUtils() {} // prevent instantiation
 }

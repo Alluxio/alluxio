@@ -13,7 +13,7 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -44,7 +44,7 @@ public final class WorkerWebServer extends WebServer {
    * @param startTimeMs start time milliseconds
    */
   public WorkerWebServer(InetSocketAddress webAddress,
-      final AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, String connectHost,
+      final WorkerProcess alluxioWorker, BlockWorker blockWorker, String connectHost,
       long startTimeMs) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");

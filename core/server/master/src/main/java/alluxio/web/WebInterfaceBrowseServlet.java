@@ -24,7 +24,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
@@ -57,14 +57,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
 
-  private final transient AlluxioMasterService mMaster;
+  private final transient MasterProcess mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseServlet}.
    *
    * @param master the Alluxio master
    */
-  public WebInterfaceBrowseServlet(AlluxioMasterService master) {
+  public WebInterfaceBrowseServlet(MasterProcess master) {
     mMaster = master;
   }
 

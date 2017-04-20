@@ -52,7 +52,7 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getWorker().getWebLocalPort();
     mServicePrefix = BlockWorkerClientRestServiceHandler.SERVICE_PREFIX;
-    mBlockWorker = mResource.get().getWorker().getBlockWorker();
+    mBlockWorker = mResource.get().getWorker().getWorker(BlockWorker.class);
   }
 
   @Test

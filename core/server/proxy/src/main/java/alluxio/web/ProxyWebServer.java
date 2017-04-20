@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.StreamCache;
-import alluxio.proxy.AlluxioProxyService;
+import alluxio.proxy.ProxyProcess;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -46,7 +46,7 @@ public final class ProxyWebServer extends WebServer {
    * @param proxy the Alluxio proxy service
    */
   public ProxyWebServer(String serviceName, InetSocketAddress address,
-      final AlluxioProxyService proxy) {
+      final ProxyProcess proxy) {
     super(serviceName, address);
 
     // REST configuration

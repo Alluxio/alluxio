@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
 import alluxio.worker.DataServer;
 
 import com.google.common.base.Throwables;
@@ -53,7 +53,7 @@ public final class NettyDataServer implements DataServer {
    * @param worker the Alluxio worker which contains the appropriate components to handle data
    *               operations
    */
-  public NettyDataServer(final InetSocketAddress address, final AlluxioWorkerService worker) {
+  public NettyDataServer(final InetSocketAddress address, final WorkerProcess worker) {
     mBootstrap = createBootstrap().childHandler(new PipelineHandler(worker));
 
     try {

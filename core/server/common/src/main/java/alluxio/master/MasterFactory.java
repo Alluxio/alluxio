@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.Registry;
 import alluxio.master.journal.JournalFactory;
 
 /**
@@ -35,5 +36,5 @@ public interface MasterFactory {
    *
    * @return a new {@link Master} instance or null if the master is not enabled
    */
-  Master create(MasterRegistry registry, JournalFactory factory);
+  Master create(Registry<Master> registry, JournalFactory factory);
 }

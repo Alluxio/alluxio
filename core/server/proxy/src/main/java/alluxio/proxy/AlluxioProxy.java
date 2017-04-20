@@ -12,9 +12,9 @@
 package alluxio.proxy;
 
 import alluxio.Configuration;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
@@ -51,8 +51,8 @@ public final class AlluxioProxy {
       System.exit(1);
     }
 
-    AlluxioProxyService proxy = AlluxioProxyService.Factory.create();
-    ServerUtils.run(proxy, "Alluxio proxy");
+    ProxyProcess proxy = ProxyProcess.Factory.create();
+    ProcessUtils.run(proxy, "Alluxio proxy");
   }
 
   private AlluxioProxy() {} // prevent instantiation

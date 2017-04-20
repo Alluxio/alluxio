@@ -19,7 +19,8 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterRegistry;
+import alluxio.Registry;
+import alluxio.master.Master;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -166,7 +167,7 @@ public final class PermissionCheckerTest {
             .setGroup(TEST_USER_1.getGroup()).setMode(TEST_NORMAL_MODE).setRecursive(true);
 
     // setup an InodeTree
-    MasterRegistry registry = new MasterRegistry();
+    Registry<Master> registry = new Registry<>();
     JournalFactory factory =
         new Journal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
 

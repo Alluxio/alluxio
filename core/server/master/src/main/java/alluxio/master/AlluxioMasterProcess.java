@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.Journal;
@@ -51,8 +52,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class encapsulates the different master services that are configured to run.
  */
 @NotThreadSafe
-public class DefaultAlluxioMaster implements AlluxioMasterService {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultAlluxioMaster.class);
+public class AlluxioMasterProcess implements MasterProcess {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
@@ -75,13 +76,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
-  protected MasterRegistry mRegistry;
+  private Registry<Master> mRegistry;
 
   /** The web ui server. */
   private WebServer mWebServer = null;
 
   /** The RPC server. */
-  private TServer mMasterServiceServer = null;
+  private TServer mThriftServer = null;
 
   /** is true if the master is serving the RPC server. */
   private boolean mIsServing = false;
@@ -90,10 +91,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   private long mStartTimeMs = -1;
 
   /**
-   * Creates a {@link DefaultAlluxioMaster} by the classes in the same packet of
-   * {@link DefaultAlluxioMaster} or the subclasses of {@link DefaultAlluxioMaster}.
+   * Creates a {@link AlluxioMasterProcess} by the classes in the same packet of
+   * {@link AlluxioMasterProcess} or the subclasses of {@link AlluxioMasterProcess}.
    */
-  protected DefaultAlluxioMaster() {
+  protected AlluxioMasterProcess() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
     int connectionTimeout = Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
@@ -130,7 +131,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
       // Create masters.
-      mRegistry = new MasterRegistry();
+      mRegistry = new Registry<>();
       MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -138,7 +139,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   @Override
-  public <T> T getMaster(Class<T> clazz) {
+  public <T extends Master> T getMaster(Class<T> clazz) {
     return mRegistry.get(clazz);
   }
 
@@ -175,7 +176,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     CommonUtils.waitFor("Alluxio master to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        return mMasterServiceServer != null && mMasterServiceServer.isServing()
+        return mThriftServer != null && mThriftServer.isServing()
             && mWebServer != null && mWebServer.getServer().isRunning();
       }
     });
@@ -276,7 +277,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     // register master services
-    for (Master master : mRegistry.getMasters()) {
+    for (Master master : mRegistry.getServers()) {
       registerServices(processor, master.getServices());
     }
     // register meta services
@@ -301,12 +302,12 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
     }
-    mMasterServiceServer = new TThreadPoolServer(args);
+    mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
     mIsServing = true;
     mStartTimeMs = System.currentTimeMillis();
-    mMasterServiceServer.serve();
+    mThriftServer.serve();
   }
 
   /**
@@ -316,9 +317,9 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    * @throws Exception if the underlying jetty server throws an exception
    */
   protected void stopServing() throws Exception {
-    if (mMasterServiceServer != null) {
-      mMasterServiceServer.stop();
-      mMasterServiceServer = null;
+    if (mThriftServer != null) {
+      mThriftServer.stop();
+      mThriftServer = null;
     }
     if (mWebServer != null) {
       mWebServer.stop();

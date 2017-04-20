@@ -17,7 +17,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -26,22 +25,21 @@ import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A block worker in the Alluxio system.
  */
 public interface BlockWorker extends Worker {
   /**
-   * Initializes the block worker. This must be called before calling {@link #start()}.
-   *
-   * @param workerNetAddress the connection information for the worker
-   */
-  void init(WorkerNetAddress workerNetAddress);
-
-  /**
    * @return the worker data service bind host
    */
   BlockStore getBlockStore();
+
+  /**
+   * @return the worker id
+   */
+  AtomicReference<Long> getWorkerId();
 
   /**
    * @return the worker service handler

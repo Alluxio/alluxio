@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
@@ -36,47 +36,50 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Class for registering individual masters that make up the Alluxio master service. The intended
- * use of this class is for the Alluxio master service to register the individual masters using an
+ * Class for registering individual {@link Server}s that run within an Alluxio process. The intended
+ * use of this class is for the Alluxio process to register the individual {@link Server}s using an
  * instance of this class. The registry is passed as an argument to constructors of individual
- * masters who are expected to add themselves to the registry.
+ * {@link Server}s who are expected to add themselves to the registry.
  *
  * The reason for using an instance as opposed to a static class is to enable dependency
  * injection in tests.
+ *
+ * @param <T> the type of the {@link Server}
  */
 @ThreadSafe
-public final class MasterRegistry {
+public final class Registry<T extends Server> {
   private static final int TIMEOUT_SECONDS = 1;
   private static final int RETRY_COUNT = 5;
 
-  private final Map<Class<?>, Master> mRegistry = new HashMap<>();
+  private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
   private final Condition mCondition = mLock.newCondition();
 
   /**
-   * Creates a new instance of {@link MasterRegistry}.
+   * Creates a new instance of {@link Registry}.
    */
-  public MasterRegistry() {}
+  public Registry() {}
 
   /**
-   * Attempts to lookup the master for the given class. Because masters can be looked up and
-   * added to the registry in parallel, the lookeup is retried several times before giving up.
+   * Attempts to lookup the {@link Server} for the given class. Because {@link Server}s can be
+   * looked up and added to the registry in parallel, the lookeup is retried several times before
+   * giving up.
    *
-   * @param clazz the class of the master to get
-   * @param <T> the type of the master to get
-   * @return the master instance, or null if a type mismatch occurs
+   * @param clazz the class of the {@link Server} to get
+   * @param <U> the type of the {@link Server} to get
+   * @return the {@link Server} instance, or null if a type mismatch occurs
    */
-  public <T> T get(Class<T> clazz) {
-    Master master;
+  public <U extends T> U get(Class<U> clazz) {
+    T server;
     try (LockResource r = new LockResource(mLock)) {
       CountingRetry retry = new CountingRetry(RETRY_COUNT);
       while (retry.attemptRetry()) {
-        master = mRegistry.get(clazz);
-        if (master != null) {
-          if (!(clazz.isInstance(master))) {
-            return null;
+        server = mRegistry.get(clazz);
+        if (server != null) {
+          if (!(clazz.isInstance(server))) {
+            throw new IllegalStateException();
           }
-          return clazz.cast(master);
+          return clazz.cast(server);
         }
         if (mCondition.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
           // Restart the retry counter when someone woke us up.
@@ -91,81 +94,83 @@ public final class MasterRegistry {
   }
 
   /**
-   * @param clazz the class of the master to add
-   * @param master the master to add
-   * @param <T> the type of the master to add
+   * @param clazz the class of the {@link Server} to add
+   * @param server the {@link Server} to add
+   * @param <U> the type of the {@link Server} to add
    */
-  public <T> void add(Class<T> clazz, Master master) {
+  public <U extends T> void add(Class<U> clazz, T server) {
     try (LockResource r = new LockResource(mLock)) {
-      mRegistry.put(clazz, master);
+      mRegistry.put(clazz, server);
       mCondition.signalAll();
     }
   }
 
   /**
-   * @return a list of all the registered masters, order by dependency relation
+   * @return a list of all the registered {@link Server}s, order by dependency relation
    */
-  public List<Master> getMasters() {
-    List<Master> masters = new ArrayList<>(mRegistry.values());
-    Collections.sort(masters, new DependencyComparator());
-    return masters;
+  public List<T> getServers() {
+    List<T> servers = new ArrayList<>(mRegistry.values());
+    Collections.sort(servers, new DependencyComparator());
+    return servers;
   }
 
   /**
-   * Starts all masters in dependency order. If A depends on B, A is started before B.
+   * Starts all {@link Server}s in dependency order. If A depends on B, A is started before B.
    *
-   * If a master fails to start, already-started masters will be stopped.
+   * If a {@link Server} fails to start, already-started {@link Server}s will be stopped.
    *
-   * @param isLeader whether to start the masters as leaders
+   * @param options the start options
+   * @param <U> the type of the start options
    * @throws IOException if an IO error occurs
    */
-  public void start(boolean isLeader) throws IOException {
-    List<Master> started = new ArrayList<>();
-    for (Master master : getMasters()) {
+  public <U> void start(U options) throws IOException {
+    List<T> servers = new ArrayList<>();
+    for (T server : getServers()) {
       try {
-        master.start(isLeader);
-        started.add(master);
+        server.start(options);
+        servers.add(server);
       } catch (IOException e) {
-        for (Master startedMaster: started) {
-          startedMaster.stop();
-          throw e;
+        for (T started : servers) {
+          started.stop();
         }
+        throw e;
       }
     }
   }
 
   /**
-   * Stops all masters in reverse dependency order. If A depends on B, B is stopped before A.
+   * Stops all {@link Server}s in reverse dependency order. If A depends on B, B is stopped
+   * before A.
    *
    * @throws IOException if an IO error occurs
    */
   public void stop() throws IOException {
-    for (Master master : Lists.reverse(getMasters())) {
-      master.stop();
+    for (T server : Lists.reverse(getServers())) {
+      server.stop();
     }
   }
 
   /**
-   * Computes a transitive closure of the master dependencies.
+   * Computes a transitive closure of the {@link Server} dependencies.
    *
-   * @param master the master to compute transitive dependencies for
+   * @param server the {@link Server} to compute transitive dependencies for
    * @return the transitive dependencies
    */
-  private Set<Master> getTransitiveDeps(Master master) {
-    Set<Master> result = new HashSet<>();
-    Deque<Master> queue = new ArrayDeque<>();
-    queue.add(master);
+  private Set<T> getTransitiveDeps(T server) {
+    Set<T> result = new HashSet<>();
+    Deque<T> queue = new ArrayDeque<>();
+    queue.add(server);
     while (!queue.isEmpty()) {
       Set<Class<?>> deps = queue.pop().getDependencies();
       if (deps == null) {
         continue;
       }
       for (Class<?> clazz : deps) {
-        Master dep = mRegistry.get(clazz);
+        T dep = mRegistry.get(clazz);
         if (dep == null) {
           continue;
         }
-        if (dep.equals(master)) {
+        if (dep.equals(server)) {
           throw new RuntimeException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
         }
         if (result.contains(dep)) {
@@ -179,18 +184,18 @@ public final class MasterRegistry {
   }
 
   /**
-   * Used for computing topological sort of masters with respect to the dependency relation.
+   * Used for computing topological sort of {@link Server}s with respect to the dependency relation.
    */
-  private final class DependencyComparator implements Comparator<Master> {
+  private final class DependencyComparator implements Comparator<T> {
     /**
      * Creates a new instance of {@link DependencyComparator}.
      */
-    public DependencyComparator() {}
+    DependencyComparator() {}
 
     @Override
-    public int compare(Master left, Master right) {
-      Set<Master> leftDeps = getTransitiveDeps(left);
-      Set<Master> rightDeps = getTransitiveDeps(right);
+    public int compare(T left, T right) {
+      Set<T> leftDeps = getTransitiveDeps(left);
+      Set<T> rightDeps = getTransitiveDeps(right);
       if (leftDeps.contains(right)) {
         return 1;
       }

@@ -20,7 +20,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -242,7 +242,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
   @Override
   public void stopWorkers() throws Exception {
-    for (AlluxioWorkerService worker : mWorkers) {
+    for (WorkerProcess worker : mWorkers) {
       worker.stop();
     }
   }

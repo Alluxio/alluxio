@@ -95,7 +95,7 @@ public abstract class AbstractMaster implements Master {
   }
 
   @Override
-  public void start(boolean isPrimary) throws IOException {
+  public void start(Boolean isPrimary) throws IOException {
     Preconditions.checkState(mExecutorService == null);
     mExecutorService = mExecutorServiceFactory.create();
     mIsPrimary = isPrimary;

@@ -23,9 +23,9 @@ import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.Journal;
@@ -34,8 +34,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -61,8 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
@@ -90,12 +86,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
       "SSD", 200L);
 
-  private AlluxioMasterService mMaster;
+  private MasterProcess mMaster;
   private ServletContext mContext;
   private BlockMaster mBlockMaster;
   private AlluxioMasterRestServiceHandler mHandler;
-  private ManualClock mClock;
-  private ExecutorService mExecutorService;
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
@@ -108,16 +102,12 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Before
   public void before() throws Exception {
-    mMaster = mock(AlluxioMasterService.class);
+    mMaster = mock(MasterProcess.class);
     mContext = mock(ServletContext.class);
-    MasterRegistry registry = new MasterRegistry();
+    Registry<Master> registry = new Registry<>();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mClock = new ManualClock();
-    mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new BlockMaster(registry, factory, mClock,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mBlockMaster = new BlockMaster(registry, factory);
     mBlockMaster.start(true);
     when(mMaster.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(mContext.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(

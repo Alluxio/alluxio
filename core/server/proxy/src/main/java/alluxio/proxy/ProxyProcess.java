@@ -11,24 +11,24 @@
 
 package alluxio.proxy;
 
-import alluxio.Server;
+import alluxio.Process;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A proxy in the Alluxio system.
  */
-public interface AlluxioProxyService extends Server {
+public interface ProxyProcess extends Process {
   /**
-   * Factory for creating {@link AlluxioProxyService}.
+   * Factory for creating {@link ProxyProcess}.
    */
   @ThreadSafe
   final class Factory {
     /**
-     * @return a new instance of {@link AlluxioProxyService}
+     * @return a new instance of {@link ProxyProcess}
      */
-    public static AlluxioProxyService create() {
-      return new DefaultAlluxioProxy();
+    public static ProxyProcess create() {
+      return new AlluxioProxyProcess();
     }
 
     private Factory() {} // prevent instantiation

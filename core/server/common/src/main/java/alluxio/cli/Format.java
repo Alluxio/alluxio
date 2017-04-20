@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
+import alluxio.ServiceUtils;
 import alluxio.master.journal.Journal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -115,7 +115,7 @@ public final class Format {
         } catch (URISyntaxException e) {
           throw new IOException(e.getMessage());
         }
-        for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
+        for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
           factory.create(masterServiceName).format();
         }
         break;

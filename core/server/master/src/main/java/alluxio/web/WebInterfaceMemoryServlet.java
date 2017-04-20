@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -42,14 +42,14 @@ import javax.servlet.http.HttpServletResponse;
 @ThreadSafe
 public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
-  private final transient AlluxioMasterService mMaster;
+  private final transient MasterProcess mMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceMemoryServlet}.
    *
    * @param master Alluxio master
    */
-  public WebInterfaceMemoryServlet(AlluxioMasterService master) {
+  public WebInterfaceMemoryServlet(MasterProcess master) {
     mMaster = Preconditions.checkNotNull(master);
   }
 
