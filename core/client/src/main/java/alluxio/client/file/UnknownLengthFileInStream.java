@@ -67,7 +67,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
         masterClient.completeFile(new AlluxioURI(mStatus.getPath()),
             CompleteFileOptions.defaults().setUfsLength(mPos));
       } catch (AlluxioStatusException e) {
-        throw new IOException(e);
+        throw e.toIOException();
       } finally {
         mContext.releaseMasterClient(masterClient);
       }

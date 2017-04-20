@@ -284,7 +284,7 @@ public class FileOutStream extends AbstractOutStream {
         .acquireMasterClientResource()) {
       return masterClient.get().getNewBlockIdForFile(mUri);
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 
@@ -310,7 +310,7 @@ public class FileOutStream extends AbstractOutStream {
         .acquireMasterClientResource()) {
       masterClient.get().scheduleAsyncPersist(mUri);
     } catch (AlluxioStatusException e) {
-      throw new IOException(e);
+      throw e.toIOException();
     }
   }
 

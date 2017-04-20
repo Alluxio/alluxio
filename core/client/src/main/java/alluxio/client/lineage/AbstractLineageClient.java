@@ -22,6 +22,7 @@ import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.job.CommandLineJob;
@@ -75,7 +76,7 @@ public abstract class AbstractLineageClient implements LineageClient {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw new IOException(e.getMessage());
+      throw e.toIOException();
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -94,8 +95,12 @@ public abstract class AbstractLineageClient implements LineageClient {
       return result;
     } catch (NotFoundException e) {
       throw new LineageDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
+    } catch (FailedPreconditionException e) {
       throw new LineageDeletionException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

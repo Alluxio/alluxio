@@ -434,13 +434,13 @@ public class FileInStreamTest {
   @Test
   public void failGetInStream() throws IOException {
     Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
-        .thenThrow(new UnavailableException("test IOException"));
+        .thenThrow(new UnavailableException("test exception"));
 
     try {
       mTestStream.seek(BLOCK_LENGTH);
       Assert.fail("block store should throw exception");
     } catch (IOException e) {
-      Assert.assertEquals("test IOException", e.getMessage());
+      Assert.assertEquals("test exception", e.getMessage());
     }
   }
 
@@ -456,7 +456,7 @@ public class FileInStreamTest {
             mContext);
 
     Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
-        .thenThrow(new UnavailableException("test IOException"));
+        .thenThrow(new UnavailableException("test exception"));
     Mockito.when(
         StreamFactory.createUfsBlockInStream(Mockito.any(FileSystemContext.class),
             Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),

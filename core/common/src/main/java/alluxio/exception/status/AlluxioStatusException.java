@@ -131,10 +131,12 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
+   * Converts this status exception to an IOException. If this exception was constructed by
+   * wrapping an IOException, the original IOException will be returned.
+   *
    * @return this exception converted to an IOException
    */
   public IOException toIOException() {
-    // If this exception was
     if (mIOException != null) {
       return mIOException;
     }
