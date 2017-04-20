@@ -212,7 +212,7 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   /**
-   * Clears the {@link alluxio.security.LoginUser} and re-login with new user.
+   * Clears the {@link alluxio.security.LoginUser} and logs in with new user.
    *
    * @param user the new user
    * @throws IOException if login fails
