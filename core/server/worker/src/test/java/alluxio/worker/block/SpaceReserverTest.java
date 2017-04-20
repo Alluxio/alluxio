@@ -57,6 +57,7 @@ public class SpaceReserverTest {
   public void before() {
     mExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("space-reserver-test", true));
+    Configuration.defaultInit();
   }
 
   @After
@@ -71,26 +72,19 @@ public class SpaceReserverTest {
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 400L, "HDD", 1000L);
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
-    Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(capacityBytesOnTiers);
 
     // Create two tiers named "MEM" and "HDD" with aliases 0 and 1.
     TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
         new int[]{0, 1}, new String[] {"MEM", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
         new long[][]{new long[]{0}, new long[]{0}}, "/");
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_NEWVERSION, true);
-    PropertyKey highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
-    Configuration.set(highWatermarkRatioProp, "1");
-    PropertyKey lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(0);
-    Configuration.set(lowWatermarkRatioProp, "0.8");
-    highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(1);
-    Configuration.set(highWatermarkRatioProp, "1");
-    lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(1);
-    Configuration.set(lowWatermarkRatioProp, "0.7");
+
+    PropertyKey reserveRatioProp =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(0);
+    Configuration.set(reserveRatioProp, "0.2");
+    reserveRatioProp =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(1);
+    Configuration.set(reserveRatioProp, "0.3");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
     mExecutorService.submit(
@@ -99,10 +93,10 @@ public class SpaceReserverTest {
     // Run the space reserver once.
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
 
-    // 400 * 0.2 + 1000 * 0.3 = 380
-    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
     // 400 * 0.2 = 80
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 80L, "MEM");
+    // 400 * 0.2 + 1000 * 0.3 = 380
+    Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
   }
 
   @Test
@@ -122,7 +116,6 @@ public class SpaceReserverTest {
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_NEWVERSION, true);
     PropertyKey highWatermarkRatioProp =
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
@@ -174,7 +167,6 @@ public class SpaceReserverTest {
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_NEWVERSION, true);
     PropertyKey highWatermarkRatioProp =
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
