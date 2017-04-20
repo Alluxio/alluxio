@@ -192,19 +192,18 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted
     startWorkers();
-    LOG.info("Started Alluxio worker with id {}", mRegistry.get(BlockWorker.class).getWorkerId());
+    LOG.info("Started {} with id {}", this, mRegistry.get(BlockWorker.class).getWorkerId());
 
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker version {} started @ {}", RuntimeConstants.VERSION, mRpcAddress);
+    LOG.info("{} version {} started @ {}", this, RuntimeConstants.VERSION, mRpcAddress);
     mThriftServer.serve();
-    LOG.info("Alluxio worker version {} ended @ {}", RuntimeConstants.VERSION, mRpcAddress);
+    LOG.info("{} version {} ended @ {}", this, RuntimeConstants.VERSION, mRpcAddress);
   }
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping Alluxio worker @ {}", mRpcAddress);
     if (mIsServingRPC) {
       stopServing();
       stopWorkers();
@@ -227,7 +226,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     try {
       mWebServer.stop();
     } catch (Exception e) {
-      LOG.error("Failed to stop web server", e);
+      LOG.error("Failed to stop {} web server", this, e);
     }
     MetricsSystem.stopSinks();
   }
@@ -287,7 +286,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor("Alluxio worker to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(toString() + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
@@ -303,5 +302,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         .setRpcPort(mRpcAddress.getPort())
         .setDataPort(mDataServer.getPort())
         .setWebPort(mWebServer.getLocalPort());
+  }
+
+  @Override
+  public String toString() {
+    return "Alluxio worker";
   }
 }

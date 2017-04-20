@@ -52,7 +52,7 @@ public final class AlluxioWorker {
     }
 
     WorkerProcess worker = WorkerProcess.Factory.create();
-    ProcessUtils.run(worker, "Alluxio worker");
+    ProcessUtils.run(worker);
   }
 
   private AlluxioWorker() {} // prevent instantiation

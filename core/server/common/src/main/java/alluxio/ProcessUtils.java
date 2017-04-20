@@ -24,21 +24,20 @@ public final class ProcessUtils {
    * Runs the given process. This method should only be called from {@code main()} methods.
    *
    * @param process the process to run
-   * @param name the process name
-   */
-  public static void run(Process process, String name) {
+'   */
+  public static void run(Process process) {
     try {
-      LOG.info("Starting {}", process);
+      LOG.info("Starting {}.", process);
       process.start();
       System.exit(0);
     } catch (Exception e) {
-      LOG.error("Uncaught exception while running {}, stopping it and exiting.", name, e);
+      LOG.error("Uncaught exception while running {}, stopping it and exiting.", process, e);
       try {
-        LOG.info("Stopping {}", process);
+        LOG.info("Stopping {}.", process);
         process.stop();
       } catch (Exception e2) {
         // continue to exit
-        LOG.error("Uncaught exception while stopping {}, simply exiting.", name, e2);
+        LOG.error("Uncaught exception while stopping {}, simply exiting.", process, e2);
       }
       System.exit(-1);
     }

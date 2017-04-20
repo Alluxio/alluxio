@@ -104,8 +104,8 @@ public class AlluxioMasterProcess implements MasterProcess {
             + PropertyKey.MASTER_WORKER_THREADS_MIN);
 
     if (connectionTimeout > 0) {
-      LOG.debug("Alluxio master connection timeout["
-              + PropertyKey.MASTER_CONNECTION_TIMEOUT_MS + "] is " + connectionTimeout);
+      LOG.debug("{} connection timeout[{}] is {}", this, PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+          connectionTimeout);
     }
     try {
       // Extract the port from the generated socket.
@@ -115,9 +115,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       // deployment more complicated.
       if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
-            "Alluxio master rpc port is only allowed to be zero in test mode.");
+            toString() + " rpc port is only allowed to be zero in test mode.");
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
-            "Alluxio master web port is only allowed to be zero in test mode.");
+            toString() + " web port is only allowed to be zero in test mode.");
       }
       mTransportProvider = TransportProvider.Factory.create();
       mTServerSocket =
@@ -173,7 +173,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor("Alluxio master to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(toString() + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mThriftServer != null && mThriftServer.isServing()
@@ -190,7 +190,6 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping Alluxio master @ {}", mRpcAddress);
     if (mIsServing) {
       stopServing();
       stopMasters();
@@ -240,10 +239,10 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
-    LOG.info("Alluxio master version {} started @ {} {}", RuntimeConstants.VERSION, mRpcAddress,
+    LOG.info("{} version {} started @ {} {}", this, RuntimeConstants.VERSION, mRpcAddress,
         startMessage);
     startServingRPCServer();
-    LOG.info("Alluxio master version {} ended @ {} {}", RuntimeConstants.VERSION, mRpcAddress,
+    LOG.info("{} version {} ended @ {} {}", this, RuntimeConstants.VERSION, mRpcAddress,
         stopMessage);
   }
 
@@ -333,5 +332,10 @@ public class AlluxioMasterProcess implements MasterProcess {
     String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
+  }
+
+  @Override
+  public String toString() {
+    return "Alluxio master";
   }
 }

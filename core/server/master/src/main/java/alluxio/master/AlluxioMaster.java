@@ -39,7 +39,7 @@ public final class AlluxioMaster {
     }
 
     MasterProcess master = MasterProcess.Factory.create();
-    ProcessUtils.run(master, "Alluxio master");
+    ProcessUtils.run(master);
   }
 
   private AlluxioMaster() {} // prevent instantiation

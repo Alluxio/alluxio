@@ -73,6 +73,11 @@ public final class AlluxioSecondaryMasterProcess implements Process {
   @Override
   public void waitForReady() {}
 
+  @Override
+  public String toString() {
+    return "Alluxio secondary master";
+  }
+
   /**
    * Starts the secondary Alluxio master.
    *
@@ -86,7 +91,7 @@ public final class AlluxioSecondaryMasterProcess implements Process {
     }
 
     AlluxioSecondaryMasterProcess master = new AlluxioSecondaryMasterProcess();
-    ProcessUtils.run(master, "Alluxio Secondary Master");
+    ProcessUtils.run(master);
   }
 
   /**

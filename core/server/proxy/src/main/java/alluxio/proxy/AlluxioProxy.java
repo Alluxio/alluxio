@@ -52,7 +52,7 @@ public final class AlluxioProxy {
     }
 
     ProxyProcess proxy = ProxyProcess.Factory.create();
-    ProcessUtils.run(proxy, "Alluxio proxy");
+    ProcessUtils.run(proxy);
   }
 
   private AlluxioProxy() {} // prevent instantiation

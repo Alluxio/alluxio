@@ -72,7 +72,6 @@ public final class AlluxioProxyProcess implements ProxyProcess {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping Alluxio proxy.");
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
@@ -81,11 +80,16 @@ public final class AlluxioProxyProcess implements ProxyProcess {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor("Alluxio proxy to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(toString() + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mWebServer != null && mWebServer.getServer().isRunning();
       }
     });
+  }
+
+  @Override
+  public String toString() {
+    return "Alluxio Proxy";
   }
 }
