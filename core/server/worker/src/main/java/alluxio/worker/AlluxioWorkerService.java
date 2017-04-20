@@ -14,6 +14,7 @@ package alluxio.worker;
 import alluxio.Server;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.file.FileDataManager;
 
 import java.net.InetSocketAddress;
 
@@ -47,6 +48,11 @@ public interface AlluxioWorkerService extends Server {
    * @return the block worker for this Alluxio worker
    */
   BlockWorker getBlockWorker();
+
+  /**
+   * @return the file data manager for this Alluxio worker
+   */
+  FileDataManager getFileDataManager();
 
   /**
    * @return the worker's data service bind host (used by unit test only)

@@ -347,7 +347,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
               .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
               .setBlockSize(length));
       return StreamFactory.createUfsBlockInStream(mContext, path, blockId, length, blockStart,
-          address, mInStreamOptions);
+          address, mStatus.getAlluxioMountPoint(), mStatus.getMountTableVersion(),
+          mInStreamOptions);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

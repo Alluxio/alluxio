@@ -24,6 +24,10 @@ public final class UnderFileSystemBlockMeta {
   private final long mOffset;
   /** The block size in bytes. */
   private final long mBlockSize;
+  /** The mount point in Alluxio for the file that this block belonging to. */
+  private final String mAlluxioMountPoint;
+  /** The mount table version. */
+  private final long mMountTableVersion;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockMeta}.
@@ -38,6 +42,8 @@ public final class UnderFileSystemBlockMeta {
     mUnderFileSystemPath = options.getUnderFileSystemPath();
     mOffset = options.getOffset();
     mBlockSize = options.getBlockSize();
+    mAlluxioMountPoint = options.getAlluxioMountPoint();
+    mMountTableVersion = options.getMountTableVersion();
   }
 
   /**
@@ -73,5 +79,19 @@ public final class UnderFileSystemBlockMeta {
    */
   public long getBlockSize() {
     return mBlockSize;
+  }
+
+  /**
+   * @return the mount point in Alluxio for the file this block belonging to
+   */
+  public String getAlluxioMountPoint() {
+    return mAlluxioMountPoint;
+  }
+
+  /**
+   * @return the mount table version
+   */
+  public long getMountTableVersion() {
+    return mMountTableVersion;
   }
 }

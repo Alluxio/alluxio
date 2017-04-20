@@ -207,6 +207,20 @@ public class URIStatus {
   }
 
   /**
+   * @return the mount point path in Alluxio for this file
+   */
+  public String getAlluxioMountPoint() {
+    return mInfo.getAlluxioMountPoint();
+  }
+
+  /**
+   * @return the mount table version
+   */
+  public long getMountTableVersion() {
+    return mInfo.getMountTableVersion();
+  }
+
+  /**
    * @return the list of file block descriptors
    */
   public List<FileBlockInfo> getFileBlockInfos() {

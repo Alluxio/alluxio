@@ -75,6 +75,15 @@ public final class FileDataManager {
   /** A per worker rate limiter to throttle async persistence. */
   private final RateLimiter mPersistenceRateLimiter;
 
+  private final Object mUfsConfigurationLock = new Object();
+
+  /** Map from Alluxio mount point to the corresponding ufs configuration. */
+  @GuardedBy("mUfsConfigurationLock")
+  private final Map<String, Map<String, String>> mUfsMap;
+
+  @GuardedBy("mUfsConfigurationLock")
+  private long mUfsMapVersion;
+
   /**
    * Creates a new instance of {@link FileDataManager}.
    *
@@ -86,6 +95,38 @@ public final class FileDataManager {
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
+    mUfsMap = new HashMap<>();
+    mUfsMapVersion = 0;
+  }
+
+  /**
+   * Gets the properties for the given Alluxio mount point.
+   *
+   * @param alluxioPath Uri for an Alluxio mount point
+   * @return the configuration of the UFS
+   */
+  public Map<String, String> getUfsProperties(String alluxioPath) {
+    synchronized (mUfsConfigurationLock) {
+      return getUfsProperties(alluxioPath, mUfsMapVersion);
+    }
+  }
+
+  /**
+   * Gets the properties for the given Alluxio mount point and a specific version.
+   *
+   * @param alluxioPath Uri for an Alluxio mount point
+   * @param version version of the mount table associated with the mount point
+   * @return the configuration of the UFS
+   */
+  public Map<String, String> getUfsProperties(String alluxioPath, long version) {
+    // TODO fill me
+    synchronized (mUfsConfigurationLock) {
+      if (version >= mUfsMapVersion || !mUfsMap.containsKey(alluxioPath)) {
+        // local copy is stale
+        // call master APi and update map
+      }
+      return mUfsMap.get(alluxioPath);
+    }
   }
 
   /**
@@ -157,9 +198,11 @@ public final class FileDataManager {
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+    String mountPoint = fileInfo.getAlluxioMountPoint();
     String dstPath = fileInfo.getUfsPath();
 
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
+    UnderFileSystem ufs =
+        UnderFileSystem.Factory.getMountPoint(mountPoint, getUfsProperties(mountPoint));
     return ufs.isFile(dstPath);
   }
 
@@ -227,8 +270,10 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+    String mountPoint = fileInfo.getAlluxioMountPoint();
+    UnderFileSystem ufs =
+        UnderFileSystem.Factory.getMountPoint(mountPoint, getUfsProperties(mountPoint));
     OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
         .setMode(new Mode((short) fileInfo.getMode())));
@@ -301,7 +346,9 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath);
+    String mountPoint = fileInfo.getAlluxioMountPoint();
+    UnderFileSystem ufs =
+        UnderFileSystem.Factory.getMountPoint(mountPoint, getUfsProperties(mountPoint));
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

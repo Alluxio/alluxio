@@ -51,6 +51,8 @@ public final class FileInfo implements Serializable {
   private String mPersistenceState = "";
   private boolean mMountPoint;
   private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
+  private String mAlluxioMountPoint;
+  private long mMountTableVersion;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -91,6 +93,8 @@ public final class FileInfo implements Serializable {
         mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
       }
     }
+    mAlluxioMountPoint = fileInfo.getAlluxioMountPoint();
+    mMountTableVersion = fileInfo.getMountTableVersion();
   }
 
   /**
@@ -252,6 +256,20 @@ public final class FileInfo implements Serializable {
    */
   public List<FileBlockInfo> getFileBlockInfos() {
     return mFileBlockInfos;
+  }
+
+  /**
+   * @return the mount point path in Alluxio for this file
+   */
+  public String getAlluxioMountPoint() {
+    return mAlluxioMountPoint;
+  }
+
+  /**
+   * @return the mount table version
+   */
+  public long getMountTableVersion() {
+    return mMountTableVersion;
   }
 
   /**
@@ -469,6 +487,22 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param alluxioMountPoint the mount point path in Alluxio for this file
+   * @return the file information
+   */
+  public void setAlluxioMountPoint(String alluxioMountPoint) {
+    mAlluxioMountPoint = alluxioMountPoint;
+  }
+
+  /**
+   * @param mountTableVersion the mount table version
+   * @return the file information
+   */
+  public void setMountTableVersion(long mountTableVersion) {
+    mMountTableVersion = mountTableVersion;
+  }
+
+  /**
    * @return thrift representation of the file information
    */
   protected alluxio.thrift.FileInfo toThrift() {
@@ -481,7 +515,8 @@ public final class FileInfo implements Serializable {
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
-        mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction));
+        mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction),
+        mAlluxioMountPoint, mMountTableVersion);
     return info;
   }
 
@@ -503,7 +538,9 @@ public final class FileInfo implements Serializable {
         && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
         && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
-        && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction;
+        && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
+        && mAlluxioMountPoint.equals(that.mAlluxioMountPoint)
+        && mMountTableVersion == that.mMountTableVersion;
   }
 
   @Override
@@ -524,6 +561,9 @@ public final class FileInfo implements Serializable {
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
         .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
-        .add("fileBlockInfos", mFileBlockInfos).toString();
+        .add("fileBlockInfos", mFileBlockInfos)
+        .add("alluxioMountPoint", mAlluxioMountPoint)
+        .add("mountTableVersion", mMountTableVersion)
+        .toString();
   }
 }

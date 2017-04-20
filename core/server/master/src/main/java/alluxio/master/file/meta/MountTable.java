@@ -58,6 +58,13 @@ public final class MountTable implements JournalEntryIterable {
   @GuardedBy("mLock")
   private final Map<String, MountInfo> mMountTable;
 
+  @GuardedBy("mLock")
+  private long mVersion;
+
+  private static long getCurrentVersion() {
+    return System.currentTimeMillis();
+  }
+
   /**
    * Creates a new instance of {@link MountTable}.
    */
@@ -67,6 +74,7 @@ public final class MountTable implements JournalEntryIterable {
     mLock = new ReentrantReadWriteLock();
     mReadLock = mLock.readLock();
     mWriteLock = mLock.writeLock();
+    mVersion = getCurrentVersion();
   }
 
   @Override
@@ -172,6 +180,7 @@ public final class MountTable implements JournalEntryIterable {
         }
       }
       mMountTable.put(alluxioPath, new MountInfo(ufsUri, options));
+      mVersion = getCurrentVersion();
     }
   }
 
@@ -186,6 +195,7 @@ public final class MountTable implements JournalEntryIterable {
       if (mountInfo != null) {
         mMountTable.put(ROOT, mountInfo);
       }
+      mVersion = getCurrentVersion();
     }
   }
 
@@ -206,6 +216,7 @@ public final class MountTable implements JournalEntryIterable {
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mMountTable.containsKey(path)) {
         mMountTable.remove(path);
+        mVersion = getCurrentVersion();
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
@@ -273,16 +284,14 @@ public final class MountTable implements JournalEntryIterable {
       LOG.debug("Resolving {}", path);
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(uri);
-      if (mountPoint != null) {
-        MountInfo info = mMountTable.get(mountPoint);
-        AlluxioURI ufsUri = info.getUfsUri();
-        // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.Factory.getMountPoint(ufsUri.toString(),
-            info.getOptions().getProperties());
-        AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-        return new Resolution(resolvedUri, ufs, info.getOptions().isShared());
-      }
-      return new Resolution(uri, null, false);
+      MountInfo info = mMountTable.get(mountPoint);
+      AlluxioURI ufsUri = info.getUfsUri();
+      // TODO(gpang): this ufs should probably be cached.
+      UnderFileSystem ufs = UnderFileSystem.Factory.getMountPoint(ufsUri.toString(),
+          info.getOptions().getProperties());
+      AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
+      return new Resolution(resolvedUri, ufs, info.getOptions().isShared(),
+          new AlluxioURI(mountPoint), mVersion);
     }
   }
 
@@ -314,11 +323,16 @@ public final class MountTable implements JournalEntryIterable {
     private final AlluxioURI mUri;
     private final UnderFileSystem mUfs;
     private final boolean mShared;
+    private final AlluxioURI mMountPoint;
+    private final long mVersion;
 
-    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared) {
+    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, AlluxioURI mountPoint,
+        long version) {
       mUri = uri;
       mUfs = ufs;
       mShared = shared;
+      mMountPoint = mountPoint;
+      mVersion = version;
     }
 
     /**
@@ -340,6 +354,20 @@ public final class MountTable implements JournalEntryIterable {
      */
     public boolean getShared() {
       return mShared;
+    }
+
+    /**
+     * @return the mount point in Alluxio on the queried Uri
+     */
+    public AlluxioURI getMountPoint() {
+      return mMountPoint;
+    }
+
+    /**
+     * @return the version of mount table
+     */
+    public long getVersion() {
+      return mVersion;
     }
   }
 }

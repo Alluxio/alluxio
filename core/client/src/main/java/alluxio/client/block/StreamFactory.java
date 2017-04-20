@@ -108,14 +108,17 @@ public final class StreamFactory {
    * @param blockSize the block size
    * @param blockStart the start position of the block in the UFS file
    * @param address the worker network address
+   * @param alluxioMountPoint the mount point of the file in Alluxio
+   * @param mountTableVersion the version of Alluxio mount table
    * @param options the in stream options
    * @return the input stream
    * @throws IOException if it fails to create the input stream
    */
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart, WorkerNetAddress address,
+      String alluxioMountPoint, long mountTableVersion,
       InStreamOptions options) throws IOException {
     return BlockInStream.createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart,
-        address, options);
+        alluxioMountPoint, mountTableVersion, address, options);
   }
 }

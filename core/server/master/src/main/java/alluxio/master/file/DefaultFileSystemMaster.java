@@ -688,10 +688,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new FileDoesNotExistException(e.getMessage(), e);
     }
     AlluxioURI resolvedUri = resolution.getUri();
-    // Only set the UFS path if the path is nested under a mount point.
-    if (!uri.equals(resolvedUri)) {
-      fileInfo.setUfsPath(resolvedUri.toString());
-    }
+    fileInfo.setUfsPath(resolvedUri.toString());
+    fileInfo.setAlluxioMountPoint(resolution.getMountPoint().toString());
+    fileInfo.setMountTableVersion(resolution.getVersion());
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }

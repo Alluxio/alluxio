@@ -28,6 +28,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.file.DefaultFileSystemWorker;
+import alluxio.worker.file.FileDataManager;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -174,6 +175,11 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   @Override
   public BlockWorker getBlockWorker() {
     return mBlockWorker;
+  }
+
+  @Override
+  public FileDataManager getFileDataManager() {
+    return mFileSystemWorker.getFileDataManager();
   }
 
   @Override
