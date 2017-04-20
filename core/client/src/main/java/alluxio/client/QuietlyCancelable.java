@@ -18,8 +18,7 @@ import java.io.IOException;
  */
 public interface QuietlyCancelable {
   /**
-   * Cancels the write to Alluxio storage. This will delete all the temporary data and metadata
-   * that has been written to the worker(s). This method should be called when a write is aborted.
+   * Cancels an operation.
    */
   void cancel();
 }
