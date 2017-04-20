@@ -33,7 +33,7 @@ public final class DataFileChannel implements DataBuffer {
    * @param length The length of the data to read
    */
   public DataFileChannel(FileChannel fileChannel, long offset, long length) {
-    mFileChannel = Preconditions.checkNotNull(fileChannel);
+    mFileChannel = Preconditions.checkNotNull(fileChannel,"fileChannel");
     mOffset = offset;
     mLength = length;
   }
