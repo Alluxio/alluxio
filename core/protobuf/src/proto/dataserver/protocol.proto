@@ -67,7 +67,7 @@ message ReadRequest {
 }
 
 // The write request.
-// next available id: 14
+// next available id: 13
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -86,8 +86,7 @@ message WriteRequest {
   optional string owner = 9;
   optional string group = 10;
   optional int32 mode = 11;
-  optional string alluxio_mount_point = 12;
-  optional int64 mount_table_version = 13;
+  optional int64 ufs_id = 12;
 }
 
 // The response.
