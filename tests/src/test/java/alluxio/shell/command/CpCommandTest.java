@@ -12,10 +12,10 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.shell.AbstractAlluxioShellTest;
