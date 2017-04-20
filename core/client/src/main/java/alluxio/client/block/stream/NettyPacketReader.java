@@ -274,7 +274,7 @@ public final class NettyPacketReader implements PacketReader {
       try {
         response.unwrapException();
       } catch (CanceledException e) {
-        // TODO(andrew): Ask pei why we ignore canceled status.
+        // Canceled is considered a valid status and handled in the reader.
       }
 
       DataBuffer dataBuffer = response.getPayloadDataBuffer();

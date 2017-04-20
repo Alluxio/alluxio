@@ -490,7 +490,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
      */
     private void replyError(Exception e) {
       AlluxioStatusException se = AlluxioStatusException.from(e);
-      mChannel.writeAndFlush(RPCProtoMessage.createResponse(se, null))
+      mChannel.writeAndFlush(RPCProtoMessage.createResponse(se))
           .addListener(ChannelFutureListener.CLOSE);
     }
 
