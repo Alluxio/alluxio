@@ -346,6 +346,7 @@ public interface FileSystemMaster extends Master {
   String getUfsAddress();
 
   /**
+   * @param ufsId the ufs id to query
    * @return the ufs information for the given ufs id
    */
   UfsInfo getUfsInfo(long ufsId);

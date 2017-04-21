@@ -15,11 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.ServerUtils;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.wire.MountPointInfo;
 
 import java.io.IOException;
 import java.net.URI;
@@ -90,14 +87,5 @@ final class MasterUtils {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  /**
-   * Sets information related to under filesystem, including its uri, type, storage usage.
-   *
-   * @param ufsUri the under filesystem uri
-   */
-  public static void setUfsInfo(MountInfo mountInfo, MountPointInfo info) {
-
   }
 }
