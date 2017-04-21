@@ -230,28 +230,12 @@ public final class NettyPacketWriter implements PacketWriter {
         }
         try {
           if (mPacketWriteException != null) {
-<<<<<<< HEAD
-            mChannel.close().sync();
-            throw new UnavailableException(mPacketWriteException);
-||||||| merged common ancestors
-            mChannel.close().sync();
-            throw new IOException(mPacketWriteException);
-=======
             mChannel.close();
-            throw new IOException(mPacketWriteException);
->>>>>>> upstream/master
+            throw new UnavailableException(mPacketWriteException);
           }
           if (!mDoneOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-<<<<<<< HEAD
-            mChannel.close().sync();
-            throw new DeadlineExceededException(String.format(
-||||||| merged common ancestors
-            mChannel.close().sync();
-            throw new IOException(String.format(
-=======
             mChannel.close();
-            throw new IOException(String.format(
->>>>>>> upstream/master
+            throw new DeadlineExceededException(String.format(
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
