@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
 
@@ -21,7 +22,6 @@ import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.Security;
 import java.util.HashMap;
@@ -52,15 +52,14 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   }
 
   @Override
-  public TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException {
+  public TTransport getClientTransport(InetSocketAddress serverAddress) {
     String username = LoginUser.get().getName();
     String password = "noPassword";
     return getClientTransport(username, password, serverAddress);
   }
 
   @Override
-  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
-      throws IOException {
+  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress) {
     String username = null;
     String password = "noPassword";
 
@@ -84,15 +83,18 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * @param password Password of PlainClient
    * @param serverAddress Address of the server
    * @return Wrapped transport with PLAIN mechanism
-   * @throws SaslException if an AuthenticationProvider is not found
    */
   public TTransport getClientTransport(String username, String password,
-      InetSocketAddress serverAddress) throws SaslException {
+      InetSocketAddress serverAddress) {
     TTransport wrappedTransport =
         TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
-    return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, null, null, null,
-        new HashMap<String, String>(), new PlainSaslClientCallbackHandler(username, password),
-        wrappedTransport);
+    try {
+      return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, null, null, null,
+          new HashMap<String, String>(), new PlainSaslClientCallbackHandler(username, password),
+          wrappedTransport);
+    } catch (SaslException e) {
+      throw new UnauthenticatedException(e.getMessage(), e);
+    }
   }
 
   @Override

@@ -18,6 +18,9 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 
 import com.google.common.base.Preconditions;
 
@@ -44,30 +47,62 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
   @Override
   public KeyValueStoreReader openStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
-    return new BaseKeyValueStoreReader(uri);
+    try {
+      return new BaseKeyValueStoreReader(uri);
+    } catch (UnavailableException e) {
+      throw e.toIOException();
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
   }
 
   @Override
   public KeyValueStoreWriter createStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
-    return new BaseKeyValueStoreWriter(uri);
+    try {
+      return new BaseKeyValueStoreWriter(uri);
+    } catch (UnavailableException e) {
+      throw e.toIOException();
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
   }
 
   @Override
   public void deleteStore(AlluxioURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
-    mMasterClient.deleteStore(uri);
+    try {
+      mMasterClient.deleteStore(uri);
+    } catch (UnavailableException e) {
+      throw new IOException(e);
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage(), e);
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
   }
 
   @Override
   public void renameStore(AlluxioURI oldUri, AlluxioURI newUri)
       throws IOException, AlluxioException {
-    mMasterClient.renameStore(oldUri, newUri);
+    try {
+      mMasterClient.renameStore(oldUri, newUri);
+    } catch (UnavailableException e) {
+      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
   }
 
   @Override
   public void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
       throws IOException, AlluxioException {
-    mMasterClient.mergeStore(fromUri, toUri);
+    try {
+      mMasterClient.mergeStore(fromUri, toUri);
+    } catch (UnavailableException e) {
+      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    }
   }
 }

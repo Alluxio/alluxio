@@ -15,15 +15,16 @@ import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.StreamFactory;
-import alluxio.client.block.stream.TestBlockInStream;
-import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.block.stream.TestBlockInStream;
+import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -433,13 +434,13 @@ public class FileInStreamTest {
   @Test
   public void failGetInStream() throws IOException {
     Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
-        .thenThrow(new IOException("test IOException"));
+        .thenThrow(new UnavailableException("test exception"));
 
     try {
       mTestStream.seek(BLOCK_LENGTH);
       Assert.fail("block store should throw exception");
     } catch (IOException e) {
-      Assert.assertEquals("test IOException", e.getMessage());
+      Assert.assertEquals("test exception", e.getMessage());
     }
   }
 
@@ -455,7 +456,7 @@ public class FileInStreamTest {
             mContext);
 
     Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
-        .thenThrow(new IOException("test IOException"));
+        .thenThrow(new UnavailableException("test exception"));
     Mockito.when(
         StreamFactory.createUfsBlockInStream(Mockito.any(FileSystemContext.class),
             Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),

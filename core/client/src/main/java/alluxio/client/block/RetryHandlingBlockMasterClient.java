@@ -13,10 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.ThriftUtils;
@@ -24,7 +21,6 @@ import alluxio.wire.WorkerInfo;
 
 import org.apache.thrift.TException;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +70,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = new BlockMasterClientService.Client(mProtocol);
   }
 
@@ -82,11 +78,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * Gets the info of a list of workers.
    *
    * @return A list of worker info returned by master
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList()
-      throws IOException, ConnectionFailedException {
+  public synchronized List<WorkerInfo> getWorkerInfoList() {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
@@ -104,14 +97,11 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized BlockInfo getBlockInfo(final long blockId)
-      throws AlluxioException, IOException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<BlockInfo>() {
+  public synchronized BlockInfo getBlockInfo(final long blockId) {
+    return retryRPC(new RpcCallable<BlockInfo>() {
       @Override
-      public BlockInfo call() throws AlluxioTException, TException {
+      public BlockInfo call() throws TException {
         return ThriftUtils.fromThrift(mClient.getBlockInfo(blockId));
       }
     });
@@ -121,10 +111,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * Gets the total Alluxio capacity in bytes, on all the tiers of all the workers.
    *
    * @return total capacity in bytes
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized long getCapacityBytes() throws ConnectionFailedException, IOException {
+  public synchronized long getCapacityBytes() {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -137,10 +125,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * Gets the total amount of used space in bytes, on all the tiers of all the workers.
    *
    * @return amount of used space in bytes
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized long getUsedBytes() throws ConnectionFailedException, IOException {
+  public synchronized long getUsedBytes() {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {

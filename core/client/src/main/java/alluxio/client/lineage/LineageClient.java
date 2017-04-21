@@ -41,7 +41,7 @@ interface LineageClient {
    * @param job the job that takes the listed input file and computes the output file
    * @param options the method options
    * @return the lineage id
-   * @throws IOException if the master cannot create the lineage
+   * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException an input file does not exist in Alluxio storage, nor is added
    *         as an output file of an existing lineage
    * @throws AlluxioException if an unexpected alluxio error occurs
@@ -54,7 +54,7 @@ interface LineageClient {
    *
    * @param options method options
    * @return the information about lineages
-   * @throws IOException if the master cannot list the lineage info
+   * @throws IOException if an I/O error occurs
    */
   List<LineageInfo> getLineageInfoList(GetLineageInfoListOptions options) throws IOException;
 
@@ -67,7 +67,7 @@ interface LineageClient {
    * @param lineageId the id of the lineage
    * @param options method options
    * @return true if the lineage deletion is successful, false otherwise
-   * @throws IOException if the master cannot delete the lineage
+   * @throws IOException if an I/O error occurs
    * @throws LineageDeletionException if the deletion is cascade but the lineage has children
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws AlluxioException if an unexpected alluxio error occurs

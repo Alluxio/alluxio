@@ -40,7 +40,7 @@ public class OutOfRangeException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public OutOfRangeException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**

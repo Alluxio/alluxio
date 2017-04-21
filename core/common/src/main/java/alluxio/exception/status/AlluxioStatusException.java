@@ -36,6 +36,7 @@ import alluxio.thrift.AlluxioTException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
@@ -49,6 +50,9 @@ public class AlluxioStatusException extends RuntimeException {
   private static final long serialVersionUID = -7422144873058169662L;
 
   private final ExceptionStatus mStatus;
+  // If this status exception was constructed from an IOException, the IOException is stored here
+  // and reused if the status exception is ever converted back to an IOException.
+  private final IOException mIOException;
 
   /**
    * @param status the status code for this exception
@@ -57,6 +61,7 @@ public class AlluxioStatusException extends RuntimeException {
   public AlluxioStatusException(ExceptionStatus status, String message) {
     super(message);
     mStatus = status;
+    mIOException = null;
   }
 
   /**
@@ -64,7 +69,11 @@ public class AlluxioStatusException extends RuntimeException {
    * @param cause the cause of the exception
    */
   public AlluxioStatusException(ExceptionStatus status, Throwable cause) {
-    this(status, cause.getMessage(), cause);
+    super(cause.getMessage(), cause);
+    mStatus = status;
+    // This AlluxioStatusException doesn't have its own message, so it's essentially just a wrapper
+    // around the cause. We save IOException causes in case we want to unwrap them later.
+    mIOException = cause instanceof IOException ? (IOException) cause : null;
   }
 
   /**
@@ -75,6 +84,7 @@ public class AlluxioStatusException extends RuntimeException {
   public AlluxioStatusException(ExceptionStatus status, String message, Throwable cause) {
     super(message, cause);
     mStatus = status;
+    mIOException = null;
   }
 
   /**
@@ -100,7 +110,7 @@ public class AlluxioStatusException extends RuntimeException {
       // Fall throughs are intentional.
       case PERMISSION_DENIED:
       case UNAUTHENTICATED:
-        return new AccessControlException(getMessage());
+        return new AccessControlException(getMessage(), this);
       case ABORTED:
       case ALREADY_EXISTS:
       case CANCELED:
@@ -116,8 +126,21 @@ public class AlluxioStatusException extends RuntimeException {
       case UNIMPLEMENTED:
       case UNKNOWN:
       default:
-        return new AlluxioException(getMessage());
+        return new AlluxioException(getMessage(), this);
     }
+  }
+
+  /**
+   * Converts this status exception to an IOException. If this exception was constructed by
+   * wrapping an IOException, the original IOException will be returned.
+   *
+   * @return this exception converted to an IOException
+   */
+  public IOException toIOException() {
+    if (mIOException != null) {
+      return mIOException;
+    }
+    return new IOException(getMessage(), this);
   }
 
   /**
@@ -165,6 +188,26 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
+   * Converts exceptions to Alluxio status exceptions.
+   *
+   * @param ex an exception
+   * @return the converted {@link AlluxioStatusException}
+   */
+  public static AlluxioStatusException from(Exception ex) {
+    try {
+      throw ex;
+    } catch (IOException e) {
+      return fromIOException(e);
+    } catch (AlluxioException e) {
+      return fromAlluxioException(e);
+    } catch (RuntimeException e) {
+      return fromRuntimeException(e);
+    } catch (Exception e) {
+      return new UnknownException(e);
+    }
+  }
+
+  /**
    * Converts checked Alluxio exceptions to Alluxio status exceptions.
    *
    * @param ae the Alluxio exception to convert
@@ -207,13 +250,15 @@ public class AlluxioStatusException extends RuntimeException {
     try {
       throw ioe;
     } catch (FileNotFoundException e) {
-      throw new NotFoundException(e);
+      return new NotFoundException(e);
     } catch (MalformedURLException e) {
-      throw new InvalidArgumentException(e);
+      return new InvalidArgumentException(e);
     } catch (UserPrincipalNotFoundException e) {
-      throw new UnauthenticatedException(e);
+      return new UnauthenticatedException(e);
+    } catch (ClosedChannelException e) {
+      return new FailedPreconditionException(e);
     } catch (IOException e) {
-      throw new UnavailableException(e);
+      return new UnavailableException(e);
     }
   }
 
@@ -238,6 +283,8 @@ public class AlluxioStatusException extends RuntimeException {
       return new OutOfRangeException(e);
     } catch (RejectedExecutionException e) {
       return new ResourceExhaustedException(e);
+    } catch (AlluxioStatusException e) {
+      return e;
     } catch (RuntimeException e) {
       return new UnknownException(e);
     }

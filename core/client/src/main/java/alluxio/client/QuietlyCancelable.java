@@ -11,19 +11,14 @@
 
 package alluxio.client;
 
-import alluxio.QuietlyCloseable;
-import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
-
-import java.util.Set;
+import java.io.IOException;
 
 /**
- * Interface for a client to the meta master.
+ * Similar to {@link Cancelable}, but the cancel method doesn't throw {@link IOException}.
  */
-public interface MetaMasterClient extends QuietlyCloseable {
+public interface QuietlyCancelable {
   /**
-   * @param masterInfoFields optional list of fields to query; if null all fields will be queried
-   * @return the requested master info
+   * Cancels an operation.
    */
-  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields);
+  void cancel();
 }

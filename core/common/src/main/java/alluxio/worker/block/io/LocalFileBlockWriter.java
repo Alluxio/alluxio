@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
@@ -42,11 +44,14 @@ public final class LocalFileBlockWriter implements BlockWriter {
    * Constructs a Block writer given the file path of the block.
    *
    * @param path file path of the block
-   * @throws IOException if its file can not be open with "rw" mode
    */
-  public LocalFileBlockWriter(String path) throws IOException {
+  public LocalFileBlockWriter(String path) {
     mFilePath = Preconditions.checkNotNull(path);
-    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
+    try {
+      mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
@@ -56,15 +61,24 @@ public final class LocalFileBlockWriter implements BlockWriter {
   }
 
   @Override
-  public long append(ByteBuffer inputBuf) throws IOException {
-    long bytesWritten = write(mLocalFileChannel.size(), inputBuf.duplicate());
+  public long append(ByteBuffer inputBuf) {
+    long bytesWritten;
+    try {
+      bytesWritten = write(mLocalFileChannel.size(), inputBuf.duplicate());
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     mPosition += bytesWritten;
     return bytesWritten;
   }
 
   @Override
-  public void transferFrom(ByteBuf buf) throws IOException {
-    mPosition += buf.readBytes(mLocalFileChannel, buf.readableBytes());
+  public void transferFrom(ByteBuf buf) {
+    try {
+      mPosition += buf.readBytes(mLocalFileChannel, buf.readableBytes());
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
   }
 
   @Override
@@ -73,13 +87,13 @@ public final class LocalFileBlockWriter implements BlockWriter {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }
     mClosed = true;
 
-    mCloser.close();
+    CommonUtils.close(mCloser);
     mPosition = -1;
   }
 
@@ -89,12 +103,15 @@ public final class LocalFileBlockWriter implements BlockWriter {
    * @param offset starting offset of the block file to write
    * @param inputBuf {@link ByteBuffer} that input data is stored in
    * @return the size of data that was written
-   * @throws IOException if an I/O error occurs
    */
-  private long write(long offset, ByteBuffer inputBuf) throws IOException {
+  private long write(long offset, ByteBuffer inputBuf) {
     int inputBufLength = inputBuf.limit() - inputBuf.position();
-    MappedByteBuffer outputBuf =
-        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
+    MappedByteBuffer outputBuf;
+    try {
+      outputBuf = mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     outputBuf.put(inputBuf);
     int bytesWritten = outputBuf.limit();
     BufferUtils.cleanDirectBuffer(outputBuf);

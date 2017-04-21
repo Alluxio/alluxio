@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
@@ -21,6 +22,7 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -356,15 +358,41 @@ public final class CommonUtils {
   }
 
   /**
-   * Closes a closer and ignores the IOException if it throws one.
+   * Closes a closer and ignores any thrown exceptions.
    *
    * @param closer the closer
    */
   public static void closeQuietly(Closer closer) {
     try {
       closer.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       // Ignore.
+    }
+  }
+
+  /**
+   * Closes a closer, converting any IOException to an {@link AlluxioStatusException}.
+   *
+   * @param closer the closer
+   */
+  public static void close(Closer closer) {
+    try {
+      closer.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
+  }
+
+  /**
+   * Closes a Closeable, converting any IOException to an {@link AlluxioStatusException}.
+   *
+   * @param closeable the Closeable
+   */
+  public static void close(Closeable closeable) {
+    try {
+      closeable.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
     }
   }
 
@@ -383,4 +411,22 @@ public final class CommonUtils {
   }
 
   private CommonUtils() {} // prevent instantiation
+
+  /**
+   * Propagates a Throwable by either converting to an {@link AlluxioStatusException} or re-throwing
+   * as an Error.
+   *
+   * @param t the throwable to propagate
+   * @return this method never returns; the return type is for ease of use in
+   *         {@code throw propagate(t);}
+   */
+  public static RuntimeException propagate(Throwable t) {
+    if (t instanceof Exception) {
+      throw AlluxioStatusException.from((Exception) t);
+    } else if (t instanceof Error) {
+      throw (Error) t;
+    } else {
+      throw new IllegalStateException("Encountered a non-Error, non-Exception Throwable", t);
+    }
+  }
 }

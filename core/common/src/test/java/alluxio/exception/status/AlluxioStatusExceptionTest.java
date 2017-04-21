@@ -9,21 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.exception.status;
 
-import alluxio.QuietlyCloseable;
-import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
+import static org.junit.Assert.assertSame;
 
-import java.util.Set;
+import org.junit.Test;
+
+import java.io.IOException;
 
 /**
- * Interface for a client to the meta master.
+ * Tests for {@link AlluxioStatusException}.
  */
-public interface MetaMasterClient extends QuietlyCloseable {
-  /**
-   * @param masterInfoFields optional list of fields to query; if null all fields will be queried
-   * @return the requested master info
-   */
-  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields);
+public final class AlluxioStatusExceptionTest {
+
+  @Test
+  public void recoverIOException() {
+    IOException e = new IOException("test");
+    assertSame(e, AlluxioStatusException.fromIOException(e).toIOException());
+  }
 }

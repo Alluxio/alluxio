@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -101,13 +100,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
 
-    try {
-      registerWithMaster();
-      mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException | ConnectionFailedException e) {
-      // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", e);
-    }
+    registerWithMaster();
+    mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
   /**
@@ -117,20 +111,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @throws IOException when workerId cannot be found
    * @throws ConnectionFailedException if network connection failed
    */
-  private void registerWithMaster() throws IOException, ConnectionFailedException {
+  private void registerWithMaster() {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
-    try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-      mMasterClient.register(mWorkerId.get(),
-          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (IOException e) {
-      LOG.error("Failed to register with master.", e);
-      throw e;
-    } catch (AlluxioException e) {
-      LOG.error("Failed to register with master.", e);
-      throw new IOException(e);
-    }
+    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+    mMasterClient.register(mWorkerId.get(),
+        storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
   }
 
   /**

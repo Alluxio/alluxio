@@ -11,12 +11,13 @@
 
 package alluxio;
 
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.ExceptionStatus;
+import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.UnimplementedException;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
@@ -159,11 +160,8 @@ public abstract class AbstractClient implements Client {
 
   /**
    * Connects with the remote.
-   *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  public synchronized void connect() throws IOException, ConnectionFailedException {
+  public synchronized void connect() {
     if (mConnected) {
       return;
     }
@@ -196,9 +194,9 @@ public abstract class AbstractClient implements Client {
               + "Please consult %s for common solutions to address this problem.",
               getServiceName(), mMode, mAddress, e.getMessage(),
               RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-          throw new IOException(message, e);
+          throw new UnimplementedException(message, e);
         }
-        throw e;
+        throw AlluxioStatusException.fromIOException(e);
       } catch (TTransportException e) {
         LOG.warn("Failed to connect ({}) to {} {} @ {}: {}", retryPolicy.getRetryCount(),
             getServiceName(), mMode, mAddress, e.getMessage());
@@ -207,7 +205,7 @@ public abstract class AbstractClient implements Client {
           String message = "Thrift transport open times out. Please check whether the "
               + "authentication types match between client and server. Note that NOSASL client "
               + "is not able to connect to servers with SIMPLE security mode.";
-          throw new IOException(message, e);
+          throw new UnavailableException(message, e);
         }
         // TODO(peis): Consider closing the connection here as well.
         if (!retryPolicy.attemptRetry()) {
@@ -216,7 +214,7 @@ public abstract class AbstractClient implements Client {
       }
     }
     // Reaching here indicates that we did not successfully connect.
-    throw new ConnectionFailedException("Failed to connect to " + getServiceName() + " " + mMode
+    throw new UnavailableException("Failed to connect to " + getServiceName() + " " + mMode
         + " @ " + mAddress + " after " + (retryPolicy.getRetryCount()) + " attempts");
   }
 
@@ -283,95 +281,40 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Same with {@link RpcCallable} except that this RPC call throws {@link AlluxioTException} and
-   * is to be executed in {@link #retryRPC(RpcCallableThrowsAlluxioTException)}.
-   *
-   * @param <V> the return value of {@link #call()}
-   */
-  protected interface RpcCallableThrowsAlluxioTException<V> {
-    /**
-     * The task where RPC happens.
-     *
-     * @return RPC result
-     * @throws AlluxioTException when any {@link AlluxioException} happens during RPC and is wrapped
-     *         into {@link AlluxioTException}
-     * @throws TException when any exception defined in thrift happens
-     */
-    V call() throws AlluxioTException, TException;
-  }
-
-  /**
    * Tries to execute an RPC defined as a {@link RpcCallable}.
    *
-   * If a non-Alluxio thrift exception occurs, a reconnection will be tried through
+   * If a {@link UnavailableException} occurs, a reconnection will be tried through
    * {@link #connect()} and the action will be re-executed.
    *
    * @param rpc the RPC call to be executed
    * @param <V> type of return value of the RPC call
    * @return the return value of the RPC call
-   * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
-   *         been called before calling this method or during the retry
-   * @throws ConnectionFailedException if network connection failed
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException,
-      ConnectionFailedException {
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) {
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     while (!mClosed) {
+      Exception ex;
       connect();
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
         AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
         if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
-          throw new IOException(e);
+          ex = se;
+        } else {
+          throw se;
         }
-        throw se;
       } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        disconnect();
+        ex = e;
       }
+      LOG.warn(ex.toString());
+      disconnect();
       if (!retryPolicy.attemptRetry()) {
-        break;
+        throw new UnavailableException(
+            "Failed after " + retryPolicy.getRetryCount() + " retries: " + ex.toString(), ex);
       }
     }
-    throw new IOException("Failed after " + retryPolicy.getRetryCount() + " retries.");
-  }
-
-  /**
-   * Similar to {@link #retryRPC(RpcCallable)} except that the RPC call may throw
-   * {@link AlluxioTException} and once it is thrown, it will be transformed into
-   * {@link AlluxioException} and be thrown.
-   *
-   * @param rpc the RPC call to be executed
-   * @param <V> type of return value of the RPC call
-   * @return the return value of the RPC call
-   * @throws AlluxioException when {@link AlluxioTException} is thrown by the RPC call
-   * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
-   *         been called before calling this method or during the retry
-   */
-  protected synchronized <V> V retryRPC(RpcCallableThrowsAlluxioTException<V> rpc)
-      throws AlluxioException, IOException {
-    RetryPolicy retryPolicy =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (!mClosed) {
-      connect();
-      try {
-        return rpc.call();
-      } catch (AlluxioTException e) {
-        AlluxioStatusException se = AlluxioStatusException.fromThrift(e);
-        if (se.getStatus() == ExceptionStatus.UNAVAILABLE) {
-          throw new IOException(e);
-        }
-        throw se;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        disconnect();
-      }
-      if (!retryPolicy.attemptRetry()) {
-        break;
-      }
-    }
-    throw new IOException("Failed after " + retryPolicy.getRetryCount() + " retries.");
+    throw new FailedPreconditionException("Client is closed");
   }
 }

@@ -56,7 +56,7 @@ public class AlluxioException extends Exception {
    * @param message the message
    * @param cause the cause
    */
-  protected AlluxioException(String message, Throwable cause) {
+  public AlluxioException(String message, Throwable cause) {
     super(message, cause);
   }
 }

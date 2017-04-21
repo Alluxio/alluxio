@@ -11,6 +11,9 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.util.CommonUtils;
+
 import io.netty.buffer.ByteBuf;
 
 import java.io.ByteArrayOutputStream;
@@ -35,23 +38,31 @@ public final class MockBlockWriter implements BlockWriter {
   }
 
   @Override
-  public void close() throws IOException {
-    mOutputStream.close();
+  public void close() {
+    CommonUtils.close(mOutputStream);
     mPosition = -1;
   }
 
   @Override
-  public long append(ByteBuffer inputBuf) throws IOException {
+  public long append(ByteBuffer inputBuf) {
     byte[] bytes = new byte[inputBuf.remaining()];
     inputBuf.get(bytes);
-    mOutputStream.write(bytes);
+    try {
+      mOutputStream.write(bytes);
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     mPosition += bytes.length;
     return bytes.length;
   }
 
   @Override
-  public void transferFrom(ByteBuf buf) throws IOException {
-    mPosition += buf.readBytes(getChannel(), buf.readableBytes());
+  public void transferFrom(ByteBuf buf) {
+    try {
+      mPosition += buf.readBytes(getChannel(), buf.readableBytes());
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
   }
 
   @Override

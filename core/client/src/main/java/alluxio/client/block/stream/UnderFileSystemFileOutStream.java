@@ -17,7 +17,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 
 import java.io.FilterOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
@@ -36,10 +35,9 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param address the address of an Alluxio worker
    * @param options the options to construct this stream with
    * @return a new {@link UnderFileSystemFileOutStream}
-   * @throws IOException if it fails to create the out stream
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
-      OutStreamOptions options) throws IOException {
+      OutStreamOptions options) {
     return new UnderFileSystemFileOutStream(context, address, options.getUfsPath(),
         options.getOwner(), options.getGroup(), options.getMode());
   }
@@ -55,10 +53,9 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param owner the owner of the ufs file
    * @param group the group of the ufs file
    * @param mode the mode of the ufs file
-   * @throws IOException if it fails to create the object
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
-      String path, String owner, String group, Mode mode) throws IOException {
+      String path, String owner, String group, Mode mode) {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
         Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
             .setType(Protocol.RequestType.UFS_FILE).setUfsPath(path).setOwner(owner)
@@ -70,12 +67,12 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   // FilterOutStream.
 
   @Override
-  public void write(byte[] b) throws IOException {
+  public void write(byte[] b) {
     mOutStream.write(b);
   }
 
   @Override
-  public void write(byte[] b, int off, int len) throws IOException {
+  public void write(byte[] b, int off, int len) {
     mOutStream.write(b, off, len);
   }
 }

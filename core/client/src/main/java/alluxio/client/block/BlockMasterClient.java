@@ -12,12 +12,9 @@
 package alluxio.client.block;
 
 import alluxio.Client;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -63,36 +60,28 @@ public interface BlockMasterClient extends Client {
    * Gets the info of a list of workers.
    *
    * @return A list of worker info returned by master
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  List<WorkerInfo> getWorkerInfoList() throws IOException, ConnectionFailedException;
+  List<WorkerInfo> getWorkerInfoList();
 
   /**
    * Returns the {@link BlockInfo} for a block id.
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  BlockInfo getBlockInfo(final long blockId) throws AlluxioException, IOException;
+  BlockInfo getBlockInfo(final long blockId);
 
   /**
    * Gets the total Alluxio capacity in bytes, on all the tiers of all the workers.
    *
    * @return total capacity in bytes
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
-  long getCapacityBytes() throws ConnectionFailedException, IOException;
+  long getCapacityBytes();
 
   /**
    * Gets the total amount of used space in bytes, on all the tiers of all the workers.
    *
    * @return amount of used space in bytes
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
-  long getUsedBytes() throws ConnectionFailedException, IOException;
+  long getUsedBytes();
 }

@@ -9,21 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio;
 
-import alluxio.QuietlyCloseable;
-import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
-
-import java.util.Set;
+import java.io.Closeable;
 
 /**
- * Interface for a client to the meta master.
+ * A Closeable which doesn't throw any checked exceptions from its {@link #close()} method.
  */
-public interface MetaMasterClient extends QuietlyCloseable {
-  /**
-   * @param masterInfoFields optional list of fields to query; if null all fields will be queried
-   * @return the requested master info
-   */
-  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields);
+public interface QuietlyCloseable extends Closeable {
+
+  @Override
+  void close();
 }

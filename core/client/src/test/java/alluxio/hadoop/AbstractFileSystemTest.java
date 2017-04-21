@@ -21,7 +21,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableMap;
@@ -213,16 +213,13 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void initializeFailToConnect() throws Exception {
-    Mockito.doThrow(ConnectionFailedException.class)
+    Mockito.doThrow(UnavailableException.class)
         .when(mMockFileSystemMasterClient).connect();
 
-    mExpectedException.expect(IOException.class);
-    mExpectedException.expectCause(IsInstanceOf.any(ConnectionFailedException.class));
-
     URI uri = URI.create(Constants.HEADER + "randomhost:400/");
+    mExpectedException.expect(IOException.class);
+    mExpectedException.expectCause(IsInstanceOf.any(UnavailableException.class));
     org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-    // The above code should throw an exception.
-    Assert.fail("Initialization should throw an exception.");
   }
 
   /**

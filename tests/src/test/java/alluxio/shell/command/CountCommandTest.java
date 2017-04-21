@@ -11,22 +11,20 @@
 
 package alluxio.shell.command;
 
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 /**
  * Tests for count command.
  */
 public final class CountCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void countNotExist() throws IOException {
+  public void countNotExist() throws Exception {
     int ret = mFsShell.run("count", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
@@ -34,7 +32,7 @@ public final class CountCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void count() throws IOException {
+  public void count() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",

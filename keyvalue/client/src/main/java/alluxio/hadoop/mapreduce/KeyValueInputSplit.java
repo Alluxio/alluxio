@@ -14,7 +14,7 @@ package alluxio.hadoop.mapreduce;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.PartitionInfo;
 
 import org.apache.hadoop.io.Writable;
@@ -74,7 +74,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
         locations[i] = workersInfo.get(i).getNetAddress().getHost();
       }
       return locations;
-    } catch (AlluxioException e) {
+    } catch (AlluxioStatusException e) {
       throw new IOException(e);
     }
   }

@@ -11,22 +11,20 @@
 
 package alluxio.shell.command;
 
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 /**
  * Test for du command.
  */
 public final class DuCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void du() throws IOException {
+  public void du() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",

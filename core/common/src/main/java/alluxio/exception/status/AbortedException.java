@@ -33,7 +33,7 @@ public class AbortedException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public AbortedException(Throwable cause) {
-    this(cause.getMessage(), cause);
+    super(STATUS, cause);
   }
 
   /**
