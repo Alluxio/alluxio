@@ -33,8 +33,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.Registry;
-import alluxio.master.Master;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
@@ -280,7 +278,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param blockMaster a block master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  protected DefaultFileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory) {
+  DefaultFileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory) {
     this(blockMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }

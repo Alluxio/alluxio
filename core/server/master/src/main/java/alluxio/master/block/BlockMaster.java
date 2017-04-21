@@ -28,8 +28,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.Registry;
-import alluxio.master.Master;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -168,7 +166,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  protected BlockMaster(JournalFactory journalFactory) {
+  BlockMaster(JournalFactory journalFactory) {
     this(journalFactory, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
@@ -181,7 +179,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  protected BlockMaster(JournalFactory journalFactory, Clock clock,
+  BlockMaster(JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
     Metrics.registerGauges(this);

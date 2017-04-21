@@ -30,8 +30,6 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
-import alluxio.Registry;
-import alluxio.master.Master;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
@@ -89,7 +87,7 @@ public final class LineageMaster extends AbstractMaster {
    * @param fileSystemMaster the file system master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  protected LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+  LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
     this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
@@ -102,7 +100,7 @@ public final class LineageMaster extends AbstractMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  protected LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
+  LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);

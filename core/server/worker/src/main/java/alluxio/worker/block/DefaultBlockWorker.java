@@ -110,7 +110,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * Constructs a default block worker.
    */
-  protected DefaultBlockWorker() {
+  DefaultBlockWorker() {
     this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new Sessions(), new TieredBlockStore());
@@ -124,10 +124,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    */
-  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
+  DefaultBlockWorker(BlockMasterClient blockMasterClient,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore) {
-    super(Executors.newFixedThreadPool(4,
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
+    super(Executors
+        .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();

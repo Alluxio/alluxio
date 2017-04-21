@@ -12,12 +12,10 @@
 package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
-import alluxio.Registry;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
-import alluxio.worker.Worker;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.collect.ImmutableSet;
@@ -46,7 +44,7 @@ public final class KeyValueWorker extends AbstractWorker {
    *
    * @param blockWorker the block worker handle
    */
-  protected KeyValueWorker(BlockWorker blockWorker) {
+  KeyValueWorker(BlockWorker blockWorker) {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));

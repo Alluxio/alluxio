@@ -62,7 +62,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
    *
    * @param blockWorker the block worker handle
    */
-  protected DefaultFileSystemWorker(BlockWorker blockWorker) {
+  DefaultFileSystemWorker(BlockWorker blockWorker) {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = blockWorker.getWorkerId();
