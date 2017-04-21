@@ -34,15 +34,14 @@ public final class MountInfo {
 
   /**
    * Creates a new instance of {@code MountInfo}.
-   *
    * @param ufsUri a UFS path URI
-   * @param options the mount options
    * @param ufsId the id of the ufs
+   * @param options the mount options
    */
-  public MountInfo(AlluxioURI ufsUri, MountOptions options, long ufsId) {
+  public MountInfo(AlluxioURI ufsUri, long ufsId, MountOptions options) {
     mUfsUri = Preconditions.checkNotNull(ufsUri);
-    mOptions = options;
     mUfsId = ufsId;
+    mOptions = options;
   }
 
   /**

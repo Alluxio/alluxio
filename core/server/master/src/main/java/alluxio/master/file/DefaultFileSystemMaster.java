@@ -446,7 +446,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       String defaultUFS = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            MountOptions.defaults().setShared(
+            IdUtils.INVALID_UFS_ID, MountOptions.defaults().setShared(
                 UnderFileSystemUtils.isObjectStorage(defaultUFS) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
       } catch (FileAlreadyExistsException e) {
@@ -2200,8 +2200,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
-
-    mountInternal(inodePath, ufsPath, false /* not replayed */, options);
+    long ufsId = IdUtils.createUfsId();
+    mountInternal(inodePath, ufsPath, ufsId, false /* not replayed */, options);
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
@@ -2224,7 +2224,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     AddMountPointEntry addMountPoint =
         AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
-            .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
+            .setUfsPath(ufsPath.toString()).setUfsId(ufsId)
+            .setReadOnly(options.isReadOnly())
             .addAllProperties(protoProperties).setShared(options.isShared()).build();
     appendJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build(),
         journalContext);
@@ -2242,7 +2243,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
     try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      mountInternal(inodePath, ufsURI, true /* replayed */, new MountOptions(entry));
+      mountInternal(inodePath, ufsURI, entry.getUfsId(), true /* replayed */,
+          new MountOptions(entry));
     }
   }
 
@@ -2252,14 +2254,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param inodePath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
+   * @param ufsId the UFS id
    * @param replayed whether the operation is a result of replaying the journal
    * @param options the mount options (may be updated)
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, boolean replayed,
-      MountOptions options) throws FileAlreadyExistsException, InvalidPathException, IOException {
+  private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, long ufsId,
+      boolean replayed, MountOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
 
     if (!replayed) {
@@ -2278,15 +2282,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new IOException(
             ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
       }
-
-      // Configure the ufs properties, and update the mount options with the configured properties.
-      ufs.configureProperties();
-      options.setProperties(ufs.getProperties());
     }
 
     // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
     // mount and no existing mount is a prefix of this mount.
-    mMountTable.add(alluxioPath, ufsPath, options);
+    mMountTable.add(alluxioPath, ufsPath, ufsId, options);
   }
 
   @Override

@@ -18,9 +18,9 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
+import alluxio.util.IdUtils;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -30,16 +30,8 @@ import java.util.Map;
  * Unit tests for {@link MountTable}.
  */
 public final class MountTableTest {
-  private MountTable mMountTable;
+  private final MountTable mMountTable = new MountTable();
   private final MountOptions mDefaultOptions = MountOptions.defaults();
-
-  /**
-   * Sets up a new {@link MountTable} before a test runs.
-   */
-  @Before
-  public void before() {
-    mMountTable = new MountTable();
-  }
 
   /**
    * Tests the different methods of the {@link MountTable} class with a path.
@@ -47,11 +39,11 @@ public final class MountTableTest {
   @Test
   public void path() throws Exception {
     // Test add()
-    mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo"), mDefaultOptions);
-    mMountTable.add(new AlluxioURI("/mnt/bar"), new AlluxioURI("/bar"), mDefaultOptions);
+    mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo"), 1L, mDefaultOptions);
+    mMountTable.add(new AlluxioURI("/mnt/bar"), new AlluxioURI("/bar"), 2L, mDefaultOptions);
 
     try {
-      mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo2"), mDefaultOptions);
+      mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo2"), 3L, mDefaultOptions);
       Assert.fail("Should not be able to add a mount to an existing mount.");
     } catch (FileAlreadyExistsException e) {
       // Exception expected
@@ -60,7 +52,8 @@ public final class MountTableTest {
     }
 
     try {
-      mMountTable.add(new AlluxioURI("/mnt/bar/baz"), new AlluxioURI("/baz"), mDefaultOptions);
+      mMountTable.add(new AlluxioURI("/mnt/bar/baz"), new AlluxioURI("/baz"), 4L,
+          mDefaultOptions);
     } catch (InvalidPathException e) {
       // Exception expected
       Assert.assertEquals(
@@ -115,13 +108,13 @@ public final class MountTableTest {
   public void uri() throws Exception {
     // Test add()
     mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"),
-        new AlluxioURI("file://localhost:5678/foo"), mDefaultOptions);
+        new AlluxioURI("file://localhost:5678/foo"), 1L, mDefaultOptions);
     mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/bar"),
-        new AlluxioURI("file://localhost:5678/bar"), mDefaultOptions);
+        new AlluxioURI("file://localhost:5678/bar"), 2L, mDefaultOptions);
 
     try {
       mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"),
-          new AlluxioURI("hdfs://localhost:5678/foo2"), mDefaultOptions);
+          new AlluxioURI("hdfs://localhost:5678/foo2"), 3L, mDefaultOptions);
     } catch (FileAlreadyExistsException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage("/mnt/foo"),
@@ -130,7 +123,7 @@ public final class MountTableTest {
 
     try {
       mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/bar/baz"),
-          new AlluxioURI("hdfs://localhost:5678/baz"), mDefaultOptions);
+          new AlluxioURI("hdfs://localhost:5678/baz"), 4L, mDefaultOptions);
     } catch (InvalidPathException e) {
       Assert.assertEquals(
           ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("/mnt/bar", "/mnt/bar/baz"),
@@ -188,7 +181,7 @@ public final class MountTableTest {
     MountOptions options = MountOptions.defaults().setReadOnly(true);
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
-    mMountTable.add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), options);
+    mMountTable.add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), 1L, options);
 
     try {
       mMountTable.checkUnderWritableMountPoint(alluxioUri);
@@ -219,7 +212,8 @@ public final class MountTableTest {
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
     mMountTable
-        .add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), MountOptions.defaults());
+        .add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), IdUtils.INVALID_UFS_ID,
+            MountOptions.defaults());
 
     try {
       mMountTable.checkUnderWritableMountPoint(alluxioUri);
@@ -243,25 +237,16 @@ public final class MountTableTest {
   public void getMountTable() throws Exception {
     Map<String, MountInfo> mountTable = new HashMap<>(2);
     mountTable.put("/mnt/foo", new MountInfo(new AlluxioURI("hdfs://localhost:5678/foo"),
-        MountOptions.defaults(), 1));
+        1L, MountOptions.defaults()));
     mountTable.put("/mnt/bar", new MountInfo(new AlluxioURI("hdfs://localhost:5678/bar"),
-        MountOptions.defaults(), 2));
+        2L, MountOptions.defaults()));
 
     AlluxioURI masterAddr = new AlluxioURI("alluxio://localhost:1234");
     for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       mMountTable.add(masterAddr.join(mountPoint.getKey()),
-          mountInfo.getUfsUri(), mountInfo.getOptions());
+          mountInfo.getUfsUri(), mountInfo.getUfsId(), mountInfo.getOptions());
     }
-
-    Map<String, MountInfo> tableGot = mMountTable.getMountTable();
-    Assert.assertEquals(mountTable.size(), tableGot.size());
-    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
-      MountInfo resultInfo = tableGot.get(mountPoint.getKey());
-      MountInfo expectedInfo = mountPoint.getValue();
-      Assert.assertEquals(expectedInfo.getUfsUri(), resultInfo.getUfsUri());
-      Assert.assertEquals(expectedInfo.getOptions(), resultInfo.getOptions());
-      Assert.assertNotEquals(expectedInfo.getUfsId(), resultInfo.getUfsId());
-    }
+    Assert.assertEquals(mountTable, mMountTable.getMountTable());
   }
 }

@@ -24,7 +24,6 @@ import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -132,11 +131,12 @@ public final class MountTable implements JournalEntryIterable {
    *
    * @param alluxioUri an Alluxio path URI
    * @param ufsUri a UFS path URI
+   * @param ufsId the ufs id
    * @param options the mount options
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, MountOptions options)
+  public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, long ufsId, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
@@ -172,7 +172,7 @@ public final class MountTable implements JournalEntryIterable {
           }
         }
       }
-      mMountTable.put(alluxioPath, new MountInfo(ufsUri, options, IdUtils.createUfsId()));
+      mMountTable.put(alluxioPath, new MountInfo(ufsUri, ufsId, options));
     }
   }
 
