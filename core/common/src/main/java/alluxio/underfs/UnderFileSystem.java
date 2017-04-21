@@ -193,7 +193,15 @@ public interface UnderFileSystem extends Closeable {
      * @return the instance of under file system for Alluxio journal directory
      */
     public static UnderFileSystem getForJournal(URI path) {
-      return get(path.toString(), null);
+      return getForJournal(path.toString());
+    }
+
+    /**
+     * @param path journal path in ufs
+     * @return the instance of under file system for Alluxio journal directory
+     */
+    public static UnderFileSystem getForJournal(String path) {
+      return get(path, null);
     }
   }
 

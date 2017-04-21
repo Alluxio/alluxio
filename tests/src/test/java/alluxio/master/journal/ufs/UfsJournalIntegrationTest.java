@@ -130,7 +130,7 @@ public class UfsJournalIntegrationTest {
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
 
     UnderFileStatus[] paths =
-        UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
+        UnderFileSystem.Factory.getForJournal(journalFolder).listStatus(journal.getLogDir().toString());
     int expectedSize = paths == null ? 0 : paths.length;
 
     try (JournalWriter writer =
@@ -140,7 +140,8 @@ public class UfsJournalIntegrationTest {
       writer.flush();
       writer.flush();
     }
-    paths = UnderFileSystem.Factory.get(journalFolder).listStatus(journal.getLogDir().toString());
+    paths = UnderFileSystem.Factory.getForJournal(journalFolder)
+        .listStatus(journal.getLogDir().toString());
     int actualSize = paths == null ? 0 : paths.length;
     // No new files are created.
     Assert.assertEquals(expectedSize, actualSize);
@@ -152,7 +153,7 @@ public class UfsJournalIntegrationTest {
   @Test
   public void loadMetadata() throws Exception {
     String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
+    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
     ufs.create(ufsRoot + "/xyz").close();
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
@@ -191,10 +192,10 @@ public class UfsJournalIntegrationTest {
         Constants.FILE_SYSTEM_MASTER_NAME);
     UfsJournal journal = new UfsJournal(new URI(journalFolder));
     URI completedLocation = journal.getLogDir();
-    Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
+    Assert.assertTrue(UnderFileSystem.Factory.getForJournal(completedLocation)
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())
+    Assert.assertTrue(UnderFileSystem.Factory.getForJournal(completedLocation)
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }
@@ -609,7 +610,7 @@ public class UfsJournalIntegrationTest {
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
-      UnderFileSystem.Factory.get(journalFolder)
+      UnderFileSystem.Factory.getForJournal(journalFolder)
           .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());
     }
   }
