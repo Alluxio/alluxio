@@ -36,7 +36,8 @@ public final class TempInodePathForChild extends MutableLockedInodePath {
    */
   public TempInodePathForChild(LockedInodePath inodePath, String childComponent)
       throws InvalidPathException {
-    super(inodePath.mUri.join(childComponent), inodePath.mInodes, inodePath.mLockList);
+    super(inodePath.mUri.join(childComponent), inodePath.mInodes, inodePath.mLockList,
+        inodePath.mLockMode);
   }
 
   @Override

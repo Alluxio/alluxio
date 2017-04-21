@@ -30,6 +30,7 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -209,7 +210,8 @@ public final class PermissionCheckerTest {
     try (
         LockedInodePath inodePath = sTree
             .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
-      InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
+      InodeTree.CreatePathResult result =
+          sTree.createPath(inodePath, option, new NoopJournalContext());
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
           .setOwner(option.getOwner()).setGroup(option.getGroup())
           .setMode(option.getMode().toShort());

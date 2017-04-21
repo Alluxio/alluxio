@@ -32,12 +32,14 @@ public class MutableLockedInodePath extends LockedInodePath {
    * @param uri the URI
    * @param inodes the inodes
    * @param lockList the lock list of the inodes
+   * @param lockMode the lock mode for the path
    * @throws InvalidPathException if the path passed is invalid
    */
   // TODO(gpang): restructure class hierarchy, rename class
-  public MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList)
+  public MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList,
+      InodeTree.LockMode lockMode)
       throws InvalidPathException {
-    super(uri, inodes, lockList);
+    super(uri, inodes, lockList, lockMode);
   }
 
   /**
