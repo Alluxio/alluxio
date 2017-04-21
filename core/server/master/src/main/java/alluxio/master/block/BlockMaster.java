@@ -31,6 +31,7 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalFactory;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;

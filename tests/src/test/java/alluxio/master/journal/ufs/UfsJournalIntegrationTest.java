@@ -407,7 +407,7 @@ public class UfsJournalIntegrationTest {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }
 
-    options.setWriteType(WriteType.CACHE_THROUGH);
+    options.setWriteType(WriteType.CACHE_THROUGH).setAllowExists(true);
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }
