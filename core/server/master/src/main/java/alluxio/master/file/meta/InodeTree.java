@@ -677,15 +677,18 @@ public class InodeTree implements JournalEntryIterable {
           continue;
         }
 
+        if (lastInode instanceof InodeFile) {
+          if (currentInodeDirectory.isPinned()) {
+            // Update set of pinned file ids.
+            mPinnedInodeFileIds.add(lastInode.getId());
+          }
+        }
+
         // Journal the new inode.
         journalContext.append(lastInode.toJournalEntry());
 
         // Update state while holding the write lock.
         mInodes.add(lastInode);
-        if (lastInode instanceof InodeFile && currentInodeDirectory.isPinned()) {
-          // Update set of pinned file ids.
-          mPinnedInodeFileIds.add(lastInode.getId());
-        }
 
         if (extensibleInodePath.getLockMode() == LockMode.READ) {
           // After creating the inode, downgrade to a read lock
