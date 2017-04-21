@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.Journal;
@@ -76,7 +75,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
-  private Registry<Master> mRegistry;
+  private MasterRegistry mRegistry;
 
   /** The web ui server. */
   private WebServer mWebServer = null;
@@ -131,7 +130,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
       // Create masters.
-      mRegistry = new Registry<>();
+      mRegistry = new MasterRegistry();
       MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
     } catch (Exception e) {
       throw new RuntimeException(e);

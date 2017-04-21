@@ -24,8 +24,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.Registry;
-import alluxio.master.Master;
+import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeTree;
@@ -158,7 +157,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
-  private Registry createFileSystemMasterFromJournal() throws Exception {
+  private MasterRegistry createFileSystemMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
@@ -173,7 +172,7 @@ public class FileSystemMasterIntegrationTest {
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
 
-      Registry<Master> registry = createFileSystemMasterFromJournal();
+      MasterRegistry registry = createFileSystemMasterFromJournal();
       FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
       for (FileInfo info : mFsMaster.listStatus(new AlluxioURI("/"),
           ListStatusOptions.defaults())) {

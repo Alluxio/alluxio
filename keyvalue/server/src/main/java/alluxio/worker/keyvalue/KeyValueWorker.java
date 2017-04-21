@@ -12,6 +12,7 @@
 package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
+import alluxio.Server;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -34,7 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorker extends AbstractWorker {
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(BlockWorker.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(BlockWorker.class);
 
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
@@ -52,7 +54,7 @@ public final class KeyValueWorker extends AbstractWorker {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
 

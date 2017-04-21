@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.ProcessUtils;
-import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.Journal;
@@ -34,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class AlluxioSecondaryMasterProcess implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioSecondaryMasterProcess.class);
-  private Registry<Master> mRegistry;
+  private MasterRegistry mRegistry;
 
   /**
    * Creates a {@link AlluxioSecondaryMasterProcess}.
@@ -43,10 +42,10 @@ public final class AlluxioSecondaryMasterProcess implements Process {
     try {
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
-      mRegistry = new Registry<>();
+      mRegistry = new MasterRegistry();
       // Create masters.
       MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

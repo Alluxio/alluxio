@@ -19,8 +19,7 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
-import alluxio.Registry;
-import alluxio.master.Master;
+import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.Journal;
@@ -56,7 +55,7 @@ public final class LineageMasterTest {
   private LineageMaster mLineageMaster;
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
-  private Registry<Master> mRegistry;
+  private MasterRegistry mRegistry;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -67,7 +66,7 @@ public final class LineageMasterTest {
    */
   @Before
   public void before() throws Exception {
-    mRegistry = new Registry<>();
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);

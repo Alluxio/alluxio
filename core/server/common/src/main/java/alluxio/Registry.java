@@ -45,9 +45,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * injection in tests.
  *
  * @param <T> the type of the {@link Server}
+ * @param <U> the type of the {@link Server#start(Object)} options
  */
 @ThreadSafe
-public final class Registry<T extends Server> {
+public class Registry<T extends Server<U>, U> {
   private static final int TIMEOUT_SECONDS = 1;
   private static final int RETRY_COUNT = 5;
 
@@ -66,10 +67,10 @@ public final class Registry<T extends Server> {
    * giving up.
    *
    * @param clazz the class of the {@link Server} to get
-   * @param <U> the type of the {@link Server} to get
+   * @param <W> the type of the {@link Server} to get
    * @return the {@link Server} instance, or null if a type mismatch occurs
    */
-  public <U extends T> U get(Class<U> clazz) {
+  public <W extends T> W get(Class<W> clazz) {
     T server;
     try (LockResource r = new LockResource(mLock)) {
       CountingRetry retry = new CountingRetry(RETRY_COUNT);
@@ -96,9 +97,9 @@ public final class Registry<T extends Server> {
   /**
    * @param clazz the class of the {@link Server} to add
    * @param server the {@link Server} to add
-   * @param <U> the type of the {@link Server} to add
+   * @param <W> the type of the {@link Server} to add
    */
-  public <U extends T> void add(Class<U> clazz, T server) {
+  public <W extends T> void add(Class<W> clazz, T server) {
     try (LockResource r = new LockResource(mLock)) {
       mRegistry.put(clazz, server);
       mCondition.signalAll();
@@ -120,10 +121,9 @@ public final class Registry<T extends Server> {
    * If a {@link Server} fails to start, already-started {@link Server}s will be stopped.
    *
    * @param options the start options
-   * @param <U> the type of the start options
    * @throws IOException if an IO error occurs
    */
-  public <U> void start(U options) throws IOException {
+  public void start(U options) throws IOException {
     List<T> servers = new ArrayList<>();
     for (T server : getServers()) {
       try {
@@ -161,11 +161,11 @@ public final class Registry<T extends Server> {
     Deque<T> queue = new ArrayDeque<>();
     queue.add(server);
     while (!queue.isEmpty()) {
-      Set<Class<?>> deps = queue.pop().getDependencies();
+      Set<Class<? extends Server>> deps = queue.pop().getDependencies();
       if (deps == null) {
         continue;
       }
-      for (Class<?> clazz : deps) {
+      for (Class<? extends Server> clazz : deps) {
         T dep = mRegistry.get(clazz);
         if (dep == null) {
           continue;

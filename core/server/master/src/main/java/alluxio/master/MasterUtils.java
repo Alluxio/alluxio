@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.ServiceUtils;
 import alluxio.master.journal.Journal;
@@ -71,15 +70,18 @@ final class MasterUtils {
    *
    * @param journalFactory the factory to use for creating journals
    * @param registry the master registry
+   * @throws InterruptedException if the method is interrupted
    */
   public static void createMasters(final JournalFactory journalFactory,
-      final Registry<Master> registry) {
+      final MasterRegistry registry) throws InterruptedException {
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
-          factory.create(registry, journalFactory);
+          if (factory.isEnabled()) {
+            factory.create(registry, journalFactory);
+          }
           return null;
         }
       });
@@ -90,7 +92,8 @@ final class MasterUtils {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     } finally {
-      es.shutdown();
+      es.shutdownNow();
+      es.awaitTermination(10, TimeUnit.SECONDS);
     }
   }
 }

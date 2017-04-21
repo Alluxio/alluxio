@@ -13,6 +13,7 @@ package alluxio.master.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -63,7 +64,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(FileSystemMaster.class);
 
   private final FileSystemMaster mFileSystemMaster;
 
@@ -101,7 +103,7 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
 

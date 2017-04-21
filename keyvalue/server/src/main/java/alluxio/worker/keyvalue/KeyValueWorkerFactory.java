@@ -13,9 +13,8 @@ package alluxio.worker.keyvalue;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.Registry;
-import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
+import alluxio.worker.WorkerRegistry;
 import alluxio.worker.block.BlockWorker;
 
 import org.slf4j.Logger;
@@ -41,7 +40,7 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
   }
 
   @Override
-  public KeyValueWorker create(Registry<Worker> registry) {
+  public KeyValueWorker create(WorkerRegistry registry) {
     if (!isEnabled()) {
       return null;
     }

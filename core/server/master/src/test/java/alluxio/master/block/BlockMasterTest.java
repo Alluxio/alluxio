@@ -12,12 +12,11 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.Registry;
 import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.Master;
+import alluxio.master.MasterRegistry;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.thrift.Command;
@@ -61,7 +60,7 @@ public class BlockMasterTest {
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
 
   private BlockMaster mBlockMaster;
-  private Registry<Master> mRegistry;
+  private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
 
@@ -82,7 +81,7 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
-    mRegistry = new Registry<>();
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mClock = new ManualClock();

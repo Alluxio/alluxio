@@ -11,31 +11,17 @@
 
 package alluxio.master;
 
-import alluxio.master.journal.JournalFactory;
+import alluxio.Registry;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Interface for factory of {@link Master}.
+ * The master registry.
  */
 @ThreadSafe
-public interface MasterFactory {
+public final class MasterRegistry extends Registry<Master, Boolean> {
   /**
-   * @return whether the master is enabled
+   * Creates a new instance of {@link MasterRegistry}.
    */
-  boolean isEnabled();
-
-  /**
-   * @return the master's name
-   */
-  String getName();
-
-  /**
-   * Factory method to create a new master instance.
-   *
-   * @param registry the master registry
-   * @param factory a factory for creating the journal
-   * @return a new {@link Master} instance
-   */
-  Master create(MasterRegistry registry, JournalFactory factory);
+  public MasterRegistry() {}
 }

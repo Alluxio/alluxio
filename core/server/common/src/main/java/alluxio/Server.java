@@ -27,7 +27,7 @@ public interface Server<T> {
   /**
    * @return the server dependencies
    */
-  Set<Class<?>> getDependencies();
+  Set<Class<? extends Server>> getDependencies();
 
   /**
    * @return the server's name

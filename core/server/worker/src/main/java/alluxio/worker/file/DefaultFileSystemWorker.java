@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.FileSystemWorkerClientService;
@@ -43,7 +44,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class DefaultFileSystemWorker extends AbstractWorker implements FileSystemWorker {
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(BlockWorker.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(BlockWorker.class);
 
   /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
@@ -77,7 +79,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
 

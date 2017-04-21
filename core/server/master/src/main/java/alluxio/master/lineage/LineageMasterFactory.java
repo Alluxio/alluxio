@@ -14,9 +14,8 @@ package alluxio.master.lineage;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.master.Master;
 import alluxio.master.MasterFactory;
-import alluxio.Registry;
+import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalFactory;
 
@@ -49,7 +48,7 @@ public final class LineageMasterFactory implements MasterFactory {
   }
 
   @Override
-  public LineageMaster create(Registry<Master> registry, JournalFactory journalFactory) {
+  public LineageMaster create(MasterRegistry registry, JournalFactory journalFactory) {
     if (!isEnabled()) {
       return null;
     }

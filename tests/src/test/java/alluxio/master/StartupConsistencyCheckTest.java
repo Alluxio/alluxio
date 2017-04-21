@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -74,7 +73,7 @@ public class StartupConsistencyCheckTest {
   @Test
   public void consistent() throws Exception {
     mCluster.stopFS();
-    Registry<Master> registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);
     Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
@@ -93,7 +92,7 @@ public class StartupConsistencyCheckTest {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(topLevelFileUfsPath);
     ufs.deleteFile(topLevelFileUfsPath);
     ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
-    Registry<Master> registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);
     List<AlluxioURI> expected =

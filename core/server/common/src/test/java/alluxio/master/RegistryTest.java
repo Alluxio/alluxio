@@ -49,8 +49,8 @@ public final class RegistryTest {
     }
 
     @Override
-    public Set<Class<?>> getDependencies() {
-      Set<Class<?>> deps = new HashSet<>();
+    public Set<Class<? extends Server>> getDependencies() {
+      Set<Class<? extends Server>> deps = new HashSet<>();
       deps.add(ServerB.class);
       return deps;
     }
@@ -63,8 +63,8 @@ public final class RegistryTest {
     }
 
     @Override
-    public Set<Class<?>> getDependencies() {
-      Set<Class<?>> deps = new HashSet<>();
+    public Set<Class<? extends Server>> getDependencies() {
+      Set<Class<? extends Server>> deps = new HashSet<>();
       deps.add(ServerC.class);
       return deps;
     }
@@ -77,8 +77,8 @@ public final class RegistryTest {
     }
 
     @Override
-    public Set<Class<?>> getDependencies() {
-      Set<Class<?>> deps = new HashSet<>();
+    public Set<Class<? extends Server>> getDependencies() {
+      Set<Class<? extends Server>> deps = new HashSet<>();
       deps.add(ServerD.class);
       return deps;
     }
@@ -91,8 +91,8 @@ public final class RegistryTest {
     }
 
     @Override
-    public Set<Class<?>> getDependencies() {
-      Set<Class<?>> deps = new HashSet<>();
+    public Set<Class<? extends Server>> getDependencies() {
+      Set<Class<? extends Server>> deps = new HashSet<>();
       deps.add(ServerA.class);
       return deps;
     }
@@ -100,15 +100,15 @@ public final class RegistryTest {
 
   @Test
   public void registry() {
-    List<Server> masters = ImmutableList.<Server>of(new ServerC(), new ServerB(), new ServerA());
-    List<Server[]> permutations = new ArrayList<>();
-    computePermutations(masters.toArray(new Server[masters.size()]), 0, permutations);
+    List<TestServer> masters = ImmutableList.of(new ServerC(), new ServerB(), new ServerA());
+    List<TestServer[]> permutations = new ArrayList<>();
+    computePermutations(masters.toArray(new TestServer[masters.size()]), 0, permutations);
     // Make sure that the registry orders the masters independently of the order in which they
     // are registered.
-    for (Server[] permutation : permutations) {
-      Registry registry = new Registry();
-      for (int i = 0; i < permutation.length; i++) {
-        registry.add(permutation[i].getClass(), permutation[i]);
+    for (TestServer[] permutation : permutations) {
+      Registry<TestServer, Void> registry = new Registry<>();
+      for (TestServer server : permutation) {
+        registry.add(server.getClass(), server);
       }
       Assert.assertEquals(masters, registry.getServers());
     }
@@ -116,7 +116,7 @@ public final class RegistryTest {
 
   @Test
   public void cycle() {
-    Registry registry = new Registry();
+    Registry<TestServer, Void> registry = new Registry<>();
     registry.add(ServerA.class, new ServerA());
     registry.add(ServerB.class, new ServerB());
     registry.add(ServerC.class, new ServerC());
@@ -131,7 +131,7 @@ public final class RegistryTest {
 
   @Test
   public void unavailable() {
-    Registry registry = new Registry();
+    Registry<TestServer, Void> registry = new Registry<>();
     try {
       registry.get(ServerB.class);
       Assert.fail("Control flow should not reach here.");
@@ -140,12 +140,12 @@ public final class RegistryTest {
     }
   }
 
-  private void computePermutations(Server[] input, int index, List<Server[]> permutations) {
+  private void computePermutations(TestServer[] input, int index, List<TestServer[]> permutations) {
     if (index == input.length) {
       permutations.add(input.clone());
     }
     for (int i = index; i < input.length; i++) {
-      Server tmp = input[i];
+      TestServer tmp = input[i];
       input[i] = input[index];
       input[index] = tmp;
       computePermutations(input, index + 1, permutations);

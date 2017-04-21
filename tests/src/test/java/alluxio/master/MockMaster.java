@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.Server;
 import alluxio.proto.journal.Journal;
 
 import org.apache.thrift.TProcessor;
@@ -43,7 +44,7 @@ public final class MockMaster implements Master {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return null;
   }
 

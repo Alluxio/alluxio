@@ -11,11 +11,12 @@
 
 package alluxio.worker;
 
-import alluxio.Registry;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for factory of {@link Worker}.
  */
+@ThreadSafe
 public interface WorkerFactory {
   /**
    * @return whether the master is enabled
@@ -26,7 +27,7 @@ public interface WorkerFactory {
    * Factory method to create a new worker instance.
    *
    * @param registry the worker registry
-   * @return a new {@link Worker} instance or null if failed to launch the worker
+   * @return a new {@link Worker} instance
    */
-  Worker create(Registry<Worker> registry);
+  Worker create(WorkerRegistry registry);
 }

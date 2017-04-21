@@ -21,8 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.Registry;
-import alluxio.master.Master;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -68,7 +67,7 @@ public final class InodeTreeTest {
   private static CreateFileOptions sNestedFileOptions;
   private static CreateDirectoryOptions sNestedDirectoryOptions;
   private InodeTree mTree;
-  private Registry<Master> mRegistry;
+  private MasterRegistry mRegistry;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -83,7 +82,7 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
-    mRegistry = new Registry<>();
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
 

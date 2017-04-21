@@ -9,33 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.worker;
 
-import alluxio.master.journal.JournalFactory;
+import alluxio.Registry;
+import alluxio.wire.WorkerNetAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Interface for factory of {@link Master}.
+ * The worker registry.
  */
 @ThreadSafe
-public interface MasterFactory {
+public final class WorkerRegistry extends Registry<Worker, WorkerNetAddress> {
   /**
-   * @return whether the master is enabled
+   * Creates a new instance of {@link WorkerRegistry}.
    */
-  boolean isEnabled();
-
-  /**
-   * @return the master's name
-   */
-  String getName();
-
-  /**
-   * Factory method to create a new master instance.
-   *
-   * @param registry the master registry
-   * @param factory a factory for creating the journal
-   * @return a new {@link Master} instance
-   */
-  Master create(MasterRegistry registry, JournalFactory factory);
+  public WorkerRegistry() {}
 }

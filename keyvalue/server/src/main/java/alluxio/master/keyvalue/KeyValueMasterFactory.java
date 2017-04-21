@@ -14,9 +14,8 @@ package alluxio.master.keyvalue;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.master.Master;
 import alluxio.master.MasterFactory;
-import alluxio.Registry;
+import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
@@ -50,7 +49,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public KeyValueMaster create(Registry<Master> registry, JournalFactory journalFactory) {
+  public KeyValueMaster create(MasterRegistry registry, JournalFactory journalFactory) {
     if (!isEnabled()) {
       return null;
     }

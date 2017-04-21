@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Registry;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
@@ -89,7 +88,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   private MasterProcess mMaster;
   private BlockMaster mBlockMaster;
-  private Registry<Master> mRegistry;
+  private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -105,7 +104,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public void before() throws Exception {
     mMaster = mock(MasterProcess.class);
     ServletContext context = mock(ServletContext.class);
-    mRegistry = new Registry<>();
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);

@@ -20,8 +20,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.Registry;
-import alluxio.master.Master;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.Inode;
@@ -104,7 +103,7 @@ public final class PermissionCheckTest {
   private static final Mode TEST_DIR_MODE = new Mode((short) 0755);
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
-  private Registry<Master> mRegistry;
+  private MasterRegistry mRegistry;
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
 
@@ -175,7 +174,7 @@ public final class PermissionCheckTest {
   @Before
   public void before() throws Exception {
     GroupMappingServiceTestUtils.resetCache();
-    mRegistry = new Registry<>();
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);

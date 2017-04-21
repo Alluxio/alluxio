@@ -25,8 +25,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.Registry;
-import alluxio.master.Master;
+import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
@@ -101,7 +100,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void addBlockTestUtil(URIStatus status) throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -164,7 +163,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void loadMetadataTestUtil(URIStatus status) throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -229,7 +228,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void deleteTestUtil() throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -248,7 +247,7 @@ public class UfsJournalIntegrationTest {
   public void emptyImage() throws Exception {
     Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
     mLocalAlluxioCluster.stopFS();
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -276,7 +275,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void fileDirectoryTestUtil() throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -307,7 +306,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void fileTestUtil(URIStatus status) throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -350,7 +349,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void pinTestUtil(URIStatus directory, URIStatus file0, URIStatus file1) throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/myFolder")));
@@ -383,7 +382,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void directoryTestUtil(URIStatus status) throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -425,7 +424,7 @@ public class UfsJournalIntegrationTest {
 
   private void persistDirectoryLaterTestUtil(Map<String, URIStatus> directoryStatuses)
       throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     for (Map.Entry<String, URIStatus> directoryStatus : directoryStatuses.entrySet()) {
       Assert.assertEquals(
@@ -452,7 +451,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void manyFileTestUtil() throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -482,7 +481,7 @@ public class UfsJournalIntegrationTest {
     MasterTestUtils.createLeaderFileSystemMasterFromJournal().stop();
 
     // Start a standby master, which will replay the mount entry from the journal.
-    Registry<Master> registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
+    MasterRegistry registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
     final FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     try {
       CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
@@ -517,7 +516,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void multiEditLogTestUtil() throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -551,7 +550,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void renameTestUtil() throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -593,7 +592,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void aclTestUtil(URIStatus status, String user) throws Exception {
-    Registry<Master> registry = createFsMasterFromJournal();
+    MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     AuthenticatedClientUser.set(user);
     FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"));
@@ -601,7 +600,7 @@ public class UfsJournalIntegrationTest {
     registry.stop();
   }
 
-  private Registry<Master> createFsMasterFromJournal() throws Exception {
+  private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 

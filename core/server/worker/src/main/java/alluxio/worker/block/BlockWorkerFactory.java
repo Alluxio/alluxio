@@ -11,9 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.Registry;
-import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
+import alluxio.worker.WorkerRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
   }
 
   @Override
-  public BlockWorker create(Registry<Worker> registry) {
+  public BlockWorker create(WorkerRegistry registry) {
     LOG.info("Creating {} ", BlockWorker.class.getName());
     BlockWorker blockWorker = new DefaultBlockWorker();
     registry.add(BlockWorker.class, blockWorker);

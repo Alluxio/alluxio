@@ -14,7 +14,6 @@ package alluxio.worker;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.Registry;
 import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.metrics.MetricsSystem;
@@ -68,7 +67,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The worker registry. */
-  private Registry<Worker> mRegistry;
+  private WorkerRegistry mRegistry;
 
   /** Worker Web UI server. */
   private WebServer mWebServer;
@@ -94,13 +93,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public AlluxioWorkerProcess() {
     try {
       mStartTimeMs = System.currentTimeMillis();
-      mRegistry = new Registry<>();
+      mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
       for (final WorkerFactory factory : ServiceUtils.getWorkerServiceLoader()) {
         callables.add(new Callable<Void>() {
           @Override
           public Void call() throws Exception {
-            factory.create(mRegistry);
+            if (factory.isEnabled()) {
+              factory.create(mRegistry);
+            }
             return null;
           }
         });
@@ -112,6 +113,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         throw new RuntimeException(e);
       } finally {
         es.shutdown();
+        es.awaitTermination(10, TimeUnit.SECONDS);
       }
 
       // Setup web server
@@ -133,7 +135,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
     } catch (Exception e) {
-      Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

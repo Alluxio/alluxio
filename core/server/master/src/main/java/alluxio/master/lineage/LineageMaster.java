@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -75,7 +76,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(LineageMaster.class);
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(FileSystemMaster.class);
 
   private final FileSystemMaster mFileSystemMaster;
   private LineageStore mLineageStore;
@@ -123,7 +125,7 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
 
