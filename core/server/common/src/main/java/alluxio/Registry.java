@@ -45,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * injection in tests.
  *
  * @param <T> the type of the {@link Server}
- * @param <U> the type of the {@link Server#start(Object)} options
+ * @param <U> the type of the {@link Server#start} method options
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {

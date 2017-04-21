@@ -31,6 +31,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -429,6 +433,26 @@ public final class CommonUtils {
         throw new UnsupportedOperationException("remove is not supported.");
       }
     };
+  }
+
+  /**
+   * Executes the given callables, waiting for the to complete (or timing out).
+
+   * @param callables the callables to execute
+   * @param <T> the return type of the callables
+   */
+  public static <T> void invokeAll(List<Callable<T>> callables) {
+    ExecutorService service = Executors.newCachedThreadPool();
+    try {
+      service.invokeAll(callables, 10, TimeUnit.SECONDS);
+      service.shutdown();
+      if (!service.awaitTermination(10, TimeUnit.SECONDS)) {
+        throw new RuntimeException("Timed out trying to create masters");
+      }
+    } catch (InterruptedException e) {
+      service.shutdownNow();
+      throw new RuntimeException(e);
+    }
   }
 
   private CommonUtils() {} // prevent instantiation

@@ -45,7 +45,7 @@ public final class AlluxioSecondaryMasterProcess implements Process {
       mRegistry = new MasterRegistry();
       // Create masters.
       MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

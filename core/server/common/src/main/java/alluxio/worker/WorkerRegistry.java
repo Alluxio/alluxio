@@ -17,7 +17,7 @@ import alluxio.wire.WorkerNetAddress;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The worker registry.
+ * A worker registry.
  */
 @ThreadSafe
 public final class WorkerRegistry extends Registry<Worker, WorkerNetAddress> {

@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.ServiceUtils;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
+import alluxio.util.CommonUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,9 +25,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class encapsulates the different master services that are configured to run.
@@ -70,10 +68,9 @@ final class MasterUtils {
    *
    * @param journalFactory the factory to use for creating journals
    * @param registry the master registry
-   * @throws InterruptedException if the method is interrupted
    */
   public static void createMasters(final JournalFactory journalFactory,
-      final MasterRegistry registry) throws InterruptedException {
+      final MasterRegistry registry) {
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
@@ -86,14 +83,6 @@ final class MasterUtils {
         }
       });
     }
-    ExecutorService es = Executors.newCachedThreadPool();
-    try {
-      es.invokeAll(callables, 10, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    } finally {
-      es.shutdownNow();
-      es.awaitTermination(10, TimeUnit.SECONDS);
-    }
+    CommonUtils.invokeAll(callables);
   }
 }

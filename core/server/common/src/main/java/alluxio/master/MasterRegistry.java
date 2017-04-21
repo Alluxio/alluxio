@@ -16,7 +16,7 @@ import alluxio.Registry;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The master registry.
+ * A master registry.
  */
 @ThreadSafe
 public final class MasterRegistry extends Registry<Master, Boolean> {

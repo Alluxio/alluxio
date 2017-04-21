@@ -45,9 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -106,15 +103,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           }
         });
       }
-      ExecutorService es = Executors.newCachedThreadPool();
-      try {
-        es.invokeAll(callables, 10, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      } finally {
-        es.shutdown();
-        es.awaitTermination(10, TimeUnit.SECONDS);
-      }
+      CommonUtils.invokeAll(callables);
 
       // Setup web server
       mWebServer =
