@@ -75,7 +75,6 @@ public class BlockWorkerTest {
   private BlockWorker mBlockWorker;
   private UfsManager mUfsManager;
 
-
   /**
    * Sets up all dependencies before a test runs.
    */

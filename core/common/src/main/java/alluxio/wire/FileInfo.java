@@ -481,8 +481,9 @@ public final class FileInfo implements Serializable {
    * @param ufsId the id of the ufs which the mount of this file is mapped to
    * @return the file information
    */
-  public void setUfsId(long ufsId) {
+  public FileInfo setUfsId(long ufsId) {
     mUfsId = ufsId;
+    return this;
   }
 
   /**

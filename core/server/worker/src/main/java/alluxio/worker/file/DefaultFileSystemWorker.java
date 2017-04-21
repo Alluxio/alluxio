@@ -62,6 +62,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
    *
    * @param blockWorker the block worker handle
    * @param workerId a reference to the id of this worker
+   * @param ufsManager the ufs manager
    * @throws IOException if an I/O error occurs
    */
   public DefaultFileSystemWorker(BlockWorker blockWorker, AtomicReference<Long> workerId,

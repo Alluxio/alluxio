@@ -115,10 +115,10 @@ public final class LockBlockOptions {
    * @param ufsId the id of the ufs which the mount of this file is mapped to
    * @return the updated options object
    */
-   public LockBlockOptions setUfsId(long ufsId) {
-     mUfsId = ufsId;
-     return this;
-   }
+  public LockBlockOptions setUfsId(long ufsId) {
+    mUfsId = ufsId;
+    return this;
+  }
 
   @Override
   public boolean equals(Object o) {
