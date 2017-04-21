@@ -49,7 +49,7 @@ public final class ChgrpCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION);
   }
 

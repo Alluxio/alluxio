@@ -14,7 +14,6 @@ package alluxio.worker;
 import alluxio.Server;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.file.FileSystemWorker;
 
 import java.net.InetSocketAddress;
 
@@ -63,11 +62,6 @@ public interface AlluxioWorkerService extends Server {
    * @return the worker's data service domain socket path if available or "" if not available
    */
   String getDataDomainSocketPath();
-
-  /**
-   * @return the file system worker for this Alluxio worker
-   */
-  FileSystemWorker getFileSystemWorker();
 
   /**
    * @return this worker's rpc address

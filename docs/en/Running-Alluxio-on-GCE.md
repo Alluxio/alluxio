@@ -92,7 +92,7 @@ below shown at the end of the shell output:
 Default port for Alluxio Web UI is **19999**.
 
 Before you can access the Web UI, a network firewall rule needs to be made to allow tcp traffic on port 19999.
-This can be done through the [Console](console.cloud.google.com) UI or using a gcloud command like the
+This can be done through the [Console](https://console.cloud.google.com) UI or using a gcloud command like the
 following, which assumes a network named 'default'.
 
 {% include Running-Alluxio-on-GCE/add-firewall-rule.md %}

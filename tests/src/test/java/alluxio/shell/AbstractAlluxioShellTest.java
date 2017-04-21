@@ -204,10 +204,19 @@ public abstract class AbstractAlluxioShellTest {
     return null;
   }
 
+  /**
+   * Resets the singleton {@link alluxio.security.LoginUser} to null.
+   */
   protected void clearLoginUser() {
     LoginUserTestUtils.resetLoginUser();
   }
 
+  /**
+   * Clears the {@link alluxio.security.LoginUser} and logs in with new user.
+   *
+   * @param user the new user
+   * @throws IOException if login fails
+   */
   protected void clearAndLogin(String user) throws IOException {
     LoginUserTestUtils.resetLoginUser(user);
   }
@@ -230,10 +239,18 @@ public abstract class AbstractAlluxioShellTest {
     }
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file is in memory
+   */
   protected boolean isInMemoryTest(String path) throws IOException, AlluxioException {
     return (mFileSystem.getStatus(new AlluxioURI(path)).getInMemoryPercentage() == 100);
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file exists
+   */
   protected boolean fileExists(AlluxioURI path) {
     try {
       return mFileSystem.exists(path);

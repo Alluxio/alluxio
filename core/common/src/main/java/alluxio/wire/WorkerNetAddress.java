@@ -92,7 +92,7 @@ public final class WorkerNetAddress implements Serializable {
    * @return the worker net address
    */
   public WorkerNetAddress setHost(String host) {
-    Preconditions.checkNotNull(host);
+    Preconditions.checkNotNull(host, "host");
     mHost = host;
     return this;
   }

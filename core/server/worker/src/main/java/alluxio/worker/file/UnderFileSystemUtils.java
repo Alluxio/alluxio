@@ -28,7 +28,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility functions for working with {@link alluxio.underfs.UnderFileSystem}.
- *
  */
 @ThreadSafe
 public final class UnderFileSystemUtils {
