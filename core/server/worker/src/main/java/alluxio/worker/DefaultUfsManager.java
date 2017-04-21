@@ -18,6 +18,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -37,14 +38,16 @@ public final class DefaultUfsManager implements UfsManager {
   private final Map<Long, UnderFileSystem> mUfsMap;
 
   private final FileSystemMasterClient mMasterClient;
+  private final Closer mCloser;
 
   /**
    * Constructs an instance of {@link DefaultUfsManager}.
    */
   public DefaultUfsManager() {
     mUfsMap = new HashMap<>();
-    mMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC));
+    mCloser =  Closer.create();
+    mMasterClient = mCloser.register(new FileSystemMasterClient(
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC)));
   }
 
   @Override
@@ -60,6 +63,7 @@ public final class DefaultUfsManager implements UfsManager {
         Preconditions.checkState((info.isSetUri() && info.isSetProperties()));
         UnderFileSystem ufs = UnderFileSystem.Factory.get(info.getUri(), info.getProperties());
         mUfsMap.put(id, ufs);
+        mCloser.register(ufs);
       }
       return mUfsMap.get(id);
     }
@@ -67,6 +71,6 @@ public final class DefaultUfsManager implements UfsManager {
 
   @Override
   public void close() throws IOException {
-    mMasterClient.close();
+    mCloser.close();
   }
 }

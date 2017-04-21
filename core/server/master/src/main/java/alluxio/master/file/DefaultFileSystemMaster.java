@@ -1912,7 +1912,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (info == null) {
       return new UfsInfo().setId(ufsId);
     }
-    return new UfsInfo().setId(ufsId).setProperties(info.getOptions().getProperties());
+    return new UfsInfo().setId(ufsId).setUri(info.getUfsUri().toString())
+        .setProperties(info.getOptions().getProperties());
   }
 
   @Override

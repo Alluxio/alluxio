@@ -21,6 +21,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.TtlAction;
 
@@ -45,6 +46,7 @@ public final class OutStreamOptions {
   private String mGroup;
   private Mode mMode;
   private String mUfsPath;
+  private long mUfsId;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -70,6 +72,7 @@ public final class OutStreamOptions {
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
+    mUfsId = IdUtils.INVALID_UFS_ID;
   }
 
   /**
@@ -134,6 +137,13 @@ public final class OutStreamOptions {
    */
   public Mode getMode() {
     return mMode;
+  }
+
+  /**
+   * @return the ufs id
+   */
+  public long getUfsId() {
+    return mUfsId;
   }
 
   /**
@@ -223,6 +233,15 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @param ufsId the ufs id
+   * @return the updated options object
+   */
+  public OutStreamOptions setUfsId(long ufsId) {
+    mUfsId = ufsId;
+    return this;
+  }
+
+  /**
    * @param ufsPath the ufs path
    * @return the updated options object
    */
@@ -268,44 +287,49 @@ public final class OutStreamOptions {
     }
     OutStreamOptions that = (OutStreamOptions) o;
     return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
-        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
-        && mWriteTier == that.mWriteTier
-        && Objects.equal(mWriteType, that.mWriteType)
+        && Objects.equal(mUfsId, that.mUfsId)
         && Objects.equal(mUfsPath, that.mUfsPath)
-        && Objects.equal(mOwner, that.mOwner)
-        && Objects.equal(mGroup, that.mGroup)
-        && Objects.equal(mMode, that.mMode);
+        && Objects.equal(mWriteTier, that.mWriteTier)
+        && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockSizeBytes,
+    return Objects.hashCode(
+        mBlockSizeBytes,
+        mGroup,
+        mLocationPolicy,
+        mMode,
+        mOwner,
         mTtl,
         mTtlAction,
-        mLocationPolicy,
-        mWriteTier,
-        mWriteType,
+        mUfsId,
         mUfsPath,
-        mOwner,
-        mGroup,
-        mMode);
+        mWriteTier,
+        mWriteType
+    );
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("blockSizeBytes", mBlockSizeBytes)
+        .add("group", mGroup)
+        .add("locationPolicy", mLocationPolicy)
+        .add("mode", mMode)
+        .add("owner", mOwner)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
-        .add("locationPolicy", mLocationPolicy)
+        .add("ufsId", mUfsId)
+        .add("ufsPath", mUfsPath)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
-        .add("owner", mOwner)
-        .add("group", mGroup)
-        .add("mode", mMode)
-        .add("ufsPath", mUfsPath)
         .toString();
   }
 }

@@ -30,6 +30,7 @@ public final class IdUtils {
 
   public static final long INVALID_FILE_ID = -1;
   public static final long INVALID_WORKER_ID = -1;
+  public static final long INVALID_UFS_ID = -1;
   private static SecureRandom sRandom = new SecureRandom();
 
   private IdUtils() {} // prevent instantiation

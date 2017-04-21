@@ -228,11 +228,11 @@ public final class NettyPacketWriter implements PacketWriter {
         }
         try {
           if (mPacketWriteException != null) {
-            mChannel.close().sync();
+            mChannel.close();
             throw new IOException(mPacketWriteException);
           }
           if (!mDoneOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-            mChannel.close().sync();
+            mChannel.close();
             throw new IOException(String.format(
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }

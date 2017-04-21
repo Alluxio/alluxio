@@ -40,8 +40,8 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
       OutStreamOptions options) throws IOException {
-    return new UnderFileSystemFileOutStream(context, address, options.getUfsPath(),
-        options.getOwner(), options.getGroup(), options.getMode());
+    return new UnderFileSystemFileOutStream(context, address, options.getUfsId(),
+        options.getUfsPath(), options.getOwner(), options.getGroup(), options.getMode());
   }
 
   private final PacketOutStream mOutStream;
@@ -51,18 +51,19 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    *
    * @param context the file system context
    * @param address the data server address
-   * @param path the ufs file path
+   * @param ufsId the ufs id
+   * @param ufsPath the ufs file path
    * @param owner the owner of the ufs file
    * @param group the group of the ufs file
    * @param mode the mode of the ufs file
    * @throws IOException if it fails to create the object
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
-      String path, String owner, String group, Mode mode) throws IOException {
+      long ufsId, String ufsPath, String owner, String group, Mode mode) throws IOException {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
         Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
-            .setType(Protocol.RequestType.UFS_FILE).setUfsPath(path).setOwner(owner)
-            .setGroup(group).setMode(mode.toShort()).buildPartial()));
+            .setType(Protocol.RequestType.UFS_FILE).setUfsId(ufsId).setUfsPath(ufsPath)
+            .setOwner(owner).setGroup(group).setMode(mode.toShort()).buildPartial()));
     mOutStream = (PacketOutStream) out;
   }
 

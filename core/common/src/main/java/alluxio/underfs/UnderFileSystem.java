@@ -24,6 +24,7 @@ import alluxio.underfs.options.OpenOptions;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
-public interface UnderFileSystem {
+public interface UnderFileSystem extends Closeable {
 
   /**
    * The factory for the {@link UnderFileSystem}.
