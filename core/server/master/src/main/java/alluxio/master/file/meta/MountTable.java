@@ -274,13 +274,17 @@ public final class MountTable implements JournalEntryIterable {
       LOG.debug("Resolving {}", path);
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(uri);
-      MountInfo info = mMountTable.get(mountPoint);
-      AlluxioURI ufsUri = info.getUfsUri();
-      // TODO(gpang): this ufs should probably be cached.
-      UnderFileSystem ufs = UnderFileSystem.Factory.getMountPoint(ufsUri.toString(),
-          info.getOptions().getProperties());
-      AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-      return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getUfsId());
+      if (mountPoint != null) {
+        MountInfo info = mMountTable.get(mountPoint);
+        AlluxioURI ufsUri = info.getUfsUri();
+        // TODO(gpang): this ufs should probably be cached.
+        UnderFileSystem ufs = UnderFileSystem.Factory
+            .getMountPoint(ufsUri.toString(), info.getOptions().getProperties());
+        AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
+        return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getUfsId());
+      }
+      // TODO(binfan): throw exception as we should never reach here
+      return new Resolution(uri, null, false, 0);
     }
   }
 

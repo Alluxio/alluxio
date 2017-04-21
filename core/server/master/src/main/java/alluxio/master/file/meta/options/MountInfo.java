@@ -101,11 +101,13 @@ public final class MountInfo {
       return false;
     }
     MountInfo that = (MountInfo) o;
-    return mUfsUri.equals(that.getUfsUri()) && mOptions.equals(that.getOptions());
+    return mUfsId == that.getUfsId()
+        && mUfsUri.equals(that.getUfsUri())
+        && mOptions.equals(that.getOptions());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mUfsUri, mOptions);
+    return Objects.hash(mUfsId, mUfsUri, mOptions);
   }
 }

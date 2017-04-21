@@ -20,6 +20,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.worker.UfsManager;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -27,11 +28,7 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -40,8 +37,6 @@ import java.util.Random;
 /**
  * Unit tests for {@link DataServerUfsFileWriteHandler}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(UnderFileSystem.class)
 public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
@@ -52,16 +47,17 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
     mFile = mTestFolder.newFile().getPath();
     mOutputStream = new FileOutputStream(mFile);
     mChecksum = 0;
-    mChannel = new EmbeddedChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
-    mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    PowerMockito.mockStatic(UnderFileSystem.Factory.class);
-    Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(mockUfs);
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    Mockito.when(ufsManager.getUfsById(Mockito.anyLong())).thenReturn(mockUfs);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class))).thenReturn(
         mOutputStream);
+
+    mChannel = new EmbeddedChannel(
+        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
+    mChannelNoException = new EmbeddedNoExceptionChannel(
+        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
   }
 
   @After

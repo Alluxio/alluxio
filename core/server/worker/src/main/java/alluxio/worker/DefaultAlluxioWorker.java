@@ -109,7 +109,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     try {
       mWorkerId = new AtomicReference<>();
       mStartTimeMs = System.currentTimeMillis();
-      mUfsManager = new UfsManager();
+      mUfsManager = new DefaultUfsManager();
       mBlockWorker = new DefaultBlockWorker(mWorkerId, mUfsManager);
       mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId, mUfsManager);
 

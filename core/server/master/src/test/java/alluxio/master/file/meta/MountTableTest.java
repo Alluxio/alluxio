@@ -243,16 +243,25 @@ public final class MountTableTest {
   public void getMountTable() throws Exception {
     Map<String, MountInfo> mountTable = new HashMap<>(2);
     mountTable.put("/mnt/foo", new MountInfo(new AlluxioURI("hdfs://localhost:5678/foo"),
-        MountOptions.defaults()));
+        MountOptions.defaults(), 1));
     mountTable.put("/mnt/bar", new MountInfo(new AlluxioURI("hdfs://localhost:5678/bar"),
-        MountOptions.defaults()));
+        MountOptions.defaults(), 2));
 
+    AlluxioURI masterAddr = new AlluxioURI("alluxio://localhost:1234");
     for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
-      mMountTable.add(new AlluxioURI("alluxio://localhost:1234" + mountPoint.getKey()),
+      mMountTable.add(masterAddr.join(mountPoint.getKey()),
           mountInfo.getUfsUri(), mountInfo.getOptions());
     }
 
-    Assert.assertEquals(mountTable, mMountTable.getMountTable());
+    Map<String, MountInfo> tableGot = mMountTable.getMountTable();
+    Assert.assertEquals(mountTable.size(), tableGot.size());
+    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
+      MountInfo resultInfo = tableGot.get(mountPoint.getKey());
+      MountInfo expectedInfo = mountPoint.getValue();
+      Assert.assertEquals(expectedInfo.getUfsUri(), resultInfo.getUfsUri());
+      Assert.assertEquals(expectedInfo.getOptions(), resultInfo.getOptions());
+      Assert.assertNotEquals(expectedInfo.getUfsId(), resultInfo.getUfsId());
+    }
   }
 }
