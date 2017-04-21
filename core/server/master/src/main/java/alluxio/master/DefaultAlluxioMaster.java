@@ -96,7 +96,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected DefaultAlluxioMaster() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
-    int connectionTimeout = Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
+    int connectionTimeout = (int) Configuration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "

@@ -318,7 +318,7 @@ public final class NetworkAddressUtils {
       return sLocalHost;
     }
     int hostResolutionTimeout =
-        Configuration.getInt(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+        (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
@@ -352,7 +352,7 @@ public final class NetworkAddressUtils {
       return sLocalIP;
     }
     int hostResolutionTimeout =
-        Configuration.getInt(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+        (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 

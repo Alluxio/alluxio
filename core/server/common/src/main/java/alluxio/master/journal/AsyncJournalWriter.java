@@ -63,7 +63,7 @@ public final class AsyncJournalWriter {
     mWriteCounter = new AtomicLong(0);
     // convert milliseconds to nanoseconds.
     mFlushBatchTimeNs =
-        1000000L * Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
+        1000000L * Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
   /**

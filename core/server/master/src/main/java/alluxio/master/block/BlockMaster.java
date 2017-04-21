@@ -268,7 +268,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 

@@ -119,7 +119,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     ClientConfiguration clientConf = new ClientConfiguration();
 
     // Socket timeout
-    clientConf.setSocketTimeout(Configuration.getInt(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+    clientConf.setSocketTimeout((int) Configuration
+        .getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
 
     // HTTP protocol
     if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED)) {
