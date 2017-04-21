@@ -118,6 +118,7 @@ enum TStatus {
   DATA_LOSS = 15,
 }
 
+// Next available id: 5
 exception AlluxioTException {
   2: string message
   4: TStatus status
