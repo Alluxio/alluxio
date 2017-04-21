@@ -53,7 +53,7 @@ public class UfsJournalReader implements JournalReader {
    */
   UfsJournalReader(UfsJournal journal) {
     mJournal = Preconditions.checkNotNull(journal, "journal");
-    mUfs = UnderFileSystem.Factory.getJournal(mJournal.getLocation());
+    mUfs = UnderFileSystem.Factory.getForJournal(mJournal.getLocation());
     mCheckpoint = mJournal.getCheckpoint();
   }
 

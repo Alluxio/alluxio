@@ -50,7 +50,7 @@ public final class UfsJournalFileParser implements JournalFileParser {
    */
   public UfsJournalFileParser(URI location) {
     mLocation = Preconditions.checkNotNull(location);
-    mUfs = UnderFileSystem.Factory.getJournal(mLocation);
+    mUfs = UnderFileSystem.Factory.getForJournal(mLocation);
   }
 
   @Override

@@ -141,17 +141,18 @@ public interface UnderFileSystem {
     }
 
     /**
-     * Gets the UnderFileSystem instance according to its schema.
+     * Gets the {@link UnderFileSystem} instance according to its schema.
      *
      * @param path the file path storing over the ufs
      * @return instance of the under layer file system
      */
+    // TODO(binfan): Remove this method, currently it is only used in tests
     public static UnderFileSystem get(String path) {
       return get(path, null);
     }
 
     /**
-     * Gets the UnderFileSystem instance according to its scheme and configuration.
+     * Gets the {@link UnderFileSystem} instance according to its scheme and configuration.
      *
      * @param path the file path storing over the ufs
      * @param ufsConf the configuration object for ufs only
@@ -164,13 +165,13 @@ public interface UnderFileSystem {
     }
 
     /**
-     * Gets the UnderFileSystem instance according to its scheme and configuration.
+     * Gets the {@link UnderFileSystem} instance according to its scheme and configuration.
      *
-     * @param path the file path storing over the ufs
+     * @param path the path of mount point
      * @param ufsConf the configuration object for ufs only
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem getMountPoint(String path, Object ufsConf) {
+    public static UnderFileSystem getForMountPoint(String path, Object ufsConf) {
       Preconditions.checkArgument(path != null, "path may not be null");
 
       return UFS_CACHE.get(path, ufsConf);
@@ -179,27 +180,19 @@ public interface UnderFileSystem {
     /**
      * @return the instance of under file system for Alluxio root directory
      */
-    public static UnderFileSystem getRoot() {
+    public static UnderFileSystem getForRoot() {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return getMountPoint(ufsRoot, ufsConf);
+      return getForMountPoint(ufsRoot, ufsConf);
     }
 
     /**
      * @param path journal path in ufs
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem getJournal(URI path) {
-      return get(path.toString());
-    }
-
-    /**
-     * @param path journal path in ufs
-     * @return the instance of under file system for Alluxio journal directory
-     */
-    public static UnderFileSystem getJournal(String path) {
-      return get(path);
+    public static UnderFileSystem getForJournal(URI path) {
+      return get(path.toString(), null);
     }
   }
 

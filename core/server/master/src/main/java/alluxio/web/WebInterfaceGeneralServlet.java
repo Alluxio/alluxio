@@ -204,7 +204,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.getRoot();
+    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
 
     long sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {

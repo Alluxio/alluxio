@@ -117,7 +117,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.getRoot();
+    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
     String underfsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems

@@ -62,7 +62,7 @@ public final class JournalUpgrader {
                   + "directory if not set.");
 
   private static boolean sHelp;
-  private static String sJournalDirectoryV0;
+  private static URI sJournalDirectoryV0;
 
   /**
    * A class that provides a way to upgrade the journal from v0 to v1.
@@ -83,11 +83,11 @@ public final class JournalUpgrader {
     private Upgrader(String master) {
       mMaster = master;
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
-          getJournalLocation(sJournalDirectoryV0))).create(master);
+          getJournalLocation(sJournalDirectoryV0.toString()))).create(master);
       mJournalV1 = (new Journal.Factory(
           getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))).create(master);
 
-      mUfs = UnderFileSystem.Factory.getJournal(sJournalDirectoryV0);
+      mUfs = UnderFileSystem.Factory.getForJournal(sJournalDirectoryV0);
 
       mCheckpointV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "checkpoint.data");
       mCompletedLogsV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "completed");
@@ -252,8 +252,14 @@ public final class JournalUpgrader {
       return false;
     }
     sHelp = cmd.hasOption("help");
-    sJournalDirectoryV0 = cmd.getOptionValue("journalDirectoryV0",
+    String journalDir = cmd.getOptionValue("journalDirectoryV0",
         Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
+    try {
+      sJournalDirectoryV0 = new URI(journalDir);
+    } catch (URISyntaxException e) {
+      System.out.println("Failed to parse the journal dir for " + journalDir);
+      return false;
+    }
     return true;
   }
 

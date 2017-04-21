@@ -329,7 +329,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   private void connectToUFS() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.getRoot();
+    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }
 }
