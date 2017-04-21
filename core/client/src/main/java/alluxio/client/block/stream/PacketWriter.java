@@ -11,32 +11,27 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.Cancelable;
+import alluxio.QuietlyCloseable;
+import alluxio.client.QuietlyCancelable;
 
 import io.netty.buffer.ByteBuf;
-
-import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * The interface to write packets.
  */
-public interface PacketWriter extends Closeable, Cancelable {
+public interface PacketWriter extends QuietlyCloseable, QuietlyCancelable {
   /**
    * Writes a packet. This method takes the ownership of this packet even if it fails to write
    * the packet.
    *
    * @param packet the packet
-   * @throws IOException if it fails to write the packet
    */
-  void writePacket(ByteBuf packet) throws IOException;
+  void writePacket(ByteBuf packet);
 
   /**
    *  Flushes all the pending packets.
-   *
-   * @throws IOException if it fails to flush
    */
-  void flush() throws IOException;
+  void flush();
 
   /**
    * @return the packet size in bytes used

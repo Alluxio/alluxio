@@ -18,11 +18,12 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
@@ -97,7 +98,7 @@ public abstract class DataServerReadHandlerTest {
     populateInputFile(0, 0, 0);
     mChannelNoException.writeInbound(buildReadRequest(0, 0));
     Object response = waitForOneResponse(mChannelNoException);
-    checkReadResponse(response, Protocol.Status.Code.INVALID_ARGUMENT);
+    checkReadResponse(response, PStatus.INVALID_ARGUMENT);
   }
 
   /**
@@ -123,7 +124,7 @@ public abstract class DataServerReadHandlerTest {
       // There is small chance that we can still receive an OK response here because it is too
       // fast to read all the data. If that ever happens, either increase the file size or allow it
       // to be OK here.
-      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.CANCELLED);
+      DataBuffer buffer = checkReadResponse(response, PStatus.CANCELED);
       if (buffer == null) {
         eof = true;
         break;
@@ -182,7 +183,7 @@ public abstract class DataServerReadHandlerTest {
         Assert.fail();
         break;
       }
-      DataBuffer buffer = checkReadResponse(readResponse, Protocol.Status.Code.OK);
+      DataBuffer buffer = checkReadResponse(readResponse, PStatus.OK);
       eof = buffer == null;
       if (buffer != null) {
         if (buffer instanceof DataNettyBufferV2) {
@@ -210,21 +211,20 @@ public abstract class DataServerReadHandlerTest {
    * Checks the read response message given the expected error code.
    *
    * @param readResponse the read response
-   * @param codeExpected the expected error code
+   * @param statusExpected the expected error code
    * @return the data buffer extracted from the read response
    */
-  protected DataBuffer checkReadResponse(Object readResponse, Protocol.Status.Code codeExpected) {
+  protected DataBuffer checkReadResponse(Object readResponse, PStatus statusExpected) {
     Assert.assertTrue(readResponse instanceof RPCProtoMessage);
 
     ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
     Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
     DataBuffer buffer = ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
     if (buffer != null) {
-      Assert.assertEquals(Protocol.Status.Code.OK,
-          response.<Protocol.Response>getMessage().getStatus().getCode());
+      Assert.assertEquals(PStatus.OK, response.<Protocol.Response>getMessage().getStatus());
     } else {
-      Assert.assertEquals(codeExpected,
-          response.<Protocol.Response>getMessage().getStatus().getCode());
+      Assert.assertEquals(statusExpected,
+          response.<Protocol.Response>getMessage().getStatus());
     }
     return buffer;
   }

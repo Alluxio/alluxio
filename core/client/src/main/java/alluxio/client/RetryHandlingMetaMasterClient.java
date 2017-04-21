@@ -13,7 +13,6 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
@@ -21,7 +20,6 @@ import alluxio.wire.MasterInfo.MasterInfoField;
 
 import org.apache.thrift.TException;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
@@ -66,30 +64,25 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = new MetaMasterClientService.Client(mProtocol);
   }
 
   @Override
-  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields)
-      throws ConnectionFailedException {
-    try {
-      return retryRPC(new RpcCallable<MasterInfo>() {
-        @Override
-        public MasterInfo call() throws TException {
-          Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
-          if (fields == null) {
-            thriftFields = null;
-          } else {
-            for (MasterInfoField field : fields) {
-              thriftFields.add(field.toThrift());
-            }
+  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) {
+    return retryRPC(new RpcCallable<MasterInfo>() {
+      @Override
+      public MasterInfo call() throws TException {
+        Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
+        if (fields == null) {
+          thriftFields = null;
+        } else {
+          for (MasterInfoField field : fields) {
+            thriftFields.add(field.toThrift());
           }
-          return MasterInfo.fromThrift(mClient.getInfo(thriftFields));
         }
-      });
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+        return MasterInfo.fromThrift(mClient.getInfo(thriftFields));
+      }
+    });
   }
 }

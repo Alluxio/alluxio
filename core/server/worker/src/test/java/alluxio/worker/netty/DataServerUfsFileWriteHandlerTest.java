@@ -16,6 +16,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -78,7 +79,7 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
     mOutputStream.close();
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
+    checkWriteResponse(writeResponse, PStatus.UNAVAILABLE);
   }
 
   @Override

@@ -11,16 +11,19 @@
 
 package alluxio.client;
 
+import static org.junit.Assert.assertFalse;
+
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -74,25 +77,6 @@ public final class FileSystemIntegrationTest {
   }
 
   @Test
-  public void createFileWithFileAlreadyExistsException() throws Exception {
-    AlluxioURI uri = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createFile(uri, mWriteBoth).close();
-    Assert.assertNotNull(mFileSystem.getStatus(uri));
-    try {
-      mFileSystem.createFile(uri, mWriteBoth).close();
-    } catch (AlluxioException e) {
-      Assert.assertTrue(e instanceof FileAlreadyExistsException);
-    }
-  }
-
-  @Test
-  public void createFileWithInvalidPathException() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage(ExceptionMessage.PATH_INVALID.getMessage("root/testFile1"));
-    mFileSystem.createFile(new AlluxioURI("root/testFile1"), mWriteBoth).close();
-  }
-
-  @Test
   public void deleteFile() throws Exception {
     String uniqPath = PathUtils.uniqPath();
 
@@ -121,22 +105,6 @@ public final class FileSystemIntegrationTest {
     Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
 
     Assert.assertTrue(mFileSystem.getStatus(uri).getPath().equals(uniqPath));
-  }
-
-  @Test
-  public void mkdir() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-    for (int k = 0; k < 10; k++) {
-      mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
-      try {
-        mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
-        Assert.fail("createDirectory should throw FileAlreadyExistsException");
-      } catch (FileAlreadyExistsException e) {
-        Assert.assertEquals(e.getMessage(),
-            ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));
-      }
-    }
   }
 
   @Test
@@ -237,7 +205,7 @@ public final class FileSystemIntegrationTest {
     try {
       mFileSystem.mount(new AlluxioURI("/dir"), new AlluxioURI(ufsSubdir));
       Assert.fail("Cannot remount primary ufs.");
-    } catch (InvalidPathException e) {
+    } catch (AlluxioException e) {
       // Exception expected
     }
 
@@ -251,14 +219,14 @@ public final class FileSystemIntegrationTest {
       try {
         mFileSystem.mount(new AlluxioURI("/inner"), new AlluxioURI(innerDirPath));
         Assert.fail("Cannot mount suffix of already-mounted directory");
-      } catch (InvalidPathException e) {
+      } catch (AlluxioException e) {
         // Exception expected, continue
       }
       // Cannot mount prefix of already-mounted directory
       try {
         mFileSystem.mount(new AlluxioURI("/root"), new AlluxioURI(alternateUfsRoot));
         Assert.fail("Cannot mount prefix of already-mounted directory");
-      } catch (InvalidPathException e) {
+      } catch (AlluxioException e) {
         // Exception expected, continue
       }
     } finally {
@@ -284,5 +252,131 @@ public final class FileSystemIntegrationTest {
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }
+  }
+
+// Test exception cases for all FileSystem RPCs
+
+  @Test
+  public void createExistingDirectory() throws Exception {
+    AlluxioURI path = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(path);
+    mThrown.expect(FileAlreadyExistsException.class);
+    mFileSystem.createDirectory(path);
+  }
+
+  @Test
+  public void createDirectoryOnTopOfFile() throws Exception {
+    AlluxioURI path = new AlluxioURI("/dir");
+    FileSystemTestUtils.createByteFile(mFileSystem, path, CreateFileOptions.defaults(), 10);
+    mThrown.expect(FileAlreadyExistsException.class);
+    mFileSystem.createDirectory(path);
+  }
+
+  @Test
+  public void createDirectoryInvalidPath() throws Exception {
+    mThrown.expect(InvalidPathException.class);
+    mFileSystem.createDirectory(new AlluxioURI("not a path"));
+  }
+
+  @Test
+  public void createExistingFile() throws Exception {
+    AlluxioURI path = new AlluxioURI("/file");
+    mFileSystem.createFile(path).close();
+    mThrown.expect(FileAlreadyExistsException.class);
+    mFileSystem.createFile(path);
+  }
+
+  @Test
+  public void createFileInvalidPath() throws Exception {
+    mThrown.expect(InvalidPathException.class);
+    mFileSystem.createFile(new AlluxioURI("not a path"));
+  }
+
+  @Test
+  public void deleteNonexistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.delete(new AlluxioURI("/dir"));
+  }
+
+  @Test
+  public void deleteNonexistingNestedPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.delete(new AlluxioURI("/dir/dir"));
+  }
+
+  @Test
+  public void deleteNonemptyDirectory() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "file"))).close();
+    mThrown.expect(DirectoryNotEmptyException.class);
+    mFileSystem.delete(dir, DeleteOptions.defaults().setRecursive(false));
+  }
+
+  @Test
+  public void existsNonexistingPath() throws Exception {
+    AlluxioURI path = new AlluxioURI("/path");
+    assertFalse(mFileSystem.exists(path));
+  }
+
+  @Test
+  public void existsNonexistingNestedPath() throws Exception {
+    AlluxioURI path = new AlluxioURI("/dir/path");
+    assertFalse(mFileSystem.exists(path));
+  }
+
+  @Test
+  public void freeNonexistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.free(new AlluxioURI("/path"));
+  }
+
+  @Test
+  public void freeNonexistingNestedPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.free(new AlluxioURI("/dir/path"));
+  }
+
+  @Test
+  public void getStatusNonexistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.getStatus(new AlluxioURI("/path"));
+  }
+
+  @Test
+  public void getStatusNonexistingNestedPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.getStatus(new AlluxioURI("/dir/path"));
+  }
+
+  @Test
+  public void listStatusNonexistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.listStatus(new AlluxioURI("/path"));
+  }
+
+  @Test
+  public void loadMetadataNonexistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.loadMetadata(new AlluxioURI("/path"));
+  }
+
+  @Test
+  public void openFileNonexistingPath() throws Exception {
+    AlluxioURI path = new AlluxioURI("/path");
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.openFile(path);
+  }
+
+  @Test
+  public void renameNonexistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.rename(new AlluxioURI("/path1"), new AlluxioURI("/path1"));
+  }
+
+  @Test
+  public void setAttributeNonexistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.setAttribute(new AlluxioURI("/path"));
   }
 }

@@ -9,12 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
@@ -37,10 +36,9 @@ public final class FileSystemTestUtils {
    * @param fileName the name of the file to be created
    * @param len file size in bytes
    * @param options options to create the file with
-   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static void createByteFile(FileSystem fs, String fileName, int len,
-      CreateFileOptions options) throws IOException {
+      CreateFileOptions options) {
     createByteFile(fs, new AlluxioURI(fileName), options, len);
   }
 
@@ -51,10 +49,9 @@ public final class FileSystemTestUtils {
    * @param fileName the name of the file to be created
    * @param writeType {@link WriteType} used to create the file
    * @param len file size
-   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static void createByteFile(FileSystem fs, String fileName,
-      WriteType writeType, int len) throws IOException {
+      WriteType writeType, int len) {
     createByteFile(fs, new AlluxioURI(fileName), writeType, len);
   }
 
@@ -65,10 +62,9 @@ public final class FileSystemTestUtils {
    * @param fileURI URI of the file
    * @param writeType {@link WriteType} used to create the file
    * @param len file size
-   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static void createByteFile(FileSystem fs, AlluxioURI fileURI,
-      WriteType writeType, int len) throws IOException {
+      WriteType writeType, int len) {
     CreateFileOptions options = CreateFileOptions.defaults().setWriteType(writeType);
     createByteFile(fs, fileURI, options, len);
   }
@@ -80,18 +76,17 @@ public final class FileSystemTestUtils {
    * @param fileURI URI of the file
    * @param options client options to create the file with
    * @param len file size
-   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
-  public static void createByteFile(FileSystem fs, AlluxioURI fileURI,
-      CreateFileOptions options, int len) throws IOException {
+  public static void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFileOptions options,
+      int len) {
     try (FileOutStream os = fs.createFile(fileURI, options)) {
       byte[] arr = new byte[len];
       for (int k = 0; k < len; k++) {
         arr[k] = (byte) k;
       }
       os.write(arr);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -103,10 +98,9 @@ public final class FileSystemTestUtils {
    * @param writeType {@link WriteType} used to create the file
    * @param len file size
    * @param blockCapacityByte block size of the file
-   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
-  public static void createByteFile(FileSystem fs, String fileName,
-      WriteType writeType, int len, long blockCapacityByte) throws IOException {
+  public static void createByteFile(FileSystem fs, String fileName, WriteType writeType, int len,
+      long blockCapacityByte) {
     CreateFileOptions options =
         CreateFileOptions.defaults().setWriteType(writeType).setBlockSizeBytes(blockCapacityByte);
     createByteFile(fs, new AlluxioURI(fileName), options, len);
@@ -118,9 +112,8 @@ public final class FileSystemTestUtils {
    * @param fs a {@link FileSystem} handler
    * @param path a path in alluxio file system
    * @return a list of strings representing the file names under the given path
-   * @throws IOException if {@code path} does not exist or is invalid
    */
-  public static List<String> listFiles(FileSystem fs, String path) throws IOException {
+  public static List<String> listFiles(FileSystem fs, String path) {
     try {
       List<URIStatus> statuses = fs.listStatus(new AlluxioURI(path));
       List<String> res = new ArrayList<>();
@@ -131,8 +124,8 @@ public final class FileSystemTestUtils {
         }
       }
       return res;
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
     }
   }
 

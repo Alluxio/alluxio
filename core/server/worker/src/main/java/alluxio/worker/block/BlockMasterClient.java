@@ -13,10 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.wire.WorkerNetAddress;
@@ -77,13 +74,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param tierAlias the alias of the tier the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
-   * @throws AlluxioTException if it fails to commit the block
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length)
-          throws AlluxioTException, IOException, ConnectionFailedException {
+      final String tierAlias, final long blockId, final long length) {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -98,11 +91,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
    *
    * @param address the net address to get a worker id for
    * @return a worker id
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized long getId(final WorkerNetAddress address)
-      throws IOException, ConnectionFailedException {
+  public synchronized long getId(final WorkerNetAddress address) {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -120,12 +110,10 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
    * @return an optional command for the worker to execute
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) throws IOException, ConnectionFailedException {
+      final Map<String, List<Long>> addedBlocks) {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
@@ -142,16 +130,14 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
-   * @throws AlluxioException if registering the worker fails
-   * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public synchronized void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      final Map<String, List<Long>> currentBlocksOnTiers) {
+    retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
         return null;

@@ -15,17 +15,14 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
-import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -268,7 +265,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
           length);
-    } catch (AlluxioTException | IOException | ConnectionFailedException e) {
+    } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
       mBlockStore.unlockBlock(lockId);
@@ -419,12 +416,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) throws IOException {
-    try {
-      return mFileSystemMasterClient.getFileInfo(fileId);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
-    }
+  public FileInfo getFileInfo(long fileId) {
+    return mFileSystemMasterClient.getFileInfo(fileId);
   }
 
   @Override

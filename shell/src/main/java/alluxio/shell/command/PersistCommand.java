@@ -84,7 +84,7 @@ public final class PersistCommand extends AbstractShellCommand {
         AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
         try {
           persist(newPath);
-        } catch (IOException e) {
+        } catch (Exception e) {
           errorMessages.add(e.getMessage());
         }
       }

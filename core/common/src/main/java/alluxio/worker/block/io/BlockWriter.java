@@ -11,9 +11,10 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.QuietlyCloseable;
+
 import io.netty.buffer.ByteBuf;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.GatheringByteChannel;
@@ -23,7 +24,7 @@ import java.nio.channels.GatheringByteChannel;
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockWriter extends Closeable {
+public interface BlockWriter extends QuietlyCloseable {
   /**
    * Appends data to the end of a block from an input {@link ByteBuffer}.
    *
@@ -31,7 +32,7 @@ public interface BlockWriter extends Closeable {
    * @return the size of data that was appended in bytes
    * @throws IOException if the operation fails
    */
-  long append(ByteBuffer inputBuf) throws IOException;
+  long append(ByteBuffer inputBuf);
 
   /**
    * Returns writable byte channel to write to this block.
@@ -47,7 +48,7 @@ public interface BlockWriter extends Closeable {
    * @param buf the byte buffer to hold the data
    * @throws IOException if any I/O errors occur
    */
-  void transferFrom(ByteBuf buf) throws IOException;
+  void transferFrom(ByteBuf buf);
 
   /**
    * @return the current write position (same as the number of bytes written)

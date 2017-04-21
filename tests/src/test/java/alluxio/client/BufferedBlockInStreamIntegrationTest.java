@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;

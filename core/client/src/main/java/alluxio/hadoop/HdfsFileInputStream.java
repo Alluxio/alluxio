@@ -55,7 +55,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * @param context the file system context
    * @param uri the Alluxio file URI
    * @param stats filesystem statistics
-   * @throws IOException if the underlying file does not exist or its stream cannot be created
+   * @throws IOException if an I/O error occurs
    */
   public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri,
       org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
@@ -169,7 +169,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * location. Can't seek past the end of the file.
    *
    * @param pos the position to seek to
-   * @throws IOException if the position is negative or exceeds the end of the file
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void seek(long pos) throws IOException {
@@ -207,7 +207,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    *
    * @param n the number of bytes to be skipped
    * @return the actual number of bytes skipped
-   * @throws IOException if the after position exceeds the end of the file
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public long skip(long n) throws IOException {

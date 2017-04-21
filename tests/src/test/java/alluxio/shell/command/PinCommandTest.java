@@ -12,8 +12,8 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
