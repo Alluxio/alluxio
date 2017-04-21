@@ -152,7 +152,7 @@ public class AlluxioStatusException extends RuntimeException {
    * @return the native Alluxio exception
    */
   public static AlluxioStatusException fromThrift(AlluxioTException e) {
-    return fromStatusAndMessage(Status.fromThrift(e.getStatus()), e.getMessage());
+    return from(Status.fromThrift(e.getStatus()), e.getMessage());
   }
 
   /**
@@ -161,9 +161,9 @@ public class AlluxioStatusException extends RuntimeException {
    *
    * @param status the status
    * @param m the message
-   * @return the native Alluxio exception
+   * @return an {@link AlluxioStatusException} for the given status and message
    */
-  public static AlluxioStatusException fromStatusAndMessage(Status status, String m) {
+  public static AlluxioStatusException from(Status status, String m) {
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
     switch (status) {
