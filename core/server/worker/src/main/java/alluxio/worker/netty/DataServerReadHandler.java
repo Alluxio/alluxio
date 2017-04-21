@@ -166,7 +166,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    // TODO(andrew): talk to peis about whether this is the right exception type
+    // The channel is closed so the client cannot receive this message.
     setError(ctx.channel(),
         new Error(new InternalException("Channel has been unregistered"), false));
     ctx.fireChannelUnregistered();

@@ -141,7 +141,7 @@ public final class RPCProtoMessage extends RPCMessage {
     Response response = getMessage().<Protocol.Response>getMessage();
     Status status = Status.fromProto(response.getStatus());
     if (status != Status.OK) {
-      throw AlluxioStatusException.fromStatusAndMessage(status, response.getMessage());
+      throw AlluxioStatusException.from(status, response.getMessage());
     }
   }
 
