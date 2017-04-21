@@ -86,29 +86,6 @@ public final class Constants {
   public static final int MAX_PORT = 65535;
 
   // Service versions should be incremented every time a backwards incompatible change occurs.
-<<<<<<< HEAD
-  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
-  public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long META_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
-||||||| merged common ancestors
-  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 1;
-  public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long META_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
-=======
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 2;
@@ -119,7 +96,6 @@ public final class Constants {
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 2;
->>>>>>> upstream/exceptions
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
