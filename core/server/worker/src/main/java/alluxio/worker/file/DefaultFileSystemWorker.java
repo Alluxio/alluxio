@@ -106,8 +106,4 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
     // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
     getExecutorService().shutdownNow();
   }
-
-  public FileDataManager getFileDataManager() {
-    return mFileDataManager;
-  }
 }

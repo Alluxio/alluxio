@@ -544,7 +544,7 @@ public final class FileInfo implements Serializable {
         .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("fileBlockInfos", mFileBlockInfos)
-        .add("mountTableVersion", mUfsId)
+        .add("ufsId", mUfsId)
         .toString();
   }
 }

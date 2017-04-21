@@ -44,7 +44,7 @@ public final class UfsManager implements AutoCloseable {
   public UfsManager() {
     mUfsMap = new HashMap<>();
     mMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC));;
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC));
   }
 
   /**

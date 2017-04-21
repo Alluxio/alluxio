@@ -143,7 +143,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param blockId the block ID
    * @param blockSize the block size
    * @param blockStart the position at which the block starts in the file
-   * @param ufsId the version of Alluxio mount table
+   * @param ufsId the id of the ufs which the mount of this file is mapped to
    * @param workerNetAddress the worker network address
    * @param options the options
    * @throws IOException if it fails to create an instance

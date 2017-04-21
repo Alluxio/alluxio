@@ -97,7 +97,7 @@ public final class OpenUfsBlockOptions {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mBlockSize, mMaxUfsReadConcurrency, mUfsId, mOffset, mUnderFileSystemPath);
+        .hashCode(mBlockSize, mMaxUfsReadConcurrency, mOffset, mUfsId, mUnderFileSystemPath);
   }
 
   @Override

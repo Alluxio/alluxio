@@ -163,11 +163,6 @@ public interface UnderFileSystem {
       return UFS_CACHE.get(path, ufsConf);
     }
 
-    public static UnderFileSystem getById(long id) {
-      // TODO: fill me
-      return UFS_CACHE.get("/", null);
-    }
-
     /**
      * Gets the UnderFileSystem instance according to its scheme and configuration.
      *
