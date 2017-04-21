@@ -436,7 +436,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Executes the given callables, waiting for the to complete (or timing out).
+   * Executes the given callables, waiting for them to complete (or time out).
 
    * @param callables the callables to execute
    * @param <T> the return type of the callables
