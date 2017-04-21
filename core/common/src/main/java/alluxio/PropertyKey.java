@@ -117,7 +117,7 @@ public enum PropertyKey {
   //
   /**
   *@deprecated
-  *reason for why it was deprecated
+  *deprecated since version 1.3 and will be removed in version 2.0,use MASTER_HOSTNAME instead
   */
   @Deprecated MASTER_ADDRESS(Name.MASTER_ADDRESS, null),
   MASTER_BIND_HOST(Name.MASTER_BIND_HOST, "0.0.0.0"),
