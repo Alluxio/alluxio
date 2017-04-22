@@ -67,13 +67,15 @@ public class SpaceReserver implements HeartbeatExecutor  {
       } else {
         // HighWatemark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
-                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(ordinal);
+                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT
+                        .format(ordinal);
         long highWatermarkInBytes =
                 (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
 
         // LowWatemark defines when to stop the space reserving process if started
         PropertyKey tierLowWatermarkProp =
-                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(ordinal);
+                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT
+                        .format(ordinal);
         reservedBytes =
                 (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
         mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
