@@ -20,7 +20,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.worker.WorkerProcess;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -185,13 +184,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorkers() throws Exception {
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
-    runWorkers();
-  }
-
-  @Override
-  protected void startMaster() throws IOException {
+  protected void startMasters() throws IOException {
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
     Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     Configuration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/election");
@@ -230,21 +223,23 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  public void stopFS() throws Exception {
-    stopWorkers();
-    for (int k = 0; k < mNumOfMasters; k++) {
-      // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
-      mMasters.get(k).stop();
+  protected void startWorkers() throws Exception {
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
+    super.startWorkers();
+  }
 
-    }
+  @Override
+  public void stopFS() throws Exception {
+    super.stopFS();
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
   }
 
   @Override
-  public void stopWorkers() throws Exception {
-    for (WorkerProcess worker : mWorkers) {
-      worker.stop();
+  public void stopMasters() throws Exception {
+    for (int k = 0; k < mNumOfMasters; k++) {
+      // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
+      mMasters.get(k).stop();
     }
   }
 }

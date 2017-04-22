@@ -55,7 +55,10 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
   protected ProxyProcess mProxyProcess;
+  protected Thread mProxyThread;
+
   protected List<WorkerProcess> mWorkers;
+  protected List<Thread> mWorkerThreads;
 
   protected UnderFileSystemCluster mUfsCluster;
 
@@ -70,6 +73,7 @@ public abstract class AbstractLocalAlluxioCluster {
   AbstractLocalAlluxioCluster(int numWorkers) {
     mProxyProcess = ProxyProcess.Factory.create();
     mNumWorkers = numWorkers;
+    mWorkerThreads = new ArrayList<>();
   }
 
   /**
@@ -84,32 +88,81 @@ public abstract class AbstractLocalAlluxioCluster {
     resetClientPools();
 
     setupTest();
-    startMaster();
-    getLocalAlluxioMaster().getMasterProcess().waitForReady();
+    startMasters();
     startWorkers();
-    for (WorkerProcess worker : mWorkers) {
-      worker.waitForReady();
-    }
-    mProxyProcess.start();
-    mProxyProcess.waitForReady();
+    startProxy();
 
-    // Reset contexts so that they pick up the master and worker configuration.
+    // Reset contexts so that they pick up the updated configuration.
     reset();
   }
 
   /**
-   * Configures and starts a master.
+   * Configures and starts the master(s).
    *
    * @throws Exception if the operation fails
    */
-  protected abstract void startMaster() throws Exception;
+  protected abstract void startMasters() throws Exception;
 
   /**
-   * Configures and starts the workers.
+   * Configures and starts the proxy.
    *
    * @throws Exception if the operation fails
    */
-  protected abstract void startWorkers() throws Exception;
+  private void startProxy() throws Exception {
+    mProxyProcess = ProxyProcess.Factory.create();
+    Runnable runMaster = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          mProxyProcess.start();
+        } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start proxy error", e);
+          throw new RuntimeException(e + " \n Start Proxy Error \n" + e.getMessage(), e);
+        }
+      }
+    };
+
+    mProxyThread = new Thread(runMaster);
+    mProxyThread.start();
+    mProxyProcess.waitForReady();
+  }
+
+  /**
+   * Configures and starts the worker(s).
+   *
+   * @throws Exception if the operation fails
+   */
+  protected void startWorkers() throws Exception {
+    mWorkers = new ArrayList<>();
+    for (int i = 0; i < mNumWorkers; i++) {
+      mWorkers.add(WorkerProcess.Factory.create());
+    }
+
+    for (final WorkerProcess worker : mWorkers) {
+      Runnable runWorker = new Runnable() {
+        @Override
+        public void run() {
+          try {
+            worker.start();
+
+          } catch (Exception e) {
+            // Log the exception as the RuntimeException will be caught and handled silently by
+            // JUnit
+            LOG.error("Start worker error", e);
+            throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          }
+        }
+      };
+      Thread thread = new Thread(runWorker);
+      mWorkerThreads.add(thread);
+      thread.start();
+    }
+
+    for (WorkerProcess worker : mWorkers) {
+      worker.waitForReady();
+    }
+  }
 
   /**
    * Sets up corresponding directories for tests.
@@ -166,7 +219,6 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void stop() throws Exception {
     stopFS();
-    mProxyProcess.stop();
     stopUFS();
     ConfigurationTestUtils.resetConfiguration();
     reset();
@@ -178,7 +230,12 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @throws Exception when the operation fails
    */
-  public abstract void stopFS() throws Exception;
+  public void stopFS() throws Exception {
+    LOG.info("stop Alluxio filesystem");
+    stopProxy();
+    stopWorkers();
+    stopMasters();
+  }
 
   /**
    * Cleans up the underfs cluster test folder only.
@@ -193,11 +250,35 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Stop the workers only.
+   * Stops the masters.
    *
    * @throws Exception when operation fails
    */
-  public abstract void stopWorkers() throws Exception;
+  protected abstract void stopMasters() throws Exception;
+
+  /**
+   * Stops the proxy.
+   *
+   * @throws Exception when operation fails
+   */
+  protected void stopProxy() throws Exception {
+    mProxyProcess.stop();
+  }
+
+  /**
+   * Stops the workers.
+   *
+   * @throws Exception when operation fails
+   */
+  public void stopWorkers() throws Exception {
+    for (WorkerProcess worker : mWorkers) {
+      worker.stop();
+    }
+    for (Thread thread : mWorkerThreads) {
+      thread.interrupt();
+    }
+    mWorkerThreads.clear();
+  }
 
   /**
    * Creates a default {@link Configuration} for testing.
@@ -290,36 +371,6 @@ public abstract class AbstractLocalAlluxioCluster {
     // TODO(binfan): have one dedicated property (e.g., alluxio.test.properties) to carry on all the
     // properties we want to overwrite in tests, rather than simply merging all system properties.
     Configuration.merge(System.getProperties());
-  }
-
-  /**
-   * Runs workers.
-   *
-   * @throws Exception if the operation fails
-   */
-  protected void runWorkers() throws Exception {
-    mWorkers = new ArrayList<>();
-    for (int i = 0; i < mNumWorkers; i++) {
-      mWorkers.add(WorkerProcess.Factory.create());
-    }
-
-    for (final WorkerProcess worker : mWorkers) {
-      Runnable runWorker = new Runnable() {
-        @Override
-        public void run() {
-          try {
-            worker.start();
-
-          } catch (Exception e) {
-            // Log the exception as the RuntimeException will be caught and handled silently by
-            // JUnit
-            LOG.error("Start worker error", e);
-            throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
-          }
-        }
-      };
-      new Thread(runWorker).start();
-    }
   }
 
   /**

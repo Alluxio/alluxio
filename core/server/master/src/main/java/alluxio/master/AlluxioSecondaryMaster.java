@@ -24,9 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -36,11 +34,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class AlluxioSecondaryMaster implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioSecondaryMaster.class);
-  private MasterRegistry mRegistry;
-
-  /** Used for coordination of start and stop. */
-  private Lock mLock;
-  private Condition mCondition;
+  private final MasterRegistry mRegistry;
+  private final CountDownLatch mLatch;
 
   /**
    * Creates a {@link AlluxioSecondaryMaster}.
@@ -52,8 +47,7 @@ public final class AlluxioSecondaryMaster implements Process {
       mRegistry = new MasterRegistry();
       // Create masters.
       MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
-      mLock = new ReentrantLock();
-      mCondition = mLock.newCondition();
+      mLatch = new CountDownLatch(1);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -63,16 +57,12 @@ public final class AlluxioSecondaryMaster implements Process {
   public void start() throws Exception {
     connectToUFS();
     mRegistry.start(false);
-    mLock.lock();
-    mCondition.await();
-    mLock.unlock();
+    mLatch.await();
   }
 
   @Override
   public void stop() throws Exception {
-    mLock.lock();
-    mCondition.signal();
-    mLock.unlock();
+    mLatch.countDown();
   }
 
   @Override

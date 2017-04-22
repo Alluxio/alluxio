@@ -23,9 +23,7 @@ import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -40,19 +38,16 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   private WebServer mWebServer = null;
 
   /** Worker start time in milliseconds. */
-  private long mStartTimeMs;
+  private final long mStartTimeMs;
 
-  /** Used for coordination of start and stop. */
-  private Lock mLock;
-  private Condition mCondition;
+  private final CountDownLatch mLatch;
 
   /**
    * Creates an instance of {@link AlluxioProxy}.
    */
   public AlluxioProxyProcess() {
     mStartTimeMs = System.currentTimeMillis();
-    mLock = new ReentrantLock();
-    mCondition = mLock.newCondition();
+    mLatch = new CountDownLatch(1);
   }
 
   @Override
@@ -76,11 +71,8 @@ public final class AlluxioProxyProcess implements ProxyProcess {
         NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB), this);
     // reset proxy web port
     Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
-    // start web server
     mWebServer.start();
-    mLock.lock();
-    mCondition.await();
-    mLock.unlock();
+    mLatch.await();
   }
 
   @Override
@@ -89,9 +81,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
       mWebServer.stop();
       mWebServer = null;
     }
-    mLock.lock();
-    mCondition.signal();
-    mLock.unlock();
+    mLatch.countDown();
   }
 
   @Override

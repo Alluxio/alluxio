@@ -111,6 +111,7 @@ public final class LocalAlluxioMaster {
 
     mMasterThread = new Thread(runMaster);
     mMasterThread.start();
+    mMasterProcess.waitForReady();
   }
 
   /**
@@ -133,6 +134,7 @@ public final class LocalAlluxioMaster {
 
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
     mSecondaryMasterThread.start();
+    mSecondaryMaster.waitForReady();
   }
 
   /**
