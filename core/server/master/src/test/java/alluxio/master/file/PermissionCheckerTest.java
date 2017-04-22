@@ -16,9 +16,9 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
@@ -49,7 +49,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -148,7 +147,7 @@ public final class PermissionCheckerTest {
     }
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public List<String> getGroups(String user) {
       if (mUserGroups.containsKey(user)) {
         return Lists.newArrayList(mUserGroups.get(user).split(","));
       }
@@ -279,7 +278,7 @@ public final class PermissionCheckerTest {
 
   @Test
   public void selfCheckFailByOtherGroup() throws Exception {
-    mThrown.expect(AccessControlException.class);
+    mThrown.expect(PermissionDeniedException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI,
             "file")));
@@ -290,7 +289,7 @@ public final class PermissionCheckerTest {
 
   @Test
   public void selfCheckFailBySameGroup() throws Exception {
-    mThrown.expect(AccessControlException.class);
+    mThrown.expect(PermissionDeniedException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_3.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI,
             "file")));
@@ -315,7 +314,7 @@ public final class PermissionCheckerTest {
 
   @Test
   public void parentCheckFail() throws Exception {
-    mThrown.expect(AccessControlException.class);
+    mThrown.expect(PermissionDeniedException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI,
             "testDir")));
@@ -330,7 +329,7 @@ public final class PermissionCheckerTest {
 
   @Test
   public void ancestorCheckFail() throws Exception {
-    mThrown.expect(AccessControlException.class);
+    mThrown.expect(PermissionDeniedException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_NOT_EXIST_URI,
             "testDir")));

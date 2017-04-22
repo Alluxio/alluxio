@@ -56,6 +56,7 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -753,7 +754,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, parent);

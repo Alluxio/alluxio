@@ -14,7 +14,6 @@ package alluxio.util;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
-import alluxio.util.ShellUtils.ExitCodeException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
@@ -198,19 +197,20 @@ public final class CommonUtils {
   }
 
   /**
-   * Gets the current user's group list from Unix by running the command 'groups' NOTE. For
-   * non-existing user it will return EMPTY list. This method may return duplicate groups.
+   * Gets the current user's group list from Unix by running the command 'groups'.
+   *
+   * If a user's groups can't be determined for any reason, this method returns an empty list. This
+   * method may return duplicate groups.
    *
    * @param user user name
    * @return the groups list that the {@code user} belongs to. The primary group is returned first
-   * @throws IOException if encounter any error when running the command
    */
-  public static List<String> getUnixGroups(String user) throws IOException {
+  public static List<String> getUnixGroups(String user) {
     String result;
     List<String> groups = new ArrayList<>();
     try {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
-    } catch (ExitCodeException e) {
+    } catch (IOException e) {
       // if we didn't get the group - just return empty list
       LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
       return groups;
@@ -282,21 +282,19 @@ public final class CommonUtils {
    *
    * @param userName Alluxio user name
    * @return primary group name
-   * @throws IOException if getting group failed
    */
-  public static String getPrimaryGroupName(String userName) throws IOException {
+  public static String getPrimaryGroupName(String userName) {
     List<String> groups = getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
 
   /**
-   * Using {@link CachedGroupMapping} to get the group list of a user.
+   * Uses {@link CachedGroupMapping} to get the group list of a user.
    *
    * @param userName Alluxio user name
    * @return the group list of the user
-   * @throws IOException if getting group list failed
    */
-  public static List<String> getGroups(String userName) throws IOException {
+  public static List<String> getGroups(String userName) {
     GroupMappingService groupMappingService = GroupMappingService.Factory.get();
     return groupMappingService.getGroups(userName);
   }

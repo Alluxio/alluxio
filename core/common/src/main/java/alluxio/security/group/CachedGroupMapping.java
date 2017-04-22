@@ -21,8 +21,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -36,6 +39,8 @@ import java.util.concurrent.TimeUnit;
  * implementation depends on {@link GroupMappingService}.
  */
 public class CachedGroupMapping implements GroupMappingService {
+  private static final Logger LOG = LoggerFactory.getLogger(CachedGroupMapping.class);
+
   /** The underlying implementation of GroupMappingService. */
   private final GroupMappingService mService;
   /** Whether the cache is enabled. Set timeout to non-positive value to disable cache. */
@@ -106,21 +111,16 @@ public class CachedGroupMapping implements GroupMappingService {
     }
   }
 
-  /**
-   * Gets a list of groups for the given user.
-   *
-   * @param user user name
-   * @return the list of groups that the user belongs to
-   * @throws IOException if failed to get groups
-   */
-  public List<String> getGroups(String user) throws IOException {
+  @Override
+  public List<String> getGroups(String user) {
     if (!mCacheEnabled) {
       return mService.getGroups(user);
     }
     try {
       return mCache.get(user);
     } catch (ExecutionException e) {
-      throw new IOException(e);
+      LOG.warn("Failed to get groups for user {}: {}", user, e.getMessage());
+      return new ArrayList<>();
     }
   }
 }
