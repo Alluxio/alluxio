@@ -28,6 +28,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 
@@ -641,7 +642,7 @@ public final class InodeTreeTest {
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
       FileDoesNotExistException {
     try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockMode.WRITE)) {
-      return root.createPath(inodePath, options);
+      return root.createPath(inodePath, options, new NoopJournalContext());
     }
   }
 

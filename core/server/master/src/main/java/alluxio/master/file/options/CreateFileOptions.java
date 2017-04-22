@@ -34,6 +34,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   private long mBlockSizeBytes;
   private long mTtl;
   private TtlAction mTtlAction;
+  private boolean mCacheable;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -73,6 +74,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mMode.applyFileUMask();
+    mCacheable = false;
   }
 
   /**
@@ -80,6 +82,13 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    */
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
+  }
+
+  /**
+   * @return true if file is cacheable
+   */
+  public boolean isCacheable() {
+    return mCacheable;
   }
 
   /**
@@ -103,6 +112,15 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    */
   public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
+    return this;
+  }
+
+  /**
+   * @param cacheable true if the file is cacheable, false otherwise
+   * @return the updated options object
+   */
+  public CreateFileOptions setCacheable(boolean cacheable) {
+    mCacheable = cacheable;
     return this;
   }
 
@@ -143,17 +161,17 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     }
     CreateFileOptions that = (CreateFileOptions) o;
     return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes) && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction);
+        && Objects.equal(mTtlAction, that.mTtlAction) && Objects.equal(mCacheable, that.mCacheable);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction);
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction, mCacheable);
   }
 
   @Override
   public String toString() {
     return toStringHelper().add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("ttlAction", mTtlAction).toString();
+        .add("ttlAction", mTtlAction).add("cacheable", mCacheable).toString();
   }
 }
