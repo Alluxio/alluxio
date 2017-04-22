@@ -925,7 +925,7 @@ public final class PermissionCheckTest {
     List<Inode<?>> inodes = new ArrayList<>();
     inodes.add(getRootInode());
     if (permissions.size() == 0) {
-      return new MutableLockedInodePath(new AlluxioURI("/"), inodes, null);
+      return new MutableLockedInodePath(new AlluxioURI("/"), inodes, null, InodeTree.LockMode.READ);
     }
     String uri = "";
     for (int i = 0; i < permissions.size(); i++) {
@@ -945,6 +945,6 @@ public final class PermissionCheckTest {
         inodes.add(inode);
       }
     }
-    return new MutableLockedInodePath(new AlluxioURI(uri), inodes, null);
+    return new MutableLockedInodePath(new AlluxioURI(uri), inodes, null, InodeTree.LockMode.READ);
   }
 }

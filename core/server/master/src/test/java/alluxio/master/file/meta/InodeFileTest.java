@@ -76,7 +76,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void setNegativeLength() throws Exception {
     mThrown.expect(InvalidFileSizeException.class);
-    mThrown.expectMessage("File testFile1 cannot have negative length.");
+    mThrown.expectMessage("File testFile1 cannot have negative length: -2");
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.complete(-2);
   }

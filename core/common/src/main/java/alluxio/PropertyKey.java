@@ -182,6 +182,8 @@ public class PropertyKey {
   //
   // Master related properties
   //
+  // deprecated since version 1.3 and will be removed in version 2.0
+  // use MASTER_HOSTNAME instead
   public static final PropertyKey MASTER_ADDRESS = create(Name.MASTER_ADDRESS, null);
   public static final PropertyKey MASTER_BIND_HOST = create(Name.MASTER_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =

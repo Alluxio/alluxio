@@ -42,13 +42,10 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Tests to validate the concurrency in {@link FileSystemMaster}. These tests all use a local
@@ -61,7 +58,7 @@ import java.util.regex.Pattern;
  * The tests also validate that operations are concurrent by injecting a short sleep in the
  * critical code path. Tests will timeout if the critical section is performed serially.
  */
-public class ConcurrentFileSystemMasterTest {
+public class ConcurrentFileSystemMasterRenameTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
@@ -81,13 +78,15 @@ public class ConcurrentFileSystemMasterTest {
 
   private FileSystem mFileSystem;
 
+  private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
+
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.UNDERFS_ADDRESS,
-          "sleep://" + Files.createTempDir().getAbsolutePath()).setProperty(PropertyKey
+          "sleep://" + mLocalUfsPath).setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
   // Must be done in beforeClass so execution is before rules
@@ -96,8 +95,7 @@ public class ConcurrentFileSystemMasterTest {
     // Register sleeping ufs with slow rename
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS)
-        .setDeleteFileMs(SLEEP_MS).setDeleteDirectoryMs(SLEEP_MS);
+    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
     UnderFileSystemRegistry.register(sSleepingUfsFactory);
   }
 
@@ -109,27 +107,6 @@ public class ConcurrentFileSystemMasterTest {
   @Before
   public void before() {
     mFileSystem = FileSystem.Factory.get();
-  }
-
-  /**
-   * Uses the integer suffix of a path to determine order. Paths without integer suffixes will be
-   * ordered last.
-   */
-  private class IntegerSuffixedPathComparator implements Comparator<URIStatus> {
-    @Override
-    public int compare(URIStatus o1, URIStatus o2) {
-      return extractIntegerSuffix(o1.getName()) - extractIntegerSuffix(o2.getName());
-    }
-
-    private int extractIntegerSuffix(String name) {
-      Pattern p = Pattern.compile("\\D*(\\d+$)");
-      Matcher m = p.matcher(name);
-      if (m.matches()) {
-        return Integer.parseInt(m.group(1));
-      } else {
-        return Integer.MAX_VALUE;
-      }
-    }
   }
 
   /**
@@ -150,30 +127,11 @@ public class ConcurrentFileSystemMasterTest {
     assertErrorsSizeEquals(concurrentRename(srcs, dsts), 0);
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
-    Collections.sort(files, new IntegerSuffixedPathComparator());
+    Collections.sort(files, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 0; i < numThreads; i++) {
       Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
     }
     Assert.assertEquals(numThreads, files.size());
-  }
-
-  /**
-   * Tests concurrent deletes within the root do not block on each other.
-   */
-  @Test
-  public void rootConcurrentDelete() throws Exception {
-    final int numThreads = CONCURRENCY_FACTOR;
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] = new AlluxioURI("/file" + i);
-      mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
-    }
-
-    assertErrorsSizeEquals(concurrentDelete(paths), 0);
-
-    List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
-    Assert.assertEquals(0, files.size());
   }
 
   /**
@@ -198,71 +156,11 @@ public class ConcurrentFileSystemMasterTest {
     assertErrorsSizeEquals(concurrentRename(srcs, dsts), 0);
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/dir"));
-    Collections.sort(files, new IntegerSuffixedPathComparator());
+    Collections.sort(files, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 0; i < numThreads; i++) {
       Assert.assertEquals(dsts[i].getName(), files.get(i).getName());
     }
     Assert.assertEquals(numThreads, files.size());
-  }
-
-  /**
-   * Tests concurrent deletes within a folder do not block on each other.
-   */
-  @Test
-  public void folderConcurrentDelete() throws Exception {
-    final int numThreads = CONCURRENCY_FACTOR;
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-    AlluxioURI dir = new AlluxioURI("/dir");
-    mFileSystem.createDirectory(dir);
-
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] = dir.join("/file" + i);
-      mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
-    }
-
-    assertErrorsSizeEquals(concurrentDelete(paths), 0);
-
-    List<URIStatus> files = mFileSystem.listStatus(dir);
-    Assert.assertEquals(0, files.size());
-  }
-
-  /**
-   * Tests concurrent deletes with shared prefix do not block on each other.
-   */
-  @Test
-  public void prefixConcurrentDelete() throws Exception {
-    final int numThreads = CONCURRENCY_FACTOR;
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-    AlluxioURI dir1 = new AlluxioURI("/dir1");
-    mFileSystem.createDirectory(dir1);
-    AlluxioURI dir2 = new AlluxioURI("/dir1/dir2");
-    mFileSystem.createDirectory(dir2);
-    AlluxioURI dir3 = new AlluxioURI("/dir1/dir2/dir3");
-    mFileSystem.createDirectory(dir3);
-
-    for (int i = 0; i < numThreads; i++) {
-      if (i % 3 == 0) {
-        paths[i] = dir1.join("/file" + i);
-      } else if (i % 3 == 1) {
-        paths[i] = dir2.join("/file" + i);
-      } else {
-        paths[i] = dir3.join("/file" + i);
-      }
-      mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
-    }
-
-    assertErrorsSizeEquals(concurrentDelete(paths), 0);
-
-    List<URIStatus> files = mFileSystem.listStatus(dir1);
-    // Should only contain a single directory
-    Assert.assertEquals(1, files.size());
-    Assert.assertEquals("dir2", files.get(0).getName());
-    files = mFileSystem.listStatus(dir2);
-    // Should only contain a single directory
-    Assert.assertEquals(1, files.size());
-    Assert.assertEquals("dir3", files.get(0).getName());
-    files = mFileSystem.listStatus(dir3);
-    Assert.assertEquals(0, files.size());
   }
 
   /**
@@ -294,28 +192,6 @@ public class ConcurrentFileSystemMasterTest {
   }
 
   /**
-   * Tests that many threads concurrently deleting the same file will only succeed once.
-   */
-  @Test
-  public void sameFileConcurrentDelete() throws Exception {
-    int numThreads = CONCURRENCY_FACTOR;
-    final AlluxioURI[] paths = new AlluxioURI[numThreads];
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] = new AlluxioURI("/file");
-    }
-    // Create the single file
-    mFileSystem.createFile(paths[0], sCreatePersistedFileOptions).close();
-
-    ConcurrentHashSet<Throwable> errors = concurrentDelete(paths);
-
-    // We should get an error for all but 1 delete
-    Assert.assertEquals(numThreads - 1, errors.size());
-
-    List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
-    Assert.assertEquals(0, files.size());
-  }
-
-  /**
    * Tests that many threads concurrently renaming the same directory will only succeed once.
    */
   @Test
@@ -344,27 +220,6 @@ public class ConcurrentFileSystemMasterTest {
     List<URIStatus> dirChildren =
         mFileSystem.listStatus(new AlluxioURI(existingDirs.get(0).getPath()));
     Assert.assertEquals(1, dirChildren.size());
-  }
-
-  /**
-   * Tests that many threads concurrently deleting the same directory will only succeed once.
-   */
-  @Test
-  public void sameDirConcurrentDelete() throws Exception {
-    int numThreads = CONCURRENCY_FACTOR;
-    final AlluxioURI[] paths = new AlluxioURI[numThreads];
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] = new AlluxioURI("/dir");
-    }
-    // Create the single directory
-    mFileSystem.createDirectory(paths[0], sCreatePersistedDirOptions);
-
-    ConcurrentHashSet<Throwable> errors = concurrentDelete(paths);
-
-    // We should get an error for all but 1 delete
-    assertErrorsSizeEquals(errors, numThreads - 1);
-    List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
-    Assert.assertEquals(0, dirs.size());
   }
 
   /**
@@ -433,7 +288,8 @@ public class ConcurrentFileSystemMasterTest {
     Assert.assertEquals(0, dir1Files.size());
     Assert.assertEquals(numThreads, dir2Files.size());
 
-    Collections.sort(dir2Files, new IntegerSuffixedPathComparator());
+    Collections
+        .sort(dir2Files, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 0; i < numThreads; i++) {
       Assert.assertEquals(dsts[i].getName(), dir2Files.get(i).getName());
     }
@@ -474,12 +330,14 @@ public class ConcurrentFileSystemMasterTest {
     Assert.assertEquals(numThreads / 2, dir1Files.size());
     Assert.assertEquals(numThreads / 2, dir2Files.size());
 
-    Collections.sort(dir1Files, new IntegerSuffixedPathComparator());
+    Collections
+        .sort(dir1Files, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 1; i < numThreads; i += 2) {
       Assert.assertEquals(dsts[i].getName(), dir1Files.get(i / 2).getName());
     }
 
-    Collections.sort(dir2Files, new IntegerSuffixedPathComparator());
+    Collections
+        .sort(dir2Files, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 0; i < numThreads; i += 2) {
       Assert.assertEquals(dsts[i].getName(), dir2Files.get(i / 2).getName());
     }
@@ -519,7 +377,47 @@ public class ConcurrentFileSystemMasterTest {
     Assert.assertEquals(0, dir2Files.size());
     Assert.assertEquals(numThreads, dstFiles.size());
 
-    Collections.sort(dstFiles, new IntegerSuffixedPathComparator());
+    Collections.sort(dstFiles, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
+    for (int i = 0; i < numThreads; i++) {
+      Assert.assertEquals(dsts[i].getName(), dstFiles.get(i).getName());
+    }
+  }
+
+  /**
+   * Tests renaming files concurrently under non persisted directories with a shared path prefix.
+   */
+  @Test
+  public void sharedPrefixDirConcurrentRenameNonPersisted() throws Exception {
+    int numThreads = CONCURRENCY_FACTOR;
+    final AlluxioURI[] srcs = new AlluxioURI[numThreads];
+    final AlluxioURI[] dsts = new AlluxioURI[numThreads];
+    AlluxioURI dir1 = new AlluxioURI("/root/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/root/parent/dir2");
+    AlluxioURI dst = new AlluxioURI("/dst");
+    mFileSystem.createDirectory(dir1, CreateDirectoryOptions.defaults().setRecursive(true));
+    mFileSystem.createDirectory(dir2, CreateDirectoryOptions.defaults().setRecursive(true));
+    mFileSystem.createDirectory(dst, CreateDirectoryOptions.defaults().setRecursive(true));
+    for (int i = 0; i < numThreads; i++) {
+      // Dir1 has even files, dir2 has odd files.
+      srcs[i] = i % 2 == 0 ? dir1.join("file" + i) : dir2.join("file" + i);
+      dsts[i] = dst.join("renamed" + i);
+      mFileSystem.createFile(srcs[i], sCreatePersistedFileOptions).close();
+    }
+
+    ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
+
+    // We should get no errors.
+    assertErrorsSizeEquals(errors, 0);
+
+    List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
+    List<URIStatus> dir2Files = mFileSystem.listStatus(dir2);
+    List<URIStatus> dstFiles = mFileSystem.listStatus(dst);
+
+    Assert.assertEquals(0, dir1Files.size());
+    Assert.assertEquals(0, dir2Files.size());
+    Assert.assertEquals(numThreads, dstFiles.size());
+
+    Collections.sort(dstFiles, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 0; i < numThreads; i++) {
       Assert.assertEquals(dsts[i].getName(), dstFiles.get(i).getName());
     }
@@ -563,56 +461,6 @@ public class ConcurrentFileSystemMasterTest {
             AuthenticatedClientUser.set(TEST_USER);
             barrier.await();
             mFileSystem.rename(src[iteration], dst[iteration]);
-          } catch (Exception e) {
-            Throwables.propagate(e);
-          }
-        }
-      });
-      t.setUncaughtExceptionHandler(exceptionHandler);
-      threads.add(t);
-    }
-    Collections.shuffle(threads);
-    long startMs = CommonUtils.getCurrentMs();
-    for (Thread t : threads) {
-      t.start();
-    }
-    for (Thread t : threads) {
-      t.join();
-    }
-    long durationMs = CommonUtils.getCurrentMs() - startMs;
-    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
-        durationMs < LIMIT_MS);
-    return errors;
-  }
-
-  /**
-   * Helper for deleting a list of paths concurrently. Enforces that the run time of this method
-   * is not greater than twice the sleep time (to infer concurrent operations).
-   *
-   * @param paths list of paths to delete
-   * @return the occurred errors
-   */
-  private ConcurrentHashSet<Throwable> concurrentDelete(final AlluxioURI[] paths)
-      throws Exception {
-    final int numFiles = paths.length;
-    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
-    List<Thread> threads = new ArrayList<>(numFiles);
-    // If there are exceptions, we will store them here.
-    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
-    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
-      public void uncaughtException(Thread th, Throwable ex) {
-        errors.add(ex);
-      }
-    };
-    for (int i = 0; i < numFiles; i++) {
-      final int iteration = i;
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            AuthenticatedClientUser.set(TEST_USER);
-            barrier.await();
-            mFileSystem.delete(paths[iteration]);
           } catch (Exception e) {
             Throwables.propagate(e);
           }
