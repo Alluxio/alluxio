@@ -29,12 +29,11 @@ public final class ProcessUtils {
     try {
       LOG.info("Starting {}.", process);
       process.start();
-      LOG.info("Exiting from {}.", process);
+      LOG.info("Stopping {}.", process);
       System.exit(0);
     } catch (Exception e) {
       LOG.error("Uncaught exception while running {}, stopping it and exiting.", process, e);
       try {
-        LOG.info("Stopping {}.", process);
         process.stop();
       } catch (Exception e2) {
         // continue to exit

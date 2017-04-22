@@ -24,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -31,42 +34,45 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The secondary Alluxio master that replays journal logs and writes checkpoints.
  */
 @NotThreadSafe
-public final class AlluxioSecondaryMasterProcess implements Process {
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioSecondaryMasterProcess.class);
+public final class AlluxioSecondaryMaster implements Process {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioSecondaryMaster.class);
   private MasterRegistry mRegistry;
 
+  /** Used for coordination of start and stop. */
+  private Lock mLock;
+  private Condition mCondition;
+
   /**
-   * Creates a {@link AlluxioSecondaryMasterProcess}.
+   * Creates a {@link AlluxioSecondaryMaster}.
    */
-  public AlluxioSecondaryMasterProcess() {
+  public AlluxioSecondaryMaster() {
     try {
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
       mRegistry = new MasterRegistry();
       // Create masters.
       MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
+      mLock = new ReentrantLock();
+      mCondition = mLock.newCondition();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public void start() throws IOException {
-    try {
-      connectToUFS();
-      mRegistry.start(false);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void start() throws Exception {
+    connectToUFS();
+    mRegistry.start(false);
+    mLock.lock();
+    mCondition.await();
+    mLock.unlock();
   }
 
   @Override
-  public void stop() throws IOException {
-    try {
-      mRegistry.stop();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void stop() throws Exception {
+    mLock.lock();
+    mCondition.signal();
+    mLock.unlock();
   }
 
   @Override
@@ -85,11 +91,11 @@ public final class AlluxioSecondaryMasterProcess implements Process {
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-          AlluxioSecondaryMasterProcess.class.getCanonicalName());
+          AlluxioSecondaryMaster.class.getCanonicalName());
       System.exit(-1);
     }
 
-    AlluxioSecondaryMasterProcess master = new AlluxioSecondaryMasterProcess();
+    AlluxioSecondaryMaster master = new AlluxioSecondaryMaster();
     ProcessUtils.run(master);
   }
 

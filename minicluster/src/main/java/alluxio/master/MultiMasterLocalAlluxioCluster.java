@@ -225,7 +225,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getLocalAlluxioMaster().getRpcLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT,
+        String.valueOf(getLocalAlluxioMaster().getRpcLocalPort()));
   }
 
   @Override

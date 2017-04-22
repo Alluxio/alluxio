@@ -23,6 +23,10 @@ import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -38,11 +42,17 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
 
+  /** Used for coordination of start and stop. */
+  private Lock mLock;
+  private Condition mCondition;
+
   /**
    * Creates an instance of {@link AlluxioProxy}.
    */
   public AlluxioProxyProcess() {
     mStartTimeMs = System.currentTimeMillis();
+    mLock = new ReentrantLock();
+    mCondition = mLock.newCondition();
   }
 
   @Override
@@ -68,6 +78,9 @@ public final class AlluxioProxyProcess implements ProxyProcess {
     Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     // start web server
     mWebServer.start();
+    mLock.lock();
+    mCondition.await();
+    mLock.unlock();
   }
 
   @Override
@@ -76,6 +89,9 @@ public final class AlluxioProxyProcess implements ProxyProcess {
       mWebServer.stop();
       mWebServer = null;
     }
+    mLock.lock();
+    mCondition.signal();
+    mLock.unlock();
   }
 
   @Override

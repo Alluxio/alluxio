@@ -187,8 +187,9 @@ public class UfsJournalIntegrationTest {
     }
     mLocalAlluxioCluster.stopFS();
 
-    String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
-        Constants.FILE_SYSTEM_MASTER_NAME);
+    String journalFolder = PathUtils
+        .concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
+            Constants.FILE_SYSTEM_MASTER_NAME);
     UfsJournal journal = new UfsJournal(new URI(journalFolder));
     URI completedLocation = journal.getLogDir();
     Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation.toString())

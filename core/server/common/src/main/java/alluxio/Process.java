@@ -17,7 +17,7 @@ package alluxio;
 public interface Process {
 
   /**
-   * Starts the Alluxio process. This call may block until the process is stopped via
+   * Starts the Alluxio process. This call blocks until the process is stopped via
    * {@link #stop()}. The {@link #waitForReady()} method can be used to make sure that the
    * process is ready to serve requests.
    *

@@ -70,17 +70,17 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master Web service
     InetSocketAddress masterWebAddr =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB);
-    mMasterWebService =
-        (HttpURLConnection) new URL("http://" + masterWebAddr.getAddress().getHostAddress() + ":"
-            + masterWebAddr.getPort() + "/css/custom.min.css").openConnection();
+    mMasterWebService = (HttpURLConnection) new URL(
+        "http://" + masterWebAddr.getAddress().getHostAddress() + ":" + masterWebAddr.getPort()
+            + "/css/custom.min.css").openConnection();
     mMasterWebService.connect();
 
     // connect Worker Web service
     InetSocketAddress workerWebAddr =
         new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort());
-    mWorkerWebService =
-        (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
-            + workerWebAddr.getPort() + "/css/custom.min.css").openConnection();
+    mWorkerWebService = (HttpURLConnection) new URL(
+        "http://" + workerWebAddr.getAddress().getHostAddress() + ":" + workerWebAddr.getPort()
+            + "/css/custom.min.css").openConnection();
     mWorkerWebService.connect();
   }
 
@@ -151,8 +151,8 @@ public class ServiceSocketBindIntegrationTest {
     startCluster("");
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
-    InetSocketAddress masterRpcAddr =
-        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
+    InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
+        mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
     mBlockMasterClient = BlockMasterClient.Factory.create(masterRpcAddr);
     try {
       mBlockMasterClient.connect();
@@ -174,8 +174,8 @@ public class ServiceSocketBindIntegrationTest {
     }
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.
-    InetSocketAddress workerDataAddr =
-        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getWorkerProcess().getDataLocalPort());
+    InetSocketAddress workerDataAddr = new InetSocketAddress("127.0.0.1",
+        mLocalAlluxioCluster.getWorkerProcess().getDataLocalPort());
     try {
       mWorkerDataService = SocketChannel.open(workerDataAddr);
       Assert.assertTrue(mWorkerDataService.isConnected());

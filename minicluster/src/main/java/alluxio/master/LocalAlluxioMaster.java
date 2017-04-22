@@ -54,7 +54,7 @@ public final class LocalAlluxioMaster {
   private MasterProcess mMasterProcess;
   private Thread mMasterThread;
 
-  private AlluxioSecondaryMasterProcess mSecondaryMaster;
+  private AlluxioSecondaryMaster mSecondaryMaster;
   private Thread mSecondaryMasterThread;
 
   private LocalAlluxioMaster() throws IOException {
@@ -117,7 +117,7 @@ public final class LocalAlluxioMaster {
    * Starts the secondary master.
    */
   public void startSecondary() {
-    mSecondaryMaster = new AlluxioSecondaryMasterProcess();
+    mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
       public void run() {

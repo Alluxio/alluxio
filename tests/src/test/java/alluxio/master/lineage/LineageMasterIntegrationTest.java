@@ -218,7 +218,8 @@ public class LineageMasterIntegrationTest {
   }
 
   private LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    return new LineageMasterClient(
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {

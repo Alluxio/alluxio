@@ -52,8 +52,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX;
-    mFileSystemMaster =
-        mResource.get().getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
+    mFileSystemMaster = mResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(FileSystemMaster.class);
   }
 
   @Test

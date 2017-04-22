@@ -415,8 +415,9 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void getCapacityBytes() {
-    BlockMaster blockMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(BlockMaster.class);
+    BlockMaster blockMaster =
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(BlockMaster.class);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
