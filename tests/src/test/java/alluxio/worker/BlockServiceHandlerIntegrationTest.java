@@ -76,7 +76,7 @@ public class BlockServiceHandlerIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mBlockWorkerServiceHandler =
-        mLocalAlluxioClusterResource.get().getWorker().getWorker(BlockWorker.class)
+        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class)
             .getWorkerServiceHandler();
 
     mBlockMasterClient = BlockMasterClient.Factory.create(

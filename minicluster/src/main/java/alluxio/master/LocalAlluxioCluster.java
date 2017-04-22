@@ -62,7 +62,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  public LocalAlluxioMaster getMaster() {
+  public LocalAlluxioMaster getLocalAlluxioMaster() {
     return mMaster;
   }
 
@@ -97,7 +97,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   /**
    * @return the first worker
    */
-  public WorkerProcess getWorker() {
+  public WorkerProcess getWorkerProcess() {
     return mWorkers.get(0);
   }
 
@@ -105,7 +105,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * @return the address of the first worker
    */
   public WorkerNetAddress getWorkerAddress() {
-    return getWorker().getAddress();
+    return getWorkerProcess().getAddress();
   }
 
   @Override

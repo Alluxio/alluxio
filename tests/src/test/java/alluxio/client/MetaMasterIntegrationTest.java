@@ -33,8 +33,8 @@ public final class MetaMasterIntegrationTest {
   @Test
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
-        new RetryHandlingMetaMasterClient(null, mResource.get().getMaster().getAddress())) {
-      int webPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
+        new RetryHandlingMetaMasterClient(null, mResource.get().getLocalAlluxioMaster().getAddress())) {
+      int webPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
       MasterInfo info = client.getInfo(null);
       assertEquals(webPort, info.getWebPort());
     }
@@ -43,8 +43,8 @@ public final class MetaMasterIntegrationTest {
   @Test
   public void getInfoWebPort() throws Exception {
     try (MetaMasterClient client =
-        new RetryHandlingMetaMasterClient(null, mResource.get().getMaster().getAddress())) {
-      int webPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
+        new RetryHandlingMetaMasterClient(null, mResource.get().getLocalAlluxioMaster().getAddress())) {
+      int webPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
       MasterInfo info = client.getInfo(new HashSet<>(Arrays.asList(MasterInfoField.WEB_PORT)));
       assertEquals(webPort, info.getWebPort());
     }

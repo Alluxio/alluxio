@@ -54,7 +54,7 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
   private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
-  protected ProxyProcess mProxy;
+  protected ProxyProcess mProxyProcess;
   protected List<WorkerProcess> mWorkers;
 
   protected UnderFileSystemCluster mUfsCluster;
@@ -67,8 +67,8 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * @param numWorkers the number of workers to run
    */
-  public AbstractLocalAlluxioCluster(int numWorkers) {
-    mProxy = ProxyProcess.Factory.create();
+  AbstractLocalAlluxioCluster(int numWorkers) {
+    mProxyProcess = ProxyProcess.Factory.create();
     mNumWorkers = numWorkers;
   }
 
@@ -85,13 +85,13 @@ public abstract class AbstractLocalAlluxioCluster {
 
     setupTest();
     startMaster();
-    getMaster().getInternalMaster().waitForReady();
+    getLocalAlluxioMaster().getMasterProcess().waitForReady();
     startWorkers();
     for (WorkerProcess worker : mWorkers) {
       worker.waitForReady();
     }
-    mProxy.start();
-    mProxy.waitForReady();
+    mProxyProcess.start();
+    mProxyProcess.waitForReady();
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
@@ -166,7 +166,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void stop() throws Exception {
     stopFS();
-    mProxy.stop();
+    mProxyProcess.stop();
     stopUFS();
     ConfigurationTestUtils.resetConfiguration();
     reset();
@@ -331,19 +331,17 @@ public abstract class AbstractLocalAlluxioCluster {
   public abstract FileSystem getClient() throws IOException;
 
   /**
-   * Gets the master which should be listening for RPC and web requests.
-   *
-   * @return the master
+   * @return the local Alluxio master
    */
-  protected abstract LocalAlluxioMaster getMaster();
+  protected abstract LocalAlluxioMaster getLocalAlluxioMaster();
 
   /**
-   * Gets the proxy which should be listening for web requests.
+   * Gets the proxy process.
    *
    * @return the proxy
    */
-  public ProxyProcess getProxy() {
-    return mProxy;
+  public ProxyProcess getProxyProcess() {
+    return mProxyProcess;
   }
 
   /**

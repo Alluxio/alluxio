@@ -53,7 +53,7 @@ public final class IntegrationTestUtils {
       final AlluxioURI uri, int timeoutMs) {
 
     try (FileSystemMasterClient client = FileSystemMasterClient.Factory
-        .create(localAlluxioClusterResource.get().getMaster().getAddress())) {
+        .create(localAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {

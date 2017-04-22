@@ -447,7 +447,7 @@ public final class CommonUtils {
       service.invokeAll(callables, 10, TimeUnit.SECONDS);
       service.shutdown();
       if (!service.awaitTermination(10, TimeUnit.SECONDS)) {
-        throw new RuntimeException("Timed out trying to create masters");
+        throw new RuntimeException("Timed out trying to shutdown service.");
       }
     } catch (InterruptedException e) {
       service.shutdownNow();

@@ -15,20 +15,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Utility methods for Alluxio processes.
+ * Utility methods for Alluxio {@link Process}es.
  */
 public final class ProcessUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ProcessUtils.class);
 
   /**
-   * Runs the given process. This method should only be called from {@code main()} methods.
+   * Runs the given {@link Process}. This method should only be called from {@code main()} methods.
    *
-   * @param process the process to run
+   * @param process the {@link Process} to run
 '   */
   public static void run(Process process) {
     try {
       LOG.info("Starting {}.", process);
       process.start();
+      LOG.info("Exiting from {}.", process);
       System.exit(0);
     } catch (Exception e) {
       LOG.error("Uncaught exception while running {}, stopping it and exiting.", process, e);

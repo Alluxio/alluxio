@@ -80,7 +80,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor(toString() + " to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mWebServer != null && mWebServer.getServer().isRunning();

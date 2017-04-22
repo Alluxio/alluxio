@@ -114,9 +114,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       // deployment more complicated.
       if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
-            toString() + " rpc port is only allowed to be zero in test mode.");
+            this + " rpc port is only allowed to be zero in test mode.");
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
-            toString() + " web port is only allowed to be zero in test mode.");
+            this + " web port is only allowed to be zero in test mode.");
       }
       mTransportProvider = TransportProvider.Factory.create();
       mTServerSocket =
@@ -172,7 +172,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor(toString() + " to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mThriftServer != null && mThriftServer.isServing()

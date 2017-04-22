@@ -277,7 +277,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor(toString() + " to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null

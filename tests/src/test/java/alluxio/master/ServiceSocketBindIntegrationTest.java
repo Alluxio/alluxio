@@ -152,7 +152,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRpcAddr =
-        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getMaster().getRpcLocalPort());
+        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
     mBlockMasterClient = BlockMasterClient.Factory.create(masterRpcAddr);
     try {
       mBlockMasterClient.connect();
@@ -175,7 +175,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.
     InetSocketAddress workerDataAddr =
-        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getWorker().getDataLocalPort());
+        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getWorkerProcess().getDataLocalPort());
     try {
       mWorkerDataService = SocketChannel.open(workerDataAddr);
       Assert.assertTrue(mWorkerDataService.isConnected());
@@ -187,7 +187,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master Web service on loopback, while Master is listening on local hostname.
     try {
       mMasterWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + mLocalAlluxioCluster.getMaster().getInternalMaster()
+          "http://127.0.0.1:" + mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
               .getWebAddress().getPort() + "/home").openConnection();
       Assert.assertEquals(200, mMasterWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Master Web service.");
@@ -201,7 +201,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Worker Web service on loopback, while Worker is listening on local hostname.
     try {
       mWorkerWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + mLocalAlluxioCluster.getWorker().getWebLocalPort() + "/home")
+          "http://127.0.0.1:" + mLocalAlluxioCluster.getWorkerProcess().getWebLocalPort() + "/home")
               .openConnection();
       Assert.assertEquals(200, mWorkerWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Worker Web service.");

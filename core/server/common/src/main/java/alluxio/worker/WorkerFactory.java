@@ -19,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface WorkerFactory {
   /**
-   * @return whether the master is enabled
+   * @return whether the worker is enabled
    */
   boolean isEnabled();
 

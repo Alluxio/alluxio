@@ -51,7 +51,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    *
    * @param masters the number masters to run
    */
-  public MultiMasterLocalAlluxioCluster(int masters) {
+  MultiMasterLocalAlluxioCluster(int masters) {
     this(masters, 1);
   }
 
@@ -59,7 +59,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @param masters the number of masters to run
    * @param numWorkers the number of workers to run
    */
-  public MultiMasterLocalAlluxioCluster(int masters, int numWorkers) {
+  MultiMasterLocalAlluxioCluster(int masters, int numWorkers) {
     super(numWorkers);
     mNumOfMasters = masters;
 
@@ -73,18 +73,18 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
   @Override
   public synchronized FileSystem getClient() throws IOException {
-    return getMaster().getClient();
+    return getLocalAlluxioMaster().getClient();
   }
 
   /**
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRpcLocalPort();
+    return Constants.HEADER_FT + mHostname + ":" + getLocalAlluxioMaster().getRpcLocalPort();
   }
 
   @Override
-  public LocalAlluxioMaster getMaster() {
+  public LocalAlluxioMaster getLocalAlluxioMaster() {
     for (LocalAlluxioMaster master : mMasters) {
       // Return the leader master, if possible.
       if (master.isServing()) {
@@ -225,7 +225,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getMaster().getRpcLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, String.valueOf(getLocalAlluxioMaster().getRpcLocalPort()));
   }
 
   @Override

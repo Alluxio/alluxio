@@ -95,7 +95,7 @@ public class JournalShutdownIntegrationTest {
     runCreateFileThread(cluster.getClient());
     cluster.stopWorkers();
     // Crash the master
-    cluster.getMaster().stop();
+    cluster.getLocalAlluxioMaster().stop();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
