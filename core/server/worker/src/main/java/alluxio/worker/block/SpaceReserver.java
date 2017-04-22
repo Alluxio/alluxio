@@ -11,26 +11,19 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
-import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import alluxio.*;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatExecutor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * {@link SpaceReserver} periodically checks if there is enough space reserved on each storage tier,
@@ -64,23 +57,25 @@ public class SpaceReserver implements HeartbeatExecutor  {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long capOnTier = capOnTiers.get(tierAlias);
       long reservedBytes;
-      try {
-        PropertyKey tierReservedSpaceProp =
-            PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(ordinal);
+      PropertyKey tierReservedSpaceProp =
+              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(ordinal);
+      if (Configuration.containsKey(tierReservedSpaceProp)) {
+        LOG.warn("The property reserved.ratio is deprecated and high/low water mark "
+                + "should be used instead.");
         reservedBytes =
-            (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
-      } catch (RuntimeException e) {
+                (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
+      } else {
         // HighWatemark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
-            PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(ordinal);
+                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(ordinal);
         long highWatermarkInBytes =
-            (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
+                (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
 
         // LowWatemark defines when to stop the space reserving process if started
         PropertyKey tierLowWatermarkProp =
-            PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(ordinal);
+                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(ordinal);
         reservedBytes =
-            (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
+                (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
         mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
       }
       mReservedBytesOnTiers.put(tierAlias, reservedBytes + lastTierReservedBytes);
