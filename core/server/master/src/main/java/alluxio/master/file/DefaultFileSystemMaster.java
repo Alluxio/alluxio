@@ -447,10 +447,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
       String defaultUFS = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       try {
+        // TODO(binfan): mount all ufs'es in site-properties
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            IdUtils.INVALID_UFS_ID, MountOptions.defaults().setShared(
+            IdUtils.createUfsId(), MountOptions.defaults().setShared(
                 UnderFileSystemUtils.isObjectStorage(defaultUFS) && Configuration
-                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
+                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
+                .setProperties(
+                    Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION)));
       } catch (FileAlreadyExistsException e) {
         // This can happen when a primary becomes a standby and then becomes a primary.
         LOG.info("Root has already been mounted.");
