@@ -11,13 +11,12 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
+import alluxio.util.io.FileUtils;
 
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -26,17 +25,6 @@ import java.io.IOException;
  * cluster.
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
-  /**
-   * Creates a directory in the under filesystem.
-   *
-   * @param path the directory path to be created
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public static boolean mkdirs(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-    return ufs.mkdirs(path);
-  }
 
   private org.apache.hadoop.conf.Configuration mConf = new org.apache.hadoop.conf.Configuration();
   private int mNamenodePort;
@@ -103,16 +91,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     mNumDataNode = numDataNode;
   }
 
-  private void delete(String path, boolean isRecursively) throws IOException {
-    File file = new File(path);
-    if (isRecursively && file.isDirectory()) {
-      for (File subdir : file.listFiles()) {
-        delete(subdir.getAbsolutePath(), isRecursively);
-      }
-    }
-    file.delete();
-  }
-
   /**
    * @return {@link #mDfsClient}
    */
@@ -149,10 +127,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   @Override
   public void cleanup() throws IOException {
-    delete(mBaseDir, true);
-    if (!mkdirs(mBaseDir)) {
-      throw new IOException("Failed to make folder: " + mBaseDir);
-    }
+    FileUtils.deletePathRecursively(mBaseDir);
+    FileUtils.createDir(mBaseDir);
   }
 
   @Override
@@ -171,10 +147,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   public void start() throws IOException {
     if (!mIsStarted) {
 
-      delete(mBaseDir, true);
-      if (!mkdirs(mBaseDir)) {
-        throw new IOException("Failed to make folder: " + mBaseDir);
-      }
+      cleanup();
 
       // TODO(hy): For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused
       // by "umask 002" (should be 022) see [HDFS-2556]. So the following code only works for
