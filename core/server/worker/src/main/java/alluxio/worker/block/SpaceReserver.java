@@ -11,19 +11,25 @@
 
 package alluxio.worker.block;
 
-import alluxio.*;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
+import alluxio.Sessions;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatExecutor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * {@link SpaceReserver} periodically checks if there is enough space reserved on each storage tier,
