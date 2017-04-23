@@ -118,7 +118,7 @@ public class JournalShutdownIntegrationTest {
     // clean up
     cluster.stopUFS();
   }
-  
+
   /**
    * Waits for the client to terminate.
    */
