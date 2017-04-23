@@ -12,12 +12,20 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,6 +33,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  * Tests for mount command.
@@ -32,6 +41,32 @@ import java.nio.file.Paths;
 public final class MountCommandTest extends AbstractAlluxioShellTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
+
+  /**
+   * A factory to create a {@link LocalUnderFileSystem} that requires expected conf, or throws
+   * exceptions during creation.
+   */
+  private static class ConfRequiredUnderFileSystemFactory implements UnderFileSystemFactory {
+    Map<String, String> mExpectedConf;
+
+    ConfRequiredUnderFileSystemFactory(Map<String, String> expectedConf) {
+      mExpectedConf = expectedConf;
+    }
+
+    @Override
+    public UnderFileSystem create(String path, Object ufsConf) {
+      Preconditions.checkArgument(path != null, "path may not be null");
+      Preconditions
+          .checkArgument(mExpectedConf.equals(ufsConf), "ufs conf {} does not match expected {}",
+              ufsConf, mExpectedConf);
+      return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()));
+    }
+
+    @Override
+    public boolean supportsPath(String path) {
+      return path != null && path.startsWith("confFS:///");
+    }
+  }
 
   private void checkMountPoint(AlluxioURI mountPoint, String ufsPath) throws Exception {
     // File in UFS can be read in Alluxio
@@ -72,10 +107,38 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void mountWithMultipleOptions() throws Exception {
+    ConfRequiredUnderFileSystemFactory factory =
+        new ConfRequiredUnderFileSystemFactory(ImmutableMap.of("k1", "v1", "k2", "v2"));
+    UnderFileSystemRegistry.register(factory);
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
-    String ufsPath = mFolder.getRoot().getAbsolutePath();
+    String ufsPath = "confFS://" + mFolder.getRoot().getAbsolutePath();
     Assert.assertEquals(0, mFsShell
         .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
+    FileSystemTestUtils.createByteFile(mFileSystem, "/mnt/testFile1", WriteType.CACHE_THROUGH, 20);
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
+    Assert.assertTrue(status.isPersisted());
+    UnderFileSystemRegistry.unregister(factory);
+  }
+
+  @Test
+  public void mountWithWrongOptions() throws Exception {
+    ConfRequiredUnderFileSystemFactory factory =
+        new ConfRequiredUnderFileSystemFactory(ImmutableMap.of("k1", "v1", "k2", "v2"));
+    UnderFileSystemRegistry.register(factory);
+    AlluxioURI mountPoint = new AlluxioURI("/mnt");
+    String ufsPath = "confFS://" + mFolder.getRoot().getAbsolutePath();
+    // one property is wrong
+    Assert.assertEquals(-1, mFsShell
+        .run("mount", "--option", "k1=not_v1", "--option", "k2=v2", mountPoint.toString(),
+            ufsPath));
+    // one property is missing
+    Assert.assertEquals(-1,
+        mFsShell.run("mount", "--option", "k1=v1", mountPoint.toString(), ufsPath));
+    // one property is unnecessary
+    Assert.assertEquals(-1, mFsShell
+        .run("mount", "--option", "k1=v1", "--option", "k2=v2", "--option", "k3=v3",
+            mountPoint.toString(), ufsPath));
   }
 
   @Test
