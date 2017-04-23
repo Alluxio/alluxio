@@ -32,6 +32,7 @@ public class TestBlockOutStream extends BlockOutStream {
     mClosed = false;
     mCanceled = false;
   }
+  
   /**
    * Returns an array of bytes that is written to the out stream
    */
