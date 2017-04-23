@@ -72,8 +72,8 @@ public interface UnderFileSystem extends Closeable {
        * @param ufsConf the ufs configuration
        * @return the UFS instance
        */
-      UnderFileSystem get(String path, Object ufsConf) {
-        Key key = new Key(new AlluxioURI(path));
+      UnderFileSystem get(String path, Map<String, String> ufsConf) {
+        Key key = new Key(new AlluxioURI(path), ufsConf);
         UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
         if (cachedFs != null) {
           return cachedFs;
@@ -102,15 +102,17 @@ public interface UnderFileSystem extends Closeable {
     private static class Key {
       private final String mScheme;
       private final String mAuthority;
+      private final Map<String, String> mProperties;
 
-      Key(AlluxioURI uri) {
+      Key(AlluxioURI uri, Map<String, String> properties) {
         mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
         mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
+        mProperties = (properties == null || properties.isEmpty()) ? null : properties;
       }
 
       @Override
       public int hashCode() {
-        return Objects.hashCode(mScheme, mAuthority);
+        return Objects.hashCode(mScheme, mAuthority, mProperties);
       }
 
       @Override
@@ -124,13 +126,18 @@ public interface UnderFileSystem extends Closeable {
         }
 
         Key that = (Key) object;
-        return Objects.equal(mScheme, that.mScheme)
-            && Objects.equal(mAuthority, that.mAuthority);
+        return Objects.equal(mAuthority, that.mAuthority)
+            && Objects.equal(mProperties, that.mProperties)
+            && Objects.equal(mScheme, that.mScheme);
       }
 
       @Override
       public String toString() {
-        return mScheme + "://" + mAuthority;
+        return Objects.toStringHelper(this)
+            .add("authority", mAuthority)
+            .add("property", mProperties)
+            .add("scheme", mScheme)
+            .toString();
       }
     }
 
@@ -142,7 +149,7 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
-     * Gets the {@link UnderFileSystem} instance according to its schema.
+     * Gets the {@link UnderFileSystem} instance according to its schema without specific ufs conf.
      *
      * @param path the file path storing over the ufs
      * @return instance of the under layer file system
@@ -155,24 +162,11 @@ public interface UnderFileSystem extends Closeable {
     /**
      * Gets the {@link UnderFileSystem} instance according to its scheme and configuration.
      *
-     * @param path the file path storing over the ufs
-     * @param ufsConf the configuration object for ufs only
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem get(String path, Object ufsConf) {
-      Preconditions.checkArgument(path != null, "path may not be null");
-
-      return UFS_CACHE.get(path, ufsConf);
-    }
-
-    /**
-     * Gets the {@link UnderFileSystem} instance according to its scheme and configuration.
-     *
      * @param path the path of mount point
      * @param ufsConf the configuration object for ufs only
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem getForMountPoint(String path, Object ufsConf) {
+    public static UnderFileSystem get(String path, Map<String, String> ufsConf) {
       Preconditions.checkArgument(path != null, "path may not be null");
 
       return UFS_CACHE.get(path, ufsConf);
@@ -185,7 +179,7 @@ public interface UnderFileSystem extends Closeable {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return getForMountPoint(ufsRoot, ufsConf);
+      return get(ufsRoot, ufsConf);
     }
 
     /**

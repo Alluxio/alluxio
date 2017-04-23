@@ -71,7 +71,7 @@ public final class MountInfo {
   public MountPointInfo toMountPointInfo() {
     MountPointInfo info = new MountPointInfo();
     UnderFileSystem ufs =
-        UnderFileSystem.Factory.getForMountPoint(mUfsUri.toString(), getOptions().getProperties());
+        UnderFileSystem.Factory.get(mUfsUri.toString(), getOptions().getProperties());
     info.setUfsUri(mUfsUri.toString());
     info.setUfsType(ufs.getUnderFSType());
     try {
