@@ -1604,6 +1604,15 @@ public final class FileSystemMasterTest {
     UfsInfo ufsRootInfo = mFileSystemMaster.getUfsInfo(alluxioRootInfo.getUfsId());
     Assert.assertEquals(alluxioRootInfo.getUfsId(), ufsRootInfo.getId());
     Assert.assertEquals(mUnderFS, ufsRootInfo.getUri());
+    Assert.assertTrue(ufsRootInfo.getProperties().isEmpty());
+  }
+
+  @Test
+  public void getUfsInfoNotExist() throws Exception {
+    UfsInfo noSuchUfsInfo = mFileSystemMaster.getUfsInfo(1L);
+    Assert.assertEquals(1L, noSuchUfsInfo.getId());
+    Assert.assertFalse(noSuchUfsInfo.isSetUri());
+    Assert.assertFalse(noSuchUfsInfo.isSetProperties());
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
