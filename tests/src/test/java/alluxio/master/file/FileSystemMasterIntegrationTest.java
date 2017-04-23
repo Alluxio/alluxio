@@ -820,6 +820,13 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent freer.
+     *
+     * @param depth the depth of files to be freed
+     * @param concurrencyDepth the concurrency depth of files to be freed
+     * @param initPath the directory of files to be freed
+     */
     ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
