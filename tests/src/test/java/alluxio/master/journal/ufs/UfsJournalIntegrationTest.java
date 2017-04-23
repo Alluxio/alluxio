@@ -129,8 +129,8 @@ public class UfsJournalIntegrationTest {
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
 
-    UnderFileStatus[] paths =
-        UnderFileSystem.Factory.getForJournal(journalFolder).listStatus(journal.getLogDir().toString());
+    UnderFileStatus[] paths = UnderFileSystem.Factory.getForJournal(journalFolder)
+        .listStatus(journal.getLogDir().toString());
     int expectedSize = paths == null ? 0 : paths.length;
 
     try (JournalWriter writer =
