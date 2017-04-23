@@ -295,7 +295,7 @@ Alluxio可以部署在很多不同的环境下。
 * [Alluxio独立模式实现容错](Running-Alluxio-Fault-Tolerant.html)
 * [在EC2上运行Alluxio](Running-Alluxio-on-EC2.html)
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
-* [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-EC2-Mesos.html)
+* [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)
 * [在EC2上运行带容错机制的Alluxio](Running-Alluxio-Fault-Tolerant-on-EC2.html)
 * [在EC2上使用YARN运行Alluxio](Running-Alluxio-on-EC2-Yarn.html)
 
