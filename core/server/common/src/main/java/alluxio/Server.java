@@ -43,15 +43,12 @@ public interface Server<T> {
    * Starts the Alluxio server.
    *
    * @param options the start options
-   * @throws IOException if the server fails to start
    */
   void start(T options) throws IOException;
 
   /**
    * Stops the Alluxio server. Here, anything created or started in {@link #start(T)} should be
    * cleaned up and shutdown.
-   *
-   * @throws IOException if the server fails to stop
    */
   void stop() throws IOException;
 }

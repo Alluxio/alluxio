@@ -23,14 +23,11 @@ public interface JournalInputStream extends AutoCloseable {
    * Reads the next journal entry.
    *
    * @return the next {@link JournalEntry} in the stream, or null if the are no more entries
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   JournalEntry read() throws IOException;
 
   /**
    * Closes the stream.
-   *
-   * @throws IOException if an I/O error occurs
    */
   void close() throws IOException;
 

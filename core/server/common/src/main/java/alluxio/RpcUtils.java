@@ -144,7 +144,6 @@ public final class RpcUtils {
      *
      * @return the return value from the RPC
      * @throws AlluxioException if an expected exception occurs in the Alluxio system
-     * @throws IOException if an exception is thrown when interacting with the underlying system
      */
     T call() throws AlluxioException, IOException;
   }
