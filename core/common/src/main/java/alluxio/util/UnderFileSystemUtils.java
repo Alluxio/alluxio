@@ -161,8 +161,6 @@ public final class UnderFileSystemUtils {
     return "swift".equals(ufs.getUnderFSType());
   }
 
-  private UnderFileSystemUtils() {} // prevent instantiation
-
   /**
    * @param key property key
    * @param ufsConf ufs configuration
@@ -186,4 +184,6 @@ public final class UnderFileSystemUtils {
   public static boolean containsKey(PropertyKey key, Map<String, String> ufsConf) {
     return ufsConf.containsKey(key.toString()) || Configuration.containsKey(key);
   }
+
+  private UnderFileSystemUtils() {} // prevent instantiation
 }
