@@ -51,7 +51,6 @@ public final class FileSystemUtils {
    * @param uri the URI of the file on which the thread should wait
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws AlluxioException if an Alluxio Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit)

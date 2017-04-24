@@ -2423,7 +2423,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param inodePath the {@link LockedInodePath} of the file for persistence
    * @param journalContext the journal context
-   * @throws AlluxioException if scheduling fails
    */
   private void scheduleAsyncPersistenceAndJournal(LockedInodePath inodePath,
       JournalContext journalContext) throws AlluxioException {
@@ -2439,7 +2438,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * @param inodePath the {@link LockedInodePath} of the file to persist
-   * @throws AlluxioException if scheduling fails
    */
   private void scheduleAsyncPersistenceInternal(LockedInodePath inodePath) throws AlluxioException {
     inodePath.getInode().setPersistenceState(PersistenceState.TO_BE_PERSISTED);

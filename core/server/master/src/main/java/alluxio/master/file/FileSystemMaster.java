@@ -447,7 +447,6 @@ public interface FileSystemMaster extends Master {
    * Schedules a file for async persistence.
    *
    * @param path the path of the file for persistence
-   * @throws AlluxioException if scheduling fails
    */
   void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
 
