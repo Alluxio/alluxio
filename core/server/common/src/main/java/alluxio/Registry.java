@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InternalException;
 import alluxio.resource.LockResource;
 import alluxio.retry.CountingRetry;
 
@@ -78,7 +79,7 @@ public class Registry<T extends Server<U>, U> {
         server = mRegistry.get(clazz);
         if (server != null) {
           if (!(clazz.isInstance(server))) {
-            throw new IllegalStateException();
+            throw new InternalException("Server is not an instance of " + clazz.getName());
           }
           return clazz.cast(server);
         }
@@ -88,10 +89,10 @@ public class Registry<T extends Server<U>, U> {
         }
       }
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
+      throw new InternalException(e);
     }
-    // TODO(jiri): Convert this to a checked exception when exception story is finalized
-    throw new RuntimeException(ExceptionMessage.RESOURCE_UNAVAILABLE.getMessage());
+    throw new InternalException("Failed to find server of type " + clazz.getName());
   }
 
   /**
@@ -171,7 +172,7 @@ public class Registry<T extends Server<U>, U> {
           continue;
         }
         if (dep.equals(server)) {
-          throw new RuntimeException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
+          throw new InternalException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
         }
         if (result.contains(dep)) {
           continue;
