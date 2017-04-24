@@ -51,8 +51,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class encapsulates the different master services that are configured to run.
  */
 @NotThreadSafe
-public class DefaultAlluxioMaster implements AlluxioMasterService {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultAlluxioMaster.class);
+public class AlluxioMasterProcess implements MasterProcess {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
@@ -75,13 +75,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
-  protected MasterRegistry mRegistry;
+  private MasterRegistry mRegistry;
 
   /** The web ui server. */
   private WebServer mWebServer = null;
 
   /** The RPC server. */
-  private TServer mMasterServiceServer = null;
+  private TServer mThriftServer = null;
 
   /** is true if the master is serving the RPC server. */
   private boolean mIsServing = false;
@@ -90,10 +90,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   private long mStartTimeMs = -1;
 
   /**
-   * Creates a {@link DefaultAlluxioMaster} by the classes in the same packet of
-   * {@link DefaultAlluxioMaster} or the subclasses of {@link DefaultAlluxioMaster}.
+   * Creates a {@link AlluxioMasterProcess} by the classes in the same packet of
+   * {@link AlluxioMasterProcess} or the subclasses of {@link AlluxioMasterProcess}.
    */
-  protected DefaultAlluxioMaster() {
+  AlluxioMasterProcess() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
     int connectionTimeout = Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
@@ -103,8 +103,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
             + PropertyKey.MASTER_WORKER_THREADS_MIN);
 
     if (connectionTimeout > 0) {
-      LOG.debug("Alluxio master connection timeout["
-              + PropertyKey.MASTER_CONNECTION_TIMEOUT_MS + "] is " + connectionTimeout);
+      LOG.debug("{} connection timeout[{}] is {}", this, PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+          connectionTimeout);
     }
     try {
       // Extract the port from the generated socket.
@@ -114,9 +114,9 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       // deployment more complicated.
       if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
-            "Alluxio master rpc port is only allowed to be zero in test mode.");
+            this + " rpc port is only allowed to be zero in test mode.");
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
-            "Alluxio master web port is only allowed to be zero in test mode.");
+            this + " web port is only allowed to be zero in test mode.");
       }
       mTransportProvider = TransportProvider.Factory.create();
       mTServerSocket =
@@ -138,7 +138,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   }
 
   @Override
-  public <T> T getMaster(Class<T> clazz) {
+  public <T extends Master> T getMaster(Class<T> clazz) {
     return mRegistry.get(clazz);
   }
 
@@ -172,10 +172,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor("Alluxio master to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        return mMasterServiceServer != null && mMasterServiceServer.isServing()
+        return mThriftServer != null && mThriftServer.isServing()
             && mWebServer != null && mWebServer.getServer().isRunning();
       }
     });
@@ -189,7 +189,6 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping Alluxio master @ {}", mRpcAddress);
     if (mIsServing) {
       stopServing();
       stopMasters();
@@ -239,10 +238,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
-    LOG.info("Alluxio master version {} started @ {} {}", RuntimeConstants.VERSION, mRpcAddress,
+    LOG.info("{} version {} started @ {} {}", this, RuntimeConstants.VERSION, mRpcAddress,
         startMessage);
     startServingRPCServer();
-    LOG.info("Alluxio master version {} ended @ {} {}", RuntimeConstants.VERSION, mRpcAddress,
+    LOG.info("{} version {} ended @ {} {}", this, RuntimeConstants.VERSION, mRpcAddress,
         stopMessage);
   }
 
@@ -276,7 +275,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     // register master services
-    for (Master master : mRegistry.getMasters()) {
+    for (Master master : mRegistry.getServers()) {
       registerServices(processor, master.getServices());
     }
     // register meta services
@@ -301,12 +300,12 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
     }
-    mMasterServiceServer = new TThreadPoolServer(args);
+    mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
     mIsServing = true;
     mStartTimeMs = System.currentTimeMillis();
-    mMasterServiceServer.serve();
+    mThriftServer.serve();
   }
 
   /**
@@ -316,9 +315,9 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    * @throws Exception if the underlying jetty server throws an exception
    */
   protected void stopServing() throws Exception {
-    if (mMasterServiceServer != null) {
-      mMasterServiceServer.stop();
-      mMasterServiceServer = null;
+    if (mThriftServer != null) {
+      mThriftServer.stop();
+      mThriftServer = null;
     }
     if (mWebServer != null) {
       mWebServer.stop();
@@ -332,5 +331,10 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
+  }
+
+  @Override
+  public String toString() {
+    return "Alluxio master";
   }
 }

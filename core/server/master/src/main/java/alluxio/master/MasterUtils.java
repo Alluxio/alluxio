@@ -14,9 +14,10 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.ServerUtils;
+import alluxio.ServiceUtils;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
+import alluxio.util.CommonUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,8 +25,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class encapsulates the different master services that are configured to run.
@@ -40,7 +39,7 @@ final class MasterUtils {
    */
   public static void checkJournalFormatted() throws IOException {
     Journal.Factory factory = new Journal.Factory(getJournalLocation());
-    for (String name : ServerUtils.getMasterServiceNames()) {
+    for (String name : ServiceUtils.getMasterServiceNames()) {
       Journal journal = factory.create(name);
       if (!journal.isFormatted()) {
         throw new RuntimeException(
@@ -73,19 +72,17 @@ final class MasterUtils {
   public static void createMasters(final JournalFactory journalFactory,
       final MasterRegistry registry) {
     List<Callable<Void>> callables = new ArrayList<>();
-    for (final MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
+    for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
-          factory.create(registry, journalFactory);
+          if (factory.isEnabled()) {
+            factory.create(registry, journalFactory);
+          }
           return null;
         }
       });
     }
-    try {
-      Executors.newCachedThreadPool().invokeAll(callables, 10, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    CommonUtils.invokeAll(callables);
   }
 }

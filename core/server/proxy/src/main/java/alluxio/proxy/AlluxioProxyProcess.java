@@ -23,26 +23,31 @@ import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CountDownLatch;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class encapsulates the different worker services that are configured to run.
  */
 @NotThreadSafe
-public final class DefaultAlluxioProxy implements AlluxioProxyService {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultAlluxioProxy.class);
+public final class AlluxioProxyProcess implements ProxyProcess {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioProxyProcess.class);
 
   /** The web server. */
   private WebServer mWebServer = null;
 
   /** Worker start time in milliseconds. */
-  private long mStartTimeMs;
+  private final long mStartTimeMs;
+
+  private final CountDownLatch mLatch;
 
   /**
    * Creates an instance of {@link AlluxioProxy}.
    */
-  public DefaultAlluxioProxy() {
+  AlluxioProxyProcess() {
     mStartTimeMs = System.currentTimeMillis();
+    mLatch = new CountDownLatch(1);
   }
 
   @Override
@@ -66,26 +71,31 @@ public final class DefaultAlluxioProxy implements AlluxioProxyService {
         NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB), this);
     // reset proxy web port
     Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
-    // start web server
     mWebServer.start();
+    mLatch.await();
   }
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping Alluxio proxy.");
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
     }
+    mLatch.countDown();
   }
 
   @Override
   public void waitForReady() {
-    CommonUtils.waitFor("Alluxio proxy to start", new Function<Void, Boolean>() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         return mWebServer != null && mWebServer.getServer().isRunning();
       }
     });
+  }
+
+  @Override
+  public String toString() {
+    return "Alluxio Proxy";
   }
 }

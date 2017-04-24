@@ -86,7 +86,7 @@ public final class MasterClientAuthenticationIntegrationTest {
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
     try (FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress())) {
+        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");
@@ -104,7 +104,7 @@ public final class MasterClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
+        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

@@ -102,6 +102,9 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
   public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
+  public static final String BLOCK_WORKER_NAME = "BlockWorker";
+  public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
+  public static final String KEY_VALUE_WORKER_NAME = "KeyValueWorker";
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";

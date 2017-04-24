@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -30,7 +31,6 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
@@ -76,7 +76,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(LineageMaster.class);
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(FileSystemMaster.class);
 
   private final FileSystemMaster mFileSystemMaster;
   private LineageStore mLineageStore;
@@ -85,30 +86,29 @@ public final class LineageMaster extends AbstractMaster {
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory) {
-    this(registry, journalFactory, ExecutorServiceFactories
+  LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+    this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory,
+  LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
-    mFileSystemMaster = registry.get(FileSystemMaster.class);
-    registry.add(LineageMaster.class, this);
+    mFileSystemMaster = fileSystemMaster;
   }
 
   @Override
@@ -125,7 +125,7 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
 
@@ -146,7 +146,7 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,

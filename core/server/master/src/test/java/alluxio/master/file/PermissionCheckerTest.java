@@ -21,6 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
@@ -97,6 +98,7 @@ public final class PermissionCheckerTest {
   private static CreateFileOptions sNestedFileOptions;
 
   private static InodeTree sTree;
+  private static MasterRegistry sRegistry;
 
   private PermissionChecker mPermissionChecker;
 
@@ -167,16 +169,16 @@ public final class PermissionCheckerTest {
             .setGroup(TEST_USER_1.getGroup()).setMode(TEST_NORMAL_MODE).setRecursive(true);
 
     // setup an InodeTree
-    MasterRegistry registry = new MasterRegistry();
+    sRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
 
-    BlockMaster blockMaster = new BlockMaster(registry, factory);
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
-    blockMaster.start(true);
+    sRegistry.start(true);
 
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
@@ -194,6 +196,7 @@ public final class PermissionCheckerTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
+    sRegistry.stop();
     AuthenticatedClientUser.remove();
     ConfigurationTestUtils.resetConfiguration();
   }

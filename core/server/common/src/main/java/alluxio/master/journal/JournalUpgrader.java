@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
+import alluxio.ServiceUtils;
 import alluxio.master.MasterFactory;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
@@ -220,7 +220,7 @@ public final class JournalUpgrader {
     }
 
     List<String> masters = new ArrayList<>();
-    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
+    for (MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       masters.add(factory.getName());
     }
 
