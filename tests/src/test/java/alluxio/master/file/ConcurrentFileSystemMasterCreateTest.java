@@ -87,8 +87,10 @@ public class ConcurrentFileSystemMasterCreateTest {
   }
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     mFileSystem = FileSystem.Factory.get();
+    // Mount the sleeping UFS, to always the sleeping UFS over the ufs cluster.
+    mFileSystem.mount(new AlluxioURI("/sleep/"), new AlluxioURI("sleep://" + mLocalUfsPath));
   }
 
   @Test
@@ -99,8 +101,8 @@ public class ConcurrentFileSystemMasterCreateTest {
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     for (int i = 0; i < numThreads; i++) {
-      paths[i] =
-          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
+      paths[i] = new AlluxioURI(
+          "/sleep/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
     int errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
@@ -116,12 +118,12 @@ public class ConcurrentFileSystemMasterCreateTest {
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
+    mFileSystem.createDirectory(new AlluxioURI("/sleep/existing/path/dir/"),
         CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH));
 
     for (int i = 0; i < numThreads; i++) {
-      paths[i] =
-          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
+      paths[i] = new AlluxioURI(
+          "/sleep/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
     int errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
@@ -137,12 +139,12 @@ public class ConcurrentFileSystemMasterCreateTest {
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
+    mFileSystem.createDirectory(new AlluxioURI("/sleep/existing/path/dir/"),
         CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.MUST_CACHE));
 
     for (int i = 0; i < numThreads; i++) {
-      paths[i] =
-          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
+      paths[i] = new AlluxioURI(
+          "/sleep/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
     int errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
@@ -277,7 +279,7 @@ public class ConcurrentFileSystemMasterCreateTest {
 
     if (writeType != null) {
       // create inodes in Alluxio
-      mFileSystem.createDirectory(new AlluxioURI("/existing/path/"),
+      mFileSystem.createDirectory(new AlluxioURI("/sleep/existing/path/"),
           CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(writeType));
     }
 
@@ -286,9 +288,9 @@ public class ConcurrentFileSystemMasterCreateTest {
     int fileId = 0;
     for (int i = 0; i < numThreads; i++) {
       if (listParentDir) {
-        paths[i] = new AlluxioURI("/existing/path/");
+        paths[i] = new AlluxioURI("/sleep/existing/path/");
       } else {
-        paths[i] = new AlluxioURI("/existing/path/last_" + ((fileId++) % uniquePaths));
+        paths[i] = new AlluxioURI("/sleep/existing/path/last_" + ((fileId++) % uniquePaths));
       }
     }
 
@@ -307,19 +309,19 @@ public class ConcurrentFileSystemMasterCreateTest {
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
         LoadMetadataType.Never);
 
-    List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"), listOptions);
+    List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/sleep/"), listOptions);
     Assert.assertEquals(1, files.size());
     Assert.assertEquals("existing", files.get(0).getName());
     Assert.assertEquals(PersistenceState.PERSISTED,
         PersistenceState.valueOf(files.get(0).getPersistenceState()));
 
-    files = mFileSystem.listStatus(new AlluxioURI("/existing"), listOptions);
+    files = mFileSystem.listStatus(new AlluxioURI("/sleep/existing"), listOptions);
     Assert.assertEquals(1, files.size());
     Assert.assertEquals("path", files.get(0).getName());
     Assert.assertEquals(PersistenceState.PERSISTED,
         PersistenceState.valueOf(files.get(0).getPersistenceState()));
 
-    files = mFileSystem.listStatus(new AlluxioURI("/existing/path/"), listOptions);
+    files = mFileSystem.listStatus(new AlluxioURI("/sleep/existing/path/"), listOptions);
     Assert.assertEquals(uniquePaths, files.size());
     Collections.sort(files, new ConcurrentFileSystemMasterUtils.IntegerSuffixedPathComparator());
     for (int i = 0; i < uniquePaths; i++) {
