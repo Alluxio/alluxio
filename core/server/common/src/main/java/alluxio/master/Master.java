@@ -11,8 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.master.journal.JournalCheckpointStreamable;
-import alluxio.master.journal.JournalInputStream;
+import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.thrift.TProcessor;
@@ -24,7 +23,7 @@ import java.util.Set;
 /**
  * This interface contains common operations for all masters.
  */
-public interface Master extends JournalCheckpointStreamable {
+public interface Master extends JournalEntryIterable {
   /**
    * @return a map from service names to {@link TProcessor}s that serve RPCs for this master
    */
@@ -41,14 +40,6 @@ public interface Master extends JournalCheckpointStreamable {
   Set<Class<?>> getDependencies();
 
   /**
-   * Processes the journal checkpoint file and applies the entries to the master.
-   *
-   * @param inputStream the input stream for the journal checkpoint file
-   * @throws IOException if I/O error occurs
-   */
-  void processJournalCheckpoint(JournalInputStream inputStream) throws IOException;
-
-  /**
    * Processes a journal entry and applies it to the master. These entries follow the checkpoint
    * entries.
    *
@@ -58,17 +49,17 @@ public interface Master extends JournalCheckpointStreamable {
   void processJournalEntry(JournalEntry entry) throws IOException;
 
   /**
-   * Starts the master, as the leader master or the standby master. Here, the master should
+   * Starts the master, as the primary master or the secondary master. Here, the master should
    * initialize state and possibly start threads required for operation.
    *
-   * If isLeader is true, the master should also initialize the journal and write the checkpoint
+   * If isPrimary is true, the master should also initialize the journal and write the checkpoint
    * file.
    *
-   * @param isLeader if true, the master should behave as the leader master in the system. If false,
-   *        the master should act as a standby master.
+   * @param isPrimary if true, the master should behave as the primary master in the system. If
+   *        false, the master should act as a secondary master.
    * @throws IOException if I/O error occurs
    */
-  void start(boolean isLeader) throws IOException;
+  void start(boolean isPrimary) throws IOException;
 
   /**
    * Stops the master. Here, anything created or started in {@link #start(boolean)} should be
@@ -77,12 +68,4 @@ public interface Master extends JournalCheckpointStreamable {
    * @throws IOException if I/O error occurs
    */
   void stop() throws IOException;
-
-  /**
-   * Updates the master state for being a leader master.
-   *
-   * This hook is called when the master becomes a leader. The master should not be running when
-   * this method is called.
-   */
-  void transitionToLeader();
 }

@@ -55,13 +55,11 @@ added nodes in order to balance memory space utilization between the nodes?
 
 10. Can I run Alluxio as a stand-alone system for experimenting and validation?
 
-    Yes, Alluxio can run as a stand-alone system. Instructions are available [here](Running-Alluxio-
-    Locally.html).
+    Yes, Alluxio can run as a stand-alone system. Instructions are available [here](Running-Alluxio-Locally.html).
 
 11. Can I run Alluxio in a cluster mode?
 
-    Yes, Alluxio can be run in a cluster mode. Instructions are available [here](Running-Alluxio-
-    on-a-Cluster.html).
+    Yes, Alluxio can be run in a cluster mode. Instructions are available [here](Running-Alluxio-on-a-Cluster.html).
 
 12. Does Alluxio always need HDFS?
 
@@ -69,9 +67,9 @@ added nodes in order to balance memory space utilization between the nodes?
 
 13. Does Alluxio work alongside with other Frameworks?
 
-    Yes, Alluxio works with [Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-
-    Alluxio.html), [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html),  [HBase](Running-HBase-on-
-    Alluxio.html), [Hive](Running-Hive-with-Alluxio.html), etc.
+    Yes, Alluxio works with [Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-Alluxio.html),
+    [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html),  [HBase](Running-HBase-on-Alluxio.html),
+    [Hive](Running-Hive-with-Alluxio.html), etc.
 
 14. How can I learn more about Alluxio?
 

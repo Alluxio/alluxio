@@ -16,7 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.ServerUtils;
-import alluxio.master.journal.MutableJournal;
+import alluxio.master.journal.Journal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -109,9 +109,9 @@ public final class Format {
       case MASTER:
         String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
         LOG.info("MASTER JOURNAL: {}", masterJournal);
-        MutableJournal.Factory factory;
+        Journal.Factory factory;
         try {
-          factory = new MutableJournal.Factory(new URI(masterJournal));
+          factory = new Journal.Factory(new URI(masterJournal));
         } catch (URISyntaxException e) {
           throw new IOException(e.getMessage());
         }

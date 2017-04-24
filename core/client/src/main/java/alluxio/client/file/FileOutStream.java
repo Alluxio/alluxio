@@ -134,7 +134,7 @@ public class FileOutStream extends AbstractOutStream {
       CompleteFileOptions options = CompleteFileOptions.defaults();
       if (mUnderStorageType.isSyncPersist()) {
         mUnderStorageOutputStream.close();
-        options.setUfsLength(getBytesWritten());
+        options.setUfsLength(mBytesWritten);
       }
 
       if (mAlluxioStorageType.isStore()) {

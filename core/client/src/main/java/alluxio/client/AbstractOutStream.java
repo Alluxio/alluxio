@@ -24,17 +24,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class AbstractOutStream extends OutputStream implements Cancelable {
-  // TODO(binfan): make mBytesWritten long so we could make offset > 2GB. This
-  // requires checking the codebase for this assumption (using int to denote an offset).
-  // See ALLUXIO-1536.
   /** The number of bytes written. */
-  protected int mBytesWritten = 0;
+  protected long mBytesWritten = 0;
 
   /**
    * @return the number of bytes written to this stream
+   * @deprecated this method will not work if more than MAX_INT bytes are written; to get a count of
+   *             bytes written, wrap this stream in a counting output stream such as
+   *             org.apache.commons.io.output.CountingOutputStream
    */
+  @Deprecated
   public int getBytesWritten() {
-    return mBytesWritten;
+    // Cast to int to preserve backwards compatibility. In 2.0 we should change this to long so that
+    // it can be correct.
+    return (int) mBytesWritten;
   }
 
   /**

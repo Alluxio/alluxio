@@ -79,7 +79,7 @@ public final class TestCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options()
         .addOption(DIR_OPTION)
         .addOption(FILE_OPTION)

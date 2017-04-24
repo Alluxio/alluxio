@@ -28,8 +28,9 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -168,7 +169,7 @@ public final class PermissionCheckerTest {
     // setup an InodeTree
     MasterRegistry registry = new MasterRegistry();
     JournalFactory factory =
-        new MutableJournal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
+        new Journal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
 
     BlockMaster blockMaster = new BlockMaster(registry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
@@ -209,7 +210,8 @@ public final class PermissionCheckerTest {
     try (
         LockedInodePath inodePath = sTree
             .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
-      InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
+      InodeTree.CreatePathResult result =
+          sTree.createPath(inodePath, option, new NoopJournalContext());
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
           .setOwner(option.getOwner()).setGroup(option.getGroup())
           .setMode(option.getMode().toShort());

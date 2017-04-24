@@ -115,6 +115,8 @@ public enum PropertyKey {
   //
   // Master related properties
   //
+  // deprecated since version 1.3 and will be removed in version 2.0
+  // use MASTER_HOSTNAME instead
   MASTER_ADDRESS(Name.MASTER_ADDRESS, null),
   MASTER_BIND_HOST(Name.MASTER_BIND_HOST, "0.0.0.0"),
   MASTER_CONNECTION_TIMEOUT_MS(Name.MASTER_CONNECTION_TIMEOUT_MS, 0),
@@ -126,12 +128,18 @@ public enum PropertyKey {
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
   MASTER_JOURNAL_FLUSH_TIMEOUT_MS(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 300000),
   MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR)),
+  // Deprecated since 1.5.0 and will be removed in 2.0.
   MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
-      "alluxio.master.journal.ProtoBufJournalFormatter"),
+      "alluxio.master.journalv0.ProtoBufJournalFormatter"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB"),
   MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS(
       Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 5000),
   MASTER_JOURNAL_TAILER_SLEEP_TIME_MS(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 1000),
+  MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2000000),
+  MASTER_JOURNAL_GC_PERIOD_MS(Name.MASTER_JOURNAL_GC_PERIOD_MS, 120000),
+  MASTER_JOURNAL_GC_THRESHOLD_MS(Name.MASTER_JOURNAL_GC_THRESHOLD_MS, 300000),
+  MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS,
+      1800000),
   MASTER_KEYTAB_KEY_FILE(Name.MASTER_KEYTAB_KEY_FILE, null),
   MASTER_LINEAGE_CHECKPOINT_CLASS(Name.MASTER_LINEAGE_CHECKPOINT_CLASS,
       "alluxio.master.lineage.checkpoint.CheckpointLatestPlanner"),
@@ -575,6 +583,13 @@ public enum PropertyKey {
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
+    public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
+        "alluxio.master.journal.checkpoint.period.entries";
+    public static final String MASTER_JOURNAL_GC_PERIOD_MS = "alluxio.master.journal.gc.period.ms";
+    public static final String MASTER_JOURNAL_GC_THRESHOLD_MS =
+        "alluxio.master.journal.gc.threshold.ms";
+    public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
+        "alluxio.master.journal.temporary.file.gc.threshold.ms";
 
     //
     // Worker related properties

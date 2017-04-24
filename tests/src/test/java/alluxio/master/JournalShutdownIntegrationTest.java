@@ -72,6 +72,8 @@ public class JournalShutdownIntegrationTest {
   public final void before() throws Exception {
     mExecutorsForClient = Executors.newFixedThreadPool(1);
     Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
   }
 
   @Test
@@ -125,6 +127,9 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
+  /**
+   * Creates file system master from journal.
+   */
   private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
@@ -148,6 +153,9 @@ public class JournalShutdownIntegrationTest {
     registry.stop();
   }
 
+  /**
+   * Sets up and starts a multi-master cluster.
+   */
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
     // Setup and start the alluxio-ft cluster.
     MultiMasterLocalAlluxioCluster cluster =
@@ -157,6 +165,9 @@ public class JournalShutdownIntegrationTest {
     return cluster;
   }
 
+  /**
+   * Sets up and starts a single master cluster.
+   */
   private LocalAlluxioCluster setupSingleMasterCluster() throws Exception {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster();

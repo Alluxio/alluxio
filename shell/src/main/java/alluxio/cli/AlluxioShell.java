@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -72,7 +71,7 @@ public final class AlluxioShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Map<String, ShellCommand> mCommands = new HashMap<>();
+  private final Map<String, ShellCommand> mCommands;
   private final FileSystem mFileSystem;
 
   /**
@@ -80,7 +79,7 @@ public final class AlluxioShell implements Closeable {
    */
   public AlluxioShell() {
     mFileSystem = FileSystem.Factory.get();
-    AlluxioShellUtils.loadCommands(mFileSystem, mCommands);
+    mCommands = AlluxioShellUtils.loadCommands(mFileSystem);
   }
 
   @Override
@@ -105,11 +104,10 @@ public final class AlluxioShell implements Closeable {
    * Prints usage for all shell commands.
    */
   private void printUsage() {
-    System.out.println("Usage: java AlluxioShell");
+    System.out.println("Usage: alluxio fs [generic options]");
     SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
     for (String cmd : sortedCmds) {
-      System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
-          mCommands.get(cmd).getDescription());
+      System.out.format("%-60s%n", "       [" + mCommands.get(cmd).getUsage() + "]");
     }
   }
 
@@ -150,7 +148,7 @@ public final class AlluxioShell implements Closeable {
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
     CommandLine cmdline = command.parseAndValidateArgs(args);
     if (cmdline == null) {
-      printUsage();
+      System.out.println("Usage: " + command.getUsage());
       return -1;
     }
 

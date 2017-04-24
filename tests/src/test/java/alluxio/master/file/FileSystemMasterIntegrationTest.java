@@ -820,6 +820,13 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent freer.
+     *
+     * @param depth the depth of files to be freed
+     * @param concurrencyDepth the concurrency depth of files to be freed
+     * @param initPath the directory of files to be freed
+     */
     ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
@@ -1048,6 +1055,12 @@ public class FileSystemMasterIntegrationTest {
     private final AtomicBoolean mStopThread;
     private final AlluxioURI[] mFiles;
 
+    /**
+     * Concurrent create and delete of file.
+     * @param barrier cyclic barrier
+     * @param stopThread stop Thread
+     * @param files files to create or delete
+     */
     public ConcurrentCreateDelete(CyclicBarrier barrier, AtomicBoolean stopThread,
         AlluxioURI[] files) {
       mStartBarrier = barrier;

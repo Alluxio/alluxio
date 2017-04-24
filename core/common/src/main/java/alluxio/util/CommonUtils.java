@@ -25,8 +25,10 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -325,6 +327,21 @@ public final class CommonUtils {
   }
 
   /**
+   * Strips the leading and trailing quotes from the given string.
+   * E.g. return 'alluxio' for input '"alluxio"'.
+   *
+   * @param str The string to strip
+   * @return The string without the leading and trailing quotes
+   */
+  public static String stripLeadingAndTrailingQuotes(String str) {
+    int length = str.length();
+    if (length > 1 && str.startsWith("\"") && str.endsWith("\"")) {
+      str = str.substring(1, length - 1);
+    }
+    return str;
+  }
+
+  /**
    * Gets the value with a given key from a static key/value mapping in string format. E.g. with
    * mapping "id1=user1;id2=user2", it returns "user1" with key "id1". It returns null if the given
    * key does not exist in the mapping.
@@ -380,6 +397,38 @@ public final class CommonUtils {
     } else {
       return new IOException(e);
     }
+  }
+
+  /**
+   * Returns an iterator that iterates on a single element.
+   *
+   * @param element the element
+   * @param <T> the type of the element
+   * @return the iterator
+   */
+  public static <T> Iterator<T> singleElementIterator(final T element) {
+    return new Iterator<T>() {
+      private boolean mHasNext = true;
+
+      @Override
+      public boolean hasNext() {
+        return mHasNext;
+      }
+
+      @Override
+      public T next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        mHasNext = false;
+        return element;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("remove is not supported.");
+      }
+    };
   }
 
   private CommonUtils() {} // prevent instantiation
