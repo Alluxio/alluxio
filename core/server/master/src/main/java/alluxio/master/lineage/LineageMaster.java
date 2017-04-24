@@ -182,7 +182,6 @@ public final class LineageMaster extends AbstractMaster {
    * @throws InvalidPathException if the path to the input file is invalid
    * @throws FileAlreadyExistsException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
-   * @throws IOException if the creation of a file fails
    * @throws AccessControlException if the permission check fails
    * @throws FileDoesNotExistException if any of the input files do not exist
    */

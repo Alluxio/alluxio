@@ -108,7 +108,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
    * begins.
    *
-   * @throws IOException when workerId cannot be found
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() {

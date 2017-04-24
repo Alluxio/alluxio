@@ -28,7 +28,6 @@ import com.google.common.primitives.Ints;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -173,7 +172,6 @@ public final class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for all the paths in the array 'dirs'
    * @param dirs 1-D array of directory paths
    * @return new joined and created paths array
-   * @throws IOException when error happens during creating temporary folder
    */
   private static String[] createDirHierarchy(String baseDir, final String[] dirs) throws Exception {
     if (baseDir == null) {

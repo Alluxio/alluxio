@@ -327,7 +327,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @param channel the netty channel
    * @param len The length, in bytes, of the data to read from the block
    * @return a {@link DataBuffer} representing the data
-   * @throws IOException if an I/O error occurs when reading the data
    */
   protected abstract DataBuffer getDataBuffer(Channel channel, long offset, int len)
       throws IOException;

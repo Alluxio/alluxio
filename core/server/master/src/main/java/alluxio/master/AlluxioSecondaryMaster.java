@@ -93,8 +93,6 @@ public final class AlluxioSecondaryMaster implements Process {
 
   /**
    * Connects to the UFS.
-   *
-   * @throws IOException if any I/O errors occur
    */
   private void connectToUFS() throws IOException {
     String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);

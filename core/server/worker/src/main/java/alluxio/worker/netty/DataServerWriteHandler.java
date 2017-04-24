@@ -146,8 +146,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * Cancels the request.
-     *
-     * @throws IOException if I/O errors occur
      */
     abstract void cancel() throws IOException;
   }
@@ -359,8 +357,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * Completes this write.
-     *
-     * @throws IOException if I/O related errors occur
      */
     private void complete() throws IOException {
       if (mRequest != null) {
@@ -372,8 +368,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * Cancels this write.
-     *
-     * @throws IOException if I/O related errors occur
      */
     private void cancel() throws IOException {
       if (mRequest != null) {

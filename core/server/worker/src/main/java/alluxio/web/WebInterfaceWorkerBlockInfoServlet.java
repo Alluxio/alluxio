@@ -68,7 +68,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -184,8 +183,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param fileId the file id of the file
    * @return the {@link UIFileInfo} object of the file
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio exception is thrown
    */
   private UIFileInfo getUiFileInfo(long fileId) throws IOException, AlluxioException {
     return getUiFileInfo(new URIStatus(mBlockWorker.getFileInfo(fileId)));
@@ -196,8 +193,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param filePath the path of the file
    * @return the {@link UIFileInfo} object of the file
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio exception is thrown
    */
   private UIFileInfo getUiFileInfo(AlluxioURI filePath) throws IOException, AlluxioException {
     return getUiFileInfo(FileSystem.Factory.get().getStatus(filePath));
