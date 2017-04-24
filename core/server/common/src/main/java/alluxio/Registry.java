@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InternalException;
 import alluxio.resource.LockResource;
 import alluxio.retry.CountingRetry;
@@ -172,7 +171,7 @@ public class Registry<T extends Server<U>, U> {
           continue;
         }
         if (dep.equals(server)) {
-          throw new InternalException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
+          throw new InternalException("Dependency cycle encountered");
         }
         if (result.contains(dep)) {
           continue;
