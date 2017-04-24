@@ -23,6 +23,7 @@ import com.google.common.base.Throwables;
 import org.jets3t.service.ServiceException;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -39,12 +40,11 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   public S3UnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object unusedConf) {
-    Preconditions.checkNotNull(path);
-
-    if (checkAWSCredentials()) {
+  public UnderFileSystem create(String path, Map<String, String> conf) {
+    Preconditions.checkNotNull(path, "path");
+    if (checkAWSCredentials(conf)) {
       try {
-        return S3UnderFileSystem.createInstance(new AlluxioURI(path));
+        return S3UnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (ServiceException e) {
         throw Throwables.propagate(e);
       }
@@ -62,8 +62,10 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean checkAWSCredentials() {
-    return Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY)
-        && Configuration.containsKey(PropertyKey.S3N_SECRET_KEY);
+  private boolean checkAWSCredentials(Map<String, String> conf) {
+    return (conf.containsKey(PropertyKey.S3N_ACCESS_KEY.toString()) && conf
+        .containsKey(PropertyKey.S3N_SECRET_KEY.toString())) || (
+        Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY) && Configuration
+            .containsKey(PropertyKey.S3N_SECRET_KEY));
   }
 }
