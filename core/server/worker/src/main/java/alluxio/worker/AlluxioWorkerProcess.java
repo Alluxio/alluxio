@@ -87,7 +87,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
-  public AlluxioWorkerProcess() {
+  AlluxioWorkerProcess() {
     try {
       mStartTimeMs = System.currentTimeMillis();
       mRegistry = new WorkerRegistry();

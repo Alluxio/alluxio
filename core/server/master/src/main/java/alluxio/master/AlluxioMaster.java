@@ -38,8 +38,8 @@ public final class AlluxioMaster {
       System.exit(-1);
     }
 
-    MasterProcess master = MasterProcess.Factory.create();
-    ProcessUtils.run(master);
+    MasterProcess process = MasterProcess.Factory.create();
+    ProcessUtils.run(process);
   }
 
   private AlluxioMaster() {} // prevent instantiation

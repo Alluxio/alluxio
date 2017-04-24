@@ -86,7 +86,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
       "SSD", 200L);
 
-  private MasterProcess mMaster;
+  private MasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
@@ -102,16 +102,16 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Before
   public void before() throws Exception {
-    mMaster = mock(MasterProcess.class);
+    mMasterProcess = mock(MasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
     mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);
     mRegistry.start(true);
-    when(mMaster.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
+    when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
-        mMaster);
+        mMasterProcess);
     registerFileSystemMock();
     mHandler = new AlluxioMasterRestServiceHandler(context);
     // Register two workers
@@ -164,7 +164,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getRpcAddress() {
-    when(mMaster.getRpcAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
+    when(mMasterProcess.getRpcAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
     Response response = mHandler.getRpcAddress();
     try {
       assertNotNull("Response must be not null!", response);
@@ -212,7 +212,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getStartTimeMs() {
-    when(mMaster.getStartTimeMs()).thenReturn(100L);
+    when(mMasterProcess.getStartTimeMs()).thenReturn(100L);
     Response response = mHandler.getStartTimeMs();
     try {
       assertNotNull("Response must be not null!", response);
@@ -227,7 +227,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getUptimeMs() {
-    when(mMaster.getUptimeMs()).thenReturn(100L);
+    when(mMasterProcess.getUptimeMs()).thenReturn(100L);
     Response response = mHandler.getUptimeMs();
     try {
       assertNotNull("Response must be not null!", response);

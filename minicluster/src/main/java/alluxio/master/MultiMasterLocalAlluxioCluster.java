@@ -48,19 +48,19 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   /**
    * Runs a multi master local Alluxio cluster with a single worker.
    *
-   * @param masters the number masters to run
+   * @param numMasters the number masters to run
    */
-  MultiMasterLocalAlluxioCluster(int masters) {
-    this(masters, 1);
+  MultiMasterLocalAlluxioCluster(int numMasters) {
+    this(numMasters, 1);
   }
 
   /**
-   * @param masters the number of masters to run
+   * @param numMasters the number of masters to run
    * @param numWorkers the number of workers to run
    */
-  MultiMasterLocalAlluxioCluster(int masters, int numWorkers) {
+  MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers) {
     super(numWorkers);
-    mNumOfMasters = masters;
+    mNumOfMasters = numMasters;
 
     try {
       mCuratorServer = new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));

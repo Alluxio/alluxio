@@ -40,7 +40,7 @@ public final class AlluxioSecondaryMaster implements Process {
   /**
    * Creates a {@link AlluxioSecondaryMaster}.
    */
-  public AlluxioSecondaryMaster() {
+  AlluxioSecondaryMaster() {
     try {
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
@@ -78,6 +78,7 @@ public final class AlluxioSecondaryMaster implements Process {
    *
    * @param args command line arguments, should be empty
    */
+  // TODO(peis): Move the non-static methods into AlluxioSecondaryMasterProcess for consistency.
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,

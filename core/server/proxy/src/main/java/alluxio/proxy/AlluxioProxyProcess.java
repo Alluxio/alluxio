@@ -45,7 +45,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   /**
    * Creates an instance of {@link AlluxioProxy}.
    */
-  public AlluxioProxyProcess() {
+  AlluxioProxyProcess() {
     mStartTimeMs = System.currentTimeMillis();
     mLatch = new CountDownLatch(1);
   }

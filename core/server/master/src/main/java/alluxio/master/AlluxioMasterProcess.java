@@ -93,7 +93,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    * Creates a {@link AlluxioMasterProcess} by the classes in the same packet of
    * {@link AlluxioMasterProcess} or the subclasses of {@link AlluxioMasterProcess}.
    */
-  protected AlluxioMasterProcess() {
+  AlluxioMasterProcess() {
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
     int connectionTimeout = Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);

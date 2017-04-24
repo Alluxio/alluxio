@@ -35,5 +35,6 @@ public interface Process {
   /**
    * Waits until the process is ready to serve requests.
    */
+  // TODO(jiri): Replace with isServing.
   void waitForReady();
 }
