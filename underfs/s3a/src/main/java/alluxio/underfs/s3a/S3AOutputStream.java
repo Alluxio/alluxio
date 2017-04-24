@@ -84,7 +84,6 @@ public class S3AOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param manager the transfer manager to upload the file with
-   * @throws IOException when a non-Alluxio related error occurs
    */
   public S3AOutputStream(String bucketName, String key, TransferManager manager)
       throws IOException {
