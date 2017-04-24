@@ -171,9 +171,6 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
 
   /**
    * Completes the current partition.
-   *
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
   private void completePartition() throws IOException, AlluxioException {
     if (mWriter == null) {

@@ -73,8 +73,6 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @param blockId The id of the block
    * @param key the key to get the value for
    * @return ByteBuffer of value, or null if not found
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
       throws IOException, AlluxioException {
@@ -96,8 +94,6 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @param key the current key
    * @param numKeys maximum number of next keys to fetch
    * @return the next batch of keys
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
   public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
       final int numKeys) throws IOException, AlluxioException {
@@ -112,8 +108,6 @@ public final class KeyValueWorkerClient extends AbstractClient {
   /**
    * @param blockId the id of the partition
    * @return the number of key-value pairs in the partition
-   * @throws IOException if a non-Alluxio related exception occurs
-   * @throws AlluxioException if an exception in Alluxio occurs
    */
   public synchronized int getSize(final long blockId) throws IOException, AlluxioException {
     return retryRPC(new RpcCallable<Integer>() {

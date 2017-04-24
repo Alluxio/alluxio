@@ -166,8 +166,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Sets up corresponding directories for tests.
-   *
-   * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest() throws IOException {
     String underfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
@@ -282,8 +280,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Creates a default {@link Configuration} for testing.
-   *
-   * @throws IOException when the operation fails
    */
   public void initConfiguration() throws IOException {
     setAlluxioWorkDirectory();
@@ -377,7 +373,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * Returns a {@link FileSystem} client.
    *
    * @return a {@link FileSystem} client
-   * @throws IOException when the operation fails
    */
   public abstract FileSystem getClient() throws IOException;
 
