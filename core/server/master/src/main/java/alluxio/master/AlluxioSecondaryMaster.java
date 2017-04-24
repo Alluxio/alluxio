@@ -62,6 +62,7 @@ public final class AlluxioSecondaryMaster implements Process {
 
   @Override
   public void stop() throws Exception {
+    mRegistry.stop();
     mLatch.countDown();
   }
 
