@@ -20,10 +20,10 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -211,8 +211,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           "Error: File " + currentPath + " is not available " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
-    } catch (AccessControlException e) {
-      request.setAttribute("invalidPathError",
+    } catch (PermissionDeniedException e) {
+      request.setAttribute("PermissionDeniedException",
           "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
@@ -244,8 +244,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         request.setAttribute("InvalidPathException",
             "Error: invalid path " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      } catch (AccessControlException e) {
-        request.setAttribute("AccessControlException",
+      } catch (PermissionDeniedException e) {
+        request.setAttribute("PermissionDeniedException",
             "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
@@ -294,10 +294,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws AccessControlException if permission checking fails
    */
   private void setPathDirectories(AlluxioURI path, HttpServletRequest request)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UIFileInfo[0]);

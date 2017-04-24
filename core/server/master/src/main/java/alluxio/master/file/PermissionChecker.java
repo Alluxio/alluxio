@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
@@ -69,11 +68,10 @@ public final class PermissionChecker {
    *
    * @param bits bits that capture the action {@link Mode.Bits} by user
    * @param inodePath the path to check permission on
-   * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
   public void checkParentPermission(Mode.Bits bits, LockedInodePath inodePath)
-      throws AccessControlException, InvalidPathException {
+      throws InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
     }
@@ -147,11 +145,10 @@ public final class PermissionChecker {
    * @param inodePath the path to check permission on
    * @param superuserRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
-   * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
   public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
-      boolean ownerRequired) throws AccessControlException, InvalidPathException {
+      boolean ownerRequired) throws InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
     }
@@ -171,11 +168,10 @@ public final class PermissionChecker {
    * Checks whether the client user is the owner of the path.
    *
    * @param inodePath path to be checked on
-   * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
   private void checkOwner(LockedInodePath inodePath)
-      throws AccessControlException, InvalidPathException {
+      throws InvalidPathException {
     // collects inodes info on the path
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
@@ -192,15 +188,13 @@ public final class PermissionChecker {
 
   /**
    * Checks whether the user is a super user or in super group.
-   *
-   * @throws AccessControlException if the user is not a super user
    */
-  private void checkSuperUser() throws AccessControlException {
+  private void checkSuperUser() {
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser();
     List<String> groups = CommonUtils.getGroups(user);
     if (!isPrivilegedUser(user, groups)) {
-      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+      throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED
           .getMessage(user + " is not a super user or in super group"));
     }
   }

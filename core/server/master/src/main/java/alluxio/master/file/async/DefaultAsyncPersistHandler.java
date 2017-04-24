@@ -146,11 +146,10 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    * @return the list of files
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
-   * @throws AccessControlException if permission checking fails
    */
   @Override
   public synchronized List<PersistFile> pollFilesToPersist(long workerId)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     List<PersistFile> filesToPersist = new ArrayList<>();
     List<Long> fileIdsToPersist = new ArrayList<>();
 

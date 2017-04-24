@@ -14,8 +14,8 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
@@ -90,7 +90,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
             "Error: File does not exist " + e.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
-      } catch (AccessControlException e) {
+      } catch (PermissionDeniedException e) {
         request.setAttribute("permissionError",
             "Error: File " + file + " cannot be accessed " + e.getMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);

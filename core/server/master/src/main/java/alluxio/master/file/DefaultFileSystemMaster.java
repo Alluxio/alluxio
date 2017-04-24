@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.PrefixList;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -30,6 +29,7 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -56,7 +56,6 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -352,17 +351,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mTtlBuckets.insert(InodeFile.fromJournalEntry(inodeFileEntry));
       }
     } else if (entry.hasInodeDirectory()) {
-      try {
-        // Add the directory to TTL buckets, the insert automatically rejects directory
-        // w/ Constants.NO_TTL
-        InodeDirectoryEntry inodeDirectoryEntry = entry.getInodeDirectory();
-        if (inodeDirectoryEntry.hasTtl()) {
-          mTtlBuckets.insert(InodeDirectory.fromJournalEntry(inodeDirectoryEntry));
-        }
-        mInodeTree.addInodeDirectoryFromJournal(entry.getInodeDirectory());
-      } catch (AccessControlException e) {
-        throw new RuntimeException(e);
+      // Add the directory to TTL buckets, the insert automatically rejects directory
+      // w/ Constants.NO_TTL
+      InodeDirectoryEntry inodeDirectoryEntry = entry.getInodeDirectory();
+      if (inodeDirectoryEntry.hasTtl()) {
+        mTtlBuckets.insert(InodeDirectory.fromJournalEntry(inodeDirectoryEntry));
       }
+      mInodeTree.addInodeDirectoryFromJournal(entry.getInodeDirectory());
     } else if (entry.hasInodeLastModificationTime()) {
       InodeLastModificationTimeEntry modTimeEntry = entry.getInodeLastModificationTime();
       try (LockedInodePath inodePath = mInodeTree
@@ -389,7 +384,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else if (entry.hasSetAttribute()) {
       try {
         setAttributeFromEntry(entry.getSetAttribute());
-      } catch (AccessControlException | FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileDoesNotExistException | InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else if (entry.hasDeleteFile()) {
@@ -615,7 +610,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public long getFileId(AlluxioURI path) throws AccessControlException {
+  public long getFileId(AlluxioURI path) {
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       // This is WRITE locked, since loading metadata is possible.
@@ -630,8 +625,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException {
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
@@ -641,7 +635,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileInfo getFileInfo(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     Metrics.GET_FILE_INFO_OPS.inc();
 
     try (JournalContext journalContext = createJournalContext();
@@ -662,10 +656,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission denied
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
-      throws FileDoesNotExistException, AccessControlException {
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath) throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
@@ -702,7 +694,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
@@ -814,7 +806,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void completeFile(AlluxioURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
+      InvalidFileSizeException, FileAlreadyCompletedException {
     Metrics.COMPLETE_FILE_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
@@ -931,7 +923,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public long createFile(AlluxioURI path, CreateFileOptions options)
-      throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
+      throws InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
@@ -1028,7 +1020,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public long getNewBlockIdForFile(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     Metrics.GET_NEW_BLOCK_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
@@ -1054,8 +1046,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void delete(AlluxioURI path, DeleteOptions options) throws IOException,
-      FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
-      AccessControlException {
+      FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException {
     Metrics.DELETE_PATHS_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
@@ -1218,7 +1209,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     Metrics.GET_FILE_BLOCK_INFO_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
@@ -1385,7 +1376,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public long createDirectory(AlluxioURI path, CreateDirectoryOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
+      throws InvalidPathException, FileAlreadyExistsException, IOException,
       FileDoesNotExistException {
     LOG.debug("createDirectory {} ", path);
     Metrics.CREATE_DIRECTORIES_OPS.inc();
@@ -1410,16 +1401,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
-   * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
-   *         for more details
-   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException when the path is invalid
    * @throws IOException if a non-Alluxio related exception occurs
    */
   private void createDirectoryAndJournal(LockedInodePath inodePath, CreateDirectoryOptions options,
-      JournalContext journalContext)
-      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, IOException {
+      JournalContext journalContext) throws FileAlreadyExistsException, FileDoesNotExistException,
+          InvalidPathException, IOException {
     createDirectoryInternal(inodePath, options, journalContext);
     Metrics.DIRECTORIES_CREATED.inc();
   }
@@ -1432,17 +1419,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
-   * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
-   *         for more details
+   * @throws InvalidPathException when the path is invalid
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
-   * @throws AccessControlException if permission checking fails
    */
   private InodeTree.CreatePathResult createDirectoryInternal(LockedInodePath inodePath,
-      CreateDirectoryOptions options, JournalContext journalContext)
-      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
-      FileDoesNotExistException {
+      CreateDirectoryOptions options, JournalContext journalContext) throws InvalidPathException,
+          FileAlreadyExistsException, IOException, FileDoesNotExistException {
     try {
       InodeTree.CreatePathResult createResult =
           mInodeTree.createPath(inodePath, options, journalContext);
@@ -1464,7 +1447,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
-      IOException, AccessControlException {
+      IOException {
     Metrics.RENAME_PATH_OPS.inc();
     // Require a WRITE lock on the source but only a READ lock on the destination. Since the
     // destination should not exist, we will only obtain a READ lock on the destination parent. The
@@ -1781,8 +1764,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void free(AlluxioURI path, FreeOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnexpectedAlluxioException {
+      throws FileDoesNotExistException, InvalidPathException, UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
@@ -1800,14 +1782,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param options options to free
    * @param journalContext the journal context
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    * @throws UnexpectedAlluxioException if the file or directory can not be freed
    */
   private void freeAndJournal(LockedInodePath inodePath, FreeOptions options,
       JournalContext journalContext)
-      throws FileDoesNotExistException, UnexpectedAlluxioException, AccessControlException,
-      InvalidPathException {
+          throws FileDoesNotExistException, UnexpectedAlluxioException, InvalidPathException {
     Inode<?> inode = inodePath.getInode();
     if (inode.isDirectory() && !options.isRecursive()
         && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
@@ -1913,7 +1893,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public long loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException {
+      InvalidFileSizeException, FileAlreadyCompletedException, IOException {
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
@@ -1935,13 +1915,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws AccessControlException if permission checking fails
    * @throws IOException if an I/O error occurs
    */
   private void loadMetadataAndJournal(LockedInodePath inodePath, LoadMetadataOptions options,
-      JournalContext journalContext)
-      throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
-      FileAlreadyCompletedException, InvalidFileSizeException, AccessControlException, IOException {
+      JournalContext journalContext) throws InvalidPathException, FileDoesNotExistException,
+          BlockInfoException, FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
@@ -1997,15 +1975,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileDoesNotExistException if there is no UFS path
    * @throws InvalidPathException if invalid path is encountered
-   * @throws AccessControlException if permission checking fails or permission setting fails
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws IOException if an I/O error occurs
    */
   private void loadFileMetadataAndJournal(LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataOptions options, JournalContext journalContext)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException, IOException {
+          throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
+          FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
       return;
     }
@@ -2048,13 +2025,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @throws InvalidPathException if invalid path is encountered
    * @throws IOException if an I/O error occurs
-   * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
 
   private void loadDirectoryMetadataAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options, JournalContext journalContext)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
+          throws FileDoesNotExistException, InvalidPathException, IOException {
     if (inodePath.fullPathExists()) {
       if (inodePath.getInode().isPersisted()) {
         return;
@@ -2119,7 +2095,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
-      IOException, AccessControlException {
+      IOException {
     Metrics.MOUNT_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree
@@ -2144,12 +2120,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyExistsException if the path to be mounted to already exists
    * @throws FileDoesNotExistException if the parent of the path to be mounted to does not exist
    * @throws IOException if an I/O error occurs
-   * @throws AccessControlException if the permission check fails
    */
   private void mountAndJournal(LockedInodePath inodePath, AlluxioURI ufsPath, MountOptions options,
       JournalContext journalContext)
       throws InvalidPathException, FileAlreadyExistsException, FileDoesNotExistException,
-      IOException, AccessControlException {
+      IOException {
     // Check that the Alluxio Path does not exist
     if (inodePath.fullPathExists()) {
       // TODO(calvin): Add a test to validate this (ALLUXIO-1831)
@@ -2247,7 +2222,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void unmount(AlluxioURI alluxioPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.UNMOUNT_OPS.inc();
     // Unmount should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
@@ -2313,8 +2288,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void resetFile(long fileId)
-      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException {
+      throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException {
     // TODO(yupeng) check the file is not persisted
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree
@@ -2328,7 +2302,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException {
     Metrics.SET_ATTRIBUTE_OPS.inc();
     // for chown
     boolean rootRequired = options.getOwner() != null;
@@ -2354,11 +2328,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @throws InvalidPathException if the given path is invalid
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission checking fails
    */
   private void setAttributeAndJournal(LockedInodePath inodePath, boolean rootRequired,
       boolean ownerRequired, SetAttributeOptions options, JournalContext journalContext)
-      throws InvalidPathException, FileDoesNotExistException, AccessControlException {
+      throws InvalidPathException, FileDoesNotExistException {
     Inode<?> targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
     if (options.isRecursive() && targetInode.isDirectory()) {
@@ -2464,12 +2437,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     for (long fileId : persistedFiles) {
       try {
         // Permission checking for each file is performed inside setAttribute
         setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
-      } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
+      } catch (FileDoesNotExistException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
     }
@@ -2492,11 +2465,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @return list of inodes which were marked as persisted
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
-   * @throws AccessControlException if failed to set permission
    */
   private List<Inode<?>> setAttributeInternal(LockedInodePath inodePath, boolean replayed,
       long opTimeMs, SetAttributeOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+          throws FileDoesNotExistException, InvalidPathException {
     List<Inode<?>> persistedInodes = Collections.emptyList();
     Inode<?> inode = inodePath.getInode();
     if (options.getPinned() != null) {
@@ -2548,7 +2520,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               String group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
               ufs.setOwner(ufsUri, owner, group);
             } catch (IOException e) {
-              throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
+              throw new UnavailableException("Could not setOwner for UFS file " + ufsUri
                   + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
@@ -2556,7 +2528,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             try {
               ufs.setMode(ufsUri, options.getMode());
             } catch (IOException e) {
-              throw new AccessControlException("Could not setMode for UFS file " + ufsUri
+              throw new UnavailableException("Could not setMode for UFS file " + ufsUri
                   + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
@@ -2580,10 +2552,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param entry the entry to use
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
-   * @throws AccessControlException if failed to set permission
    */
   private void setAttributeFromEntry(SetAttributeEntry entry)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {
       options.setPinned(entry.getPinned());

@@ -12,10 +12,10 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 
@@ -193,7 +193,7 @@ public final class MountTableTest {
     try {
       mMountTable.checkUnderWritableMountPoint(alluxioUri);
       Assert.fail("Readonly mount point should not be writable.");
-    } catch (AccessControlException e) {
+    } catch (PermissionDeniedException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPath),
           e.getMessage());
@@ -204,7 +204,7 @@ public final class MountTableTest {
       alluxioUri = new AlluxioURI("alluxio://localhost:1234" + path);
       mMountTable.checkUnderWritableMountPoint(alluxioUri);
       Assert.fail("Readonly mount point should not be writable.");
-    } catch (AccessControlException e) {
+    } catch (PermissionDeniedException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPath),
           e.getMessage());
@@ -223,7 +223,7 @@ public final class MountTableTest {
 
     try {
       mMountTable.checkUnderWritableMountPoint(alluxioUri);
-    } catch (AccessControlException e) {
+    } catch (PermissionDeniedException e) {
       Assert.fail("Default mount point should be writable.");
     }
 
@@ -231,7 +231,7 @@ public final class MountTableTest {
       String path = mountPath + "/sub/directory";
       alluxioUri = new AlluxioURI("alluxio://localhost:1234" + path);
       mMountTable.checkUnderWritableMountPoint(alluxioUri);
-    } catch (AccessControlException e) {
+    } catch (PermissionDeniedException e) {
       Assert.fail("Default mount point should be writable.");
     }
   }
