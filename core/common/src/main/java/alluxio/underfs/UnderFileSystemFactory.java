@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import java.util.Map;
+
 /**
  * Interface for under file system factories.
  */
@@ -25,11 +27,11 @@ public interface UnderFileSystemFactory {
    * @param ufsConf optional configuration object for the UFS, may be null
    * @return the client
    */
-  UnderFileSystem create(String path, Object ufsConf);
+  UnderFileSystem create(String path, Map<String, String> ufsConf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, Object)} can succeed for this path.
+   * {@link #create(String, Map)} can succeed for this path.
    *
    * @param path file path
    * @return true if the path is supported, false otherwise

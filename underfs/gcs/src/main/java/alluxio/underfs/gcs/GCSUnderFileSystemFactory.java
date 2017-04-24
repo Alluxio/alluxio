@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,7 +43,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public GCSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object unusedConf) {
+  public UnderFileSystem create(String path, Map<String, String> unusedConf) {
     Preconditions.checkNotNull(path);
 
     if (addAndCheckGoogleCredentials()) {
