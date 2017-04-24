@@ -173,7 +173,7 @@ public final class UnderFileSystemUtils {
     if (Configuration.containsKey(key)) {
       return Configuration.get(key);
     }
-    return null;
+    throw new RuntimeException("key " + key + " not found");
   }
 
   /**
