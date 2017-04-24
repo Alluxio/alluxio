@@ -21,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -29,6 +30,7 @@ import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -87,8 +89,9 @@ public class ConcurrentFileSystemMasterTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.UNDERFS_ADDRESS,
-          "sleep://" + Files.createTempDir().getAbsolutePath()).setProperty(PropertyKey
-          .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
+          "sleep://" + Files.createTempDir().getAbsolutePath())
+          .setProperty(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR)
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, 200L).build();
 
   // Must be done in beforeClass so execution is before rules
   @BeforeClass
@@ -694,5 +697,71 @@ public class ConcurrentFileSystemMasterTest {
       reader.join();
       Assert.assertTrue("Errors detected: " + errors, errors.isEmpty());
     }
+  }
+
+  @Test
+  public void rootFileConcurrentSetTtlTest() throws Exception {
+    final int numThreads = CONCURRENCY_FACTOR;
+    AlluxioURI[] files = new AlluxioURI[numThreads];
+    long[] ttls = new long[numThreads];
+
+    for (int i = 0; i < numThreads; i++) {
+      files[i] = new AlluxioURI("/file" + i);
+      mFileSystem.createFile(files[i],
+          CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)).close();
+      ttls[i] = 1L + (long) (Math.random() * 1000);
+    }
+
+    assertErrorsSizeEquals(concurrentSetTtl(files, ttls), 0);
+
+    // Wait for all the created files being deleted after the TTLs become expired.
+    CommonUtils.sleepMs(2000L);
+
+    Assert.assertEquals("There're remaining file existing with expired TTLs",
+        0, mFileSystem.listStatus(new AlluxioURI("/")).size());
+  }
+
+  private ConcurrentHashSet<Throwable> concurrentSetTtl(final AlluxioURI[] paths, final long[] ttls)
+      throws Exception {
+    final int numFiles = paths.length;
+    final CyclicBarrier barrier = new CyclicBarrier(numFiles);
+    List<Thread> threads = new ArrayList<>(numFiles);
+    // If there are exceptions, we will store them here.
+    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        errors.add(ex);
+      }
+    };
+    for (int i = 0; i < numFiles; i++) {
+      final int iteration = i;
+      Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            AuthenticatedClientUser.set(TEST_USER);
+            barrier.await();
+            mFileSystem.setAttribute(paths[iteration], SetAttributeOptions.defaults()
+                .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE));
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
+      t.setUncaughtExceptionHandler(exceptionHandler);
+      threads.add(t);
+    }
+    Collections.shuffle(threads);
+    long startMs = CommonUtils.getCurrentMs();
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+    long durationMs = CommonUtils.getCurrentMs() - startMs;
+    Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + LIMIT_MS,
+        durationMs < LIMIT_MS);
+    return errors;
   }
 }
