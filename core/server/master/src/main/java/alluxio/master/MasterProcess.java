@@ -12,30 +12,30 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Process;
 import alluxio.PropertyKey;
-import alluxio.Server;
 
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A master in the Alluxio system.
+ * A master process in the Alluxio system.
  */
-public interface AlluxioMasterService extends Server {
+public interface MasterProcess extends Process {
   /**
-   * Factory for creating {@link AlluxioMasterService}.
+   * Factory for creating {@link MasterProcess}.
    */
   @ThreadSafe
   final class Factory {
     /**
-     * @return a new instance of {@link AlluxioMasterService}
+     * @return a new instance of {@link MasterProcess}
      */
-    public static AlluxioMasterService create() {
+    public static MasterProcess create() {
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return new FaultTolerantAlluxioMaster();
+        return new FaultTolerantAlluxioMasterProcess();
       }
-      return new DefaultAlluxioMaster();
+      return new AlluxioMasterProcess();
     }
 
     private Factory() {} // prevent instantiation
@@ -47,7 +47,7 @@ public interface AlluxioMasterService extends Server {
 
    * @return the given master
    */
-  <T> T getMaster(Class<T> clazz);
+  <T extends Master> T getMaster(Class<T> clazz);
 
   /**
    * @return this master's rpc address
@@ -73,9 +73,4 @@ public interface AlluxioMasterService extends Server {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   boolean isServing();
-
-  /**
-   * Waits until the master is ready to server requests.
-   */
-  void waitForReady();
 }
