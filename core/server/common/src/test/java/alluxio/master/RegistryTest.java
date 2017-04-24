@@ -131,6 +131,16 @@ public final class RegistryTest {
     registry.getServers();
   }
 
+  @Test
+  public void unavailable() {
+    Registry<TestServer, Void> registry = new Registry<>();
+
+    mThrown.expect(Exception.class);
+    mThrown.expectMessage("Timed out");
+    mThrown.expectMessage("ServerB");
+    registry.get(ServerB.class, 100);
+  }
+
   private void computePermutations(TestServer[] input, int index, List<TestServer[]> permutations) {
     if (index == input.length) {
       permutations.add(input.clone());
