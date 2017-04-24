@@ -12,7 +12,6 @@
 package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.ServiceException;
