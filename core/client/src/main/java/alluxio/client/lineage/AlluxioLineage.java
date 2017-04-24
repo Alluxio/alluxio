@@ -75,8 +75,6 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * @return the lineage id
    * @throws FileDoesNotExistException an input file does not exist in Alluxio storage, nor is added
    *         as an output file of an existing lineage
-   * @throws AlluxioException if an unexpected alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
   public long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles, Job job)
       throws FileDoesNotExistException, AlluxioException, IOException {
@@ -88,10 +86,8 @@ public final class AlluxioLineage extends AbstractLineageClient {
    *
    * @param lineageId the id of the lineage
    * @return true if the lineage deletion is successful, false otherwise
-   * @throws IOException if an I/O error occurs
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws LineageDeletionException if the deletion is cascade but the lineage has children
-   * @throws AlluxioException if an unexpected alluxio error occurs
    */
   public boolean deleteLineage(long lineageId)
       throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException {
@@ -103,7 +99,6 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * options.
    *
    * @return the information about lineages
-   * @throws IOException if an I/O error occurs
    */
   public List<LineageInfo> getLineageInfoList() throws IOException {
     return getLineageInfoList(GetLineageInfoListOptions.defaults());
