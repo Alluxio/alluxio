@@ -68,9 +68,8 @@ public class ConcurrentFileSystemMasterCreateTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.UNDERFS_ADDRESS,
-          "sleep://" + mLocalUfsPath).setProperty(PropertyKey
-          .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
   // Must be done in beforeClass so execution is before rules
   @BeforeClass
