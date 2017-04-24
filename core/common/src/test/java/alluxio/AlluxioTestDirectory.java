@@ -48,6 +48,7 @@ public final class AlluxioTestDirectory {
       throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
     }
 
+    /*
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
       public void run() {
         try {
@@ -58,6 +59,7 @@ public final class AlluxioTestDirectory {
         }
       }
     }));
+    */
     return file;
   }
 

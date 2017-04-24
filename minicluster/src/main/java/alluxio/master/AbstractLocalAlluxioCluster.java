@@ -188,7 +188,8 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void stopUFS() throws Exception {
     LOG.info("stop under storage system");
     if (mUfsCluster != null) {
-      mUfsCluster.cleanup();
+      // mUfsCluster.cleanup();
+
     }
   }
 

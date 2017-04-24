@@ -241,8 +241,8 @@ final class UfsJournalLogWriter implements JournalWriter {
   public synchronized void close() {
     try {
       Closer closer = Closer.create();
-      if (mJournalOutputStream != null) {
-        closer.register(mJournalOutputStream);
+      if (mJournalOutputStream != null && mJournalOutputStream.mOutputStream != null) {
+        closer.register(mJournalOutputStream.mOutputStream);
       }
       closer.register(mGarbageCollector);
       closer.close();

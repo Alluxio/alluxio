@@ -110,6 +110,7 @@ public final class LocalAlluxioMaster {
     };
 
     mMasterThread = new Thread(runMaster);
+    mMasterThread.setName("MasterThread-" + System.identityHashCode(this));
     mMasterThread.start();
   }
 
@@ -148,10 +149,12 @@ public final class LocalAlluxioMaster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
-    clearClients();
-
-    mAlluxioMaster.stop();
-    mMasterThread.interrupt();
+    while (mMasterThread.isAlive()) {
+      mAlluxioMaster.stop();
+      mMasterThread.interrupt();
+      LOG.info("PEIS: stopping {}.", System.identityHashCode(this));
+      mMasterThread.join(100);
+    }
     if (mSecondaryMaster != null) {
       mSecondaryMaster.stop();
     }
@@ -159,6 +162,7 @@ public final class LocalAlluxioMaster {
       mSecondaryMasterThread.interrupt();
     }
 
+    clearClients();
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
   }

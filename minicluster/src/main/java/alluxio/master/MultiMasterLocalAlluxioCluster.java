@@ -64,7 +64,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     mNumOfMasters = masters;
 
     try {
-      mCuratorServer = new TestingServer(19993, AlluxioTestDirectory.createTemporaryDirectory("zk"));
+      mCuratorServer = new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);

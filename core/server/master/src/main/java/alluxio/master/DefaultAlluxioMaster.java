@@ -177,8 +177,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
     CommonUtils.waitFor("Alluxio master to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        return mMasterServiceServer != null && mMasterServiceServer.isServing()
-            && mWebServer != null && mWebServer.getServer().isRunning();
+        return mMasterServiceServer != null && mMasterServiceServer.isServing();
       }
     });
   }
@@ -191,11 +190,13 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping Alluxio master @ {}", mRpcAddress);
+    IOException e = new IOException("Stop Alluxio master.");
+    LOG.info("Stopping Alluxio master @ {}", mRpcAddress, e);
     if (mIsServing) {
       stopServing();
       stopMasters();
       mTServerSocket.close();
+      mTServerSocket = null;
       mIsServing = false;
     }
   }
@@ -221,6 +222,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    * additional masters.
    */
   protected void stopMasters() {
+    LOG.info("Alluxio master version {} @{} is stopping masters.", RuntimeConstants.VERSION,
+        mRpcAddress);
     try {
       mRegistry.stop();
     } catch (IOException e) {
@@ -241,7 +244,7 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
-    startServingWebServer();
+    // startServingWebServer();
     LOG.info("Alluxio master version {} started @ {} {}", RuntimeConstants.VERSION, mRpcAddress,
         startMessage);
     startServingRPCServer();
@@ -328,6 +331,8 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
    * @throws Exception if the underlying jetty server throws an exception
    */
   protected void stopServing() throws Exception {
+    LOG.info("Alluxio master version {} stop serving @ {} (was serving: {})",
+        RuntimeConstants.VERSION, mRpcAddress, mIsServing);
     if (mMasterServiceServer != null) {
       mMasterServiceServer.stop();
       mMasterServiceServer = null;
