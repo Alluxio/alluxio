@@ -18,6 +18,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,5 +106,15 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     if (mLeaderSelectorClient != null) {
       mLeaderSelectorClient.close();
     }
+  }
+
+  @Override
+  public void waitForReady() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return (!mLeaderSelectorClient.isLeader() || isServing());
+      }
+    });
   }
 }
