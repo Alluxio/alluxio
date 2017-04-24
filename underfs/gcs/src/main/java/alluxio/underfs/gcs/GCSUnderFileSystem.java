@@ -83,7 +83,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static GCSUnderFileSystem createInstance(AlluxioURI uri)
       throws ServiceException {
-    String bucketName = uri.getHost();
+    String bucketName = getBucketName(uri);
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
         "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_SECRET_KEY),
@@ -130,6 +130,15 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     mBucketName = bucketName;
     mBucketMode = bucketMode;
     mAccountOwner = accountOwner;
+  }
+
+  /**
+   * Get container name from AlluxioURI.
+   * @param uri URI used to construct Swift UFS
+   * @return the container name from the given uri
+  */
+  protected static String getBucketName(AlluxioURI uri) {
+    return uri.getAuthority();
   }
 
   @Override
