@@ -11,10 +11,12 @@
 
 package alluxio.util;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
@@ -156,6 +158,15 @@ public final class UnderFileSystemUtils {
    */
   public static boolean isSwift(UnderFileSystem ufs) {
     return "swift".equals(ufs.getUnderFSType());
+  }
+
+  /**
+   * @param uri the UFS path
+   * @return the bucket or container name of the object storage
+   */
+  public static String getBucketName(AlluxioURI uri) {
+    Preconditions.checkState(isObjectStorage(uri.toString()));
+    return uri.getAuthority();
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation
