@@ -133,11 +133,12 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Get container name from AlluxioURI.
-   * @param uri URI used to construct Swift UFS
-   * @return the container name from the given uri
+   * Get bucket name from AlluxioURI.
+   * @param uri URI used to construct GCS UFS
+   * @return the bucket name from the given uri
   */
   protected static String getBucketName(AlluxioURI uri) {
+    // TODO(chaomin): maybe move this to a UFS common util
     return uri.getAuthority();
   }
 

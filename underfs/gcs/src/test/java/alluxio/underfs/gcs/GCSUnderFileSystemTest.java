@@ -96,12 +96,12 @@ public class GCSUnderFileSystemTest {
   public void getBucketName() {
     // Test valid bucket names
     String[] validBucketNames = {"bucket", "my_gcs_bucket", "a@b:123", "a.b.c"};
-    for (String containerName : validBucketNames) {
-      AlluxioURI uri = new AlluxioURI(Constants.HEADER_GCS + containerName);
-      Assert.assertTrue(containerName.equals(GCSUnderFileSystem.getBucketName(uri)));
+    for (String bucketName : validBucketNames) {
+      AlluxioURI uri = new AlluxioURI(Constants.HEADER_GCS + bucketName);
+      Assert.assertTrue(bucketName.equals(GCSUnderFileSystem.getBucketName(uri)));
     }
 
-    // Test separator splits container name
+    // Test separator splits bucket name
     String[] paths = new String[validBucketNames.length];
     for (int i = 0; i < paths.length; ++i) {
       paths[i] = validBucketNames[i] + "/folder/file";
