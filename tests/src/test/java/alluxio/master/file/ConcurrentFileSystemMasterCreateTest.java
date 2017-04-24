@@ -88,7 +88,7 @@ public class ConcurrentFileSystemMasterCreateTest {
   @Before
   public void before() throws Exception {
     mFileSystem = FileSystem.Factory.get();
-    // Mount the sleeping UFS, to always the sleeping UFS over the ufs cluster.
+    // Always use the sleeping UFS (not UFS cluster) for these tests.
     mFileSystem.mount(new AlluxioURI("/sleep/"), new AlluxioURI("sleep://" + mLocalUfsPath));
   }
 
