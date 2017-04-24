@@ -37,6 +37,7 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,16 +62,16 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
   private final int mMinWorkerThreads;
 
   /** The port for the RPC server. */
-  private final int mPort;
+  private int mPort;
 
   /** The socket for thrift rpc server. */
-  private final TServerSocket mTServerSocket;
+  private TServerSocket mTServerSocket;
 
   /** The transport provider to create thrift server transport. */
   private final TransportProvider mTransportProvider;
 
   /** The address for the rpc server. */
-  private final InetSocketAddress mRpcAddress;
+  private InetSocketAddress mRpcAddress;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
@@ -118,14 +119,15 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
             "Alluxio master web port is only allowed to be zero in test mode.");
       }
-      mTransportProvider = TransportProvider.Factory.create();
-      mTServerSocket =
-          new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
-                  connectionTimeout);
+
+      mTServerSocket = new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
+          Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master rpc port
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+
+      mTransportProvider = TransportProvider.Factory.create();
 
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
@@ -293,8 +295,17 @@ public class DefaultAlluxioMaster implements AlluxioMasterService {
       throw Throwables.propagate(e);
     }
 
+    try {
+      if (mTServerSocket != null) {
+        mTServerSocket.close();
+      }
+      mTServerSocket = new TServerSocket(mRpcAddress,
+          Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
+    } catch (TTransportException e) {
+      throw new RuntimeException(e);
+    }
     // create master thrift service with the multiplexed processor.
-    Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
+    Args args = new TThreadPoolServer.Args(Preconditions.checkNotNull(mTServerSocket)).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {

@@ -27,6 +27,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -134,8 +135,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public DefaultBlockWorker(BlockMasterClient blockMasterClient,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       AtomicReference<Long> workerId) throws IOException {
-    super(Executors.newFixedThreadPool(4,
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
+    super(Executors.newFixedThreadPool(5,
+        ThreadFactoryUtils.build("block-worker-heartbeat-" + workerId.get() + "%d", true)));
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -234,9 +235,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     //    runnables running in the executors might be using the clients.
     mSessionCleaner.stop();
     // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
-    getExecutorService().shutdownNow();
     try {
-      getExecutorService().awaitTermination(10, TimeUnit.MINUTES);
+      while (true) {
+        getExecutorService().shutdownNow();
+        if (getExecutorService().awaitTermination(10, TimeUnit.MILLISECONDS)) {
+          break;
+        }
+      }
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

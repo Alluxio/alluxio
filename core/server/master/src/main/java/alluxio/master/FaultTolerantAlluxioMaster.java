@@ -76,7 +76,7 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
 
     while (!Thread.interrupted()) {
       if (mLeaderSelectorClient.isLeader()) {
-        Preconditions.checkState(!isServing());
+        stopServing();
         stopMasters();
 
         startMasters(true);
@@ -89,10 +89,6 @@ final class FaultTolerantAlluxioMaster extends DefaultAlluxioMaster {
           stopServing();
           stopMasters();
 
-          // TODO(peis): Stop serving properly and remove this master recreation.
-          mRegistry = new MasterRegistry();
-          MasterUtils
-              .createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
           startMasters(false);
           started = true;
         }
