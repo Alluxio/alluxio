@@ -131,14 +131,6 @@ public final class RegistryTest {
     registry.getServers();
   }
 
-  @Test
-  public void unavailable() {
-    Registry<TestServer, Void> registry = new Registry<>();
-
-    mThrown.expect(InternalException.class);
-    registry.get(ServerB.class);
-  }
-
   private void computePermutations(TestServer[] input, int index, List<TestServer[]> permutations) {
     if (index == input.length) {
       permutations.add(input.clone());
