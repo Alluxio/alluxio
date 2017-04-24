@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -183,12 +182,11 @@ public final class LineageMaster extends AbstractMaster {
    * @throws FileAlreadyExistsException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
    * @throws IOException if the creation of a file fails
-   * @throws AccessControlException if the permission check fails
    * @throws FileDoesNotExistException if any of the input files do not exist
    */
   public synchronized long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
-      IOException, AccessControlException, FileDoesNotExistException {
+      IOException, FileDoesNotExistException {
     List<Long> inputAlluxioFiles = new ArrayList<>();
     for (AlluxioURI inputFile : inputFiles) {
       long fileId;
@@ -277,13 +275,11 @@ public final class LineageMaster extends AbstractMaster {
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    * @throws LineageDoesNotExistException when the file does not exist
-   * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
       TtlAction ttlAction)
-      throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
-      FileDoesNotExistException {
+          throws InvalidPathException, LineageDoesNotExistException, FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     FileInfo fileInfo;
     try {
@@ -364,11 +360,10 @@ public final class LineageMaster extends AbstractMaster {
    *
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
   public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
-      AccessControlException, InvalidPathException {
+      InvalidPathException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }

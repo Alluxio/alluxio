@@ -12,7 +12,6 @@
 package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -83,11 +82,9 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    * @param path the path to the file
    * @return the id of the storing worker
    * @throws FileDoesNotExistException when the file does not exist on any worker
-   * @throws AccessControlException if permission checking fails
    */
   // TODO(calvin): Propagate the exceptions in certain cases
-  private long getWorkerStoringFile(AlluxioURI path)
-      throws FileDoesNotExistException, AccessControlException {
+  private long getWorkerStoringFile(AlluxioURI path) throws FileDoesNotExistException {
     long fileId = mFileSystemMasterView.getFileId(path);
     if (mFileSystemMasterView.getFileInfo(fileId).getLength() == 0) {
       // if file is empty, return any worker

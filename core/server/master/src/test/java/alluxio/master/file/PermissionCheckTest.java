@@ -17,7 +17,6 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.PermissionDeniedException;
@@ -804,7 +803,7 @@ public final class PermissionCheckTest {
 
   @Test
   public void setOwnerFail() throws Exception {
-    mThrown.expect(AccessControlException.class);
+    mThrown.expect(PermissionDeniedException.class);
     mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
     verifySetAcl(TEST_USER_2, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
   }
@@ -883,7 +882,7 @@ public final class PermissionCheckTest {
 
   @Test
   public void setAclFailByNotSuperUser() throws Exception {
-    mThrown.expect(AccessControlException.class);
+    mThrown.expect(PermissionDeniedException.class);
     mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
 
     verifySetAcl(TEST_USER_2, TEST_FILE_URI, TEST_USER_1.getUser(), TEST_USER_1.getGroup(),
