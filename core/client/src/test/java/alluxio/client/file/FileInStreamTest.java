@@ -541,7 +541,6 @@ public class FileInStreamTest {
    * streams and that the correct bytes are read from the {@link FileInStream}.
    *
    * @param dataRead the bytes to read
-   * @throws Exception when reading from the stream fails
    */
   private void testReadBuffer(int dataRead) throws Exception {
     byte[] buffer = new byte[dataRead];
