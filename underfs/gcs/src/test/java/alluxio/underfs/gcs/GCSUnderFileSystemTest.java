@@ -91,24 +91,4 @@ public class GCSUnderFileSystemTest {
     boolean result = mGCSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
-
-  @Test
-  public void getBucketName() {
-    // Test valid bucket names
-    String[] validBucketNames = {"bucket", "my_gcs_bucket", "a@b:123", "a.b.c"};
-    for (String bucketName : validBucketNames) {
-      AlluxioURI uri = new AlluxioURI(Constants.HEADER_GCS + bucketName);
-      Assert.assertTrue(bucketName.equals(GCSUnderFileSystem.getBucketName(uri)));
-    }
-
-    // Test separator splits bucket name
-    String[] paths = new String[validBucketNames.length];
-    for (int i = 0; i < paths.length; ++i) {
-      paths[i] = validBucketNames[i] + "/folder/file";
-    }
-    for (int i = 0; i < paths.length; ++i) {
-      AlluxioURI uri = new AlluxioURI(Constants.HEADER_GCS + paths[i]);
-      Assert.assertTrue(validBucketNames[i].equals(GCSUnderFileSystem.getBucketName(uri)));
-    }
-  }
 }

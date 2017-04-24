@@ -19,6 +19,7 @@ import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -83,7 +84,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static GCSUnderFileSystem createInstance(AlluxioURI uri)
       throws ServiceException {
-    String bucketName = getBucketName(uri);
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
         "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_SECRET_KEY),
@@ -130,16 +131,6 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     mBucketName = bucketName;
     mBucketMode = bucketMode;
     mAccountOwner = accountOwner;
-  }
-
-  /**
-   * Get bucket name from AlluxioURI.
-   * @param uri URI used to construct GCS UFS
-   * @return the bucket name from the given uri
-  */
-  protected static String getBucketName(AlluxioURI uri) {
-    // TODO(chaomin): maybe move this to a UFS common util
-    return uri.getAuthority();
   }
 
   @Override
