@@ -50,9 +50,6 @@ public final class KeyValueMasterFactory implements MasterFactory {
 
   @Override
   public KeyValueMaster create(MasterRegistry registry, JournalFactory journalFactory) {
-    if (!isEnabled()) {
-      return null;
-    }
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
     Journal journal = journalFactory.create(getName());

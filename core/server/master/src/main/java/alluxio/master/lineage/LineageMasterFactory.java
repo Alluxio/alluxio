@@ -49,9 +49,6 @@ public final class LineageMasterFactory implements MasterFactory {
 
   @Override
   public LineageMaster create(MasterRegistry registry, JournalFactory journalFactory) {
-    if (!isEnabled()) {
-      return null;
-    }
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", LineageMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);

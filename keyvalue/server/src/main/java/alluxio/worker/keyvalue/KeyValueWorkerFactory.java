@@ -41,9 +41,6 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
 
   @Override
   public KeyValueWorker create(WorkerRegistry registry) {
-    if (!isEnabled()) {
-      return null;
-    }
     LOG.info("Creating {} ", KeyValueWorker.class.getName());
     BlockWorker blockWorker = registry.get(BlockWorker.class);
     KeyValueWorker keyValueWorker = new KeyValueWorker(blockWorker);
