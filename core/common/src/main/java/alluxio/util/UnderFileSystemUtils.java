@@ -11,7 +11,9 @@
 
 package alluxio.util;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -19,6 +21,7 @@ import com.google.common.base.Throwables;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -159,4 +162,28 @@ public final class UnderFileSystemUtils {
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation
+
+  /**
+   * @param key property key
+   * @param ufsConf ufs configuration
+   * @return the value of the given key in ufs conf, or global conf if the key found in ufs conf
+   */
+  public static String getValue(PropertyKey key, Map<String, String> ufsConf) {
+    if (ufsConf.containsKey(key.toString())) {
+      return ufsConf.get(key.toString());
+    }
+    if (Configuration.containsKey(key)) {
+      return Configuration.get(key);
+    }
+    return null;
+  }
+
+  /**
+   * @param key property key
+   * @param ufsConf ufs configuration
+   * @return if the key is contained in the given ufs configuration or global configuration.
+   */
+  public static boolean containsKey(PropertyKey key, Map<String, String> ufsConf) {
+    return ufsConf.containsKey(key.toString()) || Configuration.containsKey(key);
+  }
 }
