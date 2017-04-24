@@ -73,9 +73,6 @@ public class FileInStreamTest {
 
   /**
    * Sets up the context and streams before a test runs.
-   *
-   * @throws AlluxioException when the worker ufs operations fail
-   * @throws IOException when the read and write streams fail
    */
   @Before
   public void before() throws Exception {

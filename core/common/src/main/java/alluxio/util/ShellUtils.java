@@ -65,10 +65,7 @@ public final class ShellUtils {
     mCommand = execString.clone();
   }
 
-  /** Checks to see if a command needs to be executed and execute command.
-   *
-   * @throws IOException if command ran failed
-   */
+  /** Checks to see if a command needs to be executed and execute command. */
   protected void run() throws IOException {
     mExitCode = 0; // reset for next run
     runCommand();
@@ -76,8 +73,6 @@ public final class ShellUtils {
 
   /**
    * Runs a command.
-   *
-   * @throws IOException if command ran failed
    */
   private void runCommand() throws IOException {
     ProcessBuilder builder = new ProcessBuilder(getExecString());
@@ -208,7 +203,6 @@ public final class ShellUtils {
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
-   * @throws IOException if command ran failed
    */
   public static String execCommand(String... cmd) throws IOException {
     ShellUtils exec = new ShellUtils(cmd);

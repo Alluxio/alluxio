@@ -203,7 +203,6 @@ public final class CommonUtils {
    *
    * @param user user name
    * @return the groups list that the {@code user} belongs to. The primary group is returned first
-   * @throws IOException if encounter any error when running the command
    */
   public static List<String> getUnixGroups(String user) throws IOException {
     String result;
@@ -282,7 +281,6 @@ public final class CommonUtils {
    *
    * @param userName Alluxio user name
    * @return primary group name
-   * @throws IOException if getting group failed
    */
   public static String getPrimaryGroupName(String userName) throws IOException {
     List<String> groups = getGroups(userName);
@@ -294,7 +292,6 @@ public final class CommonUtils {
    *
    * @param userName Alluxio user name
    * @return the group list of the user
-   * @throws IOException if getting group list failed
    */
   public static List<String> getGroups(String userName) throws IOException {
     GroupMappingService groupMappingService = GroupMappingService.Factory.get();
