@@ -56,7 +56,6 @@ import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -1404,9 +1403,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
-   * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
-   *         for more details
+   * @throws InvalidPathException when the path is invalid
    * @throws AccessControlException if permission checking fails
    */
   private void createDirectoryAndJournal(LockedInodePath inodePath, CreateDirectoryOptions options,
@@ -1425,9 +1422,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
-   * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
-   *         for more details
+   * @throws InvalidPathException when the path is invalid
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws AccessControlException if permission checking fails
    */
