@@ -13,7 +13,7 @@ package alluxio.master;
 
 import alluxio.client.file.FileSystem;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  public LocalAlluxioMaster getMaster() {
+  public LocalAlluxioMaster getLocalAlluxioMaster() {
     return mMaster;
   }
 
@@ -97,7 +97,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   /**
    * @return the first worker
    */
-  public AlluxioWorkerService getWorker() {
+  public WorkerProcess getWorkerProcess() {
     return mWorkers.get(0);
   }
 
@@ -105,30 +105,15 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * @return the address of the first worker
    */
   public WorkerNetAddress getWorkerAddress() {
-    return getWorker().getAddress();
+    return getWorkerProcess().getAddress();
   }
 
   @Override
-  protected void startMaster() throws Exception {
+  protected void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory);
     mMaster.start();
     // TODO(peis): Reenable this. This is slowing down the tests.
     // mMaster.startSecondary();
-  }
-
-  @Override
-  protected void startWorkers() throws Exception {
-    // We need to update the worker context with the most recent configuration so they know the
-    // correct port to connect to master.
-    runWorkers();
-  }
-
-  @Override
-  public void stopFS() throws Exception {
-    LOG.info("stop Alluxio filesystem");
-    // Stopping Workers before stopping master speeds up tests
-    stopWorkers();
-    mMaster.stop();
   }
 
   @Override
@@ -139,9 +124,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  public void stopWorkers() throws Exception {
-    for (AlluxioWorkerService worker : mWorkers) {
-      worker.stop();
-    }
+  public void stopMasters() throws Exception {
+    mMaster.stop();
   }
 }

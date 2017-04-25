@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -45,13 +46,13 @@ import alluxio.worker.file.FileSystemMasterClient;
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -105,22 +106,18 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
 
   /**
-   * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may
+   * The worker ID for this worker. This is initialized in {@link #start(WorkerNetAddress)} and may
    * be updated by the block sync thread if the master requests re-registration.
    */
   private AtomicReference<Long> mWorkerId;
 
   /**
    * Constructs a default block worker.
-   *
-   * @param workerId a reference for the id of this worker
-   *
-   * @throws IOException if an IO exception occurs
    */
-  public DefaultBlockWorker(AtomicReference<Long> workerId) throws IOException {
+  DefaultBlockWorker() {
     this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new Sessions(), new TieredBlockStore(), workerId);
+        new Sessions(), new TieredBlockStore());
   }
 
   /**
@@ -130,27 +127,34 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
-   * @param workerId a reference for the id of this worker
-   * @throws IOException if an IO exception occurs
    */
-  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      AtomicReference<Long> workerId) throws IOException {
-    super(Executors.newFixedThreadPool(4,
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
+  DefaultBlockWorker(BlockMasterClient blockMasterClient,
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore) {
+    super(Executors
+        .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
     mBlockStore = blockStore;
-    mWorkerId = workerId;
+    mWorkerId = new AtomicReference<>(-1L);
 
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore);
+
     Metrics.registerGauges(this);
+  }
+
+  @Override
+  public Set<Class<? extends Server>> getDependencies() {
+    return new HashSet<>();
+  }
+
+  @Override
+  public String getName() {
+    return Constants.BLOCK_WORKER_NAME;
   }
 
   @Override
@@ -164,17 +168,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void init(WorkerNetAddress workerAddress) {
-    mAddress = workerAddress;
-    try {
-      mWorkerId.set(mBlockMasterClient.getId(workerAddress));
-    } catch (Exception e) {
-      LOG.error("Failed to get a worker id from block master", e);
-      throw Throwables.propagate(e);
-    }
-  }
-
-  @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
     services.put(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
@@ -182,14 +175,24 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return services;
   }
 
+  @Override
+  public AtomicReference<Long> getWorkerId() {
+    return mWorkerId;
+  }
+
   /**
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
-   *
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   @Override
-  public void start() throws IOException {
+  public void start(WorkerNetAddress address) {
+    mAddress = address;
+    try {
+      mWorkerId.set(mBlockMasterClient.getId(address));
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
+    }
+
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");
 
@@ -224,11 +227,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /**
    * Stops the block worker. This method should only be called to terminate the worker.
-   *
-   * @throws IOException if the data server fails to close
    */
   @Override
-  public void stop() throws IOException {
+  public void stop() {
     // Steps to shutdown:
     // 1. Gracefully shutting down the runnables running in the executors.
     // 2. Shutdown the executors.

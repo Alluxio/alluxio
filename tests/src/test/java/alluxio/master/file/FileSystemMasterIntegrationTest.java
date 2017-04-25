@@ -110,7 +110,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFsMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+    mFsMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
     AuthenticatedClientUser.set(TEST_USER);
     mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
@@ -415,8 +415,9 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void getCapacityBytes() {
-    BlockMaster blockMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
-        .getMaster(BlockMaster.class);
+    BlockMaster blockMaster =
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(BlockMaster.class);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
@@ -820,6 +821,13 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent freer.
+     *
+     * @param depth the depth of files to be freed
+     * @param concurrencyDepth the concurrency depth of files to be freed
+     * @param initPath the directory of files to be freed
+     */
     ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;

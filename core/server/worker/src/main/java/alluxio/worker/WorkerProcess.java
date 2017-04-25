@@ -11,9 +11,8 @@
 
 package alluxio.worker;
 
-import alluxio.Server;
+import alluxio.Process;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
 
 import java.net.InetSocketAddress;
 
@@ -22,17 +21,17 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A worker in the Alluxio system.
  */
-public interface AlluxioWorkerService extends Server {
+public interface WorkerProcess extends Process {
   /**
-   * Factory for creating {@link AlluxioWorkerService}.
+   * Factory for creating {@link WorkerProcess}.
    */
   @ThreadSafe
   final class Factory {
     /**
-     * @return a new instance of {@link AlluxioWorkerService}
+     * @return a new instance of {@link WorkerProcess}
      */
-    public static AlluxioWorkerService create() {
-      return new DefaultAlluxioWorker();
+    public static WorkerProcess create() {
+      return new AlluxioWorkerProcess();
     }
 
     private Factory() {} // prevent instantiation
@@ -42,11 +41,6 @@ public interface AlluxioWorkerService extends Server {
    * @return the connect information for this worker
    */
   WorkerNetAddress getAddress();
-
-  /**
-   * @return the block worker for this Alluxio worker
-   */
-  BlockWorker getBlockWorker();
 
   /**
    * @return the worker's data service bind host (used by unit test only)
@@ -84,7 +78,10 @@ public interface AlluxioWorkerService extends Server {
   int getWebLocalPort();
 
   /**
-   * Waits until the worker is ready to server requests.
+   * @param clazz the class of the worker to get
+   * @param <T> the type of the worker to get
+
+   * @return the given worker
    */
-  void waitForReady();
+  <T extends Worker> T getWorker(Class<T> clazz);
 }

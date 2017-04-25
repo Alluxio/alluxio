@@ -51,7 +51,7 @@ public final class LocalAlluxioMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private AlluxioMasterService mAlluxioMaster;
+  private MasterProcess mMasterProcess;
   private Thread mMasterThread;
 
   private AlluxioSecondaryMaster mSecondaryMaster;
@@ -95,12 +95,12 @@ public final class LocalAlluxioMaster {
    * Starts the master.
    */
   public void start() {
-    mAlluxioMaster = AlluxioMasterService.Factory.create();
+    mMasterProcess = MasterProcess.Factory.create();
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
         try {
-          mAlluxioMaster.start();
+          mMasterProcess.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start master error", e);
@@ -112,6 +112,7 @@ public final class LocalAlluxioMaster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.setName("MasterThread-" + System.identityHashCode(this));
     mMasterThread.start();
+    mMasterProcess.waitForReady();
   }
 
   /**
@@ -134,13 +135,14 @@ public final class LocalAlluxioMaster {
 
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
     mSecondaryMasterThread.start();
+    mSecondaryMaster.waitForReady();
   }
 
   /**
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
-    return mAlluxioMaster.isServing();
+    return mMasterProcess.isServing();
   }
 
   /**
@@ -153,11 +155,12 @@ public final class LocalAlluxioMaster {
     // sometimes be ignored in the master implementation. For example, if the master is doing
     // a hdfs listStatus RPC (hadoop version is 1.x), the interrupt signal is not properly handled.
     while (mMasterThread.isAlive()) {
-      mAlluxioMaster.stop();
+      mMasterProcess.stop();
       mMasterThread.interrupt();
       LOG.info("Stopping master thread {}.", System.identityHashCode(this));
       mMasterThread.join(1000);
     }
+
     if (mSecondaryMaster != null) {
       mSecondaryMaster.stop();
     }
@@ -183,14 +186,14 @@ public final class LocalAlluxioMaster {
    * @return the externally resolvable address of the master
    */
   public InetSocketAddress getAddress() {
-    return mAlluxioMaster.getRpcAddress();
+    return mMasterProcess.getRpcAddress();
   }
 
   /**
-   * @return the internal {@link AlluxioMasterService}
+   * @return the internal {@link MasterProcess}
    */
-  public AlluxioMasterService getInternalMaster() {
-    return mAlluxioMaster;
+  public MasterProcess getMasterProcess() {
+    return mMasterProcess;
   }
 
   /**
@@ -199,7 +202,7 @@ public final class LocalAlluxioMaster {
    * @return the RPC local port
    */
   public int getRpcLocalPort() {
-    return mAlluxioMaster.getRpcAddress().getPort();
+    return mMasterProcess.getRpcAddress().getPort();
   }
 
   /**
