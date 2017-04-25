@@ -50,7 +50,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    *
    * @param numMasters the number masters to run
    */
-  MultiMasterLocalAlluxioCluster(int numMasters) {
+  public MultiMasterLocalAlluxioCluster(int numMasters) {
     this(numMasters, 1);
   }
 
