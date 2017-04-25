@@ -63,9 +63,9 @@ public class FileSystemMasterWorkerService {
      * Returns the ufs information for a ufs identified by the given ufs id.
      * 
      * 
-     * @param ufsId the id of the ufs
+     * @param mountId the id of the ufs
      */
-    public UfsInfo getUfsInfo(long ufsId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public UfsInfo getUfsInfo(long mountId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
@@ -77,7 +77,7 @@ public class FileSystemMasterWorkerService {
 
     public void heartbeat(long workerId, List<Long> persistedFiles, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getUfsInfo(long ufsId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getUfsInfo(long mountId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -179,16 +179,16 @@ public class FileSystemMasterWorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "heartbeat failed: unknown result");
     }
 
-    public UfsInfo getUfsInfo(long ufsId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public UfsInfo getUfsInfo(long mountId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getUfsInfo(ufsId);
+      send_getUfsInfo(mountId);
       return recv_getUfsInfo();
     }
 
-    public void send_getUfsInfo(long ufsId) throws org.apache.thrift.TException
+    public void send_getUfsInfo(long mountId) throws org.apache.thrift.TException
     {
       getUfsInfo_args args = new getUfsInfo_args();
-      args.setUfsId(ufsId);
+      args.setMountId(mountId);
       sendBase("getUfsInfo", args);
     }
 
@@ -319,24 +319,24 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    public void getUfsInfo(long ufsId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getUfsInfo(long mountId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getUfsInfo_call method_call = new getUfsInfo_call(ufsId, resultHandler, this, ___protocolFactory, ___transport);
+      getUfsInfo_call method_call = new getUfsInfo_call(mountId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class getUfsInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long ufsId;
-      public getUfsInfo_call(long ufsId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long mountId;
+      public getUfsInfo_call(long mountId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.ufsId = ufsId;
+        this.mountId = mountId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getUfsInfo", org.apache.thrift.protocol.TMessageType.CALL, 0));
         getUfsInfo_args args = new getUfsInfo_args();
-        args.setUfsId(ufsId);
+        args.setMountId(mountId);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -459,7 +459,7 @@ public class FileSystemMasterWorkerService {
       public getUfsInfo_result getResult(I iface, getUfsInfo_args args) throws org.apache.thrift.TException {
         getUfsInfo_result result = new getUfsInfo_result();
         try {
-          result.success = iface.getUfsInfo(args.ufsId);
+          result.success = iface.getUfsInfo(args.mountId);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -711,7 +711,7 @@ public class FileSystemMasterWorkerService {
       }
 
       public void start(I iface, getUfsInfo_args args, org.apache.thrift.async.AsyncMethodCallback<UfsInfo> resultHandler) throws TException {
-        iface.getUfsInfo(args.ufsId,resultHandler);
+        iface.getUfsInfo(args.mountId,resultHandler);
       }
     }
 
@@ -3330,7 +3330,7 @@ public class FileSystemMasterWorkerService {
   public static class getUfsInfo_args implements org.apache.thrift.TBase<getUfsInfo_args, getUfsInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getUfsInfo_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUfsInfo_args");
 
-    private static final org.apache.thrift.protocol.TField UFS_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3338,14 +3338,14 @@ public class FileSystemMasterWorkerService {
       schemes.put(TupleScheme.class, new getUfsInfo_argsTupleSchemeFactory());
     }
 
-    private long ufsId; // required
+    private long mountId; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the id of the ufs
        */
-      UFS_ID((short)1, "ufsId");
+      MOUNT_ID((short)1, "mountId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3360,8 +3360,8 @@ public class FileSystemMasterWorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // UFS_ID
-            return UFS_ID;
+          case 1: // MOUNT_ID
+            return MOUNT_ID;
           default:
             return null;
         }
@@ -3402,12 +3402,12 @@ public class FileSystemMasterWorkerService {
     }
 
     // isset id assignments
-    private static final int __UFSID_ISSET_ID = 0;
+    private static final int __MOUNTID_ISSET_ID = 0;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.UFS_ID, new org.apache.thrift.meta_data.FieldMetaData("ufsId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.MOUNT_ID, new org.apache.thrift.meta_data.FieldMetaData("mountId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUfsInfo_args.class, metaDataMap);
@@ -3417,11 +3417,11 @@ public class FileSystemMasterWorkerService {
     }
 
     public getUfsInfo_args(
-      long ufsId)
+      long mountId)
     {
       this();
-      this.ufsId = ufsId;
-      setUfsIdIsSet(true);
+      this.mountId = mountId;
+      setMountIdIsSet(true);
     }
 
     /**
@@ -3429,7 +3429,7 @@ public class FileSystemMasterWorkerService {
      */
     public getUfsInfo_args(getUfsInfo_args other) {
       __isset_bitfield = other.__isset_bitfield;
-      this.ufsId = other.ufsId;
+      this.mountId = other.mountId;
     }
 
     public getUfsInfo_args deepCopy() {
@@ -3438,46 +3438,46 @@ public class FileSystemMasterWorkerService {
 
     @Override
     public void clear() {
-      setUfsIdIsSet(false);
-      this.ufsId = 0;
+      setMountIdIsSet(false);
+      this.mountId = 0;
     }
 
     /**
      * the id of the ufs
      */
-    public long getUfsId() {
-      return this.ufsId;
+    public long getMountId() {
+      return this.mountId;
     }
 
     /**
      * the id of the ufs
      */
-    public getUfsInfo_args setUfsId(long ufsId) {
-      this.ufsId = ufsId;
-      setUfsIdIsSet(true);
+    public getUfsInfo_args setMountId(long mountId) {
+      this.mountId = mountId;
+      setMountIdIsSet(true);
       return this;
     }
 
-    public void unsetUfsId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UFSID_ISSET_ID);
+    public void unsetMountId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MOUNTID_ISSET_ID);
     }
 
-    /** Returns true if field ufsId is set (has been assigned a value) and false otherwise */
-    public boolean isSetUfsId() {
-      return EncodingUtils.testBit(__isset_bitfield, __UFSID_ISSET_ID);
+    /** Returns true if field mountId is set (has been assigned a value) and false otherwise */
+    public boolean isSetMountId() {
+      return EncodingUtils.testBit(__isset_bitfield, __MOUNTID_ISSET_ID);
     }
 
-    public void setUfsIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UFSID_ISSET_ID, value);
+    public void setMountIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MOUNTID_ISSET_ID, value);
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case UFS_ID:
+      case MOUNT_ID:
         if (value == null) {
-          unsetUfsId();
+          unsetMountId();
         } else {
-          setUfsId((Long)value);
+          setMountId((Long)value);
         }
         break;
 
@@ -3486,8 +3486,8 @@ public class FileSystemMasterWorkerService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case UFS_ID:
-        return getUfsId();
+      case MOUNT_ID:
+        return getMountId();
 
       }
       throw new IllegalStateException();
@@ -3500,8 +3500,8 @@ public class FileSystemMasterWorkerService {
       }
 
       switch (field) {
-      case UFS_ID:
-        return isSetUfsId();
+      case MOUNT_ID:
+        return isSetMountId();
       }
       throw new IllegalStateException();
     }
@@ -3519,12 +3519,12 @@ public class FileSystemMasterWorkerService {
       if (that == null)
         return false;
 
-      boolean this_present_ufsId = true;
-      boolean that_present_ufsId = true;
-      if (this_present_ufsId || that_present_ufsId) {
-        if (!(this_present_ufsId && that_present_ufsId))
+      boolean this_present_mountId = true;
+      boolean that_present_mountId = true;
+      if (this_present_mountId || that_present_mountId) {
+        if (!(this_present_mountId && that_present_mountId))
           return false;
-        if (this.ufsId != that.ufsId)
+        if (this.mountId != that.mountId)
           return false;
       }
 
@@ -3535,10 +3535,10 @@ public class FileSystemMasterWorkerService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_ufsId = true;
-      list.add(present_ufsId);
-      if (present_ufsId)
-        list.add(ufsId);
+      boolean present_mountId = true;
+      list.add(present_mountId);
+      if (present_mountId)
+        list.add(mountId);
 
       return list.hashCode();
     }
@@ -3551,12 +3551,12 @@ public class FileSystemMasterWorkerService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetUfsId()).compareTo(other.isSetUfsId());
+      lastComparison = Boolean.valueOf(isSetMountId()).compareTo(other.isSetMountId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetUfsId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsId, other.ufsId);
+      if (isSetMountId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mountId, other.mountId);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3581,8 +3581,8 @@ public class FileSystemMasterWorkerService {
       StringBuilder sb = new StringBuilder("getUfsInfo_args(");
       boolean first = true;
 
-      sb.append("ufsId:");
-      sb.append(this.ufsId);
+      sb.append("mountId:");
+      sb.append(this.mountId);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -3629,10 +3629,10 @@ public class FileSystemMasterWorkerService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // UFS_ID
+            case 1: // MOUNT_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.ufsId = iprot.readI64();
-                struct.setUfsIdIsSet(true);
+                struct.mountId = iprot.readI64();
+                struct.setMountIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3652,8 +3652,8 @@ public class FileSystemMasterWorkerService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(UFS_ID_FIELD_DESC);
-        oprot.writeI64(struct.ufsId);
+        oprot.writeFieldBegin(MOUNT_ID_FIELD_DESC);
+        oprot.writeI64(struct.mountId);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -3673,12 +3673,12 @@ public class FileSystemMasterWorkerService {
       public void write(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetUfsId()) {
+        if (struct.isSetMountId()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetUfsId()) {
-          oprot.writeI64(struct.ufsId);
+        if (struct.isSetMountId()) {
+          oprot.writeI64(struct.mountId);
         }
       }
 
@@ -3687,8 +3687,8 @@ public class FileSystemMasterWorkerService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.ufsId = iprot.readI64();
-          struct.setUfsIdIsSet(true);
+          struct.mountId = iprot.readI64();
+          struct.setMountIdIsSet(true);
         }
       }
     }

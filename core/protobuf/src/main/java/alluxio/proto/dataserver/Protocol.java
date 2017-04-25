@@ -3026,15 +3026,15 @@ public final class Protocol {
      */
     int getMode();
 
-    // optional int64 ufs_id = 12;
+    // optional int64 mount_id = 12;
     /**
-     * <code>optional int64 ufs_id = 12;</code>
+     * <code>optional int64 mount_id = 12;</code>
      */
-    boolean hasUfsId();
+    boolean hasMountId();
     /**
-     * <code>optional int64 ufs_id = 12;</code>
+     * <code>optional int64 mount_id = 12;</code>
      */
-    long getUfsId();
+    long getMountId();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
@@ -3155,7 +3155,7 @@ public final class Protocol {
             }
             case 96: {
               bitField0_ |= 0x00000800;
-              ufsId_ = input.readInt64();
+              mountId_ = input.readInt64();
               break;
             }
           }
@@ -3483,20 +3483,20 @@ public final class Protocol {
       return mode_;
     }
 
-    // optional int64 ufs_id = 12;
-    public static final int UFS_ID_FIELD_NUMBER = 12;
-    private long ufsId_;
+    // optional int64 mount_id = 12;
+    public static final int MOUNT_ID_FIELD_NUMBER = 12;
+    private long mountId_;
     /**
-     * <code>optional int64 ufs_id = 12;</code>
+     * <code>optional int64 mount_id = 12;</code>
      */
-    public boolean hasUfsId() {
+    public boolean hasMountId() {
       return ((bitField0_ & 0x00000800) == 0x00000800);
     }
     /**
-     * <code>optional int64 ufs_id = 12;</code>
+     * <code>optional int64 mount_id = 12;</code>
      */
-    public long getUfsId() {
-      return ufsId_;
+    public long getMountId() {
+      return mountId_;
     }
 
     private void initFields() {
@@ -3511,7 +3511,7 @@ public final class Protocol {
       owner_ = "";
       group_ = "";
       mode_ = 0;
-      ufsId_ = 0L;
+      mountId_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3559,7 +3559,7 @@ public final class Protocol {
         output.writeInt32(11, mode_);
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
-        output.writeInt64(12, ufsId_);
+        output.writeInt64(12, mountId_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3616,7 +3616,7 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(12, ufsId_);
+          .computeInt64Size(12, mountId_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3761,7 +3761,7 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000200);
         mode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000400);
-        ufsId_ = 0L;
+        mountId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
@@ -3838,7 +3838,7 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
           to_bitField0_ |= 0x00000800;
         }
-        result.ufsId_ = ufsId_;
+        result.mountId_ = mountId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3894,8 +3894,8 @@ public final class Protocol {
         if (other.hasMode()) {
           setMode(other.getMode());
         }
-        if (other.hasUfsId()) {
-          setUfsId(other.getUfsId());
+        if (other.hasMountId()) {
+          setMountId(other.getMountId());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4469,35 +4469,35 @@ public final class Protocol {
         return this;
       }
 
-      // optional int64 ufs_id = 12;
-      private long ufsId_ ;
+      // optional int64 mount_id = 12;
+      private long mountId_ ;
       /**
-       * <code>optional int64 ufs_id = 12;</code>
+       * <code>optional int64 mount_id = 12;</code>
        */
-      public boolean hasUfsId() {
+      public boolean hasMountId() {
         return ((bitField0_ & 0x00000800) == 0x00000800);
       }
       /**
-       * <code>optional int64 ufs_id = 12;</code>
+       * <code>optional int64 mount_id = 12;</code>
        */
-      public long getUfsId() {
-        return ufsId_;
+      public long getMountId() {
+        return mountId_;
       }
       /**
-       * <code>optional int64 ufs_id = 12;</code>
+       * <code>optional int64 mount_id = 12;</code>
        */
-      public Builder setUfsId(long value) {
+      public Builder setMountId(long value) {
         bitField0_ |= 0x00000800;
-        ufsId_ = value;
+        mountId_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 ufs_id = 12;</code>
+       * <code>optional int64 mount_id = 12;</code>
        */
-      public Builder clearUfsId() {
+      public Builder clearMountId() {
         bitField0_ = (bitField0_ & ~0x00000800);
-        ufsId_ = 0L;
+        mountId_ = 0L;
         onChanged();
         return this;
       }
@@ -5082,16 +5082,16 @@ public final class Protocol {
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
       "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\"\354\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
+      "\"\356\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
       "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001",
       "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
       "\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(" +
       "\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005gr" +
-      "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\016\n\006ufs_id\030\014 \001(\003\"" +
-      "<\n\010Response\0220\n\006status\030\001 \001(\0132 .alluxio.pr" +
-      "oto.dataserver.Status*=\n\013RequestType\022\021\n\r" +
-      "ALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLO" +
-      "CK\020\002"
+      "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\020\n\010mount_id\030\014 \001(" +
+      "\003\"<\n\010Response\0220\n\006status\030\001 \001(\0132 .alluxio." +
+      "proto.dataserver.Status*=\n\013RequestType\022\021" +
+      "\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_B" +
+      "LOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5121,7 +5121,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "UfsId", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
