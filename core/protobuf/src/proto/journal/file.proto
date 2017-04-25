@@ -18,7 +18,7 @@ message AddMountPointEntry {
   optional bool readOnly = 3;
   repeated StringPairEntry properties = 4;
   optional bool shared = 5;
-  optional int64 ufs_id = 6;
+  optional int64 mount_id = 6;
 }
 
 // next available id: 2
