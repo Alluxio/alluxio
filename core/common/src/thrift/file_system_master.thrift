@@ -124,9 +124,8 @@ union FileSystemCommandOptions {
 }
 
 struct UfsInfo {
-  1: optional i64 id
-  2: optional string uri
-  3: optional map<string, string> properties
+  1: optional string uri
+  2: optional map<string, string> properties
 }
 
 /**
@@ -338,7 +337,7 @@ service FileSystemMasterWorkerService extends common.AlluxioService {
    * Returns the ufs information for a ufs identified by the given ufs id.
    **/
   UfsInfo getUfsInfo(
-    /** the id of the ufs */ 1: i64 ufsId,
+    /** the id of the ufs */ 1: i64 mountId,
     )
     throws (1: exception.AlluxioTException e)
 }

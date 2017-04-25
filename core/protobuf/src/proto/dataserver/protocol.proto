@@ -86,7 +86,7 @@ message WriteRequest {
   optional string owner = 9;
   optional string group = 10;
   optional int32 mode = 11;
-  optional int64 ufs_id = 12;
+  optional int64 mount_id = 12;
 }
 
 // The response.
