@@ -241,10 +241,8 @@ final class UfsJournalLogWriter implements JournalWriter {
   public synchronized void close() {
     try {
       Closer closer = Closer.create();
-      // hadoop 1.x's RPCs are sometimes not interruptable. So try to do as little work as possible
-      // in this close to make it easier to shutdown. This is not a problem in hadoop 2.x.
-      if (mJournalOutputStream != null && mJournalOutputStream.mOutputStream != null) {
-        closer.register(mJournalOutputStream.mOutputStream);
+      if (mJournalOutputStream != null) {
+        closer.register(mJournalOutputStream);
       }
       closer.register(mGarbageCollector);
       closer.close();
