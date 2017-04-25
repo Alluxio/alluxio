@@ -14,22 +14,25 @@ package alluxio.worker.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.thrift.TProcessor;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,7 +44,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link FileSystemWorkerClientServiceHandler} which always returns UnsupportedOperation Exception.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class DefaultFileSystemWorker extends AbstractWorker {
+public final class DefaultFileSystemWorker extends AbstractWorker implements FileSystemWorker {
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(BlockWorker.class);
+
   /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
@@ -58,23 +64,29 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
    * Creates a new DefaultFileSystemWorker.
    *
    * @param blockWorker the block worker handle
-   * @param workerId a reference to the id of this worker
-   * @throws IOException if an I/O error occurs
    */
-  public DefaultFileSystemWorker(BlockWorker blockWorker, AtomicReference<Long> workerId)
-      throws IOException {
+  DefaultFileSystemWorker(BlockWorker blockWorker) {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
-    mWorkerId = workerId;
+    mWorkerId = blockWorker.getWorkerId();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
-        RateLimiter.create(
-            Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
+        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler();
+  }
+
+  @Override
+  public Set<Class<? extends Server>> getDependencies() {
+    return DEPS;
+  }
+
+  @Override
+  public String getName() {
+    return Constants.FILE_SYSTEM_WORKER_NAME;
   }
 
   @Override
@@ -86,9 +98,9 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
   }
 
   @Override
-  public void start() {
-    mFilePersistenceService = getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
+  public void start(WorkerNetAddress address) {
+    mFilePersistenceService = getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient,
                 mWorkerId),
             Configuration.getInt(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));

@@ -51,7 +51,7 @@ public final class LocalAlluxioMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private AlluxioMasterService mAlluxioMaster;
+  private MasterProcess mMasterProcess;
   private Thread mMasterThread;
 
   private AlluxioSecondaryMaster mSecondaryMaster;
@@ -95,12 +95,12 @@ public final class LocalAlluxioMaster {
    * Starts the master.
    */
   public void start() {
-    mAlluxioMaster = AlluxioMasterService.Factory.create();
+    mMasterProcess = MasterProcess.Factory.create();
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
         try {
-          mAlluxioMaster.start();
+          mMasterProcess.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start master error", e);
@@ -111,13 +111,13 @@ public final class LocalAlluxioMaster {
 
     mMasterThread = new Thread(runMaster);
     mMasterThread.start();
+    mMasterProcess.waitForReady();
   }
 
   /**
    * Starts the secondary master.
    */
   public void startSecondary() {
-    /*
     mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
@@ -134,14 +134,14 @@ public final class LocalAlluxioMaster {
 
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
     mSecondaryMasterThread.start();
-    */
+    mSecondaryMaster.waitForReady();
   }
 
   /**
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
-    return mAlluxioMaster.isServing();
+    return mMasterProcess.isServing();
   }
 
   /**
@@ -152,7 +152,7 @@ public final class LocalAlluxioMaster {
   public void stop() throws Exception {
     clearClients();
 
-    mAlluxioMaster.stop();
+    mMasterProcess.stop();
     mMasterThread.interrupt();
     if (mSecondaryMaster != null) {
       mSecondaryMaster.stop();
@@ -178,14 +178,14 @@ public final class LocalAlluxioMaster {
    * @return the externally resolvable address of the master
    */
   public InetSocketAddress getAddress() {
-    return mAlluxioMaster.getRpcAddress();
+    return mMasterProcess.getRpcAddress();
   }
 
   /**
-   * @return the internal {@link AlluxioMasterService}
+   * @return the internal {@link MasterProcess}
    */
-  public AlluxioMasterService getInternalMaster() {
-    return mAlluxioMaster;
+  public MasterProcess getMasterProcess() {
+    return mMasterProcess;
   }
 
   /**
@@ -194,7 +194,7 @@ public final class LocalAlluxioMaster {
    * @return the RPC local port
    */
   public int getRpcLocalPort() {
-    return mAlluxioMaster.getRpcAddress().getPort();
+    return mMasterProcess.getRpcAddress().getPort();
   }
 
   /**

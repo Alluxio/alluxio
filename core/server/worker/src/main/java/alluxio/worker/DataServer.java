@@ -11,7 +11,11 @@
 
 package alluxio.worker;
 
-import alluxio.worker.netty.NettyDataServer;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
@@ -39,8 +43,16 @@ public interface DataServer extends Closeable {
      * @param worker the Alluxio worker handle
      * @return the generated {@link DataServer}
      */
-    public static DataServer create(final SocketAddress dataAddress, AlluxioWorkerService worker) {
-      return new NettyDataServer(dataAddress, worker);
+    public static DataServer create(final SocketAddress dataAddress,
+        final WorkerProcess worker) {
+      try {
+        return CommonUtils.createNewClassInstance(
+            Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
+            new Class[] {SocketAddress.class, WorkerProcess.class},
+            new Object[] {dataAddress, worker});
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
     }
   }
 

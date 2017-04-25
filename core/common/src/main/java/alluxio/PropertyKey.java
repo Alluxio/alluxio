@@ -115,6 +115,8 @@ public enum PropertyKey {
   //
   // Master related properties
   //
+  // deprecated since version 1.3 and will be removed in version 2.0
+  // use MASTER_HOSTNAME instead
   MASTER_ADDRESS(Name.MASTER_ADDRESS, null),
   MASTER_BIND_HOST(Name.MASTER_BIND_HOST, "0.0.0.0"),
   MASTER_CONNECTION_TIMEOUT_MS(Name.MASTER_CONNECTION_TIMEOUT_MS, 0),
@@ -178,7 +180,6 @@ public enum PropertyKey {
   WORKER_DATA_FOLDER(Name.WORKER_DATA_FOLDER, "/alluxioworker/"),
   WORKER_DATA_HOSTNAME(Name.WORKER_DATA_HOSTNAME, null),
   WORKER_DATA_PORT(Name.WORKER_DATA_PORT, 29999),
-  // This has been deprecated since 1.5 and will be removed in 2.0.
   WORKER_DATA_SERVER_CLASS(Name.WORKER_DATA_SERVER_CLASS, "alluxio.worker.netty.NettyDataServer"),
   WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS, ""),
   WORKER_DATA_TMP_FOLDER(Name.WORKER_DATA_TMP_FOLDER, ".tmp_blocks"),

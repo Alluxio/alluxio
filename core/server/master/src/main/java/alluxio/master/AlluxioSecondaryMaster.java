@@ -12,10 +12,10 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Process;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.Server;
-import alluxio.ServerUtils;
 import alluxio.master.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.network.NetworkAddressUtils;
@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -31,42 +32,46 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The secondary Alluxio master that replays journal logs and writes checkpoints.
  */
 @NotThreadSafe
-public final class AlluxioSecondaryMaster implements Server {
+public final class AlluxioSecondaryMaster implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioSecondaryMaster.class);
-  private MasterRegistry mRegistry;
+  private final MasterRegistry mRegistry;
+  private final CountDownLatch mLatch;
 
   /**
    * Creates a {@link AlluxioSecondaryMaster}.
    */
-  public AlluxioSecondaryMaster() {
+  AlluxioSecondaryMaster() {
     try {
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
       mRegistry = new MasterRegistry();
       // Create masters.
       MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
+      mLatch = new CountDownLatch(1);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public void start() {
-    try {
-      connectToUFS();
-      mRegistry.start(false);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void start() throws Exception {
+    connectToUFS();
+    mRegistry.start(false);
+    mLatch.await();
   }
 
   @Override
-  public void stop() {
-    try {
-      mRegistry.stop();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void stop() throws Exception {
+    mRegistry.stop();
+    mLatch.countDown();
+  }
+
+  @Override
+  public void waitForReady() {}
+
+  @Override
+  public String toString() {
+    return "Alluxio secondary master";
   }
 
   /**
@@ -74,6 +79,7 @@ public final class AlluxioSecondaryMaster implements Server {
    *
    * @param args command line arguments, should be empty
    */
+  // TODO(peis): Move the non-static methods into AlluxioSecondaryMasterProcess for consistency.
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
@@ -82,7 +88,7 @@ public final class AlluxioSecondaryMaster implements Server {
     }
 
     AlluxioSecondaryMaster master = new AlluxioSecondaryMaster();
-    ServerUtils.run(master, "Alluxio Secondary Master");
+    ProcessUtils.run(master);
   }
 
   /**

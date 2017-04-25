@@ -23,7 +23,8 @@ public final class LeaderCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void leader() {
     mFsShell.run("leader");
-    String expected = mLocalAlluxioCluster.getMaster().getAddress().getHostName() + "\n";
+    String expected =
+        mLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 }

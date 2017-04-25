@@ -28,10 +28,10 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalFactory;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
@@ -165,27 +165,24 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public BlockMaster(MasterRegistry registry, JournalFactory journalFactory) {
-    this(registry, journalFactory, new SystemClock(), ExecutorServiceFactories
+  BlockMaster(JournalFactory journalFactory) {
+    this(journalFactory, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param registry the master registry
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public BlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
+  BlockMaster(JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
-    registry.add(BlockMaster.class, this);
     Metrics.registerGauges(this);
   }
 
@@ -261,7 +258,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     if (isLeader) {

@@ -27,7 +27,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -51,7 +50,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -106,14 +104,12 @@ public class FileSystemMasterIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   private FileSystemMaster mFsMaster;
-  private InodeTree mInodeTree;
 
   @Before
   public final void before() throws Exception {
-    mFsMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+    mFsMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
     AuthenticatedClientUser.set(TEST_USER);
-    mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
   }
 
   @After
@@ -415,8 +411,9 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void getCapacityBytes() {
-    BlockMaster blockMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
-        .getMaster(BlockMaster.class);
+    BlockMaster blockMaster =
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(BlockMaster.class);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
@@ -820,6 +817,13 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent freer.
+     *
+     * @param depth the depth of files to be freed
+     * @param concurrencyDepth the concurrency depth of files to be freed
+     * @param initPath the directory of files to be freed
+     */
     ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;

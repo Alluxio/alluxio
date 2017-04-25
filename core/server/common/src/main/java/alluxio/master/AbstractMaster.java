@@ -14,12 +14,14 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.clock.Clock;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalCheckpointThread;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalReaderOptions;
@@ -90,12 +92,12 @@ public abstract class AbstractMaster implements Master {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return new HashSet<>();
   }
 
   @Override
-  public void start(boolean isPrimary) throws IOException {
+  public void start(Boolean isPrimary) throws IOException {
     Preconditions.checkState(mExecutorService == null);
     mExecutorService = mExecutorServiceFactory.create();
     mIsPrimary = isPrimary;
@@ -225,7 +227,7 @@ public abstract class AbstractMaster implements Master {
    */
   protected void appendJournalEntry(JournalEntry entry, JournalContext journalContext) {
     Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
-    journalContext.setFlushCounter(mAsyncJournalWriter.appendEntry(entry));
+    journalContext.append(entry);
   }
 
   /**
@@ -271,31 +273,44 @@ public abstract class AbstractMaster implements Master {
    * @return new instance of {@link JournalContext}
    */
   protected JournalContext createJournalContext() {
-    return new JournalContext();
+    return new MasterJournalContext(mAsyncJournalWriter);
   }
 
   /**
    * Context for storing journaling information.
    */
   @NotThreadSafe
-  public final class JournalContext implements AutoCloseable {
+  public final class MasterJournalContext implements JournalContext {
+    private final AsyncJournalWriter mAsyncJournalWriter;
     private long mFlushCounter;
 
-    private JournalContext() {
+    /**
+     * Constructs a {@link MasterJournalContext}.
+     *
+     * @param asyncJournalWriter a {@link AsyncJournalWriter}
+     */
+    private MasterJournalContext(AsyncJournalWriter asyncJournalWriter) {
+      mAsyncJournalWriter = asyncJournalWriter;
       mFlushCounter = INVALID_FLUSH_COUNTER;
     }
 
-    private long getFlushCounter() {
+    @Override
+    public long getFlushCounter() {
       return mFlushCounter;
     }
 
-    private void setFlushCounter(long counter) {
-      mFlushCounter = counter;
+    @Override
+    public void append(JournalEntry entry) {
+      if (mAsyncJournalWriter != null) {
+        mFlushCounter = mAsyncJournalWriter.appendEntry(entry);
+      }
     }
 
     @Override
     public void close() {
-      waitForJournalFlush(this);
+      if (mAsyncJournalWriter != null) {
+        waitForJournalFlush(this);
+      }
     }
   }
 }

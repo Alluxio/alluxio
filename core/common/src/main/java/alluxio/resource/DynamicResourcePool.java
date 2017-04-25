@@ -390,7 +390,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             mResources.size() - mAvailableResources.size());
       }
       for (ResourceInternal<T> resourceInternal : mAvailableResources) {
-        closeResourceSync(resourceInternal.mResource);
+        closeResource(resourceInternal.mResource);
       }
       mAvailableResources.clear();
     } finally {

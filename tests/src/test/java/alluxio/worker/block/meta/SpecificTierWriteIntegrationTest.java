@@ -77,7 +77,7 @@ public class SpecificTierWriteIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mBlockMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+    mBlockMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(BlockMaster.class);
   }
 
@@ -103,11 +103,11 @@ public class SpecificTierWriteIntegrationTest {
 
     long totalBytes = memBytes + ssdBytes + hddBytes;
     Assert.assertEquals("Total bytes used", totalBytes,
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(BlockMaster.class).getUsedBytes());
 
     Map<String, Long> bytesOnTiers =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(BlockMaster.class).getUsedBytesOnTiers();
     Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
     Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());

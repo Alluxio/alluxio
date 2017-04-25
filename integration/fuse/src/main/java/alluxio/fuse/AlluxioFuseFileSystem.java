@@ -68,7 +68,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
   // an action on the URI alluxio://<master>:<port>/users/foo/bar
   private final Path mAlluxioRootPath;
-  private final String mAlluxioMaster;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
@@ -85,7 +84,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
     super();
     mFileSystem = fs;
-    mAlluxioMaster = Configuration.get(PropertyKey.MASTER_ADDRESS);
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
     mOpenFiles = new HashMap<>();
@@ -682,7 +680,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       final String relPath = fusePath.substring(1);
       final Path tpath = mAlluxioRootPath.resolve(relPath);
 
-      return new AlluxioURI(mAlluxioMaster + tpath.toString());
+      return new AlluxioURI(tpath.toString());
     }
   }
 
