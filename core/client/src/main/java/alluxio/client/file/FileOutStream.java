@@ -22,9 +22,9 @@ import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.netty.NettyClient;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
@@ -115,9 +115,9 @@ public class FileOutStream extends AbstractOutStream {
         }
         mUnderStorageOutputStream =
             mCloser.register(UnderFileSystemFileOutStream.create(mContext, address, mOptions));
-      } catch (AlluxioException | IOException e) {
+      } catch (AlluxioStatusException e) {
         CommonUtils.closeQuietly(mCloser);
-        throw CommonUtils.castToIOException(e);
+        throw e.toIOException();
       }
     }
   }
@@ -167,8 +167,8 @@ public class FileOutStream extends AbstractOutStream {
       if (mUnderStorageType.isAsyncPersist()) {
         scheduleAsyncPersist();
       }
-    } catch (AlluxioException e) {
-      throw mCloser.rethrow(new IOException(e));
+    } catch (AlluxioStatusException e) {
+      throw mCloser.rethrow(e.toIOException());
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is
     } finally {
@@ -180,13 +180,44 @@ public class FileOutStream extends AbstractOutStream {
   @Override
   public void flush() throws IOException {
     // TODO(yupeng): Handle flush for Alluxio storage stream as well.
-    if (mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream.flush();
+    try {
+      if (mUnderStorageType.isSyncPersist()) {
+        mUnderStorageOutputStream.flush();
+      }
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     }
   }
 
   @Override
   public void write(int b) throws IOException {
+    try {
+      writeInternal(b);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
+    }
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+    try {
+      writeInternal(b, 0, b.length);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
+    }
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    try {
+      writeInternal(b, off, len);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
+    }
+  }
+
+  private void writeInternal(int b) throws IOException {
     if (mShouldCacheCurrentBlock) {
       try {
         if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
@@ -205,14 +236,7 @@ public class FileOutStream extends AbstractOutStream {
     mBytesWritten++;
   }
 
-  @Override
-  public void write(byte[] b) throws IOException {
-    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
-    write(b, 0, b.length);
-  }
-
-  @Override
-  public void write(byte[] b, int off, int len) throws IOException {
+  private void writeInternal(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
@@ -235,7 +259,7 @@ public class FileOutStream extends AbstractOutStream {
             tLen -= currentBlockLeftBytes;
           }
         }
-      } catch (IOException e) {
+      } catch (Exception e) {
         handleCacheWriteException(e);
       }
     }
@@ -266,12 +290,12 @@ public class FileOutStream extends AbstractOutStream {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
       return masterClient.get().getNewBlockIdForFile(mUri);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     }
   }
 
-  private void handleCacheWriteException(IOException e) throws IOException {
+  private void handleCacheWriteException(Exception e) throws IOException {
     LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (!mUnderStorageType.isSyncPersist()) {
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
@@ -286,14 +310,14 @@ public class FileOutStream extends AbstractOutStream {
   /**
    * Schedules the async persistence of the current file.
    *
-   * @throws IOException an I/O error occurs
+   * @throws IOException if an I/O error occurs
    */
   protected void scheduleAsyncPersist() throws IOException {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
       masterClient.get().scheduleAsyncPersist(mUri);
-    } catch (AlluxioException e) {
-      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     }
   }
 

@@ -75,10 +75,10 @@ public interface FileSystem {
    * default options.
    *
    * @param path the path of the directory to create in Alluxio space
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void createDirectory(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
@@ -88,10 +88,10 @@ public interface FileSystem {
    *
    * @param path the path of the directory to create in Alluxio space
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
@@ -101,10 +101,10 @@ public interface FileSystem {
    *
    * @param path the path of the file to create in Alluxio space
    * @return a {@link FileOutStream} which will write data to the newly created file
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   FileOutStream createFile(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
@@ -115,10 +115,10 @@ public interface FileSystem {
    * @param path the path of the file to create in Alluxio space
    * @param options options to associate with this operation
    * @return a {@link FileOutStream} which will write data to the newly created file
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
@@ -127,10 +127,10 @@ public interface FileSystem {
    * Convenience method for {@link #delete(AlluxioURI, DeleteOptions)} with default options.
    *
    * @param path the path to delete in Alluxio space
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void delete(AlluxioURI path)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
@@ -140,10 +140,10 @@ public interface FileSystem {
    *
    * @param path the path to delete in Alluxio space
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void delete(AlluxioURI path, DeleteOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
@@ -153,9 +153,9 @@ public interface FileSystem {
    *
    * @param path the path in question
    * @return true if the path exists, false otherwise
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   boolean exists(AlluxioURI path) throws InvalidPathException, IOException, AlluxioException;
 
@@ -165,9 +165,9 @@ public interface FileSystem {
    * @param path the path in question
    * @param options options to associate with this operation
    * @return true if the path exists, false otherwise
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws InvalidPathException if the path is invalid
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   boolean exists(AlluxioURI path, ExistsOptions options)
       throws InvalidPathException, IOException, AlluxioException;
@@ -176,9 +176,9 @@ public interface FileSystem {
    * Convenience method for {@link #free(AlluxioURI, FreeOptions)} with default options.
    *
    * @param path the path to free in Alluxio space
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void free(AlluxioURI path) throws FileDoesNotExistException, IOException, AlluxioException;
 
@@ -188,9 +188,9 @@ public interface FileSystem {
    *
    * @param path the path to free in Alluxio space
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -200,9 +200,9 @@ public interface FileSystem {
    *
    * @param path the path to obtain information about
    * @return the {@link URIStatus} of the file
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   URIStatus getStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -213,9 +213,9 @@ public interface FileSystem {
    * @param path the path to obtain information about
    * @param options options to associate with this operation
    * @return the {@link URIStatus} of the file
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -226,9 +226,9 @@ public interface FileSystem {
    * @param path the path to list information about
    * @return a list of {@link URIStatus}s containing information about the files and directories
    *         which are children of the given path
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   List<URIStatus> listStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -241,9 +241,9 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @return a list of {@link URIStatus}s containing information about the files and directories
    *         which are children of the given path
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -253,9 +253,9 @@ public interface FileSystem {
    * options.
    *
    * @param path the path for which to load metadata from UFS
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
@@ -267,9 +267,9 @@ public interface FileSystem {
    *
    * @param path the path for which to load metadata from UFS
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
@@ -282,7 +282,7 @@ public interface FileSystem {
    *
    * @param alluxioPath an Alluxio path to mount the data to
    * @param ufsPath a UFS path to mount the data from
-   * @throws IOException if a non-Alluxio exception occurs
+   * @throws IOException if an IO exception occurs
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath) throws IOException, AlluxioException;
@@ -296,7 +296,7 @@ public interface FileSystem {
    * @param alluxioPath an Alluxio path to mount the data to
    * @param ufsPath a UFS path to mount the data from
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
+   * @throws IOException if an IO exception occurs
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
@@ -307,9 +307,9 @@ public interface FileSystem {
    *
    * @param path the file to read from
    * @return a {@link FileInStream} for the given path
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -320,9 +320,9 @@ public interface FileSystem {
    * @param path the file to read from
    * @param options options to associate with this operation
    * @return a {@link FileInStream} for the given path
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   FileInStream openFile(AlluxioURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -333,9 +333,9 @@ public interface FileSystem {
    *
    * @param src the path of the source, this must already exist
    * @param dst the path of the destination, this path should not exist
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void rename(AlluxioURI src, AlluxioURI dst)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -347,9 +347,9 @@ public interface FileSystem {
    * @param src the path of the source, this must already exist
    * @param dst the path of the destination, this path should not exist
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -359,9 +359,9 @@ public interface FileSystem {
    * options.
    *
    * @param path the path to set attributes for
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void setAttribute(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -371,9 +371,9 @@ public interface FileSystem {
    *
    * @param path the path to set attributes for
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException if an IO exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void setAttribute(AlluxioURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -382,7 +382,7 @@ public interface FileSystem {
    * Convenience method for {@link #unmount(AlluxioURI, UnmountOptions)} with default options.
    *
    * @param path an Alluxio path, this must be a mount point
-   * @throws IOException if a non-Alluxio exception occurs
+   * @throws IOException if an IO exception occurs
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path) throws IOException, AlluxioException;
@@ -394,7 +394,7 @@ public interface FileSystem {
    *
    * @param path an Alluxio path, this must be a mount point
    * @param options options to associate with this operation
-   * @throws IOException if a non-Alluxio exception occurs
+   * @throws IOException if an IO exception occurs
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;

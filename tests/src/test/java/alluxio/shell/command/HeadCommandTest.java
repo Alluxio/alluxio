@@ -11,9 +11,8 @@
 
 package alluxio.shell.command;
 
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.AlluxioException;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
@@ -21,22 +20,20 @@ import alluxio.util.io.BufferUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 /**
  * Tests for head command.
  */
 public final class HeadCommandTest extends AbstractAlluxioShellTest {
 
   @Test
-  public void headEmptyFile() throws IOException {
+  public void headEmptyFile() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WriteType.MUST_CACHE, 0);
     int ret = mFsShell.run("head", "/emptyFile");
     Assert.assertEquals(0, ret);
   }
 
   @Test
-  public void headLargeFile() throws IOException {
+  public void headLargeFile() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.run("head", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
@@ -44,13 +41,13 @@ public final class HeadCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void headNotExit() throws IOException {
+  public void headNotExit() throws Exception {
     int ret = mFsShell.run("head", "/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
-  public void headSmallFile() throws IOException {
+  public void headSmallFile() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("head", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
@@ -58,7 +55,7 @@ public final class HeadCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void headWildcard() throws IOException, AlluxioException {
+  public void headWildcard() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     // the expect contents (remember that the order is based on the path)
@@ -76,7 +73,7 @@ public final class HeadCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void headFileWithUserSpecifiedBytes() throws IOException {
+  public void headFileWithUserSpecifiedBytes() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10000);
     mFsShell.run("head", "-c", "10000", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(0, 10000);

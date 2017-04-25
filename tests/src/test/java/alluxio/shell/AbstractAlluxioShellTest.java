@@ -16,11 +16,11 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.cli.AlluxioShell;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
@@ -86,7 +86,7 @@ public abstract class AbstractAlluxioShellTest {
    *
    * @param bytes file size
    */
-  protected void copyToLocalWithBytes(int bytes) throws IOException {
+  protected void copyToLocalWithBytes(int bytes) throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile");

@@ -117,7 +117,7 @@ public final class FileDataManager {
         addPersistedFile(fileId);
         return false;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.warn("Failed to check if file {} exists in under storage system: {}",
                fileId, e.getMessage());
       LOG.debug("Exception: ", e);

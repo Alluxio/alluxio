@@ -14,7 +14,6 @@ package alluxio.client.block.stream;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -33,7 +32,7 @@ public class TestPacketReader implements PacketReader {
   }
 
   @Override
-  public DataBuffer readPacket() throws IOException {
+  public DataBuffer readPacket() {
     if (mPos >= mEnd) {
       return null;
     }
@@ -50,7 +49,5 @@ public class TestPacketReader implements PacketReader {
   }
 
   @Override
-  public void close() throws IOException {
-
-  }
+  public void close() { }
 }
