@@ -83,14 +83,14 @@ public class Registry<T extends Server<U>, U> {
   public <W extends T> W get(final Class<W> clazz, int timeoutMs) {
     CommonUtils.waitFor("server " + clazz.getName() + " to be created",
         new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        System.out.println(clazz);
-        try (LockResource r = new LockResource(mLock)) {
-          return mRegistry.get(clazz) != null;
-        }
-      }
-    }, WaitForOptions.defaults().setTimeout(timeoutMs));
+          @Override
+          public Boolean apply(Void input) {
+            System.out.println(clazz);
+            try (LockResource r = new LockResource(mLock)) {
+              return mRegistry.get(clazz) != null;
+            }
+          }
+        }, WaitForOptions.defaults().setTimeout(timeoutMs));
     T server = mRegistry.get(clazz);
     if (!(clazz.isInstance(server))) {
       throw new InternalException("Server is not an instance of " + clazz.getName());
