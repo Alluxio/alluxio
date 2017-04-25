@@ -101,7 +101,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
     // Whether to run against a simulated Swift backend
     mSimulationMode = false;
-    if (UnderFileSystemUtils.containsKey(PropertyKey.SWIFT_SIMULATION,conf)) {
+    if (UnderFileSystemUtils.containsKey(PropertyKey.SWIFT_SIMULATION, conf)) {
       mSimulationMode = Boolean.valueOf(UnderFileSystemUtils.getValue(
           PropertyKey.SWIFT_SIMULATION, conf));
     }
