@@ -91,7 +91,7 @@ struct FileInfo {
   22: bool mountPoint
   23: list<FileBlockInfo> fileBlockInfos
   24: common.TTtlAction ttlAction
-  25: i64 ufsId
+  25: i64 mountId
 }
 
 struct FileSystemCommand {
