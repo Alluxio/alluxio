@@ -69,6 +69,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Hadoop
+   * @return a new HDFS {@link UnderFileSystem} instance
    */
   public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri, Map<String, String> conf) {
     Configuration hadoopConf = createConfiguration(conf);
@@ -111,6 +112,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * </p>
    *
    * @param ufsConf ufs configuration
+   * @return the hadoop configuration
    */
   public static Configuration createConfiguration(Map<String, String> ufsConf) {
     Configuration hadoopConf = new Configuration();
