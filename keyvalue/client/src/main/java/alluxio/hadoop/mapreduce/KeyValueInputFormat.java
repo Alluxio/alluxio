@@ -16,7 +16,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
 import org.apache.hadoop.fs.Path;
@@ -73,7 +72,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
           splits.add(new KeyValueInputSplit(partitionInfo));
         }
       }
-    } catch (AlluxioException e) {
+    } catch (Exception e) {
       throw new IOException(e);
     }
     return splits;

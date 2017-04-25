@@ -13,12 +13,14 @@ package alluxio.master;
 
 import alluxio.Registry;
 import alluxio.Server;
-import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InternalException;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.thrift.TProcessor;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +30,9 @@ import java.util.Map;
 import java.util.Set;
 
 public final class RegistryTest {
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   public abstract class TestServer implements Server<Void> {
     @Override
@@ -121,23 +126,19 @@ public final class RegistryTest {
     registry.add(ServerB.class, new ServerB());
     registry.add(ServerC.class, new ServerC());
     registry.add(ServerC.class, new ServerD());
-    try {
-      registry.getServers();
-      Assert.fail("Control flow should not reach here.");
-    } catch (Exception e) {
-      Assert.assertEquals(e.getMessage(), ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
-    }
+
+    mThrown.expect(InternalException.class);
+    registry.getServers();
   }
 
   @Test
   public void unavailable() {
     Registry<TestServer, Void> registry = new Registry<>();
-    try {
-      registry.get(ServerB.class);
-      Assert.fail("Control flow should not reach here.");
-    } catch (Exception e) {
-      Assert.assertEquals(e.getMessage(), ExceptionMessage.RESOURCE_UNAVAILABLE.getMessage());
-    }
+
+    mThrown.expect(Exception.class);
+    mThrown.expectMessage("Timed out");
+    mThrown.expectMessage("ServerB");
+    registry.get(ServerB.class, 100);
   }
 
   private void computePermutations(TestServer[] input, int index, List<TestServer[]> permutations) {

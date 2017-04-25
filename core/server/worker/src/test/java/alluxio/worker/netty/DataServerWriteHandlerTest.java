@@ -14,6 +14,7 @@ package alluxio.worker.netty;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -55,7 +56,7 @@ public abstract class DataServerWriteHandlerTest {
     mChannel.writeInbound(buildWriteRequest(0, 0));
 
     Object writeResponse = waitForResponse(mChannel);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
+    checkWriteResponse(writeResponse, PStatus.OK);
   }
 
   /**
@@ -72,7 +73,7 @@ public abstract class DataServerWriteHandlerTest {
     mChannel.writeInbound(buildWriteRequest(len, 0));
 
     Object writeResponse = waitForResponse(mChannel);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.OK);
+    checkWriteResponse(writeResponse, PStatus.OK);
     checkFileContent(len);
   }
 
@@ -90,7 +91,7 @@ public abstract class DataServerWriteHandlerTest {
     mChannel.writeInbound(buildWriteRequest(len, -1));
 
     Object writeResponse = waitForResponse(mChannel);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.CANCELLED);
+    checkWriteResponse(writeResponse, PStatus.CANCELED);
     // Our current implementation does not really abort the file when the write is cancelled.
     // The client issues another request to block worker to abort it.
     checkFileContent(len);
@@ -105,22 +106,21 @@ public abstract class DataServerWriteHandlerTest {
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE + 1, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.INVALID_ARGUMENT);
+    checkWriteResponse(writeResponse, PStatus.INVALID_ARGUMENT);
   }
 
   /**
    * Checks the given write response is expected and matches the given error code.
    *
    * @param writeResponse the write response
-   * @param codeExpected the expected error code
+   * @param statusExpected the expected status code
    */
-  protected void checkWriteResponse(Object writeResponse, Protocol.Status.Code codeExpected) {
+  protected void checkWriteResponse(Object writeResponse, PStatus statusExpected) {
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
 
     ProtoMessage response = ((RPCProtoMessage) writeResponse).getMessage();
     Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
-    Assert.assertEquals(codeExpected,
-        response.<Protocol.Response>getMessage().getStatus().getCode());
+    Assert.assertEquals(statusExpected, response.<Protocol.Response>getMessage().getStatus());
   }
 
   /**

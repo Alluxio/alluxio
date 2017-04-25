@@ -11,10 +11,12 @@
 
 package alluxio;
 
-import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InternalException;
 import alluxio.resource.LockResource;
-import alluxio.retry.CountingRetry;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -28,8 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -49,12 +49,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {
-  private static final int TIMEOUT_SECONDS = 1;
-  private static final int RETRY_COUNT = 5;
+  private static final int DEFAULT_GET_TIMEOUT_MS = 5000;
 
   private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
-  private final Condition mCondition = mLock.newCondition();
 
   /**
    * Creates a new instance of {@link Registry}.
@@ -62,36 +60,41 @@ public class Registry<T extends Server<U>, U> {
   public Registry() {}
 
   /**
-   * Attempts to lookup the {@link Server} for the given class. Because {@link Server}s can be
-   * looked up and added to the registry in parallel, the lookeup is retried several times before
-   * giving up.
+   * Convenience method for calling {@link #get(Class, int)} with a default timeout.
    *
    * @param clazz the class of the {@link Server} to get
    * @param <W> the type of the {@link Server} to get
-   * @return the {@link Server} instance, or null if a type mismatch occurs
+   * @return the {@link Server} instance
    */
-  public <W extends T> W get(Class<W> clazz) {
-    T server;
-    try (LockResource r = new LockResource(mLock)) {
-      CountingRetry retry = new CountingRetry(RETRY_COUNT);
-      while (retry.attemptRetry()) {
-        server = mRegistry.get(clazz);
-        if (server != null) {
-          if (!(clazz.isInstance(server))) {
-            throw new IllegalStateException();
+  public <W extends T> W get(final Class<W> clazz) {
+    return get(clazz, DEFAULT_GET_TIMEOUT_MS);
+  }
+
+  /**
+   * Attempts to look up the {@link Server} for the given class. Because {@link Server}s can be
+   * looked up and added to the registry in parallel, the lookup is retried until the given timeout
+   * period has elapsed.
+   *
+   * @param clazz the class of the {@link Server} to get
+   * @param timeoutMs timeout for looking up the server
+   * @param <W> the type of the {@link Server} to get
+   * @return the {@link Server} instance
+   */
+  public <W extends T> W get(final Class<W> clazz, int timeoutMs) {
+    CommonUtils.waitFor("server " + clazz.getName() + " to be created",
+        new Function<Void, Boolean>() {
+          @Override
+          public Boolean apply(Void input) {
+            try (LockResource r = new LockResource(mLock)) {
+              return mRegistry.get(clazz) != null;
+            }
           }
-          return clazz.cast(server);
-        }
-        if (mCondition.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-          // Restart the retry counter when someone woke us up.
-          retry = new CountingRetry(RETRY_COUNT);
-        }
-      }
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+        }, WaitForOptions.defaults().setTimeout(timeoutMs));
+    T server = mRegistry.get(clazz);
+    if (!(clazz.isInstance(server))) {
+      throw new InternalException("Server is not an instance of " + clazz.getName());
     }
-    // TODO(jiri): Convert this to a checked exception when exception story is finalized
-    throw new RuntimeException(ExceptionMessage.RESOURCE_UNAVAILABLE.getMessage());
+    return clazz.cast(server);
   }
 
   /**
@@ -102,7 +105,6 @@ public class Registry<T extends Server<U>, U> {
   public <W extends T> void add(Class<W> clazz, T server) {
     try (LockResource r = new LockResource(mLock)) {
       mRegistry.put(clazz, server);
-      mCondition.signalAll();
     }
   }
 
@@ -171,7 +173,7 @@ public class Registry<T extends Server<U>, U> {
           continue;
         }
         if (dep.equals(server)) {
-          throw new RuntimeException(ExceptionMessage.DEPENDENCY_CYCLE.getMessage());
+          throw new InternalException("Dependency cycle encountered");
         }
         if (result.contains(dep)) {
           continue;

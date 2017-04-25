@@ -9,7 +9,7 @@ service KeyValueWorkerClientService extends common.AlluxioService {
    */
   binary get( /** the id of the block being accessed */ 1: i64 blockId,
       /** binary of the key */ 2: binary key)
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Gets a batch of keys next to the given key in the partition.
@@ -18,11 +18,11 @@ service KeyValueWorkerClientService extends common.AlluxioService {
    */
   list<binary> getNextKeys(/** the id of the partition */ 1: i64 blockId,
       /** current key */ 2: binary key, /** maximum number of keys to get */ 3: i32 numKeys)
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Gets the number of key-value pairs in the partition.
    */
   i32 getSize(/** the id of the partition */ 1: i64 blockId)
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 }

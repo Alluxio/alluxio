@@ -22,8 +22,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
+import alluxio.exception.AlluxioException;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
@@ -527,8 +526,8 @@ public class ConcurrentFileSystemMasterRenameTest {
             URIStatus status = mFileSystem.getStatus(file);
             // If the uri status is successfully obtained, then the path should match
             Assert.assertEquals(file.getName(), status.getName());
-          } catch (InvalidPathException | FileDoesNotExistException e) {
-            // InvalidPathException - if the file is renamed while the thread waits for the lock.
+          } catch (AlluxioException e) {
+            // AlluxioException - if the file is renamed while the thread waits for the lock.
             // FileDoesNotExistException - if the file is fully renamed before the getFileInfo call.
           } catch (Exception e) {
             Assert.fail(e.getMessage());

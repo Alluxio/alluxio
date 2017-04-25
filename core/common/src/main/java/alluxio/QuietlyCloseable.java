@@ -9,20 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.exception;
+package alluxio;
 
-import alluxio.thrift.AlluxioTException;
+import java.io.Closeable;
 
-import org.junit.Assert;
-import org.junit.Test;
+/**
+ * A Closeable which doesn't throw any checked exceptions from its {@link #close()} method.
+ */
+public interface QuietlyCloseable extends Closeable {
 
-public final class AlluxioExceptionTest {
-
-  @Test
-  public void unknownException() {
-    final String testMessage = "testMessage";
-    AlluxioTException tException = new AlluxioTException("testType", testMessage, "testClass");
-    AlluxioException exception = AlluxioException.fromThrift(tException);
-    Assert.assertEquals(testMessage, exception.getMessage());
-  }
+  @Override
+  void close();
 }

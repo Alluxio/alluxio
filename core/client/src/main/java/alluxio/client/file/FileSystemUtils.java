@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -52,8 +51,7 @@ public final class FileSystemUtils {
    * @param uri the URI of the file on which the thread should wait
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws IOException in case there are problems contacting the Alluxio master for the file
-   *         status
+   * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
@@ -90,7 +88,7 @@ public final class FileSystemUtils {
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws IOException in case there are problems contacting the Alluxio Master
+   * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
@@ -137,12 +135,8 @@ public final class FileSystemUtils {
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
-   * @throws IOException if an I/O error occurs
-   * @throws FileDoesNotExistException if the given file does not exist
-   * @throws AlluxioException if an unexpected Alluxio error occurs
    */
-  public static void persistFile(final FileSystem fs, final AlluxioURI uri)
-      throws AlluxioException, IOException {
+  public static void persistFile(final FileSystem fs, final AlluxioURI uri) {
     FileSystemContext context = FileSystemContext.INSTANCE;
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
@@ -171,11 +165,9 @@ public final class FileSystemUtils {
    * @param path the root of the subtree to check
    * @param options method options
    * @return a list of inconsistent files and directories
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  public static List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
-      throws AlluxioException, IOException {
+  public static List<AlluxioURI> checkConsistency(AlluxioURI path,
+      CheckConsistencyOptions options) {
     FileSystemContext context = FileSystemContext.INSTANCE;
     FileSystemMasterClient client = context.acquireMasterClient();
     try {

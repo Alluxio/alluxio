@@ -12,35 +12,32 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.AlluxioException;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Tests for test command.
  */
 public final class TestCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void testPathIsDirectoryWhenPathNotExist() throws IOException {
+  public void testPathIsDirectoryWhenPathNotExist() throws Exception {
     int ret = mFsShell.run("test", "-d", "/testPath");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testPathIsDirectoryWhenPathIsDirectory() throws IOException, AlluxioException {
+  public void testPathIsDirectoryWhenPathIsDirectory() throws Exception {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "-d", "/testDir");
     Assert.assertEquals(0, ret);
   }
 
   @Test
-  public void testPathIsDirectoryWhenPathIsFile() throws IOException {
+  public void testPathIsDirectoryWhenPathIsFile() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-d", "/testFile");
@@ -48,20 +45,20 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testPathIsFileWhenPathNotExist() throws IOException {
+  public void testPathIsFileWhenPathNotExist() throws Exception {
     int ret = mFsShell.run("test", "-f", "/testPath");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testPathIsFileWhenPathIsDirectory() throws IOException, AlluxioException {
+  public void testPathIsFileWhenPathIsDirectory() throws Exception {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "-f", "/testDir");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testPathIsFileWhenPathIsFile() throws IOException {
+  public void testPathIsFileWhenPathIsFile() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-f", "/testFile");
@@ -69,20 +66,20 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testPathExistWhenPathNotExist() throws IOException {
+  public void testPathExistWhenPathNotExist() throws Exception {
     int ret = mFsShell.run("test", "-e", "/testPath");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testPathExistWhenPathIsDirectory() throws IOException, AlluxioException {
+  public void testPathExistWhenPathIsDirectory() throws Exception {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "-e", "/testDir");
     Assert.assertEquals(0, ret);
   }
 
   @Test
-  public void testPathExistWhenPathIsFile() throws IOException {
+  public void testPathExistWhenPathIsFile() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-e", "/testFile");
@@ -90,13 +87,13 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testDirNotEmptyWhenPathNotExist() throws IOException {
+  public void testDirNotEmptyWhenPathNotExist() throws Exception {
     int ret = mFsShell.run("test", "-s", "/testPath");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testDirNotEmptyWhenPathIsDirectory() throws IOException {
+  public void testDirNotEmptyWhenPathIsDirectory() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testDir1/testFile1", WriteType.MUST_CACHE, 0);
     FileSystemTestUtils
@@ -118,7 +115,7 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testDirNotEmptyWhenPathIsFile() throws IOException {
+  public void testDirNotEmptyWhenPathIsFile() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile1", WriteType.MUST_CACHE, 0);
     FileSystemTestUtils
@@ -131,20 +128,20 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testFileZeroLengthWhenPathNotExist() throws IOException {
+  public void testFileZeroLengthWhenPathNotExist() throws Exception {
     int ret = mFsShell.run("test", "-z", "/testPath");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testFileZeroLengthWhenPathIsDirectory() throws IOException, AlluxioException {
+  public void testFileZeroLengthWhenPathIsDirectory() throws Exception {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "-z", "/testDir");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testFileZeroLengthWhenPathIsFile() throws IOException {
+  public void testFileZeroLengthWhenPathIsFile() throws Exception {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testFile1", WriteType.MUST_CACHE, 0);
     FileSystemTestUtils
@@ -157,14 +154,14 @@ public final class TestCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void testWithoutOption() throws IOException, AlluxioException {
+  public void testWithoutOption() throws Exception {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "/testDir");
     Assert.assertEquals(1, ret);
   }
 
   @Test
-  public void testWrongOption() throws IOException, AlluxioException {
+  public void testWrongOption() throws Exception {
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("test", "-dfesz", "/testDir");
     Assert.assertEquals(1, ret);

@@ -23,7 +23,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.KeyValueWorkerClientService;
-import alluxio.thrift.ThriftIOException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
@@ -70,12 +69,10 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @param blockId block Id
    * @param key key to fetch
    * @return value or null if not found
-   * @throws AlluxioTException if an exception in Alluxio occurs
-   * @throws ThriftIOException if a non-Alluxio related exception occurs
+   * @throws AlluxioTException if an exception occurs
    */
   @Override
-  public ByteBuffer get(final long blockId, final ByteBuffer key)
-      throws AlluxioTException, ThriftIOException {
+  public ByteBuffer get(final long blockId, final ByteBuffer key) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws AlluxioException, IOException {
@@ -131,7 +128,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
 
   @Override
   public List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key, final int numKeys)
-      throws AlluxioTException, ThriftIOException {
+      throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() throws AlluxioException, IOException {
@@ -166,7 +163,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
 
   // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
   @Override
-  public int getSize(final long blockId) throws AlluxioTException, ThriftIOException {
+  public int getSize(final long blockId) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<Integer>() {
       @Override
       public Integer call() throws AlluxioException, IOException {
