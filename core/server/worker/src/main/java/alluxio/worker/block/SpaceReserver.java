@@ -69,7 +69,7 @@ public class SpaceReserver implements HeartbeatExecutor  {
         LOG.warn("The property reserved.ratio is deprecated and high/low water mark "
                 + "should be used instead.");
         reservedBytes =
-                (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
+                (long) (capOnTier * Configuration.getDouble(tierReservedSpaceProp));
       } else {
         // HighWatemark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
