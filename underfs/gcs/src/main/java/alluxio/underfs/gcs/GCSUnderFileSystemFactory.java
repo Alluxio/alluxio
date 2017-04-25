@@ -43,12 +43,12 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public GCSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Map<String, String> unusedConf) {
+  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
     Preconditions.checkNotNull(path);
 
     if (addAndCheckGoogleCredentials()) {
       try {
-        return GCSUnderFileSystem.createInstance(new AlluxioURI(path));
+        return GCSUnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
       } catch (ServiceException e) {
         LOG.error("Failed to create GCSUnderFileSystem.", e);
         throw Throwables.propagate(e);
