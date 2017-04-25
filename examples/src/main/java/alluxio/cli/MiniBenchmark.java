@@ -59,7 +59,6 @@ public final class MiniBenchmark {
 
   /**
    * @param args there are no arguments needed
-   * @throws Exception if error occurs during tests
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 3) {
@@ -91,7 +90,6 @@ public final class MiniBenchmark {
    *
    * @param fileSize the file size
    * @param iterations the number of iterations to run
-   * @throws Exception if it fails to read
    */
   private static void readFile(long fileSize, int iterations) throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();
@@ -112,7 +110,6 @@ public final class MiniBenchmark {
    *
    * @param fileSize the file size
    * @param iterations number of iterations
-   * @throws Exception if it fails to write
    */
   private static void writeFile(long fileSize, int iterations) throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();

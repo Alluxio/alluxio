@@ -60,7 +60,6 @@ public final class TieredBlockStoreTestUtils {
    * @param tierCapacity like {@link #TIER_CAPACITY_BYTES}, should be in the same dimension with
    *        tierPath, each element is the capacity of the corresponding dir in tierPath
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
-   * @throws Exception when error happens during creating temporary folder
    */
   public static void setupConfWithMultiTier(String baseDir, int[] tierOrdinal, String[] tierAlias,
       String[][] tierPath, long[][] tierCapacity, String workerDataFolder) throws Exception {
@@ -106,7 +105,6 @@ public final class TieredBlockStoreTestUtils {
    *        into `baseDir/tierPath`
    * @param tierCapacity capacity of this tier
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
-   * @throws Exception when error happens during creating temporary folder
    */
   public static void setupConfWithSingleTier(String baseDir, int tierOrdinal, String tierAlias,
       String[] tierPath, long[] tierCapacity, String workerDataFolder) throws Exception {
@@ -152,7 +150,6 @@ public final class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for all the paths in the array 'dirs'
    * @param dirs 2-D array of directory paths
    * @return new joined and created paths array
-   * @throws Exception when error happens during creating temporary folder
    */
   private static String[][] createDirHierarchy(String baseDir, final String[][] dirs)
       throws Exception {
@@ -191,7 +188,6 @@ public final class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
    * @return the created metadata manager
-   * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
     setupDefaultConf(baseDir);
@@ -204,7 +200,6 @@ public final class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
    * @return the created metadata manager view
-   * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManagerView defaultMetadataManagerView(String baseDir)
       throws Exception {
@@ -220,7 +215,6 @@ public final class TieredBlockStoreTestUtils {
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
-   * @throws Exception when error happens during creating temporary folder
    */
   public static void setupDefaultConf(String baseDir) throws Exception {
     setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,
@@ -236,7 +230,6 @@ public final class TieredBlockStoreTestUtils {
    * @param dir the {@link StorageDir} the block resides in
    * @param meta the metadata manager to update meta of the block
    * @param evictor the evictor to be informed of the new block
-   * @throws Exception when fail to cache
    */
   public static void cache(long sessionId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
@@ -261,7 +254,6 @@ public final class TieredBlockStoreTestUtils {
    * @param bytes size of the block in bytes
    * @param blockStore block store that the block is written into
    * @param location the location where the block resides
-   * @throws Exception when fail to cache
    */
   public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
       BlockStoreLocation location) throws Exception {
@@ -286,7 +278,6 @@ public final class TieredBlockStoreTestUtils {
    * @param dirIndex index of directory in the tierLevel the block resides in
    * @param meta the metadata manager to update meta of the block
    * @param evictor the evictor to be informed of the new block
-   * @throws Exception when fail to cache
    */
   public static void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIndex,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
@@ -302,7 +293,6 @@ public final class TieredBlockStoreTestUtils {
    * @param bytes size of the block in bytes
    * @param dir the {@link StorageDir} the block resides in
    * @return the temp block meta
-   * @throws Exception when fail to create this block
    */
   public static TempBlockMeta createTempBlock(long sessionId, long blockId, long bytes,
       StorageDir dir) throws Exception {

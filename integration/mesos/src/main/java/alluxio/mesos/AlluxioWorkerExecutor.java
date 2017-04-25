@@ -110,7 +110,6 @@ public class AlluxioWorkerExecutor implements Executor {
    * Starts the Alluxio worker executor.
    *
    * @param args command-line arguments
-   * @throws Exception if the executor encounters an unrecoverable error
    */
   public static void main(String[] args) throws Exception {
     MesosExecutorDriver driver = new MesosExecutorDriver(new AlluxioWorkerExecutor());

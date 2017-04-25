@@ -78,8 +78,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Starts both master and a worker using the configurations in test conf respectively.
-   *
-   * @throws Exception if the operation fails
    */
   public void start() throws Exception {
     // Disable HDFS client caching to avoid file system close() affecting other clients
@@ -98,15 +96,11 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Configures and starts the master(s).
-   *
-   * @throws Exception if the operation fails
    */
   protected abstract void startMasters() throws Exception;
 
   /**
    * Configures and starts the proxy.
-   *
-   * @throws Exception if the operation fails
    */
   private void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
@@ -130,8 +124,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Configures and starts the worker(s).
-   *
-   * @throws Exception if the operation fails
    */
   protected void startWorkers() throws Exception {
     mWorkers = new ArrayList<>();
@@ -212,8 +204,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Stops both the alluxio and underfs service threads.
-   *
-   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     stopFS();
@@ -225,8 +215,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Stops the alluxio filesystem's service thread only.
-   *
-   * @throws Exception when the operation fails
    */
   public void stopFS() throws Exception {
     LOG.info("stop Alluxio filesystem");
@@ -237,8 +225,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Cleans up the underfs cluster test folder only.
-   *
-   * @throws Exception when the operation fails
    */
   protected void stopUFS() throws Exception {
     LOG.info("stop under storage system");
@@ -249,15 +235,11 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Stops the masters.
-   *
-   * @throws Exception when operation fails
    */
   protected abstract void stopMasters() throws Exception;
 
   /**
    * Stops the proxy.
-   *
-   * @throws Exception when operation fails
    */
   protected void stopProxy() throws Exception {
     mProxyProcess.stop();
@@ -265,8 +247,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Stops the workers.
-   *
-   * @throws Exception when operation fails
    */
   public void stopWorkers() throws Exception {
     for (WorkerProcess worker : mWorkers) {

@@ -460,7 +460,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    * Initializes the handler if necessary.
    *
    * @param msg the block write request
-   * @throws Exception if it fails to initialize
    */
   protected void initializeRequest(RPCProtoMessage msg) throws Exception {
     Preconditions.checkState(mRequest == null);
@@ -473,7 +472,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    *
    * @param buf the buffer
    * @param pos the pos
-   * @throws Exception if it fails to write the buffer
    */
   protected abstract void writeBuf(ByteBuf buf, long pos) throws Exception;
 

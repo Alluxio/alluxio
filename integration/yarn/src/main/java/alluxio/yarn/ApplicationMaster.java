@@ -220,7 +220,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * Run the application master.
    *
    * @param cliParser client arguments parser
-   * @throws Exception
    */
   private static void runApplicationMaster(final CommandLine cliParser) throws Exception {
     int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
@@ -310,8 +309,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   /**
    * Submits requests for containers until the master and all workers are launched.
-   *
-   * @throws Exception if an error occurs while requesting or launching containers
    */
   public void requestAndLaunchContainers() throws Exception {
 

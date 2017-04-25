@@ -316,7 +316,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * Initializes the handler for the given block read request.
    *
    * @param request the block read request
-   * @throws Exception if it fails to initialize
    */
   protected abstract void initializeRequest(Protocol.ReadRequest request) throws Exception;
 

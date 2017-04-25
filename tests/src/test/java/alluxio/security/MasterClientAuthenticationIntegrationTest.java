@@ -100,7 +100,6 @@ public final class MasterClientAuthenticationIntegrationTest {
    * successfully to the Master, it can successfully create file or not.
    *
    * @param filename the name of the file
-   * @throws Exception if a {@link FileSystemMasterClient} operation fails
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient = FileSystemMasterClient.Factory

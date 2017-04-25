@@ -88,7 +88,6 @@ public class SpecificTierWriteIntegrationTest {
    * @param memBytes the expected number of bytes used in the MEM tier
    * @param ssdBytes the expected number of bytes used in the SSD tier
    * @param hddBytes the expected number of bytes used in the HDD tier
-   * @throws Exception when an error occurs
    */
   private void writeFileAndCheckUsage(int writeTier, long memBytes, long ssdBytes, long hddBytes)
       throws Exception {

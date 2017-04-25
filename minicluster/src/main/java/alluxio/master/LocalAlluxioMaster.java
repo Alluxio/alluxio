@@ -144,8 +144,6 @@ public final class LocalAlluxioMaster {
 
   /**
    * Stops the master and cleans up client connections.
-   *
-   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     clearClients();
