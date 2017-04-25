@@ -62,7 +62,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final int mMinWorkerThreads;
 
   /** The port for the RPC server. */
-  private int mPort;
+  private final int mPort;
 
   /** The socket for thrift rpc server. */
   private TServerSocket mTServerSocket;
@@ -120,14 +120,13 @@ public class AlluxioMasterProcess implements MasterProcess {
             this + " web port is only allowed to be zero in test mode.");
       }
 
+      mTransportProvider = TransportProvider.Factory.create();
       mTServerSocket = new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
           Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master rpc port
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
-
-      mTransportProvider = TransportProvider.Factory.create();
 
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
@@ -330,8 +329,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    * @throws Exception if the underlying jetty server throws an exception
    */
   protected void stopServing() throws Exception {
-    LOG.info("Alluxio master version {} stop serving @ {} (was serving: {})",
-        RuntimeConstants.VERSION, mRpcAddress, mIsServing);
     if (mThriftServer != null) {
       mThriftServer.stop();
       mThriftServer = null;
