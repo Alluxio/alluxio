@@ -51,17 +51,17 @@ public final class DataFileChannelV2 implements DataBuffer {
   @Override
   public ByteBuffer getReadOnlyByteBuffer() {
     throw new UnsupportedOperationException(
-        "DataFileChannel#getReadOnlyByteBuffer is not implemented.");
+        "DataFileChannelV2#getReadOnlyByteBuffer is not implemented.");
   }
 
   @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
-    throw new UnsupportedOperationException("DataFileChannel#readBytes is not implemented.");
+    throw new UnsupportedOperationException("DataFileChannelV2#readBytes is not implemented.");
   }
 
   @Override
   public int readableBytes() {
-    throw new UnsupportedOperationException("DataFileChannel#readableBytes is not implemented.");
+    throw new UnsupportedOperationException("DataFileChannelV2#readableBytes is not implemented.");
   }
 
   @Override
