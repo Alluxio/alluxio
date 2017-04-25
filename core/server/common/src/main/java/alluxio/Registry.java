@@ -85,7 +85,6 @@ public class Registry<T extends Server<U>, U> {
         new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
-            System.out.println(clazz);
             try (LockResource r = new LockResource(mLock)) {
               return mRegistry.get(clazz) != null;
             }
