@@ -69,7 +69,7 @@ public class MasterFaultToleranceIntegrationTest {
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 10);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
@@ -121,14 +121,13 @@ public class MasterFaultToleranceIntegrationTest {
    * @param timeoutMs the number of milliseconds to wait before timing out
    */
   private void waitForWorkerRegistration(final AlluxioBlockStore store, final int numWorkers,
-      int timeoutMs) throws Exception {
+      int timeoutMs) {
     CommonUtils.waitFor("Worker to register.", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void aVoid) {
         try {
           return store.getWorkerInfoList().size() >= numWorkers;
         } catch (Exception e) {
-          LOG.error("PEIS: failed to get worker list.", e);
           return false;
         }
       }
@@ -238,7 +237,7 @@ public class MasterFaultToleranceIntegrationTest {
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       long capacityFound = -1;
       for (int i = 0; i < MASTERS; ++i) {
-        waitForWorkerRegistration(store, 1, 5 * Constants.SECOND_MS);
+        waitForWorkerRegistration(store, 1, 1 * Constants.MINUTE_MS);
         // If worker is successfully re-registered, the capacity bytes should not change.
         capacityFound = store.getCapacityBytes();
         if (capacityFound == WORKER_CAPACITY_BYTES) {

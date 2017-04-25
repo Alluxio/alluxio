@@ -72,7 +72,7 @@ public final class HeartbeatThread implements Runnable {
     }
 
     // set the thread name
-    // Thread.currentThread().setName(mThreadName);
+    Thread.currentThread().setName(mThreadName);
     try {
       // Thread.interrupted() clears the interrupt status. Do not call interrupt again to clear it.
       while (!Thread.interrupted()) {

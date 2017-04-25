@@ -149,11 +149,14 @@ public final class LocalAlluxioMaster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
+    // This shutdown needs to be done in a loop with retry because the interrupt signal can
+    // sometimes be ignored in the master implementation. For example, if the master is doing
+    // a hdfs listStatus RPC (hadoop version is 1.x), the interrupt signal is not properly handled.
     while (mMasterThread.isAlive()) {
       mAlluxioMaster.stop();
       mMasterThread.interrupt();
-      LOG.info("PEIS: stopping {}.", System.identityHashCode(this));
-      mMasterThread.join(100);
+      LOG.info("Stopping master thread {}.", System.identityHashCode(this));
+      mMasterThread.join(1000);
     }
     if (mSecondaryMaster != null) {
       mSecondaryMaster.stop();

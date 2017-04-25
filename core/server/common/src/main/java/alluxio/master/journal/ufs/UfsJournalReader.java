@@ -123,7 +123,6 @@ final class UfsJournalReader implements JournalReader {
     while (true) {
       Journal.JournalEntry entry = readInternal();
       if (entry == null) {
-        LOG.info("PEIS: found empty journal entry.");
         return null;
       }
       if (mInputStream.mFile.isCheckpoint()) {
@@ -227,7 +226,6 @@ final class UfsJournalReader implements JournalReader {
       mInputStream = null;
     }
     if (mFilesToProcess.isEmpty()) {
-      LOG.info("PEIS: fetching more files to read");
       UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
       if (snapshot.getCheckpoints().isEmpty() && snapshot.getLogs().isEmpty()) {
         return;

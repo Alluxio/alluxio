@@ -43,6 +43,7 @@ import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TProcessor;
@@ -135,8 +136,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public DefaultBlockWorker(BlockMasterClient blockMasterClient,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       AtomicReference<Long> workerId) throws IOException {
-    super(Executors.newFixedThreadPool(5,
-        ThreadFactoryUtils.build("block-worker-heartbeat-" + workerId.get() + "%d", true)));
+    super(Executors.newFixedThreadPool(4,
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -229,22 +230,24 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public void stop() throws IOException {
     // Steps to shutdown:
-    // 1. Gracefully shutting down the runnables running in the executors first.
+    // 1. Gracefully shutting down the runnables running in the executors.
     // 2. Shutdown the executors.
     // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
     //    runnables running in the executors might be using the clients.
     mSessionCleaner.stop();
-    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
-    try {
-      while (true) {
+    // The executor shutdown needs to be done in a loop with retry because the interrupt
+    // signal can sometimes be ignored.
+    CommonUtils.waitFor("shutdown block worker", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
         getExecutorService().shutdownNow();
-        if (getExecutorService().awaitTermination(10, TimeUnit.MILLISECONDS)) {
-          break;
+        try {
+          return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
         }
       }
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    });
     mBlockMasterClient.close();
     mFileSystemMasterClient.close();
   }

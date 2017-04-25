@@ -17,12 +17,14 @@ import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.FileSystemWorkerClientService;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockWorker;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.thrift.TProcessor;
@@ -100,15 +102,19 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
     }
-    // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
-    getExecutorService().shutdownNow();
-    /*
-    try {
-      getExecutorService().awaitTermination(10, TimeUnit.MINUTES);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-    */
+    // The executor shutdown needs to be done in a loop with retry because the interrupt
+    // signal can sometimes be ignored.
+    CommonUtils.waitFor("shutdown file system worker", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        getExecutorService().shutdownNow();
+        try {
+          return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     mFileSystemMasterWorkerClient.close();
   }
 }

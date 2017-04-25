@@ -298,7 +298,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   public long getCapacityBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      LOG.info("PEIS: worker info: {}", worker);
       synchronized (worker) {
         ret += worker.getCapacityBytes();
       }
