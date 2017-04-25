@@ -31,11 +31,12 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,6 +44,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class MasterFaultToleranceIntegrationTest {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(MasterFaultToleranceIntegrationTest.class);
   // Fail if the cluster doesn't come up after this amount of time.
   private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private static final long WORKER_CAPACITY_BYTES = 10000;
@@ -65,10 +68,9 @@ public class MasterFaultToleranceIntegrationTest {
     mMultiMasterLocalAlluxioCluster.initConfiguration();
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 1000);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 1000);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 3200);
-    // Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "20");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 10);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }
@@ -119,16 +121,16 @@ public class MasterFaultToleranceIntegrationTest {
    * @param timeoutMs the number of milliseconds to wait before timing out
    */
   private void waitForWorkerRegistration(final AlluxioBlockStore store, final int numWorkers,
-      int timeoutMs) {
+      int timeoutMs) throws Exception {
     CommonUtils.waitFor("Worker to register.", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void aVoid) {
         try {
           return store.getWorkerInfoList().size() >= numWorkers;
         } catch (Exception e) {
-          Throwables.propagate(e);
+          LOG.error("PEIS: failed to get worker list.", e);
+          return false;
         }
-        return false;
       }
     }, WaitForOptions.defaults().setTimeout(timeoutMs));
   }
@@ -234,9 +236,16 @@ public class MasterFaultToleranceIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(store, 1, 5 * Constants.SECOND_MS);
-      // If worker is successfully re-registered, the capacity bytes should not change.
-      Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
+      long capacityFound = -1;
+      for (int i = 0; i < MASTERS; ++i) {
+        waitForWorkerRegistration(store, 1, 5 * Constants.SECOND_MS);
+        // If worker is successfully re-registered, the capacity bytes should not change.
+        capacityFound = store.getCapacityBytes();
+        if (capacityFound == WORKER_CAPACITY_BYTES) {
+          break;
+        }
+      }
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, capacityFound);
     }
   }
 
