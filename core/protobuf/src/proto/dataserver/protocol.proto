@@ -87,4 +87,3 @@ message WriteRequest {
 message Response {
   optional Status status = 1;
 }
-

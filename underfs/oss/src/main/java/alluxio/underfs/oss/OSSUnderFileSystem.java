@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
@@ -63,7 +64,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @throws Exception when a connection to GCS could not be created
    */
   public static OSSUnderFileSystem createInstance(AlluxioURI uri) throws Exception {
-    String bucketName = uri.getHost();
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
         "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_SECRET_KEY),
