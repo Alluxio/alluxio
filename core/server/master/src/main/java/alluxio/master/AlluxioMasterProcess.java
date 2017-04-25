@@ -71,21 +71,21 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final TransportProvider mTransportProvider;
 
   /** The address for the rpc server. */
-  private InetSocketAddress mRpcAddress;
+  private final InetSocketAddress mRpcAddress;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
-  private MasterRegistry mRegistry;
+  private final MasterRegistry mRegistry;
 
   /** The web ui server. */
-  private WebServer mWebServer = null;
+  private WebServer mWebServer;
 
   /** The RPC server. */
-  private TServer mThriftServer = null;
+  private TServer mThriftServer;
 
   /** is true if the master is serving the RPC server. */
-  private boolean mIsServing = false;
+  private boolean mIsServing;
 
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
