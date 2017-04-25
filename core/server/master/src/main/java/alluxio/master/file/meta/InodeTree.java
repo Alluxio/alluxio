@@ -28,6 +28,7 @@ import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.NoopJournalContext;
@@ -774,16 +775,28 @@ public class InodeTree implements JournalEntryIterable {
    *
    * @param inodePath The {@link LockedInodePath} to delete
    * @param opTimeMs The operation time
+   * @param deleteOptions the delete options
+   * @param journalContext the journal context
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(LockedInodePath inodePath, long opTimeMs)
+  public void deleteInode(LockedInodePath inodePath, long opTimeMs, DeleteOptions deleteOptions,
+      JournalContext journalContext)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (parent == null) {
+      LOG.warn("Parent id not found: {} deleting inode: {}", inode.getParentId(), inode);
       throw new FileDoesNotExistException(
           ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));
     }
+
+    // Journal before removing the inode from the parent, since the parent is read locked.
+    File.DeleteFileEntry deleteFile = File.DeleteFileEntry.newBuilder().setId(inode.getId())
+        .setAlluxioOnly(deleteOptions.isAlluxioOnly())
+        .setRecursive(deleteOptions.isRecursive())
+        .setOpTimeMs(opTimeMs).build();
+    journalContext.append(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(opTimeMs);
 
@@ -799,7 +812,8 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
   public void deleteInode(LockedInodePath inodePath) throws FileDoesNotExistException {
-    deleteInode(inodePath, System.currentTimeMillis());
+    deleteInode(inodePath, System.currentTimeMillis(), DeleteOptions.defaults(),
+        NoopJournalContext.INSTANCE);
   }
 
   /**
