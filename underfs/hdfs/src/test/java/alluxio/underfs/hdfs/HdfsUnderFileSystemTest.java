@@ -14,12 +14,14 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.Map;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
@@ -30,7 +32,7 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    mHdfsUnderFileSystem = new HdfsUnderFileSystem(new AlluxioURI("file:///"), null);
+    mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(new AlluxioURI("file:///"), null);
   }
 
   /**
@@ -43,14 +45,13 @@ public final class HdfsUnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link HdfsUnderFileSystem#prepareConfiguration} method.
+   * Tests the {@link HdfsUnderFileSystem#createConfiguration} method.
    *
    * Checks the hdfs implements class and alluxio underfs config setting
    */
   @Test
   public void prepareConfiguration() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    mHdfsUnderFileSystem.prepareConfiguration("", conf);
+    org.apache.hadoop.conf.Configuration conf = HdfsUnderFileSystem.createConfiguration(null);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
     Assert.assertNotNull(conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION.toString()));
@@ -71,10 +72,9 @@ public final class HdfsUnderFileSystemTest {
     Assert.assertEquals("3", hadoopFs.getConf().get("dfs.replication"));
 
     // create a new configuration with updated dfs replication value
-    org.apache.hadoop.conf.Configuration hadoopConf1 = new org.apache.hadoop.conf.Configuration();
-    hadoopConf1.set("dfs.replication", "1");
+    Map<String, String> hadoopConf1 = ImmutableMap.of("dfs.replication", "1");
     HdfsUnderFileSystem hdfs =
-        new HdfsUnderFileSystem(new AlluxioURI(underfsAddress), hadoopConf1);
+        HdfsUnderFileSystem.createInstance(new AlluxioURI(underfsAddress), hadoopConf1);
     Assert.assertEquals("1",
         ((org.apache.hadoop.conf.Configuration) hdfs.getConf()).get("dfs.replication"));
   }

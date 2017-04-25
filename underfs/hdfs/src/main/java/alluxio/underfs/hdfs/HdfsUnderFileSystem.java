@@ -62,39 +62,35 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private static final int MAX_TRY = 5;
 
   private FileSystem mFileSystem;
-  private Configuration mHadoopConf;
   private Map<String, String> mUfsConf;
+
+  /**
+   * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
+   *
+   * @param ufsUri the {@link AlluxioURI} for this UFS
+   * @param conf the configuration for Hadoop
+   */
+  public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri, Map<String, String> conf) {
+    Configuration hadoopConf = createConfiguration(conf);
+    return new HdfsUnderFileSystem(ufsUri, conf, hadoopConf);
+  }
 
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
-   * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Hadoop
+   * @param ufsUri the {@link AlluxioURI} for this UFS
+   * @param ufsConf the configuration for ufs
+   * @param hadoopConf the hadoop configuration
    */
-  public HdfsUnderFileSystem(AlluxioURI uri, Map<String, String> conf) {
-    super(uri);
-    final String ufsPrefix = uri.toString();
-    mUfsConf = conf;
-    mHadoopConf = prepareConfiguration(ufsPrefix, conf);
-
-    // Load hdfs site properties from the given file and overwrite the default hdfs conf,
-    // the path of this file can be passed through --option
-    mHadoopConf.addResource(
-        new Path(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION, conf)));
-    // NOTE, adding s3 credentials in system properties to hadoop conf for backward compatibility.
-    // TODO(binfan): remove this as it can be set in mount options through --option
-    HdfsUnderFileSystemUtils.addS3Credentials(mHadoopConf);
-    // Set all parameters passed through --option
-    if (conf != null) {
-      for (Map.Entry<String, String> entry : conf.entrySet()) {
-        mHadoopConf.set(entry.getKey(), entry.getValue());
-      }
-    }
-    Path path = new Path(ufsPrefix);
+  protected HdfsUnderFileSystem(AlluxioURI ufsUri, Map<String, String> ufsConf,
+      Configuration hadoopConf) {
+    super(ufsUri);
+    mUfsConf = ufsConf;
+    Path path = new Path(ufsUri.toString());
     try {
-      mFileSystem = path.getFileSystem(mHadoopConf);
+      mFileSystem = path.getFileSystem(hadoopConf);
     } catch (IOException e) {
-      LOG.warn("Exception thrown when trying to get FileSystem for {} : {}", ufsPrefix,
+      LOG.warn("Exception thrown when trying to get FileSystem for {} : {}", ufsUri,
           e.getMessage());
       throw new RuntimeException("Failed to create Hadoop FileSystem", e);
     }
@@ -114,10 +110,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
    * </p>
    *
-   * @param path file system path
-   * @param ufsConf Hadoop configuration
+   * @param ufsConf ufs configuration
    */
-  public static Configuration prepareConfiguration(String path, Map<String, String> ufsConf) {
+  public static Configuration createConfiguration(Map<String, String> ufsConf) {
     Configuration hadoopConf = new Configuration();
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
@@ -133,6 +128,20 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     // system property
     hadoopConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
+
+    // Load hdfs site properties from the given file and overwrite the default hdfs conf,
+    // the path of this file can be passed through --option
+    hadoopConf.addResource(
+        new Path(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION, ufsConf)));
+    // NOTE, adding s3 credentials in system properties to hadoop conf for backward compatibility.
+    // TODO(binfan): remove this as it can be set in mount options through --option
+    HdfsUnderFileSystemUtils.addS3Credentials(hadoopConf);
+    // Set all parameters passed through --option
+    if (ufsConf != null) {
+      for (Map.Entry<String, String> entry : ufsConf.entrySet()) {
+        hadoopConf.set(entry.getKey(), entry.getValue());
+      }
+    }
     return hadoopConf;
   }
 

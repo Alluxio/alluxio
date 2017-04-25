@@ -35,7 +35,7 @@ public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
   @Override
   public UnderFileSystem create(String path, Map<String, String> conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    return new GlusterFSUnderFileSystem(new AlluxioURI(path), conf);
+    return GlusterFSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
   }
 
   @Override

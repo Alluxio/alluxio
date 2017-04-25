@@ -182,7 +182,8 @@ public final class UnderFileSystemUtils {
    * @return if the key is contained in the given ufs configuration or global configuration.
    */
   public static boolean containsKey(PropertyKey key, Map<String, String> ufsConf) {
-    return ufsConf.containsKey(key.toString()) || Configuration.containsKey(key);
+    return (ufsConf != null && ufsConf.containsKey(key.toString())) || Configuration
+        .containsKey(key);
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation
