@@ -43,7 +43,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
 
     if (checkOSSCredentials()) {
       try {
-        return OSSUnderFileSystem.createInstance(new AlluxioURI(path));
+        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
