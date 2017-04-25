@@ -61,7 +61,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField MOUNT_POINT_FIELD_DESC = new org.apache.thrift.protocol.TField("mountPoint", org.apache.thrift.protocol.TType.BOOL, (short)22);
   private static final org.apache.thrift.protocol.TField FILE_BLOCK_INFOS_FIELD_DESC = new org.apache.thrift.protocol.TField("fileBlockInfos", org.apache.thrift.protocol.TType.LIST, (short)23);
   private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)24);
-  private static final org.apache.thrift.protocol.TField UFS_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsId", org.apache.thrift.protocol.TType.I64, (short)25);
+  private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)25);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -92,7 +92,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private boolean mountPoint; // required
   private List<FileBlockInfo> fileBlockInfos; // required
   private alluxio.thrift.TTtlAction ttlAction; // required
-  private long ufsId; // required
+  private long mountId; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -123,7 +123,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
      * @see alluxio.thrift.TTtlAction
      */
     TTL_ACTION((short)24, "ttlAction"),
-    UFS_ID((short)25, "ufsId");
+    MOUNT_ID((short)25, "mountId");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -184,8 +184,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return FILE_BLOCK_INFOS;
         case 24: // TTL_ACTION
           return TTL_ACTION;
-        case 25: // UFS_ID
-          return UFS_ID;
+        case 25: // MOUNT_ID
+          return MOUNT_ID;
         default:
           return null;
       }
@@ -240,7 +240,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __TTL_ISSET_ID = 11;
   private static final int __MODE_ISSET_ID = 12;
   private static final int __MOUNTPOINT_ISSET_ID = 13;
-  private static final int __UFSID_ISSET_ID = 14;
+  private static final int __MOUNTID_ISSET_ID = 14;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -293,7 +293,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileBlockInfo.class))));
     tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
-    tmpMap.put(_Fields.UFS_ID, new org.apache.thrift.meta_data.FieldMetaData("ufsId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.MOUNT_ID, new org.apache.thrift.meta_data.FieldMetaData("mountId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
@@ -326,7 +326,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     boolean mountPoint,
     List<FileBlockInfo> fileBlockInfos,
     alluxio.thrift.TTtlAction ttlAction,
-    long ufsId)
+    long mountId)
   {
     this();
     this.fileId = fileId;
@@ -366,8 +366,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     setMountPointIsSet(true);
     this.fileBlockInfos = fileBlockInfos;
     this.ttlAction = ttlAction;
-    this.ufsId = ufsId;
-    setUfsIdIsSet(true);
+    this.mountId = mountId;
+    setMountIdIsSet(true);
   }
 
   /**
@@ -421,7 +421,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (other.isSetTtlAction()) {
       this.ttlAction = other.ttlAction;
     }
-    this.ufsId = other.ufsId;
+    this.mountId = other.mountId;
   }
 
   public FileInfo deepCopy() {
@@ -467,8 +467,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.mountPoint = false;
     this.fileBlockInfos = null;
     this.ttlAction = null;
-    setUfsIdIsSet(false);
-    this.ufsId = 0;
+    setMountIdIsSet(false);
+    this.mountId = 0;
   }
 
   public long getFileId() {
@@ -1047,27 +1047,27 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
   }
 
-  public long getUfsId() {
-    return this.ufsId;
+  public long getMountId() {
+    return this.mountId;
   }
 
-  public FileInfo setUfsId(long ufsId) {
-    this.ufsId = ufsId;
-    setUfsIdIsSet(true);
+  public FileInfo setMountId(long mountId) {
+    this.mountId = mountId;
+    setMountIdIsSet(true);
     return this;
   }
 
-  public void unsetUfsId() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UFSID_ISSET_ID);
+  public void unsetMountId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MOUNTID_ISSET_ID);
   }
 
-  /** Returns true if field ufsId is set (has been assigned a value) and false otherwise */
-  public boolean isSetUfsId() {
-    return EncodingUtils.testBit(__isset_bitfield, __UFSID_ISSET_ID);
+  /** Returns true if field mountId is set (has been assigned a value) and false otherwise */
+  public boolean isSetMountId() {
+    return EncodingUtils.testBit(__isset_bitfield, __MOUNTID_ISSET_ID);
   }
 
-  public void setUfsIdIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UFSID_ISSET_ID, value);
+  public void setMountIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MOUNTID_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -1256,11 +1256,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
-    case UFS_ID:
+    case MOUNT_ID:
       if (value == null) {
-        unsetUfsId();
+        unsetMountId();
       } else {
-        setUfsId((Long)value);
+        setMountId((Long)value);
       }
       break;
 
@@ -1338,8 +1338,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case TTL_ACTION:
       return getTtlAction();
 
-    case UFS_ID:
-      return getUfsId();
+    case MOUNT_ID:
+      return getMountId();
 
     }
     throw new IllegalStateException();
@@ -1398,8 +1398,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetFileBlockInfos();
     case TTL_ACTION:
       return isSetTtlAction();
-    case UFS_ID:
-      return isSetUfsId();
+    case MOUNT_ID:
+      return isSetMountId();
     }
     throw new IllegalStateException();
   }
@@ -1624,12 +1624,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
-    boolean this_present_ufsId = true;
-    boolean that_present_ufsId = true;
-    if (this_present_ufsId || that_present_ufsId) {
-      if (!(this_present_ufsId && that_present_ufsId))
+    boolean this_present_mountId = true;
+    boolean that_present_mountId = true;
+    if (this_present_mountId || that_present_mountId) {
+      if (!(this_present_mountId && that_present_mountId))
         return false;
-      if (this.ufsId != that.ufsId)
+      if (this.mountId != that.mountId)
         return false;
     }
 
@@ -1755,10 +1755,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (present_ttlAction)
       list.add(ttlAction.getValue());
 
-    boolean present_ufsId = true;
-    list.add(present_ufsId);
-    if (present_ufsId)
-      list.add(ufsId);
+    boolean present_mountId = true;
+    list.add(present_mountId);
+    if (present_mountId)
+      list.add(mountId);
 
     return list.hashCode();
   }
@@ -2001,12 +2001,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetUfsId()).compareTo(other.isSetUfsId());
+    lastComparison = Boolean.valueOf(isSetMountId()).compareTo(other.isSetMountId());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetUfsId()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsId, other.ufsId);
+    if (isSetMountId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mountId, other.mountId);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -2159,8 +2159,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("ufsId:");
-    sb.append(this.ufsId);
+    sb.append("mountId:");
+    sb.append(this.mountId);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -2412,10 +2412,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 25: // UFS_ID
+          case 25: // MOUNT_ID
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.ufsId = iprot.readI64();
-              struct.setUfsIdIsSet(true);
+              struct.mountId = iprot.readI64();
+              struct.setMountIdIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -2536,8 +2536,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeI32(struct.ttlAction.getValue());
         oprot.writeFieldEnd();
       }
-      oprot.writeFieldBegin(UFS_ID_FIELD_DESC);
-      oprot.writeI64(struct.ufsId);
+      oprot.writeFieldBegin(MOUNT_ID_FIELD_DESC);
+      oprot.writeI64(struct.mountId);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -2626,7 +2626,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetTtlAction()) {
         optionals.set(22);
       }
-      if (struct.isSetUfsId()) {
+      if (struct.isSetMountId()) {
         optionals.set(23);
       }
       oprot.writeBitSet(optionals, 24);
@@ -2711,8 +2711,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetTtlAction()) {
         oprot.writeI32(struct.ttlAction.getValue());
       }
-      if (struct.isSetUfsId()) {
-        oprot.writeI64(struct.ufsId);
+      if (struct.isSetMountId()) {
+        oprot.writeI64(struct.mountId);
       }
     }
 
@@ -2832,8 +2832,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.setTtlActionIsSet(true);
       }
       if (incoming.get(23)) {
-        struct.ufsId = iprot.readI64();
-        struct.setUfsIdIsSet(true);
+        struct.mountId = iprot.readI64();
+        struct.setMountIdIsSet(true);
       }
     }
   }
