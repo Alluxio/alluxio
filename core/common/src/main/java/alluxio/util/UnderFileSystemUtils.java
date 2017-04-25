@@ -162,9 +162,13 @@ public final class UnderFileSystemUtils {
   }
 
   /**
+   * Gets the value of the given key in the given UFS configuration or the global configuration
+   * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
+   * key is not found in both configurations.
+   *
    * @param key property key
-   * @param ufsConf ufs configuration
-   * @return the value of the given key in UFS conf or global conf (in case not found in UFS conf)
+   * @param ufsConf configuration for the UFS
+   * @return the value associated with the given key
    */
   public static String getValue(PropertyKey key, Map<String, String> ufsConf) {
     if (ufsConf != null && ufsConf.containsKey(key.toString())) {
@@ -178,8 +182,8 @@ public final class UnderFileSystemUtils {
 
   /**
    * @param key property key
-   * @param ufsConf ufs configuration
-   * @return if the key is contained in the given ufs configuration or global configuration
+   * @param ufsConf configuration for the UFS
+   * @return true if the key is contained in the given UFS configuration or global configuration
    */
   public static boolean containsKey(PropertyKey key, Map<String, String> ufsConf) {
     return (ufsConf != null && ufsConf.containsKey(key.toString())) || Configuration

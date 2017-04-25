@@ -11,8 +11,15 @@
 
 package alluxio.util;
 
+import alluxio.ConfigurationRule;
+import alluxio.PropertyKey;
+
+import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.Closeable;
+import java.util.Map;
 
 public final class UnderFileSystemUtilsTest {
 
@@ -31,5 +38,23 @@ public final class UnderFileSystemUtilsTest {
     Assert.assertEquals(false, UnderFileSystemUtils.isObjectStorage("/dir/"));
     Assert.assertEquals(false, UnderFileSystemUtils.isObjectStorage("/"));
     Assert.assertEquals(false, UnderFileSystemUtils.isObjectStorage(""));
+  }
+
+  @Test
+  public void getValue() throws Exception {
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar").toResource()) {
+      Map<String, String> conf = Maps.newHashMap();
+      Assert.assertEquals("bar", UnderFileSystemUtils.getValue(PropertyKey.S3A_ACCESS_KEY, conf));
+      conf.put(PropertyKey.S3A_ACCESS_KEY.toString(), "foo");
+      Assert.assertEquals("foo", UnderFileSystemUtils.getValue(PropertyKey.S3A_ACCESS_KEY, conf));
+    }
+  }
+
+  @Test
+  public void contains() throws Exception {
+    Map<String, String> conf = Maps.newHashMap();
+    Assert.assertFalse(UnderFileSystemUtils.containsKey(PropertyKey.S3A_ACCESS_KEY, conf));
+    conf.put(PropertyKey.S3A_ACCESS_KEY.toString(), "foo");
+    Assert.assertTrue(UnderFileSystemUtils.containsKey(PropertyKey.S3A_ACCESS_KEY, conf));
   }
 }
