@@ -207,10 +207,10 @@ public class URIStatus {
   }
 
   /**
-   * @return the id of the ufs which the mount of this file is mapped to
+   * @return the id of the mount of this file is mapped to
    */
-  public long getUfsId() {
-    return mInfo.getUfsId();
+  public long getMountId() {
+    return mInfo.getMountId();
   }
 
   /**

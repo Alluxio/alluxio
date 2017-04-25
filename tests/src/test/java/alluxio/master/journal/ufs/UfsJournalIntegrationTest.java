@@ -173,7 +173,7 @@ public class UfsJournalIntegrationTest {
         ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
     Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/xyz")) != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/xyz")));
-    Assert.assertEquals(status, new URIStatus(fsMasterInfo.setUfsId(status.getUfsId())));
+    Assert.assertEquals(status, new URIStatus(fsMasterInfo.setMountId(status.getMountId())));
     registry.stop();
   }
 
@@ -316,7 +316,7 @@ public class UfsJournalIntegrationTest {
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(
-        status, new URIStatus(fsMaster.getFileInfo(fileId).setUfsId(status.getUfsId())));
+        status, new URIStatus(fsMaster.getFileInfo(fileId).setMountId(status.getMountId())));
     registry.stop();
   }
 
@@ -355,15 +355,15 @@ public class UfsJournalIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/myFolder")));
-    Assert.assertEquals(directory, new URIStatus(info.setUfsId(directory.getUfsId())));
+    Assert.assertEquals(directory, new URIStatus(info.setMountId(directory.getMountId())));
     Assert.assertTrue(info.isPinned());
 
     info = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/myFolder/file0")));
-    Assert.assertEquals(file0, new URIStatus(info.setUfsId(file0.getUfsId())));
+    Assert.assertEquals(file0, new URIStatus(info.setMountId(file0.getMountId())));
     Assert.assertFalse(info.isPinned());
 
     info = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/myFolder/file1")));
-    Assert.assertEquals(file1, new URIStatus(info.setUfsId(file1.getUfsId())));
+    Assert.assertEquals(file1, new URIStatus(info.setMountId(file1.getMountId())));
     Assert.assertTrue(info.isPinned());
 
     registry.stop();
@@ -393,7 +393,7 @@ public class UfsJournalIntegrationTest {
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(
-        status, new URIStatus(fsMaster.getFileInfo(fileId).setUfsId(status.getUfsId())));
+        status, new URIStatus(fsMaster.getFileInfo(fileId).setMountId(status.getMountId())));
     registry.stop();
   }
 
@@ -433,7 +433,7 @@ public class UfsJournalIntegrationTest {
       Assert.assertEquals(
           directoryStatus.getValue(),
           new URIStatus(fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI(directoryStatus
-              .getKey()))).setUfsId(directoryStatus.getValue().getUfsId())));
+              .getKey()))).setMountId(directoryStatus.getValue().getMountId())));
     }
     registry.stop();
   }
@@ -599,7 +599,7 @@ public class UfsJournalIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     AuthenticatedClientUser.set(user);
     FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"));
-    Assert.assertEquals(status, new URIStatus(info.setUfsId(status.getUfsId())));
+    Assert.assertEquals(status, new URIStatus(info.setMountId(status.getMountId())));
     registry.stop();
   }
 

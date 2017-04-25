@@ -346,10 +346,10 @@ public interface FileSystemMaster extends Master {
   String getUfsAddress();
 
   /**
-   * @param ufsId the ufs id to query
-   * @return the ufs information for the given ufs id
+   * @param mountId the mount id to query
+   * @return the ufs information for the given mount id
    */
-  UfsInfo getUfsInfo(long ufsId);
+  UfsInfo getUfsInfo(long mountId);
 
   /**
    * @return the white list

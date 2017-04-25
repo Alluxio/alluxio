@@ -245,13 +245,13 @@ public final class MountTableTest {
     for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       mMountTable.add(masterAddr.join(mountPoint.getKey()),
-          mountInfo.getUfsUri(), mountInfo.getUfsId(), mountInfo.getOptions());
+          mountInfo.getUfsUri(), mountInfo.getMountId(), mountInfo.getOptions());
     }
     Assert.assertEquals(mountTable, mMountTable.getMountTable());
   }
 
   /**
-   * Tests the method for getting mount info given ufs id.
+   * Tests the method for getting mount info given mount id.
    */
   @Test
   public void getMountInfo() throws Exception {
@@ -260,11 +260,11 @@ public final class MountTableTest {
     MountInfo info2 =
         new MountInfo(new AlluxioURI("hdfs://localhost:5678/bar"), 2L, MountOptions.defaults());
     mMountTable
-        .add(new AlluxioURI("/mnt/foo"), info1.getUfsUri(), info1.getUfsId(), info1.getOptions());
+        .add(new AlluxioURI("/mnt/foo"), info1.getUfsUri(), info1.getMountId(), info1.getOptions());
     mMountTable
-        .add(new AlluxioURI("/mnt/bar"), info2.getUfsUri(), info2.getUfsId(), info2.getOptions());
-    Assert.assertEquals(info1, mMountTable.getMountInfo(info1.getUfsId()));
-    Assert.assertEquals(info2, mMountTable.getMountInfo(info2.getUfsId()));
+        .add(new AlluxioURI("/mnt/bar"), info2.getUfsUri(), info2.getMountId(), info2.getOptions());
+    Assert.assertEquals(info1, mMountTable.getMountInfo(info1.getMountId()));
+    Assert.assertEquals(info2, mMountTable.getMountInfo(info2.getMountId()));
     Assert.assertEquals(null, mMountTable.getMountInfo(3L));
   }
 }

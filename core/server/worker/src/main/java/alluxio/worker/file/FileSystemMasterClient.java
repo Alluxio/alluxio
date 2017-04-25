@@ -101,16 +101,16 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * @param ufsId the id of the ufs
+   * @param mountId the id of the mount
    * @return the ufs information for the give ufs
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized UfsInfo getUfsInfo(final long ufsId) throws AlluxioException, IOException {
+  public synchronized UfsInfo getUfsInfo(final long mountId) throws AlluxioException, IOException {
     return retryRPC(new RpcCallable<UfsInfo>() {
       @Override
       public UfsInfo call() throws TException {
-        return mClient.getUfsInfo(ufsId);
+        return mClient.getUfsInfo(mountId);
       }
     });
   }

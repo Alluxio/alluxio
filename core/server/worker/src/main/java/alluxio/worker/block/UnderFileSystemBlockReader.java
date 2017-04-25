@@ -128,7 +128,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @throws IOException if an I/O related error occur
    */
   private void init(long offset) throws BlockDoesNotExistException, IOException {
-    UnderFileSystem ufs = mUfsManager.getUfsById(mBlockMeta.getUfsId());
+    UnderFileSystem ufs = mUfsManager.getUfsByMountId(mBlockMeta.getMountId());
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     if (!ufs.isFile(mBlockMeta.getUnderFileSystemPath())) {
@@ -277,7 +277,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
-      UnderFileSystem ufs = mUfsManager.getUfsById(mBlockMeta.getUfsId());
+      UnderFileSystem ufs = mUfsManager.getUfsByMountId(mBlockMeta.getMountId());
       mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
           OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;

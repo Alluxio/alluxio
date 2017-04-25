@@ -60,7 +60,7 @@ public class FileSystemMasterWorkerService {
     public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
-     * Returns the ufs information for a ufs identified by the given ufs id.
+     * Returns the UFS information for the given mount point identified by its id.
      * 
      * 
      * @param mountId the id of the ufs

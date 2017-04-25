@@ -449,7 +449,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         // TODO(binfan): mount all ufs'es in site-properties
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            IdUtils.createUfsId(), MountOptions.defaults().setShared(
+            IdUtils.createMountId(), MountOptions.defaults().setShared(
                 UnderFileSystemUtils.isObjectStorage(defaultUFS) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
                 .setProperties(
@@ -688,7 +688,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
-    fileInfo.setUfsId(resolution.getUfsId());
+    fileInfo.setMountId(resolution.getMountd());
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -1872,12 +1872,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public UfsInfo getUfsInfo(long ufsId) {
-    MountInfo info = mMountTable.getMountInfo(ufsId);
+  public UfsInfo getUfsInfo(long mountId) {
+    MountInfo info = mMountTable.getMountInfo(mountId);
     if (info == null) {
-      return new UfsInfo().setId(ufsId);
+      return new UfsInfo();
     }
-    return new UfsInfo().setId(ufsId).setUri(info.getUfsUri().toString())
+    return new UfsInfo().setUri(info.getUfsUri().toString())
         .setProperties(info.getOptions().getProperties());
   }
 
@@ -2167,8 +2167,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
-    long ufsId = IdUtils.createUfsId();
-    mountInternal(inodePath, ufsPath, ufsId, false /* not replayed */, options);
+    long mountId = IdUtils.createMountId();
+    mountInternal(inodePath, ufsPath, mountId, false /* not replayed */, options);
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
@@ -2191,7 +2191,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     AddMountPointEntry addMountPoint =
         AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
-            .setUfsPath(ufsPath.toString()).setUfsId(ufsId)
+            .setUfsPath(ufsPath.toString()).setMountId(mountId)
             .setReadOnly(options.isReadOnly())
             .addAllProperties(protoProperties).setShared(options.isShared()).build();
     appendJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build(),
@@ -2210,7 +2210,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
     try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      mountInternal(inodePath, ufsURI, entry.getUfsId(), true /* replayed */,
+      mountInternal(inodePath, ufsURI, entry.getMountId(), true /* replayed */,
           new MountOptions(entry));
     }
   }
@@ -2221,14 +2221,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param inodePath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
-   * @param ufsId the UFS id
+   * @param mountId the mount id
    * @param replayed whether the operation is a result of replaying the journal
    * @param options the mount options (may be updated)
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, long ufsId,
+  private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, long mountId,
       boolean replayed, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
@@ -2253,7 +2253,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
     // mount and no existing mount is a prefix of this mount.
-    mMountTable.add(alluxioPath, ufsPath, ufsId, options);
+    mMountTable.add(alluxioPath, ufsPath, mountId, options);
   }
 
   @Override

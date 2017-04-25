@@ -77,11 +77,11 @@ public final class FileSystemMasterWorkerServiceHandler
   }
 
   @Override
-  public UfsInfo getUfsInfo(final long ufsId) throws AlluxioTException {
+  public UfsInfo getUfsInfo(final long mountId) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<UfsInfo>() {
       @Override
       public UfsInfo call() throws AlluxioException {
-        return mFileSystemMaster.getUfsInfo(ufsId);
+        return mFileSystemMaster.getUfsInfo(mountId);
       }
     });
   }

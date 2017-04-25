@@ -51,21 +51,21 @@ public final class DefaultUfsManager implements UfsManager {
   }
 
   @Override
-  public UnderFileSystem getUfsById(long id) throws IOException {
+  public UnderFileSystem getUfsByMountId(long mountId) throws IOException {
     synchronized (mLock) {
-      if (!mUfsMap.containsKey(id)) {
+      if (!mUfsMap.containsKey(mountId)) {
         UfsInfo info;
         try {
-          info = mMasterClient.getUfsInfo(id);
+          info = mMasterClient.getUfsInfo(mountId);
         } catch (AlluxioException e) {
           throw new IOException(e);
         }
         Preconditions.checkState((info.isSetUri() && info.isSetProperties()));
         UnderFileSystem ufs = UnderFileSystem.Factory.get(info.getUri(), info.getProperties());
-        mUfsMap.put(id, ufs);
+        mUfsMap.put(mountId, ufs);
         mCloser.register(ufs);
       }
-      return mUfsMap.get(id);
+      return mUfsMap.get(mountId);
     }
   }
 

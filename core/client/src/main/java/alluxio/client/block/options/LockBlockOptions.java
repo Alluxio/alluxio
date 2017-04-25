@@ -26,7 +26,7 @@ public final class LockBlockOptions {
   private long mOffset;
   private long mBlockSize;
   private int mMaxUfsReadConcurrency;
-  private long mUfsId;
+  private long mMountId;
 
   /**
    * @return the default {@link LockBlockOptions}
@@ -69,10 +69,10 @@ public final class LockBlockOptions {
   }
 
   /**
-   * @return the id of the ufs which the mount of this file is mapped to
+   * @return the id of the mount
    */
-  public long getUfsId() {
-    return mUfsId;
+  public long getMountId() {
+    return mMountId;
   }
 
   /**
@@ -112,11 +112,11 @@ public final class LockBlockOptions {
   }
 
   /**
-   * @param ufsId the id of the ufs which the mount of this file is mapped to
+   * @param mountId the id of the mount
    * @return the updated options object
    */
-  public LockBlockOptions setUfsId(long ufsId) {
-    mUfsId = ufsId;
+  public LockBlockOptions setMountId(long mountId) {
+    mMountId = mountId;
     return this;
   }
 
@@ -131,14 +131,14 @@ public final class LockBlockOptions {
     LockBlockOptions that = (LockBlockOptions) o;
     return Objects.equal(mBlockSize, that.mBlockSize)
         && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
+        && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOffset, that.mOffset)
-        && Objects.equal(mUfsId, that.mUfsId)
         && Objects.equal(mUfsPath, that.mUfsPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockSize, mMaxUfsReadConcurrency, mUfsId, mOffset, mUfsPath);
+    return Objects.hashCode(mBlockSize, mMaxUfsReadConcurrency, mMountId, mOffset, mUfsPath);
   }
 
   @Override
@@ -146,8 +146,8 @@ public final class LockBlockOptions {
     return Objects.toStringHelper(this)
         .add("blockSize", mBlockSize)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
+        .add("mountId", mMountId)
         .add("offset", mOffset)
-        .add("ufsId", mUfsId)
         .add("ufsPath", mUfsPath)
         .toString();
   }
@@ -161,7 +161,7 @@ public final class LockBlockOptions {
     LockBlockTOptions options = new LockBlockTOptions();
     options.setBlockSize(mBlockSize);
     options.setMaxUfsReadConcurrency(mMaxUfsReadConcurrency);
-    options.setUfsId(mUfsId);
+    options.setMountId(mMountId);
     options.setOffset(mOffset);
     options.setUfsPath(mUfsPath);
     return options;

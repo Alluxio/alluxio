@@ -55,7 +55,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.getPersistenceState(), b.getPersistenceState());
     Assert.assertEquals(a.getTtl(), b.getTtl());
     Assert.assertEquals(a.getTtlAction(), b.getTtlAction());
-    Assert.assertEquals(a.getUfsId(), b.getUfsId());
+    Assert.assertEquals(a.getMountId(), b.getMountId());
     Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
     Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
     Assert.assertEquals(a.isCacheable(), b.isCacheable());
@@ -75,7 +75,7 @@ public class FileInfoTest {
     String name = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String path = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String ufsPath = CommonUtils.randomAlphaNumString(random.nextInt(10));
-    long ufsId = random.nextLong();
+    long mountId = random.nextLong();
     long length = random.nextLong();
     long blockSizeBytes = random.nextLong();
     long creationTimeMs = random.nextLong();
@@ -125,7 +125,7 @@ public class FileInfoTest {
     result.setPinned(pinned);
     result.setTtl(ttl);
     result.setTtlAction(TtlAction.DELETE);
-    result.setUfsId(ufsId);
+    result.setMountId(mountId);
     result.setUfsPath(ufsPath);
     return result;
   }

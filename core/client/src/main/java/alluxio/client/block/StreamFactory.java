@@ -108,15 +108,15 @@ public final class StreamFactory {
    * @param blockSize the block size
    * @param blockStart the start position of the block in the UFS file
    * @param address the worker network address
-   * @param ufsId the id of the ufs which the mount of this file is mapped to
+   * @param mountId the id of the mount that this file is mapped to
    * @param options the in stream options
    * @return the input stream
    * @throws IOException if it fails to create the input stream
    */
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
-      long blockId, long blockSize, long blockStart, WorkerNetAddress address, long ufsId,
+      long blockId, long blockSize, long blockStart, WorkerNetAddress address, long mountId,
       InStreamOptions options) throws IOException {
     return BlockInStream.createUfsBlockInStream(context, ufsPath, blockId, blockSize, blockStart,
-        ufsId, address, options);
+        mountId, address, options);
   }
 }

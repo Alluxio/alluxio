@@ -30,17 +30,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MountInfo {
   private final AlluxioURI mUfsUri;
   private final MountOptions mOptions;
-  private final long mUfsId;
+  private final long mMountId;
 
   /**
    * Creates a new instance of {@code MountInfo}.
    * @param ufsUri a UFS path URI
-   * @param ufsId the id of the ufs
+   * @param mountId the id of the mount
    * @param options the mount options
    */
-  public MountInfo(AlluxioURI ufsUri, long ufsId, MountOptions options) {
+  public MountInfo(AlluxioURI ufsUri, long mountId, MountOptions options) {
     mUfsUri = Preconditions.checkNotNull(ufsUri);
-    mUfsId = ufsId;
+    mMountId = mountId;
     mOptions = options;
   }
 
@@ -59,10 +59,10 @@ public final class MountInfo {
   }
 
   /**
-   * @return the id of the ufs
+   * @return the id of the mount
    */
-  public long getUfsId() {
-    return mUfsId;
+  public long getMountId() {
+    return mMountId;
   }
 
   /**
@@ -100,13 +100,13 @@ public final class MountInfo {
       return false;
     }
     MountInfo that = (MountInfo) o;
-    return mUfsId == that.getUfsId()
+    return mMountId == that.getMountId()
         && mUfsUri.equals(that.getUfsUri())
         && mOptions.equals(that.getOptions());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mUfsId, mUfsUri, mOptions);
+    return Objects.hash(mMountId, mUfsUri, mOptions);
   }
 }

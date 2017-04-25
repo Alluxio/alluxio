@@ -31,6 +31,6 @@ public final class MountInfoTest {
     MountInfo info = new MountInfo(uri, 1, options);
     Assert.assertEquals(uri, info.getUfsUri());
     Assert.assertEquals(options, info.getOptions());
-    Assert.assertEquals(1, info.getUfsId());
+    Assert.assertEquals(1, info.getMountId());
   }
 }

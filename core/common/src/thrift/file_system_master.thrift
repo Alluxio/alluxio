@@ -334,7 +334,7 @@ service FileSystemMasterWorkerService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Returns the ufs information for a ufs identified by the given ufs id.
+   * Returns the UFS information for the given mount point identified by its id.
    **/
   UfsInfo getUfsInfo(
     /** the id of the ufs */ 1: i64 mountId,

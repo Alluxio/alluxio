@@ -46,7 +46,7 @@ public final class OutStreamOptions {
   private String mGroup;
   private Mode mMode;
   private String mUfsPath;
-  private long mUfsId;
+  private long mMountId;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -72,7 +72,7 @@ public final class OutStreamOptions {
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
-    mUfsId = IdUtils.INVALID_UFS_ID;
+    mMountId = IdUtils.INVALID_UFS_ID;
   }
 
   /**
@@ -140,10 +140,10 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the ufs id
+   * @return the mount id
    */
-  public long getUfsId() {
-    return mUfsId;
+  public long getMountId() {
+    return mMountId;
   }
 
   /**
@@ -233,11 +233,11 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @param ufsId the ufs id
+   * @param mountId the mount id
    * @return the updated options object
    */
-  public OutStreamOptions setUfsId(long ufsId) {
-    mUfsId = ufsId;
+  public OutStreamOptions setMountId(long mountId) {
+    mMountId = mountId;
     return this;
   }
 
@@ -290,10 +290,10 @@ public final class OutStreamOptions {
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
-        && Objects.equal(mUfsId, that.mUfsId)
         && Objects.equal(mUfsPath, that.mUfsPath)
         && Objects.equal(mWriteTier, that.mWriteTier)
         && Objects.equal(mWriteType, that.mWriteType);
@@ -306,10 +306,10 @@ public final class OutStreamOptions {
         mGroup,
         mLocationPolicy,
         mMode,
+        mMountId,
         mOwner,
         mTtl,
         mTtlAction,
-        mUfsId,
         mUfsPath,
         mWriteTier,
         mWriteType
@@ -323,10 +323,10 @@ public final class OutStreamOptions {
         .add("group", mGroup)
         .add("locationPolicy", mLocationPolicy)
         .add("mode", mMode)
+        .add("mountId", mMountId)
         .add("owner", mOwner)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
-        .add("ufsId", mUfsId)
         .add("ufsPath", mUfsPath)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)

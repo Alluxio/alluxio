@@ -52,7 +52,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId(), UNUSED_SESSION_ID);
       mUfsPath = request.getUfsPath();
-      mUnderFileSystem = mUfsManager.getUfsById(request.getUfsId());
+      mUnderFileSystem = mUfsManager.getUfsByMountId(request.getMountId());
       mOutputStream =
           mUnderFileSystem.create(mUfsPath, CreateOptions.defaults().setOwner(request.getOwner())
               .setGroup(request.getGroup()).setMode(new Mode((short) request.getMode())));

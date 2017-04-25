@@ -80,7 +80,7 @@ public final class IdUtils {
   /**
    * @return a random long which is guaranteed to be non negative (zero is allowed)
    */
-  public static long createUfsId() {
+  public static long createMountId() {
     return getRandomNonNegativeLong();
   }
 }

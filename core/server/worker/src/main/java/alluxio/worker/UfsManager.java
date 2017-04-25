@@ -17,16 +17,16 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * A class manages the ufs used by different worker services.
+ * A class manages the UFS used by different worker services.
  */
 public interface UfsManager extends Closeable {
   /**
-   * Gets the properties for the given the ufs id. If this ufs id is new to this worker, this method
-   * will query master to get the corresponding ufs info.
+   * Gets the UFS properties for the given the mount id. If this mount id is new to this worker,
+   * this method will query master to get the corresponding ufs info.
    *
-   * @param id ufs id
+   * @param mountId the id of a mount point
    * @return the configuration of the UFS
    * @throws IOException if the file persistence fails
    */
-  UnderFileSystem getUfsById(long id) throws IOException;
+  UnderFileSystem getUfsByMountId(long mountId) throws IOException;
 }
