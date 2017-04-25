@@ -116,7 +116,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     }
     // The executor shutdown needs to be done in a loop with retry because the interrupt
     // signal can sometimes be ignored.
-    CommonUtils.waitFor("shutdown file system worker", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("file system worker executor shutdown", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         getExecutorService().shutdownNow();

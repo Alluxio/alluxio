@@ -100,6 +100,7 @@ public final class LocalAlluxioMaster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting Alluxio master {}.", mMasterProcess);
           mMasterProcess.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
@@ -124,6 +125,7 @@ public final class LocalAlluxioMaster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting secondary master {}.", mSecondaryMaster);
           mSecondaryMaster.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit

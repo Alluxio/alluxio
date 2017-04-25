@@ -175,7 +175,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute
-   * @throws Exception if an error occurs when executing the command
+   * @throws IOException if I/O errors occur
+   * @throws ConnectionFailedException if connection fails
    */
   // TODO(calvin): Evaluate the necessity of each command.
   private void handleMasterCommand(Command cmd) throws IOException, ConnectionFailedException {

@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -53,22 +54,21 @@ public class MasterFaultToleranceIntegrationTest {
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
 
+  @BeforeClass
+  public static void beforeClass() {
+    // Skip hadoop 1 because hadoop 1's RPC cannot be interrupted properly which makes it
+    // hard to shutdown a cluster.
+    // TODO(peis): Figure out a better way to support hadoop 1.
+    Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
+  }
+
   @After
   public final void after() throws Exception {
-    if (HadoopClientTestUtils.isHadoop1x()) {
-      return;
-    }
     mMultiMasterLocalAlluxioCluster.stop();
   }
 
   @Before
   public final void before() throws Exception {
-    // Skip hadoop 1 because hadoop 1's RPC cannot be interrupted properly which makes it
-    // hard to shutdown a cluster.
-    // TODO(peis): Figure out a better way to support hadoop 1.
-    if (HadoopClientTestUtils.isHadoop1x()) {
-      return;
-    }
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(MASTERS);
@@ -143,7 +143,6 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void createFileFault() throws Exception {
-    Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
     int clients = 10;
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int k = 0; k < clients; k++) {
@@ -162,7 +161,6 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void deleteFileFault() throws Exception {
-    Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
     // Kill leader -> create files -> kill leader -> delete files, repeat.
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
@@ -198,7 +196,6 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void createFiles() throws Exception {
-    Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
     int clients = 10;
     CreateFileOptions option =
         CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
@@ -215,7 +212,6 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void killStandby() throws Exception {
-    Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
     // If standby masters are killed(or node failure), current leader should not be affected and the
     // cluster should run properly.
 
@@ -242,7 +238,6 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void workerReRegister() throws Exception {
-    Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
     AlluxioBlockStore store = AlluxioBlockStore.create();
     Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
 
@@ -250,6 +245,8 @@ public class MasterFaultToleranceIntegrationTest {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       long capacityFound = -1;
+      // Try to check the capacity multiple times to avoid servers being transiently elected as
+      // leader.
       for (int i = 0; i < MASTERS; ++i) {
         waitForWorkerRegistration(store, 1, 1 * Constants.MINUTE_MS);
         // If worker is successfully re-registered, the capacity bytes should not change.
@@ -264,7 +261,6 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void failoverWorkerRegister() throws Exception {
-    Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
     // Stop the default cluster.
     after();
 

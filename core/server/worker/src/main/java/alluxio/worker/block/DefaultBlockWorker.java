@@ -231,14 +231,14 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public void stop() {
     // Steps to shutdown:
-    // 1. Gracefully shutting down the runnables running in the executors.
+    // 1. Gracefully shut down the runnables running in the executors.
     // 2. Shutdown the executors.
     // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
     //    runnables running in the executors might be using the clients.
     mSessionCleaner.stop();
     // The executor shutdown needs to be done in a loop with retry because the interrupt
     // signal can sometimes be ignored.
-    CommonUtils.waitFor("shutdown block worker", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("block worker executor shutdown", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
         getExecutorService().shutdownNow();

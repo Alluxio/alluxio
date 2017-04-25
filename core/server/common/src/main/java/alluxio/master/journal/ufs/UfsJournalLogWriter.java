@@ -238,17 +238,13 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   @Override
-  public synchronized void close() {
-    try {
-      Closer closer = Closer.create();
-      if (mJournalOutputStream != null) {
-        closer.register(mJournalOutputStream);
-      }
-      closer.register(mGarbageCollector);
-      closer.close();
-    } catch (IOException e) {
-      LOG.warn("Failed to close UfsJournalLogWriter with error: {}.", e.getMessage());
+  public synchronized void close() throws IOException {
+    Closer closer = Closer.create();
+    if (mJournalOutputStream != null) {
+      closer.register(mJournalOutputStream);
     }
+    closer.register(mGarbageCollector);
+    closer.close();
     mClosed = true;
   }
 

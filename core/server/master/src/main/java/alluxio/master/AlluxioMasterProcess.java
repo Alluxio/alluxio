@@ -184,14 +184,12 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public void start() throws Exception {
-    LOG.info("Starting Alluxio master @{}", mRpcAddress);
     startMasters(true);
     startServing();
   }
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping Alluxio master @{}", mRpcAddress);
     if (mIsServing) {
       stopServing();
       stopMasters();
@@ -212,8 +210,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       connectToUFS();
       mRegistry.start(isLeader);
     } catch (IOException e) {
-      LOG.error("Failed to start master.", e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -349,6 +346,6 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public String toString() {
-    return "Alluxio master";
+    return "Alluxio master @" + mRpcAddress;
   }
 }
