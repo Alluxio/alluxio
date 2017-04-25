@@ -78,6 +78,7 @@ public class Registry<T extends Server<U>, U> {
    * period has elapsed.
    *
    * @param clazz the class of the {@link Server} to get
+   * @param timeoutMs timeout for looking up the server
    * @param <W> the type of the {@link Server} to get
    * @return the {@link Server} instance
    */
