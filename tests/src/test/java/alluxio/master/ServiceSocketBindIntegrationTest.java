@@ -16,6 +16,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
@@ -157,7 +158,7 @@ public class ServiceSocketBindIntegrationTest {
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");
-    } catch (ConnectionFailedException e) {
+    } catch (UnavailableException e) {
       // This is expected, since Master RPC service is NOT listening on loopback.
     }
 

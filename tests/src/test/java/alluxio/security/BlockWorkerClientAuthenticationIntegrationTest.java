@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 
+import com.google.common.base.Throwables;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.After;
 import org.junit.Assert;
@@ -25,8 +26,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.IOException;
 
 /**
  * Tests RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
@@ -95,8 +94,8 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
         session id */)) {
       // Just to supress the "Empty try block" warning in CheckStyle.
       failedToConnect = false;
-    } catch (IOException e) {
-      if (e.getCause() instanceof TTransportException) {
+    } catch (Exception e) {
+      if (Throwables.getRootCause(e) instanceof TTransportException) {
         failedToConnect = true;
       }
     } finally {

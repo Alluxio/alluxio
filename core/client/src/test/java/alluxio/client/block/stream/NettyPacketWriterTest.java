@@ -199,7 +199,7 @@ public final class NettyPacketWriterTest {
             ByteBuf buf = Unpooled.wrappedBuffer(data);
             try {
               writer.writePacket(buf);
-            } catch (IOException e) {
+            } catch (Exception e) {
               Assert.fail(e.getMessage());
               throw e;
             }

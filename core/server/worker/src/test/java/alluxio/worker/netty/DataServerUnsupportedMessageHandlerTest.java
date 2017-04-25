@@ -18,6 +18,8 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol.Response;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.proto.ProtoMessage;
@@ -52,9 +54,8 @@ public class DataServerUnsupportedMessageHandlerTest {
     Assert.assertTrue(response instanceof RPCProtoMessage);
     RPCProtoMessage protoResponse = (RPCProtoMessage) response;
     Assert.assertNull(protoResponse.getPayloadDataBuffer());
-    Protocol.Status status =
-        ((Protocol.Response) protoResponse.getMessage().getMessage()).getStatus();
-    Assert.assertEquals(Protocol.Status.Code.UNIMPLEMENTED, status.getCode());
+    Response r = ((Protocol.Response) protoResponse.getMessage().getMessage());
+    Assert.assertEquals(PStatus.UNIMPLEMENTED, r.getStatus());
   }
 
   /**

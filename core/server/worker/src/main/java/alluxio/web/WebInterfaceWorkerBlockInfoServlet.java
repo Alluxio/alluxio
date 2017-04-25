@@ -134,16 +134,12 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       for (long fileId : subFileIds) {
         try {
           uiFileInfos.add(getUiFileInfo(fileId));
-        } catch (IOException e) {
+        } catch (Exception e) {
           // The file might have been deleted, log a warning and ignore this file.
           LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
         }
       }
       request.setAttribute("fileInfos", uiFileInfos);
-    } catch (FileDoesNotExistException e) {
-      request.setAttribute("fatalError", "Error: Invalid FileId " + e.getMessage());
-      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-      return;
     } catch (NumberFormatException e) {
       request.setAttribute("fatalError",
           "Error: offset or limit parse error, " + e.getLocalizedMessage());
@@ -154,7 +150,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
           "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (IllegalArgumentException | AlluxioException e) {
+    } catch (Exception e) {
       request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;

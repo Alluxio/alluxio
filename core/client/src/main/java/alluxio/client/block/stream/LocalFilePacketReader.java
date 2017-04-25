@@ -17,7 +17,6 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -50,7 +49,7 @@ public final class LocalFilePacketReader implements PacketReader {
   }
 
   @Override
-  public DataBuffer readPacket() throws IOException {
+  public DataBuffer readPacket() {
     if (mPos >= mEnd) {
       return null;
     }
@@ -66,7 +65,7 @@ public final class LocalFilePacketReader implements PacketReader {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     mReader.close();
   }
 
@@ -86,7 +85,7 @@ public final class LocalFilePacketReader implements PacketReader {
     }
 
     @Override
-    public PacketReader create(long offset, long len) throws IOException {
+    public PacketReader create(long offset, long len) {
       return new LocalFilePacketReader(new LocalFileBlockReader(mPath), offset, len);
     }
 

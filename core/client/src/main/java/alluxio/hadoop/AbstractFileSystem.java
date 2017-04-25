@@ -25,11 +25,11 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -145,8 +145,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param blockSize block size in bytes
    * @param progress queryable progress
    * @return an {@link FSDataOutputStream} created at the indicated path of a file
-   * @throws IOException if overwrite is not specified and the path already exists or if the path is
-   *         a folder
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public FSDataOutputStream create(Path path, FsPermission permission, boolean overwrite,
@@ -199,8 +198,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param replication required block replication for the file
    * @param blockSize the size in bytes of the buffer to be used
    * @param progress queryable progress
-   * @throws IOException if 1) overwrite is not specified and the path already exists, 2) if the
-   *         path is a folder, or 3) the parent directory does not exist
+   * @throws IOException if an I/O error occurs
    * @see #setPermission(Path, FsPermission)
    * @deprecated API only for 0.20-append
    */
@@ -219,7 +217,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param path path to delete
    * @return true if one or more files/directories were deleted; false otherwise
-   * @throws IOException if the path failed to be deleted due to some constraint
+   * @throws IOException if an I/O error occurs
    * @deprecated Use {@link #delete(Path, boolean)} instead.
    */
   @Override
@@ -234,8 +232,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path path to delete
    * @param recursive if true, will attempt to delete all children of the path
    * @return true if one or more files/directories were deleted; false otherwise
-   * @throws IOException if the path failed to be deleted due to some constraint (ie. non empty
-   *         directory with recursive flag disabled)
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public boolean delete(Path path, boolean recursive) throws IOException {
@@ -340,7 +337,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path path to set owner or group
    * @param username username to be set
    * @param groupname groupname to be set
-   * @throws IOException if changing owner or group of the path failed
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void setOwner(Path path, final String username, final String groupname)
@@ -371,7 +368,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param path path to set permission
    * @param permission permission set to path
-   * @throws IOException if the path failed to be changed permission
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
@@ -480,7 +477,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param uri the uri
    * @param conf the hadoop conf
-   * @throws IOException if it fails to initialize
+   * @throws IOException if an I/O error occurs
    */
   void initializeInternal(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
@@ -503,10 +500,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     try {
       client.connect();
       // Connected, initialize.
-    } catch (ConnectionFailedException | IOException e) {
-      LOG.error("Failed to connect to the provided master address {}: {}.",
-          uri.toString(), e.toString());
-      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
@@ -604,7 +599,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path path to create
    * @param permission permissions to grant the created folder
    * @return true if the indicated folder is created successfully or already exists
-   * @throws IOException if the folder cannot be created
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public boolean mkdirs(Path path, FsPermission permission) throws IOException {
@@ -630,7 +625,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param path the file name to open
    * @param bufferSize stream buffer size in bytes, currently unused
    * @return an {@link FSDataInputStream} at the indicated path of a file
-   * @throws IOException if the file cannot be opened (e.g., the path is a folder)
+   * @throws IOException if an I/O error occurs
    */
   // TODO(calvin): Consider respecting the buffer size option
   @Override
