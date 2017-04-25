@@ -103,13 +103,8 @@ public class FileOutStream extends AbstractOutStream {
       mUnderStorageOutputStream = null;
     } else { // Write is through to the under storage, create mUnderStorageOutputStream
       try {
-        WorkerNetAddress worker;
-
-        while ((worker = // not storing data to Alluxio, so block size is 0
-            options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0))
-            == null) {
-        }
-        Preconditions.checkNotNull(worker, "No worker is found");
+        WorkerNetAddress worker = // not storing data to Alluxio, so block size is 0
+            options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
         InetSocketAddress location = new InetSocketAddress(worker.getHost(), worker.getDataPort());
         mUnderStorageOutputStream =
             mCloser.register(UnderFileSystemFileOutStream.create(mContext, location, mOptions));
