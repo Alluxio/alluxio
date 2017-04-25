@@ -177,19 +177,22 @@ public class AlluxioMasterProcess implements MasterProcess {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        return mThriftServer != null && mThriftServer.isServing();
+        return mThriftServer != null && mThriftServer.isServing()
+            && mWebServer != null && mWebServer.getServer().isRunning();
       }
     });
   }
 
   @Override
   public void start() throws Exception {
+    LOG.info("Starting Alluxio master @{}", mRpcAddress);
     startMasters(true);
     startServing();
   }
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping Alluxio master @{}", mRpcAddress);
     if (mIsServing) {
       stopServing();
       stopMasters();
@@ -210,7 +213,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       connectToUFS();
       mRegistry.start(isLeader);
     } catch (IOException e) {
-      LOG.error("PEIS: failed to start master with error.", e);
+      LOG.error("Failed to start master.", e);
       throw Throwables.propagate(e);
     }
   }
@@ -220,8 +223,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    * additional masters.
    */
   protected void stopMasters() {
-    LOG.info("Alluxio master version {} @{} is stopping masters.", RuntimeConstants.VERSION,
-        mRpcAddress);
     try {
       mRegistry.stop();
     } catch (IOException e) {
@@ -242,7 +243,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
-    // startServingWebServer();
+    startServingWebServer();
     LOG.info("{} version {} started @ {} {}", this, RuntimeConstants.VERSION, mRpcAddress,
         startMessage);
     startServingRPCServer();
@@ -293,7 +294,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     try {
       transportFactory = mTransportProvider.getServerTransportFactory();
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
 
     try {
@@ -306,7 +307,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       throw new RuntimeException(e);
     }
     // create master thrift service with the multiplexed processor.
-    Args args = new TThreadPoolServer.Args(Preconditions.checkNotNull(mTServerSocket)).maxWorkerThreads(mMaxWorkerThreads)
+    Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
