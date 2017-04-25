@@ -164,7 +164,7 @@ public final class UnderFileSystemUtils {
   /**
    * @param key property key
    * @param ufsConf ufs configuration
-   * @return the value of the given key in ufs conf, or global conf if the key found in ufs conf
+   * @return the value of the given key in UFS conf or global conf (in case not found in UFS conf)
    */
   public static String getValue(PropertyKey key, Map<String, String> ufsConf) {
     if (ufsConf != null && ufsConf.containsKey(key.toString())) {

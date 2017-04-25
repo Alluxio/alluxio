@@ -68,28 +68,28 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Hadoop
+   * @param ufsConf the configuration for Hadoop
    * @return a new HDFS {@link UnderFileSystem} instance
    */
-  public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri, Map<String, String> conf) {
-    Configuration hadoopConf = createConfiguration(conf);
-    return new HdfsUnderFileSystem(ufsUri, conf, hadoopConf);
+  public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri, Map<String, String> ufsConf) {
+    Configuration hdfsConf = createConfiguration(ufsConf);
+    return new HdfsUnderFileSystem(ufsUri, ufsConf, hdfsConf);
   }
 
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for ufs
-   * @param hadoopConf the hadoop configuration
+   * @param ufsConf the configuration for this UFS
+   * @param hdfsConf the configuration for HDFS
    */
   protected HdfsUnderFileSystem(AlluxioURI ufsUri, Map<String, String> ufsConf,
-      Configuration hadoopConf) {
+      Configuration hdfsConf) {
     super(ufsUri);
     mUfsConf = ufsConf;
     Path path = new Path(ufsUri.toString());
     try {
-      mFileSystem = path.getFileSystem(hadoopConf);
+      mFileSystem = path.getFileSystem(hdfsConf);
     } catch (IOException e) {
       LOG.warn("Exception thrown when trying to get FileSystem for {} : {}", ufsUri,
           e.getMessage());
@@ -111,11 +111,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
    * </p>
    *
-   * @param ufsConf ufs configuration
-   * @return the hadoop configuration
+   * @param ufsConf the configuration for this UFS
+   * @return the configuration for HDFS
    */
   public static Configuration createConfiguration(Map<String, String> ufsConf) {
-    Configuration hadoopConf = new Configuration();
+    Configuration hdfsConf = new Configuration();
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
@@ -123,28 +123,28 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     // if present propagate it to the Hadoop configuration
     String ufsHdfsImpl = UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_HDFS_IMPL, ufsConf);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
-      hadoopConf.set("fs.hdfs.impl", ufsHdfsImpl);
+      hdfsConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
 
-    // Disable hdfs client caching so that input configuration is respected. Configurable from
+    // Disable HDFS client caching so that input configuration is respected. Configurable from
     // system property
-    hadoopConf.set("fs.hdfs.impl.disable.cache",
+    hdfsConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
-    // Load hdfs site properties from the given file and overwrite the default hdfs conf,
+    // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    hadoopConf.addResource(
+    hdfsConf.addResource(
         new Path(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION, ufsConf)));
-    // NOTE, adding s3 credentials in system properties to hadoop conf for backward compatibility.
+    // NOTE, adding S3 credentials in system properties to HDFS conf for backward compatibility.
     // TODO(binfan): remove this as it can be set in mount options through --option
-    HdfsUnderFileSystemUtils.addS3Credentials(hadoopConf);
+    HdfsUnderFileSystemUtils.addS3Credentials(hdfsConf);
     // Set all parameters passed through --option
     if (ufsConf != null) {
       for (Map.Entry<String, String> entry : ufsConf.entrySet()) {
-        hadoopConf.set(entry.getKey(), entry.getValue());
+        hdfsConf.set(entry.getKey(), entry.getValue());
       }
     }
-    return hadoopConf;
+    return hdfsConf;
   }
 
   @Override

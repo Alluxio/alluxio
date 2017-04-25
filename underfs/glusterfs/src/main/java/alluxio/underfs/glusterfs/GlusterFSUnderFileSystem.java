@@ -39,26 +39,26 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   public static final String SCHEME = "glusterfs://";
 
   /**
-   * Prepares the Hadoop configuration necessary.
+   * Prepares the configuration for this Gluster FS as an HDFS configuration.
    *
-   * @param path the gluster path to serve as ufs
-   * @param ufsConf Hadoop configuration
-   * @return a prepared configuration
+   * @param path the path in GlusterFS to serve as the root of this UFS
+   * @param ufsConf the configuration for this UFS
+   * @return the created configuration
    */
-  public static Configuration prepareConfiguration(String path, Map<String, String> ufsConf) {
+  public static Configuration createConfiguration(String path, Map<String, String> ufsConf) {
     if (path.startsWith(SCHEME)) {
-      Configuration hadoopConf = new Configuration();
+      Configuration glusterFsConf = new Configuration();
       // Configure for Gluster FS
-      hadoopConf.set("fs.glusterfs.impl",
+      glusterFsConf.set("fs.glusterfs.impl",
           UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_IMPL, ufsConf));
-      hadoopConf.set("mapred.system.dir",
+      glusterFsConf.set("mapred.system.dir",
           UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR, ufsConf));
-      hadoopConf.set("fs.glusterfs.volumes",
+      glusterFsConf.set("fs.glusterfs.volumes",
           UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf));
-      hadoopConf.set("fs.glusterfs.volume.fuse."
+      glusterFsConf.set("fs.glusterfs.volume.fuse."
           + UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf),
           UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS, ufsConf));
-      return hadoopConf;
+      return glusterFsConf;
     } else {
       // If not Gluster FS fall back to default HDFS behavior
       // This should only happen if someone creates an instance of this directly rather than via the
@@ -71,24 +71,25 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * Factory method to construct a new Gluster FS {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Hadoop or GlusterFS
-   * @return a new Gluster FS {@link UnderFileSystem}
+   * @param ufsConf the configuration for this UFS
+   * @return a new Gluster FS {@link UnderFileSystem} instance
    */
-  public static GlusterFSUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> conf) {
-    Configuration hadoopConf = prepareConfiguration(uri.toString(), conf);
-    return new GlusterFSUnderFileSystem(uri, conf, hadoopConf);
+  public static GlusterFSUnderFileSystem createInstance(AlluxioURI uri,
+      Map<String, String> ufsConf) {
+    Configuration glusterFsConf = createConfiguration(uri.toString(), ufsConf);
+    return new GlusterFSUnderFileSystem(uri, ufsConf, glusterFsConf);
   }
 
   /**
    * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for ufs
-   * @param hadoopConf the configuration for hdfs
+   * @param ufsConf the configuration for this UFS
+   * @param glusterFsConf the configuration for this Gluster FS
    */
   private GlusterFSUnderFileSystem(AlluxioURI ufsUri, Map<String, String> ufsConf, Configuration
-      hadoopConf)  {
-    super(ufsUri, ufsConf, hadoopConf);
+      glusterFsConf)  {
+    super(ufsUri, ufsConf, glusterFsConf);
   }
 
   @Override

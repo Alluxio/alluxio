@@ -99,21 +99,21 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * Constructs a new instance of {@link S3AUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for this UFS
+   * @param ufsConf the configuration for this UFS
    * @return the created {@link S3AUnderFileSystem} instance
    */
-  public static S3AUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> conf) {
+  public static S3AUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> ufsConf) {
 
     String bucketName = uri.getHost();
 
     // Set the aws credential system properties based on Alluxio properties, if they are set
-    if (UnderFileSystemUtils.containsKey(PropertyKey.S3A_ACCESS_KEY, conf)) {
+    if (UnderFileSystemUtils.containsKey(PropertyKey.S3A_ACCESS_KEY, ufsConf)) {
       System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY,
-          UnderFileSystemUtils.getValue(PropertyKey.S3A_ACCESS_KEY, conf));
+          UnderFileSystemUtils.getValue(PropertyKey.S3A_ACCESS_KEY, ufsConf));
     }
-    if (UnderFileSystemUtils.containsKey(PropertyKey.S3A_SECRET_KEY, conf)) {
+    if (UnderFileSystemUtils.containsKey(PropertyKey.S3A_SECRET_KEY, ufsConf)) {
       System.setProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY,
-          UnderFileSystemUtils.getValue(PropertyKey.S3A_SECRET_KEY, conf));
+          UnderFileSystemUtils.getValue(PropertyKey.S3A_SECRET_KEY, ufsConf));
     }
 
     // Checks, in order, env variables, system properties, profile file, and instance profile
@@ -124,36 +124,35 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     ClientConfiguration clientConf = new ClientConfiguration();
 
     // Socket timeout
-    clientConf.setSocketTimeout(
-        Integer.parseInt(UnderFileSystemUtils.getValue(
-            PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS, conf)));
+    clientConf.setSocketTimeout(Integer.parseInt(
+        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS, ufsConf)));
 
     // HTTP protocol
-    if (Boolean.parseBoolean(UnderFileSystemUtils
-        .getValue(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED, conf))) {
+    if (Boolean.parseBoolean(
+        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED, ufsConf))) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
     }
 
     // Proxy host
-    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST, conf)) {
-      clientConf.setProxyHost(UnderFileSystemUtils.getValue(
-          PropertyKey.UNDERFS_S3_PROXY_HOST, conf));
+    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST, ufsConf)) {
+      clientConf
+          .setProxyHost(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_PROXY_HOST, ufsConf));
     }
 
     // Proxy port
-    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT, conf)) {
-      clientConf.setProxyPort(Integer.parseInt(
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT, conf)));
+    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT, ufsConf)) {
+      clientConf.setProxyPort(Integer
+          .parseInt(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT, ufsConf)));
     }
 
-    int numAdminThreads = Integer.parseInt(
-        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX, conf));
+    int numAdminThreads = Integer
+        .parseInt(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX, ufsConf));
     int numTransferThreads = Integer.parseInt(
-        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX, conf));
-    int numThreads = Integer.parseInt(
-        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX, conf));
+        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX, ufsConf));
+    int numThreads = Integer
+        .parseInt(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX, ufsConf));
     if (numThreads < numAdminThreads + numTransferThreads) {
       LOG.warn("Configured s3 max threads: {} is less than # admin threads: {} plus transfer "
           + "threads {}. Using admin threads + transfer threads as max threads instead.");
@@ -163,29 +162,30 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Set client request timeout for all requests since multipart copy is used, and copy parts can
     // only be set with the client configuration.
-    clientConf.setRequestTimeout(Integer.parseInt(
-        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT, conf)));
+    clientConf.setRequestTimeout(Integer
+        .parseInt(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT, ufsConf)));
 
-    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM, conf)) {
-      clientConf.setSignerOverride(UnderFileSystemUtils.getValue(
-          PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM, conf));
+    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM, ufsConf)) {
+      clientConf.setSignerOverride(
+          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM, ufsConf));
     }
 
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
     // Set a custom endpoint.
-    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT, conf)) {
-      amazonS3Client.setEndpoint(UnderFileSystemUtils.getValue(
-          PropertyKey.UNDERFS_S3_ENDPOINT, conf));
+    if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT, ufsConf)) {
+      amazonS3Client
+          .setEndpoint(UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_ENDPOINT, ufsConf));
     }
     // Disable DNS style buckets, this enables path style requests.
-    if (Boolean.parseBoolean(UnderFileSystemUtils.getValue(
-        PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, conf))) {
+    if (Boolean.parseBoolean(
+        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, ufsConf))) {
       S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
       amazonS3Client.setS3ClientOptions(clientOptions);
     }
 
-    ExecutorService service = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
-        "alluxio-s3-transfer-manager-worker", numTransferThreads).create();
+    ExecutorService service = ExecutorServiceFactories
+        .fixedThreadPoolExecutorServiceFactory("alluxio-s3-transfer-manager-worker",
+            numTransferThreads).create();
 
     TransferManager transferManager = new TransferManager(amazonS3Client, service);
 
@@ -193,18 +193,17 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     transferManager.setConfiguration(transferConf);
 
-     // Default to readable and writable by the user.
+    // Default to readable and writable by the user.
     short bucketMode = (short) 700;
     String accountOwner = ""; // There is no known account owner by default.
     // if ACL enabled inherit bucket acl for all the objects.
     if (Boolean.parseBoolean(
-        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL, conf))) {
+        UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL, ufsConf))) {
       String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
       // Gets the owner from user-defined static mapping from S3 canonical user
       // id to Alluxio user name.
-      String owner = CommonUtils.getValueFromStaticMapping(
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, conf),
-          accountOwnerId);
+      String owner = CommonUtils.getValueFromStaticMapping(UnderFileSystemUtils
+          .getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, ufsConf), accountOwnerId);
       // If there is no user-defined mapping, use the display name.
       if (owner == null) {
         owner = amazonS3Client.getS3AccountOwner().getDisplayName();
@@ -215,7 +214,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
     }
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, bucketMode, accountOwner,
-        transferManager, conf);
+        transferManager, ufsConf);
   }
 
   /**
@@ -229,12 +228,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param transferManager Transfer Manager for efficient I/O to S3
    * @param conf configuration for this S3A ufs
    */
-  protected S3AUnderFileSystem(AlluxioURI uri,
-      AmazonS3Client amazonS3Client,
-      String bucketName,
-      short bucketMode,
-      String accountOwner,
-      TransferManager transferManager,
+  protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
+      short bucketMode, String accountOwner, TransferManager transferManager,
       Map<String, String> conf) {
     super(uri);
     mClient = amazonS3Client;
@@ -284,8 +279,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     for (int i = 0; i < retries; i++) {
       try {
         CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
-        if (Boolean.parseBoolean(UnderFileSystemUtils.getValue(
-            PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED, mConf))) {
+        if (Boolean.parseBoolean(UnderFileSystemUtils
+            .getValue(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED, mConf))) {
           ObjectMetadata meta = new ObjectMetadata();
           meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
           request.setNewObjectMetadata(meta);
@@ -310,8 +305,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       meta.setContentLength(0);
       meta.setContentMD5(DIR_HASH);
       meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
-      mClient.putObject(new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(
-          new byte[0]), meta));
+      mClient.putObject(
+          new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(new byte[0]), meta));
       return true;
     } catch (AmazonClientException e) {
       LOG.error("Failed to create object: {}", key, e);

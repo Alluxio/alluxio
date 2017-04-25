@@ -79,7 +79,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for this ufs
+   * @param ufsConf the configuration for this UFS
    * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
