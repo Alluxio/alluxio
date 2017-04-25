@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -54,7 +53,6 @@ public class Registry<T extends Server<U>, U> {
 
   private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
-  private final Condition mCondition = mLock.newCondition();
 
   /**
    * Creates a new instance of {@link Registry}.
@@ -83,21 +81,21 @@ public class Registry<T extends Server<U>, U> {
    * @return the {@link Server} instance
    */
   public <W extends T> W get(final Class<W> clazz, int timeoutMs) {
-    T server;
-    try (LockResource r = new LockResource(mLock)) {
-      CommonUtils.waitFor("server " + clazz.getName() + " to be created",
-          new Function<Void, Boolean>() {
-            @Override
-            public Boolean apply(Void input) {
-              return mRegistry.get(clazz) != null;
-            }
-          }, WaitForOptions.defaults().setTimeout(timeoutMs));
-      server = mRegistry.get(clazz);
-      if (!(clazz.isInstance(server))) {
-        throw new InternalException("Server is not an instance of " + clazz.getName());
+    CommonUtils.waitFor("server " + clazz.getName() + " to be created",
+        new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        System.out.println(clazz);
+        try (LockResource r = new LockResource(mLock)) {
+          return mRegistry.get(clazz) != null;
+        }
       }
-      return clazz.cast(server);
+    }, WaitForOptions.defaults().setTimeout(timeoutMs));
+    T server = mRegistry.get(clazz);
+    if (!(clazz.isInstance(server))) {
+      throw new InternalException("Server is not an instance of " + clazz.getName());
     }
+    return clazz.cast(server);
   }
 
   /**
@@ -108,7 +106,6 @@ public class Registry<T extends Server<U>, U> {
   public <W extends T> void add(Class<W> clazz, T server) {
     try (LockResource r = new LockResource(mLock)) {
       mRegistry.put(clazz, server);
-      mCondition.signalAll();
     }
   }
 
