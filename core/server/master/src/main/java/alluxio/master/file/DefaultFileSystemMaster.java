@@ -1950,6 +1950,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // uri does not exist in ufs
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
         inode.setDirectChildrenLoaded(true);
+        return;
       }
       boolean isFile;
       if (options.getUnderFileStatus() != null) {
