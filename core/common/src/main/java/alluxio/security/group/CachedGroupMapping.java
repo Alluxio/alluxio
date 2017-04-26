@@ -22,8 +22,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,8 +37,6 @@ import java.util.concurrent.TimeUnit;
  * implementation depends on {@link GroupMappingService}.
  */
 public class CachedGroupMapping implements GroupMappingService {
-  private static final Logger LOG = LoggerFactory.getLogger(CachedGroupMapping.class);
-
   /** The underlying implementation of GroupMappingService. */
   private final GroupMappingService mService;
   /** Whether the cache is enabled. Set timeout to non-positive value to disable cache. */
