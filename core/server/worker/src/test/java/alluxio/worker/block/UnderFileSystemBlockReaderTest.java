@@ -16,7 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.UfsManager;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import alluxio.worker.block.options.OpenUfsBlockOptions;

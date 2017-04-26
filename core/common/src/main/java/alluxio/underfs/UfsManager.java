@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
-
-import alluxio.underfs.UnderFileSystem;
+package alluxio.underfs;
 
 import java.io.Closeable;
 import java.io.IOException;

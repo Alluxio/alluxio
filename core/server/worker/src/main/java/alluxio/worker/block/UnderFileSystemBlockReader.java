@@ -25,7 +25,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.UfsManager;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;

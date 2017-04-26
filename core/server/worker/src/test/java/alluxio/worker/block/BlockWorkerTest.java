@@ -27,7 +27,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.UfsManager;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;

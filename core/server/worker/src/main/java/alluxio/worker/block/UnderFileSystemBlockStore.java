@@ -16,7 +16,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.worker.SessionCleanable;
-import alluxio.worker.UfsManager;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;

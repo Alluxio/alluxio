@@ -21,7 +21,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
-import alluxio.worker.UfsManager;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;

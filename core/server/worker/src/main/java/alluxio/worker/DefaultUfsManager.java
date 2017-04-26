@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;

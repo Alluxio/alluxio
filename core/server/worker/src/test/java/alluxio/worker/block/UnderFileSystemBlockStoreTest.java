@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.thrift.LockBlockTOptions;
-import alluxio.worker.UfsManager;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import org.junit.Assert;

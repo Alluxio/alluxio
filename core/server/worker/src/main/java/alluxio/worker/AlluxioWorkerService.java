@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Server;
+import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 
