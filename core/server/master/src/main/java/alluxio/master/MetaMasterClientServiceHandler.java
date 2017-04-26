@@ -12,6 +12,8 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.RpcUtils;
+import alluxio.exception.AlluxioException;
 import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
@@ -45,20 +47,24 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
-  public MasterInfo getInfo(Set<MasterInfoField> fields) throws TException {
-    if (fields == null) {
-      fields = new HashSet<>(Arrays.asList(MasterInfoField.values()));
-    }
-    MasterInfo info = new alluxio.thrift.MasterInfo();
-    for (MasterInfoField field : fields) {
-      switch (field) {
-        case WEB_PORT:
-          info.setWebPort(mMasterProcess.getWebAddress().getPort());
-          break;
-        default:
-          LOG.warn("Unrecognized master info field: " + field);
+  public MasterInfo getInfo(final Set<MasterInfoField> fields) throws TException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<MasterInfo>() {
+      @Override
+      public MasterInfo call() throws AlluxioException {
+        Set<MasterInfoField> fieldsToQuery =
+            fields != null ? fields : new HashSet<>(Arrays.asList(MasterInfoField.values()));
+        MasterInfo info = new alluxio.thrift.MasterInfo();
+        for (MasterInfoField field : fieldsToQuery) {
+          switch (field) {
+            case WEB_PORT:
+              info.setWebPort(mMasterProcess.getWebAddress().getPort());
+              break;
+            default:
+              LOG.warn("Unrecognized master info field: " + field);
+          }
+        }
+        return info;
       }
-    }
-    return info;
+    });
   }
 }
