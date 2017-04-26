@@ -55,8 +55,8 @@ public final class NettyDataServer implements DataServer {
    * @param workerProcess the Alluxio worker process
    */
   public NettyDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(workerProcess));
     mSocketAddress = address;
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(workerProcess));
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
     } catch (InterruptedException e) {
