@@ -67,13 +67,8 @@ public final class OutStreamOptions {
     }
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    if (SecurityUtils.isSecurityEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromLoginModule();
-      mGroup = SecurityUtils.getGroupFromLoginModule();
-    } else {
-      mOwner = "";
-      mGroup = "";
-    }
+    mOwner = SecurityUtils.getOwnerFromLoginModule();
+    mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
   }
 

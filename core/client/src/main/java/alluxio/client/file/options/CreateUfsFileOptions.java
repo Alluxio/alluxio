@@ -44,13 +44,8 @@ public final class CreateUfsFileOptions {
   }
 
   private CreateUfsFileOptions() throws IOException {
-    if (SecurityUtils.isSecurityEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromLoginModule();
-      mGroup = SecurityUtils.getGroupFromLoginModule();
-    } else {
-      mOwner = "";
-      mGroup = "";
-    }
+    mOwner = SecurityUtils.getOwnerFromLoginModule();
+    mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.

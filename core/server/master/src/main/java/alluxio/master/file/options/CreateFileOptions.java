@@ -57,10 +57,8 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
     mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromThriftClient();
-      mGroup = SecurityUtils.getGroupFromThriftClient();
-    }
+    mOwner = SecurityUtils.getOwnerFromThriftClient();
+    mGroup = SecurityUtils.getGroupFromThriftClient();
     if (options.isSetMode()) {
       mMode = new Mode(options.getMode());
     } else {

@@ -55,30 +55,42 @@ public final class SecurityUtils {
   }
 
   /**
-   * @return the owner fetched from the login module
+   * @return the owner fetched from the login module, or empty string if authentication is disabled
    */
   public static String getOwnerFromLoginModule() {
+    if (SecurityUtils.isSecurityEnabled()) {
+      return "";
+    }
     return LoginUser.get().getName();
   }
 
   /**
-   * @return the owner fetched from the Thrift client
+   * @return the owner fetched from the Thrift client, or empty string if authentication is disabled
    */
   public static String getOwnerFromThriftClient() {
+    if (SecurityUtils.isSecurityEnabled()) {
+      return "";
+    }
     return AuthenticatedClientUser.getClientUser();
   }
 
   /**
-   * @return the group fetched from the login module
+   * @return the group fetched from the login module, or empty string if authentication is disabled
    */
   public static String getGroupFromLoginModule() {
+    if (SecurityUtils.isSecurityEnabled()) {
+      return "";
+    }
     return CommonUtils.getPrimaryGroupName(LoginUser.get().getName());
   }
 
   /**
-   * @return the group fetched from the Thrift client
+   * @return the group fetched from the Thrift client, or empty string if authentication is disabled
    */
   public static String getGroupFromThriftClient() {
+    if (SecurityUtils.isSecurityEnabled()) {
+      return "";
+    }
     return CommonUtils.getPrimaryGroupName(AuthenticatedClientUser.get().getName());
   }
 }
