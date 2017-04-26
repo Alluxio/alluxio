@@ -57,5 +57,8 @@ public final class LoadCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("load", "/testFile");
     status = mFileSystem.getStatus(uri);
     Assert.assertTrue(status.getInMemoryPercentage() == 100);
+    mFsShell.run("load", "-f", "/testFile");
+    Assert.assertEquals("/testFile" + " loaded" + "\n" + "/testFile" + " loaded" + "\n",
+        mOutput.toString());
   }
 }
