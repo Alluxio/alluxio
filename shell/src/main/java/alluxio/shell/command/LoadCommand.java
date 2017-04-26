@@ -64,6 +64,8 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * Loads a file or directory in Alluxio space, makes it resident in memory.
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
+   * @param force the force flag; If the file is already in memory fully, enable the force flag,
+   *              Alluxio will still load the file, otherwise Alluxio will do nothing.
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
