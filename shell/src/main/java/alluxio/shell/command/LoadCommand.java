@@ -22,6 +22,7 @@ import alluxio.exception.AlluxioException;
 
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Loads a file or directory in Alluxio space, making it resident in memory.
+ * Loads a file or directory in Alluxio space, makes it resident in memory.
  */
 @ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {
@@ -49,8 +50,14 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options()
+        .addOption(FORCE_OPTION);
+  }
+
+  @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    load(path);
+    load(path, cl.hasOption(FORCE_OPTION.getOpt()));
   }
 
   /**
@@ -60,17 +67,18 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
-  private void load(AlluxioURI filePath) throws AlluxioException, IOException {
+  private void load(AlluxioURI filePath, boolean force) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
       for (URIStatus uriStatus : statuses) {
         AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        load(newPath);
+        load(newPath, force);
       }
     } else {
-      if (status.getInMemoryPercentage() == 100) {
+      if (!force && status.getInMemoryPercentage() == 100) {
         // The file has already been fully loaded into Alluxio memory.
+        System.out.println(filePath + " already in memory fully");
         return;
       }
       Closer closer = Closer.create();
@@ -91,7 +99,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "load <path>";
+    return "load [-f] <path>";
   }
 
   @Override
