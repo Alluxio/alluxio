@@ -51,7 +51,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
@@ -637,7 +636,7 @@ public class UfsJournalIntegrationTest {
     }
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public List<String> getGroups(String user) {
       if (mUserGroups.containsKey(user)) {
         return Lists.newArrayList(mUserGroups.get(user).split(","));
       }

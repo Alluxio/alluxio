@@ -13,6 +13,7 @@ package alluxio.security.group;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -106,21 +107,15 @@ public class CachedGroupMapping implements GroupMappingService {
     }
   }
 
-  /**
-   * Gets a list of groups for the given user.
-   *
-   * @param user user name
-   * @return the list of groups that the user belongs to
-   * @throws IOException if failed to get groups
-   */
-  public List<String> getGroups(String user) throws IOException {
+  @Override
+  public List<String> getGroups(String user) {
     if (!mCacheEnabled) {
       return mService.getGroups(user);
     }
     try {
       return mCache.get(user);
     } catch (ExecutionException e) {
-      throw new IOException(e);
+      throw new UnavailableException(e);
     }
   }
 }

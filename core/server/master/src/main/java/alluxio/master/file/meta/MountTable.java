@@ -12,10 +12,10 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.JournalEntryIterable;
@@ -291,16 +291,16 @@ public final class MountTable implements JournalEntryIterable {
    *
    * @param alluxioUri an Alluxio path URI
    * @throws InvalidPathException if the Alluxio path is invalid
-   * @throws AccessControlException if the Alluxio path is under a readonly mount point
    */
   public void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
-      throws InvalidPathException, AccessControlException {
+      throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(alluxioUri);
       MountInfo mountInfo = mMountTable.get(mountPoint);
       if (mountInfo.getOptions().isReadOnly()) {
-        throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
+        throw new PermissionDeniedException(
+            ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPoint));
       }
     }
   }

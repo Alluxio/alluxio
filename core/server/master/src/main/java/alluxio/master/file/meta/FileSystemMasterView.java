@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.FileSystemMaster;
@@ -60,10 +59,8 @@ public final class FileSystemMasterView {
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission denied
    */
-  public synchronized FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException {
+  public synchronized FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
     return mFileSystemMaster.getFileInfo(fileId);
   }
 
@@ -80,11 +77,9 @@ public final class FileSystemMasterView {
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
-   * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if file does not exist
    */
-  public synchronized long getFileId(AlluxioURI path)
-      throws AccessControlException, FileDoesNotExistException {
+  public synchronized long getFileId(AlluxioURI path) throws FileDoesNotExistException {
     return mFileSystemMaster.getFileId(path);
   }
 
@@ -93,10 +88,9 @@ public final class FileSystemMasterView {
    * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path of the given file is invalid
-   * @throws AccessControlException if permission checking fails
    */
   public synchronized List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException {
     return mFileSystemMaster.getFileBlockInfoList(path);
   }
 

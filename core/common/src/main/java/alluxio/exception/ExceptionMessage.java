@@ -189,7 +189,7 @@ public enum ExceptionMessage {
 
   // security
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
-  AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  FAILED_TO_GET_GROUPS("Failed to get groups for user {0}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
@@ -197,6 +197,7 @@ public enum ExceptionMessage {
       "Invalid mode {0} - contains invalid segment {1} which has invalid permissions {2}"),
   INVALID_MODE_TARGETS(
       "Invalid mode {0} - contains invalid segment {1} which has invalid targets {2}"),
+  NO_CLIENT_USER("Failed to determine client user"),
   PERMISSION_DENIED("Permission denied: {0}"),
   SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 

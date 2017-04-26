@@ -52,7 +52,7 @@ public class OutStreamOptionsTest {
     public FakeUserGroupsMapping() {}
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public List<String> getGroups(String user) {
       return Lists.newArrayList("test_group");
     }
   }

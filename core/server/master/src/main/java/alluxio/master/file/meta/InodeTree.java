@@ -17,13 +17,13 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -920,10 +920,8 @@ public class InodeTree implements JournalEntryIterable {
    * represents the root inode, the tree is "reset", and all state is cleared.
    *
    * @param entry the journal entry representing an inode
-   * @throws AccessControlException when owner of mRoot is not the owner of root journal entry
    */
-  public void addInodeDirectoryFromJournal(InodeDirectoryEntry entry)
-      throws AccessControlException {
+  public void addInodeDirectoryFromJournal(InodeDirectoryEntry entry) {
     InodeDirectory directory = InodeDirectory.fromJournalEntry(entry);
     if (directory.getName().equals(ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.
@@ -933,7 +931,7 @@ public class InodeTree implements JournalEntryIterable {
       if (SecurityUtils.isSecurityEnabled() && mRoot != null && !directory.getOwner().isEmpty()
           && !mRoot.getOwner().equals(directory.getOwner())) {
         // user is not the owner of journal root entry
-        throw new AccessControlException(
+        throw new PermissionDeniedException(
             ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
       }
       mInodes.clear();

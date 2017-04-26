@@ -14,7 +14,6 @@ package alluxio.security.group.provider;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,10 +34,9 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
    *
    * @param user get groups for this user
    * @return list of groups for a given user
-   * @throws IOException when getting the UNIX groups
    */
   @Override
-  public List<String> getGroups(String user) throws IOException {
+  public List<String> getGroups(String user) {
     List<String> groups = CommonUtils.getUnixGroups(user);
     // remove duplicated primary group
     return new ArrayList<>(new LinkedHashSet<>(groups));
