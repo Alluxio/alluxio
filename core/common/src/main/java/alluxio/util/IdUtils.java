@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -30,6 +31,8 @@ public final class IdUtils {
 
   public static final long INVALID_FILE_ID = -1;
   public static final long INVALID_WORKER_ID = -1;
+  private static final AtomicLong SESSION_ID_GEN = new AtomicLong(0);
+  private static final AtomicLong WORKER_ID_GEN = new AtomicLong(0);
   private static SecureRandom sRandom = new SecureRandom();
 
   private IdUtils() {} // prevent instantiation
@@ -74,5 +77,19 @@ public final class IdUtils {
    */
   public static synchronized long getRandomNonNegativeLong() {
     return Math.abs(sRandom.nextLong());
+  }
+
+  /**
+   * @return the unique session id
+   */
+  public static long createSessionId() {
+    return SESSION_ID_GEN.getAndIncrement() & 0x7fffffffffffffffL;
+  }
+
+  /**
+   * @return the unique worker id
+   */
+  public static long createWorkerId() {
+    return WORKER_ID_GEN.getAndIncrement() & 0x7fffffffffffffffL;
   }
 }
