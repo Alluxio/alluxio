@@ -63,7 +63,7 @@ public final class AuthenticatedClientUser {
    *
    * @return the client user's name
    */
-  public static String getClientUser() {
+  public static String getName() {
     User user = get();
     if (user == null) {
       throw new UnauthenticatedException(ExceptionMessage.NO_CLIENT_USER.getMessage());

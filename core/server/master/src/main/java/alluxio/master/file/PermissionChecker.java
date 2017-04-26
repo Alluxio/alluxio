@@ -86,7 +86,7 @@ public final class PermissionChecker {
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getName();
     List<String> groups = CommonUtils.getGroups(user);
 
     // remove the last element if all components of the path exist, since we only check the parent.
@@ -114,7 +114,7 @@ public final class PermissionChecker {
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getName();
     List<String> groups = CommonUtils.getGroups(user);
 
     checkInodeList(user, groups, bits, inodePath.getUri().getPath(), inodeList, false);
@@ -134,7 +134,7 @@ public final class PermissionChecker {
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getName();
     List<String> groups = CommonUtils.getGroups(user);
     return getPermissionInternal(user, groups, inodePath.getUri().getPath(), inodeList);
   }
@@ -175,7 +175,7 @@ public final class PermissionChecker {
     List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getName();
     List<String> groups = CommonUtils.getGroups(user);
 
     if (isPrivilegedUser(user, groups)) {
@@ -190,7 +190,7 @@ public final class PermissionChecker {
    */
   private void checkSuperUser() {
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getName();
     List<String> groups = CommonUtils.getGroups(user);
     if (!isPrivilegedUser(user, groups)) {
       throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED

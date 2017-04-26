@@ -71,7 +71,7 @@ public final class SecurityUtils {
     if (SecurityUtils.isSecurityEnabled()) {
       return "";
     }
-    return AuthenticatedClientUser.getClientUser();
+    return AuthenticatedClientUser.getName();
   }
 
   /**
