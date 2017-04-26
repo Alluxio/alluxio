@@ -36,7 +36,6 @@ final class KeyValueRecordWriter extends RecordWriter<BytesWritable, BytesWritab
    * Constructs a new {@link KeyValueRecordWriter}.
    *
    * @param storeUri the URI for the temporary key-value store to be created by this record writer
-   * @throws IOException when instance creation fails
    */
   public KeyValueRecordWriter(AlluxioURI storeUri) throws IOException {
     try {

@@ -81,7 +81,6 @@ public class FileOutStream extends AbstractOutStream {
    * @param path the file path
    * @param options the client options
    * @param context the file system context
-   * @throws IOException if an I/O error occurs
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
@@ -302,8 +301,6 @@ public class FileOutStream extends AbstractOutStream {
 
   /**
    * Schedules the async persistence of the current file.
-   *
-   * @throws IOException if an I/O error occurs
    */
   protected void scheduleAsyncPersist() throws IOException {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext

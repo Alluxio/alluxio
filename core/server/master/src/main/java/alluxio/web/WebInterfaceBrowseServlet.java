@@ -75,9 +75,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
@@ -129,7 +127,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)

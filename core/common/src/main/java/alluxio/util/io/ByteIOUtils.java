@@ -129,8 +129,6 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v byte value to write
-   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
-   *         thrown if the output stream has been closed.
    */
   public static void writeByte(OutputStream out, byte v) throws IOException {
     out.write(v);
@@ -154,8 +152,6 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v short value to write
-   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
-   *         thrown if the output stream has been closed.
    */
   public static void writeShort(OutputStream out, short v) throws IOException {
     out.write((byte) (0xff & (v >> 8)));
@@ -196,8 +192,6 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v integer value to write
-   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
-   *         thrown if the output stream has been closed.
    */
   public static void writeInt(OutputStream out, int v) throws IOException {
     out.write((byte) (0xff & (v >> 24)));
@@ -230,8 +224,6 @@ public final class ByteIOUtils {
    *
    * @param out output stream
    * @param v long value to write
-   * @throws IOException if an I/O error occurs; in particular, an {@code IOException} may be
-   *         thrown if the output stream has been closed.
    */
   public static void writeLong(OutputStream out, long v) throws IOException {
     out.write((byte) (0xff & (v >> 56)));

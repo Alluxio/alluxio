@@ -269,10 +269,8 @@ public final class KeyValueMaster extends AbstractMaster {
    * Deletes a completed key-value store.
    *
    * @param uri {@link AlluxioURI} to the store
-   * @throws IOException if non-Alluxio error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void deleteStore(AlluxioURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
@@ -314,8 +312,6 @@ public final class KeyValueMaster extends AbstractMaster {
    *
    * @param oldUri the old {@link AlluxioURI} to the store
    * @param newUri the {@link AlluxioURI} to the store
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void renameStore(AlluxioURI oldUri, AlluxioURI newUri)
       throws IOException, AlluxioException {
@@ -351,10 +347,8 @@ public final class KeyValueMaster extends AbstractMaster {
    *
    * @param fromUri the {@link AlluxioURI} to the store to be merged
    * @param toUri the {@link AlluxioURI} to the store to be merged to
-   * @throws IOException if non-Alluxio error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
       throws IOException, FileDoesNotExistException, InvalidPathException, AlluxioException {

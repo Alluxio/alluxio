@@ -15,7 +15,6 @@ import alluxio.QuietlyCloseable;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.GatheringByteChannel;
 
@@ -30,7 +29,6 @@ public interface BlockWriter extends QuietlyCloseable {
    *
    * @param inputBuf {@link ByteBuffer} that input data is stored in
    * @return the size of data that was appended in bytes
-   * @throws IOException if the operation fails
    */
   long append(ByteBuffer inputBuf);
 
@@ -46,7 +44,6 @@ public interface BlockWriter extends QuietlyCloseable {
    * This is only called in the netty data server.
    *
    * @param buf the byte buffer to hold the data
-   * @throws IOException if any I/O errors occur
    */
   void transferFrom(ByteBuf buf);
 

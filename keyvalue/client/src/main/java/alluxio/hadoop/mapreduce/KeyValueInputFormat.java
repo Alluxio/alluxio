@@ -56,7 +56,6 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
    *
    * @param jobContext MapReduce job configuration
    * @return list of {@link InputSplit}s, each split is a partition
-   * @throws IOException if information about the partition cannot be retrieved
    */
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException {

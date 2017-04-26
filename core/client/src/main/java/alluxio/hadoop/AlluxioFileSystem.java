@@ -43,7 +43,6 @@ public class AlluxioFileSystem extends DelegateToFileSystem {
    *
    * @param uri the uri for this Alluxio filesystem
    * @param conf Hadoop configuration
-   * @throws IOException if an I/O error occurs
    * @throws URISyntaxException if <code>uri</code> has syntax error
    */
   AlluxioFileSystem(final URI uri, final Configuration conf)

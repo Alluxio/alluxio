@@ -50,7 +50,6 @@ public final class AuthenticatedClientUser {
    * Gets the {@link User} from the {@link ThreadLocal} variable.
    *
    * @return the client user, null if the user is not present
-   * @throws IOException if authentication is not enabled
    */
   // TODO(peis): Fail early if the user is not able to be set to avoid returning null.
   public static User get() throws IOException {

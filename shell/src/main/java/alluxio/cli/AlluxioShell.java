@@ -50,7 +50,6 @@ public final class AlluxioShell implements Closeable {
    * Main method, starts a new AlluxioShell.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
-   * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
     int ret;

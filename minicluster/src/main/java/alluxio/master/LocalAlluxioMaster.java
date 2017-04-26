@@ -65,7 +65,6 @@ public final class LocalAlluxioMaster {
   /**
    * Creates a new local Alluxio master with an isolated work directory and port.
    *
-   * @throws IOException when unable to do file operation or listen on port
    * @return an instance of Alluxio master
    */
   public static LocalAlluxioMaster create() throws IOException {
@@ -83,7 +82,6 @@ public final class LocalAlluxioMaster {
    *
    * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
    * @return the created Alluxio master
-   * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
     UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
@@ -146,8 +144,6 @@ public final class LocalAlluxioMaster {
 
   /**
    * Stops the master and cleans up client connections.
-   *
-   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     clearClients();
@@ -167,8 +163,6 @@ public final class LocalAlluxioMaster {
 
   /**
    * Clears all the clients.
-   *
-   * @throws IOException if the client pool cannot be closed
    */
   public void clearClients() throws IOException {
     mClientPool.close();
@@ -206,7 +200,6 @@ public final class LocalAlluxioMaster {
 
   /**
    * @return the client from the pool
-   * @throws IOException if the client cannot be retrieved
    */
   public FileSystem getClient() throws IOException {
     return mClientPool.getClient();

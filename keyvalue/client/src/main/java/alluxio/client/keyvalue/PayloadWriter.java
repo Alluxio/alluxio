@@ -25,7 +25,6 @@ public interface PayloadWriter {
    * @param key bytes of key
    * @param value bytes of value
    * @return the offset of this key-value pair in payload buffer
-   * @throws IOException if error occurs writing the key and value to payload buffer
    */
   int insert(byte[] key, byte[] value) throws IOException;
 }

@@ -45,7 +45,6 @@ public class SwiftDirectClient {
    *
    * @param access JOSS access object
    * @param objectName name of the object to create
-   * @throws IOException if an I/O error occurs
    * @return SwiftOutputStream that will be used to upload data to Swift
    */
   public static SwiftOutputStream put(Access access, String objectName) throws IOException {

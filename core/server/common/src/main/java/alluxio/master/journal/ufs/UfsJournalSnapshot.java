@@ -81,7 +81,6 @@ final class UfsJournalSnapshot {
    * Creates a snapshot of the journal.
    *
    * @return the journal snapshot
-   * @throws IOException if any I/O errors occur
    */
   static UfsJournalSnapshot getSnapshot(UfsJournal journal) throws IOException {
     // Checkpoints.
@@ -124,7 +123,6 @@ final class UfsJournalSnapshot {
    * Gets the current log (the incomplete log) that is being written to.
    *
    * @return the current log
-   * @throws IOException if any I/O errors occur
    */
   static UfsJournalFile getCurrentLog(UfsJournal journal) throws IOException {
     List<UfsJournalFile> logs = new ArrayList<>();
@@ -150,7 +148,6 @@ final class UfsJournalSnapshot {
    * Gets the first journal log sequence number that is not yet checkpointed.
    *
    * @return the first journal log sequence number that is not yet checkpointed
-   * @throws IOException if any I/O errors occur
    */
   static long getNextLogSequenceNumberToCheckpoint(UfsJournal journal) throws IOException {
     List<UfsJournalFile> checkpoints = new ArrayList<>();

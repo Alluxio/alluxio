@@ -142,7 +142,6 @@ public abstract class DataServerReadHandlerTest {
    * @param length the length of the file
    * @param start the start position to compute the checksum
    * @param end the last position to compute the checksum
-   * @throws Exception if it fails to populate the input file
    * @return the checksum
    */
   protected long populateInputFile(long length, long start, long end) throws Exception {
@@ -256,7 +255,6 @@ public abstract class DataServerReadHandlerTest {
    * Mocks the reader (block reader or UFS file reader).
    *
    * @param start the start pos of the reader
-   * @throws Exception if it fails to mock the reader
    */
   protected abstract void mockReader(long start) throws Exception;
 }

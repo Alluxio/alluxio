@@ -489,7 +489,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @return a list of paths in Alluxio which are not consistent with the under storage
    * @throws InterruptedException if the thread is interrupted during execution
-   * @throws IOException if an error occurs interacting with the under storage
    */
   private List<AlluxioURI> startupCheckConsistency(final ExecutorService service)
       throws InterruptedException, IOException {
@@ -520,7 +519,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
        * READ locked only during the consistency check of the children files.
        *
        * @return a list of inconsistent uris
-       * @throws IOException if an error occurs interacting with the under storage
        */
       @Override
       public List<AlluxioURI> call() throws IOException {
@@ -955,7 +953,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws IOException if the creation fails
    */
   private void createFileAndJournal(LockedInodePath inodePath, CreateFileOptions options,
       JournalContext journalContext)
@@ -972,7 +969,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if invalid block information is encountered
-   * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
@@ -1074,7 +1070,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   private void deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
@@ -1108,7 +1103,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param deleteOptions the method optitions
    * @param journalContext the journal context
    * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws IOException if an I/O error is encountered
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
@@ -1409,11 +1403,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
-   * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
-   *         for more details
+   * @throws InvalidPathException when the path is invalid
    * @throws AccessControlException if permission checking fails
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   private void createDirectoryAndJournal(LockedInodePath inodePath, CreateDirectoryOptions options,
       JournalContext journalContext)
@@ -1431,11 +1422,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
-   * @throws InvalidPathException when the path is invalid, please see documentation on {@link
-   *         InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
-   *         for more details
+   * @throws InvalidPathException when the path is invalid
    * @throws FileAlreadyExistsException when there is already a file at path
-   * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
    */
   private InodeTree.CreatePathResult createDirectoryInternal(LockedInodePath inodePath,
@@ -1495,7 +1483,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws FileAlreadyExistsException if the file already exists
-   * @throws IOException if an I/O error occurs
    */
   private void renameAndJournal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
       RenameOptions options, JournalContext journalContext)
@@ -1575,7 +1562,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws IOException if an I/O error is encountered
    */
   private void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
       boolean replayed, RenameOptions options, JournalContext journalContext)
@@ -1935,7 +1921,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws AccessControlException if permission checking fails
-   * @throws IOException if an I/O error occurs
    */
   private void loadMetadataAndJournal(LockedInodePath inodePath, LoadMetadataOptions options,
       JournalContext journalContext)
@@ -2000,7 +1985,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws AccessControlException if permission checking fails or permission setting fails
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws IOException if an I/O error occurs
    */
   private void loadFileMetadataAndJournal(LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataOptions options, JournalContext journalContext)
@@ -2047,7 +2031,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param options the load metadata options
    * @param journalContext the journal context
    * @throws InvalidPathException if invalid path is encountered
-   * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
@@ -2143,7 +2126,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the path to be mounted to already exists
    * @throws FileDoesNotExistException if the parent of the path to be mounted to does not exist
-   * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
   private void mountAndJournal(LockedInodePath inodePath, AlluxioURI ufsPath, MountOptions options,
@@ -2190,7 +2172,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param entry the entry to use
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws IOException if an I/O exception occurs
    */
   private void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
@@ -2212,7 +2193,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param options the mount options (may be updated)
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws IOException if an I/O exception occurs
    */
   private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, boolean replayed,
       MountOptions options) throws FileAlreadyExistsException, InvalidPathException, IOException {
@@ -2268,7 +2248,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @throws InvalidPathException if the given path is not a mount point
    * @throws FileDoesNotExistException if the path to be mounted does not exist
-   * @throws IOException if an I/O error occurs
    */
   private void unmountAndJournal(LockedInodePath inodePath, JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, IOException {
@@ -2440,7 +2419,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param inodePath the {@link LockedInodePath} of the file for persistence
    * @param journalContext the journal context
-   * @throws AlluxioException if scheduling fails
    */
   private void scheduleAsyncPersistenceAndJournal(LockedInodePath inodePath,
       JournalContext journalContext) throws AlluxioException {
@@ -2456,7 +2434,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * @param inodePath the {@link LockedInodePath} of the file to persist
-   * @throws AlluxioException if scheduling fails
    */
   private void scheduleAsyncPersistenceInternal(LockedInodePath inodePath) throws AlluxioException {
     inodePath.getInode().setPersistenceState(PersistenceState.TO_BE_PERSISTED);

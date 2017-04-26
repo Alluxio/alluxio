@@ -46,7 +46,6 @@ public final class ObjectUnderFileInputStream extends InputStream implements See
    * @param ufs Object UFS for input stream
    * @param key key in the underlying object store
    * @param options to open to stream
-   * @throws IOException when a non-Alluxio error occurs
    */
   public ObjectUnderFileInputStream(ObjectUnderFileSystem ufs, String key, OpenOptions options)
       throws IOException {
@@ -100,7 +99,6 @@ public final class ObjectUnderFileInputStream extends InputStream implements See
    * Open a new stream.
    *
    * @param options for opening a stream
-   * @throws IOException if a non-Alluxio error occurs
    */
   private void openStream(OpenOptions options) throws IOException {
     if (mStream != null) {
