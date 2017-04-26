@@ -43,7 +43,7 @@ public final class DefaultUfsManager implements UfsManager {
   }
 
   @Override
-  public UnderFileSystem getUfsByMountId(long mountId) throws IOException {
+  public UnderFileSystem get(long mountId) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(mountId);
     if (ufs == null) {
       UfsInfo info;

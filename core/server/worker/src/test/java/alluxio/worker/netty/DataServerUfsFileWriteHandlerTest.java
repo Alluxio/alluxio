@@ -50,7 +50,7 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    Mockito.when(ufsManager.getUfsByMountId(Mockito.anyLong())).thenReturn(mockUfs);
+    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(mockUfs);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class))).thenReturn(
         mOutputStream);
 

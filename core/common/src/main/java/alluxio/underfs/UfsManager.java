@@ -26,5 +26,5 @@ public interface UfsManager extends Closeable {
    * @return the configuration of the UFS
    * @throws IOException if the file persistence fails
    */
-  UnderFileSystem getUfsByMountId(long mountId) throws IOException;
+  UnderFileSystem get(long mountId) throws IOException;
 }

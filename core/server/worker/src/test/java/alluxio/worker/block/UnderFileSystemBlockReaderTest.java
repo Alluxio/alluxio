@@ -68,7 +68,7 @@ public final class UnderFileSystemBlockReaderTest {
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(BlockStoreLocation.class),
             Mockito.anyLong())).thenReturn(mTempBlockMeta);
     Mockito.when(mTempBlockMeta.getPath()).thenReturn(mFolder.newFile().getAbsolutePath());
-    Mockito.when(mUfsManager.getUfsByMountId(Mockito.anyLong()))
+    Mockito.when(mUfsManager.get(Mockito.anyLong()))
         .thenReturn(UnderFileSystem.Factory.get(testFilePath, null));
 
     LockBlockTOptions options = new LockBlockTOptions();
