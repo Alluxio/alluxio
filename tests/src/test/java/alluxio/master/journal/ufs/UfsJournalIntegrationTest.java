@@ -129,7 +129,7 @@ public class UfsJournalIntegrationTest {
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
 
-    UnderFileStatus[] paths = UnderFileSystem.Factory.getForJournal(journalFolder)
+    UnderFileStatus[] paths = UnderFileSystem.Factory.get(journalFolder)
         .listStatus(journal.getLogDir().toString());
     int expectedSize = paths == null ? 0 : paths.length;
 
@@ -140,7 +140,7 @@ public class UfsJournalIntegrationTest {
       writer.flush();
       writer.flush();
     }
-    paths = UnderFileSystem.Factory.getForJournal(journalFolder)
+    paths = UnderFileSystem.Factory.get(journalFolder)
         .listStatus(journal.getLogDir().toString());
     int actualSize = paths == null ? 0 : paths.length;
     // No new files are created.
@@ -192,10 +192,10 @@ public class UfsJournalIntegrationTest {
         Constants.FILE_SYSTEM_MASTER_NAME);
     UfsJournal journal = new UfsJournal(new URI(journalFolder));
     URI completedLocation = journal.getLogDir();
-    Assert.assertTrue(UnderFileSystem.Factory.getForJournal(completedLocation)
+    Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation)
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.Factory.getForJournal(completedLocation)
+    Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation)
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }
@@ -612,7 +612,7 @@ public class UfsJournalIntegrationTest {
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
-      UnderFileSystem.Factory.getForJournal(journalFolder)
+      UnderFileSystem.Factory.get(journalFolder)
           .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());
     }
   }

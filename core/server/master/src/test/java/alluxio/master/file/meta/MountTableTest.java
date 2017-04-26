@@ -212,7 +212,7 @@ public final class MountTableTest {
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
     mMountTable
-        .add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), IdUtils.INVALID_UFS_ID,
+        .add(alluxioUri, new AlluxioURI("hdfs://localhost:5678/foo"), IdUtils.INVALID_MOUNT_ID,
             MountOptions.defaults());
 
     try {

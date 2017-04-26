@@ -2234,9 +2234,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI alluxioPath = inodePath.getUri();
 
     if (!replayed) {
-      // Check that the ufsPath exists and is a directory
+      // Ensure the UFS is added into factory with mountId
       UnderFileSystem ufs =
-          UnderFileSystem.Factory.get(ufsPath.toString(), options.getProperties());
+          UnderFileSystem.Factory.get(ufsPath.toString(), options.getProperties(), mountId);
+      // Check that the ufsPath exists and is a directory
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));

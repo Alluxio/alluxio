@@ -20,6 +20,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -61,6 +62,11 @@ public interface UnderFileSystem extends Closeable {
        */
       private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
           new ConcurrentHashMap<>();
+      /**
+       * Maps from mount id to {@link UnderFileSystem} instances.
+       */
+      private final ConcurrentHashMap<Long, UnderFileSystem> mIdToUnderFileSystemMap =
+          new ConcurrentHashMap<>();
 
       private Cache() {}
 
@@ -68,19 +74,26 @@ public interface UnderFileSystem extends Closeable {
        * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
        * that to the cache.
        *
-       * @param path the ufs path
-       * @param ufsConf the ufs configuration
+       * @param path the UFS path
+       * @param ufsConf the UFS configuration
+       * @param mountId the mount id, IdUtils.INVALID_MOUNT_ID if there is no mount associated
        * @return the UFS instance
        */
-      UnderFileSystem get(String path, Map<String, String> ufsConf) {
+      UnderFileSystem getOrAdd(String path, Map<String, String> ufsConf, long mountId) {
         Key key = new Key(new AlluxioURI(path), ufsConf);
         UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
         if (cachedFs != null) {
+          if (mountId != IdUtils.INVALID_MOUNT_ID) {
+            mIdToUnderFileSystemMap.put(mountId, cachedFs);
+          }
           return cachedFs;
         }
         UnderFileSystem fs = UnderFileSystemRegistry.create(path, ufsConf);
         cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
         if (cachedFs == null) {
+          if (mountId != IdUtils.INVALID_MOUNT_ID) {
+            mIdToUnderFileSystemMap.put(mountId, fs);
+          }
           return fs;
         }
         try {
@@ -88,7 +101,20 @@ public interface UnderFileSystem extends Closeable {
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
+        if (mountId != IdUtils.INVALID_MOUNT_ID) {
+          mIdToUnderFileSystemMap.put(mountId, cachedFs);
+        }
         return cachedFs;
+      }
+
+      /**
+       * Gets a UFS instance from the cache if exists. Otherwise, returns null.
+       *
+       * @param mountId the mount id
+       * @return the UFS instance
+       */
+      UnderFileSystem get(long mountId) {
+        return mIdToUnderFileSystemMap.get(mountId);
       }
 
       void clear() {
@@ -135,8 +161,8 @@ public interface UnderFileSystem extends Closeable {
       public String toString() {
         return Objects.toStringHelper(this)
             .add("authority", mAuthority)
-            .add("property", mProperties)
             .add("scheme", mScheme)
+            .add("property", mProperties)
             .toString();
       }
     }
@@ -149,27 +175,50 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
-     * Gets the {@link UnderFileSystem} instance according to its schema without specific ufs conf.
+     * Gets the {@link UnderFileSystem} instance according to its UFS path. This method should only
+     * be used for journal operations and tests.
      *
      * @param path the file path storing over the ufs
      * @return instance of the under layer file system
      */
-    // TODO(binfan): Remove this method, currently it is only used in tests
     public static UnderFileSystem get(String path) {
-      return get(path, null);
+      return UFS_CACHE.getOrAdd(path, null, IdUtils.INVALID_MOUNT_ID);
+    }
+
+    /**
+     * Gets the {@link UnderFileSystem} instance according to its UFS path. This method should only
+     * be used for journal operations and tests.
+     *
+     * @param path journal path in ufs
+     * @return the instance of under file system for Alluxio journal directory
+     */
+    public static UnderFileSystem get(URI path) {
+      return UFS_CACHE.getOrAdd(path.toString(), null, IdUtils.INVALID_MOUNT_ID);
+    }
+
+    /**
+     * Gets the {@link UnderFileSystem} instance according to its scheme and configuration. This
+     * method should only be used when a new mount is added or detected.
+     *
+     * @param path the path of mount point
+     * @param ufsConf the configuration object for ufs only
+     * @param mountId the id of mount point
+     * @return instance of the under layer file system
+     */
+    public static UnderFileSystem get(String path, Map<String, String> ufsConf, long mountId) {
+      Preconditions.checkArgument(path != null, "path");
+
+      return UFS_CACHE.getOrAdd(path, ufsConf, mountId);
     }
 
     /**
      * Gets the {@link UnderFileSystem} instance according to its scheme and configuration.
      *
-     * @param path the path of mount point
-     * @param ufsConf the configuration object for ufs only
+     * @param mountId the id of mount point
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem get(String path, Map<String, String> ufsConf) {
-      Preconditions.checkArgument(path != null, "path may not be null");
-
-      return UFS_CACHE.get(path, ufsConf);
+    public static UnderFileSystem get(long mountId) {
+      return UFS_CACHE.get(mountId);
     }
 
     /**
@@ -179,23 +228,7 @@ public interface UnderFileSystem extends Closeable {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return get(ufsRoot, ufsConf);
-    }
-
-    /**
-     * @param path journal path in ufs
-     * @return the instance of under file system for Alluxio journal directory
-     */
-    public static UnderFileSystem getForJournal(URI path) {
-      return getForJournal(path.toString());
-    }
-
-    /**
-     * @param path journal path in ufs
-     * @return the instance of under file system for Alluxio journal directory
-     */
-    public static UnderFileSystem getForJournal(String path) {
-      return get(path, null);
+      return get(ufsRoot, ufsConf, IdUtils.INVALID_MOUNT_ID);
     }
   }
 
@@ -243,7 +276,7 @@ public interface UnderFileSystem extends Closeable {
   void close() throws IOException;
 
   /**
-   * Configures and updates the properties. For instance, this method can add new properties or
+   * Configures and updates the properties. For instance, this method can getOrAdd new properties or
    * modify existing properties specified through {@link #setProperties(Map)}.
    *
    * The default implementation is a no-op. This should be overridden if a subclass needs

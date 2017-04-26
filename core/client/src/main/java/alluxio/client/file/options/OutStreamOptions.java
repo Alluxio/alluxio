@@ -72,7 +72,7 @@ public final class OutStreamOptions {
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
-    mMountId = IdUtils.INVALID_UFS_ID;
+    mMountId = IdUtils.INVALID_MOUNT_ID;
   }
 
   /**

@@ -278,8 +278,7 @@ public final class MountTable implements JournalEntryIterable {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
         // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.Factory
-            .get(ufsUri.toString(), info.getOptions().getProperties());
+        UnderFileSystem ufs = UnderFileSystem.Factory.get(info.getMountId());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
       }

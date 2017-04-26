@@ -21,10 +21,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.concurrent.GuardedBy;
 
 /**
  * The default implementation of UfsManager to manage the ufs used by different worker services.
@@ -33,10 +29,6 @@ public final class DefaultUfsManager implements UfsManager {
 
   private final Object mLock = new Object();
 
-  /** Map from Alluxio mount point to the corresponding ufs configuration. */
-  @GuardedBy("mLock")
-  private final Map<Long, UnderFileSystem> mUfsMap;
-
   private final FileSystemMasterClient mMasterClient;
   private final Closer mCloser;
 
@@ -44,29 +36,26 @@ public final class DefaultUfsManager implements UfsManager {
    * Constructs an instance of {@link DefaultUfsManager}.
    */
   public DefaultUfsManager() {
-    mUfsMap = new HashMap<>();
-    mCloser =  Closer.create();
+    mCloser = Closer.create();
     mMasterClient = mCloser.register(new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC)));
   }
 
   @Override
   public UnderFileSystem getUfsByMountId(long mountId) throws IOException {
-    synchronized (mLock) {
-      if (!mUfsMap.containsKey(mountId)) {
-        UfsInfo info;
-        try {
-          info = mMasterClient.getUfsInfo(mountId);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
-        Preconditions.checkState((info.isSetUri() && info.isSetProperties()));
-        UnderFileSystem ufs = UnderFileSystem.Factory.get(info.getUri(), info.getProperties());
-        mUfsMap.put(mountId, ufs);
-        mCloser.register(ufs);
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mountId);
+    if (ufs == null) {
+      UfsInfo info;
+      try {
+        info = mMasterClient.getUfsInfo(mountId);
+      } catch (AlluxioException e) {
+        throw new IOException(e);
       }
-      return mUfsMap.get(mountId);
+      Preconditions.checkState((info.isSetUri() && info.isSetProperties()));
+      ufs = UnderFileSystem.Factory.get(info.getUri(), info.getProperties(), mountId);
+      mCloser.register(ufs);
     }
+    return ufs;
   }
 
   @Override
