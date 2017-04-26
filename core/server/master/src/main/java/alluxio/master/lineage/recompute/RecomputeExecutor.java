@@ -112,7 +112,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
               LOG.error("the lost file {} does not exist", fileId, e);
             } catch (InvalidPathException e) {
               LOG.error("the lost file {} is invalid", fileId, e);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
               LOG.error("failed to reset {}", fileId, e);
             }
           }

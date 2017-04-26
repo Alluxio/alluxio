@@ -14,6 +14,7 @@ package alluxio.util;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
+import alluxio.util.ShellUtils.ExitCodeException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
@@ -210,10 +211,12 @@ public final class CommonUtils {
     List<String> groups = new ArrayList<>();
     try {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
-    } catch (IOException e) {
+    } catch (ExitCodeException e) {
       // if we didn't get the group - just return empty list
       LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
       return groups;
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
     }
 
     StringTokenizer tokenizer = new StringTokenizer(result, ShellUtils.TOKEN_SEPARATOR_REGEX);

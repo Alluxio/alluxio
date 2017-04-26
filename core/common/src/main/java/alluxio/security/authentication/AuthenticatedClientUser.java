@@ -45,7 +45,8 @@ public final class AuthenticatedClientUser {
   }
 
   /**
-   * Gets the {@link User} from the {@link ThreadLocal} variable.
+   * Gets the {@link User} from the {@link ThreadLocal} variable. An exception will be thrown if
+   * authentication is disabled.
    *
    * @return the client user, or null if no client user is set
    */
@@ -58,7 +59,7 @@ public final class AuthenticatedClientUser {
 
   /**
    * Gets the user name from the {@link ThreadLocal} variable. An exception will be thrown if no
-   * client user has been set.
+   * client user has been set, or authentication is disabled.
    *
    * @return the client user's name
    */

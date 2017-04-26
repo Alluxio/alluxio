@@ -13,6 +13,7 @@ package alluxio.security.group;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -25,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -119,8 +119,7 @@ public class CachedGroupMapping implements GroupMappingService {
     try {
       return mCache.get(user);
     } catch (ExecutionException e) {
-      LOG.warn("Failed to get groups for user {}: {}", user, e.getMessage());
-      return new ArrayList<>();
+      throw new UnavailableException(e);
     }
   }
 }

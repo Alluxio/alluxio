@@ -170,8 +170,7 @@ public final class PermissionChecker {
    * @param inodePath path to be checked on
    * @throws InvalidPathException if the path is invalid
    */
-  private void checkOwner(LockedInodePath inodePath)
-      throws InvalidPathException {
+  private void checkOwner(LockedInodePath inodePath) throws InvalidPathException {
     // collects inodes info on the path
     List<Inode<?>> inodeList = inodePath.getInodeList();
 

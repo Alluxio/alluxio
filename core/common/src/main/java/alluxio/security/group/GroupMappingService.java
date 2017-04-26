@@ -19,7 +19,6 @@ import alluxio.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -77,7 +76,6 @@ public interface GroupMappingService {
    *
    * @param user user's name
    * @return group memberships of user
-   * @throws IOException if can't get user's groups
    */
   List<String> getGroups(String user);
 }

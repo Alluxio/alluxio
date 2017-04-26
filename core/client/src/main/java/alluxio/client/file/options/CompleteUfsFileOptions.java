@@ -18,8 +18,6 @@ import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -37,20 +35,14 @@ public final class CompleteUfsFileOptions {
    * default file mode.
    *
    * @return the default {@link CompleteUfsFileOptions}
-   * @throws IOException if failed to set owner from login module
    */
-  public static CompleteUfsFileOptions defaults() throws IOException {
+  public static CompleteUfsFileOptions defaults() {
     return new CompleteUfsFileOptions();
   }
 
-  private CompleteUfsFileOptions() throws IOException {
-    if (SecurityUtils.isSecurityEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromLoginModule();
-      mGroup = SecurityUtils.getGroupFromLoginModule();
-    } else {
-      mOwner = "";
-      mGroup = "";
-    }
+  private CompleteUfsFileOptions() {
+    mOwner = SecurityUtils.getOwnerFromLoginModule();
+    mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
