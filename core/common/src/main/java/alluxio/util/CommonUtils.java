@@ -200,8 +200,8 @@ public final class CommonUtils {
   /**
    * Gets the current user's group list from Unix by running the command 'groups'.
    *
-   * If a user's groups can't be determined for any reason, this method returns an empty list. This
-   * method may return duplicate groups.
+   * This method returns an empty list if the user does not exist. This method may return duplicate
+   * groups.
    *
    * @param user user name
    * @return the groups list that the {@code user} belongs to. The primary group is returned first

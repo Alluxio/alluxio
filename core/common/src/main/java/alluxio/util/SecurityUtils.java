@@ -13,7 +13,6 @@ package alluxio.util;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -56,15 +55,10 @@ public final class SecurityUtils {
   }
 
   /**
-   * @return the owner fetched from the login module, or empty string if the fetch fails or
-   *         authentication is disabled
+   * @return the owner fetched from the login module
    */
   public static String getOwnerFromLoginModule() {
-    try {
-      return LoginUser.get().getName();
-    } catch (UnauthenticatedException | UnsupportedOperationException e) {
-      return "";
-    }
+    return LoginUser.get().getName();
   }
 
   /**

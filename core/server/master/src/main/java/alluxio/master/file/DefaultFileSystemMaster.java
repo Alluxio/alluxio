@@ -438,8 +438,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Only initialize root when isPrimary because when initializing root, BlockMaster needs to
       // write journal entry, if it is not primary, BlockMaster won't have a writable journal.
       // If it is secondary, it should be able to load the inode tree from primary's checkpoint.
-      mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
-          SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
+      String owner = "";
+      String group = "";
+      if (SecurityUtils.isSecurityEnabled()) {
+        owner = SecurityUtils.getOwnerFromLoginModule();
+        group = SecurityUtils.getGroupFromLoginModule();
+      }
+      mInodeTree.initializeRoot(owner, group, Mode.createFullAccess().applyDirectoryUMask());
       String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
