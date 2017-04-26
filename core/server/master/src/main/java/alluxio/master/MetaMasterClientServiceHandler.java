@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -51,10 +50,9 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<MasterInfo>() {
       @Override
       public MasterInfo call() throws AlluxioException {
-        Set<MasterInfoField> fieldsToQuery =
-            fields != null ? fields : new HashSet<>(Arrays.asList(MasterInfoField.values()));
         MasterInfo info = new alluxio.thrift.MasterInfo();
-        for (MasterInfoField field : fieldsToQuery) {
+        for (MasterInfoField field : fields != null ? fields
+            : Arrays.asList(MasterInfoField.values())) {
           switch (field) {
             case WEB_PORT:
               info.setWebPort(mMasterProcess.getWebAddress().getPort());
