@@ -25,7 +25,7 @@
   <modules>
     <module>hdfs</module>
     <module>native</module>
-    <module>uber</module>
+    <module>runtime</module>
   </modules>
 
   <properties>
