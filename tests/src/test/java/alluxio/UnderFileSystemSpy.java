@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * {@link SpyLocalUnderFileSystem} replaces an {@link UnderFileSystem} in the under file system
@@ -48,7 +49,7 @@ public final class UnderFileSystemSpy implements Closeable {
     mUfsSpy = Mockito.spy(ufs);
     mFactory = new UnderFileSystemFactory() {
       @Override
-      public UnderFileSystem create(String path, Object ufsConf) {
+      public UnderFileSystem create(String path, Map<String, String> ufsConf) {
         return mUfsSpy;
       }
 

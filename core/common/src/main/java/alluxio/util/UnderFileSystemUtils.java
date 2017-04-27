@@ -12,7 +12,9 @@
 package alluxio.util;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -21,6 +23,7 @@ import com.google.common.base.Throwables;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -155,6 +158,37 @@ public final class UnderFileSystemUtils {
    */
   public static boolean isSwift(UnderFileSystem ufs) {
     return "swift".equals(ufs.getUnderFSType());
+  }
+
+  // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
+  /**
+   * Gets the value of the given key in the given UFS configuration or the global configuration
+   * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
+   * key is not found in both configurations.
+   *
+   * @param key property key
+   * @param ufsConf configuration for the UFS
+   * @return the value associated with the given key
+   */
+  public static String getValue(PropertyKey key, Map<String, String> ufsConf) {
+    if (ufsConf != null && ufsConf.containsKey(key.toString())) {
+      return ufsConf.get(key.toString());
+    }
+    if (Configuration.containsKey(key)) {
+      return Configuration.get(key);
+    }
+    throw new RuntimeException("key " + key + " not found");
+  }
+
+  // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
+  /**
+   * @param key property key
+   * @param ufsConf configuration for the UFS
+   * @return true if the key is contained in the given UFS configuration or global configuration
+   */
+  public static boolean containsKey(PropertyKey key, Map<String, String> ufsConf) {
+    return (ufsConf != null && ufsConf.containsKey(key.toString())) || Configuration
+        .containsKey(key);
   }
 
   /**

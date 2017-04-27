@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -40,12 +41,12 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   public SwiftUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object unusedConf) {
+  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
     Preconditions.checkNotNull(path);
 
     if (addAndCheckSwiftCredentials()) {
       try {
-        return new SwiftUnderFileSystem(new AlluxioURI(path));
+        return new SwiftUnderFileSystem(new AlluxioURI(path), ufsConf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

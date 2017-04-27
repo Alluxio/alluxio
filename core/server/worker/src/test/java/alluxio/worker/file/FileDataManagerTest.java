@@ -41,6 +41,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -53,6 +54,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tests {@link FileDataManager}.
@@ -83,7 +85,7 @@ public final class FileDataManagerTest {
 
     mUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
     Mockito.when(mUfsFactory.supportsPath(Mockito.anyString())).thenReturn(true);
-    Mockito.when(mUfsFactory.create(Mockito.anyString(), Mockito.anyObject()))
+    Mockito.when(mUfsFactory.create(Mockito.anyString(), Matchers.<Map<String, String>>any()))
       .thenReturn(mUfs);
     UnderFileSystemRegistry.register(mUfsFactory);
   }

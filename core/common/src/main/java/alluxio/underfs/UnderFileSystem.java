@@ -68,7 +68,7 @@ public interface UnderFileSystem {
        * @param ufsConf the ufs configuration
        * @return the UFS instance
        */
-      UnderFileSystem get(String path, Object ufsConf) {
+      UnderFileSystem get(String path, Map<String, String> ufsConf) {
         Key key = new Key(new AlluxioURI(path));
         UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
         if (cachedFs != null) {
@@ -154,7 +154,7 @@ public interface UnderFileSystem {
      * @param ufsConf the configuration object for ufs only
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem get(String path, Object ufsConf) {
+    public static UnderFileSystem get(String path, Map<String, String> ufsConf) {
       Preconditions.checkArgument(path != null, "path may not be null");
 
       return UFS_CACHE.get(path, ufsConf);

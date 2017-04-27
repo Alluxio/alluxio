@@ -19,6 +19,8 @@ import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Map;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -34,9 +36,9 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
   public HdfsUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object conf) {
+  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
     Preconditions.checkNotNull(path);
-    return new HdfsUnderFileSystem(new AlluxioURI(path), conf);
+    return HdfsUnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
   }
 
   @Override
