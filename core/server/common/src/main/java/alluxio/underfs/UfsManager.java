@@ -82,6 +82,9 @@ public class UfsManager implements Closeable {
   private UnderFileSystem mRootUfs = null;
   protected final Closer mCloser;
 
+  /**
+   * Constructs the instance.
+   */
   public UfsManager() {
     mCloser = Closer.create();
   }

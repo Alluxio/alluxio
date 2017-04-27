@@ -17,7 +17,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
-import alluxio.worker.WorkerUfsManager;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;

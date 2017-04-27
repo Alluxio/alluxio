@@ -24,7 +24,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
-import alluxio.worker.WorkerUfsManager;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -82,7 +81,6 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
-
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler();
   }

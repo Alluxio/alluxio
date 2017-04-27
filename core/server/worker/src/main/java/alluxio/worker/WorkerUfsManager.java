@@ -27,8 +27,6 @@ import java.io.IOException;
  */
 public final class WorkerUfsManager extends UfsManager {
 
-  private final Object mLock = new Object();
-
   private final FileSystemMasterClient mMasterClient;
 
   /**

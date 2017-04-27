@@ -25,9 +25,9 @@ import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.thrift.LockBlockTOptions;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerUfsManager;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -73,7 +73,7 @@ public class BlockWorkerTest {
   private Random mRandom;
   private Sessions mSessions;
   private BlockWorker mBlockWorker;
-  private WorkerUfsManager mUfsManager;
+  private UfsManager mUfsManager;
 
   /**
    * Sets up all dependencies before a test runs.
@@ -85,7 +85,7 @@ public class BlockWorkerTest {
     mBlockStore = PowerMockito.mock(BlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
-    mUfsManager = Mockito.mock(WorkerUfsManager.class);
+    mUfsManager = Mockito.mock(UfsManager.class);
 
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2");
 
