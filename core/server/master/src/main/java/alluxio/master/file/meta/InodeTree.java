@@ -481,7 +481,6 @@ public class InodeTree implements JournalEntryIterable {
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
-   * @throws IOException if creating the path fails
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
@@ -984,7 +983,6 @@ public class InodeTree implements JournalEntryIterable {
    *
    * @param dir the {@link InodeDirectory} to persist
    * @param journalContext the journal context
-   * @throws IOException if the file fails to persist
    * @throws InvalidPathException if the path for the inode is invalid
    * @throws FileDoesNotExistException if the path for the inode is invalid
    */

@@ -34,8 +34,6 @@ final class MasterUtils {
 
   /**
    * Checks whether the journal has been formatted.
-   *
-   * @throws IOException if the journal has not been formatted
    */
   public static void checkJournalFormatted() throws IOException {
     Journal.Factory factory = new Journal.Factory(getJournalLocation());

@@ -207,7 +207,6 @@ public final class AlluxioFrameworkIntegrationTest {
 
   /**
    * @param args arguments
-   * @throws Exception if an exception occurs
    */
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();

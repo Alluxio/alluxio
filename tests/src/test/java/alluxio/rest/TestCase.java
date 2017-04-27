@@ -96,7 +96,6 @@ public final class TestCase {
 
   /**
    * @return The URL which is created
-   * @throws Exception
    */
   public URL createURL() throws Exception {
     StringBuilder sb = new StringBuilder();
@@ -111,7 +110,6 @@ public final class TestCase {
   /**
    * @param connection the HttpURLConnection
    * @return the String from the InputStream of HttpURLConnection
-   * @throws Exception
    */
   public String getResponse(HttpURLConnection connection) throws Exception {
     StringBuilder sb = new StringBuilder();

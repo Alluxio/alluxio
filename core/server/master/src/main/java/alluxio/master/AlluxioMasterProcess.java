@@ -322,8 +322,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   /**
    * Stops serving, trying stop RPC server and web ui server and letting {@link MetricsSystem} stop
    * all the sinks.
-   *
-   * @throws Exception if the underlying jetty server throws an exception
    */
   protected void stopServing() throws Exception {
     if (mThriftServer != null) {

@@ -24,21 +24,16 @@ public interface JournalOutputStream extends AutoCloseable {
    * Writes a {@link JournalEntry} to the journal.
    *
    * @param entry the entry to write to the journal
-   * @throws IOException if an I/O error occurs
    */
   void write(JournalEntry entry) throws IOException;
 
   /**
    * Closes the stream.
-   *
-   * @throws IOException if an I/O error occurs
    */
   void close() throws IOException;
 
   /**
    * Flushes the stream.
-   *
-   * @throws IOException if an I/O error occurs
    */
   void flush() throws IOException;
 }

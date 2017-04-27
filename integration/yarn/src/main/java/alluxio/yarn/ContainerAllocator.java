@@ -101,7 +101,6 @@ public final class ContainerAllocator {
    * Allocates the containers specified by the constructor.
    *
    * @return the allocated containers
-   * @throws Exception if an error occurs
    */
   public List<Container> allocateContainers() throws Exception {
     for (int attempt = 0; attempt < MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS; attempt++) {

@@ -24,6 +24,16 @@ public enum PropertyKeyFormat {
   WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT("alluxio.worker.tieredstore.level%d.alias"),
   WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT("alluxio.worker.tieredstore.level%d.dirs.path"),
   WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT("alluxio.worker.tieredstore.level%d.dirs.quota"),
+  WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT(
+      "alluxio.worker.tieredstore.level%d.watermark.high.ratio"),
+  WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT(
+      "alluxio.worker.tieredstore.level%d.watermark.low.ratio"),
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT} and
+   * {@link #WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT} instead.
+   */
+  @Deprecated
   WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT(
       "alluxio.worker.tieredstore.level%d.reserved.ratio"),
   ;
@@ -46,7 +56,7 @@ public enum PropertyKeyFormat {
 
   /**
    * Converts a property key template (e.g.,
-   * {@link PropertyKeyFormat#WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT})
+   * {@link PropertyKeyFormat#WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT})
    * to a {@link PropertyKey} enum instance.
    *
    * @param params ordinal

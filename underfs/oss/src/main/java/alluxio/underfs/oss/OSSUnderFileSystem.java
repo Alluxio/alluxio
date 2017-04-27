@@ -61,7 +61,6 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @return the created {@link OSSUnderFileSystem} instance
-   * @throws Exception when a connection to GCS could not be created
    */
   public static OSSUnderFileSystem createInstance(AlluxioURI uri) throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);

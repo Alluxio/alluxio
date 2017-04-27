@@ -103,7 +103,6 @@ public final class StorageTier {
    * @param tierAlias the tier alias
    * @return a new storage tier
    * @throws BlockAlreadyExistsException if the tier already exists
-   * @throws IOException if an I/O error occurred
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
   public static StorageTier newStorageTier(String tierAlias)

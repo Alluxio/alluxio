@@ -179,7 +179,6 @@ public class EvictorTestUtils {
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
    * @param metaManager the metadata manager
-   * @throws Exception when fail
    */
   public static void assertEvictionPlanValid(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws Exception {

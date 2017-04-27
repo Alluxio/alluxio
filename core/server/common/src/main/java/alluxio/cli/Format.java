@@ -102,7 +102,6 @@ public final class Format {
    * Formats the Alluxio file system.
    *
    * @param mode either {@code MASTER} or {@code WORKER}
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void format(Mode mode) throws IOException {
     switch (mode) {

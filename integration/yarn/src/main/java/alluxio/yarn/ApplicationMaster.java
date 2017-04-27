@@ -50,6 +50,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
@@ -58,13 +62,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.net.InetAddress;
 
-import javax.ws.rs.HttpMethod;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.ws.rs.HttpMethod;
 
 /**
  * Actual owner of Alluxio running on Yarn. The YARN ResourceManager will launch this
@@ -220,7 +220,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * Run the application master.
    *
    * @param cliParser client arguments parser
-   * @throws Exception
    */
   private static void runApplicationMaster(final CommandLine cliParser) throws Exception {
     int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
@@ -276,9 +275,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   /**
    * Starts the application master.
-   *
-   * @throws IOException if registering the application master fails due to an IO error
-   * @throws YarnException if registering the application master fails due to an internal Yarn error
    */
   public void start() throws IOException, YarnException {
     if (UserGroupInformation.isSecurityEnabled()) {
@@ -313,8 +309,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   /**
    * Submits requests for containers until the master and all workers are launched.
-   *
-   * @throws Exception if an error occurs while requesting or launching containers
    */
   public void requestAndLaunchContainers() throws Exception {
 

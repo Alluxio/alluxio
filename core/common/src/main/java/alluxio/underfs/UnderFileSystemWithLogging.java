@@ -580,7 +580,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
      * Executes the call.
      *
      * @return the result of the call
-     * @throws IOException if an error occurs during the external communication
      */
     T call() throws IOException;
   }
@@ -591,7 +590,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    * @param callable the callable to invoke
    * @param <T> the return type
    * @return the result of the callable
-   * @throws IOException if an error occurs when invoking the operation on the underlying storage
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     LOG.debug("Enter: {}", callable);

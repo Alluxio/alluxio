@@ -102,7 +102,6 @@ public final class AsyncJournalWriter {
    * counter is already flushed, this is essentially a no-op.
    *
    * @param targetCounter the counter to flush
-   * @throws IOException if an error occurs in flushing the journal
    */
   public void flush(final long targetCounter) throws IOException {
     if (targetCounter <= mFlushCounter.get()) {
