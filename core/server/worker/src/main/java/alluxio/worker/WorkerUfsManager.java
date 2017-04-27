@@ -22,9 +22,12 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * The default implementation of UfsManager to manage the ufs used by different worker services.
  */
+@ThreadSafe
 public final class WorkerUfsManager extends UfsManager {
 
   private final FileSystemMasterClient mMasterClient;

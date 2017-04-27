@@ -67,8 +67,10 @@ public class UfsManager implements Closeable {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("authority", mAuthority).add("scheme", mScheme)
-          .add("property", mProperties).toString();
+      return Objects.toStringHelper(this)
+          .add("authority", mAuthority)
+          .add("scheme", mScheme)
+          .add("properties", mProperties).toString();
     }
   }
 
