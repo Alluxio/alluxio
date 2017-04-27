@@ -140,7 +140,7 @@ public final class HadoopUtils {
    * System properties, and they're not already set.
    *
    * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
-   * prevent the module alluxio-core-client from depending on the module alluxio-underfs.
+   * prevent the module alluxio-core-client-hdfs from depending on the module alluxio-underfs.
    *
    * @param conf Hadoop configuration
    */
@@ -154,7 +154,7 @@ public final class HadoopUtils {
    * System properties, and they're not already set.
    *
    * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
-   * prevent the module alluxio-core-client from depending on the module alluxio-underfs.
+   * prevent the module alluxio-core-client-hdfs from depending on the module alluxio-underfs.
    *
    * @param configuration Hadoop configuration
    */

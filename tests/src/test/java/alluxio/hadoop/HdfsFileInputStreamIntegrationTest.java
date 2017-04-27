@@ -65,7 +65,7 @@ public final class HdfsFileInputStreamIntegrationTest {
       mUfsInputStream.close();
       mFileSystem.delete(new AlluxioURI(UFS_ONLY_FILE));
     }
-    ClientTestUtils.resetClient();
+    HadoopClientTestUtils.resetClient();
   }
 
   @Before

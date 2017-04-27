@@ -49,7 +49,7 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-client-native</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

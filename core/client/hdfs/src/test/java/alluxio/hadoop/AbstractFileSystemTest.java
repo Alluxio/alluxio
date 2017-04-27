@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.lineage.LineageContext;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.status.UnavailableException;
 import alluxio.wire.FileInfo;
 
@@ -99,7 +98,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    ClientTestUtils.resetClient();
+    HadoopClientTestUtils.resetClient();
   }
 
   /**
