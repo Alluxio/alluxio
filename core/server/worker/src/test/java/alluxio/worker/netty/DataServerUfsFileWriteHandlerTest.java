@@ -16,11 +16,12 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
-import alluxio.worker.WorkerUfsManager;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -49,8 +50,8 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
     mChecksum = 0;
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    WorkerUfsManager ufsManager = Mockito.mock(WorkerUfsManager.class);
-    Mockito.when(ufsManager.getByMountIdOrFetch(Mockito.anyLong())).thenReturn(mockUfs);
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    Mockito.when(ufsManager.getByMountId(Mockito.anyLong())).thenReturn(mockUfs);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class))).thenReturn(
         mOutputStream);
 
@@ -74,7 +75,7 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
     mOutputStream.close();
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
+    checkWriteResponse(writeResponse, PStatus.UNAVAILABLE);
   }
 
   @Override

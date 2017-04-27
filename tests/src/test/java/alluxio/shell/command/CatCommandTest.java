@@ -11,9 +11,8 @@
 
 package alluxio.shell.command;
 
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.AlluxioException;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
@@ -21,14 +20,12 @@ import alluxio.util.io.BufferUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 /**
  * Tests for cat command.
  */
 public final class CatCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void catDirectory() throws IOException {
+  public void catDirectory() throws Exception {
     String[] command = new String[] {"mkdir", "/testDir"};
     mFsShell.run(command);
     int ret = mFsShell.run("cat", "/testDir");
@@ -39,13 +36,13 @@ public final class CatCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void catNotExist() throws IOException {
+  public void catNotExist() throws Exception {
     int ret = mFsShell.run("cat", "/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
-  public void cat() throws IOException {
+  public void cat() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("cat", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
@@ -53,7 +50,7 @@ public final class CatCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void catWildcard() throws IOException, AlluxioException {
+  public void catWildcard() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     // the expect contents (remember that the order is based on path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testDir/bar/foobar3

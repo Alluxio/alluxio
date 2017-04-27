@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import java.util.Random;
 
-public class BlockLocationTest {
+public final class BlockLocationTest {
 
   @Test
   public void json() throws Exception {

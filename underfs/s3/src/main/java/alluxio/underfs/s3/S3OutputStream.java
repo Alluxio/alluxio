@@ -83,7 +83,6 @@ public class S3OutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the JetS3t client
-   * @throws IOException when a non-Alluxio related error occurs
    */
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "

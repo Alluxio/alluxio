@@ -11,7 +11,7 @@
 
 package alluxio.worker;
 
-import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -45,14 +45,14 @@ public final class WorkerUfsManager extends UfsManager {
    * If this mount id is new to this worker, this method will query master to get the corresponding
    * ufs info.
    */
-  public UnderFileSystem getByMountIdOrFetch(long mountId) throws IOException {
-    UnderFileSystem ufs = getByMountId(mountId);
+  public UnderFileSystem getByMountId(long mountId) {
+    UnderFileSystem ufs = super.getByMountId(mountId);
     if (ufs == null) {
       UfsInfo info;
       try {
         info = mMasterClient.getUfsInfo(mountId);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
+      } catch (IOException e) {
+        throw AlluxioStatusException.fromIOException(e);
       }
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()));
       ufs = super.getOrCreate(info.getUri(), info.getProperties());

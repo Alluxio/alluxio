@@ -14,7 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -85,7 +85,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mFileSystemMaster = ((AlluxioMasterService) context
+    mFileSystemMaster = ((MasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .getMaster(FileSystemMaster.class);
   }

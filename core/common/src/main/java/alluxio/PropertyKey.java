@@ -358,24 +358,54 @@ public class PropertyKey {
       create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, "/mnt/ramdisk", 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, "${alluxio.worker.memory.size}", 0);
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO} and
+   * {@link #WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO} instead.
+   */
+  @Deprecated
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
-      create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, "0.1", 0);
+      create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 0);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
+      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 0);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO =
+      create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_ALIAS =
       create(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, null, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
       create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, null, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
       create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, null, 1);
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO} and
+   * {@link #WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO} instead.
+   */
+  @Deprecated
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 1);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO =
+      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 1);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO =
+      create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_ALIAS =
       create(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
       create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
       create(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, null, 2);
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO} and
+   * {@link #WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO} instead.
+   */
+  @Deprecated
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 2);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
+      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 1);
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO =
+      create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
       create(Name.WORKER_TIERED_STORE_LEVELS, 1);
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
@@ -384,6 +414,8 @@ public class PropertyKey {
       create(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000);
   public static final PropertyKey WORKER_TIERED_STORE_RETRY =
       create(Name.WORKER_TIERED_STORE_RETRY, 3);
+  public static final PropertyKey WORKER_TIERED_STORE_FREE_SPACE_RATIO =
+      create(Name.WORKER_TIERED_STORE_FREE_SPACE_RATIO, 0.0f);
   public static final PropertyKey WORKER_WEB_BIND_HOST =
       create(Name.WORKER_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey WORKER_WEB_HOSTNAME = create(Name.WORKER_WEB_HOSTNAME, null);
@@ -874,6 +906,8 @@ public class PropertyKey {
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval.ms";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
+    public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO
+        = "alluxio.worker.tieredstore.free.space.ratio";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
@@ -1046,6 +1080,12 @@ public class PropertyKey {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
     WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO("alluxio.worker.tieredstore.level%d.reserved.ratio",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
+    WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(
+        "alluxio.worker.tieredstore.level%d.watermark.high.ratio",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.high\\.ratio"),
+    WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO(
+        "alluxio.worker.tieredstore.level%d.watermark.low.ratio",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
     ;
 
     private final String mFormat;

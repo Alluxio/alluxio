@@ -66,7 +66,6 @@ public abstract class UnderFileSystemCluster {
    * Creates an underfs test bed and register the shutdown hook.
    *
    * @param baseDir base directory
-   * @throws IOException when the operation fails
    * @return an instance of the UnderFileSystemCluster class
    */
   public static synchronized UnderFileSystemCluster get(String baseDir)
@@ -131,8 +130,6 @@ public abstract class UnderFileSystemCluster {
    * system for the next test round instead of turning on/off it from time to time. This function is
    * expected to be called either before or after each test case which avoids certain overhead from
    * the bootstrap.
-   *
-   * @throws IOException when the operation fails
    */
   public abstract void cleanup() throws IOException;
 
@@ -149,8 +146,6 @@ public abstract class UnderFileSystemCluster {
   /**
    * Adds a shutdown hook. The {@link #shutdown()} phase will be automatically called while the
    * process exists.
-   *
-   * @throws IOException when the operation fails
    */
   public void registerJVMOnExistHook() throws IOException {
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
@@ -158,15 +153,11 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * Stops the underfs cluster system.
-   *
-   * @throws IOException when the operation fails
    */
   public abstract void shutdown() throws IOException;
 
   /**
    * Starts the underfs cluster system.
-   *
-   * @throws IOException when the operation fails
    */
   public abstract void start() throws IOException;
 }

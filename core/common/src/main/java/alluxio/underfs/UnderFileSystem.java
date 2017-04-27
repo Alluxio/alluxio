@@ -116,8 +116,6 @@ public interface UnderFileSystem extends Closeable {
 
   /**
    * Closes this under file system.
-   *
-   * @throws IOException if a non-Alluxio error occurs
    */
   void close() throws IOException;
 
@@ -127,7 +125,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * The default implementation is a no-op. This should be overridden if a subclass needs
    * additional functionality.
-   * @throws IOException if an error occurs during configuration
    */
   void configureProperties() throws IOException;
 
@@ -139,7 +136,6 @@ public interface UnderFileSystem extends Closeable {
    * </p>
    *
    * @param hostname the host that wants to connect to the under file system
-   * @throws IOException if a non-Alluxio error occurs
    */
   void connectFromMaster(String hostname) throws IOException;
 
@@ -151,7 +147,6 @@ public interface UnderFileSystem extends Closeable {
    * </p>
    *
    * @param hostname the host that wants to connect to the under file system
-   * @throws IOException if a non-Alluxio error occurs
    */
   void connectFromWorker(String hostname) throws IOException;
 
@@ -161,7 +156,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the file name
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   OutputStream create(String path) throws IOException;
 
@@ -173,7 +167,6 @@ public interface UnderFileSystem extends Closeable {
    * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   OutputStream create(String path, CreateOptions options) throws IOException;
 
@@ -183,7 +176,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path of the directory to delete
    * @return true if directory was found and deleted, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean deleteDirectory(String path) throws IOException;
 
@@ -193,7 +185,6 @@ public interface UnderFileSystem extends Closeable {
    * @param path of the directory to delete
    * @param options for directory delete semantics
    * @return true if directory was found and deleted, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean deleteDirectory(String path, DeleteOptions options) throws IOException;
 
@@ -202,7 +193,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path of the file to delete
    * @return true if file was found and deleted, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean deleteFile(String path) throws IOException;
 
@@ -211,7 +201,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the absolute path
    * @return true if the path exists, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean exists(String path) throws IOException;
 
@@ -220,7 +209,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the file name
    * @return the block size in bytes
-   * @throws IOException if a non-Alluxio error occurs
    */
   long getBlockSizeByte(String path) throws IOException;
 
@@ -236,7 +224,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the file name
    * @return The list of locations
-   * @throws IOException if a non-Alluxio error occurs
    */
   List<String> getFileLocations(String path) throws IOException;
 
@@ -246,7 +233,6 @@ public interface UnderFileSystem extends Closeable {
    * @param path the file name
    * @param options method options
    * @return The list of locations
-   * @throws IOException if a non-Alluxio error occurs
    */
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
@@ -255,7 +241,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the file name
    * @return the file size in bytes
-   * @throws IOException if a non-Alluxio error occurs
    */
   long getFileSize(String path) throws IOException;
 
@@ -264,7 +249,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path of the file
    * @return the group of the file
-   * @throws IOException if a non-Alluxio error occurs
    */
   String getGroup(String path) throws IOException;
 
@@ -274,7 +258,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path of the file
    * @return the mode of the file
-   * @throws IOException if a non-Alluxio error occurs
    */
   short getMode(String path) throws IOException;
 
@@ -283,7 +266,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the file name
    * @return modification time in milliseconds
-   * @throws IOException if a non-Alluxio error occurs
    */
   long getModificationTimeMs(String path) throws IOException;
 
@@ -292,7 +274,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path of the file
    * @return the owner of the file
-   * @throws IOException if a non-Alluxio error occurs
    */
   String getOwner(String path) throws IOException;
 
@@ -308,7 +289,6 @@ public interface UnderFileSystem extends Closeable {
    * @param path the path to query
    * @param type the type of queries
    * @return The space in bytes
-   * @throws IOException if a non-Alluxio error occurs
    */
   long getSpace(String path, SpaceType type) throws IOException;
 
@@ -326,7 +306,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the absolute directory path
    * @return true if the path exists and is a directory, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean isDirectory(String path) throws IOException;
 
@@ -335,7 +314,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the absolute file path
    * @return true if the path exists and is a file, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean isFile(String path) throws IOException;
 
@@ -357,7 +335,6 @@ public interface UnderFileSystem extends Closeable {
    * @return An array with the statuses of the files and directories in the directory denoted by
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
-   * @throws IOException if a non-Alluxio error occurs
    */
   UnderFileStatus[] listStatus(String path) throws IOException;
 
@@ -380,7 +357,6 @@ public interface UnderFileSystem extends Closeable {
    * @return An array of statuses naming the files and directories in the directory denoted by this
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
-   * @throws IOException if a non-Alluxio error occurs
    */
   UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException;
 
@@ -390,7 +366,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the folder to create
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean mkdirs(String path) throws IOException;
 
@@ -401,7 +376,6 @@ public interface UnderFileSystem extends Closeable {
    * @param path the folder to create
    * @param options the options for mkdirs
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean mkdirs(String path, MkdirsOptions options) throws IOException;
 
@@ -410,7 +384,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the file name
    * @return The {@code InputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   InputStream open(String path) throws IOException;
 
@@ -420,7 +393,6 @@ public interface UnderFileSystem extends Closeable {
    * @param path the file name
    * @param options to open input stream
    * @return The {@code InputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   InputStream open(String path, OpenOptions options) throws IOException;
 
@@ -430,7 +402,6 @@ public interface UnderFileSystem extends Closeable {
    * @param src the source directory path
    * @param dst the destination directory path
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean renameDirectory(String src, String dst) throws IOException;
 
@@ -440,7 +411,6 @@ public interface UnderFileSystem extends Closeable {
    * @param src the source file path
    * @param dst the destination file path
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean renameFile(String src, String dst) throws IOException;
 
@@ -472,7 +442,6 @@ public interface UnderFileSystem extends Closeable {
    * @param path the path of the file
    * @param owner the new owner to set, unchanged if null
    * @param group the new group to set, unchanged if null
-   * @throws IOException if a non-Alluxio error occurs
    */
   void setOwner(String path, String owner, String group) throws IOException;
 
@@ -488,7 +457,6 @@ public interface UnderFileSystem extends Closeable {
    *
    * @param path the path of the file
    * @param mode the mode to set in short format, e.g. 0777
-   * @throws IOException if a non-Alluxio error occurs
    */
   void setMode(String path, short mode) throws IOException;
 

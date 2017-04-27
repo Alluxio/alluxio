@@ -45,7 +45,7 @@ service BlockWorkerClientService extends common.AlluxioService {
     /** the id of the current session */ 1: i64 sessionId,
     /** the id of the block being accessed */ 2: i64 blockId,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and
@@ -55,7 +55,7 @@ service BlockWorkerClientService extends common.AlluxioService {
     /** the id of the current session */ 1: i64 sessionId,
     /** the id of the block being accessed */ 2: i64 blockId,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Locks the file in Alluxio's space while the session is reading it. If lock succeeds, the path of
@@ -77,7 +77,7 @@ service BlockWorkerClientService extends common.AlluxioService {
   bool promoteBlock(
     /** the id of the block being accessed */ 1: i64 blockId,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Used to remove a block from an Alluxio worker.
@@ -85,7 +85,7 @@ service BlockWorkerClientService extends common.AlluxioService {
   void removeBlock(
     /** the id of the block being removed */ 1: i64 blockId,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
@@ -100,7 +100,7 @@ service BlockWorkerClientService extends common.AlluxioService {
     /** initial number of bytes requested */ 3: i64 initialBytes,
     /** the target tier to write to */ 4: i32 writeTier,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Used to request space for some block file. return true if the worker successfully allocates
@@ -132,5 +132,5 @@ service BlockWorkerClientService extends common.AlluxioService {
     /** the id of the block being accessed */ 1: i64 blockId,
     /** the id of the current session */ 2: i64 sessionId,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 }

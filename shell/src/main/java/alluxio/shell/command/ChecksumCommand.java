@@ -69,8 +69,6 @@ public final class ChecksumCommand extends AbstractShellCommand {
    *
    * @param filePath The {@link AlluxioURI} path of the file calculate MD5 checksum on
    * @return A string representation of the file's MD5 checksum
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private String calculateChecksum(AlluxioURI filePath)
       throws AlluxioException, IOException {

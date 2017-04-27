@@ -24,7 +24,6 @@ public interface Seekable {
    * the start of the stream. Seeking to a position before the current read position is supported.
    *
    * @param pos the position to seek to, it must be between 0 and the end of the stream - 1
-   * @throws IOException if the seek fails due to an error accessing the stream at the position
    */
   void seek(long pos) throws IOException;
 }

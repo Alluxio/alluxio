@@ -12,6 +12,7 @@
 package alluxio.network.connection;
 
 import alluxio.Configuration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -22,7 +23,6 @@ import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -80,10 +80,9 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    * Creates a netty channel instance.
    *
    * @return the channel created
-   * @throws IOException if it fails to create a channel
    */
   @Override
-  protected Channel createNewResource() throws IOException {
+  protected Channel createNewResource() {
     Bootstrap bs;
     try {
       bs = mBootstrap.clone();
@@ -99,7 +98,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
       } else {
         LOG.error("Failed to create netty channel with netty bootstrap {} and error {}.",
             mBootstrap, channelFuture.cause().getMessage());
-        throw new IOException(channelFuture.cause());
+        throw new UnavailableException(channelFuture.cause());
       }
     } catch (InterruptedException e) {
       throw new RuntimeException(e);

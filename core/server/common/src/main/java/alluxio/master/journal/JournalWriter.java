@@ -25,21 +25,16 @@ public interface JournalWriter extends Closeable {
    * is persisted.
    *
    * @param entry the journal entry to write
-   * @throws IOException if an error occurs writing the entry
    */
   void write(JournalEntry entry) throws IOException;
 
   /**
    * Flushes all the entries written to the underlying storage.
-   *
-   * @throws IOException if an error occurs preventing the stream from being flushed
    */
   void flush() throws IOException;
 
   /**
    * Cancels the current journal writer.
-   *
-   * @throws IOException if any I/O errors occur
    */
   void cancel() throws IOException;
 }

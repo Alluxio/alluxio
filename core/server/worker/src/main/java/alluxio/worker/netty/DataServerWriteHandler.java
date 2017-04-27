@@ -13,6 +13,9 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.InternalException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -112,14 +115,12 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   private Error mError;
 
   private class Error {
-    final Throwable mCause;
+    final AlluxioStatusException mCause;
     final boolean mNotifyClient;
-    final Protocol.Status.Code mErrorCode;
 
-    Error(Throwable cause, boolean notifyClient, Protocol.Status.Code code) {
+    Error(AlluxioStatusException cause, boolean notifyClient) {
       mCause = cause;
       mNotifyClient = notifyClient;
-      mErrorCode = code;
     }
   }
 
@@ -145,8 +146,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * Cancels the request.
-     *
-     * @throws IOException if I/O errors occur
      */
     abstract void cancel() throws IOException;
   }
@@ -184,11 +183,11 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       initializeRequest(msg);
     }
 
-    // Validate msg and return error if invalid. Init variables if necessary.
-    String error = validateRequest(msg);
-    if (!error.isEmpty()) {
-      pushAbortPacket(ctx.channel(), new Error(new IllegalArgumentException(error), true,
-          Protocol.Status.Code.INVALID_ARGUMENT));
+    // Validate msg.
+    try {
+      validateRequest(msg);
+    } catch (Exception e) {
+      pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(e), true));
       return;
     }
 
@@ -229,12 +228,12 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Failed to write block.", cause);
-    pushAbortPacket(ctx.channel(), new Error(cause, true, Protocol.Status.Code.INTERNAL));
+    pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(cause), true));
   }
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    pushAbortPacket(ctx.channel(), new Error(null, false, Protocol.Status.Code.INTERNAL));
+    pushAbortPacket(ctx.channel(), new Error(new InternalException("channel unregistered"), false));
     ctx.fireChannelUnregistered();
   }
 
@@ -247,23 +246,20 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Validates the block write request.
+   * Validates the block write request, throwing an exception if the request is invalid.
    *
    * @param msg the block write request
-   * @return empty string if the request valid
    */
-  private String validateRequest(RPCProtoMessage msg) {
+  private void validateRequest(RPCProtoMessage msg) {
     Protocol.WriteRequest request = msg.getMessage().getMessage();
     if (request.getOffset() != mPosToQueue) {
-      return String
-          .format("Offsets do not match [received: %d, expected: %d].", request.getOffset(),
-              mPosToQueue);
+      throw new InvalidArgumentException(String.format(
+          "Offsets do not match [received: %d, expected: %d].", request.getOffset(), mPosToQueue));
     }
     if (msg.getPayloadDataBuffer() != null && msg.getPayloadDataBuffer().getLength() > 0 && (
         request.getCancel() || request.getEof())) {
-      return String.format("Found data in a cancel/eof message.");
+      throw new InvalidArgumentException("Found data in a cancel/eof message.");
     }
-    return "";
   }
 
   /**
@@ -330,7 +326,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
-          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
+          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
         } finally {
           release(buf);
         }
@@ -353,16 +349,14 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
             complete();
             replySuccess();
           }
-        } catch (IOException e) {
-          pushAbortPacket(mChannel, new Error(e, true, Protocol.Status.Code.INTERNAL));
+        } catch (Exception e) {
+          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
         }
       }
     }
 
     /**
      * Completes this write.
-     *
-     * @throws IOException if I/O related errors occur
      */
     private void complete() throws IOException {
       if (mRequest != null) {
@@ -374,8 +368,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * Cancels this write.
-     *
-     * @throws IOException if I/O related errors occur
      */
     private void cancel() throws IOException {
       if (mRequest != null) {
@@ -413,8 +405,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       }
 
       if (error.mNotifyClient) {
-        mChannel
-            .writeAndFlush(RPCProtoMessage.createResponse(error.mErrorCode, "", error.mCause, null))
+        mChannel.writeAndFlush(RPCProtoMessage.createResponse(error.mCause))
             .addListener(ChannelFutureListener.CLOSE);
       }
     }
@@ -469,7 +460,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    * Initializes the handler if necessary.
    *
    * @param msg the block write request
-   * @throws Exception if it fails to initialize
    */
   protected void initializeRequest(RPCProtoMessage msg) throws Exception {
     Preconditions.checkState(mRequest == null);
@@ -482,7 +472,6 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    *
    * @param buf the buffer
    * @param pos the pos
-   * @throws Exception if it fails to write the buffer
    */
   protected abstract void writeBuf(ByteBuf buf, long pos) throws Exception;
 

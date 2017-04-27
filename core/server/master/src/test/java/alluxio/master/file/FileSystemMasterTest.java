@@ -30,6 +30,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -102,6 +103,7 @@ public final class FileSystemMasterTest {
   private MasterRegistry mRegistry;
   private JournalFactory mJournalFactory;
   private BlockMaster mBlockMaster;
+  private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId1;
   private long mWorkerId2;
@@ -1489,12 +1491,6 @@ public final class FileSystemMasterTest {
   @Test
   public void stop() throws Exception {
     mRegistry.stop();
-    ExecutorService mExecutorService = Executors
-        .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mRegistry, mJournalFactory,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
-    mRegistry.start(true);
-    mFileSystemMaster.stop();
     Assert.assertTrue(mExecutorService.isShutdown());
     Assert.assertTrue(mExecutorService.isTerminated());
   }
@@ -1625,9 +1621,12 @@ public final class FileSystemMasterTest {
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
     mJournalFactory = new Journal.Factory(new URI(mJournalFolder));
-    mBlockMaster = new BlockMaster(mRegistry, mJournalFactory);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, mJournalFactory);
-
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalFactory);
+    mExecutorService = Executors
+        .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, mJournalFactory,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mRegistry.start(true);
 
     // set up workers

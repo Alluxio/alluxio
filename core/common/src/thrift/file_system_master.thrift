@@ -140,7 +140,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the root of the subtree to check */ 1: string path,
     /** the method options */ 2: CheckConsistencyTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Marks a file as completed.
@@ -158,7 +158,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the directory */ 1: string path,
     /** the method options */ 2: CreateDirectoryTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Creates a file.
@@ -167,7 +167,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the file */ 1: string path,
     /** the options for creating the file */ 2: CreateFileTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Frees the given file or directory from Alluxio.
@@ -243,7 +243,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the under file system */ 1: string ufsPath,
     /** whether to load metadata recursively */ 2: bool recursive,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
@@ -254,7 +254,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the under file system */ 2: string ufsPath,
     /** the options for creating the mount point */ 3: MountTOptions options,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Deletes a file or a directory and returns whether the remove operation succeeded.
@@ -275,7 +275,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the file or directory */ 1: string path,
     /** the desinationpath of the file */ 2: string dstPath,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Sets file or directory attributes.
@@ -302,7 +302,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
   void unmount(
     /** the path of the alluxio mount point */ 1: string alluxioPath,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 }
 
 /**

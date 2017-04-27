@@ -21,11 +21,11 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
-import alluxio.worker.WorkerUfsManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
@@ -76,7 +76,7 @@ public final class FileDataManager {
   /** A per worker rate limiter to throttle async persistence. */
   private final RateLimiter mPersistenceRateLimiter;
   /** The manager for all ufs. */
-  private final WorkerUfsManager mUfsManager;
+  private final UfsManager mUfsManager;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -86,7 +86,7 @@ public final class FileDataManager {
    * @param ufsManager the ufs manager
    */
   public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
-      WorkerUfsManager ufsManager) {
+      UfsManager ufsManager) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
@@ -123,7 +123,7 @@ public final class FileDataManager {
         addPersistedFile(fileId);
         return false;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.warn("Failed to check if file {} exists in under storage system: {}",
                fileId, e.getMessage());
       LOG.debug("Exception: ", e);
@@ -159,12 +159,11 @@ public final class FileDataManager {
    *
    * @param fileId the file id
    * @return true if the file exists in under storage system, false otherwise
-   * @throws IOException an I/O exception occurs
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.getByMountIdOrFetch(fileInfo.getMountId());
+    UnderFileSystem ufs = mUfsManager.getByMountId(fileInfo.getMountId());
     return ufs.isFile(dstPath);
   }
 
@@ -173,7 +172,6 @@ public final class FileDataManager {
    *
    * @param fileId the id of the file
    * @param blockIds the ids of the file's blocks
-   * @throws IOException when an I/O exception occurs
    */
   public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
     Map<Long, Long> blockIdToLockId = new HashMap<>();
@@ -219,8 +217,6 @@ public final class FileDataManager {
    *
    * @param fileId the id of the file
    * @param blockIds the list of block ids
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
-   * @throws IOException if the file persistence fails
    */
   public void persistFile(long fileId, List<Long> blockIds) throws AlluxioException, IOException {
     Map<Long, Long> blockIdToLockId;
@@ -233,7 +229,7 @@ public final class FileDataManager {
 
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    UnderFileSystem ufs = mUfsManager.getByMountIdOrFetch(fileInfo.getMountId());
+    UnderFileSystem ufs = mUfsManager.getByMountId(fileInfo.getMountId());
     OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
         .setMode(new Mode((short) fileInfo.getMode())));
@@ -297,8 +293,6 @@ public final class FileDataManager {
    *
    * @param fileId the file id
    * @return the path for persistence
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
-   * @throws IOException if the folder creation fails
    */
   private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
@@ -306,7 +300,7 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.getByMountIdOrFetch(fileInfo.getMountId());
+    UnderFileSystem ufs = mUfsManager.getByMountId(fileInfo.getMountId());
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

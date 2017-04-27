@@ -12,8 +12,8 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;

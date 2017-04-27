@@ -53,7 +53,7 @@ public final class LocalAlluxioMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private AlluxioMasterService mAlluxioMaster;
+  private MasterProcess mMasterProcess;
   private Thread mMasterThread;
 
   private AlluxioSecondaryMaster mSecondaryMaster;
@@ -67,7 +67,6 @@ public final class LocalAlluxioMaster {
   /**
    * Creates a new local Alluxio master with an isolated work directory and port.
    *
-   * @throws IOException when unable to do file operation or listen on port
    * @return an instance of Alluxio master
    */
   public static LocalAlluxioMaster create() throws IOException {
@@ -82,7 +81,6 @@ public final class LocalAlluxioMaster {
    *
    * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
    * @return the created Alluxio master
-   * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
     if (!Files.isDirectory(Paths.get(workDirectory))) {
@@ -95,12 +93,12 @@ public final class LocalAlluxioMaster {
    * Starts the master.
    */
   public void start() {
-    mAlluxioMaster = AlluxioMasterService.Factory.create();
+    mMasterProcess = MasterProcess.Factory.create();
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
         try {
-          mAlluxioMaster.start();
+          mMasterProcess.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start master error", e);
@@ -111,6 +109,7 @@ public final class LocalAlluxioMaster {
 
     mMasterThread = new Thread(runMaster);
     mMasterThread.start();
+    mMasterProcess.waitForReady();
   }
 
   /**
@@ -133,24 +132,23 @@ public final class LocalAlluxioMaster {
 
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
     mSecondaryMasterThread.start();
+    mSecondaryMaster.waitForReady();
   }
 
   /**
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
-    return mAlluxioMaster.isServing();
+    return mMasterProcess.isServing();
   }
 
   /**
    * Stops the master and cleans up client connections.
-   *
-   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     clearClients();
 
-    mAlluxioMaster.stop();
+    mMasterProcess.stop();
     mMasterThread.interrupt();
     if (mSecondaryMaster != null) {
       mSecondaryMaster.stop();
@@ -165,8 +163,6 @@ public final class LocalAlluxioMaster {
 
   /**
    * Clears all the clients.
-   *
-   * @throws IOException if the client pool cannot be closed
    */
   public void clearClients() throws IOException {
     mClientPool.close();
@@ -176,14 +172,14 @@ public final class LocalAlluxioMaster {
    * @return the externally resolvable address of the master
    */
   public InetSocketAddress getAddress() {
-    return mAlluxioMaster.getRpcAddress();
+    return mMasterProcess.getRpcAddress();
   }
 
   /**
-   * @return the internal {@link AlluxioMasterService}
+   * @return the internal {@link MasterProcess}
    */
-  public AlluxioMasterService getInternalMaster() {
-    return mAlluxioMaster;
+  public MasterProcess getMasterProcess() {
+    return mMasterProcess;
   }
 
   /**
@@ -192,7 +188,7 @@ public final class LocalAlluxioMaster {
    * @return the RPC local port
    */
   public int getRpcLocalPort() {
-    return mAlluxioMaster.getRpcAddress().getPort();
+    return mMasterProcess.getRpcAddress().getPort();
   }
 
   /**
@@ -204,7 +200,6 @@ public final class LocalAlluxioMaster {
 
   /**
    * @return the client from the pool
-   * @throws IOException if the client cannot be retrieved
    */
   public FileSystem getClient() throws IOException {
     return mClientPool.getClient();

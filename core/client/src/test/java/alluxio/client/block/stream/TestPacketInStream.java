@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import java.io.IOException;
-
 /**
  * A {@link PacketInStream} which reads from the given byte array.
  */
@@ -39,7 +37,7 @@ public class TestPacketInStream extends PacketInStream {
     }
 
     @Override
-    public PacketReader create(long offset, long len) throws IOException {
+    public PacketReader create(long offset, long len) {
       return new TestPacketReader(mData, offset, len);
     }
 

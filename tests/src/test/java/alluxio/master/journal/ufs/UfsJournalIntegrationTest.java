@@ -124,7 +124,7 @@ public class UfsJournalIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0"})
   public void multipleFlush() throws Exception {
-    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+    String journalFolder = mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder();
     mLocalAlluxioCluster.stop();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
@@ -188,8 +188,9 @@ public class UfsJournalIntegrationTest {
     }
     mLocalAlluxioCluster.stopFS();
 
-    String journalFolder = PathUtils.concatPath(mLocalAlluxioCluster.getMaster().getJournalFolder(),
-        Constants.FILE_SYSTEM_MASTER_NAME);
+    String journalFolder = PathUtils
+        .concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
+            Constants.FILE_SYSTEM_MASTER_NAME);
     UfsJournal journal = new UfsJournal(new URI(journalFolder));
     URI completedLocation = journal.getLogDir();
     Assert.assertTrue(UnderFileSystem.Factory.get(completedLocation)
@@ -468,8 +469,6 @@ public class UfsJournalIntegrationTest {
 
   /**
    * Tests the situation where a checkpoint mount entry is replayed by a standby master.
-   *
-   * @throws Exception on error
    */
   @Test
   public void mountEntryCheckpoint() throws Exception {
@@ -608,7 +607,7 @@ public class UfsJournalIntegrationTest {
   }
 
   private void deleteFsMasterJournalLogs() throws Exception {
-    String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+    String journalFolder = mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {

@@ -37,7 +37,7 @@ service LineageMasterClientService extends common.AlluxioService {
     /** the list of output files */ 2: list<string> outputFiles,
     /** the command line job info */ 3: CommandLineJobInfo job,
     )
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Deletes a lineage and returns whether the deletion succeeded.
