@@ -160,6 +160,7 @@ public final class UnderFileSystemUtils {
     return "swift".equals(ufs.getUnderFSType());
   }
 
+  // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
   /**
    * Gets the value of the given key in the given UFS configuration or the global configuration
    * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
@@ -179,6 +180,7 @@ public final class UnderFileSystemUtils {
     throw new RuntimeException("key " + key + " not found");
   }
 
+  // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
   /**
    * @param key property key
    * @param ufsConf configuration for the UFS
