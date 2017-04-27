@@ -65,9 +65,10 @@ public final class MiniBenchmark {
    * Prints the usage.
    */
   private static void usage() {
-    new HelpFormatter().printHelp(
-        String.format("java -cp %s %s <[READ, WRITE]> <fileSize> <iterations>",
-            RuntimeConstants.ALLUXIO_JAR, MiniBenchmark.class.getCanonicalName()),
+    new HelpFormatter().printHelp(String.format(
+        "java -cp %s %s -type <[READ, WRITE]> -fileSize <fileSize> -iterations <iterations> "
+            + "-concurrency <concurrency>",
+        RuntimeConstants.ALLUXIO_JAR, MiniBenchmark.class.getCanonicalName()),
         "run a mini benchmark to write or read a file",
         OPTIONS, "", true);
   }
