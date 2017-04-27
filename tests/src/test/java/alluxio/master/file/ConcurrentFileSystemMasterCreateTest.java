@@ -247,7 +247,6 @@ public class ConcurrentFileSystemMasterCreateTest {
    * @param useSinglePath if true, threads will only use a single path
    * @param createFiles if true, will create files at the bottom of the tree, directories otherwise
    * @param listParentDir if true, will list the parent dir to load the metadata
-   * @throws Exception if an error occurs
    */
   private void runLoadMetadata(WriteType writeType, boolean useSinglePath, boolean createFiles,
       boolean listParentDir) throws Exception {

@@ -182,6 +182,10 @@
                 <!-- Exclude RestApi related tests on hdfsTest: conflict between powermock (introduced by
                      RestApiTest) and LocalMiniDFSCluster -->
                 <exclude>**/*RestApiTest.java</exclude>
+                <!-- Exclude SleepingUFS tests, in non-default profiles. -->
+                <exclude>**/ConcurrentFileSystemMasterCreateTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterDeleteTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterRenameTest.java</exclude>
               </excludes>
             </configuration>
           </plugin>
@@ -214,6 +218,12 @@
               <systemPropertyVariables>
                 <ufs>alluxio.underfs.glusterfs.GlusterFSCluster</ufs>
               </systemPropertyVariables>
+              <excludes>
+                <!-- Exclude SleepingUFS tests, in non-default profiles. -->
+                <exclude>**/ConcurrentFileSystemMasterCreateTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterDeleteTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterRenameTest.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
@@ -251,6 +261,12 @@
                 <!-- Increase the buffer time of journal writes to speed up tests -->
                 <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
               </systemPropertyVariables>
+              <excludes>
+                <!-- Exclude SleepingUFS tests, in non-default profiles. -->
+                <exclude>**/ConcurrentFileSystemMasterCreateTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterDeleteTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterRenameTest.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
@@ -292,6 +308,12 @@
                 <!-- Increase the buffer time of journal writes to speed up tests -->
                 <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
               </systemPropertyVariables>
+              <excludes>
+                <!-- Exclude SleepingUFS tests, in non-default profiles. -->
+                <exclude>**/ConcurrentFileSystemMasterCreateTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterDeleteTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterRenameTest.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
@@ -333,6 +355,12 @@
                 <!-- Increase the buffer time of journal writes to speed up tests -->
                 <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
               </systemPropertyVariables>
+              <excludes>
+                <!-- Exclude SleepingUFS tests, in non-default profiles. -->
+                <exclude>**/ConcurrentFileSystemMasterCreateTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterDeleteTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterRenameTest.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
@@ -367,6 +395,12 @@
                 <!-- Increase the buffer time of journal writes to speed up tests -->
                 <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
               </systemPropertyVariables>
+              <excludes>
+                <!-- Exclude SleepingUFS tests, in non-default profiles. -->
+                <exclude>**/ConcurrentFileSystemMasterCreateTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterDeleteTest.java</exclude>
+                <exclude>**/ConcurrentFileSystemMasterRenameTest.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>

@@ -16,7 +16,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
 import org.apache.hadoop.fs.Path;
@@ -57,7 +56,6 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
    *
    * @param jobContext MapReduce job configuration
    * @return list of {@link InputSplit}s, each split is a partition
-   * @throws IOException if information about the partition cannot be retrieved
    */
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) throws IOException {
@@ -73,7 +71,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
           splits.add(new KeyValueInputSplit(partitionInfo));
         }
       }
-    } catch (AlluxioException e) {
+    } catch (Exception e) {
       throw new IOException(e);
     }
     return splits;

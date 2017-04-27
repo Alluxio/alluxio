@@ -19,6 +19,7 @@ import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
@@ -99,7 +100,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static S3AUnderFileSystem createInstance(AlluxioURI uri) {
 
-    String bucketName = uri.getHost();
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
 
     // Set the aws credential system properties based on Alluxio properties, if they are set
     if (Configuration.containsKey(PropertyKey.S3A_ACCESS_KEY)) {

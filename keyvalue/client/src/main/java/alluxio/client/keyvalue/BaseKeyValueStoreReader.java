@@ -45,10 +45,8 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
    * Constructs a {@link BaseKeyValueStoreReader} instance.
    *
    * @param uri URI of the key-value store
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
-  BaseKeyValueStoreReader(AlluxioURI uri) throws IOException, AlluxioException {
+  BaseKeyValueStoreReader(AlluxioURI uri) {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
     mMasterClient = new KeyValueMasterClient(mMasterAddress);

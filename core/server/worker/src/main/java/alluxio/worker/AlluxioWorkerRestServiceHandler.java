@@ -21,6 +21,7 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
@@ -73,16 +74,16 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String GET_VERSION = "version";
   public static final String GET_METRICS = "metrics";
 
-  private final AlluxioWorkerService mWorker;
+  private final WorkerProcess mWorkerProcess;
   private final BlockStoreMeta mStoreMeta;
 
   /**
    * @param context context for the servlet
    */
   public AlluxioWorkerRestServiceHandler(@Context ServletContext context) {
-    mWorker = (AlluxioWorkerService) context
+    mWorkerProcess = (WorkerProcess) context
         .getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
-    mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
+    mStoreMeta = mWorkerProcess.getWorker(BlockWorker.class).getStoreMeta();
   }
 
   /**
@@ -109,11 +110,11 @@ public final class AlluxioWorkerRestServiceHandler {
                 .setCapacity(getCapacityInternal())
                 .setConfiguration(getConfigurationInternal(rawConfig))
                 .setMetrics(getMetricsInternal())
-                .setRpcAddress(mWorker.getRpcAddress().toString())
-                .setStartTimeMs(mWorker.getStartTimeMs())
+                .setRpcAddress(mWorkerProcess.getRpcAddress().toString())
+                .setStartTimeMs(mWorkerProcess.getStartTimeMs())
                 .setTierCapacity(getTierCapacityInternal())
                 .setTierPaths(getTierPathsInternal())
-                .setUptimeMs(mWorker.getUptimeMs())
+                .setUptimeMs(mWorkerProcess.getUptimeMs())
                 .setVersion(RuntimeConstants.VERSION);
         return result;
       }
@@ -153,7 +154,7 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
       public String call() throws Exception {
-        return mWorker.getRpcAddress().toString();
+        return mWorkerProcess.getRpcAddress().toString();
       }
     });
   }
@@ -296,7 +297,7 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return mWorker.getStartTimeMs();
+        return mWorkerProcess.getStartTimeMs();
       }
     });
   }
@@ -315,7 +316,7 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return mWorker.getUptimeMs();
+        return mWorkerProcess.getUptimeMs();
       }
     });
   }

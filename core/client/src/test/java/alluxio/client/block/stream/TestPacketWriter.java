@@ -13,7 +13,6 @@ package alluxio.client.block.stream;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -27,18 +26,18 @@ public class TestPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void writePacket(ByteBuf packet) throws IOException {
+  public void writePacket(ByteBuf packet) {
     mBuffer.limit(mBuffer.position() + packet.readableBytes());
     packet.readBytes(mBuffer);
   }
 
   @Override
-  public void cancel() throws IOException {
+  public void cancel() {
     return;
   }
 
   @Override
-  public void flush() throws IOException {
+  public void flush() {
     return;
   }
 
@@ -53,7 +52,7 @@ public class TestPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     return;
   }
 }

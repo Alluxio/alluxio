@@ -30,13 +30,13 @@ import java.util.Set;
 public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
 
-  private final AlluxioMasterService mAlluxioMaster;
+  private final MasterProcess mMasterProcess;
 
   /**
-   * @param alluxioMaster the Alluxio master
+   * @param masterProcess the Alluxio master process
    */
-  public MetaMasterClientServiceHandler(AlluxioMasterService alluxioMaster) {
-    mAlluxioMaster = alluxioMaster;
+  public MetaMasterClientServiceHandler(MasterProcess masterProcess) {
+    mMasterProcess = masterProcess;
   }
 
   @Override
@@ -53,7 +53,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
     for (MasterInfoField field : fields) {
       switch (field) {
         case WEB_PORT:
-          info.setWebPort(mAlluxioMaster.getWebAddress().getPort());
+          info.setWebPort(mMasterProcess.getWebAddress().getPort());
           break;
         default:
           LOG.warn("Unrecognized master info field: " + field);

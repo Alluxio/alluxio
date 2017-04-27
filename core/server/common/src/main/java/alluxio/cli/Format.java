@@ -14,7 +14,7 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
+import alluxio.ServiceUtils;
 import alluxio.master.journal.Journal;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -101,7 +101,6 @@ public final class Format {
    * Formats the Alluxio file system.
    *
    * @param mode either {@code MASTER} or {@code WORKER}
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void format(Mode mode) throws IOException {
     switch (mode) {
@@ -114,7 +113,7 @@ public final class Format {
         } catch (URISyntaxException e) {
           throw new IOException(e.getMessage());
         }
-        for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
+        for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
           factory.create(masterServiceName).format();
         }
         break;

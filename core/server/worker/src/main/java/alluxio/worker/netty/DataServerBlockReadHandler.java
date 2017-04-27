@@ -55,7 +55,6 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      * Creates an instance of {@link BlockReadRequestInternal}.
      *
      * @param request the block read request
-     * @throws Exception if it fails to create the object
      */
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
       super(request.getId(), request.getOffset(), request.getOffset() + request.getLength());

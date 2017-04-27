@@ -11,10 +11,12 @@
 
 package alluxio.util;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
@@ -33,7 +35,6 @@ public final class UnderFileSystemUtils {
    * Deletes the directory at the given path if it exists.
    *
    * @param path path to the directory
-   * @throws IOException if the directory cannot be deleted
    */
   public static void deleteDirIfExists(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
@@ -48,7 +49,6 @@ public final class UnderFileSystemUtils {
    * Attempts to create the directory if it does not already exist.
    *
    * @param path path to the directory
-   * @throws IOException if the directory cannot be created
    */
   public static void mkdirIfNotExists(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
@@ -64,7 +64,6 @@ public final class UnderFileSystemUtils {
    * Creates an empty file.
    *
    * @param path path to the file
-   * @throws IOException if the file cannot be created
    */
   public static void touch(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
@@ -156,6 +155,15 @@ public final class UnderFileSystemUtils {
    */
   public static boolean isSwift(UnderFileSystem ufs) {
     return "swift".equals(ufs.getUnderFSType());
+  }
+
+  /**
+   * @param uri the UFS path
+   * @return the bucket or container name of the object storage
+   */
+  public static String getBucketName(AlluxioURI uri) {
+    Preconditions.checkState(isObjectStorage(uri.toString()));
+    return uri.getAuthority();
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation

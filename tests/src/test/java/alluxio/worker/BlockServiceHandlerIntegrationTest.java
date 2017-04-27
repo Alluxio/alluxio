@@ -15,11 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ExceptionMessage;
@@ -33,6 +33,7 @@ import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.BlockWorkerClientServiceHandler;
 
 import org.apache.thrift.TException;
@@ -75,7 +76,8 @@ public class BlockServiceHandlerIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mBlockWorkerServiceHandler =
-        mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
+        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class)
+            .getWorkerServiceHandler();
 
     mBlockMasterClient = BlockMasterClient.Factory.create(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
