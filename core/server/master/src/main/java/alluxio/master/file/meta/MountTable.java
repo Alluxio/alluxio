@@ -25,6 +25,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -286,7 +287,7 @@ public final class MountTable implements JournalEntryIterable {
         return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
       }
       // TODO(binfan): throw exception as we should never reach here
-      return new Resolution(uri, null, false, 0);
+      return new Resolution(uri, null, false, IdUtils.INVALID_MOUNT_ID);
     }
   }
 
@@ -335,13 +336,13 @@ public final class MountTable implements JournalEntryIterable {
     private final AlluxioURI mUri;
     private final UnderFileSystem mUfs;
     private final boolean mShared;
-    private final long mMountd;
+    private final long mMountId;
 
     private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, long mountId) {
       mUri = uri;
       mUfs = ufs;
       mShared = shared;
-      mMountd = mountId;
+      mMountId = mountId;
     }
 
     /**
@@ -369,7 +370,7 @@ public final class MountTable implements JournalEntryIterable {
      * @return the id of this mount point
      */
     public long getMountId() {
-      return mMountd;
+      return mMountId;
     }
   }
 }

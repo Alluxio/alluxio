@@ -18,10 +18,15 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,8 +35,16 @@ import java.util.Map;
  * Unit tests for {@link MountTable}.
  */
 public final class MountTableTest {
-  private final MountTable mMountTable = new MountTable();
+  private MountTable mMountTable;
   private final MountOptions mDefaultOptions = MountOptions.defaults();
+  private final UnderFileSystem mTestUfs = new LocalUnderFileSystemFactory().create("/", null);
+
+  @Before
+  public void before() throws Exception {
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    Mockito.when(ufsManager.getByMountId(Mockito.anyLong())).thenReturn(mTestUfs);
+    mMountTable = new MountTable(ufsManager);
+  }
 
   /**
    * Tests the different methods of the {@link MountTable} class with a path.
@@ -62,19 +75,27 @@ public final class MountTableTest {
     }
 
     // Test resolve()
-    Assert.assertEquals(new AlluxioURI("/foo"),
-        mMountTable.resolve(new AlluxioURI("/mnt/foo")).getUri());
-    Assert.assertEquals(new AlluxioURI("/foo/x"),
-        mMountTable.resolve(new AlluxioURI("/mnt/foo/x")).getUri());
-    Assert.assertEquals(new AlluxioURI("/bar"),
-        mMountTable.resolve(new AlluxioURI("/mnt/bar")).getUri());
-    Assert.assertEquals(new AlluxioURI("/bar/y"),
-        mMountTable.resolve(new AlluxioURI("/mnt/bar/y")).getUri());
-    Assert.assertEquals(new AlluxioURI("/bar/baz"),
-        mMountTable.resolve(new AlluxioURI("/mnt/bar/baz")).getUri());
-    Assert.assertEquals(new AlluxioURI("/foobar"),
-        mMountTable.resolve(new AlluxioURI("/foobar")).getUri());
-    Assert.assertEquals(new AlluxioURI("/"), mMountTable.resolve(new AlluxioURI("/")).getUri());
+    MountTable.Resolution res1 = mMountTable.resolve(new AlluxioURI("/mnt/foo"));
+    Assert.assertEquals(new AlluxioURI("/foo"), res1.getUri());
+    Assert.assertEquals(1L, res1.getMountId());
+    MountTable.Resolution res2 = mMountTable.resolve(new AlluxioURI("/mnt/foo/x"));
+    Assert.assertEquals(new AlluxioURI("/foo/x"), res2.getUri());
+    Assert.assertEquals(1L, res2.getMountId());
+    MountTable.Resolution res3 = mMountTable.resolve(new AlluxioURI("/mnt/bar"));
+    Assert.assertEquals(new AlluxioURI("/bar"), res3.getUri());
+    Assert.assertEquals(2L, res3.getMountId());
+    MountTable.Resolution res4 = mMountTable.resolve(new AlluxioURI("/mnt/bar/y"));
+    Assert.assertEquals(new AlluxioURI("/bar/y"), res4.getUri());
+    Assert.assertEquals(2L, res4.getMountId());
+    MountTable.Resolution res5 = mMountTable.resolve(new AlluxioURI("/mnt/bar/baz"));
+    Assert.assertEquals(new AlluxioURI("/bar/baz"), res5.getUri());
+    Assert.assertEquals(2L, res4.getMountId());
+    MountTable.Resolution res6 = mMountTable.resolve(new AlluxioURI("/foobar"));
+    Assert.assertEquals(new AlluxioURI("/foobar"), res6.getUri());
+    Assert.assertEquals(IdUtils.INVALID_MOUNT_ID, res6.getMountId());
+    MountTable.Resolution res7 = mMountTable.resolve(new AlluxioURI("/"));
+    Assert.assertEquals(new AlluxioURI("/"), res7.getUri());
+    Assert.assertEquals(IdUtils.INVALID_MOUNT_ID, res7.getMountId());
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new AlluxioURI("/mnt/foo")));
