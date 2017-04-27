@@ -20,6 +20,8 @@ import com.amazonaws.AmazonClientException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
+import java.util.Map;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -35,11 +37,11 @@ public class S3AUnderFileSystemFactory implements UnderFileSystemFactory {
   public S3AUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object unusedConf) {
+  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
     Preconditions.checkNotNull(path);
 
     try {
-      return S3AUnderFileSystem.createInstance(new AlluxioURI(path));
+      return S3AUnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
     } catch (AmazonClientException e) {
       throw Throwables.propagate(e);
     }

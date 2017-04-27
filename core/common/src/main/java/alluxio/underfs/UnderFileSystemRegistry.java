@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -99,7 +100,7 @@ public final class UnderFileSystemRegistry {
    * @param ufsConf optional configuration object for the UFS, may be null
    * @return client for the under file system
    */
-  public static UnderFileSystem create(String path, Object ufsConf) {
+  public static UnderFileSystem create(String path, Map<String, String> ufsConf) {
     // Try to obtain the appropriate factory
     List<UnderFileSystemFactory> factories = findAll(path);
     if (factories.isEmpty()) {

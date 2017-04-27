@@ -403,9 +403,9 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 1);
+      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO =
-      create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 1);
+      create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
       create(Name.WORKER_TIERED_STORE_LEVELS, 1);
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
