@@ -64,6 +64,8 @@ public final class MountTable implements JournalEntryIterable {
 
   /**
    * Creates a new instance of {@link MountTable}.
+   *
+   * @param ufsManager the UFS manager
    */
   public MountTable(UfsManager ufsManager) {
     final int initialCapacity = 10;

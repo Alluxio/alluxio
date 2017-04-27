@@ -13,12 +13,10 @@ package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
 import alluxio.master.file.options.MountOptions;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
 
-import java.io.IOException;
 import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
