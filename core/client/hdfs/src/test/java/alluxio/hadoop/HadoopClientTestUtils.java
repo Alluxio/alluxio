@@ -13,6 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
+
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.reflect.Whitebox;
 
