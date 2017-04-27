@@ -87,16 +87,16 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
    */
   public static S3UnderFileSystem createInstance(AlluxioURI uri, Map<String, String> ufsConf)
       throws ServiceException {
-    String bucketName = uri.getHost();
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions
         .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.S3N_ACCESS_KEY, ufsConf),
             "Property " + PropertyKey.S3N_ACCESS_KEY + " is required to connect to S3");
     Preconditions
         .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.S3N_SECRET_KEY, ufsConf),
             "Property " + PropertyKey.S3N_SECRET_KEY + " is required to connect to S3");
-    AWSCredentials awsCredentials =
-        new AWSCredentials(UnderFileSystemUtils.getValue(PropertyKey.S3N_ACCESS_KEY, ufsConf),
-            UnderFileSystemUtils.getValue(PropertyKey.S3N_SECRET_KEY, ufsConf));
+    AWSCredentials awsCredentials = new AWSCredentials(
+        UnderFileSystemUtils.getValue(PropertyKey.S3N_ACCESS_KEY, ufsConf),
+        UnderFileSystemUtils.getValue(PropertyKey.S3N_SECRET_KEY, ufsConf));
 
     Jets3tProperties props = new Jets3tProperties();
     if (UnderFileSystemUtils.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST, ufsConf)) {

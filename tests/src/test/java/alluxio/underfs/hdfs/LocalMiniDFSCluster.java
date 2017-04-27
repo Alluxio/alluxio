@@ -77,7 +77,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    *
    * @param path the directory path to be created
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   public static boolean mkdirs(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(path);

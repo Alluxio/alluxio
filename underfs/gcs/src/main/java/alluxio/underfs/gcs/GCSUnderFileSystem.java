@@ -85,16 +85,16 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static GCSUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> ufsConf)
       throws ServiceException {
-    String bucketName = uri.getHost();
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions
         .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.GCS_ACCESS_KEY, ufsConf),
             "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
     Preconditions
         .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.GCS_SECRET_KEY, ufsConf),
             "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
-    GSCredentials googleCredentials =
-        new GSCredentials(UnderFileSystemUtils.getValue(PropertyKey.GCS_ACCESS_KEY, ufsConf),
-            UnderFileSystemUtils.getValue(PropertyKey.GCS_SECRET_KEY, ufsConf));
+    GSCredentials googleCredentials = new GSCredentials(
+        UnderFileSystemUtils.getValue(PropertyKey.GCS_ACCESS_KEY, ufsConf),
+        UnderFileSystemUtils.getValue(PropertyKey.GCS_SECRET_KEY, ufsConf));
 
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);

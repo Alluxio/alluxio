@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
+import alluxio.ServiceUtils;
 import alluxio.master.MasterFactory;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
@@ -98,8 +98,6 @@ public final class JournalUpgrader {
 
     /**
      * Upgrades journal from v0 to v1.
-     *
-     * @throws IOException if any I/O errors occur
      */
     void upgrade() throws IOException {
       if (!mUfs.exists(mCheckpointV0.toString())) {
@@ -220,7 +218,7 @@ public final class JournalUpgrader {
     }
 
     List<String> masters = new ArrayList<>();
-    for (MasterFactory factory : ServerUtils.getMasterServiceLoader()) {
+    for (MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
       masters.add(factory.getName());
     }
 

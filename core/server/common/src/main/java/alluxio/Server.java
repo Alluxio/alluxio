@@ -11,23 +11,44 @@
 
 package alluxio;
 
+import org.apache.thrift.TProcessor;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+
 /**
- * Interface representing an Alluxio Server.
+ * Interface representing an Alluxio server.
+ *
+ * @param <T> type of the start options
  */
-public interface Server {
+public interface Server<T> {
+
+  /**
+   * @return the server dependencies
+   */
+  Set<Class<? extends Server>> getDependencies();
+
+  /**
+   * @return the server's name
+   */
+  String getName();
+
+  /**
+   * @return a map from service names to {@link TProcessor}s that serve RPCs for this server
+   */
+  Map<String, TProcessor> getServices();
 
   /**
    * Starts the Alluxio server.
    *
-   * @throws Exception if the server fails to start
+   * @param options the start options
    */
-  void start() throws Exception;
+  void start(T options) throws IOException;
 
   /**
-   * Stops the Alluxio server. Here, anything created or started in {@link #start()} should be
+   * Stops the Alluxio server. Here, anything created or started in {@link #start(T)} should be
    * cleaned up and shutdown.
-   *
-   * @throws Exception if the server fails to stop
    */
-  void stop() throws Exception;
+  void stop() throws IOException;
 }

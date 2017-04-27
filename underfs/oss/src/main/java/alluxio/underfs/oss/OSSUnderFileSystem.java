@@ -63,19 +63,18 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ufsConf the configuration for this UFS
    * @return the created {@link OSSUnderFileSystem} instance
-   * @throws Exception when a connection to GCS could not be created
    */
   public static OSSUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> ufsConf)
       throws Exception {
-    String bucketName = uri.getHost();
-    Preconditions
-        .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.OSS_ACCESS_KEY, ufsConf),
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
+    Preconditions.checkArgument(
+        UnderFileSystemUtils.containsKey(PropertyKey.OSS_ACCESS_KEY, ufsConf),
             "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
-    Preconditions
-        .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.OSS_SECRET_KEY, ufsConf),
+    Preconditions.checkArgument(
+        UnderFileSystemUtils.containsKey(PropertyKey.OSS_SECRET_KEY, ufsConf),
             "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
-    Preconditions
-        .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.OSS_ENDPOINT_KEY, ufsConf),
+    Preconditions.checkArgument(
+        UnderFileSystemUtils.containsKey(PropertyKey.OSS_ENDPOINT_KEY, ufsConf),
             "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
     String accessId = UnderFileSystemUtils.getValue(PropertyKey.OSS_ACCESS_KEY, ufsConf);
     String accessKey = UnderFileSystemUtils.getValue(PropertyKey.OSS_SECRET_KEY, ufsConf);

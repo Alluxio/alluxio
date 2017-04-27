@@ -23,6 +23,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -67,6 +68,7 @@ public final class InodeTreeTest {
   private static CreateFileOptions sNestedFileOptions;
   private static CreateDirectoryOptions sNestedDirectoryOptions;
   private InodeTree mTree;
+  private MasterRegistry mRegistry;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -81,16 +83,16 @@ public final class InodeTreeTest {
    */
   @Before
   public void before() throws Exception {
-    MasterRegistry registry = new MasterRegistry();
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
 
-    BlockMaster blockMaster = new BlockMaster(registry, factory);
+    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
-    blockMaster.start(true);
+    mRegistry.start(true);
 
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
@@ -98,7 +100,8 @@ public final class InodeTreeTest {
   }
 
   @After
-  public void after() {
+  public void after() throws Exception {
+    mRegistry.stop();
     ConfigurationTestUtils.resetConfiguration();
   }
 

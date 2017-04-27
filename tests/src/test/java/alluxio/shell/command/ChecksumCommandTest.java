@@ -11,18 +11,15 @@
 
 package alluxio.shell.command;
 
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
-
 import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Tests checksum command.
@@ -33,7 +30,7 @@ public final class ChecksumCommandTest  extends AbstractAlluxioShellTest {
    * Tests md5 checksum calculation.
    */
   @Test
-  public void checksum() throws IOException {
+  public void checksum() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("checksum", "/testFile");
     String str = mOutput.toString();
@@ -52,7 +49,7 @@ public final class ChecksumCommandTest  extends AbstractAlluxioShellTest {
    * Test invalid args.
    */
   @Test
-  public void checksumInvalidArgs() throws IOException {
+  public void checksumInvalidArgs() throws Exception {
     mFsShell.run("checksum", "/testFile");
     String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
     Assert.assertEquals(expected, mOutput.toString());

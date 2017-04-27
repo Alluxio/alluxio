@@ -284,7 +284,6 @@ public final class BufferUtils {
    *
    * @param path file path to write the data
    * @param buffer raw data
-   * @throws IOException if the operation fails
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
     try (FileOutputStream os = new FileOutputStream(path)) {
@@ -297,7 +296,6 @@ public final class BufferUtils {
    *
    * @param src the source channel
    * @param dest the destination channel
-   * @throws IOException if the copy fails
    */
   public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
       throws IOException {

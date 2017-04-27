@@ -111,11 +111,13 @@ Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移�
 * `alluxio.worker.tieredstore.level0.alias=MEM`配置了首层(顶层)是内存存储层
 * `alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` 定义了`/mnt/ramdisk`是首层的文件路径
 * `alluxio.worker.tieredstore.level0.dirs.quota=100GB`设置了ramdisk的配额是`100GB`
-* `alluxio.worker.tieredstore.level0.reserved.ratio=0.2`设置了顶层的预留空间比例是0.2
+* `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9`设置了顶层的高水位比例是0.9
+* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7`设置了顶层的低水位比例0.7
 * `alluxio.worker.tieredstore.level1.alias=HDD`配置了第二层是硬盘驱动器层
 * `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3`配置了第二层3个独立的文件路径
 * `alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB`定义了第二层3个文件路径各自的配额
-* `alluxio.worker.tieredstore.level1.reserved.ratio=0.1`设置了第二层的预留空间比例是0.1
+* `alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9`设置了第二层的高水位比例是0.9
+* `alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7`设置了第二层的低水位比例0.7
 
 定义存储层时有一些限制。首先，最多只有3个存储层。而且一层最多指定一个别名。举例而言，如果想在HDD层使用多个硬盘驱动器，可以配置`alluxio.worker.tieredstore.level{x}.dirs.path`为多个存储路径。
 

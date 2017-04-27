@@ -163,7 +163,6 @@ public final class NettyPacketWriterTest {
    *
    * @param length the length
    * @return the packet writer instance
-   * @throws Exception if it fails to create the packet writer
    */
   private PacketWriter create(long length) throws Exception {
     PacketWriter writer =
@@ -199,7 +198,7 @@ public final class NettyPacketWriterTest {
             ByteBuf buf = Unpooled.wrappedBuffer(data);
             try {
               writer.writePacket(buf);
-            } catch (IOException e) {
+            } catch (Exception e) {
               Assert.fail(e.getMessage());
               throw e;
             }

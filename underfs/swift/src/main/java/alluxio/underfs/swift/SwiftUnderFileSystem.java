@@ -95,7 +95,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   public SwiftUnderFileSystem(AlluxioURI uri, Map<String, String> ufsConf)
       throws FileDoesNotExistException {
     super(uri);
-    String containerName = getContainerName(uri);
+    String containerName = UnderFileSystemUtils.getBucketName(uri);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
 
@@ -280,17 +280,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       LOG.debug("Object {} not found", path);
     }
     return false;
-  }
-
-  /**
-   * Get container name from AlluxioURI.
-   *
-   * @param uri URI used to construct Swift UFS
-   * @return the container name from the given uri
-   */
-  protected static String getContainerName(AlluxioURI uri) {
-    // Authority contains the user, host and port portion of a URI
-    return uri.getAuthority();
   }
 
   @Override

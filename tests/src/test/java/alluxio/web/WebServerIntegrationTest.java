@@ -49,10 +49,10 @@ public class WebServerIntegrationTest {
       throws IOException {
     int port;
     if (serviceType == ServiceType.MASTER_WEB) {
-      port = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getWebAddress()
-          .getPort();
+      port = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+          .getWebAddress().getPort();
     } else {
-      port = mLocalAlluxioClusterResource.get().getWorker().getWebLocalPort();
+      port = mLocalAlluxioClusterResource.get().getWorkerProcess().getWebLocalPort();
     }
     InetSocketAddress webAddr =
         new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);

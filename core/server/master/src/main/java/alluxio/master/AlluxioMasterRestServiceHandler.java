@@ -87,7 +87,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_COUNT = "worker_count";
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private final AlluxioMasterService mMaster;
+  private final MasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
@@ -100,10 +100,10 @@ public final class AlluxioMasterRestServiceHandler {
    */
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mMaster = (AlluxioMasterService) context
+    mMasterProcess = (MasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mBlockMaster = mMaster.getMaster(BlockMaster.class);
-    mFileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+    mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
+    mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
   }
 
   /**
@@ -132,12 +132,12 @@ public final class AlluxioMasterRestServiceHandler {
                 .setLostWorkers(mBlockMaster.getLostWorkersInfoList())
                 .setMetrics(getMetricsInternal())
                 .setMountPoints(getMountPointsInternal())
-                .setRpcAddress(mMaster.getRpcAddress().toString())
-                .setStartTimeMs(mMaster.getStartTimeMs())
+                .setRpcAddress(mMasterProcess.getRpcAddress().toString())
+                .setStartTimeMs(mMasterProcess.getStartTimeMs())
                 .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
                 .setTierCapacity(getTierCapacityInternal())
                 .setUfsCapacity(getUfsCapacityInternal())
-                .setUptimeMs(mMaster.getUptimeMs())
+                .setUptimeMs(mMasterProcess.getUptimeMs())
                 .setVersion(RuntimeConstants.VERSION)
                 .setWorkers(mBlockMaster.getWorkerInfoList());
         return result;
@@ -197,7 +197,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
       public String call() throws Exception {
-        return mMaster.getRpcAddress().toString();
+        return mMasterProcess.getRpcAddress().toString();
       }
     });
   }
@@ -216,7 +216,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return mMaster.getStartTimeMs();
+        return mMasterProcess.getStartTimeMs();
       }
     });
   }
@@ -235,7 +235,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return mMaster.getUptimeMs();
+        return mMasterProcess.getUptimeMs();
       }
     });
   }

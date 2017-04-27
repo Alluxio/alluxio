@@ -30,8 +30,6 @@ public interface JournalWriter {
 
   /**
    * Marks all logs as completed.
-   *
-   * @throws IOException if an I/O error occurs
    */
   void completeLogs() throws IOException;
 
@@ -43,7 +41,6 @@ public interface JournalWriter {
    *        number will be used to determine the next sequence numbers for the subsequent journal
    *        entries.
    * @return the output stream for the journal checkpoint
-   * @throws IOException if an I/O error occurs
    */
   JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber) throws IOException;
 
@@ -52,14 +49,11 @@ public interface JournalWriter {
    * afterward to ensure the entry is persisted.
    *
    * @param entry the journal entry to write
-   * @throws IOException if an error occurs writing the entry or if the checkpoint is not closed
    */
   void write(JournalEntry entry) throws IOException;
 
   /**
    * Flushes the current log stream. Otherwise this operation is a no-op.
-   *
-   * @throws IOException if an error occurs preventing the stream from being flushed
    */
   void flush() throws IOException;
 
@@ -70,8 +64,6 @@ public interface JournalWriter {
 
   /**
    * Closes the journal.
-   *
-   * @throws IOException if an I/O error occurs
    */
   void close() throws IOException;
 
@@ -82,16 +74,12 @@ public interface JournalWriter {
 
   /**
    * Deletes all of the completed logs.
-   *
-   * @throws IOException if an I/O error occurs
    */
   void deleteCompletedLogs() throws IOException;
 
   /**
    * Marks the current log as completed. If successful, the current log will no longer exist. The
    * current log must be closed before this call.
-   *
-   * @throws IOException if an I/O error occurs
    */
   void completeCurrentLog() throws IOException;
 }

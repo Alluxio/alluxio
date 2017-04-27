@@ -90,20 +90,6 @@ public class JournalShutdownIntegrationTest {
   }
 
   @Test
-  public void singleMasterJournalCrashIntegration() throws Exception {
-    LocalAlluxioCluster cluster = setupSingleMasterCluster();
-    runCreateFileThread(cluster.getClient());
-    cluster.stopWorkers();
-    // Crash the master
-    cluster.getMaster().stop();
-    CommonUtils.sleepMs(TEST_TIME_MS);
-    awaitClientTermination();
-    reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
-  }
-
-  @Test
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
     runCreateFileThread(cluster.getClient());
@@ -119,6 +105,9 @@ public class JournalShutdownIntegrationTest {
     cluster.stopUFS();
   }
 
+  /**
+   * Waits for the client to terminate.
+   */
   private void awaitClientTermination() throws Exception {
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdownNow();

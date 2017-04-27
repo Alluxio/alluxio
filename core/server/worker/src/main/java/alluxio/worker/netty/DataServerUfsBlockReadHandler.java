@@ -51,7 +51,6 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
      * Creates an instance of {@link UfsBlockReadRequestInternal}.
      *
      * @param request the block read request
-     * @throws Exception if it fails to create the object
      */
     UfsBlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
       super(request.getId(), request.getOffset(), request.getOffset() + request.getLength());

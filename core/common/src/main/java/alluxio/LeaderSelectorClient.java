@@ -138,8 +138,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
 
   /**
    * Starts the leader selection.
-   *
-   * @throws IOException if an error occurs during leader selection
    */
   public void start() throws IOException {
     mLeaderSelector.start();

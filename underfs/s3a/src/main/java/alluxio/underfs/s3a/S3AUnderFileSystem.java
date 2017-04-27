@@ -104,7 +104,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static S3AUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> ufsConf) {
 
-    String bucketName = uri.getHost();
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
 
     // Set the aws credential system properties based on Alluxio properties, if they are set
     if (UnderFileSystemUtils.containsKey(PropertyKey.S3A_ACCESS_KEY, ufsConf)) {

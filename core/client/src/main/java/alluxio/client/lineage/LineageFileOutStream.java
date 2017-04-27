@@ -35,7 +35,6 @@ public class LineageFileOutStream extends FileOutStream {
    * @param context file system context
    * @param path the path of the file
    * @param options the set of options specific to this operation
-   * @throws IOException if an I/O error occurs
    */
   public LineageFileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
       throws IOException {

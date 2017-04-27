@@ -23,8 +23,6 @@ public class CapacityTest {
 
   /**
    * Test to convert between a Capacity type and a json type.
-   *
-   * @throws Exception if an error occurs during conversion between Capacity type and json type
    */
   @Test
   public void json() throws Exception {
