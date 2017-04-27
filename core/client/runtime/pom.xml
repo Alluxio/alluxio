@@ -17,10 +17,10 @@
     <artifactId>alluxio-core-client</artifactId>
     <version>1.5.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-core-client-uber</artifactId>
+  <artifactId>alluxio-core-client-runtime</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Uber Client</name>
-  <description>Uber Client of Alluxio Core</description>
+  <name>Alluxio Core - Runtime Client</name>
+  <description>Runtime Client of Alluxio Core</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
@@ -30,7 +30,7 @@
     <findbugs.path>${project.parent.parent.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
-    <shading.prefix>alluxio.core.client.uber</shading.prefix>
+    <shading.prefix>alluxio.core.client.runtime</shading.prefix>
   </properties>
 
   <dependencies>
