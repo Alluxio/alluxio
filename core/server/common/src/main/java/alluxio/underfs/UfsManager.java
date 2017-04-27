@@ -115,7 +115,7 @@ public class UfsManager implements Closeable {
   }
 
   /**
-   * Marks a UFS instance as a mount entry and associate it with a mount id.
+   * Marks a UFS instance as a mount entry and associates it with a mount id.
    *
    * @param ufs the UFS
    * @param mountId the mount id

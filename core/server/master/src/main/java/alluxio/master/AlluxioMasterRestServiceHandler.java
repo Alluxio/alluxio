@@ -90,7 +90,7 @@ public final class AlluxioMasterRestServiceHandler {
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final String mUfsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-  private final UnderFileSystem mUfs = UnderFileSystem.Factory.getForRoot();
+  private final UnderFileSystem mUfs;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -103,6 +103,7 @@ public final class AlluxioMasterRestServiceHandler {
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMaster.getMaster(BlockMaster.class);
     mFileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+    mUfs = UnderFileSystem.Factory.getForRoot();
   }
 
   /**
