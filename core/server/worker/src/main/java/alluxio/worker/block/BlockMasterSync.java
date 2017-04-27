@@ -135,7 +135,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
               blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (Exception e) {
+    } catch (IOException | ConnectionFailedException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
       if (cmdFromMaster == null) {
         LOG.error("Failed to receive master heartbeat command.", e);
@@ -160,9 +160,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute
+   * @throws IOException if I/O errors occur
+   * @throws ConnectionFailedException if connection fails
    */
   // TODO(calvin): Evaluate the necessity of each command.
-  private void handleMasterCommand(Command cmd) throws Exception {
+  private void handleMasterCommand(Command cmd) throws IOException, ConnectionFailedException {
     if (cmd == null) {
       return;
     }
