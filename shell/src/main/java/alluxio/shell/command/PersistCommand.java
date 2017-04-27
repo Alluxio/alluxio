@@ -72,8 +72,6 @@ public final class PersistCommand extends AbstractShellCommand {
    * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem.
    *
    * @param filePath the {@link AlluxioURI} path to persist to the UnderFileSystem
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void persist(AlluxioURI filePath) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);

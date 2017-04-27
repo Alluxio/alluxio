@@ -39,21 +39,17 @@ public interface JournalReader {
    * calling {@link #getNextInputStream()}.
    *
    * @return the {@link JournalInputStream} for the journal checkpoint
-   * @throws IOException if the checkpoint cannot be read, or was already read
    */
   JournalInputStream getCheckpointInputStream() throws IOException;
 
   /**
    * @return the input stream for the next completed log. Will return null if the next
    *         completed log does not exist yet.
-   * @throws IOException if the reader is no longer valid or when trying to get an input stream
-   *                     before a checkpoint was read
    */
   JournalInputStream getNextInputStream() throws IOException;
 
   /**
    * @return the last modified time of the checkpoint in ms
-   * @throws IOException if the checkpoint does not exist
    */
   long getCheckpointLastModifiedTimeMs() throws IOException;
 }

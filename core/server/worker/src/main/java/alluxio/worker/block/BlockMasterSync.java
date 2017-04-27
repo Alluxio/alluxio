@@ -108,7 +108,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
    * begins.
    *
-   * @throws IOException when workerId cannot be found
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() {
@@ -161,7 +160,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute
-   * @throws Exception if an error occurs when executing the command
    */
   // TODO(calvin): Evaluate the necessity of each command.
   private void handleMasterCommand(Command cmd) throws Exception {

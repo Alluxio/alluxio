@@ -163,7 +163,6 @@ public final class NettyPacketWriterTest {
    *
    * @param length the length
    * @return the packet writer instance
-   * @throws Exception if it fails to create the packet writer
    */
   private PacketWriter create(long length) throws Exception {
     PacketWriter writer =

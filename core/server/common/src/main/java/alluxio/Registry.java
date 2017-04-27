@@ -123,7 +123,6 @@ public class Registry<T extends Server<U>, U> {
    * If a {@link Server} fails to start, already-started {@link Server}s will be stopped.
    *
    * @param options the start options
-   * @throws IOException if an IO error occurs
    */
   public void start(U options) throws IOException {
     List<T> servers = new ArrayList<>();
@@ -143,8 +142,6 @@ public class Registry<T extends Server<U>, U> {
   /**
    * Stops all {@link Server}s in reverse dependency order. If A depends on B, B is stopped
    * before A.
-   *
-   * @throws IOException if an IO error occurs
    */
   public void stop() throws IOException {
     for (T server : Lists.reverse(getServers())) {

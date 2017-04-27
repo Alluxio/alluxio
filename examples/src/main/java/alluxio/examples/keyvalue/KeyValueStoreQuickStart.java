@@ -28,7 +28,6 @@ public final class KeyValueStoreQuickStart {
    * The main program.
    *
    * @param args one argument which is the path of the new key-value store
-   * @throws Exception if any exception happens
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {

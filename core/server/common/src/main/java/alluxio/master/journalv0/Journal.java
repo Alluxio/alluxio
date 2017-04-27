@@ -75,7 +75,6 @@ public interface Journal {
 
   /**
    * @return whether the journal has been formatted
-   * @throws IOException if an I/O error occurs
    */
   boolean isFormatted() throws IOException;
 }

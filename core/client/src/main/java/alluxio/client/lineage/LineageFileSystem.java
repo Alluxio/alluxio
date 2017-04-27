@@ -60,8 +60,6 @@ public final class LineageFileSystem extends BaseFileSystem {
    * @param options the set of options specific to this operation
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws LineageDoesNotExistException if the lineage does not exist
-   * @throws IOException if the recreation fails
-   * @throws AlluxioException if an unexpected AlluxioException occurs
    */
   private long reinitializeFile(AlluxioURI path, CreateFileOptions options)
       throws LineageDoesNotExistException, IOException, AlluxioException {
@@ -87,8 +85,6 @@ public final class LineageFileSystem extends BaseFileSystem {
    * @param path the Alluxio path of the file
    * @param options the set of options specific to this operation
    * @return an output stream to write the file
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
@@ -110,9 +106,7 @@ public final class LineageFileSystem extends BaseFileSystem {
    * Reports a file as lost.
    *
    * @param path the path to the lost file
-   * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws AlluxioException if an Alluxio exception occurs
    */
   public void reportLostFile(AlluxioURI path)
       throws IOException, FileDoesNotExistException, AlluxioException {

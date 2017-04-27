@@ -316,7 +316,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * Initializes the handler for the given block read request.
    *
    * @param request the block read request
-   * @throws Exception if it fails to initialize
    */
   protected abstract void initializeRequest(Protocol.ReadRequest request) throws Exception;
 
@@ -327,7 +326,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @param channel the netty channel
    * @param len The length, in bytes, of the data to read from the block
    * @return a {@link DataBuffer} representing the data
-   * @throws IOException if an I/O error occurs when reading the data
    */
   protected abstract DataBuffer getDataBuffer(Channel channel, long offset, int len)
       throws IOException;

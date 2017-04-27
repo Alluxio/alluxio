@@ -20,8 +20,6 @@ import java.io.IOException;
 public interface Cancelable {
    /**
     * Cancels an operation.
-    *
-    * @throws IOException if an I/O error occurs
     */
   void cancel() throws IOException;
 }

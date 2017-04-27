@@ -73,7 +73,6 @@ public final class FileSystemAclIntegrationTest {
    * Deletes files in the given filesystem.
    *
    * @param fs given filesystem
-   * @throws IOException
    */
   public static void cleanup(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     FileStatus[] statuses = fs.listStatus(new Path("/"));
