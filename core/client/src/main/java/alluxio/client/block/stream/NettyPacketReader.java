@@ -32,6 +32,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.FixedRecvByteBufAllocator;
+import io.netty.channel.RecvByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +70,8 @@ public final class NettyPacketReader implements PacketReader {
       Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
   private static final long READ_TIMEOUT_MS =
       Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+  private static final long ALLOCATOR_SIZE =
+      Configuration.getBytes(PropertyKey.UESER_NETWORK_NETTY_PACKET_READER_ALLOCATOR_SIZE);
 
   /** Special packet that indicates an exception is caught. */
   private static final ByteBuf THROWABLE = Unpooled.buffer(0);
@@ -82,6 +86,8 @@ public final class NettyPacketReader implements PacketReader {
   private final long mStart;
   private final long mBytesToRead;
   private final boolean mNoCache;
+  private final RecvByteBufAllocator mDefaultRecvByteBufAllocator;
+
 
   /**
    * This queue contains buffers read from netty. Its length is bounded by MAX_PACKETS_IN_FLIGHT.
@@ -146,6 +152,11 @@ public final class NettyPacketReader implements PacketReader {
             .setLockId(lockId).setSessionId(sessionId).setType(type).setNoCache(noCache).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(readRequest)))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+    mDefaultRecvByteBufAllocator = mChannel.config().getRecvByteBufAllocator();
+    if (ALLOCATOR_SIZE > 0) {
+      mChannel.config()
+          .setRecvByteBufAllocator(new FixedRecvByteBufAllocator((int) ALLOCATOR_SIZE));
+    }
   }
 
   @Override
@@ -218,6 +229,7 @@ public final class NettyPacketReader implements PacketReader {
 
         // Make sure "autoread" is on before releasing the channel.
         NettyUtils.enableAutoRead(mChannel);
+        mChannel.config().setRecvByteBufAllocator(mDefaultRecvByteBufAllocator);
       }
       mContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
