@@ -243,7 +243,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   /**
-   * Close the current packet reader.
+   * Closes the current packet reader.
    */
   private void closePacketReader() {
     if (mCurrentPacket != null) {
@@ -257,7 +257,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   /**
-   * Convenience method to ensure the stream is not closed.
+   * Checks if the stream is closed.
    */
   private void checkIfClosed() {
     Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
