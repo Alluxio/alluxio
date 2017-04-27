@@ -19,7 +19,6 @@ import alluxio.ServerUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -95,7 +94,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private long mStartTimeMs;
 
   /** The manager for all ufs. */
-  private UfsManager mUfsManager;
+  private WorkerUfsManager mUfsManager;
 
   /**
    * The worker ID for this worker. This is set when the block worker is initialized and may be
@@ -110,7 +109,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     try {
       mWorkerId = new AtomicReference<>();
       mStartTimeMs = System.currentTimeMillis();
-      mUfsManager = new DefaultUfsManager();
+      mUfsManager = new WorkerUfsManager();
       mBlockWorker = new DefaultBlockWorker(mWorkerId, mUfsManager);
       mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId, mUfsManager);
 
@@ -182,7 +181,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   }
 
   @Override
-  public UfsManager getUfsManager() {
+  public WorkerUfsManager getUfsManager() {
     return mUfsManager;
   }
 

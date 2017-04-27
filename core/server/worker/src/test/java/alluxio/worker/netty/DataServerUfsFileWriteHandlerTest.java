@@ -20,7 +20,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.WorkerUfsManager;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -49,8 +49,8 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
     mChecksum = 0;
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(mockUfs);
+    WorkerUfsManager ufsManager = Mockito.mock(WorkerUfsManager.class);
+    Mockito.when(ufsManager.getByMountIdOrFetch(Mockito.anyLong())).thenReturn(mockUfs);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class))).thenReturn(
         mOutputStream);
 

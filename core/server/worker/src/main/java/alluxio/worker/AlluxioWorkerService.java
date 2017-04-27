@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.Server;
-import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 
@@ -52,7 +51,7 @@ public interface AlluxioWorkerService extends Server {
   /**
    * @return the ufs manager for this Alluxio worker
    */
-  UfsManager getUfsManager();
+  WorkerUfsManager getUfsManager();
 
   /**
    * @return the worker's data service bind host (used by unit test only)

@@ -19,32 +19,34 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 
 import java.io.IOException;
 
 /**
  * The default implementation of UfsManager to manage the ufs used by different worker services.
  */
-public final class DefaultUfsManager implements UfsManager {
+public final class WorkerUfsManager extends UfsManager {
 
   private final Object mLock = new Object();
 
   private final FileSystemMasterClient mMasterClient;
-  private final Closer mCloser;
 
   /**
-   * Constructs an instance of {@link DefaultUfsManager}.
+   * Constructs an instance of {@link WorkerUfsManager}.
    */
-  public DefaultUfsManager() {
-    mCloser = Closer.create();
+  public WorkerUfsManager() {
     mMasterClient = mCloser.register(new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC)));
   }
 
-  @Override
-  public UnderFileSystem get(long mountId) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mountId);
+  /**
+   * {@inheritDoc}.
+   *
+   * If this mount id is new to this worker, this method will query master to get the corresponding
+   * ufs info.
+   */
+  public UnderFileSystem getByMountIdOrFetch(long mountId) throws IOException {
+    UnderFileSystem ufs = getByMountId(mountId);
     if (ufs == null) {
       UfsInfo info;
       try {
@@ -53,14 +55,9 @@ public final class DefaultUfsManager implements UfsManager {
         throw new IOException(e);
       }
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()));
-      ufs = UnderFileSystem.Factory.get(info.getUri(), info.getProperties(), mountId);
-      mCloser.register(ufs);
+      ufs = super.getOrCreate(info.getUri(), info.getProperties());
+      super.addMount(ufs, mountId);
     }
     return ufs;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mCloser.close();
   }
 }

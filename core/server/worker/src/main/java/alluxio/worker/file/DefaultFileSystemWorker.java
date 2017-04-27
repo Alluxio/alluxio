@@ -21,7 +21,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.WorkerUfsManager;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -55,7 +55,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
   /** The service that persists files. */
   private Future<?> mFilePersistenceService;
   /** Handler to the ufs manager. */
-  private final UfsManager mUfsManager;
+  private final WorkerUfsManager mUfsManager;
 
   /**
    * Creates a new DefaultFileSystemWorker.
@@ -66,7 +66,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker {
    * @throws IOException if an I/O error occurs
    */
   public DefaultFileSystemWorker(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      UfsManager ufsManager) throws IOException {
+      WorkerUfsManager ufsManager) throws IOException {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = workerId;

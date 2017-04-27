@@ -34,7 +34,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.WorkerUfsManager;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -115,7 +115,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    * @throws IOException if an IO exception occurs
    */
-  public DefaultBlockWorker(AtomicReference<Long> workerId, UfsManager ufsManager)
+  public DefaultBlockWorker(AtomicReference<Long> workerId, WorkerUfsManager ufsManager)
       throws IOException {
     this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
@@ -135,7 +135,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   public DefaultBlockWorker(BlockMasterClient blockMasterClient,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      AtomicReference<Long> workerId,  UfsManager ufsManager) throws IOException {
+      AtomicReference<Long> workerId, WorkerUfsManager ufsManager) throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;

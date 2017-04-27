@@ -16,7 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.WorkerUfsManager;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
@@ -47,7 +47,7 @@ public final class UnderFileSystemBlockReaderTest {
   private BlockStore mAlluxioBlockStore;
   private TempBlockMeta mTempBlockMeta;
   private UnderFileSystemBlockMeta mUnderFileSystemBlockMeta;
-  private UfsManager mUfsManager;
+  private WorkerUfsManager mUfsManager;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -63,13 +63,13 @@ public final class UnderFileSystemBlockReaderTest {
 
     mAlluxioBlockStore = Mockito.mock(BlockStore.class);
     mTempBlockMeta = Mockito.mock(TempBlockMeta.class);
-    mUfsManager = Mockito.mock(UfsManager.class);
+    mUfsManager = Mockito.mock(WorkerUfsManager.class);
     Mockito.when(mAlluxioBlockStore
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(BlockStoreLocation.class),
             Mockito.anyLong())).thenReturn(mTempBlockMeta);
     Mockito.when(mTempBlockMeta.getPath()).thenReturn(mFolder.newFile().getAbsolutePath());
-    Mockito.when(mUfsManager.get(Mockito.anyLong()))
-        .thenReturn(UnderFileSystem.Factory.get(testFilePath, null));
+    Mockito.when(mUfsManager.getByMountIdOrFetch(Mockito.anyLong()))
+        .thenReturn(UnderFileSystem.Factory.get(testFilePath));
 
     LockBlockTOptions options = new LockBlockTOptions();
     options.setMaxUfsReadConcurrency(10);

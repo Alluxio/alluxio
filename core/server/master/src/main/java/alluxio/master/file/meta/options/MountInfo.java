@@ -70,20 +70,7 @@ public final class MountInfo {
    */
   public MountPointInfo toMountPointInfo() {
     MountPointInfo info = new MountPointInfo();
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mMountId);
     info.setUfsUri(mUfsUri.toString());
-    info.setUfsType(ufs.getUnderFSType());
-    try {
-      info.setUfsCapacityBytes(
-          ufs.getSpace(mUfsUri.toString(), UnderFileSystem.SpaceType.SPACE_TOTAL));
-    } catch (IOException e) {
-      // pass
-    }
-    try {
-      info.setUfsUsedBytes(ufs.getSpace(mUfsUri.toString(), UnderFileSystem.SpaceType.SPACE_USED));
-    } catch (IOException e) {
-      // pass
-    }
     info.setReadOnly(mOptions.isReadOnly());
     info.setProperties(mOptions.getProperties());
     info.setShared(mOptions.isShared());

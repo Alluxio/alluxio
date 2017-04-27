@@ -21,7 +21,6 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.web.MasterWebServer;
@@ -522,13 +521,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, MountPointInfo> getMountPointsInternal() {
-    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
-    for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable()
-        .entrySet()) {
-      MountInfo mountInfo = mountPoint.getValue();
-      mountPoints.put(mountPoint.getKey(), mountInfo.toMountPointInfo());
-    }
-    return mountPoints;
+    return mFileSystemMaster.getMountTable();
   }
 
   private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {

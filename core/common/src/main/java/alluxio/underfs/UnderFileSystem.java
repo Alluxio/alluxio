@@ -20,10 +20,6 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.IdUtils;
-
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,7 +28,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,131 +43,7 @@ public interface UnderFileSystem extends Closeable {
    * The factory for the {@link UnderFileSystem}.
    */
   class Factory {
-    private static final Cache UFS_CACHE = new Cache();
-
     private Factory() {} // prevent instantiation
-
-    /**
-     * A class used to cache UnderFileSystems.
-     */
-    @ThreadSafe
-    private static final class Cache {
-      /**
-       * Maps from {@link Key} to {@link UnderFileSystem} instances.
-       */
-      private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
-          new ConcurrentHashMap<>();
-      /**
-       * Maps from mount id to {@link UnderFileSystem} instances.
-       */
-      private final ConcurrentHashMap<Long, UnderFileSystem> mIdToUnderFileSystemMap =
-          new ConcurrentHashMap<>();
-
-      private Cache() {}
-
-      /**
-       * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
-       * that to the cache.
-       *
-       * @param path the UFS path
-       * @param ufsConf the UFS configuration
-       * @param mountId the mount id, IdUtils.INVALID_MOUNT_ID if there is no mount associated
-       * @return the UFS instance
-       */
-      UnderFileSystem getOrAdd(String path, Map<String, String> ufsConf, long mountId) {
-        Key key = new Key(new AlluxioURI(path), ufsConf);
-        UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
-        if (cachedFs != null) {
-          if (mountId != IdUtils.INVALID_MOUNT_ID) {
-            mIdToUnderFileSystemMap.put(mountId, cachedFs);
-          }
-          return cachedFs;
-        }
-        UnderFileSystem fs = UnderFileSystemRegistry.create(path, ufsConf);
-        cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-        if (cachedFs == null) {
-          if (mountId != IdUtils.INVALID_MOUNT_ID) {
-            mIdToUnderFileSystemMap.put(mountId, fs);
-          }
-          return fs;
-        }
-        try {
-          fs.close();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-        if (mountId != IdUtils.INVALID_MOUNT_ID) {
-          mIdToUnderFileSystemMap.put(mountId, cachedFs);
-        }
-        return cachedFs;
-      }
-
-      /**
-       * Gets a UFS instance from the cache if exists. Otherwise, returns null.
-       *
-       * @param mountId the mount id
-       * @return the UFS instance
-       */
-      UnderFileSystem get(long mountId) {
-        return mIdToUnderFileSystemMap.get(mountId);
-      }
-
-      void clear() {
-        mUnderFileSystemMap.clear();
-      }
-    }
-
-    /**
-     * The key of the UFS cache.
-     */
-    private static class Key {
-      private final String mScheme;
-      private final String mAuthority;
-      private final Map<String, String> mProperties;
-
-      Key(AlluxioURI uri, Map<String, String> properties) {
-        mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-        mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
-        mProperties = (properties == null || properties.isEmpty()) ? null : properties;
-      }
-
-      @Override
-      public int hashCode() {
-        return Objects.hashCode(mScheme, mAuthority, mProperties);
-      }
-
-      @Override
-      public boolean equals(Object object) {
-        if (object == this) {
-          return true;
-        }
-
-        if (!(object instanceof Key)) {
-          return false;
-        }
-
-        Key that = (Key) object;
-        return Objects.equal(mAuthority, that.mAuthority)
-            && Objects.equal(mProperties, that.mProperties)
-            && Objects.equal(mScheme, that.mScheme);
-      }
-
-      @Override
-      public String toString() {
-        return Objects.toStringHelper(this)
-            .add("authority", mAuthority)
-            .add("scheme", mScheme)
-            .add("property", mProperties)
-            .toString();
-      }
-    }
-
-    /**
-     * Clears the under file system cache.
-     */
-    public static void clearCache() {
-      UFS_CACHE.clear();
-    }
 
     /**
      * Gets the {@link UnderFileSystem} instance according to its UFS path. This method should only
@@ -182,7 +53,7 @@ public interface UnderFileSystem extends Closeable {
      * @return instance of the under layer file system
      */
     public static UnderFileSystem get(String path) {
-      return UFS_CACHE.getOrAdd(path, null, IdUtils.INVALID_MOUNT_ID);
+      return UnderFileSystemRegistry.create(path, null);
     }
 
     /**
@@ -193,32 +64,7 @@ public interface UnderFileSystem extends Closeable {
      * @return the instance of under file system for Alluxio journal directory
      */
     public static UnderFileSystem get(URI path) {
-      return UFS_CACHE.getOrAdd(path.toString(), null, IdUtils.INVALID_MOUNT_ID);
-    }
-
-    /**
-     * Gets the {@link UnderFileSystem} instance according to its scheme and configuration. This
-     * method should only be used when a new mount is added or detected.
-     *
-     * @param path the path of mount point
-     * @param ufsConf the configuration object for ufs only
-     * @param mountId the id of mount point
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem get(String path, Map<String, String> ufsConf, long mountId) {
-      Preconditions.checkArgument(path != null, "path");
-
-      return UFS_CACHE.getOrAdd(path, ufsConf, mountId);
-    }
-
-    /**
-     * Gets the {@link UnderFileSystem} instance according to its scheme and configuration.
-     *
-     * @param mountId the id of mount point
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem get(long mountId) {
-      return UFS_CACHE.get(mountId);
+      return get(path.toString());
     }
 
     /**
@@ -228,7 +74,7 @@ public interface UnderFileSystem extends Closeable {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return get(ufsRoot, ufsConf, IdUtils.INVALID_MOUNT_ID);
+      return UnderFileSystemRegistry.create(ufsRoot, ufsConf);
     }
   }
 

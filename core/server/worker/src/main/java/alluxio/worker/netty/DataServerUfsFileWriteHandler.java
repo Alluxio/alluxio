@@ -17,7 +17,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.UfsManager;
+import alluxio.worker.WorkerUfsManager;
 
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
   private static final long UNUSED_SESSION_ID = -1;
-  private final UfsManager mUfsManager;
+  private final WorkerUfsManager mUfsManager;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
     private final String mUfsPath;
@@ -52,7 +52,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId(), UNUSED_SESSION_ID);
       mUfsPath = request.getUfsPath();
-      mUnderFileSystem = mUfsManager.get(request.getMountId());
+      mUnderFileSystem = mUfsManager.getByMountIdOrFetch(request.getMountId());
       mOutputStream =
           mUnderFileSystem.create(mUfsPath, CreateOptions.defaults().setOwner(request.getOwner())
               .setGroup(request.getGroup()).setMode(new Mode((short) request.getMode())));
@@ -77,7 +77,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
    * @param executorService the executor service to run {@link PacketWriter}s
    * @param ufsManager the file data manager
    */
-  DataServerUfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
+  DataServerUfsFileWriteHandler(ExecutorService executorService, WorkerUfsManager ufsManager) {
     super(executorService);
     mUfsManager = ufsManager;
   }

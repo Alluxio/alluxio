@@ -90,6 +90,7 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
@@ -105,6 +106,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerInfo;
 
@@ -129,7 +131,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -261,6 +265,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** The handler for async persistence. */
   private final AsyncPersistHandler mAsyncPersistHandler;
 
+  /** The manager of all ufs. */
+  private final UfsManager mUfsManager;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -302,7 +309,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     mBlockMaster = registry.get(BlockMaster.class);
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
-    mMountTable = new MountTable();
+    mUfsManager = new UfsManager();
+    mMountTable = new MountTable(mUfsManager);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
     // TODO(gene): Handle default config value for whitelist.
@@ -312,7 +320,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mPermissionChecker = new PermissionChecker(mInodeTree);
 
     registry.add(FileSystemMaster.class, this);
-    Metrics.registerGauges(this);
+    Metrics.registerGauges(this, mUfsManager);
   }
 
   @Override
@@ -445,20 +453,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // If it is secondary, it should be able to load the inode tree from primary's checkpoint.
       mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
           SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
-      String defaultUFS = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      Map<String, String> rootUfsConf =
+          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      long rootUfsMountId = IdUtils.createMountId();
       try {
-        // TODO(binfan): mount all ufs'es in site-properties
-        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            IdUtils.createMountId(), MountOptions.defaults().setShared(
-                UnderFileSystemUtils.isObjectStorage(defaultUFS) && Configuration
+        // NOTE, we currently treat root inode specially and add it to inode tree manually.
+        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri),
+            rootUfsMountId, MountOptions.defaults().setShared(
+                UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
-                .setProperties(
-                    Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION)));
+                .setProperties(rootUfsConf));
+        UnderFileSystem ufs = mUfsManager.getOrCreate(rootUfsUri, rootUfsConf);
+        mUfsManager.addMount(ufs, rootUfsMountId);
+        mUfsManager.addRoot(ufs);
       } catch (FileAlreadyExistsException e) {
         // This can happen when a primary becomes a standby and then becomes a primary.
         LOG.info("Root has already been mounted.");
       } catch (InvalidPathException e) {
-        throw new IOException("Failed to mount the default UFS " + defaultUFS, e);
+        throw new IOException("Failed to mount the default UFS " + rootUfsUri, e);
       }
     }
     // Call super.start after mInodeTree is initialized because mInodeTree is needed to write
@@ -688,7 +701,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
-    fileInfo.setMountId(resolution.getMountd());
+    fileInfo.setMountId(resolution.getMountId());
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -1039,8 +1052,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public Map<String, MountInfo> getMountTable() {
-    return mMountTable.getMountTable();
+  public Map<String, MountPointInfo> getMountTable() {
+    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
+    for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
+      MountInfo mountInfo = mountPoint.getValue();
+      MountPointInfo info = mountInfo.toMountPointInfo();
+      UnderFileSystem ufs = mUfsManager.getByMountId(mountInfo.getMountId());
+      info.setUfsType(ufs.getUnderFSType());
+      try {
+        info.setUfsCapacityBytes(
+            ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
+      } catch (IOException e) {
+        // pass
+      }
+      try {
+        info.setUfsUsedBytes(ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
+      } catch (IOException e) {
+        // pass
+      }
+      mountPoints.put(mountPoint.getKey(), info);
+    }
+    return mountPoints;
   }
 
   @Override
@@ -2232,11 +2264,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean replayed, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
+    UnderFileSystem ufs = mUfsManager.getOrCreate(ufsPath.toString(), options.getProperties());
 
     if (!replayed) {
-      // Ensure the UFS is added into factory with mountId
-      UnderFileSystem ufs =
-          UnderFileSystem.Factory.get(ufsPath.toString(), options.getProperties(), mountId);
       // Check that the ufsPath exists and is a directory
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
@@ -2255,6 +2285,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
     // mount and no existing mount is a prefix of this mount.
     mMountTable.add(alluxioPath, ufsPath, mountId, options);
+    mUfsManager.addMount(ufs, mountId);
   }
 
   @Override
@@ -2674,7 +2705,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     /**
      * Register some file system master related gauges.
      */
-    private static void registerGauges(final DefaultFileSystemMaster master) {
+    private static void registerGauges(
+        final DefaultFileSystemMaster master, final UfsManager ufsManager) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(FILES_PINNED),
           new Gauge<Integer>() {
             @Override
@@ -2691,7 +2723,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           });
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      final UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
+      final UnderFileSystem ufs = ufsManager.getRoot();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           new Gauge<Long>() {

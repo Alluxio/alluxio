@@ -23,6 +23,7 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -58,15 +59,19 @@ public final class MountTable implements JournalEntryIterable {
   @GuardedBy("mLock")
   private final Map<String, MountInfo> mMountTable;
 
+  /** The manager of all ufs. */
+  private final UfsManager mUfsManager;
+
   /**
    * Creates a new instance of {@link MountTable}.
    */
-  public MountTable() {
+  public MountTable(UfsManager ufsManager) {
     final int initialCapacity = 10;
     mMountTable = new HashMap<>(initialCapacity);
     mLock = new ReentrantReadWriteLock();
     mReadLock = mLock.readLock();
     mWriteLock = mLock.writeLock();
+    mUfsManager = ufsManager;
   }
 
   @Override
@@ -277,8 +282,7 @@ public final class MountTable implements JournalEntryIterable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.Factory.get(info.getMountId());
+        UnderFileSystem ufs = mUfsManager.getByMountId(info.getMountId());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
       }
@@ -365,7 +369,7 @@ public final class MountTable implements JournalEntryIterable {
     /**
      * @return the id of this mount point
      */
-    public long getMountd() {
+    public long getMountId() {
       return mMountd;
     }
   }
