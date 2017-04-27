@@ -464,9 +464,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
                 .setProperties(rootUfsConf));
-        UnderFileSystem ufs = mUfsManager.getOrCreate(rootUfsUri, rootUfsConf);
+        UnderFileSystem ufs = mUfsManager.getRoot();
         mUfsManager.addMount(ufs, rootUfsMountId);
-        mUfsManager.addRoot(ufs);
       } catch (FileAlreadyExistsException e) {
         // This can happen when a primary becomes a standby and then becomes a primary.
         LOG.info("Root has already been mounted.");

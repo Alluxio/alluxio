@@ -52,7 +52,7 @@ public final class PersistMultipleMountsIntegrationTest
     mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     mUfs = UnderFileSystem.Factory.get(mUfsRoot);
 
-    mMountedUfsRoot = mTempFolder.getRoot().toURI().toString();
+    mMountedUfsRoot = mTempFolder.getRoot().getAbsolutePath();
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(mMountedUfsRoot));
     mMountedUfs = UnderFileSystem.Factory.get(mMountedUfsRoot);
   }

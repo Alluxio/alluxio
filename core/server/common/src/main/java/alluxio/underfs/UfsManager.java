@@ -12,6 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
@@ -132,16 +134,6 @@ public class UfsManager implements Closeable {
   }
 
   /**
-   * Marks a UFS instance as root.
-   *
-   * @param ufs the UFS
-   */
-  public void addRoot(UnderFileSystem ufs) {
-    Preconditions.checkArgument(ufs != null, "ufs");
-    mRootUfs = ufs;
-  }
-
-  /**
    * Gets a UFS instance from the cache if exists, or null otherwise.
    *
    * @param mountId the mount id
@@ -155,6 +147,13 @@ public class UfsManager implements Closeable {
    * @return the UFS instance associated with root
    */
   public UnderFileSystem getRoot() {
+    if (mRootUfs != null) {
+      return mRootUfs;
+    }
+    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Map<String, String> rootUfsConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+    mRootUfs = getOrCreate(rootUfsUri, rootUfsConf);
     return mRootUfs;
   }
 

@@ -120,7 +120,7 @@ public interface UnderFileSystem extends Closeable {
   void close() throws IOException;
 
   /**
-   * Configures and updates the properties. For instance, this method can getOrAdd new properties or
+   * Configures and updates the properties. For instance, this method can add new properties or
    * modify existing properties specified through {@link #setProperties(Map)}.
    *
    * The default implementation is a no-op. This should be overridden if a subclass needs
