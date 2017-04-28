@@ -808,7 +808,7 @@ public enum PropertyKey {
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
     public static final String USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK =
-        "alluxio.user.file.delete.skip.consistency.check.default";
+        "alluxio.user.file.delete.skip.consistency.check";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
         "alluxio.user.file.master.client.threads";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
