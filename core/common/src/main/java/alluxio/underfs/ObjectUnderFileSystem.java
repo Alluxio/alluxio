@@ -223,6 +223,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       if (mCurrentBatchBuffer == null) {
         mCurrentBatchBuffer = new LinkedList<>();
       }
+      // Delete batch size is same as listing length
       if (mCurrentBatchBuffer.size() < getListingChunkLength()) {
         mCurrentBatchBuffer.add(path);
       } else {

@@ -1137,16 +1137,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     List<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
     // Persisted directories which can safely be deleted recursively from the UFS
+    // Mount points are not deleted recursively as we need to preserve the directory itself
     Map<AlluxioURI, Inode<?>> safeRecursiveUFSDeletes = new HashMap<>();
 
     Pair<AlluxioURI, Inode<?>> inodePair =
         new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
-    if (inode.isPersisted() && !replayed && inode.isDirectory()) {
-      if (deleteOptions.isSkipConsistencyCheck()
-          || isUFSDeleteSafe(inodePath.getInode(), inodePath.getUri())) {
-        safeRecursiveUFSDeletes.put(inodePath.getUri(), inode);
-      }
+    if (inode.isPersisted() && !replayed && inode.isDirectory()
+        && !mMountTable.isMountPoint(inodePath.getUri()) && (deleteOptions.isSkipConsistencyCheck()
+            || isUFSDeleteSafe(inodePath.getInode(), inodePath.getUri()))) {
+      safeRecursiveUFSDeletes.put(inodePath.getUri(), inode);
     }
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
@@ -1156,7 +1156,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         Pair<AlluxioURI, Inode<?>> descendantPair =
             new Pair<AlluxioURI, Inode<?>>(descendantPath, descendant);
         delInodes.add(descendantPair);
-        if (descendant.isPersisted() && !replayed && descendant.isDirectory()) {
+        if (descendant.isPersisted() && !replayed && descendant.isDirectory()
+            && !mMountTable.isMountPoint(descendantPath)) {
           if (deleteOptions.isSkipConsistencyCheck()
               || isUFSDeleteSafe(descendant, descendantPath)) {
             // Directory is a candidate for recursive deletes
@@ -1186,15 +1187,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // Currently, it will result in an inconsistency between Alluxio and UFS.
         if (!replayed && delInode.isPersisted()) {
           try {
-            boolean isMount = mMountTable.isMountPoint(alluxioUriToDel);
-            if (!alluxioOnly) {
+            // If this is a mount point, we have deleted all the children and can unmount it
+            // TODO(calvin): Add tests (ALLUXIO-1831)
+            if (mMountTable.isMountPoint(alluxioUriToDel)) {
+              unmountInternal(alluxioUriToDel);
+            } else if (!alluxioOnly) {
               // Delete the file in the under file system.
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
               AlluxioURI parentURI = alluxioUriToDel.getParent();
               // Check if parent is deleted recursively
-              if (isMount || !safeRecursiveUFSDeletes.containsKey(parentURI)) {
+              if (!safeRecursiveUFSDeletes.containsKey(parentURI)) {
                 boolean failedToDelete = false;
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
@@ -1204,7 +1208,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                     }
                   }
                 } else {
-                  // TODO(adit): if mount point then do not delete directory itself
                   if (!ufs.deleteDirectory(ufsUri, alluxio.underfs.options.DeleteOptions.defaults()
                       .setRecursive(safeRecursiveUFSDeletes.containsKey(alluxioUriToDel)))) {
                     failedToDelete = ufs.isDirectory(ufsUri);
@@ -1218,11 +1221,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
                 }
               }
-            }
-            // If this is a mount point, we have deleted all the children and can unmount it
-            // TODO(calvin): Add tests (ALLUXIO-1831)
-            if (mMountTable.isMountPoint(alluxioUriToDel)) {
-              unmountInternal(alluxioUriToDel);
             }
           } catch (InvalidPathException e) {
             LOG.warn(e.getMessage());
