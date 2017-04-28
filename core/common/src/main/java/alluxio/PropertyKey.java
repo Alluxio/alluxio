@@ -878,7 +878,7 @@ public enum PropertyKey {
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.user.ufs.block.open.timeout.ms";
-    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.disabled";
+    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
 
     //
     // FUSE integration related properties
