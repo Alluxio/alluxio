@@ -112,6 +112,36 @@ public class UfsManager implements Closeable {
   }
 
   /**
+   * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
+   * return this.
+   *
+   * @param ufsUri the UFS path
+   * @param ufsConf the UFS configuration
+   * @return the UFS instance
+   */
+  private UnderFileSystem getOrAdd(String ufsUri, Map<String, String> ufsConf) {
+    Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
+    UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
+    if (cachedFs != null) {
+      return cachedFs;
+    }
+    UnderFileSystem fs = UnderFileSystemRegistry.create(ufsUri, ufsConf);
+    cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
+    if (cachedFs == null) {
+      // above insert is successful
+      mCloser.register(fs);
+      return fs;
+    }
+    try {
+      fs.close();
+    } catch (IOException e) {
+      // Cannot close the created ufs which fails the race.
+      LOG.error("Failed to close ufs {}", fs, e);
+    }
+    return cachedFs;
+  }
+
+  /**
    * Maps a mount id to a UFS instance. Based on the UFS uri and conf, if this UFS instance already
    * exists in the cache, map the mount id to this existing instance. Otherwise, creates a new
    * instance and adds that to the cache. Use this method only when you create new UFS instances.
@@ -122,31 +152,11 @@ public class UfsManager implements Closeable {
    * @return the UFS instance
    */
   public UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf) {
-    Preconditions.checkArgument(ufsUri != null, "uri");
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-
-    Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
-    UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
-    if (cachedFs != null) {
-      mMountIdToUnderFileSystemMap.put(mountId, cachedFs);
-      return cachedFs;
-    }
-    UnderFileSystem fs = UnderFileSystemRegistry.create(ufsUri, ufsConf);
-    cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-    if (cachedFs == null) {
-      // above insert is successful
-      mCloser.register(fs);
-      mMountIdToUnderFileSystemMap.put(mountId, fs);
-      return fs;
-    }
-    try {
-      fs.close();
-    } catch (IOException e) {
-      // Cannot close the created ufs which fails the race.
-      LOG.error("Failed to close ufs {}", fs, e);
-    }
-    mMountIdToUnderFileSystemMap.put(mountId, cachedFs);
-    return cachedFs;
+    Preconditions.checkArgument(ufsUri != null, "uri");
+    UnderFileSystem ufs = getOrAdd(ufsUri, ufsConf);
+    mMountIdToUnderFileSystemMap.put(mountId, ufs);
+    return ufs;
   }
 
   /**
