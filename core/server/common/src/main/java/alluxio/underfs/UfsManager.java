@@ -161,14 +161,12 @@ public class UfsManager implements Closeable {
 
   /**
    * Marks a UFS instance as a mount entry and associates it with a mount id.
+   *  @param mountId the mount id
    *
-   * @param mountId the mount id
-   * @param ufs the UFS
    */
-  public void removeMount(long mountId, UnderFileSystem ufs) {
+  public void removeMount(long mountId) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    Preconditions.checkArgument(ufs != null, "ufs");
-    mMountIdToUnderFileSystemMap.remove(mountId, ufs);
+    mMountIdToUnderFileSystemMap.remove(mountId);
   }
 
   /**

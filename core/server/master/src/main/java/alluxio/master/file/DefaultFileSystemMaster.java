@@ -2263,7 +2263,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       mMountTable.add(alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
-      mUfsManager.removeMount(mountId, ufs);
+      mUfsManager.removeMount(mountId);
+      throw e;
     }
   }
 

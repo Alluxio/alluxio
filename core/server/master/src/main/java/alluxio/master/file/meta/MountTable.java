@@ -213,6 +213,7 @@ public final class MountTable implements JournalEntryIterable {
 
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mMountTable.containsKey(path)) {
+        mUfsManager.removeMount(mMountTable.get(path).getMountId());
         mMountTable.remove(path);
         return true;
       }
