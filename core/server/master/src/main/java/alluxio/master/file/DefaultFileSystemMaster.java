@@ -1227,15 +1227,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
         }
         if (i == 0) {
-          // Journal right before deleting the "root" of the sub-tree from the parent, since the
-          // parent is read locked.
-          DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(delInode.getId())
-              .setAlluxioOnly(deleteOptions.isAlluxioOnly())
-              .setRecursive(deleteOptions.isRecursive())
-              .setOpTimeMs(opTimeMs).build();
-          journalContext.append(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+          // Journal the deletion for the "root" of the sub-tree.
+          mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext);
+        } else {
+          mInodeTree
+              .deleteInode(tempInodePath, opTimeMs, deleteOptions, NoopJournalContext.INSTANCE);
         }
-        mInodeTree.deleteInode(tempInodePath, opTimeMs);
       }
     }
 

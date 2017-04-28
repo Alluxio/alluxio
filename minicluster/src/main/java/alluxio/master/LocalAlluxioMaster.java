@@ -98,6 +98,7 @@ public final class LocalAlluxioMaster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting Alluxio master {}.", mMasterProcess);
           mMasterProcess.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
@@ -108,6 +109,7 @@ public final class LocalAlluxioMaster {
     };
 
     mMasterThread = new Thread(runMaster);
+    mMasterThread.setName("MasterThread-" + System.identityHashCode(this));
     mMasterThread.start();
     mMasterProcess.waitForReady();
   }
@@ -121,6 +123,7 @@ public final class LocalAlluxioMaster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting secondary master {}.", mSecondaryMaster);
           mSecondaryMaster.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
@@ -146,10 +149,16 @@ public final class LocalAlluxioMaster {
    * Stops the master and cleans up client connections.
    */
   public void stop() throws Exception {
-    clearClients();
+    // This shutdown needs to be done in a loop with retry because the interrupt signal can
+    // sometimes be ignored in the master implementation. For example, if the master is doing
+    // a hdfs listStatus RPC (hadoop version is 1.x), the interrupt signal is not properly handled.
+    while (mMasterThread.isAlive()) {
+      mMasterProcess.stop();
+      mMasterThread.interrupt();
+      LOG.info("Stopping master thread {}.", System.identityHashCode(this));
+      mMasterThread.join(1000);
+    }
 
-    mMasterProcess.stop();
-    mMasterThread.interrupt();
     if (mSecondaryMaster != null) {
       mSecondaryMaster.stop();
     }
@@ -157,6 +166,7 @@ public final class LocalAlluxioMaster {
       mSecondaryMasterThread.interrupt();
     }
 
+    clearClients();
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
   }

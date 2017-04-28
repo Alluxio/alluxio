@@ -133,6 +133,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   @Override
   public void shutdown() throws IOException {
+    LOG.info("Shutting down DFS cluster.");
     if (mIsStarted) {
       mDfsClient.close();
       mDfsCluster.shutdown();
@@ -145,6 +146,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   @Override
   public void start() throws IOException {
+    LOG.info("Starting DFS cluster.");
     if (!mIsStarted) {
 
       cleanup();
