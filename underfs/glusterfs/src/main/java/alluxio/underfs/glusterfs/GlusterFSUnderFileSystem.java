@@ -19,8 +19,6 @@ import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 
 import org.apache.hadoop.conf.Configuration;
 
-import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -45,19 +43,19 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * @param ufsConf the configuration for this UFS
    * @return the created configuration
    */
-  public static Configuration createConfiguration(String path, Map<String, String> ufsConf) {
+  public static Configuration createConfiguration(String path,
+      UnderFileSystemConfiguration ufsConf) {
     if (path.startsWith(SCHEME)) {
       Configuration glusterFsConf = new Configuration();
       // Configure for Gluster FS
-      glusterFsConf.set("fs.glusterfs.impl",
-          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_IMPL, ufsConf));
-      glusterFsConf.set("mapred.system.dir",
-          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR, ufsConf));
-      glusterFsConf.set("fs.glusterfs.volumes",
-          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf));
-      glusterFsConf.set("fs.glusterfs.volume.fuse."
-          + UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf),
-          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS, ufsConf));
+      glusterFsConf.set("fs.glusterfs.impl", ufsConf.getValue(PropertyKey.UNDERFS_GLUSTERFS_IMPL));
+      glusterFsConf
+          .set("mapred.system.dir", ufsConf.getValue(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR));
+      glusterFsConf
+          .set("fs.glusterfs.volumes", ufsConf.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES));
+      glusterFsConf.set(
+          "fs.glusterfs.volume.fuse." + ufsConf.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES),
+          ufsConf.getValue(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS));
       return glusterFsConf;
     } else {
       // If not Gluster FS fall back to default HDFS behavior
@@ -75,7 +73,7 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * @return a new Gluster FS {@link UnderFileSystem} instance
    */
   public static GlusterFSUnderFileSystem createInstance(AlluxioURI uri,
-      Map<String, String> ufsConf) {
+      UnderFileSystemConfiguration ufsConf) {
     Configuration glusterFsConf = createConfiguration(uri.toString(), ufsConf);
     return new GlusterFSUnderFileSystem(uri, ufsConf, glusterFsConf);
   }
@@ -87,8 +85,8 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * @param ufsConf the configuration for this UFS
    * @param glusterFsConf the configuration for this Gluster FS
    */
-  private GlusterFSUnderFileSystem(AlluxioURI ufsUri, Map<String, String> ufsConf, Configuration
-      glusterFsConf)  {
+  private GlusterFSUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf,
+      Configuration glusterFsConf) {
     super(ufsUri, ufsConf, glusterFsConf);
   }
 

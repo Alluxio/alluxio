@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 
 import com.google.common.collect.Maps;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -41,6 +42,13 @@ public class UnderFileSystemConfiguration {
    */
   public boolean containsKey(PropertyKey key) {
     return mUfsConf.containsKey(key.toString()) || Configuration.containsKey(key);
+  }
+
+  /**
+   * @return the map of user-customized configuration
+   */
+  public Map<String,String> userSpecifiedConf() {
+    return Collections.unmodifiableMap(mUfsConf);
   }
 
   /**
