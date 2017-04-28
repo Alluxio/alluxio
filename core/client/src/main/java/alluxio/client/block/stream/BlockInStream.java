@@ -138,7 +138,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param blockId the block ID
    * @param blockSize the block size
    * @param blockStart the position at which the block starts in the file
-   * @param mountId the id of the ufs which the mount of this file is mapped to
+   * @param mountId the id of the UFS which the mount of this file is mapped to
    * @param workerNetAddress the worker network address
    * @param options the options
    * @return the {@link BlockInStream} created

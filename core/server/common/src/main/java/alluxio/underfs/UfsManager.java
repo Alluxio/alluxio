@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A class manages the UFS used by different worker services.
+ * A class manages the UFS used by different services.
  */
 @ThreadSafe
 public class UfsManager implements Closeable {
@@ -83,7 +83,7 @@ public class UfsManager implements Closeable {
   private final ConcurrentHashMap<Long, UnderFileSystem> mMountIdToUnderFileSystemMap =
       new ConcurrentHashMap<>();
 
-  private UnderFileSystem mRootUfs = null;
+  private UnderFileSystem mRootUfs;
   protected final Closer mCloser;
 
   /**
