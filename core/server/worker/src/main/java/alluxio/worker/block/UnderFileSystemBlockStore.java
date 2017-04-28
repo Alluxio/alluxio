@@ -15,6 +15,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -44,7 +45,7 @@ import javax.annotation.concurrent.GuardedBy;
  * If the client is lost before releasing or cleaning up the session, the session cleaner will
  * clean the data.
  */
-public final class UnderFileSystemBlockStore {
+public final class UnderFileSystemBlockStore implements SessionCleanable {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
 
   /**
@@ -129,7 +130,6 @@ public final class UnderFileSystemBlockStore {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @throws IOException if it fails to clean up
    */
   public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
@@ -208,7 +208,6 @@ public final class UnderFileSystemBlockStore {
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
-   * @throws IOException if any I/O errors occur
    */
   public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
       boolean noCache) throws BlockDoesNotExistException, IOException {
@@ -364,8 +363,6 @@ public final class UnderFileSystemBlockStore {
 
     /**
      * Closes the block reader or writer.
-     *
-     * @throws IOException if it fails to close block reader or writer
      */
     public synchronized void closeReaderOrWriter() throws IOException {
       if (mBlockReader != null) {

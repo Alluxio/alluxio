@@ -69,7 +69,6 @@ public interface AsyncPersistHandler {
    * Schedules a file for async persistence.
    *
    * @param path the path to the file
-   * @throws AlluxioException if the scheduling fails
    */
   void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
 

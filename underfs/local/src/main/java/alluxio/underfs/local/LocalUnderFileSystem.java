@@ -393,7 +393,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
    * @param src path of source file or directory
    * @param dst path of destination file or directory
    * @return true if rename succeeds
-   * @throws IOException
    */
   private boolean rename(String src, String dst) throws IOException {
     src = stripPath(src);

@@ -193,7 +193,9 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getStatus(), actual.getStatus());
   }
 
-  // Returns an input stream for a temporary file filled with test data.
+  /**
+   * Gets an input stream for a temporary file filled with test data.
+   */
   private FileInputStream getTempFileInputStream() throws IOException {
     // Create a temporary file for the FileChannel.
     File f = mFolder.newFile("temp.txt");
@@ -206,7 +208,9 @@ public class RPCMessageIntegrationTest {
     return new FileInputStream(f);
   }
 
-  // This encodes and decodes the 'msg' by sending it through the client and server pipelines.
+  /**
+   * Encodes and decodes the 'msg' by sending it through the client and server pipelines.
+   */
   private RPCMessage encodeThenDecode(RPCMessage msg) {
     // Write the message to the outgoing channel.
     mOutgoingChannel.writeAndFlush(msg);

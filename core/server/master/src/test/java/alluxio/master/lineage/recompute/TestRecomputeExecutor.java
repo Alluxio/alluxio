@@ -30,8 +30,6 @@ public final class TestRecomputeExecutor {
 
   /**
    * Tests recompute executor creates a recompute plan and launches the recompute job at heartbeat.
-   *
-   * @throws Exception if anything wrong happens
    */
   @Test
   public void recomputeLauncher() throws Exception {

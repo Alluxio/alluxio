@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.FileSystemCommand;
 
 import com.google.common.collect.Lists;
@@ -21,7 +22,6 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -53,7 +53,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes
     Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
-        .thenThrow(new IOException("failure"));
+        .thenThrow(new UnavailableException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
   }

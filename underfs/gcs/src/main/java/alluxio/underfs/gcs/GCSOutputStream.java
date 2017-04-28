@@ -69,7 +69,6 @@ public final class GCSOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the JetS3t client
-   * @throws IOException when a non-Alluxio related error occurs
    */
   public GCSOutputStream(String bucketName, String key, GoogleStorageService client)
       throws IOException {

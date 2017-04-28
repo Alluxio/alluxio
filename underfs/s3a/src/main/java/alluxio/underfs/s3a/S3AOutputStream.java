@@ -84,7 +84,6 @@ public class S3AOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param manager the transfer manager to upload the file with
-   * @throws IOException when a non-Alluxio related error occurs
    */
   public S3AOutputStream(String bucketName, String key, TransferManager manager)
       throws IOException {
@@ -153,7 +152,7 @@ public class S3AOutputStream extends OutputStream {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
     } catch (Exception e) {
-      LOG.error("Failed to upload {}. Temporary file @ {}", path, mFile.getPath());
+      LOG.error("Failed to upload {}: {}", path, e.toString());
       throw new IOException(e);
     }
 

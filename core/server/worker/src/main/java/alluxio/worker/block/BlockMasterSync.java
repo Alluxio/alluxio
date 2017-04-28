@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -101,36 +100,22 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
 
-    try {
-      registerWithMaster();
-      mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException | ConnectionFailedException e) {
-      // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", e);
-    }
+    registerWithMaster();
+    mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
   /**
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
    * begins.
    *
-   * @throws IOException when workerId cannot be found
    * @throws ConnectionFailedException if network connection failed
    */
-  private void registerWithMaster() throws IOException, ConnectionFailedException {
+  private void registerWithMaster() {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
-    try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-      mMasterClient.register(mWorkerId.get(),
-          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (IOException e) {
-      LOG.error("Failed to register with master.", e);
-      throw e;
-    } catch (AlluxioException e) {
-      LOG.error("Failed to register with master.", e);
-      throw new IOException(e);
-    }
+    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+    mMasterClient.register(mWorkerId.get(),
+        storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
   }
 
   /**
@@ -150,7 +135,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
               blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (Exception e) {
+    } catch (IOException | ConnectionFailedException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
       if (cmdFromMaster == null) {
         LOG.error("Failed to receive master heartbeat command.", e);
@@ -175,10 +160,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute
-   * @throws Exception if an error occurs when executing the command
+   * @throws IOException if I/O errors occur
+   * @throws ConnectionFailedException if connection fails
    */
   // TODO(calvin): Evaluate the necessity of each command.
-  private void handleMasterCommand(Command cmd) throws Exception {
+  private void handleMasterCommand(Command cmd) throws IOException, ConnectionFailedException {
     if (cmd == null) {
       return;
     }

@@ -20,6 +20,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +32,7 @@ import java.io.IOException;
  * cluster.
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalMiniDFSCluster.class);
   /**
    * Tests the local minidfscluster only.
    */
@@ -77,7 +80,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    *
    * @param path the directory path to be created
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   public static boolean mkdirs(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
@@ -198,6 +200,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   @Override
   public void shutdown() throws IOException {
+    LOG.info("Shutting down DFS cluster.");
     if (mIsStarted) {
       mDfsClient.close();
       mDfsCluster.shutdown();
@@ -210,6 +213,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   @Override
   public void start() throws IOException {
+    LOG.info("Starting DFS cluster.");
     if (!mIsStarted) {
 
       delete(mBaseDir, true);

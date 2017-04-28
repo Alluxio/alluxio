@@ -89,7 +89,7 @@ public final class HeadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     Option bytesOption =
         Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
     return new Options().addOption(bytesOption);

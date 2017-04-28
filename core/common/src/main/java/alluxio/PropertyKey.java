@@ -116,6 +116,8 @@ public enum PropertyKey {
   //
   // Master related properties
   //
+  // deprecated since version 1.3 and will be removed in version 2.0
+  // use MASTER_HOSTNAME instead
   MASTER_ADDRESS(Name.MASTER_ADDRESS, null),
   MASTER_BIND_HOST(Name.MASTER_BIND_HOST, "0.0.0.0"),
   MASTER_CONNECTION_TIMEOUT_MS(Name.MASTER_CONNECTION_TIMEOUT_MS, 0),
@@ -127,12 +129,18 @@ public enum PropertyKey {
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
   MASTER_JOURNAL_FLUSH_TIMEOUT_MS(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 300000),
   MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR)),
+  // Deprecated since 1.5.0 and will be removed in 2.0.
   MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
-      "alluxio.master.journal.ProtoBufJournalFormatter"),
+      "alluxio.master.journalv0.ProtoBufJournalFormatter"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB"),
   MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS(
       Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 5000),
   MASTER_JOURNAL_TAILER_SLEEP_TIME_MS(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 1000),
+  MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2000000),
+  MASTER_JOURNAL_GC_PERIOD_MS(Name.MASTER_JOURNAL_GC_PERIOD_MS, 120000),
+  MASTER_JOURNAL_GC_THRESHOLD_MS(Name.MASTER_JOURNAL_GC_THRESHOLD_MS, 300000),
+  MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS,
+      1800000),
   MASTER_KEYTAB_KEY_FILE(Name.MASTER_KEYTAB_KEY_FILE, null),
   MASTER_LINEAGE_CHECKPOINT_CLASS(Name.MASTER_LINEAGE_CHECKPOINT_CLASS,
       "alluxio.master.lineage.checkpoint.CheckpointLatestPlanner"),
@@ -222,19 +230,50 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, "/mnt/ramdisk"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
       "${alluxio.worker.memory.size}"),
-  WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "0.1"),
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO} and
+   * {@link #WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO} instead.
+   */
+  @Deprecated
+  WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, null),
+  WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO(
+      Name.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 1.0),
+  WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO(
+      Name.WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO, 0.7),
   WORKER_TIERED_STORE_LEVEL1_ALIAS(Name.WORKER_TIERED_STORE_LEVEL1_ALIAS, null),
   WORKER_TIERED_STORE_LEVEL1_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, null),
   WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, null),
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO} and
+   * {@link #WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO} instead.
+   */
+  @Deprecated
   WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, null),
+  WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO(
+      Name.WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO, 1.0),
+  WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO(
+      Name.WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO, 0.7),
   WORKER_TIERED_STORE_LEVEL2_ALIAS(Name.WORKER_TIERED_STORE_LEVEL2_ALIAS, null),
   WORKER_TIERED_STORE_LEVEL2_DIRS_PATH(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, null),
   WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA(Name.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA, null),
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   * Use {@link #WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO} and
+   * {@link #WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO} instead.
+   */
+  @Deprecated
   WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, null),
+  WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO(
+      Name.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO, 1.0),
+  WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO(
+      Name.WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO, 0.7),
   WORKER_TIERED_STORE_LEVELS(Name.WORKER_TIERED_STORE_LEVELS, 1),
   WORKER_TIERED_STORE_RESERVER_ENABLED(Name.WORKER_TIERED_STORE_RESERVER_ENABLED, false),
   WORKER_TIERED_STORE_RESERVER_INTERVAL_MS(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000),
   WORKER_TIERED_STORE_RETRY(Name.WORKER_TIERED_STORE_RETRY, 3),
+  WORKER_TIERED_STORE_FREE_SPACE_RATIO(Name.WORKER_TIERED_STORE_FREE_SPACE_RATIO, 0.0f),
   WORKER_WEB_BIND_HOST(Name.WORKER_WEB_BIND_HOST, "0.0.0.0"),
   WORKER_WEB_HOSTNAME(Name.WORKER_WEB_HOSTNAME, null),
   WORKER_WEB_PORT(Name.WORKER_WEB_PORT, 30000),
@@ -291,6 +330,8 @@ public enum PropertyKey {
   USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
   USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL, null),
   USER_NETWORK_NETTY_TIMEOUT_MS(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000),
+  USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS,
+      300000),
   USER_NETWORK_NETTY_WORKER_THREADS(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0),
   USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024),
   USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
@@ -579,6 +620,13 @@ public enum PropertyKey {
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
+    public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
+        "alluxio.master.journal.checkpoint.period.entries";
+    public static final String MASTER_JOURNAL_GC_PERIOD_MS = "alluxio.master.journal.gc.period.ms";
+    public static final String MASTER_JOURNAL_GC_THRESHOLD_MS =
+        "alluxio.master.journal.gc.threshold.ms";
+    public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
+        "alluxio.master.journal.temporary.file.gc.threshold.ms";
 
     //
     // Worker related properties
@@ -664,30 +712,62 @@ public enum PropertyKey {
         "alluxio.worker.tieredstore.level0.dirs.path";
     public static final String WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
         "alluxio.worker.tieredstore.level0.dirs.quota";
+    /**
+     * @deprecated It will be removed in 2.0.0.
+     * Use {@link #WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO} and
+     * {@link #WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO} instead.
+     */
+    @Deprecated
     public static final String WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
         "alluxio.worker.tieredstore.level0.reserved.ratio";
+    public static final String WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
+        "alluxio.worker.tieredstore.level0.watermark.high.ratio";
+    public static final String WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO =
+        "alluxio.worker.tieredstore.level0.watermark.low.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL1_ALIAS =
         "alluxio.worker.tieredstore.level1.alias";
     public static final String WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
         "alluxio.worker.tieredstore.level1.dirs.path";
     public static final String WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
         "alluxio.worker.tieredstore.level1.dirs.quota";
+    /**
+     * @deprecated It will be removed in 2.0.0.
+     * Use {@link #WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO} and
+     * {@link #WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO} instead.
+     */
+    @Deprecated
     public static final String WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
         "alluxio.worker.tieredstore.level1.reserved.ratio";
+    public static final String WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO =
+        "alluxio.worker.tieredstore.level1.watermark.high.ratio";
+    public static final String WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO =
+        "alluxio.worker.tieredstore.level1.watermark.low.ratio";
     public static final String WORKER_TIERED_STORE_LEVEL2_ALIAS =
         "alluxio.worker.tieredstore.level2.alias";
     public static final String WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
         "alluxio.worker.tieredstore.level2.dirs.path";
     public static final String WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
         "alluxio.worker.tieredstore.level2.dirs.quota";
+    /**
+     * @deprecated It will be removed in 2.0.0.
+     * Use {@link #WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO} and
+     * {@link #WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO} instead.
+     */
+    @Deprecated
     public static final String WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
         "alluxio.worker.tieredstore.level2.reserved.ratio";
+    public static final String WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
+        "alluxio.worker.tieredstore.level2.watermark.high.ratio";
+    public static final String WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO =
+        "alluxio.worker.tieredstore.level2.watermark.low.ratio";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
     public static final String WORKER_TIERED_STORE_RESERVER_ENABLED =
         "alluxio.worker.tieredstore.reserver.enabled";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval.ms";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
+    public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO
+        = "alluxio.worker.tieredstore.free.space.ratio";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
@@ -763,6 +843,8 @@ public enum PropertyKey {
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout.ms";
+    public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
+        "alluxio.user.network.netty.writer.close.timeout.ms";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
@@ -802,7 +884,7 @@ public enum PropertyKey {
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.user.ufs.block.open.timeout.ms";
-    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.disabled";
+    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
 
     //
     // FUSE integration related properties

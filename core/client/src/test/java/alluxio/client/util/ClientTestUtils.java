@@ -17,8 +17,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.hadoop.HadoopClientTestUtils;
 
-import com.google.common.base.Throwables;
-
 /**
  * Utility methods for the client tests.
  */
@@ -42,7 +40,7 @@ public final class ClientTestUtils {
       HadoopClientTestUtils.resetHadoopClientContext();
       resetContexts();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

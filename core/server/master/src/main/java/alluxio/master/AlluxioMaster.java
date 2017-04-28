@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +38,8 @@ public final class AlluxioMaster {
       System.exit(-1);
     }
 
-    AlluxioMasterService master = AlluxioMasterService.Factory.create();
-    ServerUtils.run(master, "Alluxio master");
+    MasterProcess process = MasterProcess.Factory.create();
+    ProcessUtils.run(process);
   }
 
   private AlluxioMaster() {} // prevent instantiation

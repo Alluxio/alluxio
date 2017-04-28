@@ -134,4 +134,4 @@ public void test() {
 ```
 
 ### 其他全局状态
-如果测试需要修改其它类型的全局状态，创建一个新的`@Rule`用于管理状态，这样就可以在测试中共享。这样的一个例子是[`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java)。
+如果测试需要修改其它类型的全局状态，创建一个新的`@Rule`用于管理状态，这样就可以在测试中共享。这样的一个例子是[`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java)。

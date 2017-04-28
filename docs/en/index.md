@@ -39,7 +39,7 @@ many companies. It is one of the fastest growing open source projects. With thre
 years of open source history, Alluxio has attracted more than
 [450 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
-[Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](www.google.com),
+[Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](https://www.google.com),
 [IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
 [Red Hat](https://www.redhat.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/), and
 [Yahoo](https://www.yahoo.com/).
