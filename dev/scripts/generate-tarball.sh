@@ -40,8 +40,7 @@ rm -rf ${REPO_COPY}
 rsync -aq --exclude='logs' --exclude='dev' ${HOME} ${REPO_COPY}
 
 pushd ${REPO_COPY} > /dev/null
-git clean -fdx
-git reset --hard HEAD
+git clean -fdX
 mkdir -p ${CLIENT_DIR}
 for PROFILE in "${FRAMEWORKS[@]}"; do
   echo "Running build ${PROFILE} and logging to ${BUILD_LOG}"
