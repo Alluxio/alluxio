@@ -88,6 +88,14 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .desc("print human-readable format sizes")
           .build();
 
+  protected static final String REMOVE_INCONSISTENT_OPTION_CHAR = "I";
+  protected static final Option REMOVE_INCONSISTENT_OPTION =
+      Option.builder(REMOVE_INCONSISTENT_OPTION_CHAR)
+            .required(false)
+            .hasArg(false)
+            .desc("remove inconsistent directories")
+            .build();
+
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
   }

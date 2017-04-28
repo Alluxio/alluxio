@@ -63,6 +63,7 @@ public enum PropertyKey {
   UNDERFS_HDFS_IMPL(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem"),
   UNDERFS_HDFS_PREFIXES(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///,maprfs:///"),
   UNDERFS_HDFS_REMOTE(Name.UNDERFS_HDFS_REMOTE, false),
+  UNDERFS_OBJECT_STORE_SERVICE_THREADS(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS, 20),
   UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY,
       false),
   UNDERFS_OSS_CONNECT_MAX(Name.UNDERFS_OSS_CONNECT_MAX, 1024),
@@ -305,6 +306,7 @@ public enum PropertyKey {
   USER_FAILED_SPACE_REQUEST_LIMITS(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3),
   USER_FILE_BUFFER_BYTES(Name.USER_FILE_BUFFER_BYTES, "1MB"),
   USER_FILE_CACHE_PARTIALLY_READ_BLOCK(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true),
+  USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK(Name.USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK, false),
   USER_FILE_MASTER_CLIENT_THREADS(Name.USER_FILE_MASTER_CLIENT_THREADS, 10),
   USER_FILE_PASSIVE_CACHE_ENABLED(Name.USER_FILE_PASSIVE_CACHE_ENABLED, true),
   USER_FILE_READ_TYPE_DEFAULT(Name.USER_FILE_READ_TYPE_DEFAULT, "CACHE_PROMOTE"),
@@ -499,6 +501,8 @@ public enum PropertyKey {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
+        "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
@@ -803,6 +807,8 @@ public enum PropertyKey {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
+    public static final String USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK =
+        "alluxio.user.file.delete.skip.consistency.check";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
         "alluxio.user.file.master.client.threads";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =

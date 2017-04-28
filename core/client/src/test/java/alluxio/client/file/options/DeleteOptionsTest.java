@@ -12,6 +12,8 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.thrift.DeleteTOptions;
 
 import org.junit.Assert;
@@ -32,6 +34,9 @@ public final class DeleteOptionsTest {
 
     Assert.assertFalse(options.isRecursive());
     Assert.assertFalse(options.isAlluxioOnly());
+    Assert.assertEquals(
+        Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK),
+        options.isSkipConsistencyCheck());
   }
 
   /**
@@ -42,12 +47,15 @@ public final class DeleteOptionsTest {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
     boolean alluxioOnly = random.nextBoolean();
+    boolean skipCheck = random.nextBoolean();
     DeleteOptions options = DeleteOptions.defaults();
 
     options.setRecursive(recursive);
     options.setAlluxioOnly(alluxioOnly);
+    options.setSkipConsistencyCheck(skipCheck);
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(alluxioOnly, options.isAlluxioOnly());
+    Assert.assertEquals(skipCheck, options.isSkipConsistencyCheck());
   }
 
   /**
