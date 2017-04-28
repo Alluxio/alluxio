@@ -29,13 +29,14 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * @param <T> the type of resource this pool manages
  */
-// TODO(peis): Implements this from the Pool interface.
 @ThreadSafe
-public abstract class ResourcePool<T> {
+public abstract class ResourcePool<T> implements Pool<T> {
+  private static final long WAIT_INDEFINITELY = -1;
   private final ReentrantLock mTakeLock;
   private final Condition mNotEmpty;
   protected final int mMaxCapacity;
   protected final ConcurrentLinkedQueue<T> mResources;
+  /** It represents the total number of resources that have been created by this pool. */
   protected final AtomicInteger mCurrentCapacity;
 
   /**
@@ -69,8 +70,9 @@ public abstract class ResourcePool<T> {
    *
    * @return a resource taken from the pool
    */
+  @Override
   public T acquire() {
-    return acquire(null, null);
+    return acquire(WAIT_INDEFINITELY, null);
   }
 
   /**
@@ -79,15 +81,16 @@ public abstract class ResourcePool<T> {
    * This method is like {@link #acquire()}, but it will time out if an object cannot be
    * acquired before the specified amount of time.
    *
-   * @param time an amount of time to wait, null to wait indefinitely
+   * @param time an amount of time to wait, <= 0 to wait indefinitely
    * @param unit the unit to use for time, null to wait indefinitely
    * @return a resource taken from the pool, or null if the operation times out
    */
-  public T acquire(Integer time, TimeUnit unit) {
+  @Override
+  public T acquire(long time, TimeUnit unit) {
     // If either time or unit are null, the other should also be null.
-    Preconditions.checkState((time == null) == (unit == null));
+    Preconditions.checkState((time <= 0) == (unit == null));
     long endTimeMs = 0;
-    if (time != null) {
+    if (time > 0) {
       endTimeMs = System.currentTimeMillis() + unit.toMillis(time);
     }
 
@@ -103,7 +106,6 @@ public abstract class ResourcePool<T> {
     }
 
     mCurrentCapacity.decrementAndGet();
-
     // Otherwise, try to take a resource from the pool, blocking if none are available.
     try {
       mTakeLock.lockInterruptibly();
@@ -113,7 +115,7 @@ public abstract class ResourcePool<T> {
           if (resource != null) {
             return resource;
           }
-          if (time != null) {
+          if (time > 0) {
             long currTimeMs = System.currentTimeMillis();
             if (currTimeMs >= endTimeMs) {
               return null;
@@ -137,6 +139,7 @@ public abstract class ResourcePool<T> {
    * Closes the resource pool. After this call, the object should be discarded. Inheriting classes
    * should clean up all their resources here.
    */
+  @Override
   public abstract void close();
 
   /**
@@ -145,11 +148,19 @@ public abstract class ResourcePool<T> {
    *
    * @param resource the resource to be released, it should not be reused after calling this method
    */
+  @Override
   public void release(T resource) {
-    mResources.add(resource);
-    try (LockResource r = new LockResource(mTakeLock)) {
-      mNotEmpty.signal();
+    if (resource != null) {
+      mResources.add(resource);
+      try (LockResource r = new LockResource(mTakeLock)) {
+        mNotEmpty.signal();
+      }
     }
+  }
+
+  @Override
+  public int size() {
+    return mCurrentCapacity.get();
   }
 
   /**

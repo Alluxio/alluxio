@@ -105,7 +105,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options()
         .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
@@ -121,8 +121,6 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param recursive Whether list the path recursively
    * @param dirAsFile list the directory status as a plain file
    * @param hSize print human-readable format sizes
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
                   boolean hSize, boolean pinnedOnly)

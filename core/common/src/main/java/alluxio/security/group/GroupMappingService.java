@@ -77,7 +77,6 @@ public interface GroupMappingService {
    *
    * @param user user's name
    * @return group memberships of user
-   * @throws IOException if can't get user's groups
    */
   List<String> getGroups(String user) throws IOException;
 }

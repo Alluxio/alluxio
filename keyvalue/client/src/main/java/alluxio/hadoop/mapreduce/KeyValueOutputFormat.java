@@ -93,7 +93,6 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   /**
    * @param taskContext MapReduce task configuration
    * @return a {@link KeyValueOutputCommitter}
-   * @throws IOException when committer fails to be created
    */
   @Override
   public OutputCommitter getOutputCommitter(TaskAttemptContext taskContext) throws IOException {

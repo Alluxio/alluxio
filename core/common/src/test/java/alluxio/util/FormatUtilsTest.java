@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * Tests the {@link FormatUtils} class.
  */
-public class FormatUtilsTest {
+public final class FormatUtilsTest {
 
   /**
    * Tests the {@link FormatUtils#parametersToString(Object...)} method.

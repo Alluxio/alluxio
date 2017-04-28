@@ -14,12 +14,12 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -60,8 +60,8 @@ public class MasterTestUtils {
       throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
-    JournalFactory factory = new MutableJournal.Factory(new URI(masterJournal));
-    new BlockMaster(registry, factory);
+    JournalFactory factory = new Journal.Factory(new URI(masterJournal));
+    new BlockMasterFactory().create(registry, factory);
     new FileSystemMasterFactory().create(registry, factory);
     registry.start(isLeader);
     return registry;

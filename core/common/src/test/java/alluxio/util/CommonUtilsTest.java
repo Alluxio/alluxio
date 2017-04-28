@@ -312,6 +312,22 @@ public class CommonUtilsTest {
   }
 
   @Test
+  public void stripLeadingAndTrailingQuotes() throws Exception {
+    Assert.assertEquals("", CommonUtils.stripLeadingAndTrailingQuotes(""));
+    Assert.assertEquals("\"", CommonUtils.stripLeadingAndTrailingQuotes("\""));
+    Assert.assertEquals("", CommonUtils.stripLeadingAndTrailingQuotes("\"\""));
+    Assert.assertEquals("\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"\""));
+    Assert.assertEquals("\"\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"\"\""));
+    Assert.assertEquals("noquote", CommonUtils.stripLeadingAndTrailingQuotes("noquote"));
+    Assert.assertEquals(
+        "\"singlequote", CommonUtils.stripLeadingAndTrailingQuotes("\"singlequote"));
+    Assert.assertEquals(
+        "singlequote\"", CommonUtils.stripLeadingAndTrailingQuotes("singlequote\""));
+    Assert.assertEquals("quoted", CommonUtils.stripLeadingAndTrailingQuotes("\"quoted\""));
+    Assert.assertEquals("\"quoted\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"quoted\"\""));
+  }
+
+  @Test
   public void getValueFromStaticMapping() throws Exception {
     String mapping = "k=v; a=a; alice=bob; id1=userA; foo=bar";
     Assert.assertEquals("v",     CommonUtils.getValueFromStaticMapping(mapping, "k"));

@@ -457,7 +457,6 @@ public final class TieredBlockStore implements BlockStore {
    * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
-   * @throws IOException if I/O errors occur when deleting the block file
    */
   private void abortBlockInternal(long sessionId, long blockId) throws BlockDoesNotExistException,
       BlockAlreadyExistsException, InvalidWorkerStateException, IOException {
@@ -490,7 +489,6 @@ public final class TieredBlockStore implements BlockStore {
    * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
-   * @throws IOException if I/O errors occur when deleting the block file
    */
   private BlockStoreLocation commitBlockInternal(long sessionId, long blockId)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
@@ -610,7 +608,6 @@ public final class TieredBlockStore implements BlockStore {
    * @param availableBytes amount of space in bytes to free
    * @param location location of space
    * @throws WorkerOutOfSpaceException if it is impossible to achieve the free requirement
-   * @throws IOException if I/O errors occur when removing or moving block files
    */
   private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location)
       throws WorkerOutOfSpaceException, IOException {
@@ -713,7 +710,6 @@ public final class TieredBlockStore implements BlockStore {
    * @throws BlockDoesNotExistException if block is not found
    * @throws BlockAlreadyExistsException if a block with same Id already exists in new location
    * @throws InvalidWorkerStateException if the block to move is a temp block
-   * @throws IOException if I/O errors occur when moving block file
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
       BlockStoreLocation oldLocation, BlockStoreLocation newLocation)
@@ -789,7 +785,6 @@ public final class TieredBlockStore implements BlockStore {
    * @param location the source location of the block
    * @throws InvalidWorkerStateException if the block to remove is a temp block
    * @throws BlockDoesNotExistException if this block can not be found
-   * @throws IOException if I/O errors occur when removing this block file
    */
   private void removeBlockInternal(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
@@ -829,7 +824,6 @@ public final class TieredBlockStore implements BlockStore {
    * directory has the sticky bit so only the worker user can delete or rename files it creates.
    *
    * @param blockPath the block path to create
-   * @throws IOException if the file cannot be created in the tiered storage folder
    */
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
   private static void createBlockFile(String blockPath) throws IOException {

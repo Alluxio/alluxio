@@ -155,15 +155,19 @@ Here is the explanation of the example configuration:
 * `alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
 path to the first tier
 * `alluxio.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
-* `alluxio.worker.tieredstore.level0.reserved.ratio=0.2` sets the ratio of space to be reserved on
-top layer to be 0.2
+* `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9` sets the ratio of high watermark on
+top layer to be 0.9
+* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of high watermark on 
+top layer to be 0.7
 * `alluxio.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk drive tier
 * `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
 file paths for the second tier
 * `alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB` defines the quota for each of the 3
 file paths of the second tier
-* `alluxio.worker.tieredstore.level1.reserved.ratio=0.1` sets the ratio of space to be reserved on
-the second layer to be 0.1
+* `alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9` sets the ratio of high watermark on
+the second layer to be 0.9
+* `alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7` sets the ratio of low watermark on
+the second layer to be 0.7
 
 There are a few restrictions to defining the tiers. First of all, there can be at most 3 tiers.
 Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the

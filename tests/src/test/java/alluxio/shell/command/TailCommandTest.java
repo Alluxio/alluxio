@@ -11,9 +11,8 @@
 
 package alluxio.shell.command;
 
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.exception.AlluxioException;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
@@ -28,14 +27,14 @@ import java.io.IOException;
  */
 public final class TailCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void tailEmptyFile() throws IOException {
+  public void tailEmptyFile() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WriteType.MUST_CACHE, 0);
     int ret = mFsShell.run("tail", "/emptyFile");
     Assert.assertEquals(0, ret);
   }
 
   @Test
-  public void tailLargeFile() throws IOException {
+  public void tailLargeFile() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
@@ -49,7 +48,7 @@ public final class TailCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void tailSmallFile() throws IOException {
+  public void tailSmallFile() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
@@ -57,7 +56,7 @@ public final class TailCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void tailWildcard() throws IOException, AlluxioException {
+  public void tailWildcard() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     // the expect contents (remember that the order is based on the path)
@@ -75,7 +74,7 @@ public final class TailCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void tailFileWithUserSpecifiedBytes() throws IOException {
+  public void tailFileWithUserSpecifiedBytes() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.run("tail", "-c", "2000", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(48, 2000);

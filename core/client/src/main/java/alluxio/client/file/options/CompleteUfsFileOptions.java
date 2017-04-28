@@ -18,8 +18,6 @@ import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -37,13 +35,12 @@ public final class CompleteUfsFileOptions {
    * default file mode.
    *
    * @return the default {@link CompleteUfsFileOptions}
-   * @throws IOException if failed to set owner from login module
    */
-  public static CompleteUfsFileOptions defaults() throws IOException {
+  public static CompleteUfsFileOptions defaults() {
     return new CompleteUfsFileOptions();
   }
 
-  private CompleteUfsFileOptions() throws IOException {
+  private CompleteUfsFileOptions() {
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = Mode.defaults().applyFileUMask();

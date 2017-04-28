@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import alluxio.AlluxioURI;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,5 +33,21 @@ public final class UnderFileSystemUtilsTest {
     Assert.assertEquals(false, UnderFileSystemUtils.isObjectStorage("/dir/"));
     Assert.assertEquals(false, UnderFileSystemUtils.isObjectStorage("/"));
     Assert.assertEquals(false, UnderFileSystemUtils.isObjectStorage(""));
+  }
+
+  @Test
+  public void getBucketName() throws Exception {
+    Assert.assertEquals("s3-bucket-name",
+        UnderFileSystemUtils.getBucketName(new AlluxioURI("s3://s3-bucket-name/")));
+    Assert.assertEquals("s3a_bucket_name",
+        UnderFileSystemUtils.getBucketName(new AlluxioURI("s3a://s3a_bucket_name/")));
+    Assert.assertEquals("a@b:123",
+        UnderFileSystemUtils.getBucketName(new AlluxioURI("s3n://a@b:123")));
+    Assert.assertEquals("a.b.c",
+        UnderFileSystemUtils.getBucketName(new AlluxioURI("gs://a.b.c/folder/sub-folder/")));
+    Assert.assertEquals("container&",
+        UnderFileSystemUtils.getBucketName(new AlluxioURI("swift://container&/folder/file")));
+    Assert.assertEquals("oss",
+        UnderFileSystemUtils.getBucketName(new AlluxioURI("oss://oss/folder/.file")));
   }
 }

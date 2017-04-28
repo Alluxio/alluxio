@@ -12,8 +12,8 @@
 package alluxio.hadoop;
 
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;

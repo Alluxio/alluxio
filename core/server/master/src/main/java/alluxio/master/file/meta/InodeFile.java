@@ -226,7 +226,8 @@ public final class InodeFile extends Inode<InodeFile> {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
     if (length < 0 && length != Constants.UNKNOWN_SIZE) {
-      throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
+      throw new InvalidFileSizeException(
+          "File " + getName() + " cannot have negative length: " + length);
     }
     mCompleted = true;
     mLength = length;

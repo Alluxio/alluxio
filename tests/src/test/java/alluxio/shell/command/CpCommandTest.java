@@ -12,13 +12,12 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
@@ -30,7 +29,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * Tests for cp command.
@@ -265,7 +263,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalFileToDstPath() throws IOException, AlluxioException {
+  public void copyFromLocalFileToDstPath() throws Exception {
     String dataString = "copyFromLocalFileToDstPathTest";
     byte[] data = dataString.getBytes();
     File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
@@ -282,7 +280,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalDir() throws IOException, AlluxioException {
+  public void copyFromLocalDir() throws Exception {
     // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
     // before.
     File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
@@ -304,7 +302,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalDirNotReadable() throws IOException, AlluxioException {
+  public void copyFromLocalDirNotReadable() throws Exception {
     // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
     // before.
     File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
@@ -325,7 +323,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalDirNotReadableInnerDir() throws IOException, AlluxioException {
+  public void copyFromLocalDirNotReadableInnerDir() throws Exception {
     // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
     // before.
     File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
@@ -346,7 +344,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalDirToExistingFile() throws IOException, AlluxioException {
+  public void copyFromLocalDirToExistingFile() throws Exception {
     // Copy a directory from local to a file which exists in Alluxio filesystem. This case should
     // fail.
     File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
@@ -362,7 +360,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalDirToExistingDir() throws IOException, AlluxioException {
+  public void copyFromLocalDirToExistingDir() throws Exception {
     // Copy a directory from local to Alluxio filesystem, which the destination uri has been
     // created before.
     File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
@@ -401,7 +399,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalLarge() throws IOException, AlluxioException {
+  public void copyFromLocalLarge() throws Exception {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
@@ -451,7 +449,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocal() throws IOException, AlluxioException {
+  public void copyFromLocal() throws Exception {
     File testDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     testDir.mkdir();
     File testDirInner = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testDirInner");
@@ -478,7 +476,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalTestWithFullURI() throws IOException, AlluxioException {
+  public void copyFromLocalTestWithFullURI() throws Exception {
     File testFile = generateFileContent("/srcFileURI", BufferUtils.getIncreasingByteArray(10));
     String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getHostname() + ":"
         + mLocalAlluxioCluster.getMasterRpcPort() + "/destFileURI";
@@ -496,7 +494,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalWildcardExistingDir() throws IOException, AlluxioException {
+  public void copyFromLocalWildcardExistingDir() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("cp", "file://" +  testDir + "/*/foo*", "/testDir");
@@ -507,7 +505,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalWildcardHier() throws IOException {
+  public void copyFromLocalWildcardHier() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     int ret = mFsShell.run("cp", "file://" +  testDir + "/*", "/testDir");
     Assert.assertEquals(0, ret);
@@ -518,7 +516,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalWildcardNotDir() throws IOException, AlluxioException {
+  public void copyFromLocalWildcardNotDir() throws Exception {
     String localTestDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     String alluxioTestDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", "file://" +  localTestDir + "/*/foo*", alluxioTestDir
@@ -527,7 +525,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyFromLocalWildcard() throws IOException {
+  public void copyFromLocalWildcard() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     int ret = mFsShell.run("cp", "file://" +  testDir + "/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
@@ -538,7 +536,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalDir() throws IOException, AlluxioException {
+  public void copyToLocalDir() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", testDir,
             "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
@@ -550,17 +548,17 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalLarge() throws IOException {
+  public void copyToLocalLarge() throws Exception {
     copyToLocalWithBytes(SIZE_BYTES);
   }
 
   @Test
-  public void copyToLocal() throws IOException {
+  public void copyToLocal() throws Exception {
     copyToLocalWithBytes(10);
   }
 
   @Test
-  public void copyToLocalWildcardExistingDir() throws IOException, AlluxioException {
+  public void copyToLocalWildcardExistingDir() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
@@ -574,7 +572,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardHier() throws IOException, AlluxioException {
+  public void copyToLocalWildcardHier() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell
         .run("cp", testDir + "/*", "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
@@ -586,7 +584,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardNotDir() throws IOException, AlluxioException {
+  public void copyToLocalWildcardNotDir() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
     new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile").createNewFile();
@@ -597,7 +595,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalWildcard() throws IOException, AlluxioException {
+  public void copyToLocalWildcard() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", testDir + "/*/foo*",
         "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
@@ -608,7 +606,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Override
-  protected void copyToLocalWithBytes(int bytes) throws IOException {
+  protected void copyToLocalWithBytes(int bytes) throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     String[] cmd = new String[] {"cp", "/testFile",
         "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile"};

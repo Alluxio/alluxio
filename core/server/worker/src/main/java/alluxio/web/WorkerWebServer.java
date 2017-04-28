@@ -13,7 +13,7 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -38,14 +38,13 @@ public final class WorkerWebServer extends WebServer {
    * Creates a new instance of {@link WorkerWebServer}.
    *
    * @param webAddress the service address
-   * @param alluxioWorker the alluxio worker
+   * @param workerProcess the Alluxio worker process
    * @param blockWorker block worker to manage blocks
    * @param connectHost the connect host for the web server
    * @param startTimeMs start time milliseconds
    */
-  public WorkerWebServer(InetSocketAddress webAddress,
-      final AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, String connectHost,
-      long startTimeMs) {
+  public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
+      BlockWorker blockWorker, String connectHost, long startTimeMs) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
 
@@ -73,7 +72,7 @@ public final class WorkerWebServer extends WebServer {
       @Override
       public void init() throws ServletException {
         super.init();
-        getServletContext().setAttribute(ALLUXIO_WORKER_SERVLET_RESOURCE_KEY, alluxioWorker);
+        getServletContext().setAttribute(ALLUXIO_WORKER_SERVLET_RESOURCE_KEY, workerProcess);
       }
     };
 

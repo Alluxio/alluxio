@@ -12,7 +12,6 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.journal.JournalFactory;
@@ -46,9 +45,11 @@ public final class BlockMasterFactory implements MasterFactory {
   }
 
   @Override
-  public Master create(MasterRegistry registry, JournalFactory journalFactory) {
+  public BlockMaster create(MasterRegistry registry, JournalFactory journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", BlockMaster.class.getName());
-    return new BlockMaster(registry, journalFactory);
+    BlockMaster master = new BlockMaster(journalFactory);
+    registry.add(BlockMaster.class, master);
+    return master;
   }
 }

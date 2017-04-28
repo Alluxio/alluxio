@@ -95,7 +95,6 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
    * Initializes the handler if necessary.
    *
    * @param msg the block write request
-   * @throws Exception if it fails to initialize
    */
   protected void initializeRequest(RPCProtoMessage msg) throws Exception {
     super.initializeRequest(msg);

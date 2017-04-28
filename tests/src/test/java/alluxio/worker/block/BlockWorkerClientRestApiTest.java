@@ -50,9 +50,9 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getWorker().getWebLocalPort();
+    mPort = mResource.get().getWorkerProcess().getWebLocalPort();
     mServicePrefix = BlockWorkerClientRestServiceHandler.SERVICE_PREFIX;
-    mBlockWorker = mResource.get().getWorker().getBlockWorker();
+    mBlockWorker = mResource.get().getWorkerProcess().getWorker(BlockWorker.class);
   }
 
   @Test

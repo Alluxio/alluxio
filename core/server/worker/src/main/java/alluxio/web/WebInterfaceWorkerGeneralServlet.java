@@ -204,7 +204,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * Populates key, value pairs for UI display.
    *
    * @param request the {@link HttpServletRequest} object
-   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("workerInfo", mUiWorkerInfo);
