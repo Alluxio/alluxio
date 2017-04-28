@@ -176,6 +176,9 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
+  /**
+   * Init DFSIOIntegrationTest.
+   */
   public DFSIOIntegrationTest() {
     mConfig = new org.apache.hadoop.conf.Configuration();
   }
