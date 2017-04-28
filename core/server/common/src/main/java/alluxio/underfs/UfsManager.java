@@ -19,6 +19,8 @@ import alluxio.util.IdUtils;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class UfsManager implements Closeable {
-
+  private static final Logger LOG = LoggerFactory.getLogger(UfsManager.class);
   /**
    * The key of the UFS cache.
    */
@@ -123,7 +125,8 @@ public class UfsManager implements Closeable {
     try {
       fs.close();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      // Cannot close the created ufs which fails the race.
+      LOG.error("Failed to close ufs {}", fs, e);
     }
     return racingFs;
   }
