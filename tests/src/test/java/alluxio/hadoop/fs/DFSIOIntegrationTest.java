@@ -84,6 +84,7 @@ import java.util.StringTokenizer;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
+// Constants for DFSIOIntegrationTest
 public class DFSIOIntegrationTest implements Tool {
   // Constants for DFSIOIntegrationTest
   private static final Logger LOG = LoggerFactory.getLogger(DFSIOIntegrationTest.class);
