@@ -328,6 +328,8 @@ public enum PropertyKey {
   USER_LOCAL_WRITER_PACKET_SIZE_BYTES(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES, "64KB"),
   USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL, null),
   USER_NETWORK_NETTY_TIMEOUT_MS(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000),
+  USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS,
+      300000),
   USER_NETWORK_NETTY_WORKER_THREADS(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0),
   USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX, 1024),
   USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS(
@@ -835,6 +837,8 @@ public enum PropertyKey {
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout.ms";
+    public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
+        "alluxio.user.network.netty.writer.close.timeout.ms";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
