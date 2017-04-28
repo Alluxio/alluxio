@@ -235,6 +235,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mDataServer.close();
     if (mDomainSocketDataServer != null) {
       mDomainSocketDataServer.close();
+      mDomainSocketDataServer = null;
     }
     mThriftServer.stop();
     mThriftServerSocket.close();

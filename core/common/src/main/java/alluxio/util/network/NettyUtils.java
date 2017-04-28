@@ -76,7 +76,7 @@ public final class NettyUtils {
       boolean isDomainSocket) {
     if (isDomainSocket) {
       Preconditions.checkState(type == ChannelType.EPOLL,
-          "Domain socket is used while the channel type is not epoll.");
+          "Domain sockets are only supported with EPOLL channel type.");
       return EpollServerDomainSocketChannel.class;
     }
     switch (type) {
@@ -100,7 +100,7 @@ public final class NettyUtils {
       boolean isDomainSocket) {
     if (isDomainSocket) {
       Preconditions.checkState(type == ChannelType.EPOLL,
-          "Domain socket is used while the channel type is not epoll.");
+          "Domain sockets are only supported with EPOLL channel type.");
       return EpollDomainSocketChannel.class;
     }
     switch (type) {

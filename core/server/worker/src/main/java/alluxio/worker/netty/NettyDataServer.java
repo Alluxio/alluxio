@@ -158,10 +158,14 @@ public final class NettyDataServer implements DataServer {
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     final int workerThreadCount =
         Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
-    final EventLoopGroup bossGroup =
-        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
-    final EventLoopGroup workerGroup =
-        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d", false);
+    String dataServerEventLoopNamePrefix =
+        "data-server-" + ((mSocketAddress instanceof DomainSocketAddress) ? "domain-socket" :
+            "tcp-socket");
+    final EventLoopGroup bossGroup = NettyUtils
+        .createEventLoop(type, bossThreadCount, dataServerEventLoopNamePrefix + "-boss-%d", false);
+    final EventLoopGroup workerGroup = NettyUtils
+        .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
+            false);
 
     final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(type,
          mSocketAddress instanceof DomainSocketAddress);
