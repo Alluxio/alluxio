@@ -34,7 +34,6 @@ public class JobConf implements Serializable {
    */
   public JobConf(String outputFilePath) {
     mOutputFilePath = Preconditions.checkNotNull(outputFilePath);
-    //mOutputFilePath = outputFilePath;
   }
 
   /**
