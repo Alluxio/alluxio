@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -68,17 +69,17 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(
-        UnderFileSystemUtils.containsKey(PropertyKey.OSS_ACCESS_KEY, ufsConf),
+        UnderFileSystemConfiguration.containsKey1(PropertyKey.OSS_ACCESS_KEY, ufsConf),
             "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(
-        UnderFileSystemUtils.containsKey(PropertyKey.OSS_SECRET_KEY, ufsConf),
+        UnderFileSystemConfiguration.containsKey1(PropertyKey.OSS_SECRET_KEY, ufsConf),
             "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(
-        UnderFileSystemUtils.containsKey(PropertyKey.OSS_ENDPOINT_KEY, ufsConf),
+        UnderFileSystemConfiguration.containsKey1(PropertyKey.OSS_ENDPOINT_KEY, ufsConf),
             "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    String accessId = UnderFileSystemUtils.getValue(PropertyKey.OSS_ACCESS_KEY, ufsConf);
-    String accessKey = UnderFileSystemUtils.getValue(PropertyKey.OSS_SECRET_KEY, ufsConf);
-    String endPoint = UnderFileSystemUtils.getValue(PropertyKey.OSS_ENDPOINT_KEY, ufsConf);
+    String accessId = UnderFileSystemConfiguration.getValue1(PropertyKey.OSS_ACCESS_KEY, ufsConf);
+    String accessKey = UnderFileSystemConfiguration.getValue1(PropertyKey.OSS_SECRET_KEY, ufsConf);
+    String endPoint = UnderFileSystemConfiguration.getValue1(PropertyKey.OSS_ENDPOINT_KEY, ufsConf);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);

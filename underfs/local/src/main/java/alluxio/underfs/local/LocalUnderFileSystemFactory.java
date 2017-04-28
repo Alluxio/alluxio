@@ -13,11 +13,10 @@ package alluxio.underfs.local;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
-
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,7 +32,7 @@ public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
   public LocalUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
     return new LocalUnderFileSystem(new AlluxioURI(path));
   }

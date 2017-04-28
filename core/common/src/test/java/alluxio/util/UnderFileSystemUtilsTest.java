@@ -14,6 +14,7 @@ package alluxio.util;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.Maps;
 import org.junit.Assert;
@@ -45,18 +46,20 @@ public final class UnderFileSystemUtilsTest {
   public void getValue() throws Exception {
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar").toResource()) {
       Map<String, String> conf = Maps.newHashMap();
-      Assert.assertEquals("bar", UnderFileSystemUtils.getValue(PropertyKey.S3A_ACCESS_KEY, conf));
+      Assert.assertEquals("bar", UnderFileSystemConfiguration
+          .getValue1(PropertyKey.S3A_ACCESS_KEY, conf));
       conf.put(PropertyKey.S3A_ACCESS_KEY.toString(), "foo");
-      Assert.assertEquals("foo", UnderFileSystemUtils.getValue(PropertyKey.S3A_ACCESS_KEY, conf));
+      Assert.assertEquals("foo", UnderFileSystemConfiguration
+          .getValue1(PropertyKey.S3A_ACCESS_KEY, conf));
     }
   }
 
   @Test
   public void contains() throws Exception {
     Map<String, String> conf = Maps.newHashMap();
-    Assert.assertFalse(UnderFileSystemUtils.containsKey(PropertyKey.S3A_ACCESS_KEY, conf));
+    Assert.assertFalse(UnderFileSystemConfiguration.containsKey1(PropertyKey.S3A_ACCESS_KEY, conf));
     conf.put(PropertyKey.S3A_ACCESS_KEY.toString(), "foo");
-    Assert.assertTrue(UnderFileSystemUtils.containsKey(PropertyKey.S3A_ACCESS_KEY, conf));
+    Assert.assertTrue(UnderFileSystemConfiguration.containsKey1(PropertyKey.S3A_ACCESS_KEY, conf));
   }
 
   @Test

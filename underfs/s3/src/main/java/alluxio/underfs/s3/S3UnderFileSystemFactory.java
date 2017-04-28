@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
@@ -40,7 +41,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   public S3UnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkNotNull(path, "path");
     if (checkAWSCredentials(ufsConf)) {
       try {

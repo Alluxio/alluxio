@@ -16,13 +16,13 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -38,7 +38,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   public OSSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkNotNull(path);
 
     if (checkOSSCredentials()) {

@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -39,7 +40,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -83,26 +83,24 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public static GCSUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> ufsConf)
-      throws ServiceException {
+  public static GCSUnderFileSystem createInstance(
+      AlluxioURI uri, UnderFileSystemConfiguration ufsConf) throws ServiceException {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-    Preconditions
-        .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.GCS_ACCESS_KEY, ufsConf),
+    Preconditions.checkArgument(ufsConf.containsKey(PropertyKey.GCS_ACCESS_KEY),
             "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
-    Preconditions
-        .checkArgument(UnderFileSystemUtils.containsKey(PropertyKey.GCS_SECRET_KEY, ufsConf),
+    Preconditions.checkArgument(ufsConf.containsKey(PropertyKey.GCS_SECRET_KEY),
             "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
     GSCredentials googleCredentials = new GSCredentials(
-        UnderFileSystemUtils.getValue(PropertyKey.GCS_ACCESS_KEY, ufsConf),
-        UnderFileSystemUtils.getValue(PropertyKey.GCS_SECRET_KEY, ufsConf));
+        ufsConf.getValue(PropertyKey.GCS_ACCESS_KEY),
+        ufsConf.getValue(PropertyKey.GCS_SECRET_KEY));
 
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
 
     String accountOwnerId = googleStorageService.getAccountOwner().getId();
     // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
-    String owner = CommonUtils.getValueFromStaticMapping(UnderFileSystemUtils
-        .getValue(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ufsConf), accountOwnerId);
+    String owner = CommonUtils.getValueFromStaticMapping(
+        ufsConf.getValue(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {
       owner = googleStorageService.getAccountOwner().getDisplayName();

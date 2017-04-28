@@ -161,35 +161,8 @@ public final class UnderFileSystemUtils {
   }
 
   // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
-  /**
-   * Gets the value of the given key in the given UFS configuration or the global configuration
-   * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
-   * key is not found in both configurations.
-   *
-   * @param key property key
-   * @param ufsConf configuration for the UFS
-   * @return the value associated with the given key
-   */
-  public static String getValue(PropertyKey key, Map<String, String> ufsConf) {
-    if (ufsConf != null && ufsConf.containsKey(key.toString())) {
-      return ufsConf.get(key.toString());
-    }
-    if (Configuration.containsKey(key)) {
-      return Configuration.get(key);
-    }
-    throw new RuntimeException("key " + key + " not found");
-  }
 
   // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
-  /**
-   * @param key property key
-   * @param ufsConf configuration for the UFS
-   * @return true if the key is contained in the given UFS configuration or global configuration
-   */
-  public static boolean containsKey(PropertyKey key, Map<String, String> ufsConf) {
-    return (ufsConf != null && ufsConf.containsKey(key.toString())) || Configuration
-        .containsKey(key);
-  }
 
   /**
    * @param uri the UFS path

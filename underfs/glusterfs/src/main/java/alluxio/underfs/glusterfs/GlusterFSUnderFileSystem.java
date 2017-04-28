@@ -14,8 +14,8 @@ package alluxio.underfs.glusterfs;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.util.UnderFileSystemUtils;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -50,14 +50,14 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
       Configuration glusterFsConf = new Configuration();
       // Configure for Gluster FS
       glusterFsConf.set("fs.glusterfs.impl",
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_IMPL, ufsConf));
+          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_IMPL, ufsConf));
       glusterFsConf.set("mapred.system.dir",
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR, ufsConf));
+          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR, ufsConf));
       glusterFsConf.set("fs.glusterfs.volumes",
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf));
+          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf));
       glusterFsConf.set("fs.glusterfs.volume.fuse."
-          + UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf),
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS, ufsConf));
+          + UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf),
+          UnderFileSystemConfiguration.getValue1(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS, ufsConf));
       return glusterFsConf;
     } else {
       // If not Gluster FS fall back to default HDFS behavior

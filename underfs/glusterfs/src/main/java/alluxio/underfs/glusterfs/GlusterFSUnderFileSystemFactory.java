@@ -13,11 +13,10 @@ package alluxio.underfs.glusterfs;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
-
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,7 +32,7 @@ public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
   public GlusterFSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Map<String, String> ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
     return GlusterFSUnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
   }
