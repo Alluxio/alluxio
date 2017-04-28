@@ -284,7 +284,7 @@ public final class MountTable implements JournalEntryIterable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        UnderFileSystem ufs = mUfsManager.getByMountId(info.getMountId());
+        UnderFileSystem ufs = mUfsManager.get(info.getMountId());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
       }

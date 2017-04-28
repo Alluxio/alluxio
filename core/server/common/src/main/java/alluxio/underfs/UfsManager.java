@@ -78,10 +78,19 @@ public class UfsManager implements Closeable {
     }
   }
 
-  /** Maps from key to {@link UnderFileSystem} instances. */
+  // TODO(binfan): Add refcount to the UFS instance. Once the refcount goes to zero,
+  // we could close this UFS instance.
+  /**
+   * Maps from key to {@link UnderFileSystem} instances. This map keeps the entire set of UFS
+   * instances, each keyed by their unique combination of Uri and conf information. This map
+   * helps efficiently  identify if a UFS instance in request should be created or can be reused.
+   */
   private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
       new ConcurrentHashMap<>();
-  /** Maps from mount id to {@link UnderFileSystem} instances. */
+  /**
+   * Maps from mount id to {@link UnderFileSystem} instances. This map helps efficiently retrieve
+   * a existing UFS instance given its mount id.
+   */
   private final ConcurrentHashMap<Long, UnderFileSystem> mMountIdToUnderFileSystemMap =
       new ConcurrentHashMap<>();
 
@@ -103,23 +112,31 @@ public class UfsManager implements Closeable {
   }
 
   /**
-   * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
-   * that to the cache. Use this method only when you create new UFS instances.
+   * Maps a mount id to a UFS instance. Based on the UFS uri and conf, if this UFS instance already
+   * exists in the cache, map the mount id to this existing instance. Otherwise, creates a new
+   * instance and adds that to the cache. Use this method only when you create new UFS instances.
    *
-   * @param path the UFS path
+   * @param mountId the mount id
+   * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
    */
-  public UnderFileSystem getOrCreate(String path, Map<String, String> ufsConf) {
-    Key key = new Key(new AlluxioURI(path), ufsConf);
+  public UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf) {
+    Preconditions.checkArgument(ufsUri != null, "uri");
+    Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
+
+    Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
+      mMountIdToUnderFileSystemMap.put(mountId, cachedFs);
       return cachedFs;
     }
-    UnderFileSystem fs = UnderFileSystemRegistry.create(path, ufsConf);
-    UnderFileSystem racingFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-    if (racingFs == null) {
+    UnderFileSystem fs = UnderFileSystemRegistry.create(ufsUri, ufsConf);
+    cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
+    if (cachedFs == null) {
+      // above insert is successful
       mCloser.register(fs);
+      mMountIdToUnderFileSystemMap.put(mountId, fs);
       return fs;
     }
     try {
@@ -128,19 +145,20 @@ public class UfsManager implements Closeable {
       // Cannot close the created ufs which fails the race.
       LOG.error("Failed to close ufs {}", fs, e);
     }
-    return racingFs;
+    mMountIdToUnderFileSystemMap.put(mountId, cachedFs);
+    return cachedFs;
   }
 
   /**
    * Marks a UFS instance as a mount entry and associates it with a mount id.
    *
-   * @param ufs the UFS
    * @param mountId the mount id
+   * @param ufs the UFS
    */
-  public void addMount(UnderFileSystem ufs, long mountId) {
-    Preconditions.checkArgument(ufs != null, "ufs");
+  public void removeMount(long mountId, UnderFileSystem ufs) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    mMountIdToUnderFileSystemMap.put(mountId, ufs);
+    Preconditions.checkArgument(ufs != null, "ufs");
+    mMountIdToUnderFileSystemMap.remove(mountId, ufs);
   }
 
   /**
@@ -149,7 +167,7 @@ public class UfsManager implements Closeable {
    * @param mountId the mount id
    * @return the UFS instance
    */
-  public UnderFileSystem getByMountId(long mountId) {
+  public UnderFileSystem get(long mountId) {
     return mMountIdToUnderFileSystemMap.get(mountId);
   }
 

@@ -42,7 +42,7 @@ public final class MountTableTest {
   @Before
   public void before() throws Exception {
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    Mockito.when(ufsManager.getByMountId(Mockito.anyLong())).thenReturn(mTestUfs);
+    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(mTestUfs);
     mMountTable = new MountTable(ufsManager);
   }
 

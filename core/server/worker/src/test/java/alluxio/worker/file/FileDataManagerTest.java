@@ -80,7 +80,7 @@ public final class FileDataManagerTest {
     PowerMockito.mockStatic(FileSystem.Factory.class);
     Mockito.when(FileSystem.Factory.get()).thenReturn(mMockFileSystem);
     Mockito.when(mUfs.isDirectory(Mockito.anyString())).thenReturn(true);
-    Mockito.when(mUfsManager.getByMountId(Mockito.anyLong())).thenReturn(mUfs);
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(mUfs);
   }
 
   @After

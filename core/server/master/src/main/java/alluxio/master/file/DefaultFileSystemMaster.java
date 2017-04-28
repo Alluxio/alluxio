@@ -1050,7 +1050,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = mountInfo.toMountPointInfo();
-      UnderFileSystem ufs = mUfsManager.getByMountId(mountInfo.getMountId());
+      UnderFileSystem ufs = mUfsManager.get(mountInfo.getMountId());
       info.setUfsType(ufs.getUnderFSType());
       try {
         info.setUfsCapacityBytes(
@@ -2239,28 +2239,32 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean replayed, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    UnderFileSystem ufs = mUfsManager.getOrCreate(ufsPath.toString(), options.getProperties());
+    UnderFileSystem ufs =
+        mUfsManager.addMount(mountId, ufsPath.toString(), options.getProperties());
+    try {
+      if (!replayed) {
+        // Check that the ufsPath exists and is a directory
+        if (!ufs.isDirectory(ufsPath.toString())) {
+          throw new IOException(
+              ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+        }
+        // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
+        String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+        UnderFileSystem defaultUfs = UnderFileSystem.Factory.getForRoot();
+        String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
+        if (defaultUfs.exists(shadowPath)) {
+          throw new IOException(
+              ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
+        }
+      }
 
-    if (!replayed) {
-      // Check that the ufsPath exists and is a directory
-      if (!ufs.isDirectory(ufsPath.toString())) {
-        throw new IOException(
-            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
-      }
-      // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-      String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      UnderFileSystem defaultUfs = UnderFileSystem.Factory.getForRoot();
-      String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
-      if (defaultUfs.exists(shadowPath)) {
-        throw new IOException(
-            ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
-      }
+      // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
+      // mount and no existing mount is a prefix of this mount.
+
+      mMountTable.add(alluxioPath, ufsPath, mountId, options);
+    } catch (Exception e) {
+      mUfsManager.removeMount(mountId, ufs);
     }
-
-    // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
-    // mount and no existing mount is a prefix of this mount.
-    mMountTable.add(alluxioPath, ufsPath, mountId, options);
-    mUfsManager.addMount(ufs, mountId);
   }
 
   @Override

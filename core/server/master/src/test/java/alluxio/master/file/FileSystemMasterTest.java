@@ -1604,7 +1604,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void getUfsInfoNotExist() throws Exception {
-    UfsInfo noSuchUfsInfo = mFileSystemMaster.getUfsInfo(1L);
+    UfsInfo noSuchUfsInfo = mFileSystemMaster.getUfsInfo(100L);
     Assert.assertFalse(noSuchUfsInfo.isSetUri());
     Assert.assertFalse(noSuchUfsInfo.isSetProperties());
   }

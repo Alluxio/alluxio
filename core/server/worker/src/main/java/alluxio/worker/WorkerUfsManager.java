@@ -46,8 +46,8 @@ public final class WorkerUfsManager extends UfsManager {
    * If this mount id is new to this worker, this method will query master to get the corresponding
    * ufs info.
    */
-  public UnderFileSystem getByMountId(long mountId) {
-    UnderFileSystem ufs = super.getByMountId(mountId);
+  public UnderFileSystem get(long mountId) {
+    UnderFileSystem ufs = super.get(mountId);
     if (ufs == null) {
       UfsInfo info;
       try {
@@ -56,8 +56,7 @@ public final class WorkerUfsManager extends UfsManager {
         throw AlluxioStatusException.fromIOException(e);
       }
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
-      ufs = super.getOrCreate(info.getUri(), info.getProperties());
-      super.addMount(ufs, mountId);
+      ufs = super.addMount(mountId, info.getUri(), info.getProperties());
     }
     return ufs;
   }
