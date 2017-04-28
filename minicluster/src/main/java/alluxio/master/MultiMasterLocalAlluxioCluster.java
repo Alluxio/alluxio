@@ -232,7 +232,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   public void stopFS() throws Exception {
     super.stopFS();
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
-    mCuratorServer.stop();
+    mCuratorServer.close();
   }
 
   @Override

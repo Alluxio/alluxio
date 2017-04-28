@@ -27,6 +27,7 @@ import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.NoopJournalContext;
@@ -472,7 +473,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#deleteInode(LockedInodePath)} method.
+   * Tests deleting a nested inode.
    */
   @Test
   public void deleteInode() throws Exception {
@@ -659,7 +660,8 @@ public final class InodeTreeTest {
   // Helper to delete an inode by path.
   private static void deleteInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
     try (LockedInodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      root.deleteInode(inodePath);
+      root.deleteInode(inodePath, System.currentTimeMillis(), DeleteOptions.defaults(),
+          NoopJournalContext.INSTANCE);
     }
   }
 
