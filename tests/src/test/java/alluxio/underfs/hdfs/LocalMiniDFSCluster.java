@@ -16,6 +16,8 @@ import alluxio.util.io.FileUtils;
 
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -25,7 +27,8 @@ import java.io.IOException;
  * cluster.
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
-
+  private static final Logger LOG = LoggerFactory.getLogger(LocalMiniDFSCluster.class);
+  
   private org.apache.hadoop.conf.Configuration mConf = new org.apache.hadoop.conf.Configuration();
   private int mNamenodePort;
 
