@@ -466,8 +466,6 @@ public class UfsJournalIntegrationTest {
 
   /**
    * Tests the situation where a checkpoint mount entry is replayed by a standby master.
-   *
-   * @throws Exception on error
    */
   @Test
   public void mountEntryCheckpoint() throws Exception {

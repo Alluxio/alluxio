@@ -73,9 +73,6 @@ public class FileInStreamTest {
 
   /**
    * Sets up the context and streams before a test runs.
-   *
-   * @throws AlluxioException when the worker ufs operations fail
-   * @throws IOException when the read and write streams fail
    */
   @Before
   public void before() throws Exception {
@@ -544,7 +541,6 @@ public class FileInStreamTest {
    * streams and that the correct bytes are read from the {@link FileInStream}.
    *
    * @param dataRead the bytes to read
-   * @throws Exception when reading from the stream fails
    */
   private void testReadBuffer(int dataRead) throws Exception {
     byte[] buffer = new byte[dataRead];

@@ -65,7 +65,6 @@ public final class LocalAlluxioMaster {
   /**
    * Creates a new local Alluxio master with an isolated work directory and port.
    *
-   * @throws IOException when unable to do file operation or listen on port
    * @return an instance of Alluxio master
    */
   public static LocalAlluxioMaster create() throws IOException {
@@ -83,7 +82,6 @@ public final class LocalAlluxioMaster {
    *
    * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
    * @return the created Alluxio master
-   * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
     UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
@@ -100,6 +98,7 @@ public final class LocalAlluxioMaster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting Alluxio master {}.", mMasterProcess);
           mMasterProcess.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
@@ -110,6 +109,7 @@ public final class LocalAlluxioMaster {
     };
 
     mMasterThread = new Thread(runMaster);
+    mMasterThread.setName("MasterThread-" + System.identityHashCode(this));
     mMasterThread.start();
     mMasterProcess.waitForReady();
   }
@@ -123,6 +123,7 @@ public final class LocalAlluxioMaster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting secondary master {}.", mSecondaryMaster);
           mSecondaryMaster.start();
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
@@ -146,14 +147,18 @@ public final class LocalAlluxioMaster {
 
   /**
    * Stops the master and cleans up client connections.
-   *
-   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
-    clearClients();
+    // This shutdown needs to be done in a loop with retry because the interrupt signal can
+    // sometimes be ignored in the master implementation. For example, if the master is doing
+    // a hdfs listStatus RPC (hadoop version is 1.x), the interrupt signal is not properly handled.
+    while (mMasterThread.isAlive()) {
+      mMasterProcess.stop();
+      mMasterThread.interrupt();
+      LOG.info("Stopping master thread {}.", System.identityHashCode(this));
+      mMasterThread.join(1000);
+    }
 
-    mMasterProcess.stop();
-    mMasterThread.interrupt();
     if (mSecondaryMaster != null) {
       mSecondaryMaster.stop();
     }
@@ -161,14 +166,13 @@ public final class LocalAlluxioMaster {
       mSecondaryMasterThread.interrupt();
     }
 
+    clearClients();
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
   }
 
   /**
    * Clears all the clients.
-   *
-   * @throws IOException if the client pool cannot be closed
    */
   public void clearClients() throws IOException {
     mClientPool.close();
@@ -206,7 +210,6 @@ public final class LocalAlluxioMaster {
 
   /**
    * @return the client from the pool
-   * @throws IOException if the client cannot be retrieved
    */
   public FileSystem getClient() throws IOException {
     return mClientPool.getClient();

@@ -31,10 +31,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,9 +67,10 @@ public final class MiniBenchmark {
    * Prints the usage.
    */
   private static void usage() {
-    new HelpFormatter().printHelp(
-        String.format("java -cp %s %s <[READ, WRITE]> <fileSize> <iterations>",
-            RuntimeConstants.ALLUXIO_JAR, MiniBenchmark.class.getCanonicalName()),
+    new HelpFormatter().printHelp(String.format(
+        "java -cp %s %s -type <[READ, WRITE]> -fileSize <fileSize> -iterations <iterations> "
+            + "-concurrency <concurrency>",
+        RuntimeConstants.ALLUXIO_JAR, MiniBenchmark.class.getCanonicalName()),
         "run a mini benchmark to write or read a file",
         OPTIONS, "", true);
   }
@@ -126,11 +129,11 @@ public final class MiniBenchmark {
 
     CommonUtils.warmUpLoop();
 
-    long start = System.nanoTime();
-
     for (int i = 0; i < sIterations; ++i) {
       final AtomicInteger count = new AtomicInteger(0);
+      final CyclicBarrier barrier = new CyclicBarrier(sConcurrency);
       ExecutorService executorService = Executors.newFixedThreadPool(sConcurrency);
+      final AtomicLong runtime = new AtomicLong(0);
       for (int j = 0; j < sConcurrency; ++j) {
         switch (sType) {
           case READ:
@@ -138,7 +141,7 @@ public final class MiniBenchmark {
               @Override
               public void run() {
                 try {
-                  readFile(count.addAndGet(1));
+                  readFile(barrier, runtime, count.addAndGet(1));
                 } catch (Exception e) {
                   LOG.error("Failed to read file.", e);
                   System.exit(-1);
@@ -151,7 +154,7 @@ public final class MiniBenchmark {
               @Override
               public void run() {
                 try {
-                  writeFile(count.addAndGet(1));
+                  writeFile(barrier, runtime, count.addAndGet(1));
                 } catch (Exception e) {
                   LOG.error("Failed to write file.", e);
                   System.exit(-1);
@@ -165,9 +168,10 @@ public final class MiniBenchmark {
       }
       executorService.shutdown();
       Preconditions.checkState(executorService.awaitTermination(1, TimeUnit.HOURS));
+      double time = runtime.get() * 1.0 / sConcurrency / Constants.SECOND_NANO;
+      System.out.printf("Iteration: %d; Duration: %f seconds; Aggregated throughput: %f GB/second.%n",
+          i, time, sConcurrency * 1.0 * sFileSize / time / Constants.GB);
     }
-    System.out.printf("Runtime: %f seconds.%n",
-        (System.nanoTime() - start) * 1.0 / Constants.SECOND_NANO);
   }
 
   /**
@@ -176,14 +180,18 @@ public final class MiniBenchmark {
    * @param count the count to determine the filename
    * @throws Exception if it fails to read
    */
-  private static void readFile(int count) throws Exception {
+  private static void readFile(CyclicBarrier barrier, AtomicLong runTime, int count)
+      throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();
     byte[] buffer = new byte[(int) Math.min(sFileSize, 4 * Constants.MB)];
 
+    barrier.await();
+    long startTime = System.nanoTime();
     try (FileInStream inStream = fileSystem.openFile(filename(count))) {
       while (inStream.read(buffer) != -1) {
       }
     }
+    runTime.addAndGet(System.nanoTime() - startTime);
   }
 
   /**
@@ -192,7 +200,8 @@ public final class MiniBenchmark {
    * @param count the count to determine the filename
    * @throws Exception if it fails to write
    */
-  private static void writeFile(int count) throws Exception {
+  private static void writeFile(CyclicBarrier barrier, AtomicLong runtime, int count)
+      throws Exception {
     FileSystem fileSystem = FileSystem.Factory.get();
     byte[] buffer = new byte[(int) Math.min(sFileSize, 4 * Constants.MB)];
     Arrays.fill(buffer, (byte) 'a');
@@ -202,6 +211,8 @@ public final class MiniBenchmark {
       fileSystem.delete(path);
     }
 
+    barrier.await();
+    long startTime = System.nanoTime();
     long bytesWritten = 0;
     try (FileOutStream outStream = fileSystem.createFile(path)) {
       while (bytesWritten < sFileSize) {
@@ -209,6 +220,7 @@ public final class MiniBenchmark {
         bytesWritten += buffer.length;
       }
     }
+    runtime.addAndGet(System.nanoTime() - startTime);
   }
 
   private static AlluxioURI filename(int count) {

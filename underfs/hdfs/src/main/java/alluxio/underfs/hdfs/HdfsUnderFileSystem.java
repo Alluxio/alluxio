@@ -488,7 +488,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param path file or directory path
    * @param recursive whether to delete path recursively
    * @return true, if succeed
-   * @throws IOException when a non-alluxio error occurs
    */
   private boolean delete(String path, boolean recursive) throws IOException {
     IOException te = null;
@@ -510,7 +509,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    *
    * @param path the pathname to list
    * @return {@code null} if the path is not a directory
-   * @throws IOException
    */
   private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
@@ -532,7 +530,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param src path of source file or directory
    * @param dst path of destination file or directory
    * @return true if rename succeeds
-   * @throws IOException
    */
   private boolean rename(String src, String dst) throws IOException {
     IOException te = null;

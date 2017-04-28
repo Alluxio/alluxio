@@ -25,6 +25,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -40,6 +41,7 @@ import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -51,6 +53,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -224,9 +227,25 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() {
-    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
-    getExecutorService().shutdownNow();
+    // Steps to shutdown:
+    // 1. Gracefully shut down the runnables running in the executors.
+    // 2. Shutdown the executors.
+    // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
+    //    runnables running in the executors might be using the clients.
     mSessionCleaner.stop();
+    // The executor shutdown needs to be done in a loop with retry because the interrupt
+    // signal can sometimes be ignored.
+    CommonUtils.waitFor("block worker executor shutdown", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        getExecutorService().shutdownNow();
+        try {
+          return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     mBlockMasterClient.close();
     mFileSystemMasterClient.close();
   }

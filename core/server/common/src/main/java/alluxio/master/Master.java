@@ -26,7 +26,6 @@ public interface Master extends JournalEntryIterable, Server<Boolean> {
    * entries.
    *
    * @param entry the entry to process to update the state of the master
-   * @throws IOException if I/O error occurs
    */
   void processJournalEntry(JournalEntry entry) throws IOException;
 }

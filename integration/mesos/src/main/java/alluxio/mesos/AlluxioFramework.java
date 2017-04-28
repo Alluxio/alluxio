@@ -108,7 +108,6 @@ public class AlluxioFramework {
    * Starts the Alluxio framework.
    *
    * @param args command-line arguments
-   * @throws Exception if the Alluxio framework encounters an unrecoverable error
    */
   public static void main(String[] args) throws Exception {
     AlluxioFramework framework = new AlluxioFramework();

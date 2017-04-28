@@ -120,7 +120,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -165,7 +164,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * Populates key, value pairs for UI display.
    *
    * @param request The {@link HttpServletRequest} object
-   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);

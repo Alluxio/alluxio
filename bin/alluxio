@@ -282,6 +282,11 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
     ;;
+  "runMiniBenchmark2")
+    CLASS="alluxio.cli.MiniBenchmark2"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+    ;;
   "runJournalCrashTest")
     CLASS="alluxio.cli.JournalCrashTest"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"

@@ -127,7 +127,6 @@ public abstract class DataServerWriteHandlerTest {
    * Checks the file content matches expectation (file length and file checksum).
    *
    * @param size the file size in bytes
-   * @throws IOException if it fails to check the file content
    */
   protected void checkFileContent(long size) throws IOException {
     RandomAccessFile file = new RandomAccessFile(mFile, "r");

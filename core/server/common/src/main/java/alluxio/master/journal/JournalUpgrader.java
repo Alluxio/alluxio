@@ -98,8 +98,6 @@ public final class JournalUpgrader {
 
     /**
      * Upgrades journal from v0 to v1.
-     *
-     * @throws IOException if any I/O errors occur
      */
     void upgrade() throws IOException {
       if (!mUfs.exists(mCheckpointV0.toString())) {

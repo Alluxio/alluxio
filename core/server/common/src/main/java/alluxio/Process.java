@@ -20,15 +20,11 @@ public interface Process {
    * Starts the Alluxio process. This call blocks until the process is stopped via
    * {@link #stop()}. The {@link #waitForReady()} method can be used to make sure that the
    * process is ready to serve requests.
-   *
-   * @throws Exception if the process fails to start
    */
   void start() throws Exception;
 
   /**
    * Stops the Alluxio process, blocking until the action is completed.
-   *
-   * @throws Exception if the process fails to stop
    */
   void stop() throws Exception;
 

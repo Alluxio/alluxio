@@ -15,7 +15,6 @@ import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -34,10 +33,9 @@ public final class IdentityUserGroupsMapping implements GroupMappingService {
    *
    * @param user get groups for this user
    * @return list of groups for a given user
-   * @throws IOException when trying to create a new list
    */
   @Override
-  public List<String> getGroups(String user) throws IOException {
+  public List<String> getGroups(String user) {
     return Lists.newArrayList(user);
   }
 }

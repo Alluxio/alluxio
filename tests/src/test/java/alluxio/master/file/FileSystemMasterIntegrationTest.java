@@ -189,8 +189,6 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * Tests concurrent delete of files.
-   *
-   * @throws Exception if an error occurs during creating or deleting files
    */
   @Test
   public void concurrentDelete() throws Exception {
@@ -208,8 +206,6 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * Tests concurrent free of files.
-   *
-   * @throws Exception if an error occurs during creating or freeing files
    */
   @Test
   public void concurrentFree() throws Exception {
@@ -224,8 +220,6 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * Tests concurrent rename of files.
-   *
-   * @throws Exception if an error occurs during creating or renaming files
    */
   @Test
   public void concurrentRename() throws Exception {
@@ -749,7 +743,6 @@ public class FileSystemMasterIntegrationTest {
      * files in one directory by multiple concurrent threads.
      *
      * @return null
-     * @throws Exception if an exception occurs
      */
     @Override
     public Void call() throws Exception {
@@ -764,7 +757,6 @@ public class FileSystemMasterIntegrationTest {
      * @param depth the depth of files to be created in one directory
      * @param concurrencyDepth the concurrency depth of files to be created in one directory
      * @param path the directory of files to be created in
-     * @throws Exception if an exception occurs
      */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
@@ -848,7 +840,6 @@ public class FileSystemMasterIntegrationTest {
      * @param depth the depth of files to be freed in one directory
      * @param concurrencyDepth the concurrency depth of files to be freed in one directory
      * @param path the directory of files to be freed in
-     * @throws Exception if an exception occurs
      */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
@@ -922,7 +913,6 @@ public class FileSystemMasterIntegrationTest {
      * @param depth the depth of files to be deleted in one directory
      * @param concurrencyDepth the concurrency depth of files to be deleted in one directory
      * @param path the directory of files to be deleted in
-     * @throws Exception if an exception occurs
      */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
