@@ -28,7 +28,6 @@ import java.io.IOException;
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   private static final Logger LOG = LoggerFactory.getLogger(LocalMiniDFSCluster.class);
-  
   private org.apache.hadoop.conf.Configuration mConf = new org.apache.hadoop.conf.Configuration();
   private int mNamenodePort;
 
