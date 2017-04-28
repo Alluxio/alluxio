@@ -208,23 +208,23 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   class DeleteBuffer {
     ArrayList<List<String>> mBatches;
     ArrayList<Future<List<String>>> mBatchesResult;
-    List<String> mCurrentBatch;
+    List<String> mCurrentBatchBuffer;
     int mEntriesAdded;
 
     DeleteBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
-      mCurrentBatch = null;
+      mCurrentBatchBuffer = null;
       mEntriesAdded = 0;
     }
 
     void add(String path) throws IOException {
       mEntriesAdded++;
-      if (mCurrentBatch == null) {
-        mCurrentBatch = new LinkedList<>();
+      if (mCurrentBatchBuffer == null) {
+        mCurrentBatchBuffer = new LinkedList<>();
       }
-      if (mCurrentBatch.size() < getListingChunkLength()) {
-        mCurrentBatch.add(path);
+      if (mCurrentBatchBuffer.size() < getListingChunkLength()) {
+        mCurrentBatchBuffer.add(path);
       } else {
         // Batch is full
         processBatch();
@@ -256,10 +256,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * Process a single batch.
      */
     void processBatch() throws IOException {
-      if (mCurrentBatch != null) {
+      if (mCurrentBatchBuffer != null) {
         int batchNumber = mBatches.size();
-        mBatches.add(new LinkedList<>(mCurrentBatch));
-        mCurrentBatch = null;
+        mBatches.add(new LinkedList<>(mCurrentBatchBuffer));
+        mCurrentBatchBuffer = null;
         processBatchInThread(batchNumber);
       }
     }
