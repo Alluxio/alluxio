@@ -169,8 +169,9 @@ public final class MiniBenchmark {
       executorService.shutdown();
       Preconditions.checkState(executorService.awaitTermination(1, TimeUnit.HOURS));
       double time = runtime.get() * 1.0 / sConcurrency / Constants.SECOND_NANO;
-      System.out.printf("Iteration: %d; Duration: %f seconds; Aggregated throughput: %f GB/second.%n",
-          i, time, sConcurrency * 1.0 * sFileSize / time / Constants.GB);
+      System.out
+          .printf("Iteration: %d; Duration: %f seconds; Aggregated throughput: %f GB/second.%n", i,
+              time, sConcurrency * 1.0 * sFileSize / time / Constants.GB);
     }
   }
 
