@@ -83,7 +83,7 @@ public class UfsManager implements Closeable {
   private final ConcurrentHashMap<Long, UnderFileSystem> mMountIdToUnderFileSystemMap =
       new ConcurrentHashMap<>();
 
-  private UnderFileSystem mRootUfs;
+  private final UnderFileSystem mRootUfs;
   protected final Closer mCloser;
 
   /**
@@ -91,6 +91,13 @@ public class UfsManager implements Closeable {
    */
   public UfsManager() {
     mCloser = Closer.create();
+    String rootUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Map<String, String> rootConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+    mRootUfs = UnderFileSystemRegistry.create(rootUri, rootConf);
+    mUnderFileSystemMap.put(new Key(new AlluxioURI(rootUri), rootConf), mRootUfs);
+    mMountIdToUnderFileSystemMap.put(IdUtils.ROOT_MOUNT_ID, mRootUfs);
+    mCloser.register(mRootUfs);
   }
 
   /**
@@ -147,13 +154,6 @@ public class UfsManager implements Closeable {
    * @return the UFS instance associated with root
    */
   public UnderFileSystem getRoot() {
-    if (mRootUfs != null) {
-      return mRootUfs;
-    }
-    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    Map<String, String> rootUfsConf =
-        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-    mRootUfs = getOrCreate(rootUfsUri, rootUfsConf);
     return mRootUfs;
   }
 

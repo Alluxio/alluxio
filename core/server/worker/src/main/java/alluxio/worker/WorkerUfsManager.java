@@ -55,7 +55,7 @@ public final class WorkerUfsManager extends UfsManager {
       } catch (IOException e) {
         throw AlluxioStatusException.fromIOException(e);
       }
-      Preconditions.checkState((info.isSetUri() && info.isSetProperties()));
+      Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
       ufs = super.getOrCreate(info.getUri(), info.getProperties());
       super.addMount(ufs, mountId);
     }

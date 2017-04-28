@@ -456,7 +456,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> rootUfsConf =
           Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      long rootUfsMountId = IdUtils.createMountId();
+      long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
       try {
         // NOTE, we currently treat root inode specially and add it to inode tree manually.
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri),
@@ -464,8 +464,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
                 .setProperties(rootUfsConf));
-        UnderFileSystem ufs = mUfsManager.getRoot();
-        mUfsManager.addMount(ufs, rootUfsMountId);
       } catch (FileAlreadyExistsException e) {
         // This can happen when a primary becomes a standby and then becomes a primary.
         LOG.info("Root has already been mounted.");
