@@ -65,6 +65,9 @@ public final class UnderFileSystemConfiguration {
    * @return the map of user-customized configuration
    */
   public Map<String, String> userSpecifiedConf() {
+    if (mUfsConf == null) {
+      return Collections.emptyMap();
+    }
     return Collections.unmodifiableMap(mUfsConf);
   }
 }

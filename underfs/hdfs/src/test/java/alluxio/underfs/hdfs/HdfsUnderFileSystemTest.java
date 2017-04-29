@@ -31,7 +31,8 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(new AlluxioURI("file:///"), null);
+    mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(new AlluxioURI("file:///"),
+        new UnderFileSystemConfiguration(null));
   }
 
   /**
@@ -50,7 +51,8 @@ public final class HdfsUnderFileSystemTest {
    */
   @Test
   public void prepareConfiguration() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = HdfsUnderFileSystem.createConfiguration(null);
+    org.apache.hadoop.conf.Configuration conf =
+        HdfsUnderFileSystem.createConfiguration(new UnderFileSystemConfiguration(null) );
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
   }

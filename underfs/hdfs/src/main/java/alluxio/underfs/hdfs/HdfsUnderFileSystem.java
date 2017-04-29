@@ -27,6 +27,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -116,6 +117,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @return the configuration for HDFS
    */
   public static Configuration createConfiguration(UnderFileSystemConfiguration ufsConf) {
+    Preconditions.checkNotNull(ufsConf, "ufsConf");
     Configuration hdfsConf = new Configuration();
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
@@ -134,9 +136,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    hdfsConf.addResource(
-        new Path(
-            ufsConf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
+    hdfsConf.addResource(new Path(ufsConf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
+
     // NOTE, adding S3 credentials in system properties to HDFS conf for backward compatibility.
     // TODO(binfan): remove this as it can be set in mount options through --option
     HdfsUnderFileSystemUtils.addS3Credentials(hdfsConf);
