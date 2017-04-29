@@ -14,17 +14,15 @@ package alluxio.underfs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
-import com.google.common.collect.Maps;
-
 import java.util.Collections;
 import java.util.Map;
 
 /**
- * Gets the value of the given key in the given UFS configuration or the global configuration
- * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
- * key is not found in both configurations..
+ * A class that gets the value of the given key in the given UFS configuration or the global
+ * configuration (in case the key is not found in the UFS configuration), throw
+ * {@link RuntimeException} if the key is not found in both configurations..
  */
-public class UnderFileSystemConfiguration {
+public final class UnderFileSystemConfiguration {
   private final Map<String, String> mUfsConf;
 
   /**
@@ -33,7 +31,7 @@ public class UnderFileSystemConfiguration {
    * @param ufsConf the user-specified UFS configuration as a map
    */
   public UnderFileSystemConfiguration(Map<String, String> ufsConf) {
-    mUfsConf = ufsConf == null ? Maps.<String, String>newHashMap() : ufsConf;
+    mUfsConf = ufsConf;
   }
 
   /**
@@ -41,13 +39,14 @@ public class UnderFileSystemConfiguration {
    * @return true if the key is contained in the given UFS configuration or global configuration
    */
   public boolean containsKey(PropertyKey key) {
-    return mUfsConf.containsKey(key.toString()) || Configuration.containsKey(key);
+    return (mUfsConf != null && mUfsConf.containsKey(key.toString())) || Configuration
+        .containsKey(key);
   }
 
   /**
    * @return the map of user-customized configuration
    */
-  public Map<String,String> userSpecifiedConf() {
+  public Map<String, String> userSpecifiedConf() {
     return Collections.unmodifiableMap(mUfsConf);
   }
 
@@ -60,7 +59,7 @@ public class UnderFileSystemConfiguration {
    * @return the value associated with the given key
    */
   public String getValue(PropertyKey key) {
-    if (mUfsConf.containsKey(key.toString())) {
+    if (mUfsConf != null && mUfsConf.containsKey(key.toString())) {
       return mUfsConf.get(key.toString());
     }
     if (Configuration.containsKey(key)) {
@@ -68,7 +67,6 @@ public class UnderFileSystemConfiguration {
     }
     throw new RuntimeException("key " + key + " not found");
   }
-
 
   /**
    * Gets the value of the given key in the given UFS configuration or the global configuration

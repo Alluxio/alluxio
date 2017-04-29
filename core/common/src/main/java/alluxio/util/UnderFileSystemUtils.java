@@ -12,9 +12,7 @@
 package alluxio.util;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -23,7 +21,6 @@ import com.google.common.base.Throwables;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 

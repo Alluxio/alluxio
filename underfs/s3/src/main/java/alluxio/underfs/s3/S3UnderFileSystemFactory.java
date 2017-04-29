@@ -12,7 +12,6 @@
 package alluxio.underfs.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
@@ -24,7 +23,6 @@ import com.google.common.base.Throwables;
 import org.jets3t.service.ServiceException;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -63,10 +61,8 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean checkAWSCredentials(Map<String, String> conf) {
-    return (conf.containsKey(PropertyKey.S3N_ACCESS_KEY.toString()) && conf
-        .containsKey(PropertyKey.S3N_SECRET_KEY.toString())) || (
-        Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY) && Configuration
-            .containsKey(PropertyKey.S3N_SECRET_KEY));
+  private boolean checkAWSCredentials(UnderFileSystemConfiguration conf) {
+    return conf.containsKey(PropertyKey.S3N_ACCESS_KEY) && conf
+        .containsKey(PropertyKey.S3N_SECRET_KEY);
   }
 }

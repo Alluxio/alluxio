@@ -12,6 +12,7 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -20,7 +21,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
-import java.util.Map;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
@@ -70,7 +70,8 @@ public final class HdfsUnderFileSystemTest {
     Assert.assertEquals("3", hadoopFs.getConf().get("dfs.replication"));
 
     // create a new configuration with updated dfs replication value
-    Map<String, String> hadoopConf1 = ImmutableMap.of("dfs.replication", "1");
+    UnderFileSystemConfiguration hadoopConf1 =
+        new UnderFileSystemConfiguration(ImmutableMap.of("dfs.replication", "1"));
     HdfsUnderFileSystem hdfs =
         HdfsUnderFileSystem.createInstance(new AlluxioURI(underfsAddress), hadoopConf1);
     Assert.assertEquals("1",

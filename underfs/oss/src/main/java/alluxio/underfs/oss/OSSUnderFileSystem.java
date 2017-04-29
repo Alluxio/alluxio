@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,21 +64,21 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param ufsConf the configuration for this UFS
    * @return the created {@link OSSUnderFileSystem} instance
    */
-  public static OSSUnderFileSystem createInstance(AlluxioURI uri, Map<String, String> ufsConf)
-      throws Exception {
+  public static OSSUnderFileSystem createInstance(AlluxioURI uri,
+      UnderFileSystemConfiguration ufsConf) throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(
-        UnderFileSystemConfiguration.containsKey1(PropertyKey.OSS_ACCESS_KEY, ufsConf),
-            "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
+        ufsConf.containsKey(PropertyKey.OSS_ACCESS_KEY),
+        "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(
-        UnderFileSystemConfiguration.containsKey1(PropertyKey.OSS_SECRET_KEY, ufsConf),
-            "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
+        ufsConf.containsKey(PropertyKey.OSS_SECRET_KEY),
+        "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(
-        UnderFileSystemConfiguration.containsKey1(PropertyKey.OSS_ENDPOINT_KEY, ufsConf),
-            "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    String accessId = UnderFileSystemConfiguration.getValue1(PropertyKey.OSS_ACCESS_KEY, ufsConf);
-    String accessKey = UnderFileSystemConfiguration.getValue1(PropertyKey.OSS_SECRET_KEY, ufsConf);
-    String endPoint = UnderFileSystemConfiguration.getValue1(PropertyKey.OSS_ENDPOINT_KEY, ufsConf);
+        ufsConf.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
+        "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
+    String accessId = ufsConf.getValue(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = ufsConf.getValue(PropertyKey.OSS_SECRET_KEY);
+    String endPoint = ufsConf.getValue(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);

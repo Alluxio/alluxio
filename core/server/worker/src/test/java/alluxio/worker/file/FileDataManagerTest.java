@@ -23,6 +23,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.options.CreateOptions;
@@ -54,7 +55,6 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Tests {@link FileDataManager}.
@@ -85,8 +85,8 @@ public final class FileDataManagerTest {
 
     mUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
     Mockito.when(mUfsFactory.supportsPath(Mockito.anyString())).thenReturn(true);
-    Mockito.when(mUfsFactory.create(Mockito.anyString(), Matchers.<Map<String, String>>any()))
-      .thenReturn(mUfs);
+    Mockito.when(mUfsFactory.create(Mockito.anyString(),
+        Matchers.<UnderFileSystemConfiguration>any())).thenReturn(mUfs);
     UnderFileSystemRegistry.register(mUfsFactory);
   }
 
