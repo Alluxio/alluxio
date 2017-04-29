@@ -19,6 +19,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -29,6 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class WorkerUfsManager extends UfsManager {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerUfsManager.class);
 
   private final FileSystemMasterClient mMasterClient;
 
@@ -38,6 +41,16 @@ public final class WorkerUfsManager extends UfsManager {
   public WorkerUfsManager() {
     mMasterClient = mCloser.register(new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC)));
+  }
+
+  /**
+   * Establishes the connection to the given UFS from worker.
+   * @param ufs UFS instance
+   * @throws IOException if failed to create the UFS instance
+   */
+  protected static void connect(UnderFileSystem ufs) throws IOException {
+    ufs.connectFromWorker(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
   }
 
   /**
@@ -56,7 +69,13 @@ public final class WorkerUfsManager extends UfsManager {
         throw AlluxioStatusException.fromIOException(e);
       }
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
-      ufs = super.addMount(mountId, info.getUri(), info.getProperties());
+      try {
+        ufs = super.addMount(mountId, info.getUri(), info.getProperties());
+      } catch (IOException e) {
+        LOG.error(String.format("Failed to add mount point %s with id %d", info.getUri(), mountId),
+            e);
+        return null;
+      }
     }
     return ufs;
   }

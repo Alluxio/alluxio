@@ -32,6 +32,7 @@ public final class MountInfo {
 
   /**
    * Creates a new instance of {@code MountInfo}.
+   * 
    * @param ufsUri a UFS path URI
    * @param mountId the id of the mount
    * @param options the mount options

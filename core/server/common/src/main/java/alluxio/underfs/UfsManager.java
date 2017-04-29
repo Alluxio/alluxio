@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.util.IdUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -83,7 +84,7 @@ public class UfsManager implements Closeable {
   /**
    * Maps from key to {@link UnderFileSystem} instances. This map keeps the entire set of UFS
    * instances, each keyed by their unique combination of Uri and conf information. This map
-   * helps efficiently  identify if a UFS instance in request should be created or can be reused.
+   * helps efficiently identify if a UFS instance in request should be created or can be reused.
    */
   private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
       new ConcurrentHashMap<>();
@@ -96,6 +97,16 @@ public class UfsManager implements Closeable {
 
   private final UnderFileSystem mRootUfs;
   protected final Closer mCloser;
+
+  /**
+   * Establishes the connection to the given UFS from master.
+   * @param ufs UFS instance
+   * @throws IOException if failed to create the UFS instance
+   */
+  protected static void connect(UnderFileSystem ufs) throws IOException {
+    ufs.connectFromMaster(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
+  }
 
   /**
    * Constructs the instance.
@@ -111,6 +122,7 @@ public class UfsManager implements Closeable {
     mCloser.register(mRootUfs);
   }
 
+
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return this.
@@ -118,14 +130,21 @@ public class UfsManager implements Closeable {
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
+   * @throws IOException if it is failed to create the UFS instance
    */
-  private UnderFileSystem getOrAdd(String ufsUri, Map<String, String> ufsConf) {
+  private UnderFileSystem getOrAdd(String ufsUri, Map<String, String> ufsConf) throws IOException {
     Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       return cachedFs;
     }
     UnderFileSystem fs = UnderFileSystemRegistry.create(ufsUri, ufsConf);
+    try {
+      connect(fs);
+    } catch (IOException e) {
+      fs.close();
+      throw e;
+    }
     cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
     if (cachedFs == null) {
       // above insert is successful
@@ -136,7 +155,7 @@ public class UfsManager implements Closeable {
       fs.close();
     } catch (IOException e) {
       // Cannot close the created ufs which fails the race.
-      LOG.error("Failed to close ufs {}", fs, e);
+      LOG.error("Failed to close UFS {}", fs, e);
     }
     return cachedFs;
   }
@@ -150,8 +169,10 @@ public class UfsManager implements Closeable {
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
+   * @throws IOException if it is failed to create the UFS instance
    */
-  public UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf) {
+  public UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf)
+      throws IOException {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
     UnderFileSystem ufs = getOrAdd(ufsUri, ufsConf);
@@ -166,6 +187,8 @@ public class UfsManager implements Closeable {
    */
   public void removeMount(long mountId) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
+    // TODO(binfan): check the refcount of this ufs in mUnderFileSystemMap and remove it if this is
+    // no more used. Currently, it is possibly used by out mount too.
     mMountIdToUnderFileSystemMap.remove(mountId);
   }
 
