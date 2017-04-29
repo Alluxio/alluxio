@@ -157,10 +157,6 @@ public final class UnderFileSystemUtils {
     return "swift".equals(ufs.getUnderFSType());
   }
 
-  // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
-
-  // TODO(binfan): make separate wrapper class on ufs conf instead of using util method
-
   /**
    * @param uri the UFS path
    * @return the bucket or container name of the object storage
