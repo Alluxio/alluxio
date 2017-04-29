@@ -52,7 +52,7 @@ public final class HdfsUnderFileSystemTest {
   @Test
   public void prepareConfiguration() throws Exception {
     org.apache.hadoop.conf.Configuration conf =
-        HdfsUnderFileSystem.createConfiguration(new UnderFileSystemConfiguration(null) );
+        HdfsUnderFileSystem.createConfiguration(new UnderFileSystemConfiguration(null));
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
   }
