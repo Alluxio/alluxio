@@ -110,10 +110,6 @@ Here, `<PROXY_HOST>` and `<PROXY_PORT>` should be replaced the host and port for
 `<USE_HTTPS?>` should be set to either `true` or `false`, depending on whether https should be
 used to communicate with the proxy.
 
-These configuration parameters may also need to be set for the Alluxio client if it is running in
-a separate JVM from the Alluxio Master and Workers. See
-[Configuring Distributed Applications](#configuring-distributed-applications)
-
 ## Configuring Application Dependency
 
 When building your application to use Alluxio, your application will have to include the
@@ -147,18 +143,6 @@ If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 
 
 Some S3 service providers only support v2 signatures. For these S3 providers, you can enforce using
 the v2 signatures by setting the `alluxio.underfs.s3a.signer.algorithm` to `S3SignerType`.
-
-### Configuring Distributed Applications Runtime
-
-When I/O is delegated to Alluxio workers (i.e., Alluxio configuration
-`alluxio.user.ufs.operation.delegation` is true, which is false by default since Alluxio 1.1), you
-do not have to do any thing special for your applications. Otherwise since you are using an Alluxio
-client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you
-need to make sure that your AWS credentials are provided to the application JVM processes as well.
-The easiest way to do this is to add them as command line options when starting your client JVM
-process. For example:
-
-{% include Configuring-Alluxio-with-S3/java-bash.md %}
 
 ## Running Alluxio Locally with S3
 
