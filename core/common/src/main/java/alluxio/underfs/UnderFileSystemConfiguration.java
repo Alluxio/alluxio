@@ -44,13 +44,6 @@ public final class UnderFileSystemConfiguration {
   }
 
   /**
-   * @return the map of user-customized configuration
-   */
-  public Map<String, String> userSpecifiedConf() {
-    return Collections.unmodifiableMap(mUfsConf);
-  }
-
-  /**
    * Gets the value of the given key in the given UFS configuration or the global configuration
    * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
    * key is not found in both configurations.
@@ -69,31 +62,9 @@ public final class UnderFileSystemConfiguration {
   }
 
   /**
-   * Gets the value of the given key in the given UFS configuration or the global configuration
-   * (in case the key is not found in the UFS configuration), throw {@link RuntimeException} if the
-   * key is not found in both configurations.
-   *
-   * @param key property key
-   * @param ufsConf configuration for the UFS
-   * @return the value associated with the given key
+   * @return the map of user-customized configuration
    */
-  public static String getValue1(PropertyKey key, Map<String, String> ufsConf) {
-    if (ufsConf != null && ufsConf.containsKey(key.toString())) {
-      return ufsConf.get(key.toString());
-    }
-    if (Configuration.containsKey(key)) {
-      return Configuration.get(key);
-    }
-    throw new RuntimeException("key " + key + " not found");
-  }
-
-  /**
-   * @param key property key
-   * @param ufsConf configuration for the UFS
-   * @return true if the key is contained in the given UFS configuration or global configuration
-   */
-  public static boolean containsKey1(PropertyKey key, Map<String, String> ufsConf) {
-    return (ufsConf != null && ufsConf.containsKey(key.toString())) || Configuration
-        .containsKey(key);
+  public Map<String, String> userSpecifiedConf() {
+    return Collections.unmodifiableMap(mUfsConf);
   }
 }
