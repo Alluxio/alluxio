@@ -9,12 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.underfs;
 
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.UfsInfo;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -30,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The default implementation of UfsManager to manage the ufs used by different worker services.
  */
 @ThreadSafe
-public final class WorkerUfsManager extends UfsManager {
+public final class WorkerUfsManager extends AbstractUfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerUfsManager.class);
 
   private final FileSystemMasterClient mMasterClient;
@@ -48,7 +46,7 @@ public final class WorkerUfsManager extends UfsManager {
    * @param ufs UFS instance
    * @throws IOException if failed to create the UFS instance
    */
-  protected static void connect(UnderFileSystem ufs) throws IOException {
+  protected void connect(UnderFileSystem ufs) throws IOException {
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
   }
@@ -59,6 +57,7 @@ public final class WorkerUfsManager extends UfsManager {
    * If this mount id is new to this worker, this method will query master to get the corresponding
    * ufs info.
    */
+  @Override
   public UnderFileSystem get(long mountId) {
     UnderFileSystem ufs = super.get(mountId);
     if (ufs == null) {

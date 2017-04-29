@@ -11,155 +11,14 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.util.IdUtils;
-import alluxio.util.network.NetworkAddressUtils;
-
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A class manages the UFS used by different services.
  */
-@ThreadSafe
-public class UfsManager implements Closeable {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsManager.class);
-  /**
-   * The key of the UFS cache.
-   */
-  private static class Key {
-    private final String mScheme;
-    private final String mAuthority;
-    private final Map<String, String> mProperties;
-
-    Key(AlluxioURI uri, Map<String, String> properties) {
-      mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-      mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
-      mProperties = (properties == null || properties.isEmpty()) ? null : properties;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(mScheme, mAuthority, mProperties);
-    }
-
-    @Override
-    public boolean equals(Object object) {
-      if (object == this) {
-        return true;
-      }
-
-      if (!(object instanceof Key)) {
-        return false;
-      }
-
-      Key that = (Key) object;
-      return Objects.equal(mAuthority, that.mAuthority) && Objects
-          .equal(mProperties, that.mProperties) && Objects.equal(mScheme, that.mScheme);
-    }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper(this)
-          .add("authority", mAuthority)
-          .add("scheme", mScheme)
-          .add("properties", mProperties).toString();
-    }
-  }
-
-  // TODO(binfan): Add refcount to the UFS instance. Once the refcount goes to zero,
-  // we could close this UFS instance.
-  /**
-   * Maps from key to {@link UnderFileSystem} instances. This map keeps the entire set of UFS
-   * instances, each keyed by their unique combination of Uri and conf information. This map
-   * helps efficiently identify if a UFS instance in request should be created or can be reused.
-   */
-  private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
-      new ConcurrentHashMap<>();
-  /**
-   * Maps from mount id to {@link UnderFileSystem} instances. This map helps efficiently retrieve
-   * a existing UFS instance given its mount id.
-   */
-  private final ConcurrentHashMap<Long, UnderFileSystem> mMountIdToUnderFileSystemMap =
-      new ConcurrentHashMap<>();
-
-  private final UnderFileSystem mRootUfs;
-  protected final Closer mCloser;
-
-  /**
-   * Establishes the connection to the given UFS from master.
-   * @param ufs UFS instance
-   * @throws IOException if failed to create the UFS instance
-   */
-  protected static void connect(UnderFileSystem ufs) throws IOException {
-    ufs.connectFromMaster(
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
-  }
-
-  /**
-   * Constructs the instance.
-   */
-  public UfsManager() {
-    mCloser = Closer.create();
-    String rootUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    Map<String, String> rootConf =
-        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-    mRootUfs = UnderFileSystemRegistry.create(rootUri, rootConf);
-    mUnderFileSystemMap.put(new Key(new AlluxioURI(rootUri), rootConf), mRootUfs);
-    mMountIdToUnderFileSystemMap.put(IdUtils.ROOT_MOUNT_ID, mRootUfs);
-    mCloser.register(mRootUfs);
-  }
-
-
-  /**
-   * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
-   * return this.
-   *
-   * @param ufsUri the UFS path
-   * @param ufsConf the UFS configuration
-   * @return the UFS instance
-   * @throws IOException if it is failed to create the UFS instance
-   */
-  private UnderFileSystem getOrAdd(String ufsUri, Map<String, String> ufsConf) throws IOException {
-    Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
-    UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
-    if (cachedFs != null) {
-      return cachedFs;
-    }
-    UnderFileSystem fs = UnderFileSystemRegistry.create(ufsUri, ufsConf);
-    try {
-      connect(fs);
-    } catch (IOException e) {
-      fs.close();
-      throw e;
-    }
-    cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-    if (cachedFs == null) {
-      // above insert is successful
-      mCloser.register(fs);
-      return fs;
-    }
-    try {
-      fs.close();
-    } catch (IOException e) {
-      // Cannot close the created ufs which fails the race.
-      LOG.error("Failed to close UFS {}", fs, e);
-    }
-    return cachedFs;
-  }
-
+public interface UfsManager extends Closeable {
   /**
    * Maps a mount id to a UFS instance. Based on the UFS uri and conf, if this UFS instance already
    * exists in the cache, map the mount id to this existing instance. Otherwise, creates a new
@@ -171,26 +30,15 @@ public class UfsManager implements Closeable {
    * @return the UFS instance
    * @throws IOException if it is failed to create the UFS instance
    */
-  public UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf)
-      throws IOException {
-    Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    Preconditions.checkArgument(ufsUri != null, "uri");
-    UnderFileSystem ufs = getOrAdd(ufsUri, ufsConf);
-    mMountIdToUnderFileSystemMap.put(mountId, ufs);
-    return ufs;
-  }
+  UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf)
+      throws IOException;
 
   /**
    * Marks a UFS instance as a mount entry and associates it with a mount id.
    *  @param mountId the mount id
    *
    */
-  public void removeMount(long mountId) {
-    Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    // TODO(binfan): check the refcount of this ufs in mUnderFileSystemMap and remove it if this is
-    // no more used. Currently, it is possibly used by out mount too.
-    mMountIdToUnderFileSystemMap.remove(mountId);
-  }
+  void removeMount(long mountId);
 
   /**
    * Gets a UFS instance from the cache if exists, or null otherwise.
@@ -198,19 +46,10 @@ public class UfsManager implements Closeable {
    * @param mountId the mount id
    * @return the UFS instance
    */
-  public UnderFileSystem get(long mountId) {
-    return mMountIdToUnderFileSystemMap.get(mountId);
-  }
+  UnderFileSystem get(long mountId);
 
   /**
    * @return the UFS instance associated with root
    */
-  public UnderFileSystem getRoot() {
-    return mRootUfs;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mCloser.close();
-  }
+  UnderFileSystem getRoot();
 }

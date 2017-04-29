@@ -90,6 +90,7 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -310,7 +311,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
-    mUfsManager = new UfsManager();
+    mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
