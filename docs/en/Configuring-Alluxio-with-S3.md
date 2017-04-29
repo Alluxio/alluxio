@@ -126,40 +126,6 @@ Alternatively, you may copy `conf/alluxio-site.properties` (having the propertie
 credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
 append the path to this site properties file to the classpath.
 
-### Avoiding Conflicting Client Dependencies
-
-The jets3t and aws-sdk s3 clients all have dependencies on common libraries such as HTTP libraries.
-These dependencies are usually not in conflict with other projects, but in cases like using Apache
-MapReduce with the S3A client, conflicting versions may cause issues at runtime. You can resolve
-this conflict enabling ufs delegation, `alluxio.user.ufs.delegation.enabled=true`, which delegates
-client operations to the under storage through Alluxio servers. See
-[Configuration Settings](Configuration-Settings.html) for how to modify the Alluxio configuration.
-Alternatively you can manually resolve the conflicts when generating the MapReduce classpath and/or
-jars, keeping only the highest versions of each dependency.
-
-### Enabling the Hadoop S3 Client (instead of the native S3 client)
-
-Alluxio provides a native client to communicate with S3. By default, the native S3 client is used
-when Alluxio is configured to use S3 as its under storage system.
-
-However, there is also an option to use a different implementation to communicate with S3; the S3
-client provided by Hadoop. In order to disable the Alluxio S3 client (and enable the Hadoop S3
-client), additional modifications to your application must be made. When including the
-`alluxio-core-client` module in your application, the `alluxio-underfs-s3` should be excluded to
-disable the native client, and to use the Hadoop S3 client:
-
-{% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
-
-However, the Hadoop S3 client needs the `jets3t` package in order to use S3, but it is not included
-as a dependency automatically. Therefore, you must also add the `jets3t` dependency manually. When
-using maven, you can add the following to pull in the `jets3t` dependency:
-
-{% include Configuring-Alluxio-with-S3/jets3t-dependency.md %}
-
-The `jets3t` version `0.9.0` works for Hadoop version `2.3.0`. The `jets3t` version `0.7.1` should
-work for older versions of Hadoop. To find the exact `jets3t` version for your Hadoop version,
-please refer to [MvnRepository](http://mvnrepository.com/).
-
 ### Using a non-Amazon service provider
 
 To use an S3 service provider other than "s3.amazonaws.com", modify `conf/alluxio-site.properties`
