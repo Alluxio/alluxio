@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-core-client-hdfs</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - HDFS Client</name>
+  <name>Alluxio Core - Client - HDFS</name>
   <description>HDFS Client of Alluxio Core</description>
 
   <properties>
@@ -57,7 +57,7 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-native</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

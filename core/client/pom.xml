@@ -23,8 +23,8 @@
   <description>Alluxio Core Clients</description>
 
   <modules>
+    <module>fs</module>
     <module>hdfs</module>
-    <module>native</module>
     <module>runtime</module>
   </modules>
 

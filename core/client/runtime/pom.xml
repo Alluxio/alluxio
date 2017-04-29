@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-core-client-runtime</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Runtime Client</name>
+  <name>Alluxio Core - Client - Runtime</name>
   <description>Runtime Client of Alluxio Core</description>
 
   <properties>
@@ -43,7 +43,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-native</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

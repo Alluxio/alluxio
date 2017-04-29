@@ -17,10 +17,10 @@
     <artifactId>alluxio-core-client</artifactId>
     <version>1.5.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-core-client-native</artifactId>
+  <artifactId>alluxio-core-client-fs</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Core - Native Client</name>
-  <description>Native Client of Alluxio Core</description>
+  <name>Alluxio Core - Client - File System</name>
+  <description>File System Client of Alluxio Core</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
