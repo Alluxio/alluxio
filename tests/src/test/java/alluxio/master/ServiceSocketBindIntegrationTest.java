@@ -45,6 +45,11 @@ public class ServiceSocketBindIntegrationTest {
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
+  /**
+   * Starts the {@link LocalAlluxioCluster}.
+   *
+   * @param bindHost the local host name to bind
+   */
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
       mLocalAlluxioClusterResource.setProperty(service.getBindHostKey(), bindHost);
@@ -53,6 +58,10 @@ public class ServiceSocketBindIntegrationTest {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
   }
 
+  /**
+   * Connect different services in turn, including Master RPC, Worker RPC, Worker data, Master Web,
+   * and Worker Web service.
+   */
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient = BlockMasterClient.Factory.create(
