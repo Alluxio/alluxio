@@ -509,6 +509,8 @@ public class PropertyKey {
       create(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES, "64KB");
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       create(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16);
+  public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
+      create(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS, 300000);
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
@@ -980,6 +982,8 @@ public class PropertyKey {
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout.ms";
+    public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
+        "alluxio.user.network.netty.writer.close.timeout.ms";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
@@ -1016,7 +1020,7 @@ public class PropertyKey {
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.user.ufs.block.open.timeout.ms";
-    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.disabled";
+    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
 
     //
     // FUSE integration related properties

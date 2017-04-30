@@ -207,7 +207,12 @@ public final class PermissionCheckerTest {
     mPermissionChecker = new PermissionChecker(sTree);
   }
 
-  // Helper function to create a path and set the permission to what specified in option.
+  /**
+   * Helper function to create a path and set the permission to what specified in option.
+   *
+   * @param path path to construct the {@link AlluxioURI} from
+   * @param option method options for creating a file
+   */
   private static void createAndSetPermission(String path, CreateFileOptions option)
       throws Exception {
     try (
@@ -359,6 +364,14 @@ public final class PermissionCheckerTest {
     }
   }
 
+  /**
+   * Helper function to check a user has permission to perform a action on the parent or ancestor of
+   * the given path.
+   *
+   * @param user a user with groups
+   * @param action action that capture the action {@link Mode.Bits} by user
+   * @param path path to construct the {@link AlluxioURI} from
+   */
   private void checkParentOrAncestorPermission(TestUser user, Mode.Bits action, String path)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
