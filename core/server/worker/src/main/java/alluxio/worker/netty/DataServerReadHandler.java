@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -223,11 +222,11 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    */
   private void validateReadRequest(Protocol.ReadRequest request) {
     if (request.getId() < 0) {
-      throw new InvalidArgumentException(
+      throw new IllegalArgumentException(
           String.format("Invalid blockId (%d) in read request.", request.getId()));
     }
     if (!request.getCancel() && (request.getOffset() < 0 || request.getLength() <= 0)) {
-      throw new InvalidArgumentException(
+      throw new IllegalArgumentException(
           String.format("Invalid read bounds in read request %s.", request.toString()));
     }
   }

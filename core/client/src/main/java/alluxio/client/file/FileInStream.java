@@ -178,45 +178,27 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   @Override
   public int read() throws IOException {
-    try {
-      return readInternal();
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
-    }
+    return readInternal();
   }
 
   @Override
   public int read(byte[] b) throws IOException {
-    try {
-      return read(b, 0, b.length);
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
-    }
+    return read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    try {
-      return readInternal(b, off, len);
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
-    }
+    return readInternal(b, off, len);
   }
 
-  private int readInternal() {
+  private int readInternal() throws IOException {
     if (remaining() <= 0) {
       return -1;
     }
     updateStreams();
     Preconditions.checkState(mCurrentBlockInStream != null, PreconditionMessage.ERR_UNEXPECTED_EOF);
 
-    int data;
-    try {
-      data = mCurrentBlockInStream.read();
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
-
+    int data = mCurrentBlockInStream.read();
     if (data == -1) {
       // The underlying stream is done.
       return -1;
@@ -233,7 +215,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     return data;
   }
 
-  private int readInternal(byte[] b, int off, int len) {
+  private int readInternal(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
@@ -261,7 +243,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         if (mCurrentCacheStream != null) {
           try {
             mCurrentCacheStream.write(b, currentOffset, bytesRead);
-          } catch (Exception e) {
+          } catch (IOException e) {
             handleCacheStreamException(e);
           }
         }
@@ -389,7 +371,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the {@link InputStream} for the UFS
    */
   protected BlockInStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
-      String path) {
+      String path) throws IOException {
     WorkerNetAddress address =
         mUfsReadLocationPolicy.getWorker(GetWorkerOptions.defaults()
             .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
@@ -457,7 +439,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // This happens if two concurrent readers trying to cache the same block. One successfully
       // committed. The other reader sees this.
       LOG.info("Block {} exists.", getCurrentBlockId());
-    } catch (Exception e) {
+    } catch (IOException e) {
       // This happens when there are any other cache stream close/cancel related errors (e.g.
       // server unreachable due to network partition, server busy due to Alluxio worker is
       // busy, timeout due to congested network etc). But we want to proceed since we want
@@ -495,7 +477,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param e the exception to handle
    */
-  private void handleCacheStreamException(Exception e) {
+  private void handleCacheStreamException(IOException e) {
     if (Throwables.getRootCause(e) instanceof AlreadyExistsException) {
       // This can happen if there are two readers trying to cache the same block. The first one
       // created the block (either as temp block or committed block). The second sees this
@@ -518,7 +500,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * Call this function every read and seek unless you are sure about the block streams are
    * up-to-date.
    */
-  private void updateStreams() {
+  private void updateStreams() throws IOException {
     long currentBlockId = getCurrentBlockId();
     if (shouldUpdateStreams(currentBlockId)) {
       // The following two function handle negative currentBlockId (i.e. the end of file)
@@ -587,7 +569,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           mCacheLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
       mCurrentCacheStream =
           mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
-    } catch (Exception e) {
+    } catch (IOException e) {
       handleCacheStreamException(e);
     }
   }
@@ -598,7 +580,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
    */
-  private void updateBlockInStream(long blockId) {
+  private void updateBlockInStream(long blockId) throws IOException {
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
       mCurrentBlockInStream = null;
@@ -617,7 +599,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @param blockId the block ID
    * @return the block in stream
    */
-  private BlockInStream getBlockInStream(long blockId) {
+  private BlockInStream getBlockInStream(long blockId) throws IOException {
     try {
       if (mAlluxioStorageType.isPromote()) {
         try {
@@ -628,7 +610,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         }
       }
       return mBlockStore.getInStream(blockId, mInStreamOptions);
-    } catch (Exception e) {
+    } catch (IOException e) {
       LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);
       if (!mStatus.isPersisted()) {
@@ -720,7 +702,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param pos file offset
    */
-  private void readCurrentBlockToPos(long pos) {
+  private void readCurrentBlockToPos(long pos) throws IOException {
     if (mCurrentBlockInStream == null) {
       return;
     }
@@ -740,7 +722,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /**
    * Reads the remaining of the current block.
    */
-  private void readCurrentBlockToEnd() {
+  private void readCurrentBlockToEnd() throws IOException {
     readCurrentBlockToPos(Long.MAX_VALUE);
   }
 }

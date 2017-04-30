@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -253,12 +252,12 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   private void validateRequest(RPCProtoMessage msg) {
     Protocol.WriteRequest request = msg.getMessage().getMessage();
     if (request.getOffset() != mPosToQueue) {
-      throw new InvalidArgumentException(String.format(
+      throw new RuntimeException(String.format(
           "Offsets do not match [received: %d, expected: %d].", request.getOffset(), mPosToQueue));
     }
     if (msg.getPayloadDataBuffer() != null && msg.getPayloadDataBuffer().getLength() > 0 && (
         request.getCancel() || request.getEof())) {
-      throw new InvalidArgumentException("Found data in a cancel/eof message.");
+      throw new IllegalArgumentException("Found data in a cancel/eof message.");
     }
   }
 

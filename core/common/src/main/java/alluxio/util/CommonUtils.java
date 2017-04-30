@@ -22,7 +22,6 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -389,32 +388,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Closes a closer, converting any IOException to an {@link AlluxioStatusException}.
-   *
-   * @param closer the closer
-   */
-  public static void close(Closer closer) {
-    try {
-      closer.close();
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
-  }
-
-  /**
-   * Closes a Closeable, converting any IOException to an {@link AlluxioStatusException}.
-   *
-   * @param closeable the Closeable
-   */
-  public static void close(Closeable closeable) {
-    try {
-      closeable.close();
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
-  }
-
-  /**
    * Casts a {@link Throwable} to an {@link IOException}.
    *
    * @param e the throwable
@@ -484,17 +457,19 @@ public final class CommonUtils {
 
   /**
    * Propagates a Throwable by either converting to an {@link AlluxioStatusException} or re-throwing
-   * as an Error.
+   * as an unchecked exception.
    *
    * @param t the throwable to propagate
    * @return this method never returns; the return type is for ease of use in
    *         {@code throw propagate(t);}
    */
-  public static RuntimeException propagate(Throwable t) {
-    if (t instanceof Exception) {
-      throw AlluxioStatusException.from((Exception) t);
-    } else if (t instanceof Error) {
+  public static RuntimeException propagate(Throwable t) throws IOException {
+    if (t instanceof Error) {
       throw (Error) t;
+    } else if (t instanceof RuntimeException) {
+      throw (RuntimeException) t;
+    } else if (t instanceof Exception) {
+      throw AlluxioStatusException.from(t);
     } else {
       throw new IllegalStateException("Encountered a non-Error, non-Exception Throwable", t);
     }

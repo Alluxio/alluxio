@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
 
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
@@ -73,7 +74,7 @@ public interface TransportProvider {
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
    */
-  TTransport getClientTransport(InetSocketAddress serverAddress);
+  TTransport getClientTransport(InetSocketAddress serverAddress) throws UnauthenticatedException;
 
   /**
    * Similar as {@link TransportProvider#getClientTransport(InetSocketAddress)} but it also
@@ -83,7 +84,8 @@ public interface TransportProvider {
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
    */
-  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress);
+  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
+      throws UnauthenticatedException;
 
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is

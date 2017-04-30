@@ -17,6 +17,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 
 import java.io.FilterOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
@@ -37,7 +38,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @return a new {@link UnderFileSystemFileOutStream}
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
-      OutStreamOptions options) {
+      OutStreamOptions options) throws IOException {
     return new UnderFileSystemFileOutStream(context, address, options.getUfsPath(),
         options.getOwner(), options.getGroup(), options.getMode());
   }
@@ -55,7 +56,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param mode the mode of the ufs file
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
-      String path, String owner, String group, Mode mode) {
+      String path, String owner, String group, Mode mode) throws IOException {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
         Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
             .setType(Protocol.RequestType.UFS_FILE).setUfsPath(path).setOwner(owner)
@@ -67,12 +68,12 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   // FilterOutStream.
 
   @Override
-  public void write(byte[] b) {
+  public void write(byte[] b) throws IOException {
     mOutStream.write(b);
   }
 
   @Override
-  public void write(byte[] b, int off, int len) {
+  public void write(byte[] b, int off, int len) throws IOException {
     mOutStream.write(b, off, len);
   }
 }

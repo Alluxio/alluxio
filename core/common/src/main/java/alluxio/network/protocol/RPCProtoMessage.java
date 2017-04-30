@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -137,7 +138,7 @@ public final class RPCProtoMessage extends RPCMessage {
   /**
    * Throws the exception represented by this {@link RPCProtoMessage} if there is one.
    */
-  public void unwrapException() {
+  public void unwrapException() throws IOException {
     Response response = getMessage().<Protocol.Response>getMessage();
     Status status = Status.fromProto(response.getStatus());
     if (status != Status.OK) {

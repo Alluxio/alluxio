@@ -64,8 +64,6 @@ public interface BlockWorker extends Worker {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to access
-   * @throws BlockDoesNotExistException this exception is not thrown in the tiered block store
-   *         implementation
    */
   void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 

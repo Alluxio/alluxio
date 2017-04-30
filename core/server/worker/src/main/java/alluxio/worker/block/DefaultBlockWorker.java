@@ -182,7 +182,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * started.
    */
   @Override
-  public void start(WorkerNetAddress address) {
+  public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
       mWorkerId.set(mBlockMasterClient.getId(address));
@@ -436,7 +436,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) {
+  public FileInfo getFileInfo(long fileId) throws IOException {
     return mFileSystemMasterClient.getFileInfo(fileId);
   }
 

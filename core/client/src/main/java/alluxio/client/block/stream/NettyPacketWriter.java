@@ -118,7 +118,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param type the request type (block or UFS file)
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
-      long length, long sessionId, int tier, Protocol.RequestType type) {
+      long length, long sessionId, int tier, Protocol.RequestType type) throws IOException {
     this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id)
         .setSessionId(sessionId).setTier(tier).setType(type).buildPartial());
   }
@@ -132,7 +132,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param partialRequest details of the write request which are constant for all requests
    */
   public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long
-      length, Protocol.WriteRequest partialRequest) {
+      length, Protocol.WriteRequest partialRequest) throws IOException {
     mContext = context;
     mAddress = address;
     mLength = length;
@@ -149,7 +149,7 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void writePacket(final ByteBuf buf) {
+  public void writePacket(final ByteBuf buf) throws IOException {
     final long len;
     final long offset;
     try (LockResource lr = new LockResource(mLock)) {
@@ -174,9 +174,9 @@ public final class NettyPacketWriter implements PacketWriter {
           throw Throwables.propagate(e);
         }
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       buf.release();
-      throw AlluxioStatusException.from(e);
+      throw e;
     }
 
     Protocol.WriteRequest writeRequest = mPartialRequest.toBuilder().setOffset(offset).build();
@@ -194,7 +194,7 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void flush() {
+  public void flush() throws IOException {
     mChannel.flush();
 
     try (LockResource lr = new LockResource(mLock)) {
@@ -203,7 +203,9 @@ public final class NettyPacketWriter implements PacketWriter {
           return;
         }
         if (mPacketWriteException != null) {
-          throw CommonUtils.propagate(mPacketWriteException);
+          Throwables.propagateIfPossible(mPacketWriteException);
+          Throwables.propagateIfInstanceOf(mPacketWriteException, IOException.class);
+          throw AlluxioStatusException.from(mPacketWriteException);
         }
         if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new DeadlineExceededException(
@@ -216,7 +218,7 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -241,7 +243,8 @@ public final class NettyPacketWriter implements PacketWriter {
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
-          throw Throwables.propagate(e);
+          Thread.currentThread().interrupt();
+          throw new RuntimeException(e);
         }
       }
     } finally {
@@ -314,7 +317,7 @@ public final class NettyPacketWriter implements PacketWriter {
     PacketWriteHandler() {}
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
       RPCProtoMessage response = (RPCProtoMessage) msg;
       // Canceled is considered a valid status and handled in the writer. We avoid creating a

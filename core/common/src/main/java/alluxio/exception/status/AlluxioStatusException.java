@@ -48,7 +48,7 @@ import java.util.concurrent.RejectedExecutionException;
  * An exception thrown by Alluxio. {@link #getStatus()} can be used to determine the represented
  * class of error.
  */
-public class AlluxioStatusException extends RuntimeException {
+public class AlluxioStatusException extends IOException {
   private static final long serialVersionUID = -7422144873058169662L;
 
   private final Status mStatus;
@@ -215,6 +215,8 @@ public class AlluxioStatusException extends RuntimeException {
       return fromIOException(e);
     } catch (AlluxioException e) {
       return fromAlluxioException(e);
+    } catch (InterruptedException e) {
+      return new CanceledException(e);
     } catch (RuntimeException e) {
       return fromRuntimeException(e);
     } catch (Exception e) {
@@ -274,6 +276,8 @@ public class AlluxioStatusException extends RuntimeException {
       return new UnauthenticatedException(e);
     } catch (ClosedChannelException e) {
       return new FailedPreconditionException(e);
+    } catch (AlluxioStatusException e) {
+      return e;
     } catch (IOException e) {
       return new UnavailableException(e);
     }
@@ -300,8 +304,6 @@ public class AlluxioStatusException extends RuntimeException {
       return new OutOfRangeException(e);
     } catch (RejectedExecutionException e) {
       return new ResourceExhaustedException(e);
-    } catch (AlluxioStatusException e) {
-      return e;
     } catch (RuntimeException e) {
       return new UnknownException(e);
     }

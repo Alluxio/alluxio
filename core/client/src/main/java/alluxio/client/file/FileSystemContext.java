@@ -36,6 +36,7 @@ import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -142,7 +143,7 @@ public final class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
-  public void close() {
+  public void close() throws IOException {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
@@ -174,7 +175,7 @@ public final class FileSystemContext implements Closeable {
    * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and
    * tests to reset the default file system context.
    */
-  public synchronized void reset() {
+  public synchronized void reset() throws IOException {
     close();
     init();
   }
@@ -247,7 +248,7 @@ public final class FileSystemContext implements Closeable {
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
    */
-  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) {
+  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) throws IOException {
     return createBlockWorkerClient(address, IdUtils.getRandomNonNegativeLong());
   }
 
@@ -260,7 +261,7 @@ public final class FileSystemContext implements Closeable {
    */
   // TODO(peis): Abstract the logic to operate on the pools.
   public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address,
-      Long sessionId) {
+      Long sessionId) throws IOException {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
 
@@ -294,7 +295,7 @@ public final class FileSystemContext implements Closeable {
    * @param address the network address of the channel
    * @return the acquired netty channel
    */
-  public Channel acquireNettyChannel(final InetSocketAddress address) {
+  public Channel acquireNettyChannel(final InetSocketAddress address) throws IOException {
     if (!mNettyChannelPools.containsKey(address)) {
       Bootstrap bs = NettyClient.createClientBootstrap();
       bs.remoteAddress(address);
@@ -306,11 +307,7 @@ public final class FileSystemContext implements Closeable {
         pool.close();
       }
     }
-    try {
-      return mNettyChannelPools.get(address).acquire();
-    } catch (InterruptedException e) {
-      throw new UnavailableException(e);
-    }
+    return mNettyChannelPools.get(address).acquire();
   }
 
   /**
@@ -327,7 +324,7 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return if there is a local worker running the same machine
    */
-  public synchronized boolean hasLocalWorker() {
+  public synchronized boolean hasLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
@@ -337,14 +334,14 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return a local worker running the same machine, or null if none is found
    */
-  public synchronized WorkerNetAddress getLocalWorker() {
+  public synchronized WorkerNetAddress getLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
     return mLocalWorker;
   }
 
-  private void initializeLocalWorker() {
+  private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
       if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName())) {
@@ -358,7 +355,7 @@ public final class FileSystemContext implements Closeable {
    * @return if there are any local workers, the returned list will ONLY contain the local workers,
    *         otherwise a list of all remote workers will be returned
    */
-  private List<WorkerNetAddress> getWorkerAddresses() {
+  private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
     List<WorkerInfo> infos;
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {

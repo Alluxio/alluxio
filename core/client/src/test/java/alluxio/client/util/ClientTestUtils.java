@@ -17,6 +17,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.hadoop.HadoopClientTestUtils;
 
+import java.io.IOException;
+
 /**
  * Utility methods for the client tests.
  */
@@ -44,7 +46,7 @@ public final class ClientTestUtils {
     }
   }
 
-  private static void resetContexts() {
+  private static void resetContexts() throws IOException {
     FileSystemContext.INSTANCE.reset();
     LineageContext.INSTANCE.reset();
   }

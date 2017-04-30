@@ -24,7 +24,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
@@ -72,7 +71,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+          throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -84,9 +84,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+    } catch (IOException e) {
+      try {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
+      }
     }
   }
 
@@ -102,7 +105,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+          throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -115,9 +119,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+    } catch (IOException e) {
+      try {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
+      }
     }
   }
 
@@ -145,7 +152,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart,
-      WorkerNetAddress workerNetAddress, InStreamOptions options) {
+      WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -178,15 +185,18 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
                 !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+    } catch (IOException e) {
+      try {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
+      }
     }
   }
 
   @Override
-  public void close() {
-    CommonUtils.close(mCloser);
+  public void close() throws IOException {
+    mCloser.close();
   }
 
   @Override
@@ -195,12 +205,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   }
 
   @Override
-  public void seek(long pos) {
+  public void seek(long pos) throws IOException {
     mInputStream.seek(pos);
   }
 
   @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     return mInputStream.positionedRead(pos, b, off, len);
   }
 

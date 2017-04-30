@@ -22,6 +22,7 @@ import alluxio.wire.TtlAction;
 
 import org.apache.thrift.TException;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +77,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @return the value of the lineage creation result
    */
   public synchronized long createLineage(final List<String> inputFiles,
-      final List<String> outputFiles, final CommandLineJob job) {
+      final List<String> outputFiles, final CommandLineJob job) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -93,7 +94,8 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @param cascade true if the deletion is cascading, false otherwise
    * @return true if the deletion was successful, false otherwise
    */
-  public synchronized boolean deleteLineage(final long lineageId, final boolean cascade) {
+  public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
+      throws IOException {
     return retryRPC(new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws TException {
@@ -112,7 +114,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @return the value of the lineage creation result
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl, final TtlAction ttlAction) {
+      final long ttl, final TtlAction ttlAction) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -127,7 +129,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
    *
    * @return a list of lineage information
    */
-  public synchronized List<LineageInfo> getLineageInfoList() {
+  public synchronized List<LineageInfo> getLineageInfoList() throws IOException {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
@@ -145,7 +147,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
    *
    * @param path the path to the lost file
    */
-  public synchronized void reportLostFile(final String path) {
+  public synchronized void reportLostFile(final String path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
