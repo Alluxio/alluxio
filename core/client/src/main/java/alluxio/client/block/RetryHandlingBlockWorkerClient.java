@@ -125,10 +125,15 @@ public final class RetryHandlingBlockWorkerClient
       mHeartbeat = HEARTBEAT_POOL.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+              if (Thread.interrupted()) {
+                throw new RuntimeException("block worker client heartbeat thread interrupted");
+              }
               try {
                 sessionHeartbeat(new CountingRetry(0));
-              } catch (Exception e) {
+              } catch (IOException e) {
                 LOG.warn("Failed to heartbeat for session {}", mSessionId, e.getMessage());
+              } catch (RuntimeException e) {
+                LOG.error("Failed to heartbeat for session {}", mSessionId, e.getMessage());
               }
             }
           }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
@@ -270,18 +275,13 @@ public final class RetryHandlingBlockWorkerClient
   @Override
   public String requestBlockLocation(final long blockId, final long initialBytes,
       final int writeTier) throws IOException {
-    try {
-      return retryRPC(
-          new RpcCallable<String, BlockWorkerClientService.Client>() {
-            @Override
-            public String call(BlockWorkerClientService.Client client) throws TException {
-              return client.requestBlockLocation(getSessionId(), blockId, initialBytes, writeTier);
-            }
-          });
-    } catch (ResourceExhaustedException e) {
-      throw new ResourceExhaustedException(ExceptionMessage.CANNOT_REQUEST_SPACE
-          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId), e);
-    }
+    return retryRPC(
+        new RpcCallable<String, BlockWorkerClientService.Client>() {
+          @Override
+          public String call(BlockWorkerClientService.Client client) throws TException {
+            return client.requestBlockLocation(getSessionId(), blockId, initialBytes, writeTier);
+          }
+        });
   }
 
   @Override

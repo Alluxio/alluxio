@@ -16,7 +16,6 @@ import alluxio.client.Cancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -63,8 +62,11 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+      try {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
+      }
     }
   }
 
@@ -91,8 +93,11 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+      try {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
+      }
     }
   }
 
@@ -119,15 +124,15 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     if (mClosed) {
       return;
     }
-    Exception exception = null;
+    IOException exception = null;
     try {
       mOutStream.cancel();
-    } catch (Exception e) {
+    } catch (IOException e) {
       exception = e;
     }
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (Exception e) {
+    } catch (IOException e) {
       exception = e;
     }
 
@@ -138,7 +143,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
 
     CommonUtils.closeQuietly(mCloser);
     mClosed = true;
-    throw AlluxioStatusException.from(exception);
+    throw exception;
   }
 
   @Override

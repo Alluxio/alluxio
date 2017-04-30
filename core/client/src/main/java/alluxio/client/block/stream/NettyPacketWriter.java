@@ -171,7 +171,8 @@ public final class NettyPacketWriter implements PacketWriter {
                 String.format("Timeout writing to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
-          throw Throwables.propagate(e);
+          Thread.currentThread().interrupt();
+          throw AlluxioStatusException.from(e);
         }
       }
     } catch (IOException e) {

@@ -382,7 +382,7 @@ public final class CommonUtils {
   public static void closeQuietly(Closer closer) {
     try {
       closer.close();
-    } catch (Exception e) {
+    } catch (IOException e) {
       // Ignore.
     }
   }

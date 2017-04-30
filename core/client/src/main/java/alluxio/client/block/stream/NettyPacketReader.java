@@ -164,7 +164,8 @@ public final class NettyPacketReader implements PacketReader {
     try {
       buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
+      throw AlluxioStatusException.from(e);
     }
     if (buf == null) {
       throw new DeadlineExceededException(
