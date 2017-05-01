@@ -330,7 +330,8 @@ public final class NettyPacketReader implements PacketReader {
      */
     private boolean acceptMessage(Object msg) {
       if (msg instanceof RPCProtoMessage) {
-        return ((RPCProtoMessage) msg).getMessage().getType() == ProtoMessage.Type.RESPONSE;
+        Protocol.Response response = ((RPCProtoMessage) msg).getMessage().getMessage();
+        return response != null;
       }
       return false;
     }

@@ -23,73 +23,52 @@ import com.google.protobuf.MessageLite;
  * different generated messages. This class is intended to be used internally only.
  */
 public final class ProtoMessage {
-
-  /**
-   * Type of the message.
-   */
-  public enum Type {
-    READ_REQUEST,
-    WRITE_REQUEST,
-    RESPONSE,
-  }
-
   private MessageLite mMessage;
-  private Type mType;
-
-  /**
-   * Constructs a {@link ProtoMessage} instance wrapping around {@link Protocol.ReadRequest}.
-   *
-   * @param message the message to wrap
-   */
-  public ProtoMessage(Protocol.ReadRequest message) {
-    this(message, Type.READ_REQUEST);
-  }
-
-  /**
-   * Constructs a {@link ProtoMessage} instance wrapping around {@link Protocol.WriteRequest}.
-   *
-   * @param message the message to wrap
-   */
-  public ProtoMessage(Protocol.WriteRequest message) {
-    this(message, Type.WRITE_REQUEST);
-  }
-
-  /**
-   * Constructs a {@link ProtoMessage} instance wrapping around {@link Protocol.Response}.
-   *
-   * @param message the message to wrap
-   */
-  public ProtoMessage(Protocol.Response message) {
-    this(message, Type.RESPONSE);
-  }
 
   /**
    * Constructs a {@link ProtoMessage} instance wrapping around {@link MessageLite}.
    *
    * @param message the message to wrap
-   * @param type type of the message
    */
-  ProtoMessage(MessageLite message, Type type) {
+  public ProtoMessage(MessageLite message) {
     mMessage = message;
-    mType = type;
   }
 
   /**
+   * Gets the protobuf message given a type. Returns null if the mMessage is not of type tClass.
+   * This method is slow since it uses reflection.
+   *
    * @param <T> the type T
    *
    * @return the unwrapped message as type T
    */
-  public <T> T getMessage() {
-    @SuppressWarnings("unchecked")
-    T ret = (T) mMessage;
-    return ret;
+  <T> T getMessage(Class<T> tClass) {
+    if (tClass.isAssignableFrom(mMessage.getClass())) {
+      return (T) mMessage;
+    } else {
+      return null;
+    }
   }
 
-  /**
-   * @return the type of message wrapped
-   */
-  public Type getType() {
-    return mType;
+  public Protocol.ReadRequest getReadRequest() {
+    if (mMessage instanceof Protocol.ReadRequest) {
+      return (Protocol.ReadRequest) mMessage;
+    }
+    return null;
+  }
+
+  public Protocol.WriteRequest getWriteRequest() {
+    if (mMessage instanceof Protocol.WriteRequest) {
+      return (Protocol.WriteRequest) mMessage;
+    }
+    return null;
+  }
+
+  public Protocol.Response getResponse() {
+    if (mMessage instanceof Protocol.Response) {
+      return (Protocol.Response) mMessage;
+    }
+    return null;
   }
 
   /**
@@ -100,37 +79,17 @@ public final class ProtoMessage {
   }
 
   /**
-   * Parses a serialized bytes array into an instance denoted by type.
+   * Parses proto message from bytes given a prototype.
    *
-   * @param type type of the class to parse to
-   * @param serialized input byte array
-   * @return instance as parsing result
+   * @param serialized the serialized message
+   * @param prototype the prototype of the message to return which is usually constructed via
+   *        new ProtoMessage(SomeProtoType.getDefaultInstance())
+   * @return the proto message
    */
-  public static ProtoMessage parseFrom(Type type, byte[] serialized) {
-    MessageLite message;
+  public static ProtoMessage parseFrom(byte[] serialized, ProtoMessage prototype) {
     try {
-      switch (type) {
-        case READ_REQUEST:
-          message = Protocol.ReadRequest.parseFrom(serialized);
-          break;
-        case WRITE_REQUEST:
-          message = Protocol.WriteRequest.parseFrom(serialized);
-          break;
-        case RESPONSE:
-          message = Protocol.Response.parseFrom(serialized);
-          break;
-        default:
-          throw new IllegalArgumentException("Unknown class type " + type.toString());
-      }
-      return new ProtoMessage(message, type);
-    } catch (InvalidProtocolBufferException e) {
-      throw new IllegalArgumentException(e);
-    }
-  }
-
-  public static ProtoMessage parseFrom(byte[] serialized, MessageLite prototype) {
-    try {
-      return new ProtoMessage(prototype.getParserForType().parseFrom(serialized));
+      return new ProtoMessage(
+          prototype.getMessage(MessageLite.class).getParserForType().parseFrom(serialized));
     } catch (InvalidProtocolBufferException e) {
       throw new IllegalArgumentException(e);
     }
