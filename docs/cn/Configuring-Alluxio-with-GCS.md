@@ -52,12 +52,6 @@ priority: 0
 
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
 
-### 配置分布式应用
-
-如果你使用的Alluxio client并非运行在Alluxio Master 或者Workers上（在其他的JVM上），那需要确保为该JVM提供了Google证书。最简单的方法是在启动client JVM时添加如下选项。例如:
-
-{% include Configuring-Alluxio-with-GCS/java-bash.md %}
-
 ## 使用GCS本地运行Alluxio
 
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。

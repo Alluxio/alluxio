@@ -44,12 +44,6 @@ priority: 4
 
 更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#running-alluxio-locally-with-s3)
 
-## 配置分布式应用
-
-如果你使用的Alluxio Client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了Aliyun证书，最简单的方法是在启动client JVM时添加如下选项：
-
-{% include Configuring-Alluxio-with-OSS/java-bash.md %}
-
 ## 使用OSS在本地运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
