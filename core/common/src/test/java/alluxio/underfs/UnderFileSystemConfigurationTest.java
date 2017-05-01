@@ -51,7 +51,6 @@ public final class UnderFileSystemConfigurationTest {
     }
   }
 
-
   @Test
   public void containsWhenGlobalConfHasProperty() throws Exception {
     // Unset property in global configuration
