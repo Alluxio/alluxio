@@ -118,8 +118,8 @@ public abstract class DataServerWriteHandlerTest {
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
 
     ProtoMessage response = ((RPCProtoMessage) writeResponse).getMessage();
-    Assert.assertNotNull(response.getResponse());
-    Assert.assertEquals(statusExpected, response.getResponse().getStatus());
+    Assert.assertNotNull(response.asResponse());
+    Assert.assertEquals(statusExpected, response.asResponse().getStatus());
   }
 
   /**

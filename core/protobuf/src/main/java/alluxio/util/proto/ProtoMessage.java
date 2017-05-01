@@ -36,6 +36,7 @@ public final class ProtoMessage {
 
   /**
    * Gets the protobuf message given a type. Returns null if the mMessage is not of type tClass.
+   * This is slow since it uses reflection.
    *
    * @param <T> the type T
    *
@@ -54,7 +55,7 @@ public final class ProtoMessage {
    *
    * @return the read request or null
    */
-  public Protocol.ReadRequest getReadRequest() {
+  public Protocol.ReadRequest asReadRequest() {
     if (mMessage instanceof Protocol.ReadRequest) {
       return (Protocol.ReadRequest) mMessage;
     }
@@ -66,7 +67,7 @@ public final class ProtoMessage {
    *
    * @return the write request or null
    */
-  public Protocol.WriteRequest getWriteRequest() {
+  public Protocol.WriteRequest asWriteRequest() {
     if (mMessage instanceof Protocol.WriteRequest) {
       return (Protocol.WriteRequest) mMessage;
     }
@@ -78,7 +79,7 @@ public final class ProtoMessage {
    *
    * @return the response or null
    */
-  public Protocol.Response getResponse() {
+  public Protocol.Response asResponse() {
     if (mMessage instanceof Protocol.Response) {
       return (Protocol.Response) mMessage;
     }
