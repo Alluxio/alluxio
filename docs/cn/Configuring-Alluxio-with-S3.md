@@ -55,28 +55,11 @@ priority: 0
 
 其中，`<PROXY_HOST>`和`<PROXY_PORT>`为代理的主机名和端口，`<USE_HTTPS?>`根据是否使用https与代理通信设置为`true`或`false`。
 
-如果运行Alluxio client的JVM不在Alluxio Master和Workers上，也要为其进行这些设置，参考[配置分布式应用](#configuring-distributed-applications)
-
 ## 配置应用
 
 当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
-
-
-### 启用Hadoop S3客户端（代替本地S3客户端）
-
-Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配置为底层文件系统时，该本地客户端会被使用。
-
-但可以选择另外一种与S3通信的方式，即由Hadoop提供的S3客户端。为禁用Alluxio S3客户端（并启用Hadoop S3客户端），还需进行额外配置。若你的应用中包含了`alluxio-core-client`模块，要将`alluxio-underfs-s3`排除在外从而禁用本地客户端，并启用Hadoop S3客户端：
-
-{% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
-
-然而，Hadoop S3客户端需要`jets3t`来启用S3,而默认配置并未添加该依赖，因此，你必须手动添加`jets3t`包依赖。若使用Maven，添加如下代码加入该依赖：
-
-{% include Configuring-Alluxio-with-S3/jets3t-dependency.md %}
-
-`jets3t 0.9.0`适用于Hadoop `2.3.0`，而`jets3t 0.7.1`应适用于更旧版本的Hadoop。要确认支持你的Hadoop版本的具体`jets3t`版本号，可以参考[MvnRepository](http://mvnrepository.com/)。
 
 ### 使用非亚马逊服务提供商
 
@@ -91,12 +74,6 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 ### 使用v2的S3签名
 
 一些S3服务提供商仅仅支持v2签名。对这些S3提供商来说，可以通过设置`alluxio.underfs.s3a.signer.algorithm`为`S3SignerType`来强制使用v2签名。
-
-### 配置分布式应用
-
-如果你使用的Alluxio Client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了AWS证书，最简单的方法是在启动client JVM时添加如下选项：
-
-{% include Configuring-Alluxio-with-S3/java-bash.md %}
 
 ## 使用S3在本地运行Alluxio
 
