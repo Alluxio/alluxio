@@ -68,7 +68,7 @@ estiver rodando em um `JVM` apartado do Alluxio `Master` e dos `Workers`. Veja
 ## Configurando Sua Aplicação
 
 Quando estiver montando sua aplicação para utilizar o Alluxio, sua aplicação deverá ter que incluir
-o módulo `alluxio-core-client`. Se você estiver utilizando o [maven](https://maven.apache.org/),
+o módulo `alluxio-core-client-fs`. Se você estiver utilizando o [maven](https://maven.apache.org/),
 você pode adicionar a dependência para sua aplicação com:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
