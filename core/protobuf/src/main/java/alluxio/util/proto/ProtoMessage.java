@@ -69,7 +69,7 @@ public final class ProtoMessage {
    * @param message the message to wrap
    * @param type type of the message
    */
-  public ProtoMessage(MessageLite message, Type type) {
+  ProtoMessage(MessageLite message, Type type) {
     mMessage = message;
     mType = type;
   }
@@ -123,6 +123,14 @@ public final class ProtoMessage {
           throw new IllegalArgumentException("Unknown class type " + type.toString());
       }
       return new ProtoMessage(message, type);
+    } catch (InvalidProtocolBufferException e) {
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  public static ProtoMessage parseFrom(byte[] serialized, MessageLite prototype) {
+    try {
+      return new ProtoMessage(prototype.getParserForType().parseFrom(serialized));
     } catch (InvalidProtocolBufferException e) {
       throw new IllegalArgumentException(e);
     }

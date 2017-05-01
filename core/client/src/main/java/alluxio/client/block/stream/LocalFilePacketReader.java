@@ -13,10 +13,17 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemContext;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import com.google.common.base.Preconditions;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -42,8 +49,10 @@ public final class LocalFilePacketReader implements PacketReader {
    * @param offset the offset
    * @param len the length to read
    */
-  public LocalFilePacketReader(LocalFileBlockReader reader, long offset, long len) {
-    mReader = reader;
+  public LocalFilePacketReader(FileSystemContext context, InetSocketAddress address, long blockId,
+      long offset, long len) {
+    Preconditions.checkArgument(offset >= 0 && len > 0);
+
     mPos = offset;
     mEnd = offset + len;
   }
@@ -92,6 +101,15 @@ public final class LocalFilePacketReader implements PacketReader {
     @Override
     public boolean isShortCircuit() {
       return true;
+    }
+  }
+
+  public static class NettyRpcClientHandler<T>
+      extends SimpleChannelInboundHandler<RPCProtoMessage> {
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, RPCProtoMessage msg) throws Exception {
+
     }
   }
 }
