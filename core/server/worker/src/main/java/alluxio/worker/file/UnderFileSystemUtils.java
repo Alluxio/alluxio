@@ -28,7 +28,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility functions for working with {@link alluxio.underfs.UnderFileSystem}.
- *
  */
 @ThreadSafe
 public final class UnderFileSystemUtils {
@@ -40,8 +39,6 @@ public final class UnderFileSystemUtils {
    * @param ufsPath path in the under file system
    * @param fs file system master client
    * @param ufs the under file system
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
-   * @throws IOException if folder creation fails
    */
   public static void prepareFilePath(AlluxioURI alluxioPath, String ufsPath, FileSystem fs,
       UnderFileSystem ufs) throws AlluxioException, IOException {

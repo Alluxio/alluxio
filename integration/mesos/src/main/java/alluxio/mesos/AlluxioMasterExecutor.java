@@ -111,7 +111,6 @@ public class AlluxioMasterExecutor implements Executor {
    * Starts the Alluxio master executor.
    *
    * @param args command-line arguments
-   * @throws Exception if the executor encounters an unrecoverable error
    */
   public static void main(String[] args) throws Exception {
     MesosExecutorDriver driver = new MesosExecutorDriver(new AlluxioMasterExecutor());

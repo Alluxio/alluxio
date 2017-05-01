@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
@@ -21,14 +22,21 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -195,7 +203,6 @@ public final class CommonUtils {
    *
    * @param user user name
    * @return the groups list that the {@code user} belongs to. The primary group is returned first
-   * @throws IOException if encounter any error when running the command
    */
   public static List<String> getUnixGroups(String user) throws IOException {
     String result;
@@ -274,7 +281,6 @@ public final class CommonUtils {
    *
    * @param userName Alluxio user name
    * @return primary group name
-   * @throws IOException if getting group failed
    */
   public static String getPrimaryGroupName(String userName) throws IOException {
     List<String> groups = getGroups(userName);
@@ -286,7 +292,6 @@ public final class CommonUtils {
    *
    * @param userName Alluxio user name
    * @return the group list of the user
-   * @throws IOException if getting group list failed
    */
   public static List<String> getGroups(String userName) throws IOException {
     GroupMappingService groupMappingService = GroupMappingService.Factory.get();
@@ -325,6 +330,21 @@ public final class CommonUtils {
   }
 
   /**
+   * Strips the leading and trailing quotes from the given string.
+   * E.g. return 'alluxio' for input '"alluxio"'.
+   *
+   * @param str The string to strip
+   * @return The string without the leading and trailing quotes
+   */
+  public static String stripLeadingAndTrailingQuotes(String str) {
+    int length = str.length();
+    if (length > 1 && str.startsWith("\"") && str.endsWith("\"")) {
+      str = str.substring(1, length - 1);
+    }
+    return str;
+  }
+
+  /**
    * Gets the value with a given key from a static key/value mapping in string format. E.g. with
    * mapping "id1=user1;id2=user2", it returns "user1" with key "id1". It returns null if the given
    * key does not exist in the mapping.
@@ -356,15 +376,41 @@ public final class CommonUtils {
   }
 
   /**
-   * Closes a closer and ignores the IOException if it throws one.
+   * Closes a closer and ignores any thrown exceptions.
    *
    * @param closer the closer
    */
-  public static void closeQuitely(Closer closer) {
+  public static void closeQuietly(Closer closer) {
+    try {
+      closer.close();
+    } catch (Exception e) {
+      // Ignore.
+    }
+  }
+
+  /**
+   * Closes a closer, converting any IOException to an {@link AlluxioStatusException}.
+   *
+   * @param closer the closer
+   */
+  public static void close(Closer closer) {
     try {
       closer.close();
     } catch (IOException e) {
-      // Ignore.
+      throw AlluxioStatusException.fromIOException(e);
+    }
+  }
+
+  /**
+   * Closes a Closeable, converting any IOException to an {@link AlluxioStatusException}.
+   *
+   * @param closeable the Closeable
+   */
+  public static void close(Closeable closeable) {
+    try {
+      closeable.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
     }
   }
 
@@ -382,5 +428,75 @@ public final class CommonUtils {
     }
   }
 
+  /**
+   * Returns an iterator that iterates on a single element.
+   *
+   * @param element the element
+   * @param <T> the type of the element
+   * @return the iterator
+   */
+  public static <T> Iterator<T> singleElementIterator(final T element) {
+    return new Iterator<T>() {
+      private boolean mHasNext = true;
+
+      @Override
+      public boolean hasNext() {
+        return mHasNext;
+      }
+
+      @Override
+      public T next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        mHasNext = false;
+        return element;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("remove is not supported.");
+      }
+    };
+  }
+
+  /**
+   * Executes the given callables, waiting for them to complete (or time out).
+
+   * @param callables the callables to execute
+   * @param <T> the return type of the callables
+   */
+  public static <T> void invokeAll(List<Callable<T>> callables) {
+    ExecutorService service = Executors.newCachedThreadPool();
+    try {
+      service.invokeAll(callables, 10, TimeUnit.SECONDS);
+      service.shutdown();
+      if (!service.awaitTermination(10, TimeUnit.SECONDS)) {
+        throw new RuntimeException("Timed out trying to shutdown service.");
+      }
+    } catch (InterruptedException e) {
+      service.shutdownNow();
+      throw new RuntimeException(e);
+    }
+  }
+
   private CommonUtils() {} // prevent instantiation
+
+  /**
+   * Propagates a Throwable by either converting to an {@link AlluxioStatusException} or re-throwing
+   * as an Error.
+   *
+   * @param t the throwable to propagate
+   * @return this method never returns; the return type is for ease of use in
+   *         {@code throw propagate(t);}
+   */
+  public static RuntimeException propagate(Throwable t) {
+    if (t instanceof Exception) {
+      throw AlluxioStatusException.from((Exception) t);
+    } else if (t instanceof Error) {
+      throw (Error) t;
+    } else {
+      throw new IllegalStateException("Encountered a non-Error, non-Exception Throwable", t);
+    }
+  }
 }

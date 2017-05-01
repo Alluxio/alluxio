@@ -207,7 +207,7 @@ public final class Configuration {
    * @param key the key to unset
    */
   public static void unset(PropertyKey key) {
-    Preconditions.checkNotNull(key);
+    Preconditions.checkNotNull(key, "key");
     PROPERTIES.remove(key.toString());
   }
 
@@ -374,7 +374,7 @@ public final class Configuration {
   public static long getMs(PropertyKey key) {
     String rawValue = get(key);
     try {
-      return (long) Double.parseDouble(rawValue);
+      return FormatUtils.parseTimeSize(rawValue);
     } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
     }

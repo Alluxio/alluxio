@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -30,11 +31,9 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
 import alluxio.master.lineage.meta.Lineage;
@@ -46,6 +45,7 @@ import alluxio.master.lineage.recompute.RecomputePlanner;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.thrift.LineageMasterClientService;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -54,6 +54,7 @@ import alluxio.wire.LineageInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,39 +76,39 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(LineageMaster.class);
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(FileSystemMaster.class);
 
   private final FileSystemMaster mFileSystemMaster;
-  private final LineageStore mLineageStore;
+  private LineageStore mLineageStore;
   private final LineageIdGenerator mLineageIdGenerator;
 
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory) {
-    this(registry, journalFactory, ExecutorServiceFactories
+  LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
+    this(fileSystemMaster, journalFactory, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  public LineageMaster(MasterRegistry registry, JournalFactory journalFactory,
+  LineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
         executorServiceFactory);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
-    mFileSystemMaster = registry.get(FileSystemMaster.class);
-    registry.add(LineageMaster.class, this);
+    mFileSystemMaster = fileSystemMaster;
   }
 
   @Override
@@ -123,12 +125,15 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      mLineageStore = new LineageStore(mLineageIdGenerator);
+    }
     if (entry.hasLineage()) {
       mLineageStore.addLineageFromJournal(entry.getLineage());
     } else if (entry.hasLineageIdGenerator()) {
@@ -141,7 +146,7 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
@@ -155,10 +160,9 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   @Override
-  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
-      throws IOException {
-    mLineageStore.streamToJournalCheckpoint(outputStream);
-    outputStream.write(mLineageIdGenerator.toJournalEntry());
+  public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(mLineageStore.getJournalEntryIterator(),
+        CommonUtils.singleElementIterator(mLineageIdGenerator.toJournalEntry()));
   }
 
   /**
@@ -178,7 +182,6 @@ public final class LineageMaster extends AbstractMaster {
    * @throws InvalidPathException if the path to the input file is invalid
    * @throws FileAlreadyExistsException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
-   * @throws IOException if the creation of a file fails
    * @throws AccessControlException if the permission check fails
    * @throws FileDoesNotExistException if any of the input files do not exist
    */

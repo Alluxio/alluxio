@@ -18,8 +18,8 @@ import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerThriftClientPool;
 import alluxio.client.netty.NettyClient;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
@@ -36,11 +36,9 @@ import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -76,12 +74,6 @@ public final class FileSystemContext implements Closeable {
   private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
       mBlockWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
 
-  // The file system worker client pools.
-  private final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      mFileSystemWorkerClientPools = new ConcurrentHashMapV8<>();
-  private final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      mFileSystemWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
-
   // The netty data server channel pools.
   private final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMapV8<>();
@@ -89,10 +81,6 @@ public final class FileSystemContext implements Closeable {
   /** The shared master address associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
   private InetSocketAddress mMasterAddress;
-
-  /** A list of valid workers, if there is a local worker, only the local worker addresses. */
-  @GuardedBy("this")
-  private List<WorkerNetAddress> mWorkerAddresses;
 
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
@@ -170,16 +158,6 @@ public final class FileSystemContext implements Closeable {
     }
     mBlockWorkerClientHeartbeatPools.clear();
 
-    for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientPools.values()) {
-      pool.close();
-    }
-    mFileSystemWorkerClientPools.clear();
-
-    for (FileSystemWorkerThriftClientPool pool : mFileSystemWorkerClientHeartbeatPools.values()) {
-      pool.close();
-    }
-    mFileSystemWorkerClientHeartbeatPools.clear();
-
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
       pool.close();
     }
@@ -187,7 +165,6 @@ public final class FileSystemContext implements Closeable {
 
     synchronized (this) {
       mMasterAddress = null;
-      mWorkerAddresses = null;
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
     }
@@ -269,10 +246,8 @@ public final class FileSystemContext implements Closeable {
    *
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   * @throws IOException if it fails to create a worker client for a given hostname (e.g. no block
-   *         worker is available for the given worker RPC address)
    */
-  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) throws IOException {
+  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) {
     return createBlockWorkerClient(address, IdUtils.getRandomNonNegativeLong());
   }
 
@@ -282,12 +257,10 @@ public final class FileSystemContext implements Closeable {
    * @param address the address of the worker to get a client to
    * @param sessionId the session ID
    * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   * @throws IOException if it fails to create a client for a given hostname (e.g. no Alluxio
-   *         worker is available for the given worker RPC address)
    */
   // TODO(peis): Abstract the logic to operate on the pools.
   public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address,
-      Long sessionId) throws IOException {
+      Long sessionId) {
     Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
 
@@ -314,58 +287,14 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Creates a new file system worker client, prioritizing local workers if available. This method
-   * initializes the list of worker addresses if it has not been initialized.
-   *
-   * @return a file system worker client to a worker in the system
-   * @throws IOException if an error occurs getting the list of workers in the system
-   */
-  public FileSystemWorkerClient createFileSystemWorkerClient() throws IOException {
-    WorkerNetAddress address;
-    synchronized (this) {
-      if (mWorkerAddresses == null) {
-        mWorkerAddresses = getWorkerAddresses();
-      }
-      address = mWorkerAddresses.get(ThreadLocalRandom.current().nextInt(mWorkerAddresses.size()));
-    }
-
-    InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
-    if (!mFileSystemWorkerClientPools.containsKey(rpcAddress)) {
-      FileSystemWorkerThriftClientPool pool =
-          new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
-              Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
-              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mFileSystemWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
-        pool.close();
-      }
-    }
-
-    if (!mFileSystemWorkerClientHeartbeatPools.containsKey(rpcAddress)) {
-      FileSystemWorkerThriftClientPool pool =
-          new FileSystemWorkerThriftClientPool(mParentSubject, rpcAddress,
-              Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX),
-              Configuration.getLong(PropertyKey.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mFileSystemWorkerClientHeartbeatPools.putIfAbsent(rpcAddress, pool) != null) {
-        pool.close();
-      }
-    }
-
-    long sessionId = IdUtils.getRandomNonNegativeLong();
-    return FileSystemWorkerClient.Factory.create(mFileSystemWorkerClientPools.get(rpcAddress),
-        mFileSystemWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
-  }
-
-  /**
    * Acquires a netty channel from the channel pools. If there is no available client instance
    * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
    * create a new one.
    *
    * @param address the network address of the channel
    * @return the acquired netty channel
-   * @throws IOException if it fails to create a new client instance mostly because it fails to
-   *         connect to remote worker
    */
-  public Channel acquireNettyChannel(final InetSocketAddress address) throws IOException {
+  public Channel acquireNettyChannel(final InetSocketAddress address) {
     if (!mNettyChannelPools.containsKey(address)) {
       Bootstrap bs = NettyClient.createClientBootstrap();
       bs.remoteAddress(address);
@@ -380,7 +309,7 @@ public final class FileSystemContext implements Closeable {
     try {
       return mNettyChannelPools.get(address).acquire();
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new UnavailableException(e);
     }
   }
 
@@ -397,9 +326,8 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @return if there is a local worker running the same machine
-   * @throws IOException if it fails to get the workers
    */
-  public synchronized boolean hasLocalWorker() throws IOException {
+  public synchronized boolean hasLocalWorker() {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
@@ -408,16 +336,15 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @return a local worker running the same machine, or null if none is found
-   * @throws IOException if it fails to get the workers
    */
-  public synchronized WorkerNetAddress getLocalWorker() throws IOException {
+  public synchronized WorkerNetAddress getLocalWorker() {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
     return mLocalWorker;
   }
 
-  private void initializeLocalWorker() throws IOException {
+  private void initializeLocalWorker() {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
       if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName())) {
@@ -430,20 +357,17 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return if there are any local workers, the returned list will ONLY contain the local workers,
    *         otherwise a list of all remote workers will be returned
-   * @throws IOException if an error occurs communicating with the master
    */
-  private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
+  private List<WorkerNetAddress> getWorkerAddresses() {
     List<WorkerInfo> infos;
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       infos = blockMasterClient.getWorkerInfoList();
-    } catch (AlluxioException e) {
-      throw new IOException(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }
     if (infos.isEmpty()) {
-      throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
     // Convert the worker infos into net addresses, if there are local addresses, only keep those

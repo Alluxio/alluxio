@@ -50,6 +50,22 @@ public final class URIUtils {
   }
 
   /**
+   * Appends the given path to the given base URI. It throws an {@link RuntimeException} if
+   * the inputs are malformed.
+   *
+   * @param base the base URI
+   * @param path the path to append
+   * @return the URI resulting from appending the base and the path
+   */
+  public static URI appendPathOrDie(URI base, String path) {
+    try {
+      return appendPath(base, path);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Generates a query string from a {@link Map <String, String>} of key/value pairs.
    *
    * @param queryMap the map of query key/value pairs

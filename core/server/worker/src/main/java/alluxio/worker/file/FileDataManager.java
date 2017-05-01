@@ -117,7 +117,7 @@ public final class FileDataManager {
         addPersistedFile(fileId);
         return false;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.warn("Failed to check if file {} exists in under storage system: {}",
                fileId, e.getMessage());
       LOG.debug("Exception: ", e);
@@ -153,7 +153,6 @@ public final class FileDataManager {
    *
    * @param fileId the file id
    * @return true if the file exists in under storage system, false otherwise
-   * @throws IOException an I/O exception occurs
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
@@ -168,7 +167,6 @@ public final class FileDataManager {
    *
    * @param fileId the id of the file
    * @param blockIds the ids of the file's blocks
-   * @throws IOException when an I/O exception occurs
    */
   public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
     Map<Long, Long> blockIdToLockId = new HashMap<>();
@@ -214,8 +212,6 @@ public final class FileDataManager {
    *
    * @param fileId the id of the file
    * @param blockIds the list of block ids
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
-   * @throws IOException if the file persistence fails
    */
   public void persistFile(long fileId, List<Long> blockIds) throws AlluxioException, IOException {
     Map<Long, Long> blockIdToLockId;
@@ -292,8 +288,6 @@ public final class FileDataManager {
    *
    * @param fileId the file id
    * @return the path for persistence
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
-   * @throws IOException if the folder creation fails
    */
   private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);

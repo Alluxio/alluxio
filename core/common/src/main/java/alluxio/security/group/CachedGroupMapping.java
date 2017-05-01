@@ -111,7 +111,6 @@ public class CachedGroupMapping implements GroupMappingService {
    *
    * @param user user name
    * @return the list of groups that the user belongs to
-   * @throws IOException if failed to get groups
    */
   public List<String> getGroups(String user) throws IOException {
     if (!mCacheEnabled) {

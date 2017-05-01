@@ -45,7 +45,6 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    *
    * @param outputPath the job's output path, or null if the output committer is a noop
    * @param taskContext the task's context
-   * @throws IOException if the construction fails
    */
   public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext)
       throws IOException {
@@ -55,7 +54,6 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
   /**
    * @param taskContext MapReduce task configuration
    * @return true if the task output directory exists, otherwise false
-   * @throws IOException if fails to determine whether the output directory exists
    */
   @Override
   public boolean needsTaskCommit(TaskAttemptContext taskContext) throws IOException {

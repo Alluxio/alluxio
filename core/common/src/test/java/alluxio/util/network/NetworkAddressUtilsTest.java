@@ -45,6 +45,12 @@ public class NetworkAddressUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType)} method for specific
+   * service under different conditions.
+   *
+   * @param service the service name used to connect
+   */
   private void getConnectAddress(ServiceType service) throws Exception {
     String localHostName = NetworkAddressUtils.getLocalHostName();
     InetSocketAddress masterAddress;
@@ -116,6 +122,12 @@ public class NetworkAddressUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceType)} method for specific
+   * service under different conditions.
+   *
+   * @param service the service name used to connect
+   */
   private void getBindAddress(ServiceType service) throws Exception {
     String localHostName = NetworkAddressUtils.getLocalHostName();
     InetSocketAddress workerAddress;

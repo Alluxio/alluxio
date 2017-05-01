@@ -12,13 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.clock.Clock;
-import alluxio.clock.SystemClock;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.journal.JournalFactory;
-import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -52,25 +48,8 @@ public final class BlockMasterFactory implements MasterFactory {
   public BlockMaster create(MasterRegistry registry, JournalFactory journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", BlockMaster.class.getName());
-    return new DefaultBlockMaster(registry, journalFactory, new SystemClock(),
-        ExecutorServiceFactories
-            .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
-  }
-
-  /**
-   * Creates a new instance of {@link BlockMaster} with clock and executor service factory.
-   *
-   * @param registry the master registry
-   * @param journalFactory the factory for the journal to use for tracking master operations
-   * @param clock the clock to use for determining the time
-   * @param executorServiceFactory a factory for creating the executor service to use for running
-   *        maintenance threads
-   * @return a new {@link BlockMaster} instance or null if the master is not enabled
-   **/
-  public BlockMaster create(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
-      ExecutorServiceFactory executorServiceFactory) {
-    Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
-    LOG.info("Creating {} ", BlockMaster.class.getName());
-    return new DefaultBlockMaster(registry, journalFactory, clock, executorServiceFactory);
+    BlockMaster master = new BlockMaster(journalFactory);
+    registry.add(BlockMaster.class, master);
+    return master;
   }
 }

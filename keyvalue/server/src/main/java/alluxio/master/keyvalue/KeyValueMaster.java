@@ -13,6 +13,7 @@ package alluxio.master.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -21,13 +22,11 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue.CompletePartitionEntry;
 import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
@@ -44,13 +43,16 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -62,7 +64,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMaster extends AbstractMaster {
-  private static final Set<Class<?>> DEPS = ImmutableSet.<Class<?>>of(FileSystemMaster.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(FileSystemMaster.class);
 
   private final FileSystemMaster mFileSystemMaster;
 
@@ -75,16 +78,15 @@ public final class KeyValueMaster extends AbstractMaster {
   private final Map<Long, List<PartitionInfo>> mIncompleteStoreToPartitions;
 
   /**
-   * @param registry the master registry
+   * @param fileSystemMaster the file system master handle
    * @param journal a {@link Journal} to write journal entries to
    */
-  public KeyValueMaster(MasterRegistry registry, Journal journal) {
+  KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
-    mFileSystemMaster = registry.get(FileSystemMaster.class);
+    mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
-    registry.add(KeyValueMaster.class, this);
   }
 
   @Override
@@ -101,7 +103,7 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
 
@@ -129,29 +131,13 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   @Override
-  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
-      throws IOException {
-    for (Map.Entry<Long, List<PartitionInfo>> entry : mCompleteStoreToPartitions.entrySet()) {
-      long fileId = entry.getKey();
-      List<PartitionInfo> partitions = entry.getValue();
-      outputStream.write(newCreateStoreEntry(fileId));
-      for (PartitionInfo info : partitions) {
-        outputStream.write(newCompletePartitionEntry(fileId, info));
-      }
-      outputStream.write(newCompleteStoreEntry(fileId));
-    }
-    for (Map.Entry<Long, List<PartitionInfo>> entry : mIncompleteStoreToPartitions.entrySet()) {
-      long fileId = entry.getKey();
-      List<PartitionInfo> partitions = entry.getValue();
-      outputStream.write(newCreateStoreEntry(fileId));
-      for (PartitionInfo info : partitions) {
-        outputStream.write(newCompletePartitionEntry(fileId, info));
-      }
-    }
+  public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(getStoreIterator(mCompleteStoreToPartitions),
+        getStoreIterator(mIncompleteStoreToPartitions));
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
   }
 
@@ -283,10 +269,8 @@ public final class KeyValueMaster extends AbstractMaster {
    * Deletes a completed key-value store.
    *
    * @param uri {@link AlluxioURI} to the store
-   * @throws IOException if non-Alluxio error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void deleteStore(AlluxioURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
@@ -328,8 +312,6 @@ public final class KeyValueMaster extends AbstractMaster {
    *
    * @param oldUri the old {@link AlluxioURI} to the store
    * @param newUri the {@link AlluxioURI} to the store
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void renameStore(AlluxioURI oldUri, AlluxioURI newUri)
       throws IOException, AlluxioException {
@@ -365,10 +347,8 @@ public final class KeyValueMaster extends AbstractMaster {
    *
    * @param fromUri the {@link AlluxioURI} to the store to be merged
    * @param toUri the {@link AlluxioURI} to the store to be merged to
-   * @throws IOException if non-Alluxio error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
       throws IOException, FileDoesNotExistException, InvalidPathException, AlluxioException {
@@ -453,5 +433,55 @@ public final class KeyValueMaster extends AbstractMaster {
     MergeStoreEntry mergeStore = MergeStoreEntry.newBuilder().setFromStoreId(fromFileId)
         .setToStoreId(toFileId).build();
     return JournalEntry.newBuilder().setMergeStore(mergeStore).build();
+  }
+
+  private Iterator<JournalEntry> getStoreIterator(
+      Map<Long, List<PartitionInfo>> storeToPartitions) {
+    final Iterator<Map.Entry<Long, List<PartitionInfo>>> it =
+        storeToPartitions.entrySet().iterator();
+    return new Iterator<JournalEntry>() {
+      // Initial state: mEntry == null, mInfoIterator == null
+      // hasNext: mEntry == null, mInfoIterator == null, it.hasNext()
+      // mEntry == null, mInfoIterator == null, => create
+      // mEntry != null, mInfoIterator.hasNext() => partitions
+      // mEntry != null, !mInfoIterator.hasNext() => complete
+      private Map.Entry<Long, List<PartitionInfo>> mEntry;
+      private Iterator<PartitionInfo> mInfoIterator;
+
+      @Override
+      public boolean hasNext() {
+        if (mEntry == null && mInfoIterator == null && !it.hasNext()) {
+          return false;
+        }
+        return true;
+      }
+
+      @Override
+      public JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        if (mEntry == null) {
+          Preconditions.checkState(mInfoIterator == null);
+          mEntry = it.next();
+          mInfoIterator = mEntry.getValue().iterator();
+          return newCreateStoreEntry(mEntry.getKey());
+        }
+
+        if (mInfoIterator.hasNext()) {
+          return newCompletePartitionEntry(mEntry.getKey(), mInfoIterator.next());
+        }
+
+        JournalEntry completeEntry = newCompleteStoreEntry(mEntry.getKey());
+        mEntry = null;
+        mInfoIterator = null;
+        return completeEntry;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("remove is not supported.");
+      }
+    };
   }
 }
