@@ -18,6 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.local.LocalUnderFileSystem;
@@ -54,11 +55,11 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
     }
 
     @Override
-    public UnderFileSystem create(String path, Map<String, String> ufsConf) {
+    public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       Preconditions.checkArgument(path != null, "path may not be null");
       Preconditions
-          .checkArgument(mExpectedConf.equals(ufsConf), "ufs conf {} does not match expected {}",
-              ufsConf, mExpectedConf);
+          .checkArgument(mExpectedConf.equals(ufsConf.userSpecifiedConf()),
+              "ufs conf {} does not match expected {}", ufsConf, mExpectedConf);
       return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()));
     }
 
