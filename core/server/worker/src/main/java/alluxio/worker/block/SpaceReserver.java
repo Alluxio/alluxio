@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -64,7 +63,7 @@ public class SpaceReserver implements HeartbeatExecutor  {
       long capOnTier = capOnTiers.get(tierAlias);
       long reservedBytes;
       PropertyKey tierReservedSpaceProp =
-              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(ordinal);
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
       if (Configuration.containsKey(tierReservedSpaceProp)) {
         LOG.warn("The property reserved.ratio is deprecated and high/low water mark "
                 + "should be used instead.");
@@ -73,14 +72,14 @@ public class SpaceReserver implements HeartbeatExecutor  {
       } else {
         // HighWatemark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
-                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT
+                PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO
                         .format(ordinal);
         long highWatermarkInBytes =
                 (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
 
         // LowWatemark defines when to stop the space reserving process if started
         PropertyKey tierLowWatermarkProp =
-                PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT
+                PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO
                         .format(ordinal);
         reservedBytes =
                 (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
