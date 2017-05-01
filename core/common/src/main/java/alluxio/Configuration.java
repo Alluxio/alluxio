@@ -409,14 +409,14 @@ public final class Configuration {
    * @param prefixKey the prefix key
    * @return a map from nested properties aggregated by the prefix
    */
-  public static Map<PropertyKey, String> getNestedProperties(PropertyKey prefixKey) {
-    Map<PropertyKey, String> ret = Maps.newHashMap();
+  public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
+    Map<String, String> ret = Maps.newHashMap();
     for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
       String key = entry.getKey();
       if (prefixKey.isNested(key)) {
         String suffixKey = key.substring(prefixKey.length() + 1);
         if (PropertyKey.isValid(suffixKey)) {
-          ret.put(PropertyKey.fromString(suffixKey), entry.getValue());
+          ret.put(suffixKey, entry.getValue());
         }
       }
     }

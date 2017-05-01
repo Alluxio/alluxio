@@ -24,6 +24,8 @@ public final class UnderFileSystemBlockMeta {
   private final long mOffset;
   /** The block size in bytes. */
   private final long mBlockSize;
+  /** The id of the mount point. */
+  private final long mMountId;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockMeta}.
@@ -38,6 +40,7 @@ public final class UnderFileSystemBlockMeta {
     mUnderFileSystemPath = options.getUnderFileSystemPath();
     mOffset = options.getOffset();
     mBlockSize = options.getBlockSize();
+    mMountId = options.getMountId();
   }
 
   /**
@@ -73,5 +76,12 @@ public final class UnderFileSystemBlockMeta {
    */
   public long getBlockSize() {
     return mBlockSize;
+  }
+
+  /**
+   * @return the id of the mount of this file is mapped to
+   */
+  public long getMountId() {
+    return mMountId;
   }
 }

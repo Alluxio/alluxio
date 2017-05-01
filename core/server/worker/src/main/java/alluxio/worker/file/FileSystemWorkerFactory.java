@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
 import alluxio.worker.block.BlockWorker;
@@ -38,10 +39,10 @@ public final class FileSystemWorkerFactory implements WorkerFactory {
   }
 
   @Override
-  public FileSystemWorker create(WorkerRegistry registry) {
+  public FileSystemWorker create(WorkerRegistry registry, UfsManager ufsManager) {
     LOG.info("Creating {} ", FileSystemWorker.class.getName());
     BlockWorker blockWorker = registry.get(BlockWorker.class);
-    FileSystemWorker fileSystemWorker = new DefaultFileSystemWorker(blockWorker);
+    FileSystemWorker fileSystemWorker = new DefaultFileSystemWorker(blockWorker, ufsManager);
     registry.add(FileSystemWorker.class, fileSystemWorker);
     return fileSystemWorker;
   }
