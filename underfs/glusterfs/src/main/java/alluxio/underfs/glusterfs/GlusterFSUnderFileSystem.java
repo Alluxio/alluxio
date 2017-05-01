@@ -14,12 +14,10 @@ package alluxio.underfs.glusterfs;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.util.UnderFileSystemUtils;
 
 import org.apache.hadoop.conf.Configuration;
-
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,28 +40,28 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * Prepares the configuration for this Gluster FS as an HDFS configuration.
    *
    * @param path the path in GlusterFS to serve as the root of this UFS
-   * @param ufsConf the configuration for this UFS
+   * @param cnf the configuration for this UFS
    * @return the created configuration
    */
-  public static Configuration createConfiguration(String path, Map<String, String> ufsConf) {
+  public static Configuration createConfiguration(String path,
+      UnderFileSystemConfiguration cnf) {
     if (path.startsWith(SCHEME)) {
       Configuration glusterFsConf = new Configuration();
       // Configure for Gluster FS
-      glusterFsConf.set("fs.glusterfs.impl",
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_IMPL, ufsConf));
-      glusterFsConf.set("mapred.system.dir",
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR, ufsConf));
-      glusterFsConf.set("fs.glusterfs.volumes",
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf));
-      glusterFsConf.set("fs.glusterfs.volume.fuse."
-          + UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES, ufsConf),
-          UnderFileSystemUtils.getValue(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS, ufsConf));
+      glusterFsConf.set("fs.glusterfs.impl", cnf.getValue(PropertyKey.UNDERFS_GLUSTERFS_IMPL));
+      glusterFsConf
+          .set("mapred.system.dir", cnf.getValue(PropertyKey.UNDERFS_GLUSTERFS_MR_DIR));
+      glusterFsConf
+          .set("fs.glusterfs.volumes", cnf.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES));
+      glusterFsConf.set(
+          "fs.glusterfs.volume.fuse." + cnf.getValue(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES),
+          cnf.getValue(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS));
       return glusterFsConf;
     } else {
       // If not Gluster FS fall back to default HDFS behavior
       // This should only happen if someone creates an instance of this directly rather than via the
       // registry and factory which enforces the GlusterFS prefix being present.
-      return HdfsUnderFileSystem.createConfiguration(ufsConf);
+      return HdfsUnderFileSystem.createConfiguration(cnf);
     }
   }
 
@@ -71,25 +69,25 @@ public final class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * Factory method to construct a new Gluster FS {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for this UFS
+   * @param conf the configuration for this UFS
    * @return a new Gluster FS {@link UnderFileSystem} instance
    */
   public static GlusterFSUnderFileSystem createInstance(AlluxioURI uri,
-      Map<String, String> ufsConf) {
-    Configuration glusterFsConf = createConfiguration(uri.toString(), ufsConf);
-    return new GlusterFSUnderFileSystem(uri, ufsConf, glusterFsConf);
+      UnderFileSystemConfiguration conf) {
+    Configuration glusterFsConf = createConfiguration(uri.toString(), conf);
+    return new GlusterFSUnderFileSystem(uri, conf, glusterFsConf);
   }
 
   /**
    * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for this UFS
+   * @param conf the configuration for this UFS
    * @param glusterFsConf the configuration for this Gluster FS
    */
-  private GlusterFSUnderFileSystem(AlluxioURI ufsUri, Map<String, String> ufsConf, Configuration
-      glusterFsConf)  {
-    super(ufsUri, ufsConf, glusterFsConf);
+  private GlusterFSUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
+      Configuration glusterFsConf) {
+    super(ufsUri, conf, glusterFsConf);
   }
 
   @Override

@@ -18,6 +18,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.UnderFileSystemUtils;
@@ -44,7 +45,6 @@ import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -89,10 +89,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    * Constructs a new Swift {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for this UFS
+   * @param conf the configuration for this UFS
    * @throws FileDoesNotExistException when specified container does not exist
    */
-  public SwiftUnderFileSystem(AlluxioURI uri, Map<String, String> ufsConf)
+  public SwiftUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf)
       throws FileDoesNotExistException {
     super(uri);
     String containerName = UnderFileSystemUtils.getBucketName(uri);
@@ -101,9 +101,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
 
     // Whether to run against a simulated Swift backend
     mSimulationMode = false;
-    if (UnderFileSystemUtils.containsKey(PropertyKey.SWIFT_SIMULATION, ufsConf)) {
-      mSimulationMode =
-          Boolean.valueOf(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_SIMULATION, ufsConf));
+    if (conf.containsKey(PropertyKey.SWIFT_SIMULATION)) {
+      mSimulationMode = Boolean.valueOf(conf.getValue(PropertyKey.SWIFT_SIMULATION));
     }
 
     if (mSimulationMode) {
@@ -111,22 +110,21 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       config.setMock(true);
       config.setMockAllowEveryone(true);
     } else {
-      if (UnderFileSystemUtils.containsKey(PropertyKey.SWIFT_API_KEY, ufsConf)) {
-        config.setPassword(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_API_KEY, ufsConf));
-      } else if (UnderFileSystemUtils.containsKey(PropertyKey.SWIFT_PASSWORD_KEY, ufsConf)) {
-        config.setPassword(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_PASSWORD_KEY, ufsConf));
+      if (conf.containsKey(PropertyKey.SWIFT_API_KEY)) {
+        config.setPassword(conf.getValue(PropertyKey.SWIFT_API_KEY));
+      } else if (conf.containsKey(PropertyKey.SWIFT_PASSWORD_KEY)) {
+        config.setPassword(conf.getValue(PropertyKey.SWIFT_PASSWORD_KEY));
       }
-      config.setAuthUrl(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_AUTH_URL_KEY, ufsConf));
-      String authMethod = UnderFileSystemUtils.getValue(PropertyKey.SWIFT_AUTH_METHOD_KEY, ufsConf);
+      config.setAuthUrl(conf.getValue(PropertyKey.SWIFT_AUTH_URL_KEY));
+      String authMethod = conf.getValue(PropertyKey.SWIFT_AUTH_METHOD_KEY);
       if (authMethod != null) {
-        config.setUsername(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_USER_KEY, ufsConf));
-        config.setTenantName(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_TENANT_KEY, ufsConf));
+        config.setUsername(conf.getValue(PropertyKey.SWIFT_USER_KEY));
+        config.setTenantName(conf.getValue(PropertyKey.SWIFT_TENANT_KEY));
         switch (authMethod) {
           case Constants.SWIFT_AUTH_KEYSTONE:
             config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
-            if (UnderFileSystemUtils.containsKey(PropertyKey.SWIFT_REGION_KEY, ufsConf)) {
-              config.setPreferredRegion(
-                  UnderFileSystemUtils.getValue(PropertyKey.SWIFT_REGION_KEY, ufsConf));
+            if (conf.containsKey(PropertyKey.SWIFT_REGION_KEY)) {
+              config.setPreferredRegion(conf.getValue(PropertyKey.SWIFT_REGION_KEY));
             }
             break;
           case Constants.SWIFT_AUTH_SWIFTAUTH:
@@ -136,20 +134,16 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
             // swiftauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config
-                .setTenantName(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_USER_KEY, ufsConf));
-            config
-                .setUsername(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_TENANT_KEY, ufsConf));
+            config.setTenantName(conf.getValue(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(conf.getValue(PropertyKey.SWIFT_TENANT_KEY));
             break;
           default:
             config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
             // tempauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config
-                .setTenantName(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_USER_KEY, ufsConf));
-            config
-                .setUsername(UnderFileSystemUtils.getValue(PropertyKey.SWIFT_TENANT_KEY, ufsConf));
+            config.setTenantName(conf.getValue(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(conf.getValue(PropertyKey.SWIFT_TENANT_KEY));
         }
       }
     }
@@ -168,7 +162,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     // Assume the Swift user name has 1-1 mapping to Alluxio username.
-    mAccountOwner = UnderFileSystemUtils.getValue(PropertyKey.SWIFT_USER_KEY, ufsConf);
+    mAccountOwner = conf.getValue(PropertyKey.SWIFT_USER_KEY);
     short mode = (short) 0;
     List<String> readAcl =
         Arrays.asList(container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));

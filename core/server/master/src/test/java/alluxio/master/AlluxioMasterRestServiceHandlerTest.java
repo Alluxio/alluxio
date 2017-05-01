@@ -31,6 +31,7 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.web.MasterWebServer;
@@ -137,8 +138,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
         .thenReturn(UFS_SPACE_TOTAL);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH), Matchers.<Map<String, String>>any()))
-        .thenReturn(underFileSystemMock);
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH),
+        Matchers.<UnderFileSystemConfiguration>any())).thenReturn(underFileSystemMock);
     UnderFileSystemRegistry.register(underFileSystemFactoryMock);
   }
 
