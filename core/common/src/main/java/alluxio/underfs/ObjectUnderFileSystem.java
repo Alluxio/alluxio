@@ -266,7 +266,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Launch a thread for processing a individual batch.
+     * Launch a thread for processing an individual batch.
      * @param batchNumber index starting from 0
      */
     void processBatchInThread(int batchNumber) throws IOException {
