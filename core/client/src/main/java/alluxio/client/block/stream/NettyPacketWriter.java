@@ -27,7 +27,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
-//import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
