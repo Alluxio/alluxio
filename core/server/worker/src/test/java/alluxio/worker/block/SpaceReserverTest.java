@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -80,10 +79,10 @@ public class SpaceReserverTest {
         new long[][]{new long[]{0}, new long[]{0}}, "/");
 
     PropertyKey reserveRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
     Configuration.set(reserveRatioProp, "0.2");
     reserveRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1);
     Configuration.set(reserveRatioProp, "0.3");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
@@ -117,22 +116,22 @@ public class SpaceReserverTest {
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
     PropertyKey highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
     PropertyKey lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(0);
     Configuration.set(lowWatermarkRatioProp, "0.8");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(1);
     Configuration.set(highWatermarkRatioProp, "0.9");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(1);
     Configuration.set(lowWatermarkRatioProp, "0.7");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(2);
     Configuration.set(highWatermarkRatioProp, "0.8");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(2);
     Configuration.set(lowWatermarkRatioProp, "0.6");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
@@ -168,22 +167,22 @@ public class SpaceReserverTest {
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
     PropertyKey highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
     PropertyKey lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(0);
     Configuration.set(lowWatermarkRatioProp, "0.8");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(1);
     Configuration.set(highWatermarkRatioProp, "0.9");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(1);
     Configuration.set(lowWatermarkRatioProp, "0.7");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(2);
     Configuration.set(highWatermarkRatioProp, "0.8");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(2);
     Configuration.set(lowWatermarkRatioProp, "0.6");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 

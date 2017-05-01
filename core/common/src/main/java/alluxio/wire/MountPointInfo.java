@@ -11,11 +11,8 @@
 
 package alluxio.wire;
 
-import alluxio.underfs.UnderFileSystem;
-
 import com.google.common.base.Objects;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -155,27 +152,6 @@ public class MountPointInfo implements Serializable {
   public MountPointInfo setShared(boolean shared) {
     mShared = shared;
     return this;
-  }
-
-  /**
-   * Sets information related to under filesystem, including its uri, type, storage usage.
-   *
-   * @param ufsUri the under filesystem uri
-   */
-  public void setUfsInfo(String ufsUri) {
-    mUfsUri = ufsUri;
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsUri);
-    mUfsType = ufs.getUnderFSType();
-    try {
-      mUfsCapacityBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_TOTAL);
-    } catch (IOException e) {
-      mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
-    }
-    try {
-      mUfsUsedBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_USED);
-    } catch (IOException e) {
-      mUfsUsedBytes = UNKNOWN_USED_BYTES;
-    }
   }
 
   @Override
