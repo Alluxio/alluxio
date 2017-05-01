@@ -138,13 +138,14 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param blockId the block ID
    * @param blockSize the block size
    * @param blockStart the position at which the block starts in the file
+   * @param mountId the id of the UFS which the mount of this file is mapped to
    * @param workerNetAddress the worker network address
    * @param options the options
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
-      long blockId, long blockSize, long blockStart,
+      long blockId, long blockSize, long blockStart, long mountId,
       WorkerNetAddress workerNetAddress, InStreamOptions options) {
     Closer closer = Closer.create();
     try {
@@ -152,7 +153,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
           closer.register(context.createBlockWorkerClient(workerNetAddress));
       LockBlockOptions lockBlockOptions =
           LockBlockOptions.defaults().setUfsPath(ufsPath).setOffset(blockStart)
-              .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency());
+              .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency())
+              .setMountId(mountId);
 
       LockBlockResult lockBlockResult =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();

@@ -37,6 +37,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
@@ -48,6 +49,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
@@ -175,7 +177,8 @@ public final class PermissionCheckerTest {
 
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    MountTable mountTable = new MountTable();
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    MountTable mountTable = new MountTable(ufsManager);
     sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     sRegistry.start(true);

@@ -25,6 +25,7 @@ import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -159,13 +160,14 @@ public abstract class AbstractLocalAlluxioCluster {
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
-    String underfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
+    String underfsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
-    UnderFileSystemUtils.deleteDirIfExists(underfsAddress);
+    UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
-    UnderFileSystemUtils.mkdirIfNotExists(underfsAddress);
+    UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
 
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
@@ -174,7 +176,7 @@ public abstract class AbstractLocalAlluxioCluster {
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
-        UnderFileSystemUtils.mkdirIfNotExists(dirPath);
+        UnderFileSystemUtils.mkdirIfNotExists(ufs, dirPath);
       }
     }
 
@@ -192,12 +194,12 @@ public abstract class AbstractLocalAlluxioCluster {
     Format.format(Format.Mode.MASTER);
 
     // If we are using anything except LocalFileSystemCluster as UnderFS,
-    // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
+    // we need to update the MASTER_MOUNT_TABLE_ROOT_UFS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
-      UnderFileSystemUtils.mkdirIfNotExists(ufsAddress);
-      Configuration.set(PropertyKey.UNDERFS_ADDRESS, ufsAddress);
+      UnderFileSystemUtils.mkdirIfNotExists(ufs, ufsAddress);
+      Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsAddress);
     }
   }
 
