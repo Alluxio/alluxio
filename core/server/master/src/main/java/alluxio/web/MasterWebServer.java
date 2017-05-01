@@ -13,7 +13,7 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.master.MasterProcess;
-import alluxio.master.block.DefaultBlockMaster;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
 
@@ -50,7 +50,7 @@ public final class MasterWebServer extends WebServer {
     mWebAppContext
         .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterProcess)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
-        new WebInterfaceWorkersServlet(masterProcess.getMaster(DefaultBlockMaster.class))),
+        new WebInterfaceWorkersServlet(masterProcess.getMaster(BlockMaster.class))),
         "/workers");
     mWebAppContext.addServlet(new ServletHolder(
             new WebInterfaceConfigurationServlet(masterProcess.getMaster(FileSystemMaster.class))),

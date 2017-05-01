@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
@@ -103,7 +102,7 @@ public final class AlluxioMasterRestServiceHandler {
     // Poor man's dependency injection through the Jersey application scope.
     mMasterProcess = (MasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mBlockMaster = mMasterProcess.getMaster(DefaultBlockMaster.class);
+    mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
   }
 

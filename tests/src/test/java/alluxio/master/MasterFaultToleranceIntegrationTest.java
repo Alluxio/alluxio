@@ -26,7 +26,6 @@ import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
 import alluxio.thrift.CommandType;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -266,7 +265,7 @@ public class MasterFaultToleranceIntegrationTest {
     try {
       // Get the first block master
       BlockMaster blockMaster1 =
-          cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(DefaultBlockMaster.class);
+          cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
       // Register worker 1
       long workerId1a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
@@ -293,7 +292,7 @@ public class MasterFaultToleranceIntegrationTest {
 
       // Get the new block master, after the failover
       BlockMaster blockMaster2 = cluster.getLocalAlluxioMaster().getMasterProcess()
-          .getMaster(DefaultBlockMaster.class);
+          .getMaster(BlockMaster.class);
 
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       Assert.assertEquals(CommandType.Register, blockMaster2

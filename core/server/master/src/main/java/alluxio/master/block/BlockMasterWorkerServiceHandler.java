@@ -41,7 +41,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
   /**
    * Creates a new instance of {@link BlockMasterWorkerServiceHandler}.
    *
-   * @param blockMaster the {@link DefaultBlockMaster} the handler uses internally
+   * @param blockMaster the {@link BlockMaster} the handler uses internally
    */
   public BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);

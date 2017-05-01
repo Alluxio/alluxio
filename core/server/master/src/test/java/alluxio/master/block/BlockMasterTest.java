@@ -48,7 +48,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Unit tests for {@link DefaultBlockMaster}.
+ * Unit tests for {@link BlockMaster}.
  */
 public class BlockMasterTest {
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
@@ -89,7 +89,7 @@ public class BlockMasterTest {
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster = new DefaultBlockMaster(factory, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
-    mRegistry.add(DefaultBlockMaster.class, mBlockMaster);
+    mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
   }
 

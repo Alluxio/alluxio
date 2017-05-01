@@ -27,7 +27,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -79,7 +78,7 @@ public class SpecificTierWriteIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mBlockMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(DefaultBlockMaster.class);
+        .getMaster(BlockMaster.class);
   }
 
   /**
@@ -104,11 +103,11 @@ public class SpecificTierWriteIntegrationTest {
     long totalBytes = memBytes + ssdBytes + hddBytes;
     Assert.assertEquals("Total bytes used", totalBytes,
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(DefaultBlockMaster.class).getUsedBytes());
+            .getMaster(BlockMaster.class).getUsedBytes());
 
     Map<String, Long> bytesOnTiers =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(DefaultBlockMaster.class).getUsedBytesOnTiers();
+            .getMaster(BlockMaster.class).getUsedBytesOnTiers();
     Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
     Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());
     Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());

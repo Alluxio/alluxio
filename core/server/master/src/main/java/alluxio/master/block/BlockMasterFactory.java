@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link DefaultBlockMaster} instance.
+ * Factory to create a {@link BlockMaster} instance.
  */
 @ThreadSafe
 public final class BlockMasterFactory implements MasterFactory {
@@ -49,7 +49,7 @@ public final class BlockMasterFactory implements MasterFactory {
     Preconditions.checkArgument(journalFactory != null, "journal");
     LOG.info("Creating {} ", BlockMaster.class.getName());
     BlockMaster master = new DefaultBlockMaster(journalFactory);
-    registry.add(DefaultBlockMaster.class, master);
+    registry.add(BlockMaster.class, master);
     return master;
   }
 }
