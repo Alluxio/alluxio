@@ -18,7 +18,7 @@ import alluxio.master.block.meta.MasterWorkerInfo;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Class which provides access to private state of {@link BlockMaster}.
+ * Class which provides access to private state of {@link DefaultBlockMaster}.
  */
 public final class BlockMasterPrivateAccess {
   /**
@@ -31,7 +31,7 @@ public final class BlockMasterPrivateAccess {
   public static boolean isWorkerRegistered(BlockMaster master, long workerId) {
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(master, "mWorkers");
     IndexDefinition<MasterWorkerInfo> idIndex =
-        Whitebox.getInternalState(BlockMaster.class, "ID_INDEX");
+        Whitebox.getInternalState(DefaultBlockMaster.class, "ID_INDEX");
     synchronized (workers) {
       MasterWorkerInfo workerInfo = workers.getFirstByField(idIndex, workerId);
       return workerInfo != null && workerInfo.isRegistered();

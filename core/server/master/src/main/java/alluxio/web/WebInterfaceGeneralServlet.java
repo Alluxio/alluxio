@@ -17,6 +17,7 @@ import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.underfs.UnderFileSystem;
@@ -141,7 +142,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @return the list of {@link StorageTierInfo} objects, in order from highest tier to lowest
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
-    BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);
+    BlockMaster blockMaster = mMasterProcess.getMaster(DefaultBlockMaster.class);
     StorageTierAssoc globalStorageTierAssoc = blockMaster.getGlobalStorageTierAssoc();
     List<StorageTierInfo> infos = new ArrayList<>();
     Map<String, Long> totalBytesOnTiers = blockMaster.getTotalBytesOnTiers();
@@ -166,7 +167,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @param request The {@link HttpServletRequest} object
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);
+    BlockMaster blockMaster = mMasterProcess.getMaster(DefaultBlockMaster.class);
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
     request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));

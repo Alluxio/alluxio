@@ -42,7 +42,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   /**
    * Creates a new instance of {@link BlockMasterClientServiceHandler}.
    *
-   * @param blockMaster the {@link BlockMaster} the handler uses internally
+   * @param blockMaster the {@link DefaultBlockMaster} the handler uses internally
    */
   public BlockMasterClientServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);

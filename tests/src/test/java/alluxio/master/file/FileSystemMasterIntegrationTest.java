@@ -27,6 +27,7 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -422,7 +423,7 @@ public class FileSystemMasterIntegrationTest {
   public void getCapacityBytes() {
     BlockMaster blockMaster =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(BlockMaster.class);
+            .getMaster(DefaultBlockMaster.class);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 

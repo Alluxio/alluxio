@@ -25,7 +25,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterProcess;
-import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.LoginUser;
@@ -116,7 +116,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
     request.setAttribute("highestTierAlias",
-        mMasterProcess.getMaster(BlockMaster.class).getGlobalStorageTierAssoc().getAlias(0));
+        mMasterProcess.getMaster(DefaultBlockMaster.class).getGlobalStorageTierAssoc().getAlias(0));
   }
 
   /**

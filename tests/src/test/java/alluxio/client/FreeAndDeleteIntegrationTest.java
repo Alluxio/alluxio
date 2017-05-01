@@ -24,6 +24,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -79,7 +80,7 @@ public final class FreeAndDeleteIntegrationTest {
 
     final Long blockId = status.getBlockIds().get(0);
     BlockMaster bm = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(BlockMaster.class);
+        .getMaster(DefaultBlockMaster.class);
     BlockInfo blockInfo = bm.getBlockInfo(blockId);
     Assert.assertEquals(2, blockInfo.getLength());
     Assert.assertFalse(blockInfo.getLocations().isEmpty());

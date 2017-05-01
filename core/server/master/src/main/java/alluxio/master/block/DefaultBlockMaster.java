@@ -17,6 +17,7 @@ import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.clock.Clock;
+import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -27,13 +28,11 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.JournalInputStream;
-import alluxio.master.journal.JournalOutputStream;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -42,7 +41,9 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -51,6 +52,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.apache.thrift.TProcessor;
@@ -64,8 +66,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Future;
 
@@ -73,7 +77,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The default implementation of {@link BlockMaster} interface.
+ * This master manages the metadata for all the blocks and block workers in Alluxio.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultBlockMaster extends AbstractMaster implements BlockMaster {
@@ -104,11 +108,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       };
 
   /**
-   * Concurrency and locking in the {@link DefaultBlockMaster}
+   * Concurrency and locking in the BlockMaster
    *
    * The block master uses concurrent data structures to allow non-conflicting concurrent access.
    * This means each piece of metadata should be locked individually. There are two types of
-   * metadata in {@link DefaultBlockMaster}; {@link MasterBlockInfo} and {@link MasterWorkerInfo}.
+   * metadata in the {@link DefaultBlockMaster}; {@link MasterBlockInfo} and
+   * {@link MasterWorkerInfo}.
    * Individual objects must be locked before modifying the object, or reading a modifiable field
    * of an object. This will protect the internal integrity of the metadata object.
    *
@@ -161,16 +166,24 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
-   * @param registry the master registry
+   * @param journalFactory the factory for the journal to use for tracking master operations
+   */
+  DefaultBlockMaster(JournalFactory journalFactory) {
+    this(journalFactory, new SystemClock(), ExecutorServiceFactories
+        .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
+  }
+
+  /**
+   * Creates a new instance of {@link DefaultBlockMaster}.
+   *
    * @param journalFactory the factory for the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(MasterRegistry registry, JournalFactory journalFactory, Clock clock,
+  DefaultBlockMaster(JournalFactory journalFactory, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
-    registry.add(DefaultBlockMaster.class, this);
     Metrics.registerGauges(this);
   }
 
@@ -190,14 +203,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    // clear state before processing checkpoint.
-    mBlocks.clear();
-    super.processJournalCheckpoint(inputStream);
-  }
-
-  @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry.getSequenceNumber() == 0) {
+      // This is the first journal entry, clear the master state.
+      mBlocks.clear();
+    }
     // TODO(gene): A better way to process entries besides a huge switch?
     if (entry.hasBlockContainerIdGenerator()) {
       mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
@@ -218,18 +228,38 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    outputStream.write(getContainerIdJournalEntry());
-    for (MasterBlockInfo blockInfo : mBlocks.values()) {
-      BlockInfoEntry blockInfoEntry =
-          BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
-              .setLength(blockInfo.getLength()).build();
-      outputStream.write(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
-    }
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    final Iterator<MasterBlockInfo> it = mBlocks.values().iterator();
+    Iterator<JournalEntry> blockIterator = new Iterator<JournalEntry>() {
+      @Override
+      public boolean hasNext() {
+        return it.hasNext();
+      }
+
+      @Override
+      public JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        MasterBlockInfo info = it.next();
+        BlockInfoEntry blockInfoEntry =
+            BlockInfoEntry.newBuilder().setBlockId(info.getBlockId())
+                .setLength(info.getLength()).build();
+        return JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("BlockMaster#Iterator#remove is not supported.");
+      }
+    };
+
+    return Iterators
+        .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator);
   }
 
   @Override
-  public void start(boolean isLeader) throws IOException {
+  public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     if (isLeader) {
