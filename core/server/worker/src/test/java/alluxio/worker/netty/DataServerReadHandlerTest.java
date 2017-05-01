@@ -217,7 +217,7 @@ public abstract class DataServerReadHandlerTest {
     Assert.assertTrue(readResponse instanceof RPCProtoMessage);
 
     ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
-    Assert.assertNotNull(response.asResponse());
+    Assert.assertTrue(response.isResponse());
     DataBuffer buffer = ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
     if (buffer != null) {
       Assert.assertEquals(PStatus.OK, response.asResponse().getStatus());

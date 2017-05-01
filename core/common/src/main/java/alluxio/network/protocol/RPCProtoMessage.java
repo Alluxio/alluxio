@@ -147,11 +147,11 @@ public final class RPCProtoMessage extends RPCMessage {
 
   @Override
   public Type getType() {
-    if (mMessage.asReadRequest() != null) {
+    if (mMessage.isReadRequest()) {
       return RPCMessage.Type.RPC_READ_REQUEST;
-    } else if (mMessage.asWriteRequest() != null) {
+    } else if (mMessage.isWriteRequest()) {
       return RPCMessage.Type.RPC_WRITE_REQUEST;
-    } else if (mMessage.asResponse() != null) {
+    } else if (mMessage.isResponse()) {
       return RPCMessage.Type.RPC_RESPONSE;
     } else {
       return RPCMessage.Type.RPC_UNKNOWN;

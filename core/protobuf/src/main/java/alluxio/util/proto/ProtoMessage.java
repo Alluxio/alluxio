@@ -13,6 +13,7 @@ package alluxio.util.proto;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.Preconditions;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 
@@ -51,39 +52,57 @@ public final class ProtoMessage {
   }
 
   /**
-   * Gets the read request or null if mMessage is not of type {@link Protocol.ReadRequest}.
+   * Gets the read request or throws runtime exception if mMessage is not of type
+   * {@link Protocol.ReadRequest}.
    *
    * @return the read request or null
    */
   public Protocol.ReadRequest asReadRequest() {
-    if (mMessage instanceof Protocol.ReadRequest) {
-      return (Protocol.ReadRequest) mMessage;
-    }
-    return null;
+    Preconditions.checkState(mMessage instanceof Protocol.ReadRequest);
+    return (Protocol.ReadRequest) mMessage;
   }
 
   /**
-   * Gets the write request or null if mMessage is not of type {@link Protocol.WriteRequest}.
+   * @return true if mMessage is of type {@link Protocol.ReadRequest}
+   */
+  public boolean isReadRequest() {
+    return mMessage instanceof Protocol.ReadRequest;
+  }
+
+  /**
+   * Gets the write request or throws runtime exception if mMessage is not of type
+   * {@link Protocol.WriteRequest}.
    *
-   * @return the write request or null
+   * @return the write request
    */
   public Protocol.WriteRequest asWriteRequest() {
-    if (mMessage instanceof Protocol.WriteRequest) {
-      return (Protocol.WriteRequest) mMessage;
-    }
-    return null;
+    Preconditions.checkState(mMessage instanceof Protocol.WriteRequest);
+    return (Protocol.WriteRequest) mMessage;
   }
 
   /**
-   * Gets the response or null if mMessage is not of type {@link Protocol.Response}.
+   * @return true if mMessage is of type {@link Protocol.WriteRequest}
+   */
+  public boolean isWriteRequest() {
+    return mMessage instanceof Protocol.WriteRequest;
+  }
+
+  /**
+   * Gets the response or throws runtime exception if mMessage is not of type
+   * {@link Protocol.Response}.
    *
-   * @return the response or null
+   * @return the response
    */
   public Protocol.Response asResponse() {
-    if (mMessage instanceof Protocol.Response) {
-      return (Protocol.Response) mMessage;
-    }
-    return null;
+    Preconditions.checkState(mMessage instanceof Protocol.Response);
+    return (Protocol.Response) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.Response}
+   */
+  public boolean isResponse() {
+    return mMessage instanceof Protocol.WriteRequest;
   }
 
   /**
