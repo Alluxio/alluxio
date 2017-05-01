@@ -27,7 +27,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -171,7 +170,7 @@ public final class NettyPacketWriter implements PacketWriter {
                 String.format("Timeout writing to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
-          throw Throwables.propagate(e);
+          throw new RuntimeException(e);
         }
       }
     } catch (Exception e) {
@@ -211,7 +210,7 @@ public final class NettyPacketWriter implements PacketWriter {
         }
       }
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -241,7 +240,7 @@ public final class NettyPacketWriter implements PacketWriter {
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
-          throw Throwables.propagate(e);
+          throw new RuntimeException(e);
         }
       }
     } finally {
