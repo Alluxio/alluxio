@@ -186,7 +186,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     DeleteBuffer deleteBuffer = new DeleteBuffer();
     UnderFileStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
     if (pathsToDelete == null) {
-      LOG.error("Unable to delete {} because listInternal returns null", path);
+      LOG.warn("Unable to delete {} because listInternal returns null", path);
       return false;
     }
     for (UnderFileStatus pathToDelete : pathsToDelete) {
