@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * A class manages the UFS used by different services.
+ * A class that manages the UFS used by different services.
  */
 public interface UfsManager extends Closeable {
   /**
@@ -34,8 +34,10 @@ public interface UfsManager extends Closeable {
       throws IOException;
 
   /**
-   * Marks a UFS instance as a mount entry and associates it with a mount id.
-   *  @param mountId the mount id
+   * Removes the association from a mount id to a UFS instance. If the mount id is not known, this
+   * is a noop.
+   *
+   * @param mountId the mount id
    *
    */
   void removeMount(long mountId);

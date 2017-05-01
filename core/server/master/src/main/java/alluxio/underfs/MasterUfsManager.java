@@ -22,8 +22,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MasterUfsManager extends AbstractUfsManager {
+
   /**
    * Establishes the connection to the given UFS from master.
+   *
    * @param ufs UFS instance
    * @throws IOException if failed to create the UFS instance
    */

@@ -315,10 +315,8 @@ public final class MountTable implements JournalEntryIterable {
   }
 
   /**
-   * Returns the mount information based on the mount id or null if not found.
-   *
    * @param mountId the given ufs id
-   * @return the mount information with this id
+   * @return the mount information with this id or null if this mount id is not found
    */
   public MountInfo getMountInfo(long mountId) {
     try (LockResource r = new LockResource(mReadLock)) {
