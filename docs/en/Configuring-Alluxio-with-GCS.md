@@ -72,22 +72,6 @@ dependency to your application with:
 
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
 
-### Configuring Distributed Applications Runtime
-
-When I/O is delegated to Alluxio workers (i.e., Alluxio configuration
-`alluxio.user.ufs.operation.delegation` is true,  which is false by default since Alluxio 1.1), you
-do not have to do any thing special for your applications. Otherwise, since you are using an Alluxio
-client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you
-need to make sure that your Google credentials are provided to the application JVM processes as
-well. There are different ways to do this. The first approach is to add them as command line options
-when starting your client JVM process. For example:
-
-{% include Configuring-Alluxio-with-GCS/java-bash.md %}
-
-Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting
-credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
-append the path of this site properties file to the classpath.
-
 ## Running Alluxio Locally with GCS
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
