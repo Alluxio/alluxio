@@ -36,7 +36,6 @@ public final class ProtoMessage {
 
   /**
    * Gets the protobuf message given a type. Returns null if the mMessage is not of type tClass.
-   * This method is slow since it uses reflection.
    *
    * @param <T> the type T
    *
@@ -103,8 +102,7 @@ public final class ProtoMessage {
    */
   public static ProtoMessage parseFrom(byte[] serialized, ProtoMessage prototype) {
     try {
-      return new ProtoMessage(
-          prototype.getMessage(MessageLite.class).getParserForType().parseFrom(serialized));
+      return new ProtoMessage(prototype.mMessage.getParserForType().parseFrom(serialized));
     } catch (InvalidProtocolBufferException e) {
       throw new IllegalArgumentException(e);
     }
