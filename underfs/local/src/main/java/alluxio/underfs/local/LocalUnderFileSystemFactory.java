@@ -32,7 +32,7 @@ public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
   public LocalUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
     return new LocalUnderFileSystem(new AlluxioURI(path));
   }

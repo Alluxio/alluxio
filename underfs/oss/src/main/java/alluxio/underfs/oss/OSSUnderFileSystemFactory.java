@@ -38,12 +38,12 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   public OSSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path);
 
     if (checkOSSCredentials()) {
       try {
-        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
+        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

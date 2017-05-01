@@ -55,11 +55,11 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
     }
 
     @Override
-    public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+    public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
       Preconditions.checkArgument(path != null, "path may not be null");
       Preconditions
-          .checkArgument(mExpectedConf.equals(ufsConf.userSpecifiedConf()),
-              "ufs conf {} does not match expected {}", ufsConf, mExpectedConf);
+          .checkArgument(mExpectedConf.equals(conf.getUserSpecifiedConf()),
+              "ufs conf {} does not match expected {}", conf, mExpectedConf);
       return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()));
     }
 

@@ -81,57 +81,57 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for this UFS
+   * @param conf the configuration for this UFS
    * @return the created {@link S3UnderFileSystem} instance
    * @throws ServiceException when a connection to S3 could not be created
    */
   public static S3UnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration ufsConf) throws ServiceException {
+      UnderFileSystemConfiguration conf) throws ServiceException {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-    Preconditions.checkArgument(ufsConf.containsKey(PropertyKey.S3N_ACCESS_KEY),
+    Preconditions.checkArgument(conf.containsKey(PropertyKey.S3N_ACCESS_KEY),
         "Property " + PropertyKey.S3N_ACCESS_KEY + " is required to connect to S3");
-    Preconditions.checkArgument(ufsConf.containsKey(PropertyKey.S3N_SECRET_KEY),
+    Preconditions.checkArgument(conf.containsKey(PropertyKey.S3N_SECRET_KEY),
         "Property " + PropertyKey.S3N_SECRET_KEY + " is required to connect to S3");
-    AWSCredentials awsCredentials = new AWSCredentials(ufsConf.getValue(PropertyKey.S3N_ACCESS_KEY),
-        ufsConf.getValue(PropertyKey.S3N_SECRET_KEY));
+    AWSCredentials awsCredentials = new AWSCredentials(conf.getValue(PropertyKey.S3N_ACCESS_KEY),
+        conf.getValue(PropertyKey.S3N_SECRET_KEY));
 
     Jets3tProperties props = new Jets3tProperties();
-    if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
+    if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
       props.setProperty("httpclient.proxy-autodetect", "false");
       props.setProperty("httpclient.proxy-host",
-          ufsConf.getValue(PropertyKey.UNDERFS_S3_PROXY_HOST));
+          conf.getValue(PropertyKey.UNDERFS_S3_PROXY_HOST));
       props.setProperty("httpclient.proxy-port",
-          ufsConf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT));
+          conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
-    if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
       props.setProperty("s3service.https-only",
-          ufsConf.getValue(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY));
+          conf.getValue(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY));
     }
-    if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
-      props.setProperty("s3service.s3-endpoint", ufsConf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT));
-      if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (conf.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      props.setProperty("s3service.s3-endpoint", conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT));
+      if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
         props.setProperty("s3service.s3-endpoint-https-port",
-            ufsConf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
+            conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
       } else {
         props.setProperty("s3service.s3-endpoint-http-port",
-            ufsConf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT_HTTP_PORT));
+            conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT_HTTP_PORT));
       }
     }
-    if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+    if (conf.containsKey(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
       props.setProperty("s3service.disable-dns-buckets",
-          ufsConf.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS));
+          conf.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS));
     }
-    if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
+    if (conf.containsKey(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
       props.setProperty("threaded-service.max-thread-count",
-          ufsConf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
+          conf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
     }
-    if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX)) {
+    if (conf.containsKey(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX)) {
       props.setProperty("threaded-service.admin-max-thread-count",
-          ufsConf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
+          conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     }
-    if (ufsConf.containsKey(PropertyKey.UNDERFS_S3_THREADS_MAX)) {
+    if (conf.containsKey(PropertyKey.UNDERFS_S3_THREADS_MAX)) {
       props.setProperty("httpclient.max-connections",
-          ufsConf.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX));
+          conf.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     RestS3Service restS3Service = new RestS3Service(awsCredentials, null, null, props);
@@ -140,7 +140,7 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
     // Gets the owner from user-defined static mapping from S3 canonical user id to Alluxio
     // user name.
     String owner = CommonUtils.getValueFromStaticMapping(
-        ufsConf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
+        conf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {
       owner = restS3Service.getAccountOwner().getDisplayName();

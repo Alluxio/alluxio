@@ -69,26 +69,26 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for Hadoop
+   * @param conf the configuration for Hadoop
    * @return a new HDFS {@link UnderFileSystem} instance
    */
   public static HdfsUnderFileSystem createInstance(
-      AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    Configuration hdfsConf = createConfiguration(ufsConf);
-    return new HdfsUnderFileSystem(ufsUri, ufsConf, hdfsConf);
+      AlluxioURI ufsUri, UnderFileSystemConfiguration conf) {
+    Configuration hdfsConf = createConfiguration(conf);
+    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf);
   }
 
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
-   * @param ufsConf the configuration for this UFS
+   * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
    */
-  protected HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf,
+  protected HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
     super(ufsUri);
-    mUfsConf = ufsConf;
+    mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     try {
       mFileSystem = path.getFileSystem(hdfsConf);
@@ -113,18 +113,18 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
    * </p>
    *
-   * @param ufsConf the configuration for this UFS
+   * @param conf the configuration for this UFS
    * @return the configuration for HDFS
    */
-  public static Configuration createConfiguration(UnderFileSystemConfiguration ufsConf) {
-    Preconditions.checkNotNull(ufsConf, "ufsConf");
+  public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(conf, "conf");
     Configuration hdfsConf = new Configuration();
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = ufsConf.getValue(PropertyKey.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = conf.getValue(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
       hdfsConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
@@ -136,13 +136,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    hdfsConf.addResource(new Path(ufsConf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
+    hdfsConf.addResource(new Path(conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
 
     // NOTE, adding S3 credentials in system properties to HDFS conf for backward compatibility.
     // TODO(binfan): remove this as it can be set in mount options through --option
     HdfsUnderFileSystemUtils.addS3Credentials(hdfsConf);
     // Set all parameters passed through --option
-    for (Map.Entry<String, String> entry : ufsConf.userSpecifiedConf().entrySet()) {
+    for (Map.Entry<String, String> entry : conf.getUserSpecifiedConf().entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
     return hdfsConf;

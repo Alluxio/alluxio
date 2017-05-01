@@ -39,11 +39,11 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   public S3UnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
-    if (checkAWSCredentials(ufsConf)) {
+    if (checkAWSCredentials(conf)) {
       try {
-        return S3UnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
+        return S3UnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (ServiceException e) {
         throw Throwables.propagate(e);
       }

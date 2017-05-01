@@ -23,7 +23,8 @@ import java.io.Closeable;
 public final class UnderFileSystemConfigurationTest {
 
   @Test
-  public void getValue() throws Exception {
+  public void getValueWhenGlobalConfHasProperty() throws Exception {
+    // Set property in global configuration
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar").toResource()) {
       UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
       Assert.assertEquals("bar", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
@@ -34,11 +35,44 @@ public final class UnderFileSystemConfigurationTest {
   }
 
   @Test
-  public void contains() throws Exception {
-    UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
-    Assert.assertFalse(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
-    conf = new UnderFileSystemConfiguration(
-        ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
-    Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+  public void getValueWhenGlobalConfHasNotProperty() throws Exception {
+    // Set property in global configuration
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null).toResource()) {
+      UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
+      try {
+        conf.getValue(PropertyKey.S3A_ACCESS_KEY);
+        Assert.fail("this key should not exist");
+      } catch (Exception e) {
+        // expect to pass
+      }
+      conf = new UnderFileSystemConfiguration(
+          ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      Assert.assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
+    }
+  }
+
+
+  @Test
+  public void containsWhenGlobalConfHasProperty() throws Exception {
+    // Unset property in global configuration
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar").toResource()) {
+      UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
+      Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+      conf = new UnderFileSystemConfiguration(
+          ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+    }
+  }
+
+  @Test
+  public void containsWhenGlobalConfHasNotProperty() throws Exception {
+    // Unset property in global configuration
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null).toResource()) {
+      UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
+      Assert.assertFalse(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+      conf = new UnderFileSystemConfiguration(
+          ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+    }
   }
 }

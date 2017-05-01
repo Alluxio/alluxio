@@ -41,12 +41,12 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   public SwiftUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path);
 
     if (addAndCheckSwiftCredentials()) {
       try {
-        return new SwiftUnderFileSystem(new AlluxioURI(path), ufsConf);
+        return new SwiftUnderFileSystem(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

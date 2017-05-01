@@ -35,9 +35,9 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
   public HdfsUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path);
-    return HdfsUnderFileSystem.createInstance(new AlluxioURI(path), ufsConf);
+    return HdfsUnderFileSystem.createInstance(new AlluxioURI(path), conf);
   }
 
   @Override
