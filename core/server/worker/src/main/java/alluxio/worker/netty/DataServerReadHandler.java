@@ -178,7 +178,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
       ctx.fireChannelRead(object);
       return;
     }
-    Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().getMessage();
+    Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().getReadRequest();
     if (msg.getCancel()) {
       setCancel(ctx.channel());
       return;

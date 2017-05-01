@@ -50,6 +50,11 @@ public final class ProtoMessage {
     }
   }
 
+  /**
+   * Gets the read request or null if mMessage is not of type {@link Protocol.ReadRequest}.
+   *
+   * @return the read request or null
+   */
   public Protocol.ReadRequest getReadRequest() {
     if (mMessage instanceof Protocol.ReadRequest) {
       return (Protocol.ReadRequest) mMessage;
@@ -57,6 +62,11 @@ public final class ProtoMessage {
     return null;
   }
 
+  /**
+   * Gets the write request or null if mMessage is not of type {@link Protocol.WriteRequest}.
+   *
+   * @return the write request or null
+   */
   public Protocol.WriteRequest getWriteRequest() {
     if (mMessage instanceof Protocol.WriteRequest) {
       return (Protocol.WriteRequest) mMessage;
@@ -64,6 +74,11 @@ public final class ProtoMessage {
     return null;
   }
 
+  /**
+   * Gets the response or null if mMessage is not of type {@link Protocol.Response}.
+   *
+   * @return the response or null
+   */
   public Protocol.Response getResponse() {
     if (mMessage instanceof Protocol.Response) {
       return (Protocol.Response) mMessage;
