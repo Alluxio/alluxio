@@ -43,7 +43,7 @@ public final class UfsJournalLogWriterTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.get(location.toString()));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.get(location));
     mJournal = new UfsJournal(location, mUfs);
   }
 

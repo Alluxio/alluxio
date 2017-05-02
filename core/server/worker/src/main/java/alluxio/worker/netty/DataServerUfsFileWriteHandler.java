@@ -15,6 +15,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -41,18 +42,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
   private static final long UNUSED_SESSION_ID = -1;
+  private final UfsManager mUfsManager;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
-    private final String mPath;
+    private final String mUfsPath;
     private final UnderFileSystem mUnderFileSystem;
     private final OutputStream mOutputStream;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId(), UNUSED_SESSION_ID);
-      mPath = request.getUfsPath();
-      mUnderFileSystem = UnderFileSystem.Factory.get(mPath);
+      mUfsPath = request.getUfsPath();
+      mUnderFileSystem = mUfsManager.get(request.getMountId());
       mOutputStream =
-          mUnderFileSystem.create(mPath, CreateOptions.defaults().setOwner(request.getOwner())
+          mUnderFileSystem.create(mUfsPath, CreateOptions.defaults().setOwner(request.getOwner())
               .setGroup(request.getGroup()).setMode(new Mode((short) request.getMode())));
     }
 
@@ -65,7 +67,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     void cancel() throws IOException {
       // TODO(calvin): Consider adding cancel to the ufs stream api.
       mOutputStream.close();
-      mUnderFileSystem.deleteFile(mPath);
+      mUnderFileSystem.deleteFile(mUfsPath);
     }
   }
 
@@ -73,9 +75,11 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
    * Creates an instance of {@link DataServerUfsFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
+   * @param ufsManager the file data manager
    */
-  DataServerUfsFileWriteHandler(ExecutorService executorService) {
+  DataServerUfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
     super(executorService);
+    mUfsManager = ufsManager;
   }
 
   @Override

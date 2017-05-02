@@ -13,6 +13,7 @@ package alluxio.worker.keyvalue;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
 import alluxio.worker.block.BlockWorker;
@@ -40,7 +41,7 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
   }
 
   @Override
-  public KeyValueWorker create(WorkerRegistry registry) {
+  public KeyValueWorker create(WorkerRegistry registry, UfsManager ufsManager) {
     LOG.info("Creating {} ", KeyValueWorker.class.getName());
     BlockWorker blockWorker = registry.get(BlockWorker.class);
     KeyValueWorker keyValueWorker = new KeyValueWorker(blockWorker);

@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -133,15 +132,18 @@ public final class TieredBlockStoreTestUtils {
         "tierPath and tierCapacity should have the same length");
 
     Configuration
-        .set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(ordinal), tierAlias);
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(ordinal),
+            tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    Configuration.set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(ordinal),
-        tierPathString);
+    Configuration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(ordinal),
+            tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    Configuration.set(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(ordinal),
-        tierCapacityString);
+    Configuration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
+            tierCapacityString);
   }
 
   /**
