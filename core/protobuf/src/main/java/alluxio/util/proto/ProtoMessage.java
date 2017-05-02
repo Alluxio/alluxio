@@ -36,22 +36,6 @@ public final class ProtoMessage {
   }
 
   /**
-   * Gets the protobuf message given a type. Returns null if the mMessage is not of type tClass.
-   * This is slow since it uses reflection.
-   *
-   * @param <T> the type T
-   *
-   * @return the unwrapped message as type T
-   */
-  <T> T getMessage(Class<T> tClass) {
-    if (tClass.isAssignableFrom(mMessage.getClass())) {
-      return (T) mMessage;
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Gets the read request or throws runtime exception if mMessage is not of type
    * {@link Protocol.ReadRequest}.
    *

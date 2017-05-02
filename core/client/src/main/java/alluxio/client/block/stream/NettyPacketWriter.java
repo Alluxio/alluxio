@@ -360,7 +360,7 @@ public final class NettyPacketWriter implements PacketWriter {
      */
     private boolean acceptMessage(Object msg) {
       if (msg instanceof RPCProtoMessage) {
-        return ((RPCProtoMessage) msg).getMessage().asResponse() != null;
+        return ((RPCProtoMessage) msg).getMessage().isResponse();
       }
       return false;
     }
