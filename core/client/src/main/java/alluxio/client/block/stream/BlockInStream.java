@@ -64,7 +64,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   private final PacketInStream mInputStream;
 
   /**
-   * Creates an instance of local {@link BlockInStream} that reads from local worker.
+   * Creates an instance of {@link BlockInStream} that reads from local ramdisk directly.
    *
    * @param blockId the block ID
    * @param blockSize the block size
@@ -74,7 +74,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
+  public static BlockInStream createShortCircuitBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
     Closer closer = Closer.create();
     try {

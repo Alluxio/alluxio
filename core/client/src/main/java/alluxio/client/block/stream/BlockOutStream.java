@@ -45,7 +45,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   private boolean mClosed;
 
   /**
-   * Creates a new local block output stream.
+   * Creates a new block output stream that writes to local ramdisk directly.
    *
    * @param blockId the block id
    * @param blockSize the block size
@@ -54,7 +54,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param options the options
    * @return the {@link BlockOutStream} instance created
    */
-  public static BlockOutStream createLocalBlockOutStream(long blockId, long blockSize,
+  public static BlockOutStream createShortCircuitBlockOutStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
     Closer closer = Closer.create();
     try {

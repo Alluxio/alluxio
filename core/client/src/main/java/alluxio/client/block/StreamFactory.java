@@ -48,7 +48,8 @@ public final class StreamFactory {
       return BlockOutStream
           .createNettyBlockOutStream(blockId, blockSize, address, context, options);
     }
-    return BlockOutStream.createLocalBlockOutStream(blockId, blockSize, address, context, options);
+    return BlockOutStream
+        .createShortCircuitBlockOutStream(blockId, blockSize, address, context, options);
   }
 
   /**
@@ -83,7 +84,8 @@ public final class StreamFactory {
       return BlockInStream
           .createNettyBlockInStream(blockId, blockSize, address, context, options);
     }
-    return BlockInStream.createLocalBlockInStream(blockId, blockSize, address, context, options);
+    return BlockInStream
+        .createShortCircuitBlockInStream(blockId, blockSize, address, context, options);
   }
 
   /**
