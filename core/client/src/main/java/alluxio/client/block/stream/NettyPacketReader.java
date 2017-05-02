@@ -273,7 +273,7 @@ public final class NettyPacketReader implements PacketReader {
       RPCProtoMessage response = (RPCProtoMessage) msg;
       // Canceled is considered a valid status and handled in the reader. We avoid creating a
       // CanceledException as an optimization.
-      if (response.getMessage().<Protocol.Response>getMessage().getStatus() != PStatus.CANCELED) {
+      if (response.getMessage().asResponse().getStatus() != PStatus.CANCELED) {
         response.unwrapException();
       }
 
@@ -330,7 +330,7 @@ public final class NettyPacketReader implements PacketReader {
      */
     private boolean acceptMessage(Object msg) {
       if (msg instanceof RPCProtoMessage) {
-        return ((RPCProtoMessage) msg).getMessage().getType() == ProtoMessage.Type.RESPONSE;
+        return ((RPCProtoMessage) msg).getMessage().isResponse();
       }
       return false;
     }

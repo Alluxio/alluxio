@@ -215,7 +215,7 @@ public final class NettyPacketReaderTest {
     Assert.assertTrue(request != null);
     Assert.assertTrue(request instanceof RPCProtoMessage);
     Assert.assertEquals(null, ((RPCProtoMessage) request).getPayloadDataBuffer());
-    Protocol.ReadRequest readRequest = ((RPCProtoMessage) request).getMessage().getMessage();
+    Protocol.ReadRequest readRequest = ((RPCProtoMessage) request).getMessage().asReadRequest();
     Assert.assertEquals(BLOCK_ID, readRequest.getId());
     Assert.assertEquals(offset, readRequest.getOffset());
     Assert.assertEquals(length, readRequest.getLength());

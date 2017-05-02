@@ -177,7 +177,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     RPCProtoMessage msg = (RPCProtoMessage) object;
-    Protocol.WriteRequest writeRequest = msg.getMessage().getMessage();
+    Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
     // Only initialize (open the readers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
       initializeRequest(msg);
@@ -251,7 +251,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    * @param msg the block write request
    */
   private void validateRequest(RPCProtoMessage msg) {
-    Protocol.WriteRequest request = msg.getMessage().getMessage();
+    Protocol.WriteRequest request = msg.getMessage().asWriteRequest();
     if (request.getOffset() != mPosToQueue) {
       throw new InvalidArgumentException(String.format(
           "Offsets do not match [received: %d, expected: %d].", request.getOffset(), mPosToQueue));
