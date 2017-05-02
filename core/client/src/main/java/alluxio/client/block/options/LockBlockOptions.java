@@ -26,6 +26,7 @@ public final class LockBlockOptions {
   private long mOffset;
   private long mBlockSize;
   private int mMaxUfsReadConcurrency;
+  private long mMountId;
 
   /**
    * @return the default {@link LockBlockOptions}
@@ -68,6 +69,13 @@ public final class LockBlockOptions {
   }
 
   /**
+   * @return the id of the mount
+   */
+  public long getMountId() {
+    return mMountId;
+  }
+
+  /**
    * @param ufsPath the UFS path to set
    * @return the updated options object
    */
@@ -103,6 +111,15 @@ public final class LockBlockOptions {
     return this;
   }
 
+  /**
+   * @param mountId the id of the mount
+   * @return the updated options object
+   */
+  public LockBlockOptions setMountId(long mountId) {
+    mMountId = mountId;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -112,15 +129,16 @@ public final class LockBlockOptions {
       return false;
     }
     LockBlockOptions that = (LockBlockOptions) o;
-    return Objects.equal(mUfsPath, that.mUfsPath)
+    return Objects.equal(mBlockSize, that.mBlockSize)
+        && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
+        && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOffset, that.mOffset)
-        && Objects.equal(mBlockSize, that.mBlockSize)
-        && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency);
+        && Objects.equal(mUfsPath, that.mUfsPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsPath, mOffset, mBlockSize, mMaxUfsReadConcurrency);
+    return Objects.hashCode(mBlockSize, mMaxUfsReadConcurrency, mMountId, mOffset, mUfsPath);
   }
 
   @Override
@@ -128,8 +146,10 @@ public final class LockBlockOptions {
     return Objects.toStringHelper(this)
         .add("blockSize", mBlockSize)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
+        .add("mountId", mMountId)
         .add("offset", mOffset)
-        .add("ufsPath", mUfsPath).toString();
+        .add("ufsPath", mUfsPath)
+        .toString();
   }
 
   /**
@@ -139,10 +159,11 @@ public final class LockBlockOptions {
    */
   public LockBlockTOptions toThrift() {
     LockBlockTOptions options = new LockBlockTOptions();
-    options.setUfsPath(mUfsPath);
-    options.setOffset(mOffset);
     options.setBlockSize(mBlockSize);
     options.setMaxUfsReadConcurrency(mMaxUfsReadConcurrency);
+    options.setMountId(mMountId);
+    options.setOffset(mOffset);
+    options.setUfsPath(mUfsPath);
     return options;
   }
 }

@@ -5,6 +5,7 @@ package alluxio.proto.dataserver;
 import "status.proto";
 
 // The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+// next available id: 3
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
@@ -12,6 +13,7 @@ enum RequestType {
 }
 
 // The read request.
+// next available id: 9
 message ReadRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -28,6 +30,7 @@ message ReadRequest {
 }
 
 // The write request.
+// next available id: 13
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -46,9 +49,11 @@ message WriteRequest {
   optional string owner = 9;
   optional string group = 10;
   optional int32 mode = 11;
+  optional int64 mount_id = 12;
 }
 
 // The response.
+// next available id: 2
 message Response {
   optional status.PStatus status = 1;
   optional string message = 2;

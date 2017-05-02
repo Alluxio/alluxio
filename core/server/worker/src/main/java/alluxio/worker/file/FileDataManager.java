@@ -21,6 +21,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -74,18 +75,23 @@ public final class FileDataManager {
 
   /** A per worker rate limiter to throttle async persistence. */
   private final RateLimiter mPersistenceRateLimiter;
+  /** The manager for all ufs. */
+  private final UfsManager mUfsManager;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
    *
    * @param blockWorker the block worker handle
    * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
+   * @param ufsManager the ufs manager
    */
-  public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter) {
+  public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
+      UfsManager ufsManager) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
+    mUfsManager = ufsManager;
   }
 
   /**
@@ -157,8 +163,7 @@ public final class FileDataManager {
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
-
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId());
     return ufs.isFile(dstPath);
   }
 
@@ -223,8 +228,8 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(dstPath);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId());
     OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
         .setMode(new Mode((short) fileInfo.getMode())));
@@ -295,7 +300,7 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsPath);
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId());
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

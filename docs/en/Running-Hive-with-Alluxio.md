@@ -37,6 +37,15 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
+To use fault tolerant mode, set Alluxio scheme to be `alluxio-ft`:
+
+```xml
+<property>
+   <name>fs.defaultFS</name>
+   <value>alluxio-ft:///</value>
+</property>
+```
+
 ### Configure Hadoop MapReduce
 
 If you run Hive on Hadoop MapReduce, Hive can read configurations from Hadoop configuration files. In addition,

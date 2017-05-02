@@ -21,6 +21,7 @@ alluxio.user.hostname,determined by localhost lookup
 alluxio.user.lineage.enabled,false
 alluxio.user.lineage.master.client.threads,10
 alluxio.user.network.netty.timeout.ms,30000
+alluxio.user.network.netty.writer.close.timeout.ms,300000
 alluxio.user.network.netty.worker.threads,0
 alluxio.user.ufs.delegation.read.buffer.size.bytes,8MB
 alluxio.user.ufs.delegation.write.buffer.size.bytes,2MB
