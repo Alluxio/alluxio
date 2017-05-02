@@ -65,7 +65,7 @@ public final class BlockInStreamTest {
       when(blockWorkerClient.getDataServerAddress())
           .thenReturn(InetSocketAddress.createUnresolved(clientHostname, 0));
       BlockInStream stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
-          0, new WorkerNetAddress(), InStreamOptions.defaults());
+          0, 0, new WorkerNetAddress(), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.
       Assert.assertTrue(stream.isShortCircuit());
 
@@ -73,7 +73,7 @@ public final class BlockInStreamTest {
       when(blockWorkerClient.getDataServerAddress())
           .thenReturn(InetSocketAddress.createUnresolved("remotehost", 0));
       stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
-          0, new WorkerNetAddress(), InStreamOptions.defaults());
+          0, 0, new WorkerNetAddress(), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.
       Assert.assertFalse(stream.isShortCircuit());
     }

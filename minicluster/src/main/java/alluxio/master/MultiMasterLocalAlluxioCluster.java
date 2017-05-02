@@ -163,26 +163,6 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     }, WaitForOptions.defaults().setTimeout(timeoutMs));
   }
 
-  private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
-    if (ufs.isDirectory(path)
-        && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
-      throw new IOException("Folder " + path + " already exists but can not be deleted.");
-    }
-  }
-
-  private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
-    if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
-    }
-    if (!ufs.mkdirs(path)) {
-      throw new IOException("Failed to make folder: " + path);
-    }
-  }
-
   @Override
   protected void startMasters() throws IOException {
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
@@ -202,7 +182,14 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    mkdir(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
+    String path = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    if (ufs.isDirectory(path)) {
+      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
+    }
+    if (!ufs.mkdirs(path)) {
+      throw new IOException("Failed to make folder: " + path);
+    }
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");

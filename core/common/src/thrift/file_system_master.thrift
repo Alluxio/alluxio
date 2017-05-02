@@ -92,6 +92,7 @@ struct FileInfo {
   22: bool mountPoint
   23: list<FileBlockInfo> fileBlockInfos
   24: common.TTtlAction ttlAction
+  25: i64 mountId
 }
 
 struct FileSystemCommand {
@@ -121,6 +122,11 @@ struct SetAttributeTOptions {
 
 union FileSystemCommandOptions {
   1: optional PersistCommandOptions persistOptions
+}
+
+struct UfsInfo {
+  1: optional string uri
+  2: optional map<string, string> properties
 }
 
 /**
@@ -325,6 +331,14 @@ service FileSystemMasterWorkerService extends common.AlluxioService {
   FileSystemCommand heartbeat(
     /** the id of the worker */ 1: i64 workerId,
     /** the list of persisted files */ 2: list<i64> persistedFiles,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns the UFS information for the given mount point identified by its id.
+   **/
+  UfsInfo getUfsInfo(
+    /** the id of the ufs */ 1: i64 mountId,
     )
     throws (1: exception.AlluxioTException e)
 }

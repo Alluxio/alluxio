@@ -47,7 +47,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
   @Override
   public void format() throws IOException {
     LOG.info("Formatting {}", mLocation);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
+    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation);
     if (ufs.isDirectory(mLocation.toString())) {
       for (UnderFileStatus p : ufs.listStatus(mLocation.toString())) {
         URI childPath;
@@ -73,7 +73,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     try {
-      UnderFileSystemUtils.touch(URIUtils.appendPath(mLocation,
+      UnderFileSystemUtils.touch(ufs, URIUtils.appendPath(mLocation,
           Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
           .toString());
     } catch (URISyntaxException e) {

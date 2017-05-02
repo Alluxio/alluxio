@@ -17,6 +17,7 @@ import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -89,6 +90,20 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       @Override
       public Set<Long> call() throws TException {
         return mClient.getPinIdList();
+      }
+    });
+  }
+
+  /**
+   * @param mountId the id of the mount
+   * @return the ufs information for the give ufs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized UfsInfo getUfsInfo(final long mountId) throws IOException {
+    return retryRPC(new RpcCallable<UfsInfo>() {
+      @Override
+      public UfsInfo call() throws TException {
+        return mClient.getUfsInfo(mountId);
       }
     });
   }
