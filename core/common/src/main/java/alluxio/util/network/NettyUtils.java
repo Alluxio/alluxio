@@ -11,13 +11,17 @@
 
 package alluxio.util.network;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
@@ -27,6 +31,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -37,6 +43,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class NettyUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(NettyUtils.class);
+
+  public static final ChannelType CHANNEL_TYPE = getChannelType();
+
   private NettyUtils() {}
 
   /**
@@ -132,5 +142,32 @@ public final class NettyUtils {
    */
   public static void disableAutoRead(Channel channel) {
     channel.config().setAutoRead(false);
+  }
+
+  /**
+   * @param workerNetAddress the worker address
+   * @return true if the domain socket is enabled on this client
+   */
+  public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
+    return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName())
+        && !workerNetAddress.getDomainSocketPath().isEmpty()
+        && CHANNEL_TYPE == ChannelType.EPOLL;
+  }
+
+  /**
+   * Note: Packet streaming requires {@link io.netty.channel.epoll.EpollMode} to be set to
+   * LEVEL_TRIGGERED which is not supported in netty versions < 4.0.26.Final. Without shading
+   * netty in Alluxio, we cannot use epoll.
+   *
+   * @return {@link ChannelType} to use
+   */
+  private static ChannelType getChannelType() {
+    try {
+      EpollChannelOption.class.getField("EPOLL_MODE");
+    } catch (Throwable e) {
+      LOG.warn("EPOLL_MODE is not supported in netty with version < 4.0.26.Final.");
+      return ChannelType.NIO;
+    }
+    return Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   }
 }

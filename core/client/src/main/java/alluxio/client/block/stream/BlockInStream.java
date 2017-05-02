@@ -26,6 +26,7 @@ import alluxio.client.netty.NettyClient;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
@@ -113,7 +114,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       LockBlockResource lockBlockResource =
           closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
       SocketAddress address;
-      if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
+      if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
         address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
       } else {
         address = blockWorkerClient.getDataServerAddress();
@@ -168,7 +169,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       PacketInStream inStream;
       SocketAddress address;
-      if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
+      if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
         address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
       } else {
         address = blockWorkerClient.getDataServerAddress();
@@ -177,7 +178,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getClientHostName());
         if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)
-            && !NettyClient.isDomainSocketSupported(workerNetAddress)) {
+            && !NettyUtils.isDomainSocketSupported(workerNetAddress)) {
           inStream = closer.register(PacketInStream
               .createLocalPacketInStream(lockBlockResult.getBlockPath(), blockId, blockSize));
         } else {

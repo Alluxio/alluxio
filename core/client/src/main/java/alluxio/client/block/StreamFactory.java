@@ -16,7 +16,7 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.netty.NettyClient;
+import alluxio.util.network.NettyUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.InputStream;
@@ -44,7 +44,7 @@ public final class StreamFactory {
    */
   public static BlockOutStream createLocalBlockOutStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, OutStreamOptions options) {
-    if (NettyClient.isDomainSocketSupported(address)) {
+    if (NettyUtils.isDomainSocketSupported(address)) {
       return BlockOutStream
           .createNettyBlockOutStream(blockId, blockSize, address, context, options);
     }
@@ -79,7 +79,7 @@ public final class StreamFactory {
    */
   public static BlockInStream createLocalBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, InStreamOptions options) {
-    if (NettyClient.isDomainSocketSupported(address)) {
+    if (NettyUtils.isDomainSocketSupported(address)) {
       return BlockInStream
           .createNettyBlockInStream(blockId, blockSize, address, context, options);
     }

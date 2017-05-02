@@ -20,6 +20,7 @@ import alluxio.client.netty.NettyClient;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
@@ -86,7 +87,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
 
       SocketAddress address;
-      if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
+      if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
         address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
       } else {
         address = client.getDataServerAddress();

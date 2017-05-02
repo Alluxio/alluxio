@@ -28,6 +28,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -107,7 +108,7 @@ public class FileOutStream extends AbstractOutStream {
         WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
             options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
         SocketAddress address;
-        if (NettyClient.isDomainSocketSupported(workerNetAddress)) {
+        if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
           address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
         } else {
           address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
