@@ -461,8 +461,8 @@ public class PropertyKey {
       create(Name.USER_FILE_BUFFER_BYTES, "1MB");
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       create(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
-  public static final PropertyKey USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK =
-      create(Name.USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK, false);
+  public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
+      create(Name.USER_FILE_DELETE_UNCHECKED, false);
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
       create(Name.USER_FILE_MASTER_CLIENT_THREADS, 10);
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
@@ -954,8 +954,8 @@ public class PropertyKey {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
-    public static final String USER_FILE_DELETE_SKIP_CONSISTENCY_CHECK =
-        "alluxio.user.file.delete.skip.consistency.check";
+    public static final String USER_FILE_DELETE_UNCHECKED =
+        "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
         "alluxio.user.file.master.client.threads";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =

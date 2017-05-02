@@ -1176,7 +1176,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
     if (inode.isPersisted() && !replayed && inode.isDirectory()
-        && !mMountTable.isMountPoint(inodePath.getUri()) && (deleteOptions.isSkipConsistencyCheck()
+        && !mMountTable.isMountPoint(inodePath.getUri()) && (deleteOptions.isUnchecked()
             || isUFSDeleteSafe(inodePath.getInode(), inodePath.getUri()))) {
       safeRecursiveUFSDeletes.put(inodePath.getUri(), inode);
     }
@@ -1190,7 +1190,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         delInodes.add(descendantPair);
         if (descendant.isPersisted() && !replayed && descendant.isDirectory()
             && !mMountTable.isMountPoint(descendantPath)) {
-          if (deleteOptions.isSkipConsistencyCheck()
+          if (deleteOptions.isUnchecked()
               || isUFSDeleteSafe(descendant, descendantPath)) {
             // Directory is a candidate for recursive deletes
             safeRecursiveUFSDeletes.put(descendantPath, descendant);

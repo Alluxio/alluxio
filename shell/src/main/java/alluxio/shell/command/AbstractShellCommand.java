@@ -67,12 +67,12 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .desc("print human-readable format sizes")
           .build();
 
-  protected static final String REMOVE_INCONSISTENT_OPTION_CHAR = "I";
-  protected static final Option REMOVE_INCONSISTENT_OPTION =
-      Option.builder(REMOVE_INCONSISTENT_OPTION_CHAR)
+  protected static final String REMOVE_UNCHECKED_OPTION_CHAR = "U";
+  protected static final Option REMOVE_UNCHECKED_OPTION =
+      Option.builder(REMOVE_UNCHECKED_OPTION_CHAR)
             .required(false)
             .hasArg(false)
-            .desc("remove inconsistent directories")
+            .desc("remove directories without checking UFS contents are in sync")
             .build();
 
   protected AbstractShellCommand(FileSystem fs) {
