@@ -64,7 +64,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   private final PacketInStream mInputStream;
 
   /**
-   * Creates an instance of {@link BlockInStream} that reads from local ramdisk directly.
+   * Creates an instance of {@link BlockInStream} that reads from local file directly.
    *
    * @param blockId the block ID
    * @param blockSize the block size

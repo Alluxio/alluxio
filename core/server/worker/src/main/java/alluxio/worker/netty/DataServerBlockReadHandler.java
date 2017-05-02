@@ -14,7 +14,7 @@ package alluxio.worker.netty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannelV2;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
@@ -125,7 +125,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
         }
       case TRANSFER: // intend to fall through as TRANSFER is the default type.
       default:
-        return new DataFileChannelV2(new File(blockReader.getFilePath()), offset, len);
+        return new DataFileChannel(new File(blockReader.getFilePath()), offset, len);
     }
   }
 

@@ -14,7 +14,7 @@ package alluxio.network.protocol;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannelV2;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.dataserver.Protocol.Response;
@@ -60,8 +60,8 @@ public final class RPCProtoMessage extends RPCMessage {
   public RPCProtoMessage(ProtoMessage message, DataBuffer data) {
     if (data != null) {
       Preconditions
-          .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannelV2),
-              "Only DataNettyBufferV2 and DataFileChannelV2 are allowed.");
+          .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
+              "Only DataNettyBufferV2 and DataFileChannel are allowed.");
     }
     mMessage = message;
     mMessageEncoded = message.toByteArray();
@@ -93,7 +93,7 @@ public final class RPCProtoMessage extends RPCMessage {
    */
   public RPCProtoMessage(byte[] serialized, ProtoMessage prototype, DataBuffer data) {
     Preconditions
-        .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannelV2),
+        .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
             "Only DataNettyBufferV2 and DataFileChannel are allowed.");
     mMessage = ProtoMessage.parseFrom(serialized, prototype);
     mMessageEncoded = Arrays.copyOf(serialized, serialized.length);

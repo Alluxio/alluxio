@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannelV2;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
@@ -195,7 +195,7 @@ public abstract class DataServerReadHandlerTest {
           }
           buf.release();
         } else {
-          Assert.assertTrue(buffer instanceof DataFileChannelV2);
+          Assert.assertTrue(buffer instanceof DataFileChannel);
           final ByteBuffer byteBuffer = ByteBuffer.allocate((int) buffer.getLength());
           WritableByteChannel writableByteChannel = new WritableByteChannel() {
             @Override

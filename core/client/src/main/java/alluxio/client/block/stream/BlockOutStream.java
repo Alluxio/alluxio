@@ -45,7 +45,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   private boolean mClosed;
 
   /**
-   * Creates a new block output stream that writes to local ramdisk directly.
+   * Creates a new block output stream that writes to local file directly.
    *
    * @param blockId the block id
    * @param blockSize the block size

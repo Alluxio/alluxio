@@ -36,14 +36,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -194,21 +190,6 @@ public class RPCMessageIntegrationTest {
   }
 
   /**
-   * Gets an input stream for a temporary file filled with test data.
-   */
-  private FileInputStream getTempFileInputStream() throws IOException {
-    // Create a temporary file for the FileChannel.
-    File f = mFolder.newFile("temp.txt");
-    String path = f.getAbsolutePath();
-
-    FileOutputStream os = new FileOutputStream(path);
-    os.write(BufferUtils.getIncreasingByteArray((int) (OFFSET + LENGTH)));
-    os.close();
-
-    return new FileInputStream(f);
-  }
-
-  /**
    * Encodes and decodes the 'msg' by sending it through the client and server pipelines.
    */
   private RPCMessage encodeThenDecode(RPCMessage msg) {
@@ -256,13 +237,10 @@ public class RPCMessageIntegrationTest {
 
   @Test
   public void RPCBlockReadResponseFileChannel() throws IOException {
-    try (FileInputStream inputStream = getTempFileInputStream()) {
-      FileChannel payload = inputStream.getChannel();
-      RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,
-          new DataFileChannel(payload, OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
-      RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
-      assertValid(msg, decoded);
-    }
+    RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,
+        new DataFileChannel(mFolder.newFile(), OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
+    RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
+    assertValid(msg, decoded);
   }
 
   @Test
