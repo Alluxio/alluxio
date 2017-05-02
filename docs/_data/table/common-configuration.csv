@@ -19,6 +19,7 @@ alluxio.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
 alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///,maprfs:///"
 alluxio.underfs.hdfs.remote,false
 alluxio.underfs.listing.length,1000
+alluxio.underfs.object.store.service.threads,20
 alluxio.underfs.object.store.mount.shared.publicly,false
 alluxio.underfs.s3.owner.id.to.username.mapping,No default
 alluxio.underfs.s3.endpoint,No default
