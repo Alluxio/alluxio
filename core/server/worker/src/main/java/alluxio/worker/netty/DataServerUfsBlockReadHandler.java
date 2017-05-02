@@ -87,7 +87,7 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
     if (!super.acceptMessage(object)) {
       return false;
     }
-    Protocol.ReadRequest request = ((RPCProtoMessage) object).getMessage().getMessage();
+    Protocol.ReadRequest request = ((RPCProtoMessage) object).getMessage().asReadRequest();
     return request.getType() == Protocol.RequestType.UFS_BLOCK;
   }
 
