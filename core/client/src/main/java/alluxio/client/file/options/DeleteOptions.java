@@ -123,7 +123,7 @@ public final class DeleteOptions {
     return Objects.toStringHelper(this)
         .add("recursive", mRecursive)
         .add("alluxioOnly", mAlluxioOnly)
-        .add("skipConsistencyCheck", mUnchecked)
+        .add("unhecked", mUnchecked)
         .toString();
   }
 
