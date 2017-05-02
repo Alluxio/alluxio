@@ -13,11 +13,23 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.util.CommonUtils;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.concurrent.Promise;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -92,6 +104,72 @@ public final class LocalFilePacketReader implements PacketReader {
     @Override
     public boolean isShortCircuit() {
       return true;
+    }
+  }
+
+  public static class NettyRPCContext {
+    private Channel mChannel;
+    private long mTimeoutMs;
+
+    public Channel getChannel() {
+      return mChannel;
+    }
+
+    public long getTimeoutMs() {
+      return mTimeoutMs;
+    }
+  }
+
+  public static class NettyRPC {
+    public static ProtoMessage call(final NettyRPCContext context, ProtoMessage request)
+        throws InterruptedException {
+      Promise<ProtoMessage> promise = context.getChannel().eventLoop().newPromise();
+      context.getChannel().pipeline().addLast(new RPCHandler(promise));
+      context.getChannel().writeAndFlush(new RPCProtoMessage(request));
+      try {
+        return promise.get(context.getTimeoutMs(), TimeUnit.MILLISECONDS);
+      } catch (ExecutionException e) {
+        throw CommonUtils.propagate(e.getCause() == null ? e : e.getCause());
+      } catch (TimeoutException e) {
+        throw CommonUtils.propagate(e);
+      } finally {
+        context.getChannel().pipeline().removeLast();
+      }
+    }
+
+    private static class RPCHandler extends ChannelInboundHandlerAdapter {
+      private final Promise<ProtoMessage> mPromise;
+
+      public RPCHandler(Promise<ProtoMessage> promise) {
+        mPromise = promise;
+      }
+
+      @Override
+      public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        if (!acceptMessage(msg)) {
+          ctx.fireChannelRead(msg);
+          return;
+        }
+
+        ProtoMessage message = ((RPCProtoMessage) msg).getMessage();
+        mPromise.trySuccess(message);
+      }
+
+      @Override
+      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        mPromise.tryFailure(cause);
+        ctx.close();
+      }
+
+      @Override
+      public void channelUnregistered(ChannelHandlerContext ctx) {
+        mPromise.tryFailure(new IOException("ChannelClosed"));
+      }
+
+      protected boolean acceptMessage(Object msg) {
+        return msg instanceof RPCProtoMessage;
+      }
+
     }
   }
 }
