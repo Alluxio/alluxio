@@ -21,7 +21,6 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.netty.NettyClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;

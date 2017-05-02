@@ -22,7 +22,6 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.netty.NettyClient;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;

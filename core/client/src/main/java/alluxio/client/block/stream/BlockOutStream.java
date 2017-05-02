@@ -16,7 +16,6 @@ import alluxio.client.QuietlyCancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.netty.NettyClient;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
