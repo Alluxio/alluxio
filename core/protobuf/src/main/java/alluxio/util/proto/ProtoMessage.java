@@ -86,7 +86,7 @@ public final class ProtoMessage {
    * @return true if mMessage is of type {@link Protocol.Response}
    */
   public boolean isResponse() {
-    return mMessage instanceof Protocol.WriteRequest;
+    return mMessage instanceof Protocol.Response;
   }
 
   /**
