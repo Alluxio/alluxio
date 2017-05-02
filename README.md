@@ -18,16 +18,20 @@ The master branch is in version 1.5.0-SNAPSHOT:
 
 ### Dependency Information
 
-Alluxio provides several different client interfaces. The Alluxio file system interface provided by
-`alluxio-core-client-fs` is suggested for performance and flexibility. If you want to use other
-interfaces, include the appropriate client artifact. For example, `alluxio-core-client-hdfs` provides
-a client implementing HDFS's file system API.
+
+
+As of 1.5.0, Alluxio provides several different client interfaces. The Alluxio file system interface
+provided by `alluxio-core-client-fs` is suggested for performance and flexibility. If you want to
+use other interfaces, include the appropriate client artifact. For example,
+`alluxio-core-client-hdfs` provides a client implementing HDFS's file system API.
+
+For Alluxio versions below 1.5.0, use the `alluxio-core-client` artifact.
 
 #### Apache Maven
 ```xml
 <dependency>
   <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client-fs</artifactId>
+  <artifactId>alluxio-core-client</artifactId>
   <version>1.4.0</version>
 </dependency>
 ```
@@ -41,13 +45,13 @@ compile 'org.alluxio:alluxio-core-client:1.4.0'
 #### Apache Ant
 ```xml
 <dependency org="org.alluxio" name="alluxio" rev="1.4.0">
-  <artifact name="alluxio-core-client-fs" type="jar" />
+  <artifact name="alluxio-core-client" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.4.0"
+libraryDependencies += "org.alluxio" % "alluxio-core-client" % "1.4.0"
 ```
 
 ## Contributing

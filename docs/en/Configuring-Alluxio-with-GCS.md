@@ -67,9 +67,10 @@ you can try [Running Alluxio Locally with GCS](#running-alluxio-locally-with-gcs
 ### Configuring Application Dependency
 
 When building your application to use Alluxio, your application should include a client module, the
-`alluxio-core-client-fs` module to use the Alluxio file system interface or the
-`alluxio-core-client-hdfs` module to use the Hadoop file system interface. For example, if you are
-using [maven](https://maven.apache.org/), you can add the dependency to your application with:
+`alluxio-core-client-fs` module to use the [Alluxio file system interface](File-System-API.html) or
+the `alluxio-core-client-hdfs` module to use the
+[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
+are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
 
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
 
