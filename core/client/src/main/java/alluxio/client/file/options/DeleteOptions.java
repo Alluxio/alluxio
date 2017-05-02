@@ -91,7 +91,7 @@ public final class DeleteOptions {
   }
 
   /**
-   * @param unchecked whether to skip UFS consistency check
+   * @param unchecked whether to skip UFS sync check
    * @return the updated options object
    */
   public DeleteOptions setUnchecked(boolean unchecked) {
@@ -123,7 +123,7 @@ public final class DeleteOptions {
     return Objects.toStringHelper(this)
         .add("recursive", mRecursive)
         .add("alluxioOnly", mAlluxioOnly)
-        .add("unhecked", mUnchecked)
+        .add("unchecked", mUnchecked)
         .toString();
   }
 
