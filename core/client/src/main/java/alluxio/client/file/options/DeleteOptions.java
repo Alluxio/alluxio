@@ -134,7 +134,7 @@ public final class DeleteOptions {
     DeleteTOptions options = new DeleteTOptions();
     options.setRecursive(mRecursive);
     options.setAlluxioOnly(mAlluxioOnly);
-    options.setSkipConsistencyCheck(mUnchecked);
+    options.setUnchecked(mUnchecked);
     return options;
   }
 }

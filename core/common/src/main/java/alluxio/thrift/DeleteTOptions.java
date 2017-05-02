@@ -40,7 +40,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
 
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)1);
   private static final org.apache.thrift.protocol.TField ALLUXIO_ONLY_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioOnly", org.apache.thrift.protocol.TType.BOOL, (short)2);
-  private static final org.apache.thrift.protocol.TField SKIP_CONSISTENCY_CHECK_FIELD_DESC = new org.apache.thrift.protocol.TField("skipConsistencyCheck", org.apache.thrift.protocol.TType.BOOL, (short)3);
+  private static final org.apache.thrift.protocol.TField UNCHECKED_FIELD_DESC = new org.apache.thrift.protocol.TField("unchecked", org.apache.thrift.protocol.TType.BOOL, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -50,13 +50,13 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
 
   private boolean recursive; // optional
   private boolean alluxioOnly; // optional
-  private boolean skipConsistencyCheck; // optional
+  private boolean unchecked; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     RECURSIVE((short)1, "recursive"),
     ALLUXIO_ONLY((short)2, "alluxioOnly"),
-    SKIP_CONSISTENCY_CHECK((short)3, "skipConsistencyCheck");
+    UNCHECKED((short)3, "unchecked");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -75,8 +75,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
           return RECURSIVE;
         case 2: // ALLUXIO_ONLY
           return ALLUXIO_ONLY;
-        case 3: // SKIP_CONSISTENCY_CHECK
-          return SKIP_CONSISTENCY_CHECK;
+        case 3: // UNCHECKED
+          return UNCHECKED;
         default:
           return null;
       }
@@ -119,9 +119,9 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   // isset id assignments
   private static final int __RECURSIVE_ISSET_ID = 0;
   private static final int __ALLUXIOONLY_ISSET_ID = 1;
-  private static final int __SKIPCONSISTENCYCHECK_ISSET_ID = 2;
+  private static final int __UNCHECKED_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.ALLUXIO_ONLY,_Fields.SKIP_CONSISTENCY_CHECK};
+  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.ALLUXIO_ONLY,_Fields.UNCHECKED};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -129,7 +129,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.ALLUXIO_ONLY, new org.apache.thrift.meta_data.FieldMetaData("alluxioOnly", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.SKIP_CONSISTENCY_CHECK, new org.apache.thrift.meta_data.FieldMetaData("skipConsistencyCheck", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.UNCHECKED, new org.apache.thrift.meta_data.FieldMetaData("unchecked", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DeleteTOptions.class, metaDataMap);
@@ -145,7 +145,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     __isset_bitfield = other.__isset_bitfield;
     this.recursive = other.recursive;
     this.alluxioOnly = other.alluxioOnly;
-    this.skipConsistencyCheck = other.skipConsistencyCheck;
+    this.unchecked = other.unchecked;
   }
 
   public DeleteTOptions deepCopy() {
@@ -158,8 +158,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     this.recursive = false;
     setAlluxioOnlyIsSet(false);
     this.alluxioOnly = false;
-    setSkipConsistencyCheckIsSet(false);
-    this.skipConsistencyCheck = false;
+    setUncheckedIsSet(false);
+    this.unchecked = false;
   }
 
   public boolean isRecursive() {
@@ -208,27 +208,27 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ALLUXIOONLY_ISSET_ID, value);
   }
 
-  public boolean isSkipConsistencyCheck() {
-    return this.skipConsistencyCheck;
+  public boolean isUnchecked() {
+    return this.unchecked;
   }
 
-  public DeleteTOptions setSkipConsistencyCheck(boolean skipConsistencyCheck) {
-    this.skipConsistencyCheck = skipConsistencyCheck;
-    setSkipConsistencyCheckIsSet(true);
+  public DeleteTOptions setUnchecked(boolean unchecked) {
+    this.unchecked = unchecked;
+    setUncheckedIsSet(true);
     return this;
   }
 
-  public void unsetSkipConsistencyCheck() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SKIPCONSISTENCYCHECK_ISSET_ID);
+  public void unsetUnchecked() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UNCHECKED_ISSET_ID);
   }
 
-  /** Returns true if field skipConsistencyCheck is set (has been assigned a value) and false otherwise */
-  public boolean isSetSkipConsistencyCheck() {
-    return EncodingUtils.testBit(__isset_bitfield, __SKIPCONSISTENCYCHECK_ISSET_ID);
+  /** Returns true if field unchecked is set (has been assigned a value) and false otherwise */
+  public boolean isSetUnchecked() {
+    return EncodingUtils.testBit(__isset_bitfield, __UNCHECKED_ISSET_ID);
   }
 
-  public void setSkipConsistencyCheckIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SKIPCONSISTENCYCHECK_ISSET_ID, value);
+  public void setUncheckedIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UNCHECKED_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -249,11 +249,11 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       }
       break;
 
-    case SKIP_CONSISTENCY_CHECK:
+    case UNCHECKED:
       if (value == null) {
-        unsetSkipConsistencyCheck();
+        unsetUnchecked();
       } else {
-        setSkipConsistencyCheck((Boolean)value);
+        setUnchecked((Boolean)value);
       }
       break;
 
@@ -268,8 +268,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     case ALLUXIO_ONLY:
       return isAlluxioOnly();
 
-    case SKIP_CONSISTENCY_CHECK:
-      return isSkipConsistencyCheck();
+    case UNCHECKED:
+      return isUnchecked();
 
     }
     throw new IllegalStateException();
@@ -286,8 +286,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       return isSetRecursive();
     case ALLUXIO_ONLY:
       return isSetAlluxioOnly();
-    case SKIP_CONSISTENCY_CHECK:
-      return isSetSkipConsistencyCheck();
+    case UNCHECKED:
+      return isSetUnchecked();
     }
     throw new IllegalStateException();
   }
@@ -323,12 +323,12 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         return false;
     }
 
-    boolean this_present_skipConsistencyCheck = true && this.isSetSkipConsistencyCheck();
-    boolean that_present_skipConsistencyCheck = true && that.isSetSkipConsistencyCheck();
-    if (this_present_skipConsistencyCheck || that_present_skipConsistencyCheck) {
-      if (!(this_present_skipConsistencyCheck && that_present_skipConsistencyCheck))
+    boolean this_present_unchecked = true && this.isSetUnchecked();
+    boolean that_present_unchecked = true && that.isSetUnchecked();
+    if (this_present_unchecked || that_present_unchecked) {
+      if (!(this_present_unchecked && that_present_unchecked))
         return false;
-      if (this.skipConsistencyCheck != that.skipConsistencyCheck)
+      if (this.unchecked != that.unchecked)
         return false;
     }
 
@@ -349,10 +349,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     if (present_alluxioOnly)
       list.add(alluxioOnly);
 
-    boolean present_skipConsistencyCheck = true && (isSetSkipConsistencyCheck());
-    list.add(present_skipConsistencyCheck);
-    if (present_skipConsistencyCheck)
-      list.add(skipConsistencyCheck);
+    boolean present_unchecked = true && (isSetUnchecked());
+    list.add(present_unchecked);
+    if (present_unchecked)
+      list.add(unchecked);
 
     return list.hashCode();
   }
@@ -385,12 +385,12 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetSkipConsistencyCheck()).compareTo(other.isSetSkipConsistencyCheck());
+    lastComparison = Boolean.valueOf(isSetUnchecked()).compareTo(other.isSetUnchecked());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetSkipConsistencyCheck()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.skipConsistencyCheck, other.skipConsistencyCheck);
+    if (isSetUnchecked()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.unchecked, other.unchecked);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -426,10 +426,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       sb.append(this.alluxioOnly);
       first = false;
     }
-    if (isSetSkipConsistencyCheck()) {
+    if (isSetUnchecked()) {
       if (!first) sb.append(", ");
-      sb.append("skipConsistencyCheck:");
-      sb.append(this.skipConsistencyCheck);
+      sb.append("unchecked:");
+      sb.append(this.unchecked);
       first = false;
     }
     sb.append(")");
@@ -493,10 +493,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // SKIP_CONSISTENCY_CHECK
+          case 3: // UNCHECKED
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.skipConsistencyCheck = iprot.readBool();
-              struct.setSkipConsistencyCheckIsSet(true);
+              struct.unchecked = iprot.readBool();
+              struct.setUncheckedIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -526,9 +526,9 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         oprot.writeBool(struct.alluxioOnly);
         oprot.writeFieldEnd();
       }
-      if (struct.isSetSkipConsistencyCheck()) {
-        oprot.writeFieldBegin(SKIP_CONSISTENCY_CHECK_FIELD_DESC);
-        oprot.writeBool(struct.skipConsistencyCheck);
+      if (struct.isSetUnchecked()) {
+        oprot.writeFieldBegin(UNCHECKED_FIELD_DESC);
+        oprot.writeBool(struct.unchecked);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -555,7 +555,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (struct.isSetAlluxioOnly()) {
         optionals.set(1);
       }
-      if (struct.isSetSkipConsistencyCheck()) {
+      if (struct.isSetUnchecked()) {
         optionals.set(2);
       }
       oprot.writeBitSet(optionals, 3);
@@ -565,8 +565,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (struct.isSetAlluxioOnly()) {
         oprot.writeBool(struct.alluxioOnly);
       }
-      if (struct.isSetSkipConsistencyCheck()) {
-        oprot.writeBool(struct.skipConsistencyCheck);
+      if (struct.isSetUnchecked()) {
+        oprot.writeBool(struct.unchecked);
       }
     }
 
@@ -583,8 +583,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         struct.setAlluxioOnlyIsSet(true);
       }
       if (incoming.get(2)) {
-        struct.skipConsistencyCheck = iprot.readBool();
-        struct.setSkipConsistencyCheckIsSet(true);
+        struct.unchecked = iprot.readBool();
+        struct.setUncheckedIsSet(true);
       }
     }
   }

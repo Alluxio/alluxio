@@ -31,7 +31,7 @@ struct CreateFileTOptions {
 struct DeleteTOptions {
   1: optional bool recursive
   2: optional bool alluxioOnly
-  3: optional bool skipConsistencyCheck
+  3: optional bool unchecked
 }
 
 struct FreeTOptions {

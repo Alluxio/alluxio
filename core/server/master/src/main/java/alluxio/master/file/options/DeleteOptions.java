@@ -39,7 +39,7 @@ public final class DeleteOptions {
   public DeleteOptions(DeleteTOptions options) {
     mRecursive = options.isRecursive();
     mAlluxioOnly = options.isAlluxioOnly();
-    mUnchecked = options.isSkipConsistencyCheck();
+    mUnchecked = options.isUnchecked();
   }
 
   private DeleteOptions() {
@@ -123,7 +123,7 @@ public final class DeleteOptions {
     return Objects.toStringHelper(this)
          .add("recursive", mRecursive)
          .add("alluxioOnly", mAlluxioOnly)
-         .add("skipConsistencyCheck", mUnchecked)
+         .add("unchecked", mUnchecked)
          .toString();
   }
 }
