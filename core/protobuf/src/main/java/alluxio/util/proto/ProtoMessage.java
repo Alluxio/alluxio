@@ -39,7 +39,7 @@ public final class ProtoMessage {
    * Gets the read request or throws runtime exception if mMessage is not of type
    * {@link Protocol.ReadRequest}.
    *
-   * @return the read request or null
+   * @return the read request
    */
   public Protocol.ReadRequest asReadRequest() {
     Preconditions.checkState(mMessage instanceof Protocol.ReadRequest);
