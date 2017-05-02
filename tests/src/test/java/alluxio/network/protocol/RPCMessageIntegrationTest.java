@@ -13,7 +13,6 @@ package alluxio.network.protocol;
 
 import alluxio.PropertyKey;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -36,7 +35,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -231,14 +229,6 @@ public class RPCMessageIntegrationTest {
         RPCBlockReadResponse.createErrorResponse(
             new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID),
             RPCResponse.Status.FILE_DNE);
-    RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
-    assertValid(msg, decoded);
-  }
-
-  @Test
-  public void RPCBlockReadResponseFileChannel() throws IOException {
-    RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,
-        new DataFileChannel(mFolder.newFile(), OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
