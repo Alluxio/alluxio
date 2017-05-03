@@ -59,19 +59,6 @@ public final class NettyRPC {
   }
 
   /**
-   * Sends a request and waits for a response. This can only be used if the response type is
-   * {@link alluxio.proto.dataserver.Protocol.Response}.
-   *
-   * @param context the netty RPC context
-   * @param request the RPC request
-   */
-  public static void callDefaultResponse(final NettyRPCContext context, ProtoMessage request) {
-    ProtoMessage message = call(context, request);
-    Preconditions.checkState(message.isResponse());
-    CommonUtils.unwrapResponse(message.asResponse());
-  }
-
-  /**
    * Netty RPC client handler.
    */
   private static class RPCHandler extends ChannelInboundHandlerAdapter {
