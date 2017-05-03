@@ -45,8 +45,9 @@ public final class NettyRPC {
     Promise<ProtoMessage> promise = channel.eventLoop().newPromise();
     channel.pipeline().addLast(new RPCHandler(promise));
     channel.writeAndFlush(new RPCProtoMessage(request));
+    ProtoMessage message;
     try {
-      return promise.get(context.getTimeoutMs(), TimeUnit.MILLISECONDS);
+      message = promise.get(context.getTimeoutMs(), TimeUnit.MILLISECONDS);
     } catch (ExecutionException e) {
       throw CommonUtils.propagate(e.getCause() == null ? e : e.getCause());
     } catch (TimeoutException e) {
@@ -56,6 +57,10 @@ public final class NettyRPC {
     } finally {
       channel.pipeline().removeLast();
     }
+    if (message.isResponse()) {
+      CommonUtils.unwrapResponse(message.asResponse());
+    }
+    return message;
   }
 
   /**
