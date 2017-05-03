@@ -89,6 +89,15 @@ public final class ProtoMessage {
     return mMessage instanceof Protocol.Response;
   }
 
+  public Protocol.LocalBlockOpenResponse asLocalBlockOpenResponse() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockOpenResponse);
+    return (Protocol.LocalBlockOpenResponse) mMessage;
+  }
+
+  public boolean isLocalBlockOpenResponse() {
+    return mMessage instanceof Protocol.LocalBlockOpenResponse;
+  }
+
   /**
    * @return the serialized message as byte array
    */
