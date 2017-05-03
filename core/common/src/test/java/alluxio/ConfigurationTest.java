@@ -333,9 +333,13 @@ public class ConfigurationTest {
   public void getNestedProperties() {
     Configuration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
-            PropertyKey.WEB_THREADS.toString()), "val");
+            PropertyKey.WEB_THREADS.toString()), "val1");
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
+            "alluxio.unknown.property"), "val2");
     Map<String, String> expected = new HashMap<>();
-    expected.put(PropertyKey.WEB_THREADS.toString(), "val");
+    expected.put(PropertyKey.WEB_THREADS.toString(), "val1");
+    expected.put("alluxio.unknown.property", "val2");
     Assert.assertThat(Configuration.getNestedProperties(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
         CoreMatchers.is(expected));
@@ -345,17 +349,6 @@ public class ConfigurationTest {
   public void getNestedPropertiesEmptyTrailingProperty() {
     Configuration.set(PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY
         .format("foo", ""), "val");
-    Map<String, String> empty = new HashMap<>();
-    Assert.assertThat(Configuration.getNestedProperties(
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),
-        CoreMatchers.is(empty));
-  }
-
-  @Test
-  public void getNestedPropertiesInvalidTrailingProperty() {
-    Configuration.set(
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY.format("foo",
-            "alluxio.invalid.property"), "val");
     Map<String, String> empty = new HashMap<>();
     Assert.assertThat(Configuration.getNestedProperties(
         PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("foo")),

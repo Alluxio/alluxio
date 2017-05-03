@@ -78,10 +78,10 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void mountWithMultipleOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
-        new ConfExpectingUnderFileSystemFactory("confFs", ImmutableMap.of("k1", "v1", "k2", "v2"));
+        new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
     UnderFileSystemRegistry.register(factory);
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
-    String ufsPath = "confFS://" + mFolder.getRoot().getAbsolutePath();
+    String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
     Assert.assertEquals(0, mFsShell
         .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
     FileSystemTestUtils.createByteFile(mFileSystem, "/mnt/testFile1", WriteType.CACHE_THROUGH, 20);
@@ -94,10 +94,10 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void mountWithWrongOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
-        new ConfExpectingUnderFileSystemFactory("confFs", ImmutableMap.of("k1", "v1", "k2", "v2"));
+        new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
     UnderFileSystemRegistry.register(factory);
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
-    String ufsPath = "confFS://" + mFolder.getRoot().getAbsolutePath();
+    String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
     // one property is wrong
     Assert.assertEquals(-1, mFsShell
         .run("mount", "--option", "k1=not_v1", "--option", "k2=v2", mountPoint.toString(),
