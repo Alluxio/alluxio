@@ -96,7 +96,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
@@ -127,9 +126,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1177,9 +1174,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Pair<AlluxioURI, Inode<?>> inodePair =
         new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
+    UfsSyncChecker ufsChecker = new UfsSyncChecker(mMountTable);
     if (inode.isPersisted() && !replayed && inode.isDirectory()
         && !mMountTable.isMountPoint(inodePath.getUri()) && (deleteOptions.isUnchecked()
-            || isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri()))) {
+            || ufsChecker.isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri()))) {
       safeRecursiveUFSDeletes.put(inodePath.getUri(), inode);
     }
 
@@ -1193,7 +1191,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (descendant.isPersisted() && !replayed && descendant.isDirectory()
             && !mMountTable.isMountPoint(descendantPath)) {
           if (deleteOptions.isUnchecked()
-              || isUFSDeleteSafe((InodeDirectory) descendant, descendantPath)) {
+              || ufsChecker.isUFSDeleteSafe((InodeDirectory) descendant, descendantPath)) {
             // Directory is a candidate for recursive deletes
             safeRecursiveUFSDeletes.put(descendantPath, descendant);
           } else {
@@ -1277,53 +1275,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
-  }
-
-   /**
-   * Check if immediate children of directory are in sync with UFS.
-   *
-   * @param inode directory to check
-   * @param path of directory to to check
-   * @return true is contents of directory match
-   */
-  private boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI alluxioUri)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
-    Preconditions.checkArgument(inode.isPersisted());
-
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
-    String ufsUri = resolution.getUri().toString();
-    UnderFileSystem ufs = resolution.getUfs();
-    UnderFileStatus[] ufsChildren =
-        ufs.listStatus(ufsUri, ListOptions.defaults().setRecursive(false));
-    // Empty directories are not persisted
-    if (ufsChildren == null) {
-      return true;
-    }
-    // Sort-merge compare
-    Arrays.sort(ufsChildren, new Comparator<UnderFileStatus>() {
-      @Override
-      public int compare(UnderFileStatus a, UnderFileStatus b) {
-        return a.getName().compareTo(b.getName());
-      }
-    });
-    int numInodeChildren = inode.getChildren().size();
-    Inode[] inodeChildren = new Inode[numInodeChildren];
-    inodeChildren = inode.getChildren().toArray(inodeChildren);
-    Arrays.sort(inodeChildren, new Comparator<Inode>() {
-      @Override
-      public int compare(Inode a, Inode b) {
-        return a.getName().compareTo(b.getName());
-      }
-    });
-    int ufsPos = 0;
-    int inodePos = 0;
-    while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
-      if (ufsChildren[ufsPos].getName().equals(inodeChildren[inodePos].getName())) {
-        ufsPos++;
-      }
-      inodePos++;
-    }
-    return ufsPos == ufsChildren.length;
   }
 
   @Override
