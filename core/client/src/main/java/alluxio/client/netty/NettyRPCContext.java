@@ -16,7 +16,7 @@ import io.netty.channel.Channel;
 /**
  * Context to send a netty RPC.
  */
-public class NettyRPCContext {
+public final class NettyRPCContext {
   /** The netty channel, default to be null. */
   private Channel mChannel;
   /** The RPC timeout in ms, default to +inf. */

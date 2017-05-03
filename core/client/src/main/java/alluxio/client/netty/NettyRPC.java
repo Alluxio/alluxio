@@ -30,7 +30,7 @@ import java.util.concurrent.TimeoutException;
  * Netty blocking RPC client. This provides a simple way to send a request and wait for response
  * via netty. The user needs to make sure that the request is properly handled on the server.
  */
-public class NettyRPC {
+public final class NettyRPC {
   private NettyRPC() {}  // prevent instantiation
 
   /**
