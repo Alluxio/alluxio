@@ -1176,8 +1176,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     delInodes.add(inodePair);
     UfsSyncChecker ufsChecker = new UfsSyncChecker(mMountTable);
     if (inode.isPersisted() && !replayed && inode.isDirectory()
-        && !mMountTable.isMountPoint(inodePath.getUri()) && (deleteOptions.isUnchecked()
-            || ufsChecker.isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri()))) {
+        && !mMountTable.isMountPoint(inodePath.getUri())
+        && (deleteOptions.isUnchecked() || ufsChecker
+            .isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri()))) {
       safeRecursiveUFSDeletes.put(inodePath.getUri(), inode);
     }
 
