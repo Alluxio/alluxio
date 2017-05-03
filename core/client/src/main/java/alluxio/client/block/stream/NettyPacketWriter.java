@@ -319,7 +319,7 @@ public final class NettyPacketWriter implements PacketWriter {
       // Canceled is considered a valid status and handled in the writer. We avoid creating a
       // CanceledException as an optimization.
       if (response.getMessage().asResponse().getStatus() != PStatus.CANCELED) {
-        response.unwrapException();
+        CommonUtils.unwrapResponse(response.getMessage().asResponse());
       }
 
       try (LockResource lr = new LockResource(mLock)) {
