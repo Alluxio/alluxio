@@ -59,7 +59,7 @@ public final class UfsSyncChecker {
    * Check if immediate children of directory are in sync with UFS.
    *
    * @param inode read-locked directory to check
-   * @param path of directory to to check
+   * @param alluxioUri path of directory to to check
    * @return true is contents of directory match
    */
   public boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI alluxioUri)
@@ -115,7 +115,7 @@ public final class UfsSyncChecker {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
-    
+
     AlluxioURI curUri = ufsUri;
     while (curUri != null) {
       if (mListedDirectories.containsKey(curUri.toString())) {
