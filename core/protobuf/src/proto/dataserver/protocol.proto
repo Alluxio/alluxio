@@ -58,3 +58,21 @@ message Response {
   optional status.PStatus status = 1;
   optional string message = 2;
 }
+
+// Netty RPCs. Every RPC needs to define a request type and optionally a response type (default to Response).
+
+// next available id: 2
+message LocalBlockOpenRequest {
+  optional int64 block_id = 1;
+}
+
+// next available id: 3
+message LocalBlockOpenResponse {
+  optional string path = 1;
+  optional Response response = 2;
+}
+
+// next available id: 2
+message LocalBlockCloseRequest {
+  optional int64 block_id = 1;
+}
