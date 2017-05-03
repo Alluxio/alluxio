@@ -160,11 +160,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public Object getConf() {
-    return null;
-  }
-
-  @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<>();
     ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC));
@@ -319,9 +314,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     }
     return rename(src, dst);
   }
-
-  @Override
-  public void setConf(Object conf) {}
 
   @Override
   public void setOwner(String path, String user, String group) throws IOException {

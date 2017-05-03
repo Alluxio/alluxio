@@ -94,12 +94,6 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public Object getConf() {
-    sleepIfNecessary(mOptions.getGetConfMs());
-    return super.getConf();
-  }
-
-  @Override
   public List<String> getFileLocations(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFileLocationsMs());
     return super.getFileLocations(cleanPath(path));
@@ -198,12 +192,6 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
       sleepIfNecessary(mOptions.getRenameTemporaryFileMs());
     }
     return super.renameFile(cleanPath(src), cleanPath(dst));
-  }
-
-  @Override
-  public void setConf(Object conf) {
-    sleepIfNecessary(mOptions.getSetConfMs());
-    super.setConf(conf);
   }
 
   @Override
