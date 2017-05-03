@@ -107,6 +107,7 @@ public class NettyRPC {
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
       mPromise.tryFailure(new IOException("ChannelClosed"));
+      ctx.fireChannelUnregistered();
     }
 
     /**
