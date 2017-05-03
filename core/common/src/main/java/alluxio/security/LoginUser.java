@@ -107,6 +107,14 @@ public final class LoginUser {
     }
   }
 
+  /**
+   * Creates a new {@link LoginContext} with the correct class loader.
+   *
+   * @param authType the {@link AuthType} to use
+   * @param subject the {@link Subject} to use
+   * @return the new {@link LoginContext} instance
+   * @throws LoginException if LoginContext cannot be created
+   */
   private static LoginContext createLoginContext(AuthType authType, Subject subject)
       throws LoginException {
     CallbackHandler callbackHandler = null;
