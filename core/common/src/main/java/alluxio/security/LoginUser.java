@@ -72,16 +72,7 @@ public final class LoginUser {
     Subject subject = new Subject();
 
     try {
-      CallbackHandler callbackHandler = null;
-      if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
-        callbackHandler = new AppLoginModule.AppCallbackHandler();
-      }
-
-      // Create LoginContext based on authType, corresponding LoginModule should be registered
-      // under the authType name in LoginModuleConfiguration.
-      LoginContext loginContext =
-          new LoginContext(authType.getAuthName(), subject, callbackHandler,
-              new LoginModuleConfiguration());
+      LoginContext loginContext = createLoginContext(authType, subject);
       loginContext.login();
     } catch (LoginException e) {
       throw new UnauthenticatedException("Failed to login: " + e.getMessage(), e);
@@ -113,6 +104,28 @@ public final class LoginUser {
     if (authType != AuthType.SIMPLE && authType != AuthType.CUSTOM) {
       throw new UnsupportedOperationException("User is not supported in " + authType.getAuthName()
           + " mode");
+    }
+  }
+
+  private static LoginContext createLoginContext(AuthType authType, Subject subject)
+      throws LoginException {
+    CallbackHandler callbackHandler = null;
+    if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
+      callbackHandler = new AppLoginModule.AppCallbackHandler();
+    }
+
+    // Set the thread context class loader to the same class loader as User.class. LoginContext
+    // uses this thread context class loader to instantiate login modules. This enables
+    // Subject#getPrincipals to use reflection to search for User.class instances.
+    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(User.class.getClassLoader());
+    try {
+      // Create LoginContext based on authType, corresponding LoginModule should be registered
+      // under the authType name in LoginModuleConfiguration.
+      return new LoginContext(authType.getAuthName(), subject, callbackHandler,
+              new LoginModuleConfiguration());
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
   }
 }
