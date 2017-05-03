@@ -146,7 +146,7 @@ public final class FileSystemIntegrationTest {
    */
   private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
-        new AlluxioURI(Configuration.get(PropertyKey.UNDERFS_ADDRESS)).getParent();
+        new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, alternateUfsRoot);
     return alternateUfsRoot;
