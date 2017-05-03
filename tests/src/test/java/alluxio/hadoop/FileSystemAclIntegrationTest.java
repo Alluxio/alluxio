@@ -90,7 +90,7 @@ public final class FileSystemAclIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.Factory.get(sUfsRoot);
+    sUfs = UnderFileSystem.Factory.create(sUfsRoot);
   }
 
   @After

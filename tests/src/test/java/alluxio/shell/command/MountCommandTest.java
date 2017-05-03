@@ -20,7 +20,7 @@ import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -110,7 +110,7 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mountWithMultipleOptions() throws Exception {
     ConfRequiredUnderFileSystemFactory factory =
         new ConfRequiredUnderFileSystemFactory(ImmutableMap.of("k1", "v1", "k2", "v2"));
-    UnderFileSystemRegistry.register(factory);
+    UnderFileSystemFactoryRegistry.register(factory);
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = "confFS://" + mFolder.getRoot().getAbsolutePath();
     Assert.assertEquals(0, mFsShell
@@ -119,14 +119,14 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
     Assert.assertTrue(status.isPersisted());
-    UnderFileSystemRegistry.unregister(factory);
+    UnderFileSystemFactoryRegistry.unregister(factory);
   }
 
   @Test
   public void mountWithWrongOptions() throws Exception {
     ConfRequiredUnderFileSystemFactory factory =
         new ConfRequiredUnderFileSystemFactory(ImmutableMap.of("k1", "v1", "k2", "v2"));
-    UnderFileSystemRegistry.register(factory);
+    UnderFileSystemFactoryRegistry.register(factory);
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = "confFS://" + mFolder.getRoot().getAbsolutePath();
     // one property is wrong

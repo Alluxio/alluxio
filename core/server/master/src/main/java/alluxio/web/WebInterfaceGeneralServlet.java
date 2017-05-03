@@ -202,7 +202,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsRoot);
 
     long sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {

@@ -22,7 +22,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
@@ -84,12 +84,12 @@ public class ConcurrentFileSystemMasterSetTtlTest {
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
     options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
-    UnderFileSystemRegistry.register(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
-    UnderFileSystemRegistry.unregister(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
   }
 
   @Before
