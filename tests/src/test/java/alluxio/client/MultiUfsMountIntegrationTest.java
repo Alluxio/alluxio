@@ -18,13 +18,17 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.MountOptions;
-import alluxio.exception.AlluxioException;
+import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -34,20 +38,26 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
+import java.util.Map;
 
 /**
  * Integration tests for mounting multiple UFSes into Alluxio, each with a different configuration.
  */
 public final class MultiUfsMountIntegrationTest {
+  private static final String MOUNT_POINT1 = "/";
+  private static final String MOUNT_POINT2 = "/mnt";
+  private static final Map<String, String> UFS_CONF1 = ImmutableMap.of("ufs1_key1", "ufs1_val1");
+  private static final Map<String, String> UFS_CONF2 = ImmutableMap.of("ufs2_key2", "ufs2_key2");
+
   private ConfExpectingUnderFileSystemFactory mUfsFactory1;
   private ConfExpectingUnderFileSystemFactory mUfsFactory2;
-  private AlluxioURI mMountPoint1 = new AlluxioURI("/");
-  private AlluxioURI mMountPoint2 = new AlluxioURI("/mnt");
+  private AlluxioURI mMountPoint1 = new AlluxioURI(MOUNT_POINT1);
+  private AlluxioURI mMountPoint2 = new AlluxioURI(MOUNT_POINT2);
   private String mUfsUri1;
   private String mUfsUri2;
   private UnderFileSystem mLocalUfs;
   private FileSystem mFileSystem;
+  private LocalAlluxioCluster mLocalAlluxioCluster;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -58,10 +68,8 @@ public final class MultiUfsMountIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mUfsFactory1 =
-        new ConfExpectingUnderFileSystemFactory("ufs1", ImmutableMap.of("ufs1_key1", "ufs1_val1"));
-    mUfsFactory2 =
-        new ConfExpectingUnderFileSystemFactory("ufs2", ImmutableMap.of("ufs2_key2", "ufs2_key2"));
+    mUfsFactory1 = new ConfExpectingUnderFileSystemFactory("ufs1", UFS_CONF1);
+    mUfsFactory2 = new ConfExpectingUnderFileSystemFactory("ufs2", UFS_CONF2);
     UnderFileSystemRegistry.register(mUfsFactory1);
     UnderFileSystemRegistry.register(mUfsFactory2);
 
@@ -74,7 +82,8 @@ public final class MultiUfsMountIntegrationTest {
             PropertyKey.Template.MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY.format("ufs1_key1"),
             "ufs1_val1");
     mLocalAlluxioClusterResource.start();
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mFileSystem = mLocalAlluxioCluster.getClient();
     // Mount ufs2 to /mnt with specified options.
     MountOptions options =
         MountOptions.defaults().setProperties(ImmutableMap.of("ufs2_key2", "ufs2_key2"));
@@ -83,7 +92,6 @@ public final class MultiUfsMountIntegrationTest {
 
   @After
   public void after() throws Exception {
-    mFileSystem.unmount(mMountPoint2);
     UnderFileSystemRegistry.unregister(mUfsFactory1);
     UnderFileSystemRegistry.unregister(mUfsFactory2);
   }
@@ -101,7 +109,7 @@ public final class MultiUfsMountIntegrationTest {
   }
 
   @Test
-  public void createDirectory() throws IOException, AlluxioException {
+  public void createDirectory() throws Exception {
     AlluxioURI dir1 = mMountPoint1.join("dir1");
     AlluxioURI dir2 = mMountPoint2.join("dir2");
     mFileSystem.createDirectory(dir1);
@@ -111,7 +119,7 @@ public final class MultiUfsMountIntegrationTest {
   }
 
   @Test
-  public void deleteFile() throws IOException, AlluxioException {
+  public void deleteFile() throws Exception {
     String ufsFile1 = PathUtils.concatPath(mUfsUri1, "file1");
     String ufsFile2 = PathUtils.concatPath(mUfsUri2, "file2");
     UnderFileSystemUtils.touch(mLocalUfs, ufsFile1);
@@ -129,7 +137,7 @@ public final class MultiUfsMountIntegrationTest {
   }
 
   @Test
-  public void deleteDirectory() throws IOException, AlluxioException {
+  public void deleteDirectory() throws Exception {
     String ufsDir1 = PathUtils.concatPath(mUfsUri1, "dir1");
     String ufsDir2 = PathUtils.concatPath(mUfsUri2, "dir2");
     UnderFileSystemUtils.mkdirIfNotExists(mLocalUfs, ufsDir1);
@@ -198,11 +206,47 @@ public final class MultiUfsMountIntegrationTest {
   }
 
   @Test
-  public void openFile() throws IOException, AlluxioException {
+  public void openFile() throws Exception {
     String ufsFile1 = PathUtils.concatPath(mUfsUri1, "file1");
     String ufsFile2 = PathUtils.concatPath(mUfsUri2, "file2");
     UnderFileSystemUtils.touch(mLocalUfs, ufsFile1);
     UnderFileSystemUtils.touch(mLocalUfs, ufsFile2);
+    AlluxioURI file1 = mMountPoint1.join("file1");
+    AlluxioURI file2 = mMountPoint2.join("file2");
+    Assert.assertTrue(mFileSystem.exists(file1));
+    Assert.assertTrue(mFileSystem.exists(file2));
+    FileInStream inStream1 = mFileSystem.openFile(file1);
+    Assert.assertNotNull(inStream1);
+    inStream1.close();
+    FileInStream inStream2 = mFileSystem.openFile(file2);
+    Assert.assertNotNull(inStream2);
+    inStream2.close();
+  }
+
+  @Test
+  public void mountAfterMasterRestart() throws Exception {
+    mLocalAlluxioCluster.stopFS();
+    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
+    Map<String, MountPointInfo> mountTable = fsMaster.getMountTable();
+    Assert.assertTrue(mountTable.containsKey(MOUNT_POINT1));
+    Assert.assertTrue(mountTable.containsKey(MOUNT_POINT2));
+    MountPointInfo mountPointInfo1 = mountTable.get(MOUNT_POINT1);
+    MountPointInfo mountPointInfo2 = mountTable.get(MOUNT_POINT2);
+    Assert.assertEquals(mUfsUri1, mountPointInfo1.getUfsUri());
+    Assert.assertEquals(mUfsUri2, mountPointInfo2.getUfsUri());
+    Assert.assertEquals(UFS_CONF1, mountPointInfo1.getProperties());
+    Assert.assertEquals(UFS_CONF2, mountPointInfo2.getProperties());
+  }
+
+  @Test
+  public void mountAfterWorkerRestart() throws Exception {
+    String ufsFile1 = PathUtils.concatPath(mUfsUri1, "file1");
+    String ufsFile2 = PathUtils.concatPath(mUfsUri2, "file2");
+    UnderFileSystemUtils.touch(mLocalUfs, ufsFile1);
+    UnderFileSystemUtils.touch(mLocalUfs, ufsFile2);
+    mLocalAlluxioCluster.stopWorkers();
+    mLocalAlluxioCluster.startWorkers();
     AlluxioURI file1 = mMountPoint1.join("file1");
     AlluxioURI file2 = mMountPoint2.join("file2");
     Assert.assertTrue(mFileSystem.exists(file1));
