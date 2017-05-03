@@ -48,7 +48,7 @@ public class PropertyKey {
   public static final PropertyKey METRICS_CONF_FILE =
       create(Name.METRICS_CONF_FILE, String.format("${%s}/metrics.properties", Name.CONF_DIR));
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
-      create(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000);
+      create(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "5sec");
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       create(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB");
   public static final PropertyKey SITE_CONF_DIR =
@@ -103,11 +103,11 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       create(Name.UNDERFS_OSS_CONNECT_MAX, 1024);
   public static final PropertyKey UNDERFS_OSS_CONNECT_TIMEOUT =
-      create(Name.UNDERFS_OSS_CONNECT_TIMEOUT, 50000);
+      create(Name.UNDERFS_OSS_CONNECT_TIMEOUT, "50sec");
   public static final PropertyKey UNDERFS_OSS_CONNECT_TTL =
       create(Name.UNDERFS_OSS_CONNECT_TTL, -1);
   public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
-      create(Name.UNDERFS_OSS_SOCKET_TIMEOUT, 50000);
+      create(Name.UNDERFS_OSS_SOCKET_TIMEOUT, "50sec");
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
       create(Name.UNDERFS_S3_ADMIN_THREADS_MAX, 20);
   public static final PropertyKey UNDERFS_S3_DISABLE_DNS_BUCKETS =
@@ -127,11 +127,11 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
       create(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 20);
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-      create(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000);
+      create(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, "1min");
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       create(Name.UNDERFS_S3A_INHERIT_ACL, true);
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
-      create(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS, 60000);
+      create(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS, "1min");
   public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
       create(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED, false);
   public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
@@ -139,7 +139,7 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
       create(Name.UNDERFS_S3A_SIGNER_ALGORITHM, null);
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
-      create(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS, 50000);
+      create(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS, "50sec");
 
   //
   // UFS access control related properties
@@ -195,12 +195,12 @@ public class PropertyKey {
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
       create(Name.MASTER_FORMAT_FILE_PREFIX, "_format_");
   public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
-      create(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000);
+      create(Name.MASTER_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey MASTER_HOSTNAME = create(Name.MASTER_HOSTNAME, null);
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
-      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5);
+      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "5min");
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
-      create(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 300000);
+      create(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min");
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       create(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR));
   // Deprecated since 1.5.0 and will be removed in 2.0.
