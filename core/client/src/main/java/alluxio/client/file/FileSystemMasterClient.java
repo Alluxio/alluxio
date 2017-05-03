@@ -23,9 +23,7 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.AlluxioException;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -72,102 +70,77 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param path the root of the subtree to check
    * @param options method options
    * @return a list of inconsistent files and directories
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
-      throws AlluxioException, IOException;
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options);
 
   /**
    * Creates a new directory.
    *
    * @param path the directory path
    * @param options method options
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
-      throws IOException, AlluxioException;
+  void createDirectory(AlluxioURI path, CreateDirectoryOptions options);
 
   /**
    * Creates a new file.
    *
    * @param path the file path
    * @param options method options
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  void createFile(AlluxioURI path, CreateFileOptions options) throws IOException, AlluxioException;
+  void createFile(AlluxioURI path, CreateFileOptions options);
 
   /**
    * Marks a file as completed.
    *
    * @param path the file path
    * @param options the method options
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  void completeFile(AlluxioURI path, CompleteFileOptions options)
-      throws IOException, AlluxioException;
+  void completeFile(AlluxioURI path, CompleteFileOptions options);
 
   /**
    * Deletes a file or a directory.
    *
    * @param path the path to delete
    * @param options method options
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  void delete(AlluxioURI path, DeleteOptions options) throws IOException, AlluxioException;
+  void delete(AlluxioURI path, DeleteOptions options);
 
   /**
    * Frees a file.
    *
    * @param path the path to free
    * @param options method options
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  void free(AlluxioURI path, FreeOptions options) throws IOException, AlluxioException;
+  void free(AlluxioURI path, FreeOptions options);
 
   /**
    * @param path the file path
    * @return the file info for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  URIStatus getStatus(AlluxioURI path) throws IOException, AlluxioException;
+  URIStatus getStatus(AlluxioURI path);
 
   /**
    * @param path the file path
    * @return the next blockId for the file
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  long getNewBlockIdForFile(AlluxioURI path) throws IOException, AlluxioException;
+  long getNewBlockIdForFile(AlluxioURI path);
 
   /**
    * @param path the path to list
    * @param options the listStatus options
    * @return the list of file information for the given path
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
-      throws IOException, AlluxioException;
+  List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options);
 
   /**
    * Loads the metadata of a file from the under file system.
    *
    * @param path the path of the file to load metadata for
    * @param options method options
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
-  void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
-      throws IOException, AlluxioException;
+  void loadMetadata(AlluxioURI path, LoadMetadataOptions options);
 
   /**
    * Mounts the given UFS path under the given Alluxio path.
@@ -175,48 +148,36 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param alluxioPath the Alluxio path
    * @param ufsPath the UFS path
    * @param options mount options
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException an I/O error occurs
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
-      throws AlluxioException, IOException;
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options);
 
   /**
    * Renames a file or a directory.
    *
    * @param src the path to rename
    * @param dst new file path
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  void rename(AlluxioURI src, AlluxioURI dst) throws IOException, AlluxioException;
+  void rename(AlluxioURI src, AlluxioURI dst);
 
   /**
    * Sets the file or directory attributes.
    *
    * @param path the file or directory path
    * @param options the file or directory attribute options to be set
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws IOException, AlluxioException;
+  void setAttribute(AlluxioURI path, SetAttributeOptions options);
 
   /**
    * Schedules the async persistence of the given file.
    *
    * @param path the file path
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  void scheduleAsyncPersist(AlluxioURI path) throws AlluxioException, IOException;
+  void scheduleAsyncPersist(AlluxioURI path);
 
   /**
    * Unmounts the given Alluxio path.
    *
    * @param alluxioPath the Alluxio path
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException an I/O error occurs
    */
-  void unmount(AlluxioURI alluxioPath) throws AlluxioException, IOException;
+  void unmount(AlluxioURI alluxioPath);
 }

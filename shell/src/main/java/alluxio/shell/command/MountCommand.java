@@ -16,14 +16,12 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -33,6 +31,31 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MountCommand extends AbstractShellCommand {
+
+  private static final Option READONLY_OPTION =
+      Option.builder()
+          .longOpt("readonly")
+          .required(false)
+          .hasArg(false)
+          .desc("mount point is readonly in Alluxio")
+          .build();
+  private static final Option SHARED_OPTION =
+      Option.builder()
+          .longOpt("shared")
+          .required(false)
+          .hasArg(false)
+          .desc("mount point is shared")
+          .build();
+  private static final Option OPTION_OPTION =
+      Option.builder()
+          .longOpt("option")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(2)
+          .argName("key=value")
+          .valueSeparator('=')
+          .desc("options associated with this mount point")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -53,8 +76,8 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(READONLY_OPTION)
-        .addOption(MOUNT_SHARED_OPTION);
+    return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
+        .addOption(OPTION_OPTION);
   }
 
   @Override
@@ -64,32 +87,15 @@ public final class MountCommand extends AbstractShellCommand {
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
     MountOptions options = MountOptions.defaults();
 
-    String propertyFile = cl.getOptionValue('P');
-    if (propertyFile != null) {
-      Properties cmdProps = new Properties();
-      try (InputStream inStream = new FileInputStream(propertyFile)) {
-        cmdProps.load(inStream);
-      } catch (IOException e) {
-        throw new IOException("Unable to load property file: " + propertyFile);
-      }
-
-      if (!cmdProps.isEmpty()) {
-        // Use the properties from the properties file for the mount options.
-        Map<String, String> properties = new HashMap<>();
-        for (Map.Entry<Object, Object> entry : cmdProps.entrySet()) {
-          properties.put(entry.getKey().toString(), entry.getValue().toString());
-        }
-        options.setProperties(properties);
-        System.out.println("Using properties from file: " + propertyFile);
-      }
-    }
-
-    if (cl.hasOption("readonly")) {
+    if (cl.hasOption(READONLY_OPTION.getLongOpt())) {
       options.setReadOnly(true);
     }
-
-    if (cl.hasOption("shared")) {
+    if (cl.hasOption(SHARED_OPTION.getLongOpt())) {
       options.setShared(true);
+    }
+    if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
+      Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
+      options.setProperties(Maps.fromProperties(properties));
     }
 
     mFileSystem.mount(alluxioPath, ufsPath, options);
@@ -99,7 +105,7 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "mount [-readonly] [-shared] [-P <properties file name>] <alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
   }
 
   @Override

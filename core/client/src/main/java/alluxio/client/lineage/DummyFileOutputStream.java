@@ -32,24 +32,23 @@ public final class DummyFileOutputStream extends FileOutStream {
    *
    * @param path the path of the file
    * @param options the set of options specific to this operation
-   * @throws IOException if an I/O error occurs
    */
   public DummyFileOutputStream(AlluxioURI path, OutStreamOptions options) throws IOException {
     super(path, options, FileSystemContext.INSTANCE);
   }
 
   @Override
-  public void flush() throws IOException {}
+  public void flush() {}
 
   @Override
-  public void write(int b) throws IOException {}
+  public void write(int b) {}
 
   @Override
-  public void write(byte[] b) throws IOException {}
+  public void write(byte[] b) {}
 
   @Override
-  public void write(byte[] b, int off, int len) throws IOException {}
+  public void write(byte[] b, int off, int len) {}
 
   @Override
-  public void close() throws IOException {}
+  public void close() {}
 }

@@ -51,6 +51,8 @@ alluxio.user.lineage.master.client.threads:
   lineage master client与lineage master通信所使用的线程数目。
 alluxio.user.network.netty.timeout.ms:
   Netty client（用于数据块的读写操作）等待数据服务端回复的最长时间（单位：毫秒）。
+alluxio.user.network.netty.writer.close.timeout.ms:
+  Netty 客户端关闭的最长时间（单位：毫秒）。
 alluxio.user.network.netty.worker.threads:
   远程数据块worker client从远程数据块worker读取数据使用的线程数目。
 alluxio.user.network.netty.channel.pool.size.max:

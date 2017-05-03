@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -99,7 +100,7 @@ public final class UnderFileSystemRegistry {
    * @param ufsConf optional configuration object for the UFS, may be null
    * @return client for the under file system
    */
-  public static UnderFileSystem create(String path, Object ufsConf) {
+  public static UnderFileSystem create(String path, Map<String, String> ufsConf) {
     // Try to obtain the appropriate factory
     List<UnderFileSystemFactory> factories = findAll(path);
     if (factories.isEmpty()) {
@@ -110,7 +111,8 @@ public final class UnderFileSystemRegistry {
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
-        return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
+        return new UnderFileSystemWithLogging(
+            factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
       } catch (Exception e) {
         errors.add(e);
         LOG.warn("Failed to create ufs", e);

@@ -12,10 +12,10 @@
 package alluxio.underfs.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
@@ -39,12 +39,11 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   public S3UnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object unusedConf) {
-    Preconditions.checkNotNull(path);
-
-    if (checkAWSCredentials()) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
+    if (checkAWSCredentials(conf)) {
       try {
-        return S3UnderFileSystem.createInstance(new AlluxioURI(path));
+        return S3UnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (ServiceException e) {
         throw Throwables.propagate(e);
       }
@@ -62,8 +61,8 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean checkAWSCredentials() {
-    return Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY)
-        && Configuration.containsKey(PropertyKey.S3N_SECRET_KEY);
+  private boolean checkAWSCredentials(UnderFileSystemConfiguration conf) {
+    return conf.containsKey(PropertyKey.S3N_ACCESS_KEY) && conf
+        .containsKey(PropertyKey.S3N_SECRET_KEY);
   }
 }

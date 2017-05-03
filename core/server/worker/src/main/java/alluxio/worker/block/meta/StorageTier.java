@@ -13,7 +13,6 @@ package alluxio.worker.block.meta;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.PreconditionMessage;
@@ -60,7 +59,7 @@ public final class StorageTier {
     String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
     String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(mTierOrdinal);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
     String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
@@ -70,7 +69,7 @@ public final class StorageTier {
     }
 
     PropertyKey tierDirCapacityConf =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(mTierOrdinal);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(mTierOrdinal);
     String rawDirQuota = Configuration.get(tierDirCapacityConf);
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");
@@ -103,7 +102,6 @@ public final class StorageTier {
    * @param tierAlias the tier alias
    * @return a new storage tier
    * @throws BlockAlreadyExistsException if the tier already exists
-   * @throws IOException if an I/O error occurred
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
   public static StorageTier newStorageTier(String tierAlias)

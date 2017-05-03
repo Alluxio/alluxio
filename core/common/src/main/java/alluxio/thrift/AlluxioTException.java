@@ -38,9 +38,8 @@ import org.slf4j.LoggerFactory;
 public class AlluxioTException extends TException implements org.apache.thrift.TBase<AlluxioTException, AlluxioTException._Fields>, java.io.Serializable, Cloneable, Comparable<AlluxioTException> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("AlluxioTException");
 
-  private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("type", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField CLASS_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("className", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField STATUS_FIELD_DESC = new org.apache.thrift.protocol.TField("status", org.apache.thrift.protocol.TType.I32, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,15 +47,17 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     schemes.put(TupleScheme.class, new AlluxioTExceptionTupleSchemeFactory());
   }
 
-  private String type; // required
   private String message; // required
-  private String className; // required
+  private TStatus status; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    TYPE((short)1, "type"),
     MESSAGE((short)2, "message"),
-    CLASS_NAME((short)3, "className");
+    /**
+     * 
+     * @see TStatus
+     */
+    STATUS((short)4, "status");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -71,12 +72,10 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // TYPE
-          return TYPE;
         case 2: // MESSAGE
           return MESSAGE;
-        case 3: // CLASS_NAME
-          return CLASS_NAME;
+        case 4: // STATUS
+          return STATUS;
         default:
           return null;
       }
@@ -120,12 +119,10 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData("type", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.CLASS_NAME, new org.apache.thrift.meta_data.FieldMetaData("className", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, TStatus.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(AlluxioTException.class, metaDataMap);
   }
@@ -134,28 +131,23 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
   }
 
   public AlluxioTException(
-    String type,
     String message,
-    String className)
+    TStatus status)
   {
     this();
-    this.type = type;
     this.message = message;
-    this.className = className;
+    this.status = status;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public AlluxioTException(AlluxioTException other) {
-    if (other.isSetType()) {
-      this.type = other.type;
-    }
     if (other.isSetMessage()) {
       this.message = other.message;
     }
-    if (other.isSetClassName()) {
-      this.className = other.className;
+    if (other.isSetStatus()) {
+      this.status = other.status;
     }
   }
 
@@ -165,33 +157,8 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
 
   @Override
   public void clear() {
-    this.type = null;
     this.message = null;
-    this.className = null;
-  }
-
-  public String getType() {
-    return this.type;
-  }
-
-  public AlluxioTException setType(String type) {
-    this.type = type;
-    return this;
-  }
-
-  public void unsetType() {
-    this.type = null;
-  }
-
-  /** Returns true if field type is set (has been assigned a value) and false otherwise */
-  public boolean isSetType() {
-    return this.type != null;
-  }
-
-  public void setTypeIsSet(boolean value) {
-    if (!value) {
-      this.type = null;
-    }
+    this.status = null;
   }
 
   public String getMessage() {
@@ -218,40 +185,40 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     }
   }
 
-  public String getClassName() {
-    return this.className;
+  /**
+   * 
+   * @see TStatus
+   */
+  public TStatus getStatus() {
+    return this.status;
   }
 
-  public AlluxioTException setClassName(String className) {
-    this.className = className;
+  /**
+   * 
+   * @see TStatus
+   */
+  public AlluxioTException setStatus(TStatus status) {
+    this.status = status;
     return this;
   }
 
-  public void unsetClassName() {
-    this.className = null;
+  public void unsetStatus() {
+    this.status = null;
   }
 
-  /** Returns true if field className is set (has been assigned a value) and false otherwise */
-  public boolean isSetClassName() {
-    return this.className != null;
+  /** Returns true if field status is set (has been assigned a value) and false otherwise */
+  public boolean isSetStatus() {
+    return this.status != null;
   }
 
-  public void setClassNameIsSet(boolean value) {
+  public void setStatusIsSet(boolean value) {
     if (!value) {
-      this.className = null;
+      this.status = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case TYPE:
-      if (value == null) {
-        unsetType();
-      } else {
-        setType((String)value);
-      }
-      break;
-
     case MESSAGE:
       if (value == null) {
         unsetMessage();
@@ -260,11 +227,11 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
       }
       break;
 
-    case CLASS_NAME:
+    case STATUS:
       if (value == null) {
-        unsetClassName();
+        unsetStatus();
       } else {
-        setClassName((String)value);
+        setStatus((TStatus)value);
       }
       break;
 
@@ -273,14 +240,11 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case TYPE:
-      return getType();
-
     case MESSAGE:
       return getMessage();
 
-    case CLASS_NAME:
-      return getClassName();
+    case STATUS:
+      return getStatus();
 
     }
     throw new IllegalStateException();
@@ -293,12 +257,10 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     }
 
     switch (field) {
-    case TYPE:
-      return isSetType();
     case MESSAGE:
       return isSetMessage();
-    case CLASS_NAME:
-      return isSetClassName();
+    case STATUS:
+      return isSetStatus();
     }
     throw new IllegalStateException();
   }
@@ -316,15 +278,6 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     if (that == null)
       return false;
 
-    boolean this_present_type = true && this.isSetType();
-    boolean that_present_type = true && that.isSetType();
-    if (this_present_type || that_present_type) {
-      if (!(this_present_type && that_present_type))
-        return false;
-      if (!this.type.equals(that.type))
-        return false;
-    }
-
     boolean this_present_message = true && this.isSetMessage();
     boolean that_present_message = true && that.isSetMessage();
     if (this_present_message || that_present_message) {
@@ -334,12 +287,12 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
         return false;
     }
 
-    boolean this_present_className = true && this.isSetClassName();
-    boolean that_present_className = true && that.isSetClassName();
-    if (this_present_className || that_present_className) {
-      if (!(this_present_className && that_present_className))
+    boolean this_present_status = true && this.isSetStatus();
+    boolean that_present_status = true && that.isSetStatus();
+    if (this_present_status || that_present_status) {
+      if (!(this_present_status && that_present_status))
         return false;
-      if (!this.className.equals(that.className))
+      if (!this.status.equals(that.status))
         return false;
     }
 
@@ -350,20 +303,15 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_type = true && (isSetType());
-    list.add(present_type);
-    if (present_type)
-      list.add(type);
-
     boolean present_message = true && (isSetMessage());
     list.add(present_message);
     if (present_message)
       list.add(message);
 
-    boolean present_className = true && (isSetClassName());
-    list.add(present_className);
-    if (present_className)
-      list.add(className);
+    boolean present_status = true && (isSetStatus());
+    list.add(present_status);
+    if (present_status)
+      list.add(status.getValue());
 
     return list.hashCode();
   }
@@ -376,16 +324,6 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetType()).compareTo(other.isSetType());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetType()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.type, other.type);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
     if (lastComparison != 0) {
       return lastComparison;
@@ -396,12 +334,12 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetClassName()).compareTo(other.isSetClassName());
+    lastComparison = Boolean.valueOf(isSetStatus()).compareTo(other.isSetStatus());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetClassName()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.className, other.className);
+    if (isSetStatus()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.status, other.status);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -426,14 +364,6 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     StringBuilder sb = new StringBuilder("AlluxioTException(");
     boolean first = true;
 
-    sb.append("type:");
-    if (this.type == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.type);
-    }
-    first = false;
-    if (!first) sb.append(", ");
     sb.append("message:");
     if (this.message == null) {
       sb.append("null");
@@ -442,11 +372,11 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("className:");
-    if (this.className == null) {
+    sb.append("status:");
+    if (this.status == null) {
       sb.append("null");
     } else {
-      sb.append(this.className);
+      sb.append(this.status);
     }
     first = false;
     sb.append(")");
@@ -492,14 +422,6 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
           break;
         }
         switch (schemeField.id) {
-          case 1: // TYPE
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.type = iprot.readString();
-              struct.setTypeIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           case 2: // MESSAGE
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.message = iprot.readString();
@@ -508,10 +430,10 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // CLASS_NAME
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.className = iprot.readString();
-              struct.setClassNameIsSet(true);
+          case 4: // STATUS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.status = alluxio.thrift.TStatus.findByValue(iprot.readI32());
+              struct.setStatusIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -531,19 +453,14 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.type != null) {
-        oprot.writeFieldBegin(TYPE_FIELD_DESC);
-        oprot.writeString(struct.type);
-        oprot.writeFieldEnd();
-      }
       if (struct.message != null) {
         oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
         oprot.writeString(struct.message);
         oprot.writeFieldEnd();
       }
-      if (struct.className != null) {
-        oprot.writeFieldBegin(CLASS_NAME_FIELD_DESC);
-        oprot.writeString(struct.className);
+      if (struct.status != null) {
+        oprot.writeFieldBegin(STATUS_FIELD_DESC);
+        oprot.writeI32(struct.status.getValue());
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -564,42 +481,32 @@ public class AlluxioTException extends TException implements org.apache.thrift.T
     public void write(org.apache.thrift.protocol.TProtocol prot, AlluxioTException struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetType()) {
+      if (struct.isSetMessage()) {
         optionals.set(0);
       }
-      if (struct.isSetMessage()) {
+      if (struct.isSetStatus()) {
         optionals.set(1);
       }
-      if (struct.isSetClassName()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
-      if (struct.isSetType()) {
-        oprot.writeString(struct.type);
-      }
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetMessage()) {
         oprot.writeString(struct.message);
       }
-      if (struct.isSetClassName()) {
-        oprot.writeString(struct.className);
+      if (struct.isSetStatus()) {
+        oprot.writeI32(struct.status.getValue());
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, AlluxioTException struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
-        struct.type = iprot.readString();
-        struct.setTypeIsSet(true);
-      }
-      if (incoming.get(1)) {
         struct.message = iprot.readString();
         struct.setMessageIsSet(true);
       }
-      if (incoming.get(2)) {
-        struct.className = iprot.readString();
-        struct.setClassNameIsSet(true);
+      if (incoming.get(1)) {
+        struct.status = alluxio.thrift.TStatus.findByValue(iprot.readI32());
+        struct.setStatusIsSet(true);
       }
     }
   }

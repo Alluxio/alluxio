@@ -121,7 +121,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      *
      * @return null if listing did not find anything or is done, otherwise return new
      * {@link ObjectListingChunk} for the next chunk
-     * @throws IOException if a non-alluxio error occurs
      */
     ObjectListingChunk getNextChunk() throws IOException;
   }
@@ -198,7 +197,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param path the file name
    * @return the default Alluxio user block size
-   * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
@@ -395,7 +393,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Creates an {@link OutputStream} for object uploads.
    *
    * @param key ufs key including scheme and bucket
-   * @throws IOException if failed to create stream
    * @return new OutputStream
    */
   protected abstract OutputStream createObject(String key) throws IOException;
@@ -493,7 +490,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param child the key of the child
    * @param parent the key of the parent
    * @return the child key with the parent prefix removed
-   * @throws IOException if parent prefix is invalid
    */
   protected String getChildName(String child, String parent) throws IOException {
     if (child.startsWith(parent)) {
@@ -515,7 +511,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key pseudo-directory key excluding header and bucket
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing, or null if key is not found
-   * @throws IOException if a non-Alluxio error occurs
    */
   protected abstract ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException;
@@ -526,7 +521,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path of pseudo-directory
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing, or null if the path does not exist as a pseudo-directory
-   * @throws IOException when a non-Alluxio error occurs
    */
   protected ObjectListingChunk getObjectListingChunkAndCreateNonEmpty(String path,
       boolean recursive) throws IOException {
@@ -557,7 +551,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path the key to list
    * @param options for listing
    * @return an array of the file and folder names in this directory
-   * @throws IOException if an I/O error occurs
    */
   protected UnderFileStatus[] listInternal(String path, ListOptions options) throws IOException {
     ObjectListingChunk chunk = getObjectListingChunkAndCreateNonEmpty(path, options.isRecursive());
@@ -659,7 +652,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param key the key to open
    * @return an {@link InputStream} to read from key
-   * @throws IOException if a non-Alluxio error occurs
    */
   protected abstract InputStream openObject(String key, OpenOptions options) throws IOException;
 

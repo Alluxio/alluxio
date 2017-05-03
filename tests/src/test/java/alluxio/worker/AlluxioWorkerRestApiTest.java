@@ -35,7 +35,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Before
   public void before() {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getWorker().getWebLocalPort();
+    mPort = mResource.get().getWorkerProcess().getWebLocalPort();
     mServicePrefix = AlluxioWorkerRestServiceHandler.SERVICE_PREFIX;
   }
 

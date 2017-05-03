@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.clock.Clock;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.PreconditionMessage;
@@ -91,12 +92,12 @@ public abstract class AbstractMaster implements Master {
   }
 
   @Override
-  public Set<Class<?>> getDependencies() {
+  public Set<Class<? extends Server>> getDependencies() {
     return new HashSet<>();
   }
 
   @Override
-  public void start(boolean isPrimary) throws IOException {
+  public void start(Boolean isPrimary) throws IOException {
     Preconditions.checkState(mExecutorService == null);
     mExecutorService = mExecutorServiceFactory.create();
     mIsPrimary = isPrimary;

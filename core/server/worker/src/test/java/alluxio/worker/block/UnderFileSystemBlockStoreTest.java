@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.thrift.LockBlockTOptions;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import org.junit.Assert;
@@ -27,6 +28,7 @@ public final class UnderFileSystemBlockStoreTest {
 
   private BlockStore mAlluxioBlockStore;
   private OpenUfsBlockOptions mOpenUfsBlockOptions;
+  private UfsManager mUfsManager;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -34,7 +36,7 @@ public final class UnderFileSystemBlockStoreTest {
   @Before
   public void before() throws Exception {
     mAlluxioBlockStore = Mockito.mock(BlockStore.class);
-
+    mUfsManager = Mockito.mock(UfsManager.class);
     LockBlockTOptions options = new LockBlockTOptions();
     options.setMaxUfsReadConcurrency(5);
     options.setBlockSize(TEST_BLOCK_SIZE);
@@ -45,7 +47,8 @@ public final class UnderFileSystemBlockStoreTest {
 
   @Test
   public void acquireAccess() throws Exception {
-    UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
+    UnderFileSystemBlockStore blockStore =
+        new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
       Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
     }
@@ -55,7 +58,8 @@ public final class UnderFileSystemBlockStoreTest {
 
   @Test
   public void releaseAccess() throws Exception {
-    UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
+    UnderFileSystemBlockStore blockStore =
+        new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
       Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
       blockStore.releaseAccess(i + 1, BLOCK_ID);

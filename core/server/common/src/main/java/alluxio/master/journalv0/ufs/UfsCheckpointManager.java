@@ -103,7 +103,7 @@ public final class UfsCheckpointManager {
       if (tempBackupCheckpointExists) {
         // If mCheckpointPath also exists, step 2 must have implemented rename as copy + delete, and
         // failed during the delete.
-        UnderFileSystemUtils.deleteFileIfExists(mCheckpoint.toString());
+        UnderFileSystemUtils.deleteFileIfExists(mUfs, mCheckpoint.toString());
         mUfs.renameFile(mTempBackupCheckpoint.toString(), mCheckpoint.toString());
       }
       if (backupCheckpointExists) {
@@ -130,8 +130,8 @@ public final class UfsCheckpointManager {
   public void update(URI location) {
     try {
       if (mUfs.isFile(mCheckpoint.toString())) {
-        UnderFileSystemUtils.deleteFileIfExists(mTempBackupCheckpoint.toString());
-        UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpoint.toString());
+        UnderFileSystemUtils.deleteFileIfExists(mUfs, mTempBackupCheckpoint.toString());
+        UnderFileSystemUtils.deleteFileIfExists(mUfs, mBackupCheckpoint.toString());
         // Rename in two steps so that we never have identical mCheckpointPath and
         // mBackupCheckpointPath. This is a concern since UFS may implement rename as copy + delete.
         mUfs.renameFile(mCheckpoint.toString(), mTempBackupCheckpoint.toString());
@@ -144,7 +144,7 @@ public final class UfsCheckpointManager {
 
       // The checkpoint already reflects the information in the completed logs.
       mWriter.deleteCompletedLogs();
-      UnderFileSystemUtils.deleteFileIfExists(mBackupCheckpoint.toString());
+      UnderFileSystemUtils.deleteFileIfExists(mUfs, mBackupCheckpoint.toString());
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

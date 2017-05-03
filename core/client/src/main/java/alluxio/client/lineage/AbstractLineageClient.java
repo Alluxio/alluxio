@@ -17,11 +17,14 @@ import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.lineage.options.GetLineageInfoListOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.wire.LineageInfo;
@@ -63,12 +66,19 @@ public abstract class AbstractLineageClient implements LineageClient {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob,
         PreconditionMessage.COMMAND_LINE_LINEAGE_ONLY);
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
+    LineageMasterClient masterClient = null;
     try {
+      masterClient = mContext.acquireMasterClient();
       long lineageId = masterClient.createLineage(stripURIList(inputFiles),
           stripURIList(outputFiles), (CommandLineJob) job);
       LOG.info("Created lineage {}", lineageId);
       return lineageId;
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -77,11 +87,20 @@ public abstract class AbstractLineageClient implements LineageClient {
   @Override
   public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
       throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException {
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
+    LineageMasterClient masterClient = null;
     try {
+      masterClient = mContext.acquireMasterClient();
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
       LOG.info("{} delete lineage {}", result ? "Succeeded to " : "Failed to ", lineageId);
       return result;
+    } catch (NotFoundException e) {
+      throw new LineageDoesNotExistException(e.getMessage());
+    } catch (FailedPreconditionException e) {
+      throw new LineageDeletionException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e.toIOException();
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -90,12 +109,12 @@ public abstract class AbstractLineageClient implements LineageClient {
   @Override
   public List<LineageInfo> getLineageInfoList(GetLineageInfoListOptions options)
       throws IOException {
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
-
+    LineageMasterClient masterClient = null;
     try {
+      masterClient = mContext.acquireMasterClient();
       return masterClient.getLineageInfoList();
-    } catch (ConnectionFailedException e) {
-      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      throw e.toIOException();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

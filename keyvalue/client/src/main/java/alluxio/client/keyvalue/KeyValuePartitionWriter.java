@@ -43,8 +43,6 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
      *
      * @param uri URI of the key-value partition file to write to
      * @return an instance of a {@link KeyValuePartitionWriter}
-     * @throws IOException if a non-Alluxio exception occurs
-     * @throws AlluxioException if an unexpected Alluxio exception is thrown
      */
     public static KeyValuePartitionWriter create(AlluxioURI uri)
         throws AlluxioException, IOException {
@@ -62,7 +60,6 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
-   * @throws IOException if a non-Alluxio exception occurs
    */
   void put(byte[] key, byte[] value) throws IOException;
 

@@ -28,6 +28,7 @@ import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.NoopJournalContext;
@@ -481,7 +482,6 @@ public class InodeTree implements JournalEntryIterable {
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
-   * @throws IOException if creating the path fails
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
@@ -774,32 +774,34 @@ public class InodeTree implements JournalEntryIterable {
    *
    * @param inodePath The {@link LockedInodePath} to delete
    * @param opTimeMs The operation time
+   * @param deleteOptions the delete options
+   * @param journalContext the journal context
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(LockedInodePath inodePath, long opTimeMs)
+  public void deleteInode(LockedInodePath inodePath, long opTimeMs, DeleteOptions deleteOptions,
+      JournalContext journalContext)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (parent == null) {
+      LOG.warn("Parent id not found: {} deleting inode: {}", inode.getParentId(), inode);
       throw new FileDoesNotExistException(
           ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));
     }
+
+    // Journal before removing the inode from the parent, since the parent is read locked.
+    File.DeleteFileEntry deleteFile = File.DeleteFileEntry.newBuilder().setId(inode.getId())
+        .setAlluxioOnly(deleteOptions.isAlluxioOnly())
+        .setRecursive(deleteOptions.isRecursive())
+        .setOpTimeMs(opTimeMs).build();
+    journalContext.append(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(opTimeMs);
 
     mInodes.remove(inode);
     mPinnedInodeFileIds.remove(inode.getId());
     inode.setDeleted(true);
-  }
-
-  /**
-   * Deletes a single inode from the inode tree by removing it from the parent inode.
-   *
-   * @param inodePath The {@link LockedInodePath} to delete
-   * @throws FileDoesNotExistException if the Inode cannot be retrieved
-   */
-  public void deleteInode(LockedInodePath inodePath) throws FileDoesNotExistException {
-    deleteInode(inodePath, System.currentTimeMillis());
   }
 
   /**
@@ -984,7 +986,6 @@ public class InodeTree implements JournalEntryIterable {
    *
    * @param dir the {@link InodeDirectory} to persist
    * @param journalContext the journal context
-   * @throws IOException if the file fails to persist
    * @throws InvalidPathException if the path for the inode is invalid
    * @throws FileDoesNotExistException if the path for the inode is invalid
    */

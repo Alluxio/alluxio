@@ -149,7 +149,6 @@ public final class NettyPacketReaderTest {
    * @param offset the offset
    * @param length the length
    * @return the packet reader instance
-   * @throws Exception if it fails to create the packet reader
    */
   private PacketReader create(long offset, long length) throws Exception {
     PacketReader reader = mFactory.create(offset, length);
@@ -216,7 +215,7 @@ public final class NettyPacketReaderTest {
     Assert.assertTrue(request != null);
     Assert.assertTrue(request instanceof RPCProtoMessage);
     Assert.assertEquals(null, ((RPCProtoMessage) request).getPayloadDataBuffer());
-    Protocol.ReadRequest readRequest = ((RPCProtoMessage) request).getMessage().getMessage();
+    Protocol.ReadRequest readRequest = ((RPCProtoMessage) request).getMessage().asReadRequest();
     Assert.assertEquals(BLOCK_ID, readRequest.getId());
     Assert.assertEquals(offset, readRequest.getOffset());
     Assert.assertEquals(length, readRequest.getLength());

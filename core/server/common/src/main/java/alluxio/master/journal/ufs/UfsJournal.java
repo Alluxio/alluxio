@@ -81,7 +81,7 @@ public class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    this(location, UnderFileSystem.Factory.get(location.toString()));
+    this(location, UnderFileSystem.Factory.get(location));
   }
 
   /**
@@ -125,8 +125,7 @@ public class UfsJournal implements Journal {
 
   @Override
   public boolean isFormatted() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
-    UnderFileStatus[] files = ufs.listStatus(mLocation.toString());
+    UnderFileStatus[] files = mUfs.listStatus(mLocation.toString());
     if (files == null) {
       return false;
     }
@@ -158,7 +157,7 @@ public class UfsJournal implements Journal {
     }
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
-    UnderFileSystemUtils.touch(URIUtils.appendPathOrDie(location,
+    UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
         Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
   }

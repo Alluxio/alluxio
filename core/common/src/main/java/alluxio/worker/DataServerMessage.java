@@ -326,7 +326,6 @@ public final class DataServerMessage {
    *
    * @param socketChannel The socket channel to receive from
    * @return The number of bytes read, possibly zero, or -1 if the channel has reached end-of-stream
-   * @throws IOException when a non-Alluxio related exception occurs
    */
   public int recv(SocketChannel socketChannel) throws IOException {
     isSend(false);
@@ -402,7 +401,6 @@ public final class DataServerMessage {
    * Sends this message to the specified socket channel. Make sure this is a send message.
    *
    * @param socketChannel The socket channel to send to
-   * @throws IOException when a non-Alluxio related exception occurs
    */
   public void send(SocketChannel socketChannel) throws IOException {
     Preconditions.checkNotNull(socketChannel, "socketChannel");

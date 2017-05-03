@@ -32,7 +32,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.security.DigestOutputStream;
 
 /**
@@ -52,8 +51,6 @@ public class OSSOutputStreamTest {
 
   /**
    * Sets the properties and configuration before each test runs.
-   *
-   * @throws Exception when the {@link HttpURLConnection#getOutputStream()} throws exception
    */
   @Before
   public void before() throws Exception {
@@ -64,8 +61,6 @@ public class OSSOutputStreamTest {
 
   /**
    * Tests to ensure IOException is thrown if {@link FileOutputStream()} throws an IOException.
-   *
-   * @throws Exception when the IOException is not thrown
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)
@@ -81,8 +76,6 @@ public class OSSOutputStreamTest {
 
   /**
    * Tests to ensure {@link OSSOutputStream#write(int)} calls {@link OutputStream#write(int)}.
-   *
-   * @throws Exception when {@link OutputStream#write(int)} is not called
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)
@@ -100,8 +93,6 @@ public class OSSOutputStreamTest {
   /**
    * Tests to ensure {@link OSSOutputStream#write(byte[], int, int)} calls
    * {@link OutputStream#write(byte[], int, int)} .
-   *
-   * @throws Exception when {@link OutputStream#write(byte[], int, int)} is not called
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)
@@ -119,8 +110,6 @@ public class OSSOutputStreamTest {
 
   /**
    * Tests to ensure {@link OSSOutputStream#write(byte[])} calls {@link OutputStream#write(byte[])}.
-   *
-   * @throws Exception when {@link OutputStream#write(byte[])} is not called
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)
@@ -140,8 +129,6 @@ public class OSSOutputStreamTest {
    * Tests to ensure IOException is thrown if
    * {@link OSSClient#putObject(String, String, InputStream, ObjectMetadata)} throws an
    * OSSException.
-   *
-   * @throws Exception when the IOException is thrown
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)
@@ -162,9 +149,6 @@ public class OSSOutputStreamTest {
 
   /**
    * Tests to ensure {@link File#delete()} is called when close the stream.
-   *
-   * @throws Exception when {@link OSSClient#putObject(String, String, InputStream, ObjectMetadata)}
-   *         throws an OSSException
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)
@@ -182,8 +166,6 @@ public class OSSOutputStreamTest {
 
   /**
    * Tests to ensure {@link OSSOutputStream#flush()} calls {@link OutputStream#flush()}.
-   *
-   * @throws Exception when flush is not called
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)

@@ -112,7 +112,6 @@ public class S3InputStream extends InputStream {
    *
    * @param n number of bytes to skip
    * @return the number of bytes skipped
-   * @throws IOException if an error occurs when requesting from S3
    */
   @Override
   public long skip(long n) throws IOException {
