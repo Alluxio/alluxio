@@ -205,31 +205,52 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Objects added to a {@link DeleteBuffer} will be deleted in batches. Multiple batches are
    * processed in parallel.
    */
-  class DeleteBuffer {
-    ArrayList<List<String>> mBatches;
-    ArrayList<Future<List<String>>> mBatchesResult;
-    List<String> mCurrentBatchBuffer;
-    int mEntriesAdded;
+  @NotThreadSafe
+  protected class DeleteBuffer {
+    /**
+     * A list of objects in batches to be deleted in parallel.
+     */
+    private ArrayList<List<String>> mBatches;
+    /**
+     * A list of the successfully deleted objects for each batch delete.
+     */
+    private ArrayList<Future<List<String>>> mBatchesResult;
+    /**
+     * Buffer for a batch of objects to be deleted.
+     */
+    private List<String> mCurrentBatchBuffer;
+    /**
+     * Total number of objects to be deleted across batches.
+     */
+    private int mEntriesAdded;
 
-    DeleteBuffer() {
+    /**
+     * Construct a new {@link DeleteBuffer} instance.
+     */
+    public DeleteBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
       mCurrentBatchBuffer = null;
       mEntriesAdded = 0;
     }
 
-    void add(String path) throws IOException {
-      mEntriesAdded++;
-      if (mCurrentBatchBuffer == null) {
-        mCurrentBatchBuffer = new LinkedList<>();
-      }
+    /**
+     * Add a new object to be deleted.
+     *
+     * @param path of object
+     * @throws IOException if a non-Alluxio error occurs
+     */
+    public void add(String path) throws IOException {
       // Delete batch size is same as listing length
-      if (mCurrentBatchBuffer.size() < getListingChunkLength()) {
-        mCurrentBatchBuffer.add(path);
-      } else {
+      if (mCurrentBatchBuffer != null && mCurrentBatchBuffer.size() == getListingChunkLength()) {
         // Batch is full
         processBatch();
       }
+      if (mCurrentBatchBuffer == null) {
+        mCurrentBatchBuffer = new LinkedList<>();
+      }
+      mCurrentBatchBuffer.add(path);
+      mEntriesAdded++;
     }
 
     /**
@@ -238,7 +259,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return a list of successfully deleted objects
      * @throws IOException if a non-Alluxio error occurs
      */
-    List<String> getResult() throws IOException {
+    public List<String> getResult() throws IOException {
       processBatch();
       LinkedList<String> result = new LinkedList<>();
       for (Future<List<String>> list : mBatchesResult) {
@@ -256,7 +277,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Process a single batch.
      */
-    void processBatch() throws IOException {
+    private void processBatch() throws IOException {
       if (mCurrentBatchBuffer != null) {
         int batchNumber = mBatches.size();
         mBatches.add(new LinkedList<>(mCurrentBatchBuffer));
@@ -269,7 +290,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * Launch a thread for processing an individual batch.
      * @param batchNumber index starting from 0
      */
-    void processBatchInThread(int batchNumber) throws IOException {
+    private void processBatchInThread(int batchNumber) throws IOException {
       mBatchesResult.add(batchNumber,
           mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
     }
@@ -278,7 +299,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * Thread class to delete a batch of objects.
      */
     @NotThreadSafe
-    class DeleteThread implements Callable<List<String>> {
+    protected class DeleteThread implements Callable<List<String>> {
 
       List<String> mBatch;
 
@@ -296,7 +317,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           return deleteObjects(mBatch);
         } catch (IOException e) {
           // Do not append to success list
-          return null;
+          return new LinkedList<>();
         }
       }
     }
