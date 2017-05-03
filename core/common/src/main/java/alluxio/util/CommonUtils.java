@@ -502,6 +502,11 @@ public final class CommonUtils {
     }
   }
 
+  /**
+   * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response}.
+   *
+   * @param response the response
+   */
   public static void unwrapResponse(Protocol.Response response) {
     Status status = Status.fromProto(response.getStatus());
     if (status != Status.OK) {
