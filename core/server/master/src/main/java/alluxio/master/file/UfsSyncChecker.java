@@ -20,12 +20,17 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.ListOptions;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,6 +39,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UfsSyncChecker {
+
+  /** UFS directories for which list was called. */
+  private Map<String, UnderFileStatus[]> mListedDirectories;
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
@@ -44,6 +52,7 @@ public final class UfsSyncChecker {
    * @param mountTable to resolve path in under storage
    */
   public UfsSyncChecker(MountTable mountTable) {
+    mListedDirectories = new HashMap<>();
     mMountTable = mountTable;
   }
   /**
@@ -57,11 +66,7 @@ public final class UfsSyncChecker {
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
 
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
-    String ufsUri = resolution.getUri().toString();
-    UnderFileSystem ufs = resolution.getUfs();
-    UnderFileStatus[] ufsChildren =
-        ufs.listStatus(ufsUri, ListOptions.defaults().setRecursive(false));
+    UnderFileStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
     // Empty directories are not persisted
     if (ufsChildren == null) {
       return true;
@@ -85,11 +90,52 @@ public final class UfsSyncChecker {
     int ufsPos = 0;
     int inodePos = 0;
     while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
-      if (ufsChildren[ufsPos].getName().equals(inodeChildren[inodePos].getName())) {
+      String ufsName = ufsChildren[ufsPos].getName();
+      if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
+        ufsName = ufsName.substring(0, ufsName.length() - 1);
+      }
+      if (ufsName.equals(inodeChildren[inodePos].getName())) {
         ufsPos++;
       }
       inodePos++;
     }
     return ufsPos == ufsChildren.length;
+  }
+
+  /**
+   * Get the children in under storage for given alluxio path.
+   *
+   * @param alluxioUri alluxio path
+   * @return the list of children in under storage
+   * @throws InvalidPathException if aluxioUri is invalid
+   * @throws IOException if a non-alluxio error occurs
+   */
+  private UnderFileStatus[] getChildrenInUFS(AlluxioURI alluxioUri)
+      throws InvalidPathException, IOException {
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+    AlluxioURI ufsUri = resolution.getUri();
+    UnderFileSystem ufs = resolution.getUfs();
+    
+    AlluxioURI curUri = ufsUri;
+    while (curUri != null) {
+      if (mListedDirectories.containsKey(curUri.toString())) {
+        List<UnderFileStatus> childrenList = new LinkedList<>();
+        for (UnderFileStatus child : mListedDirectories.get(curUri.toString())) {
+          String childPath = PathUtils.concatPath(curUri, child.getName());
+          String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
+          if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
+            childrenList.add(new UnderFileStatus(childPath.substring(prefix.length()),
+                child.isDirectory()));
+          }
+        }
+        return childrenList.toArray(new UnderFileStatus[childrenList.size()]);
+      }
+      curUri = curUri.getParent();
+    }
+    UnderFileStatus[] children =
+        ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
+    // Assumption: multiple mounted UFSs cannot have the same ufsUri
+    mListedDirectories.put(ufsUri.toString(), children);
+    return children;
   }
 }
