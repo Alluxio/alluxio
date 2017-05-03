@@ -67,7 +67,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
   /** Executor service used for parallel UFS operations such as bulk deletes. */
-  ExecutorService mExecutorService;
+  protected ExecutorService mExecutorService;
 
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
@@ -271,7 +271,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     void processBatchInThread(int batchNumber) throws IOException {
       mBatchesResult.add(batchNumber,
-          getExecutorService().submit(new DeleteThread(mBatches.get(batchNumber))));
+          mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
     }
 
     /**
@@ -554,13 +554,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     return result;
-  }
-
-  /**
-   * @return the {@link ExecutorService} for this object storage
-   */
-  protected ExecutorService getExecutorService() {
-    return mExecutorService;
   }
 
   /**
