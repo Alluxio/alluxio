@@ -67,7 +67,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
-      options.skipCheck(true);
+      options.setUnchecked(true);
     }
     mFileSystem.delete(path, options);
     System.out.println(path + " has been removed");
