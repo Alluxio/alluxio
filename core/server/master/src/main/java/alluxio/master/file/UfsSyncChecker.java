@@ -135,7 +135,9 @@ public final class UfsSyncChecker {
     UnderFileStatus[] children =
         ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
     // Assumption: multiple mounted UFSs cannot have the same ufsUri
-    mListedDirectories.put(ufsUri.toString(), children);
+    if (children != null) {
+      mListedDirectories.put(ufsUri.toString(), children);
+    }
     return children;
   }
 }
