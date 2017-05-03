@@ -47,7 +47,7 @@ public class DeleteOptionsTest {
 
     options.setRecursive(recursive);
     options.setAlluxioOnly(alluxioOnly);
-    options.setUnchecked(skipCheck);
+    options.skipCheck(skipCheck);
 
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(alluxioOnly, options.isAlluxioOnly());

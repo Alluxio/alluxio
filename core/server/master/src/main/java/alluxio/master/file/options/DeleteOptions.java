@@ -94,7 +94,7 @@ public final class DeleteOptions {
    * @param skipCheck whether to skip UFS consistency check
    * @return the updated options object
    */
-  public DeleteOptions setUnchecked(boolean skipCheck) {
+  public DeleteOptions skipCheck(boolean skipCheck) {
     mUnchecked = skipCheck;
     return this;
   }

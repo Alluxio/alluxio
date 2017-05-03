@@ -350,7 +350,7 @@ public final class FileSystemMasterClientServiceHandler implements
           // NOTE, we try to be conservative here so early Alluxio clients will not be able to
           // delete files in Alluxio only.
           mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
-              .setRecursive(recursive).setUnchecked(options.isUnchecked()));
+              .setRecursive(recursive).skipCheck(options.isUnchecked()));
         } else {
           mFileSystemMaster.delete(new AlluxioURI(path), new DeleteOptions(options));
         }

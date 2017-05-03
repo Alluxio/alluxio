@@ -91,11 +91,11 @@ public final class DeleteOptions {
   }
 
   /**
-   * @param unchecked whether to skip UFS sync check
+   * @param skipCheck whether to skip UFS sync check
    * @return the updated options object
    */
-  public DeleteOptions setUnchecked(boolean unchecked) {
-    mUnchecked = unchecked;
+  public DeleteOptions skipCheck(boolean skipCheck) {
+    mUnchecked = skipCheck;
     return this;
   }
 
