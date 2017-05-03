@@ -16,11 +16,10 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.netty.NettyRPC;
 import alluxio.client.netty.NettyRPCContext;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -101,10 +100,7 @@ public final class LocalFilePacketReader implements PacketReader {
                   Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId).build()));
       Preconditions.checkState(message.isLocalBlockOpenResponse());
       Protocol.LocalBlockOpenResponse response = message.asLocalBlockOpenResponse();
-      Status status = Status.fromProto(response.getResponse().getStatus());
-      if (status != Status.OK) {
-        throw AlluxioStatusException.from(status, response.getResponse().getMessage());
-      }
+      CommonUtils.unwrapResponse(response.getResponse());
       mReader = new LocalFileBlockReader(message.asLocalBlockOpenResponse().getPath());
     }
   }
