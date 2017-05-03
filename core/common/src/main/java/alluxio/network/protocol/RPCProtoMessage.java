@@ -134,17 +134,6 @@ public final class RPCProtoMessage extends RPCMessage {
     return new RPCProtoMessage(serialized, prototype, new DataNettyBufferV2(in));
   }
 
-  /**
-   * Throws the exception represented by this {@link RPCProtoMessage} if there is one.
-   */
-  public void unwrapException() {
-    Response response = getMessage().asResponse();
-    Status status = Status.fromProto(response.getStatus());
-    if (status != Status.OK) {
-      throw AlluxioStatusException.from(status, response.getMessage());
-    }
-  }
-
   @Override
   public Type getType() {
     if (mMessage.isReadRequest()) {

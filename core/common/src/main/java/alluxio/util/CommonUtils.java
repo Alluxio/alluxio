@@ -12,6 +12,8 @@
 package alluxio.util;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.Status;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
@@ -497,6 +499,18 @@ public final class CommonUtils {
       throw (Error) t;
     } else {
       throw new IllegalStateException("Encountered a non-Error, non-Exception Throwable", t);
+    }
+  }
+
+  /**
+   * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response}.
+   *
+   * @param response the response
+   */
+  public static void unwrapResponse(Protocol.Response response) {
+    Status status = Status.fromProto(response.getStatus());
+    if (status != Status.OK) {
+      throw AlluxioStatusException.from(status, response.getMessage());
     }
   }
 }
