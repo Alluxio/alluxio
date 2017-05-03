@@ -12,7 +12,6 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.underfs.UnderFileSystemCluster;
-import alluxio.util.io.FileUtils;
 
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
@@ -125,12 +124,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   @Override
   public boolean isStarted() {
     return mIsStarted;
-  }
-
-  @Override
-  public void cleanup() throws IOException {
-    FileUtils.deletePathRecursively(mBaseDir);
-    FileUtils.createDir(mBaseDir);
   }
 
   @Override

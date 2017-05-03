@@ -49,11 +49,6 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
   }
 
   @Override
-  public void cleanup() throws IOException {
-    // Not implemented
-  }
-
-  @Override
   public void shutdown() throws IOException {
   }
 
