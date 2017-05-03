@@ -49,6 +49,9 @@ public abstract class RPCMessage implements EncodedMessage {
     RPC_WRITE_REQUEST(101),
     RPC_RESPONSE(102),
     RPC_UFS_BLOCK_READ_REQUEST(103),
+    RPC_LOCAL_BLOCK_OPEN_REQUEST(104),
+    RPC_LOCAL_BLOCK_OPEN_RESPONSE(105),
+    RPC_LOCAL_BLOCK_CLOSE_REQUEST(106),
 
     RPC_UNKNOWN(1000),
     ;
@@ -120,6 +123,12 @@ public abstract class RPCMessage implements EncodedMessage {
           return RPC_RESPONSE;
         case 103:
           return RPC_UFS_BLOCK_READ_REQUEST;
+        case 104:
+          return RPC_LOCAL_BLOCK_OPEN_REQUEST;
+        case 105:
+          return RPC_LOCAL_BLOCK_OPEN_RESPONSE;
+        case 106:
+          return RPC_LOCAL_BLOCK_CLOSE_REQUEST;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
       }
