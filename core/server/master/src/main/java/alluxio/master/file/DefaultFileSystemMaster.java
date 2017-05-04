@@ -119,6 +119,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -1207,6 +1208,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
 
+      // UFS URIs which could not be deleted
+      List<String> failedUfsUris = new LinkedList<>();
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
@@ -1216,8 +1219,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         Inode<?> delInode = delInodePair.getSecond();
         tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
-        // TODO(jiri): What should the Alluxio behavior be when a UFS delete operation fails?
-        // Currently, it will result in an inconsistency between Alluxio and UFS.
+        boolean failedToDelete = false;
         if (!replayed && delInode.isPersisted()) {
           try {
             // If this is a mount point, we have deleted all the children and can unmount it
@@ -1232,7 +1234,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               AlluxioURI parentURI = alluxioUriToDel.getParent();
               // Check if parent is deleted recursively
               if (!safeRecursiveUFSDeletes.containsKey(parentURI)) {
-                boolean failedToDelete = false;
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
                     failedToDelete = ufs.isFile(ufsUri);
@@ -1241,18 +1242,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                     }
                   }
                 } else {
-                  if (!ufs.deleteDirectory(ufsUri, alluxio.underfs.options.DeleteOptions.defaults()
-                      .setRecursive(safeRecursiveUFSDeletes.containsKey(alluxioUriToDel)))) {
-                    // TODO(adit): handle partial failures of recursive deletes
-                    failedToDelete = ufs.isDirectory(ufsUri);
-                    if (!failedToDelete) {
-                      LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
+                  if (safeRecursiveUFSDeletes.containsKey(alluxioUriToDel)) {
+                    if (!ufs.deleteDirectory(ufsUri,
+                        alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
+                      // TODO(adit): handle partial failures of recursive deletes
+                      failedToDelete = ufs.isDirectory(ufsUri);
+                      if (!failedToDelete) {
+                        LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
+                      }
                     }
+                  } else {
+                    failedToDelete = true;
+                    LOG.warn(
+                        "The directory cannot be deleted from the ufs as it is not in sync: {}",
+                        ufsUri);
                   }
                 }
                 if (failedToDelete) {
-                  LOG.error("Failed to delete {} from the under filesystem", ufsUri);
-                  throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
+                  failedUfsUris.add(ufsUri);
                 }
               }
             }
@@ -1260,19 +1267,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             LOG.warn(e.getMessage());
           }
         }
-
-        if (delInode.isFile()) {
-          // Remove corresponding blocks from workers and delete metadata in master.
-          mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
-        }
-        // TODO(adit): Handle journaling for partial deletes
-        if (i == 0) {
-          // Journal the deletion for the "root" of the sub-tree.
+        if (!failedToDelete) {
+          if (delInode.isFile()) {
+            // Remove corresponding blocks from workers and delete metadata in master.
+            mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
+          }
+          // TODO(adit): Do not journal individually for performance
+          deleteOptions.setRecursive(false);
           mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext);
-        } else {
-          mInodeTree
-              .deleteInode(tempInodePath, opTimeMs, deleteOptions, NoopJournalContext.INSTANCE);
         }
+      }
+      if (!failedUfsUris.isEmpty()) {
+        throw new IOException(
+            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(failedUfsUris, ',')));
       }
     }
 
