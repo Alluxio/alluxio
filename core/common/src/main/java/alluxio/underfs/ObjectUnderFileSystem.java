@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -298,7 +299,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           return deleteObjects(mBatch);
         } catch (IOException e) {
           // Do not append to success list
-          return new LinkedList<>();
+          return Collections.emptyList();
         }
       }
     }

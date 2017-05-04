@@ -350,7 +350,7 @@ public final class FileSystemMasterTest {
     }
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI("/mnt/local/top"),
-        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).skipCheck(skipCheck));
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(skipCheck));
     return ufsMount;
   }
 
