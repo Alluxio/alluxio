@@ -152,7 +152,7 @@ public class UfsJournalIntegrationTest {
    */
   @Test
   public void loadMetadata() throws Exception {
-    String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
     ufs.create(ufsRoot + "/xyz").close();
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));

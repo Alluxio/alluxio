@@ -14,13 +14,9 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import java.net.URI;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
@@ -55,28 +51,5 @@ public final class HdfsUnderFileSystemTest {
         HdfsUnderFileSystem.createConfiguration(new UnderFileSystemConfiguration(null));
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
-  }
-
-  /**
-   * Tests the HDFS client caching is disabled.
-   */
-  @Ignore // TODO(jiri): This test is failing for hadoop-1 profile. Re-enable after it is fixed.
-  @Test
-  public void disableHdfsCache() throws Exception {
-    // create a default hadoop configuration
-    org.apache.hadoop.conf.Configuration hadoopConf = new org.apache.hadoop.conf.Configuration();
-    String underfsAddress = "hdfs://localhost";
-    URI uri = new URI(underfsAddress);
-    org.apache.hadoop.fs.FileSystem hadoopFs = org.apache.hadoop.fs.FileSystem.get(uri, hadoopConf);
-    // use the replication to test the default value
-    Assert.assertEquals("3", hadoopFs.getConf().get("dfs.replication"));
-
-    // create a new configuration with updated dfs replication value
-    UnderFileSystemConfiguration hadoopConf1 =
-        new UnderFileSystemConfiguration(ImmutableMap.of("dfs.replication", "1"));
-    HdfsUnderFileSystem hdfs =
-        HdfsUnderFileSystem.createInstance(new AlluxioURI(underfsAddress), hadoopConf1);
-    Assert.assertEquals("1",
-        ((org.apache.hadoop.conf.Configuration) hdfs.getConf()).get("dfs.replication"));
   }
 }

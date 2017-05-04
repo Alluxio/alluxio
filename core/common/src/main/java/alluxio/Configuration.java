@@ -415,9 +415,7 @@ public final class Configuration {
       String key = entry.getKey();
       if (prefixKey.isNested(key)) {
         String suffixKey = key.substring(prefixKey.length() + 1);
-        if (PropertyKey.isValid(suffixKey)) {
-          ret.put(suffixKey, entry.getValue());
-        }
+        ret.put(suffixKey, entry.getValue());
       }
     }
     return ret;

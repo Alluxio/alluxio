@@ -62,6 +62,13 @@ HA模式的Alluxio需要加入如下配置
 </property>
 ```
 
+另外，你也可以将[`alluxio-site.properties`](Configuration-Settings.html)的路径追加到Presto JVM配置中，该配置在Presto目录下的`etc/jvm.config`文件中。该方法的好处是只需在`alluxio-site.properties`配置文件中设置所有Alluxio属性。
+
+```bash
+...
+-Xbootclasspath/p:<path-to-alluxio-site-properties>
+```
+
 此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读异地大文件时的超时问题。
 
 #### 提高`hive.max-split-size`值

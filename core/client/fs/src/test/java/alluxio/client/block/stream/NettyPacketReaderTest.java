@@ -64,7 +64,7 @@ public final class NettyPacketReaderTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(InetSocketAddress.class);
     mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
-        false, Protocol.RequestType.ALLUXIO_BLOCK);
+        false, Protocol.RequestType.ALLUXIO_BLOCK, PACKET_SIZE);
 
     mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
@@ -85,7 +85,7 @@ public final class NettyPacketReaderTest {
       sendReadResponses(mChannel, 0, 0, 0);
       Assert.assertEquals(null, reader.readPacket());
     }
-    validateReadRequestSent(mChannel, 0, 10, false);
+    validateReadRequestSent(mChannel, 0, 10, false, PACKET_SIZE);
   }
 
   /**
@@ -100,7 +100,7 @@ public final class NettyPacketReaderTest {
       long checksumActual = checkPackets(reader, 0, length);
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
-    validateReadRequestSent(mChannel, 0, length, false);
+    validateReadRequestSent(mChannel, 0, length, false, PACKET_SIZE);
   }
 
   /**
@@ -119,8 +119,8 @@ public final class NettyPacketReaderTest {
       long checksumActual = checkPackets(reader, checksumStart, bytesToRead);
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
-    validateReadRequestSent(mChannel, offset, length, false);
-    validateReadRequestSent(mChannel, 0, 0, true);
+    validateReadRequestSent(mChannel, offset, length, false, PACKET_SIZE);
+    validateReadRequestSent(mChannel, 0, 0, true, 0);
   }
 
   /**
@@ -139,8 +139,8 @@ public final class NettyPacketReaderTest {
       long checksumActual = checkPackets(reader, checksumStart, bytesToRead);
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
-    validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, false);
-    validateReadRequestSent(mChannel, 0, 0, true);
+    validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, false, PACKET_SIZE);
+    validateReadRequestSent(mChannel, 0, 0, true, 0);
   }
 
   /**
@@ -202,9 +202,10 @@ public final class NettyPacketReaderTest {
    * @param offset the offset
    * @param length the length
    * @param cancel whether it is a cancel request
+   * @param packetSize the packet size
    */
   private void validateReadRequestSent(final EmbeddedChannel channel, long offset, long length,
-      boolean cancel) {
+      boolean cancel, long packetSize) {
     Object request = CommonUtils.waitForResult("read request", new Function<Void, Object>() {
       @Override
       public Object apply(Void v) {
@@ -220,6 +221,7 @@ public final class NettyPacketReaderTest {
     Assert.assertEquals(offset, readRequest.getOffset());
     Assert.assertEquals(length, readRequest.getLength());
     Assert.assertEquals(cancel, readRequest.getCancel());
+    Assert.assertEquals(packetSize, readRequest.getPacketSize());
   }
 
   /**

@@ -58,6 +58,11 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-protobuf</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-common</artifactId>
       <version>${project.version}</version>
     </dependency>
