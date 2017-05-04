@@ -11,8 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Constants;
-
 /**
  * Utility method called in alluxio-mount.sh to calculate space for Mac OS X HFS+.
  * Metadata zone size is estimated by using specifications noted at
@@ -31,20 +29,19 @@ public final class HFSUtils {
   public static long getNumSector(String requestSize, String sectorSize) {
     Double memSize = Double.parseDouble(requestSize);
     Double sectorBytes = Double.parseDouble(sectorSize);
-
     Double nSectors = memSize / sectorBytes;
-    Double memSizeKB = memSize / Constants.KB;
-    Double memSizeGB = memSize / Constants.GB;
-    Double memSize100GB = memSize / (100 * Constants.GB);
+    Double memSizeKB = memSize / 1024;
+    Double memSizeGB = memSize / (1024 * 1024 * 1024);
+    Double memSize100GB = memSizeGB / 100;
 
     // allocation bitmap file: one bit per sector
     Double allocBitmapSize = nSectors / 8;
 
     // extend overflow file: 4MB, plus 4MB per 100GB
-    Double extOverflowFileSize = memSize100GB * Constants.MB * 4;
+    Double extOverflowFileSize = memSize100GB * 1024 * 1024 * 4;
 
     // journal file: 8MB, plus 8MB per 100GB
-    Double journalFileSize = memSize100GB * Constants.MB * 8;
+    Double journalFileSize = memSize100GB * 1024 * 1024 * 8;
 
     // catalog file: 10bytes per KB
     Double catalogFileSize = memSizeKB * 10;
