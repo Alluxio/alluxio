@@ -37,6 +37,7 @@ import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +76,7 @@ public final class FileSystemContext implements Closeable {
       mBlockWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
 
   // The netty data server channel pools.
-  private final ConcurrentHashMapV8<InetSocketAddress, NettyChannelPool>
+  private final ConcurrentHashMapV8<SocketAddress, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMapV8<>();
 
   /** The shared master address associated with the {@link FileSystemContext}. */
@@ -294,9 +295,9 @@ public final class FileSystemContext implements Closeable {
    * @param address the network address of the channel
    * @return the acquired netty channel
    */
-  public Channel acquireNettyChannel(final InetSocketAddress address) {
+  public Channel acquireNettyChannel(final SocketAddress address) {
     if (!mNettyChannelPools.containsKey(address)) {
-      Bootstrap bs = NettyClient.createClientBootstrap();
+      Bootstrap bs = NettyClient.createClientBootstrap(address);
       bs.remoteAddress(address);
       NettyChannelPool pool = new NettyChannelPool(bs,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
@@ -316,10 +317,10 @@ public final class FileSystemContext implements Closeable {
   /**
    * Releases a netty channel to the channel pools.
    *
-   * @param address the network address of the channel
+   * @param address the address of the channel
    * @param channel the channel to release
    */
-  public void releaseNettyChannel(InetSocketAddress address, Channel channel) {
+  public void releaseNettyChannel(SocketAddress address, Channel channel) {
     Preconditions.checkArgument(mNettyChannelPools.containsKey(address));
     mNettyChannelPools.get(address).release(channel);
   }

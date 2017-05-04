@@ -32,6 +32,10 @@ alluxio.worker.data.port:
 alluxio.worker.data.server.class:
   "Selects the networking stack to run the worker with. Valid options are:
   `alluxio.worker.netty.NettyDataServer`."
+alluxio.worker.data.server.domain.socket.address:
+  The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty).
+  This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need
+  to set a path to this socket. The AlluxioWorker needs to be able to create this path.
 alluxio.worker.evictor.class:
   The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid
   options include `alluxio.worker.block.evictor.LRFUEvictor`,

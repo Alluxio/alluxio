@@ -29,7 +29,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,7 +79,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      InetSocketAddress address, long sessionId, long id, long length,
+      SocketAddress address, long sessionId, long id, long length,
       Protocol.RequestType type, OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
@@ -98,9 +98,9 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @param options the out stream options
    * @return the {@link PacketOutStream} created
    */
-  public static PacketOutStream createNettyPacketOutStream(
-      FileSystemContext context, InetSocketAddress address, long length,
-      Protocol.WriteRequest partialRequest, OutStreamOptions options) {
+  public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
+      SocketAddress address, long length, Protocol.WriteRequest partialRequest,
+      OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
     PacketWriter packetWriter =

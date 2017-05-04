@@ -25,17 +25,20 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import io.netty.channel.unix.DomainSocketAddress;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -61,7 +64,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   private final PacketInStream mInputStream;
 
   /**
-   * Creates an instance of local {@link BlockInStream} that reads from local worker.
+   * Creates an instance of {@link BlockInStream} that reads from local file directly.
    *
    * @param blockId the block ID
    * @param blockSize the block size
@@ -71,7 +74,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createLocalBlockInStream(long blockId, long blockSize,
+  public static BlockInStream createShortCircuitBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
     Closer closer = Closer.create();
     try {
@@ -101,7 +104,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @return the {@link BlockInStream} created
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createRemoteBlockInStream(long blockId, long blockSize,
+  public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
     Closer closer = Closer.create();
     try {
@@ -109,8 +112,14 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
           closer.register(context.createBlockWorkerClient(workerNetAddress));
       LockBlockResource lockBlockResource =
           closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
+      SocketAddress address;
+      if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
+        address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
+      } else {
+        address = blockWorkerClient.getDataServerAddress();
+      }
       PacketInStream inStream = closer.register(PacketInStream
-          .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
+          .createNettyPacketInStream(context, address, blockId,
               lockBlockResource.getResult().getLockId(), blockWorkerClient.getSessionId(),
               blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK, options));
       blockWorkerClient.accessBlock(blockId);
@@ -159,25 +168,32 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       LockBlockResult lockBlockResult =
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       PacketInStream inStream;
+      SocketAddress address;
+      if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
+        address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
+      } else {
+        address = blockWorkerClient.getDataServerAddress();
+      }
       if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
         boolean local = blockWorkerClient.getDataServerAddress().getHostName()
             .equals(NetworkAddressUtils.getClientHostName());
-        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
+        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)
+            && !NettyUtils.isDomainSocketSupported(workerNetAddress)) {
           inStream = closer.register(PacketInStream
               .createLocalPacketInStream(
                   lockBlockResult.getBlockPath(), blockId, blockSize, options));
         } else {
           inStream = closer.register(PacketInStream
-              .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
-                  lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
+              .createNettyPacketInStream(context, address, blockId, lockBlockResult.getLockId(),
+                  blockWorkerClient.getSessionId(), blockSize, false,
                   Protocol.RequestType.ALLUXIO_BLOCK, options));
         }
         blockWorkerClient.accessBlock(blockId);
       } else {
         Preconditions.checkState(lockBlockResult.getLockBlockStatus().ufsTokenAcquired());
         inStream = closer.register(PacketInStream
-            .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
-                lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
+            .createNettyPacketInStream(context, address, blockId, lockBlockResult.getLockId(),
+                blockWorkerClient.getSessionId(), blockSize,
                 !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK,
                 options));
       }

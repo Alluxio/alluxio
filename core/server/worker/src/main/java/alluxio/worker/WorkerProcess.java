@@ -59,6 +59,11 @@ public interface WorkerProcess extends Process {
   int getDataLocalPort();
 
   /**
+   * @return the worker's data service domain socket path if available or "" if not available
+   */
+  String getDataDomainSocketPath();
+
+  /**
    * @return this worker's rpc address
    */
   InetSocketAddress getRpcAddress();

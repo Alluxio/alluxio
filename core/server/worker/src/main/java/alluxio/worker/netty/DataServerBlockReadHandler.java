@@ -19,6 +19,7 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -27,6 +28,7 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
@@ -104,7 +106,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
 
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws IOException {
-    BlockReader blockReader = ((BlockReadRequestInternal) mRequest).mBlockReader;
+    LocalFileBlockReader blockReader =
+        (LocalFileBlockReader) ((BlockReadRequestInternal) mRequest).mBlockReader;
     Preconditions.checkArgument(blockReader.getChannel() instanceof FileChannel,
         "Only FileChannel is supported!");
     switch (mTransferType) {
@@ -123,7 +126,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
         }
       case TRANSFER: // intend to fall through as TRANSFER is the default type.
       default:
-        return new DataFileChannel((FileChannel) blockReader.getChannel(), offset, len);
+        return new DataFileChannel(new File(blockReader.getFilePath()), offset, len);
     }
   }
 
