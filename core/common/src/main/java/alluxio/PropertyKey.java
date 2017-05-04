@@ -73,7 +73,7 @@ public class PropertyKey {
   //
   // UFS related properties
   //
-  // Deprecated since 1.5.0 and will be removed in 2.0.
+  // Deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
   public static final PropertyKey UNDERFS_ADDRESS =
       create(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR));
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
@@ -168,15 +168,15 @@ public class PropertyKey {
   // Mount table related properties
   //
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_ALLUXIO =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO, "/", "root");
+      create(Template.MASTER_MOUNT_TABLE_ALLUXIO, "/", "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_OPTION =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_OPTION, null, "root");
+      create(Template.MASTER_MOUNT_TABLE_OPTION, null, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_READONLY, false, "root");
+      create(Template.MASTER_MOUNT_TABLE_READONLY, false, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_SHARED, true, "root");
+      create(Template.MASTER_MOUNT_TABLE_SHARED, true, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_UFS,
+      create(Template.MASTER_MOUNT_TABLE_UFS,
           String.format("${%s}", Name.UNDERFS_ADDRESS), "root");
 
   //
@@ -1067,18 +1067,20 @@ public class PropertyKey {
    */
   @ThreadSafe
   public enum Template {
-    MASTER_MOUNT_TABLE_ENTRY_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
+    MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
-    MASTER_MOUNT_TABLE_ENTRY_OPTION("alluxio.master.mount.table.%s.option",
+    MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
-    MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
+    MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option(\\.\\w+)++"),
-    MASTER_MOUNT_TABLE_ENTRY_READONLY("alluxio.master.mount.table.%s.readonly",
+    MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly"),
-    MASTER_MOUNT_TABLE_ENTRY_SHARED("alluxio.master.mount.table.%s.shared",
+    MASTER_MOUNT_TABLE_SHARED("alluxio.master.mount.table.%s.shared",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.shared"),
-    MASTER_MOUNT_TABLE_ENTRY_UFS("alluxio.master.mount.table.%s.ufs",
+    MASTER_MOUNT_TABLE_UFS("alluxio.master.mount.table.%s.ufs",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
+    MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY("alluxio.master.mount.table.root.option.%s",
+        "alluxio\\.master\\.mount\\.table\\.root\\.option(\\.\\w+)++"),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",

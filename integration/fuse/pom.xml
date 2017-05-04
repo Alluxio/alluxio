@@ -47,7 +47,7 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

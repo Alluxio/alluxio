@@ -11,7 +11,9 @@
 
 package alluxio.hadoop;
 
-import com.google.common.base.Throwables;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.lineage.LineageContext;
+
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.reflect.Whitebox;
 
@@ -24,14 +26,19 @@ import java.net.URL;
  */
 public final class HadoopClientTestUtils {
   /**
-   * Resets the initialized flag in {@link AbstractFileSystem} allowing FileSystems with
-   * different URIs to be initialized.
+   * Resets the client to its initial state, re-initializing Alluxio and Hadoop contexts. Resets the
+   * initialized flag in {@link AbstractFileSystem} allowing FileSystems with different URIs to be
+   * initialized.
+   *
+   * This method should only be used as a cleanup mechanism between tests.
    */
-  public static void resetHadoopClientContext() {
+  public static void resetClient() {
     try {
+      FileSystemContext.INSTANCE.reset();
+      LineageContext.INSTANCE.reset();
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
