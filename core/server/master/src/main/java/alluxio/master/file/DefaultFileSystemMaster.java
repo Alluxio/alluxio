@@ -58,6 +58,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -652,7 +653,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public FileInfo getFileInfo(AlluxioURI path)
+  public FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Metrics.GET_FILE_INFO_OPS.inc();
 

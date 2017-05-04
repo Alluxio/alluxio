@@ -9,24 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.wire.LoadMetadataType;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for getting the status of a path.
+ * Method options for getStatus.
  */
-@PublicApi
 @NotThreadSafe
-@JsonInclude(Include.NON_EMPTY)
 public final class GetStatusOptions {
   private LoadMetadataType mLoadMetadataType;
 
@@ -42,6 +37,18 @@ public final class GetStatusOptions {
   }
 
   /**
+   * Create an instance of {@link GetStatusOptions} from a {@link GetStatusTOptions}.
+   *
+   * @param options the thrift representation of getFileInfo options
+   */
+  public GetStatusOptions(GetStatusTOptions options) {
+    mLoadMetadataType = LoadMetadataType.Once;
+    if (options.isSetLoadMetadataType()) {
+      mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+    }
+  }
+
+  /**
    * @return the load metadata type
    */
   public LoadMetadataType getLoadMetadataType() {
@@ -49,7 +56,9 @@ public final class GetStatusOptions {
   }
 
   /**
-   * @param loadMetadataType the loadMetataType
+   * Sets the {@link GetStatusOptions#mLoadMetadataType}.
+   *
+   * @param loadMetadataType the load metadata type
    * @return the updated options
    */
   public GetStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
@@ -79,14 +88,5 @@ public final class GetStatusOptions {
     return Objects.toStringHelper(this)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
-  }
-
-  /**
-   * @return thrift representation of the options
-   */
-  public GetStatusTOptions toThrift() {
-    GetStatusTOptions options = new GetStatusTOptions();
-    options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
-    return options;
   }
 }

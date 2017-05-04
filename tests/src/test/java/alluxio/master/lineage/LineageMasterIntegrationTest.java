@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.client.lineage.LineageMasterClient;
@@ -60,6 +61,7 @@ public class LineageMasterIntegrationTest {
   private static final String OUT_FILE = "/test";
   private static final int RECOMPUTE_INTERVAL_MS = 1000;
   private static final int CHECKPOINT_INTERVAL_MS = 100;
+  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -100,7 +102,7 @@ public class LineageMasterIntegrationTest {
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
       AlluxioURI uri = new AlluxioURI(infos.get(0).getOutputFiles().get(0));
-      URIStatus status = getFileSystemMasterClient().getStatus(uri);
+      URIStatus status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
       Assert.assertFalse(status.isCompleted());
     }
@@ -123,14 +125,14 @@ public class LineageMasterIntegrationTest {
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       AlluxioURI uri = new AlluxioURI(infos.get(0).getOutputFiles().get(0));
-      URIStatus status = getFileSystemMasterClient().getStatus(uri);
+      URIStatus status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertNotEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
       Assert.assertTrue(status.isCompleted());
 
       IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, uri);
 
       // worker notifies the master
-      status = getFileSystemMasterClient().getStatus(uri);
+      status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     }

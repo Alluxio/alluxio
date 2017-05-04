@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.wire.LoadMetadataType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -26,6 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class ExistsOptions {
+  private LoadMetadataType mLoadMetadataType;
+
   /**
    * @return the default {@link ExistsOptions}
    */
@@ -34,21 +37,46 @@ public final class ExistsOptions {
   }
 
   private ExistsOptions() {
-    // No options currently
+    mLoadMetadataType = LoadMetadataType.Once;
+  }
+
+  /**
+   * @return the load metadata type
+   */
+  public LoadMetadataType getLoadMetadataType() {
+    return mLoadMetadataType;
+  }
+
+  /**
+   * @param loadMetadataType the loadMetataType
+   * @return the updated options
+   */
+  public ExistsOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+    mLoadMetadataType = loadMetadataType;
+    return this;
   }
 
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof ExistsOptions;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ExistsOptions)) {
+      return false;
+    }
+    ExistsOptions that = (ExistsOptions) o;
+    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return 0;
+    return Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return Objects.toStringHelper(this)
+        .add("loadMetadataType", mLoadMetadataType.toString())
+        .toString();
   }
 }

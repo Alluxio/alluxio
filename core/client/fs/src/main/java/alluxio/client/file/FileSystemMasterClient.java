@@ -19,6 +19,7 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -115,9 +116,10 @@ public interface FileSystemMasterClient extends MasterClient {
 
   /**
    * @param path the file path
+   * @param options the getStatus options
    * @return the file info for the given file id
    */
-  URIStatus getStatus(AlluxioURI path);
+  URIStatus getStatus(AlluxioURI path, GetStatusOptions options);
 
   /**
    * @param path the file path

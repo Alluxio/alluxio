@@ -56,7 +56,7 @@ struct ListStatusTOptions {
   2: optional LoadMetadataTType loadMetadataType
 }
 
-struct GetFileInfoTOptions {
+struct GetStatusTOptions {
   1: optional LoadMetadataTType loadMetadataType
 }
 
@@ -199,6 +199,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   FileInfo getStatus(
     /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: GetStatusTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 

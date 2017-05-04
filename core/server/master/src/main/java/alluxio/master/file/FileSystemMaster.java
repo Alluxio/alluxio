@@ -31,6 +31,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -89,13 +90,13 @@ public interface FileSystemMaster extends Master {
    * This operation requires users to have READ permission on the path.
    *
    * @param path the path to get the {@link FileInfo} for
+   * @param options the {@link GetStatusOptions}
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is not valid
    * @throws AccessControlException if permission checking fails
    */
-  // TODO(peis): Add an option not to load metadata.
-  FileInfo getFileInfo(AlluxioURI path)
+  FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException;
 
   /**
