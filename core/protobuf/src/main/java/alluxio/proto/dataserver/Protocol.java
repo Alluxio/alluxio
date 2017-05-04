@@ -2858,7 +2858,7 @@ public final class Protocol {
    *
    * <pre>
    * The response.
-   * next available id: 2
+   * next available id: 3
    * </pre>
    */
   public static final class Response extends
@@ -3146,7 +3146,7 @@ public final class Protocol {
      *
      * <pre>
      * The response.
-     * next available id: 2
+     * next available id: 3
      * </pre>
      */
     public static final class Builder extends
@@ -3412,18 +3412,10 @@ public final class Protocol {
     // optional int64 session_id = 2;
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     boolean hasSessionId();
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     long getSessionId();
   }
@@ -3431,7 +3423,7 @@ public final class Protocol {
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenRequest}
    *
    * <pre>
-   * next available id: 2
+   * next available id: 3
    * </pre>
    */
   public static final class LocalBlockOpenRequest extends
@@ -3553,20 +3545,12 @@ public final class Protocol {
     private long sessionId_;
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     public boolean hasSessionId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     public long getSessionId() {
       return sessionId_;
@@ -3693,7 +3677,7 @@ public final class Protocol {
      * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenRequest}
      *
      * <pre>
-     * next available id: 2
+     * next available id: 3
      * </pre>
      */
     public static final class Builder extends
@@ -3857,30 +3841,18 @@ public final class Protocol {
       private long sessionId_ ;
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public boolean hasSessionId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public long getSessionId() {
         return sessionId_;
       }
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public Builder setSessionId(long value) {
         bitField0_ |= 0x00000002;
@@ -3890,10 +3862,6 @@ public final class Protocol {
       }
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public Builder clearSessionId() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -3935,7 +3903,7 @@ public final class Protocol {
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenResponse}
    *
    * <pre>
-   * next available id: 3
+   * next available id: 2
    * </pre>
    */
   public static final class LocalBlockOpenResponse extends
@@ -4187,7 +4155,7 @@ public final class Protocol {
      * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenResponse}
      *
      * <pre>
-     * next available id: 3
+     * next available id: 2
      * </pre>
      */
     public static final class Builder extends
@@ -4408,18 +4376,10 @@ public final class Protocol {
     // optional int64 session_id = 2;
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     boolean hasSessionId();
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     long getSessionId();
   }
@@ -4427,7 +4387,7 @@ public final class Protocol {
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCloseRequest}
    *
    * <pre>
-   * next available id: 2
+   * next available id: 3
    * </pre>
    */
   public static final class LocalBlockCloseRequest extends
@@ -4549,20 +4509,12 @@ public final class Protocol {
     private long sessionId_;
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     public boolean hasSessionId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional int64 session_id = 2;</code>
-     *
-     * <pre>
-     * Safe to remove before 1.5.0.
-     * </pre>
      */
     public long getSessionId() {
       return sessionId_;
@@ -4689,7 +4641,7 @@ public final class Protocol {
      * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCloseRequest}
      *
      * <pre>
-     * next available id: 2
+     * next available id: 3
      * </pre>
      */
     public static final class Builder extends
@@ -4853,30 +4805,18 @@ public final class Protocol {
       private long sessionId_ ;
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public boolean hasSessionId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public long getSessionId() {
         return sessionId_;
       }
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public Builder setSessionId(long value) {
         bitField0_ |= 0x00000002;
@@ -4886,10 +4826,6 @@ public final class Protocol {
       }
       /**
        * <code>optional int64 session_id = 2;</code>
-       *
-       * <pre>
-       * Safe to remove before 1.5.0.
-       * </pre>
        */
       public Builder clearSessionId() {
         bitField0_ = (bitField0_ & ~0x00000002);

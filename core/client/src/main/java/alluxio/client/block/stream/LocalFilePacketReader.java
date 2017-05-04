@@ -83,7 +83,7 @@ public final class LocalFilePacketReader implements PacketReader {
       return;
     }
     mClosed = true;
-    mReader.close();;
+    mReader.close();
   }
 
   /**
