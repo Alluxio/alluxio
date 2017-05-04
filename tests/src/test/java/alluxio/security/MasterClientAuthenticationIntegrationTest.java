@@ -113,7 +113,11 @@ public final class MasterClientAuthenticationIntegrationTest {
     ClassLoader isolatedClassLoader =
         new URLClassLoader(((URLClassLoader) contextClassLoader).getURLs(), null);
     Thread.currentThread().setContextClassLoader(isolatedClassLoader);
-    masterClient.connect();
+    try {
+      masterClient.connect();
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
     Assert.assertTrue(masterClient.isConnected());
   }
 
