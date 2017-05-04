@@ -14,13 +14,9 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import java.net.URI;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
