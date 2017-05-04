@@ -123,6 +123,7 @@ public final class UfsSyncChecker {
         for (UnderFileStatus child : mListedDirectories.get(curUri.toString())) {
           String childPath = PathUtils.concatPath(curUri, child.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
+          // TODO(adit): only return immediate children
           if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
             childrenList.add(new UnderFileStatus(childPath.substring(prefix.length()),
                 child.isDirectory()));
@@ -138,6 +139,7 @@ public final class UfsSyncChecker {
     if (children != null) {
       mListedDirectories.put(ufsUri.toString(), children);
     }
+    // TODO(adit): only return immediate children
     return children;
   }
 }
