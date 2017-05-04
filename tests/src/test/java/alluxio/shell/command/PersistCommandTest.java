@@ -147,7 +147,8 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void persistWithAncestorPermission() throws Exception {
-    String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    String ufsRoot =
+        PathUtils.concatPath(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
     UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(ufs) || UnderFileSystemUtils.isHdfs(ufs));

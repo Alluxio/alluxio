@@ -73,8 +73,7 @@ public class PropertyKey {
   //
   // UFS related properties
   //
-
-  // Deprecated since 1.5.0 and will be removed in 2.0.
+  // Deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
   public static final PropertyKey UNDERFS_ADDRESS =
       create(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR));
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
@@ -334,8 +333,6 @@ public class PropertyKey {
       create(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
-  public static final PropertyKey WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
-      create(Name.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB");
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128);
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
@@ -516,6 +513,9 @@ public class PropertyKey {
       create(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
       create(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true);
+  public static final PropertyKey USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
+      create(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB");
+
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       create(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50);
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
@@ -886,8 +886,6 @@ public class PropertyKey {
         "alluxio.worker.network.netty.writer.buffer.size.packets";
     public static final String WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.worker.network.netty.reader.buffer.size.packets";
-    public static final String WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
-        "alluxio.worker.network.netty.reader.packet.size.bytes";
     public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.netty.block.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
@@ -1001,6 +999,8 @@ public class PropertyKey {
         "alluxio.user.network.netty.reader.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
         "alluxio.user.network.netty.reader.cancel.enabled";
+    public static final String USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
+        "alluxio.user.network.netty.reader.packet.size.bytes";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep.ms";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
