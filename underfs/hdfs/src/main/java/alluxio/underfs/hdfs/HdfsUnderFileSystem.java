@@ -204,11 +204,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public Object getConf() {
-    return mFileSystem.getConf();
-  }
-
-  @Override
   public List<String> getFileLocations(String path) throws IOException {
     return getFileLocations(path, FileLocationOptions.defaults());
   }
@@ -430,11 +425,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       return false;
     }
     return rename(src, dst);
-  }
-
-  @Override
-  public void setConf(Object conf) {
-    mFileSystem.setConf((org.apache.hadoop.conf.Configuration) conf);
   }
 
   @Override
