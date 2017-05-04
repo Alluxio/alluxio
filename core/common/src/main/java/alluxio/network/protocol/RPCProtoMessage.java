@@ -18,6 +18,7 @@ import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.dataserver.Protocol.Response;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Objects;
@@ -139,10 +140,7 @@ public final class RPCProtoMessage extends RPCMessage {
    */
   public void unwrapException() {
     Response response = getMessage().asResponse();
-    Status status = Status.fromProto(response.getStatus());
-    if (status != Status.OK) {
-      throw AlluxioStatusException.from(status, response.getMessage());
-    }
+    CommonUtils.unwrapResponse(response);
   }
 
   @Override
