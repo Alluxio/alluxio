@@ -39,7 +39,6 @@ public final class LocalFilePacketReader implements PacketReader {
   private static final long LOCAL_READ_PACKET_SIZE =
       Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
 
-
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
 
@@ -99,13 +98,13 @@ public final class LocalFilePacketReader implements PacketReader {
     private final long mSessionId;
     private final String mPath;
 
-
     /**
      * Creates an instance of {@link Factory}.
      *
      * @param context the file system context
      * @param address the worker address
      * @param blockId the block ID
+     * @param sessionId the session ID
      */
     public Factory(FileSystemContext context, InetSocketAddress address, long blockId,
         long sessionId) {
