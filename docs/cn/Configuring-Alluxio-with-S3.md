@@ -57,7 +57,7 @@ priority: 0
 
 ## 配置应用依赖
 
-当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
+当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client-fs`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 

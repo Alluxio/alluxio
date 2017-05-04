@@ -48,7 +48,7 @@ priority: 0
 
 ## 配置你的应用
 
-当使用Alluxio构建你的应用时，你的应用需要包含`alluxio-core-client`模块。如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
+当使用Alluxio构建你的应用时，你的应用需要包含`alluxio-core-client-fs`模块。如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
 
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
 

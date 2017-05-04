@@ -52,10 +52,8 @@ este contém a classe configurada `alluxio.hadoop.FileSystem`.
 
 Existem diferentes maneiras de efetuar isto:
 
-- Coloque o arquivo `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-dentro do diretório `lib` do `Flink` (para configurações locais ou em `cluster`)
-- Coloque o arquivo `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-dentro do diretório `ship` para o `Flink` no `YARN`.
+- Coloque o arquivo `{{site.ALLUXIO_CLIENT_JAR_PATH}}` dentro do diretório `lib` do `Flink` (para configurações locais ou em `cluster`)
+- Coloque o arquivo `{{site.ALLUXIO_CLIENT_JAR_PATH}}` dentro do diretório `ship` para o `Flink` no `YARN`.
 - Especifique o local do arquivo `jar` na variável de ambiente `HADOOP_CLASSPATH` (tenha certeza que
 isto estará disponível em todo o cluster). Por exemplo:
 
