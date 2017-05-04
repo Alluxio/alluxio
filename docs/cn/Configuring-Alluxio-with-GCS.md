@@ -48,7 +48,7 @@ priority: 0
 
 ## 配置你的应用
 
-当使用Alluxio构建你的应用时，你的应用需要包含`alluxio-core-client`模块。如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
+当使用Alluxio构建你的应用时，你的应用需要包含`alluxio-core-client-fs`模块。如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
 
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
 
@@ -71,3 +71,25 @@ priority: 0
 运行以下命令停止Alluxio:
 
 {% include Common-Commands/stop-alluxio.md %}
+
+## GCS访问控制
+
+如果Alluxio安全认证被启用，Alluxio将会遵循底层对象存储的访问权限控制。
+
+在Alluxio配置中指定的GCS证书代表一个GCS用户，GCS服务终端会在用户试图访问bucket和对象时检查其权限，如果该GCS用户没有访问该bucket的权限，将会抛出一个权限错误。Alluxio在第一次将元数据从底层GCS加载到Alluxio命名空间时，便会同时将其bucket的ACL也加载到Alluxio权限管理元数据中。
+
+### GCS用户到Alluxio文件所有者的映射关系
+
+默认情况下， Alluxio会尝试从证书中解析其GCS用户id。另外，可以配置`alluxio.underfs.gcs.owner.id.to.username.mapping`从而指定某个GCS用户id到Alluxio用户名的映射关系，其配置形式为"id1=user1;id2=user2"。谷歌云存储ID可以在[该控制台地址](https://console.cloud.google.com/storage/settings)找到，请使用“Owners”这一项。
+
+### GCS ACL到Alluxio权限的映射关系
+
+Alluxio通过检查GCS bucket的读写ACL来确定Alluxio文件的权限。举例来说，如果某个GCS用户对一个底层bucket具有只读权限，在Alluxio中该挂载的目录以及文件的权限模式将为0500,如果该GCS用户具有所有权限，那么权限模式将为0700。
+
+### 挂载点共享
+
+如果你想在Alluxio命名空间中与其他用户共享GCS挂载点，可以启用`alluxio.underfs.object.store.mount.shared.publicly`。
+
+### 权限更改
+
+注意，对Alluxio目录或者文件运行chown/chgrp/chmod等命令不会对底层GCS bucket或者对象的权限做出更改。
