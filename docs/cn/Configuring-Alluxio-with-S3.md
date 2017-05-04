@@ -55,28 +55,13 @@ priority: 0
 
 其中，`<PROXY_HOST>`和`<PROXY_PORT>`为代理的主机名和端口，`<USE_HTTPS?>`根据是否使用https与代理通信设置为`true`或`false`。
 
-如果运行Alluxio client的JVM不在Alluxio Master和Workers上，也要为其进行这些设置，参考[配置分布式应用](#configuring-distributed-applications)
+## 配置应用依赖
 
-## 配置应用
-
-当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
+当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client-fs`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
-
-### 启用Hadoop S3客户端（代替本地S3客户端）
-
-Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配置为底层文件系统时，该本地客户端会被使用。
-
-但可以选择另外一种与S3通信的方式，即由Hadoop提供的S3客户端。为禁用Alluxio S3客户端（并启用Hadoop S3客户端），还需进行额外配置。若你的应用中包含了`alluxio-core-client`模块，要将`alluxio-underfs-s3`排除在外从而禁用本地客户端，并启用Hadoop S3客户端：
-
-{% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
-
-然而，Hadoop S3客户端需要`jets3t`来启用S3,而默认配置并未添加该依赖，因此，你必须手动添加`jets3t`包依赖。若使用Maven，添加如下代码加入该依赖：
-
-{% include Configuring-Alluxio-with-S3/jets3t-dependency.md %}
-
-`jets3t 0.9.0`适用于Hadoop `2.3.0`，而`jets3t 0.7.1`应适用于更旧版本的Hadoop。要确认支持你的Hadoop版本的具体`jets3t`版本号，可以参考[MvnRepository](http://mvnrepository.com/)。
+另外，你也可以将`conf/alluxio-site.properties`（包含了设置证书的配置项）拷贝到你的应用运行时的classpath中（例如对于Spark而言为`$SPARK_CLASSPATH`），或者将该配置文件所在的路径追加到classpath末尾。
 
 ### 使用非亚马逊服务提供商
 
@@ -91,12 +76,6 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 ### 使用v2的S3签名
 
 一些S3服务提供商仅仅支持v2签名。对这些S3提供商来说，可以通过设置`alluxio.underfs.s3a.signer.algorithm`为`S3SignerType`来强制使用v2签名。
-
-### 配置分布式应用
-
-如果你使用的Alluxio Client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了AWS证书，最简单的方法是在启动client JVM时添加如下选项：
-
-{% include Configuring-Alluxio-with-S3/java-bash.md %}
 
 ## 使用S3在本地运行Alluxio
 
@@ -117,3 +96,25 @@ Alluxio提供了一个本地客户端与S3交互，默认情况下，当S3被配
 运行以下命令停止Alluxio：
 
 {% include Common-Commands/stop-alluxio.md %}
+
+## S3访问控制
+
+如果Alluxio安全认证被启用，Alluxio将会遵循底层对象存储的访问权限控制。
+
+Alluxio配置中指定的S3证书代表一个S3用户，S3服务终端在一个用户访问bucket和对象时将会检查该用户的权限，如果该用户对某个bucket没有足够的访问权限，将会抛出一个权限错误。当Alluxio安全认证被启用时，Alluxio在第一次从底层S3将元数据加载到Alluxio命名空间时便会同时将其bucket的ACL也加载到Alluxio访问权限元数据中。
+
+### S3用户到Alluxio文件所有者的映射关系
+
+默认情况下，Alluxio会尝试从S3证书中解析其S3用户名。另外，也可以配置`alluxio.underfs.s3.owner.id.to.username.mapping`从而指定某个S3编号到Alluxio用户名的映射关系，其配置形式为"id1=user1;id2=user2"。AWS S3规范编号可以在[该控制台地址](https://console.aws.amazon.com/iam/home?#security_credential)找到，请展开`Account Identifiers`选项卡，并参考"Canonical User ID"。
+
+### S3 ACL到Alluxio权限的映射关系
+
+Alluxio通过S3 bucket的读写ACL来决定Alluxio文件的所有者权限模式。举例来说，如果一个S3用户对某个底层S3 bucket具有只读权限，那么该挂载的目录以及文件的权限模式为0500,如果该S3用户具有所有权限，那么其Alluxio权限模式将为0700。
+
+### 挂载点共享
+
+如果你想在Alluxio命名空间中与其他用户共享S3挂载点，可以启用`alluxio.underfs.object.store.mount.shared.publicly`。
+
+### 权限更改
+
+注意，对Alluxio目录或者文件进行chown/chgrp/chmod等操作不会对其底层S3 bucket或者对象的权限做出更改。

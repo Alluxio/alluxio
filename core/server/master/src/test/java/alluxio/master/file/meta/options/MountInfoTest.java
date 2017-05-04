@@ -28,8 +28,9 @@ public final class MountInfoTest {
   public void getFields() {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/test");
     MountOptions options = MountOptions.defaults();
-    MountInfo info = new MountInfo(uri, options);
+    MountInfo info = new MountInfo(uri, 1, options);
     Assert.assertEquals(uri, info.getUfsUri());
     Assert.assertEquals(options, info.getOptions());
+    Assert.assertEquals(1, info.getMountId());
   }
 }

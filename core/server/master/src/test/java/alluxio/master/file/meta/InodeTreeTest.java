@@ -27,10 +27,12 @@ import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
@@ -43,6 +45,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
@@ -89,7 +92,8 @@ public final class InodeTreeTest {
 
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    MountTable mountTable = new MountTable();
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    MountTable mountTable = new MountTable(ufsManager);
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     mRegistry.start(true);
@@ -472,7 +476,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#deleteInode(LockedInodePath)} method.
+   * Tests deleting a nested inode.
    */
   @Test
   public void deleteInode() throws Exception {
@@ -659,7 +663,8 @@ public final class InodeTreeTest {
   // Helper to delete an inode by path.
   private static void deleteInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
     try (LockedInodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      root.deleteInode(inodePath);
+      root.deleteInode(inodePath, System.currentTimeMillis(), DeleteOptions.defaults(),
+          NoopJournalContext.INSTANCE);
     }
   }
 

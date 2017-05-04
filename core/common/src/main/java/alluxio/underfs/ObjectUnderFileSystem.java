@@ -205,13 +205,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   // Not supported
   @Override
-  public Object getConf() {
-    LOG.debug("getConf is not supported when using default ObjectUnderFileSystem.");
-    return null;
-  }
-
-  // Not supported
-  @Override
   public List<String> getFileLocations(String path) throws IOException {
     LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
     return null;
@@ -371,10 +364,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return copyObject(stripPrefixIfPresent(src), stripPrefixIfPresent(dst))
         && deleteObject(stripPrefixIfPresent(src));
   }
-
-  // Default object UFS does not provide a mechanism for updating the configuration, no-op
-  @Override
-  public void setConf(Object conf) {}
 
   @Override
   public boolean supportsFlush() {

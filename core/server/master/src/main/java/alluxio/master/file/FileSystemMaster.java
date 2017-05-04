@@ -25,7 +25,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -38,8 +37,10 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.TtlAction;
 import alluxio.wire.WorkerInfo;
 
@@ -213,7 +214,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return a copy of the current mount table
    */
-  Map<String, MountInfo> getMountTable();
+  Map<String, MountPointInfo>  getMountTable();
 
   /**
    * @return the number of files and directories
@@ -338,6 +339,12 @@ public interface FileSystemMaster extends Master {
    * @return the ufs address for this master
    */
   String getUfsAddress();
+
+  /**
+   * @param mountId the mount id to query
+   * @return the ufs information for the given mount id
+   */
+  UfsInfo getUfsInfo(long mountId);
 
   /**
    * @return the white list

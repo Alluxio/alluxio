@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -121,13 +120,13 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getMountPoints() throws Exception {
-    Map<String, MountInfo> mountTable = mFileSystemMaster.getMountTable();
+    Map<String, MountPointInfo> mountTable = mFileSystemMaster.getMountTable();
     Map<String, MountPointInfo> mountPoints = getInfo(NO_PARAMS).getMountPoints();
     Assert.assertEquals(mountTable.size(), mountPoints.size());
-    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
+    for (Map.Entry<String, MountPointInfo> mountPoint : mountTable.entrySet()) {
       Assert.assertTrue(mountPoints.containsKey(mountPoint.getKey()));
       String expectedUri = mountPoints.get(mountPoint.getKey()).getUfsUri();
-      String returnedUri = mountPoint.getValue().getUfsUri().toString();
+      String returnedUri = mountPoint.getValue().getUfsUri();
       Assert.assertEquals(expectedUri, returnedUri);
     }
   }

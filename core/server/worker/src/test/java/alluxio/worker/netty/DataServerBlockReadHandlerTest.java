@@ -96,7 +96,7 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
   protected RPCProtoMessage buildReadRequest(long offset, long len) {
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setId(1L).setOffset(offset).setLength(len).setLockId(1L)
-            .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
+            .setType(Protocol.RequestType.ALLUXIO_BLOCK).setPacketSize(PACKET_SIZE).build();
     return new RPCProtoMessage(new ProtoMessage(readRequest), null);
   }
 }

@@ -24,7 +24,7 @@ Note that, configuration set through environment variables may not be realized b
 [supported Alluxio configuration properties](#appendix). Configuration in those files can be respected by Alluxio servers,
 as well as applications.
 
-The priority to load property values, from the highest to the lowest, is
+The priority to load configuration settings, from the highest to the lowest, is
 application settings (if any), environment variables, property files and the defaults.
 
 ### Application settings
@@ -214,9 +214,9 @@ The user configuration specifies values regarding file system access.
 {% endfor %}
 </table>
 
-### Cluster Management
+### Resource Manager Configuration
 
-When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional configuration options.
+When running Alluxio with resource managers like Mesos and YARN, Alluxio has additional configuration options.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>

@@ -724,6 +724,13 @@ public class AlluxioURITest {
     new AlluxioURI("://localhost:8080/a");
   }
 
+  /**
+   * Tests to resolve a child {@link AlluxioURI} against a parent {@link AlluxioURI}.
+   *
+   * @param target the target path
+   * @param parent the parent path
+   * @param child the child path
+   */
   private void testParentChild(String target, String parent, String child) {
     if (target.length() > 0) {
       Assert.assertEquals(new AlluxioURI(target), new AlluxioURI(new AlluxioURI(parent),

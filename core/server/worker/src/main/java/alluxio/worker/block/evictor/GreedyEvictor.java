@@ -71,7 +71,7 @@ public final class GreedyEvictor implements Evictor {
       }
     }
     if (selectedDirView == null) {
-      LOG.error("Failed to freeSpace: No StorageDirView has enough capacity of {} bytes",
+      LOG.warn("Failed to freeSpace: No StorageDirView has enough capacity of {} bytes",
           availableBytes);
       return null;
     }

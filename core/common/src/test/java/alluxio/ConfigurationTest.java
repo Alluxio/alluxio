@@ -13,6 +13,7 @@ package alluxio;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -24,6 +25,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -325,6 +327,46 @@ public class ConfigurationTest {
     Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10day");
     Assert.assertEquals(10 * Constants.DAY,
         Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getNestedProperties() {
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            PropertyKey.WEB_THREADS.toString()), "val1");
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            "alluxio.unknown.property"), "val2");
+    Map<String, String> expected = new HashMap<>();
+    expected.put(PropertyKey.WEB_THREADS.toString(), "val1");
+    expected.put("alluxio.unknown.property", "val2");
+    Assert.assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
+        CoreMatchers.is(expected));
+  }
+
+  @Test
+  public void getNestedPropertiesEmptyTrailingProperty() {
+    Configuration.set(PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY
+        .format("foo", ""), "val");
+    Map<String, String> empty = new HashMap<>();
+    Assert.assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
+        CoreMatchers.is(empty));
+  }
+
+  @Test
+  public void getNestedPropertiesWrongPrefix() {
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            PropertyKey.WEB_THREADS.toString()),
+        "val");
+    Map<String, String> empty = new HashMap<>();
+    Assert.assertThat(Configuration.getNestedProperties(PropertyKey.HOME),
+        CoreMatchers.is(empty));
+    Assert.assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("bar")),
+        CoreMatchers.is(empty));
   }
 
   @Test
