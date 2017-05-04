@@ -59,7 +59,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      * @param request the block read request
      */
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength());
+      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
+          request.getPacketSize());
       mBlockReader = mWorker
           .readBlockRemote(request.getSessionId(), request.getId(), request.getLockId());
       mWorker.accessBlock(request.getSessionId(), mId);

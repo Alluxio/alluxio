@@ -60,7 +60,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
       PacketOutStream outStream = PacketOutStream
-          .createLocalPacketOutStream(client, blockId, blockSize, options.getWriteTier());
+          .createLocalPacketOutStream(client, blockId, blockSize, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (RuntimeException e) {
@@ -92,8 +92,8 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
         address = client.getDataServerAddress();
       }
       PacketOutStream outStream = PacketOutStream
-          .createNettyPacketOutStream(context, address, client.getSessionId(),
-              blockId, blockSize, options.getWriteTier(), Protocol.RequestType.ALLUXIO_BLOCK);
+          .createNettyPacketOutStream(context, address, client.getSessionId(), blockId, blockSize,
+              options.getWriteTier(), Protocol.RequestType.ALLUXIO_BLOCK, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (RuntimeException e) {
