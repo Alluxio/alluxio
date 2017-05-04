@@ -221,11 +221,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public Object getConf() {
-    return mUnderFileSystem.getConf();
-  }
-
-  @Override
   public List<String> getFileLocations(final String path) throws IOException {
     return call(new UfsCallable<List<String>>() {
       @Override
@@ -510,11 +505,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   @Override
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
     return mUnderFileSystem.resolveUri(ufsBaseUri, alluxioPath);
-  }
-
-  @Override
-  public void setConf(Object conf) {
-    mUnderFileSystem.setConf(conf);
   }
 
   @Override

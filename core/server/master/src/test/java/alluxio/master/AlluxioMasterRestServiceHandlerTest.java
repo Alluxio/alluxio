@@ -127,7 +127,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   private void registerFileSystemMock() throws IOException {
-    Configuration.set(PropertyKey.UNDERFS_ADDRESS, TEST_PATH);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
     when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
     when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);

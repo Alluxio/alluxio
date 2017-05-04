@@ -11,10 +11,13 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
 import alluxio.client.QuietlyCancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
@@ -52,12 +55,14 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @param client the block worker client
    * @param id the ID
    * @param length the block or file length
-   * @param tier the target tier
+   * @param options the out stream options
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
-      long id, long length, int tier) {
-    PacketWriter packetWriter = LocalFilePacketWriter.create(client, id, tier);
+      long id, long length, OutStreamOptions options) {
+    long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
+    PacketWriter packetWriter =
+        LocalFilePacketWriter.create(client, id, options.getWriteTier(), packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -69,15 +74,17 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @param sessionId the session ID
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
-   * @param tier the target tier
    * @param type the request type (either block write or UFS file write)
+   * @param options the out stream options
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      InetSocketAddress address, long sessionId, long id, long length, int tier,
-      Protocol.RequestType type) {
-    NettyPacketWriter packetWriter =
-        new NettyPacketWriter(context, address, id, length, sessionId, tier, type);
+      InetSocketAddress address, long sessionId, long id, long length,
+      Protocol.RequestType type, OutStreamOptions options) {
+    long packetSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
+    PacketWriter packetWriter = new NettyPacketWriter(
+        context, address, id, length, sessionId, options.getWriteTier(), type, packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -88,12 +95,16 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @param address the netty data server address
    * @param length the block or file length
    * @param partialRequest details of the write request which are constant for all requests
+   * @param options the out stream options
    * @return the {@link PacketOutStream} created
    */
-  public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      InetSocketAddress address, long length, Protocol.WriteRequest partialRequest) {
-    NettyPacketWriter packetWriter =
-        new NettyPacketWriter(context, address, length, partialRequest);
+  public static PacketOutStream createNettyPacketOutStream(
+      FileSystemContext context, InetSocketAddress address, long length,
+      Protocol.WriteRequest partialRequest, OutStreamOptions options) {
+    long packetSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
+    PacketWriter packetWriter =
+        new NettyPacketWriter(context, address, length, partialRequest, packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 

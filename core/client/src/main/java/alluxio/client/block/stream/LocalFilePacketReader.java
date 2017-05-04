@@ -11,11 +11,11 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.block.io.LocalFileBlockReader;
+
+import com.google.common.base.Preconditions;
 
 import java.nio.ByteBuffer;
 
@@ -26,14 +26,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalFilePacketReader implements PacketReader {
-  private static final long LOCAL_READ_PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
-
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
 
   private long mPos;
   private final long mEnd;
+  private final long mPacketSize;
 
   /**
    * Creates an instance of {@link LocalFilePacketReader}.
@@ -41,11 +39,15 @@ public final class LocalFilePacketReader implements PacketReader {
    * @param reader the local file block reader
    * @param offset the offset
    * @param len the length to read
+   * @param packetSize the packet size
    */
-  public LocalFilePacketReader(LocalFileBlockReader reader, long offset, long len) {
+  public LocalFilePacketReader(
+      LocalFileBlockReader reader, long offset, long len, long packetSize) {
+    Preconditions.checkArgument(packetSize > 0);
     mReader = reader;
     mPos = offset;
     mEnd = offset + len;
+    mPacketSize = packetSize;
   }
 
   @Override
@@ -53,7 +55,7 @@ public final class LocalFilePacketReader implements PacketReader {
     if (mPos >= mEnd) {
       return null;
     }
-    ByteBuffer buffer = mReader.read(mPos, Math.min(LOCAL_READ_PACKET_SIZE, mEnd - mPos));
+    ByteBuffer buffer = mReader.read(mPos, Math.min(mPacketSize, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
     return dataBuffer;
@@ -74,19 +76,22 @@ public final class LocalFilePacketReader implements PacketReader {
    */
   public static class Factory implements PacketReader.Factory {
     private final String mPath;
+    private final long mPacketSize;
 
     /**
      * Creates an instance of {@link Factory}.
      *
      * @param path the file path
+     * @param packetSize the packet size
      */
-    public Factory(String path) {
+    public Factory(String path, long packetSize) {
       mPath = path;
+      mPacketSize = packetSize;
     }
 
     @Override
     public PacketReader create(long offset, long len) {
-      return new LocalFilePacketReader(new LocalFileBlockReader(mPath), offset, len);
+      return new LocalFilePacketReader(new LocalFileBlockReader(mPath), offset, len, mPacketSize);
     }
 
     @Override
