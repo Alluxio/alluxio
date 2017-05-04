@@ -155,13 +155,17 @@ enough to prioritize placing the job on `host1`.
 
 To run the `spark-shell` with the Alluxio client, the Alluxio client jar will have to be added to the classpath of the
 Spark driver and Spark executors, as described earlier. However, sometimes Alluxio will fail to determine the security
-user and will result in an error message similar to: `Failed to login: No Alluxio User is found.`
+user and will result in an error message similar to: `Failed to login: No Alluxio User is found.` Here are some
+solutions.
 
-### Configure `spark.sql.hive.metastore.sharedPrefixes` for Spark
+### [Recommended] Configure `spark.sql.hive.metastore.sharedPrefixes` for Spark 1.4.0+
 
-Spark uses an isolated classloader to load java classes for accessing the hive metastore. However, the isolated
-classloader ignores certain packages and allows the main classloader to load "shared" classes. The Alluxio client
-should also be loaded by the main classloader, and you can append the `alluxio` package to the configuration parameter
+This is the recommended solution for this issue.
+
+In Spark 1.4.0 and later, Spark uses an isolated classloader to load java classes for accessing the hive metastore.
+However, the isolated classloader ignores certain packages and allows the main classloader to load "shared" classes
+(the Hadoop HDFS client is one of these "shared" classes). The Alluxio client should also be loaded by the main
+classloader, and you can append the `alluxio` package to the configuration parameter
 `spark.sql.hive.metastore.sharedPrefixes` to inform Spark to load Alluxio with the main classloader. For example, the
 parameter may be set to:
 
@@ -169,7 +173,9 @@ parameter may be set to:
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 
-### Specify `fs.alluxio.impl` for Hadoop Configuration
+### [Workaround] Specify `fs.alluxio.impl` for Hadoop Configuration
+
+If the recommended solution described above is infeasible, this is a workaround which can also solve this issue.
 
 Specifying the Hadoop configuration `fs.alluxio.impl` may also help in resolving this error. `fs.alluxio.impl` should
 be set to `alluxio.hadoop.FileSystem` and if you are using Alluxio in fault tolerant mode, `fs.alluxio-ft.impl` should
