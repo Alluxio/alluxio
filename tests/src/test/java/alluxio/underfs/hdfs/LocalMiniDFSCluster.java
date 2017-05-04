@@ -11,6 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.FileUtils;
 
@@ -170,8 +171,12 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   @Override
   public void cleanup() throws IOException {
+    if (!isStarted()) {
+      return;
+    }
     DistributedFileSystem client = getDFSClient();
-    FileStatus[] files = client.listStatus(new Path(getUnderFilesystemAddress()));
+    FileStatus[] files =
+        client.listStatus(new Path(getUnderFilesystemAddress() + AlluxioURI.SEPARATOR));
     if (files == null) {
       return;
     }
