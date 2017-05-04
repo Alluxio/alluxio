@@ -26,7 +26,7 @@ public final class HFSUtils {
    *
    * @param requestSize requested filesystem size in bytes
    * @param sectorSize the size of each sector in bytes
-   * @return 0 if getNumSectors execute successfully
+   * @return total sectors of HFS+ including estimated metadata zone size
    */
   public static long getNumSector(String requestSize, String sectorSize) {
     Double memSize = Double.parseDouble(requestSize);
@@ -53,8 +53,6 @@ public final class HFSUtils {
     Double hotFileSize = memSizeKB * 5;
 
     // quota users file and quota groups file
-    // quotaUsersFileSize = (memSizeGB * 256 + 1) * 64;
-    // quotaGroupsFileSize = (memSizeGB * 32 + 1) * 64;
     Double quotaUsersFileSize = (memSizeGB * 256 + 1) * 64;
     Double quotaGroupsFileSize = (memSizeGB * 32 + 1) * 64;
     Double metadataSize = allocBitmapSize + extOverflowFileSize + journalFileSize
