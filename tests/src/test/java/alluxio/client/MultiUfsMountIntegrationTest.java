@@ -13,7 +13,6 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -44,10 +43,10 @@ import java.util.Map;
  * Integration tests for mounting multiple UFSes into Alluxio, each with a different configuration.
  */
 public final class MultiUfsMountIntegrationTest {
-  private static final String MOUNT_POINT1 = "/";
-  private static final String MOUNT_POINT2 = "/mnt";
-  private static final Map<String, String> UFS_CONF1 = ImmutableMap.of("ufs1_key1", "ufs1_val1");
-  private static final Map<String, String> UFS_CONF2 = ImmutableMap.of("ufs2_key2", "ufs2_key2");
+  private static final String MOUNT_POINT1 = "/mnt1";
+  private static final String MOUNT_POINT2 = "/mnt2";
+  private static final Map<String, String> UFS_CONF1 = ImmutableMap.of("key1", "val1");
+  private static final Map<String, String> UFS_CONF2 = ImmutableMap.of("key2", "val2");
 
   private ConfExpectingUnderFileSystemFactory mUfsFactory1;
   private ConfExpectingUnderFileSystemFactory mUfsFactory2;
@@ -76,18 +75,17 @@ public final class MultiUfsMountIntegrationTest {
     mUfsUri1 = "ufs1://" + mFolder.newFolder().getAbsoluteFile();
     mUfsUri2 = "ufs2://" + mFolder.newFolder().getAbsoluteFile();
     mLocalUfs = new LocalUnderFileSystemFactory().create(mFolder.getRoot().getAbsolutePath(), null);
-    // Set the root ufs to ufs1 with its expected conf
-    mLocalAlluxioClusterResource.setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mUfsUri1)
-        .setProperty(
-            PropertyKey.Template.MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY.format("ufs1_key1"),
-            "ufs1_val1");
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
-    // Mount ufs2 to /mnt with specified options.
-    MountOptions options =
-        MountOptions.defaults().setProperties(ImmutableMap.of("ufs2_key2", "ufs2_key2"));
-    mFileSystem.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options);
+    // Mount ufs1 to /mnt1 with specified options.
+    MountOptions options1 =
+        MountOptions.defaults().setProperties(UFS_CONF1);
+    mFileSystem.mount(mMountPoint1, new AlluxioURI(mUfsUri1), options1);
+    // Mount ufs2 to /mnt2 with specified options.
+    MountOptions options2 =
+        MountOptions.defaults().setProperties(UFS_CONF2);
+    mFileSystem.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
   }
 
   @After
