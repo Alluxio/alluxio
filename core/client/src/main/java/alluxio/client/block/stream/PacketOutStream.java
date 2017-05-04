@@ -79,7 +79,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      SocketAddress address, long sessionId, long id, long length, int tier,
+      SocketAddress address, long sessionId, long id, long length,
       Protocol.RequestType type, OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
