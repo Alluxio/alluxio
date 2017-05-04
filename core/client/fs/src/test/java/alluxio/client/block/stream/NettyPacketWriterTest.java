@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
+@PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
 public final class NettyPacketWriterTest {
   private static final Logger LOG = LoggerFactory.getLogger(NettyPacketWriterTest.class);
 

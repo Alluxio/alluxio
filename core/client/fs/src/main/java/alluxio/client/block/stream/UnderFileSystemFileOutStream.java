@@ -18,7 +18,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import java.io.FilterOutputStream;
 import java.io.OutputStream;
-import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

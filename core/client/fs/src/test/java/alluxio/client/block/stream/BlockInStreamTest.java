@@ -61,12 +61,16 @@ public final class BlockInStreamTest {
           .thenReturn(lockResource);
 
       // Set the data server hostname to match the client hostname.
+      when(blockWorkerClient.getWorkerNetAddress())
+          .thenReturn(new WorkerNetAddress().setHost(clientHostname));
       BlockInStream stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
           0, 0, new WorkerNetAddress().setHost(clientHostname), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.
       Assert.assertTrue(stream.isShortCircuit());
 
       // Set the data server hostname to not match the client hostname.
+      when(blockWorkerClient.getWorkerNetAddress())
+          .thenReturn(new WorkerNetAddress().setHost("remotehost"));
       stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
           0, 0, new WorkerNetAddress().setHost("remotehost"), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.

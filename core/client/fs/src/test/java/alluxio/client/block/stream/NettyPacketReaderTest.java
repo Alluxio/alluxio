@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
+@PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
 public final class NettyPacketReaderTest {
   private static final int PACKET_SIZE = 1024;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);

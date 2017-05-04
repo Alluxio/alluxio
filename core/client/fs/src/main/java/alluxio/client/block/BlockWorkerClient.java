@@ -17,8 +17,6 @@ import alluxio.client.resource.LockBlockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
-import java.net.InetSocketAddress;
-
 /**
  * Interface for an Alluxio block worker client.
  */

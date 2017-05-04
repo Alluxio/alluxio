@@ -27,7 +27,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 
 import java.io.InputStream;
-import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

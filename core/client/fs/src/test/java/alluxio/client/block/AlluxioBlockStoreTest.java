@@ -108,6 +108,7 @@ public final class AlluxioBlockStoreTest {
   private AlluxioBlockStore mBlockStore;
   private Channel mChannel;
   private ChannelPipeline mPipeline;
+  private WorkerNetAddress mLocalAddr;
   private FileSystemContext mContext;
 
   @Before
@@ -124,6 +125,8 @@ public final class AlluxioBlockStoreTest {
 
     Mockito.when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
+    mLocalAddr = new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName());
+    Mockito.when(mBlockWorkerClient.getWorkerNetAddress()).thenReturn(mLocalAddr);
 
     mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
 

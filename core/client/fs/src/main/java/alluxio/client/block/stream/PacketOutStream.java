@@ -30,7 +30,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 
 import java.io.OutputStream;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 

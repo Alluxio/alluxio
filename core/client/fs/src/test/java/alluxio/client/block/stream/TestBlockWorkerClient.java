@@ -21,6 +21,9 @@ import alluxio.wire.WorkerNetAddress;
  * A mock {@link BlockWorkerClient} which returns local host for the data server address.
  */
 public class TestBlockWorkerClient implements BlockWorkerClient {
+  private static final String HOSTNAME = "localhost";
+  private static final int PORT = 29998;
+
   @Override
   public void accessBlock(long blockId) {}
 
@@ -37,7 +40,7 @@ public class TestBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public WorkerNetAddress getWorkerNetAddress() {
-    return null;
+    return new WorkerNetAddress().setHost(HOSTNAME).setDataPort(PORT);
   }
 
   @Override
