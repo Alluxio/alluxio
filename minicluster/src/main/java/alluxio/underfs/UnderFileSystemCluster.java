@@ -132,20 +132,6 @@ public abstract class UnderFileSystemCluster {
    * the bootstrap.
    */
   public abstract void cleanup() throws IOException;
-//  {
-//    if (isStarted()) {
-//      String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
-//      UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-//      for (UnderFileStatus p : ufs.listStatus(path)) {
-//        String childPath = PathUtils.concatPath(path, p.getName());
-//        if (p.isDirectory()) {
-//          ufs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true));
-//        } else {
-//          ufs.deleteFile(childPath);
-//        }
-//      }
-//    }
-//  }
 
   /**
    * @return the address of the UFS
