@@ -104,10 +104,10 @@ public final class Protocol {
     // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.RequestType)
   }
 
-  public interface ReadRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.dataserver.ReadRequest)
-      com.google.protobuf.MessageOrBuilder {
+  public interface ReadRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional .alluxio.proto.dataserver.RequestType type = 1;
     /**
      * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
      */
@@ -117,6 +117,7 @@ public final class Protocol {
      */
     alluxio.proto.dataserver.Protocol.RequestType getType();
 
+    // optional int64 id = 2;
     /**
      * <code>optional int64 id = 2;</code>
      *
@@ -134,6 +135,7 @@ public final class Protocol {
      */
     long getId();
 
+    // optional int64 offset = 3;
     /**
      * <code>optional int64 offset = 3;</code>
      */
@@ -143,6 +145,7 @@ public final class Protocol {
      */
     long getOffset();
 
+    // optional int64 length = 4;
     /**
      * <code>optional int64 length = 4;</code>
      */
@@ -152,6 +155,7 @@ public final class Protocol {
      */
     long getLength();
 
+    // optional bool cancel = 5;
     /**
      * <code>optional bool cancel = 5;</code>
      *
@@ -169,6 +173,7 @@ public final class Protocol {
      */
     boolean getCancel();
 
+    // optional int64 lock_id = 6;
     /**
      * <code>optional int64 lock_id = 6;</code>
      */
@@ -178,6 +183,7 @@ public final class Protocol {
      */
     long getLockId();
 
+    // optional int64 session_id = 7;
     /**
      * <code>optional int64 session_id = 7;</code>
      */
@@ -187,6 +193,7 @@ public final class Protocol {
      */
     long getSessionId();
 
+    // optional bool no_cache = 8;
     /**
      * <code>optional bool no_cache = 8;</code>
      *
@@ -204,6 +211,7 @@ public final class Protocol {
      */
     boolean getNoCache();
 
+    // optional int64 packet_size = 9;
     /**
      * <code>optional int64 packet_size = 9;</code>
      *
@@ -230,9 +238,8 @@ public final class Protocol {
    * </pre>
    */
   public static final class ReadRequest extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.dataserver.ReadRequest)
-      ReadRequestOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements ReadRequestOrBuilder {
     // Use ReadRequest.newBuilder() to construct.
     private ReadRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -369,6 +376,7 @@ public final class Protocol {
     }
 
     private int bitField0_;
+    // optional .alluxio.proto.dataserver.RequestType type = 1;
     public static final int TYPE_FIELD_NUMBER = 1;
     private alluxio.proto.dataserver.Protocol.RequestType type_;
     /**
@@ -384,6 +392,7 @@ public final class Protocol {
       return type_;
     }
 
+    // optional int64 id = 2;
     public static final int ID_FIELD_NUMBER = 2;
     private long id_;
     /**
@@ -407,6 +416,7 @@ public final class Protocol {
       return id_;
     }
 
+    // optional int64 offset = 3;
     public static final int OFFSET_FIELD_NUMBER = 3;
     private long offset_;
     /**
@@ -422,6 +432,7 @@ public final class Protocol {
       return offset_;
     }
 
+    // optional int64 length = 4;
     public static final int LENGTH_FIELD_NUMBER = 4;
     private long length_;
     /**
@@ -437,6 +448,7 @@ public final class Protocol {
       return length_;
     }
 
+    // optional bool cancel = 5;
     public static final int CANCEL_FIELD_NUMBER = 5;
     private boolean cancel_;
     /**
@@ -460,6 +472,7 @@ public final class Protocol {
       return cancel_;
     }
 
+    // optional int64 lock_id = 6;
     public static final int LOCK_ID_FIELD_NUMBER = 6;
     private long lockId_;
     /**
@@ -475,6 +488,7 @@ public final class Protocol {
       return lockId_;
     }
 
+    // optional int64 session_id = 7;
     public static final int SESSION_ID_FIELD_NUMBER = 7;
     private long sessionId_;
     /**
@@ -490,6 +504,7 @@ public final class Protocol {
       return sessionId_;
     }
 
+    // optional bool no_cache = 8;
     public static final int NO_CACHE_FIELD_NUMBER = 8;
     private boolean noCache_;
     /**
@@ -513,6 +528,7 @@ public final class Protocol {
       return noCache_;
     }
 
+    // optional int64 packet_size = 9;
     public static final int PACKET_SIZE_FIELD_NUMBER = 9;
     private long packetSize_;
     /**
@@ -550,8 +566,7 @@ public final class Protocol {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -719,9 +734,8 @@ public final class Protocol {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.dataserver.ReadRequest)
-        alluxio.proto.dataserver.Protocol.ReadRequestOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.ReadRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_ReadRequest_descriptor;
@@ -906,6 +920,7 @@ public final class Protocol {
       }
       private int bitField0_;
 
+      // optional .alluxio.proto.dataserver.RequestType type = 1;
       private alluxio.proto.dataserver.Protocol.RequestType type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       /**
        * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
@@ -941,6 +956,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 id = 2;
       private long id_ ;
       /**
        * <code>optional int64 id = 2;</code>
@@ -989,6 +1005,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 offset = 3;
       private long offset_ ;
       /**
        * <code>optional int64 offset = 3;</code>
@@ -1021,6 +1038,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 length = 4;
       private long length_ ;
       /**
        * <code>optional int64 length = 4;</code>
@@ -1053,6 +1071,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional bool cancel = 5;
       private boolean cancel_ ;
       /**
        * <code>optional bool cancel = 5;</code>
@@ -1101,6 +1120,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 lock_id = 6;
       private long lockId_ ;
       /**
        * <code>optional int64 lock_id = 6;</code>
@@ -1133,6 +1153,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 session_id = 7;
       private long sessionId_ ;
       /**
        * <code>optional int64 session_id = 7;</code>
@@ -1165,6 +1186,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional bool no_cache = 8;
       private boolean noCache_ ;
       /**
        * <code>optional bool no_cache = 8;</code>
@@ -1213,6 +1235,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 packet_size = 9;
       private long packetSize_ ;
       /**
        * <code>optional int64 packet_size = 9;</code>
@@ -1272,10 +1295,10 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.ReadRequest)
   }
 
-  public interface WriteRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.dataserver.WriteRequest)
-      com.google.protobuf.MessageOrBuilder {
+  public interface WriteRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional .alluxio.proto.dataserver.RequestType type = 1;
     /**
      * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
      */
@@ -1285,6 +1308,7 @@ public final class Protocol {
      */
     alluxio.proto.dataserver.Protocol.RequestType getType();
 
+    // optional int64 id = 2;
     /**
      * <code>optional int64 id = 2;</code>
      *
@@ -1302,6 +1326,7 @@ public final class Protocol {
      */
     long getId();
 
+    // optional int64 offset = 3;
     /**
      * <code>optional int64 offset = 3;</code>
      */
@@ -1311,6 +1336,7 @@ public final class Protocol {
      */
     long getOffset();
 
+    // optional int64 session_id = 4;
     /**
      * <code>optional int64 session_id = 4;</code>
      */
@@ -1320,6 +1346,7 @@ public final class Protocol {
      */
     long getSessionId();
 
+    // optional int32 tier = 5;
     /**
      * <code>optional int32 tier = 5;</code>
      *
@@ -1337,6 +1364,7 @@ public final class Protocol {
      */
     int getTier();
 
+    // optional bool eof = 6;
     /**
      * <code>optional bool eof = 6;</code>
      */
@@ -1346,6 +1374,7 @@ public final class Protocol {
      */
     boolean getEof();
 
+    // optional bool cancel = 7;
     /**
      * <code>optional bool cancel = 7;</code>
      */
@@ -1355,6 +1384,7 @@ public final class Protocol {
      */
     boolean getCancel();
 
+    // optional string ufs_path = 8;
     /**
      * <code>optional string ufs_path = 8;</code>
      *
@@ -1381,6 +1411,7 @@ public final class Protocol {
     com.google.protobuf.ByteString
         getUfsPathBytes();
 
+    // optional string owner = 9;
     /**
      * <code>optional string owner = 9;</code>
      */
@@ -1395,6 +1426,7 @@ public final class Protocol {
     com.google.protobuf.ByteString
         getOwnerBytes();
 
+    // optional string group = 10;
     /**
      * <code>optional string group = 10;</code>
      */
@@ -1409,6 +1441,7 @@ public final class Protocol {
     com.google.protobuf.ByteString
         getGroupBytes();
 
+    // optional int32 mode = 11;
     /**
      * <code>optional int32 mode = 11;</code>
      */
@@ -1418,6 +1451,7 @@ public final class Protocol {
      */
     int getMode();
 
+    // optional int64 mount_id = 12;
     /**
      * <code>optional int64 mount_id = 12;</code>
      */
@@ -1436,9 +1470,8 @@ public final class Protocol {
    * </pre>
    */
   public static final class WriteRequest extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.dataserver.WriteRequest)
-      WriteRequestOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements WriteRequestOrBuilder {
     // Use WriteRequest.newBuilder() to construct.
     private WriteRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -1526,21 +1559,18 @@ public final class Protocol {
               break;
             }
             case 66: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000080;
-              ufsPath_ = bs;
+              ufsPath_ = input.readBytes();
               break;
             }
             case 74: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000100;
-              owner_ = bs;
+              owner_ = input.readBytes();
               break;
             }
             case 82: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000200;
-              group_ = bs;
+              group_ = input.readBytes();
               break;
             }
             case 88: {
@@ -1593,6 +1623,7 @@ public final class Protocol {
     }
 
     private int bitField0_;
+    // optional .alluxio.proto.dataserver.RequestType type = 1;
     public static final int TYPE_FIELD_NUMBER = 1;
     private alluxio.proto.dataserver.Protocol.RequestType type_;
     /**
@@ -1608,6 +1639,7 @@ public final class Protocol {
       return type_;
     }
 
+    // optional int64 id = 2;
     public static final int ID_FIELD_NUMBER = 2;
     private long id_;
     /**
@@ -1631,6 +1663,7 @@ public final class Protocol {
       return id_;
     }
 
+    // optional int64 offset = 3;
     public static final int OFFSET_FIELD_NUMBER = 3;
     private long offset_;
     /**
@@ -1646,6 +1679,7 @@ public final class Protocol {
       return offset_;
     }
 
+    // optional int64 session_id = 4;
     public static final int SESSION_ID_FIELD_NUMBER = 4;
     private long sessionId_;
     /**
@@ -1661,6 +1695,7 @@ public final class Protocol {
       return sessionId_;
     }
 
+    // optional int32 tier = 5;
     public static final int TIER_FIELD_NUMBER = 5;
     private int tier_;
     /**
@@ -1684,6 +1719,7 @@ public final class Protocol {
       return tier_;
     }
 
+    // optional bool eof = 6;
     public static final int EOF_FIELD_NUMBER = 6;
     private boolean eof_;
     /**
@@ -1699,6 +1735,7 @@ public final class Protocol {
       return eof_;
     }
 
+    // optional bool cancel = 7;
     public static final int CANCEL_FIELD_NUMBER = 7;
     private boolean cancel_;
     /**
@@ -1714,6 +1751,7 @@ public final class Protocol {
       return cancel_;
     }
 
+    // optional string ufs_path = 8;
     public static final int UFS_PATH_FIELD_NUMBER = 8;
     private java.lang.Object ufsPath_;
     /**
@@ -1768,6 +1806,7 @@ public final class Protocol {
       }
     }
 
+    // optional string owner = 9;
     public static final int OWNER_FIELD_NUMBER = 9;
     private java.lang.Object owner_;
     /**
@@ -1810,6 +1849,7 @@ public final class Protocol {
       }
     }
 
+    // optional string group = 10;
     public static final int GROUP_FIELD_NUMBER = 10;
     private java.lang.Object group_;
     /**
@@ -1852,6 +1892,7 @@ public final class Protocol {
       }
     }
 
+    // optional int32 mode = 11;
     public static final int MODE_FIELD_NUMBER = 11;
     private int mode_;
     /**
@@ -1867,6 +1908,7 @@ public final class Protocol {
       return mode_;
     }
 
+    // optional int64 mount_id = 12;
     public static final int MOUNT_ID_FIELD_NUMBER = 12;
     private long mountId_;
     /**
@@ -1899,8 +1941,7 @@ public final class Protocol {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -2089,9 +2130,8 @@ public final class Protocol {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.dataserver.WriteRequest)
-        alluxio.proto.dataserver.Protocol.WriteRequestOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.WriteRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_WriteRequest_descriptor;
@@ -2309,6 +2349,7 @@ public final class Protocol {
       }
       private int bitField0_;
 
+      // optional .alluxio.proto.dataserver.RequestType type = 1;
       private alluxio.proto.dataserver.Protocol.RequestType type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       /**
        * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
@@ -2344,6 +2385,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 id = 2;
       private long id_ ;
       /**
        * <code>optional int64 id = 2;</code>
@@ -2392,6 +2434,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 offset = 3;
       private long offset_ ;
       /**
        * <code>optional int64 offset = 3;</code>
@@ -2424,6 +2467,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 session_id = 4;
       private long sessionId_ ;
       /**
        * <code>optional int64 session_id = 4;</code>
@@ -2456,6 +2500,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int32 tier = 5;
       private int tier_ ;
       /**
        * <code>optional int32 tier = 5;</code>
@@ -2504,6 +2549,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional bool eof = 6;
       private boolean eof_ ;
       /**
        * <code>optional bool eof = 6;</code>
@@ -2536,6 +2582,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional bool cancel = 7;
       private boolean cancel_ ;
       /**
        * <code>optional bool cancel = 7;</code>
@@ -2568,6 +2615,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional string ufs_path = 8;
       private java.lang.Object ufsPath_ = "";
       /**
        * <code>optional string ufs_path = 8;</code>
@@ -2589,12 +2637,9 @@ public final class Protocol {
       public java.lang.String getUfsPath() {
         java.lang.Object ref = ufsPath_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            ufsPath_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          ufsPath_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -2668,6 +2713,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional string owner = 9;
       private java.lang.Object owner_ = "";
       /**
        * <code>optional string owner = 9;</code>
@@ -2681,12 +2727,9 @@ public final class Protocol {
       public java.lang.String getOwner() {
         java.lang.Object ref = owner_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            owner_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          owner_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -2744,6 +2787,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional string group = 10;
       private java.lang.Object group_ = "";
       /**
        * <code>optional string group = 10;</code>
@@ -2757,12 +2801,9 @@ public final class Protocol {
       public java.lang.String getGroup() {
         java.lang.Object ref = group_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            group_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          group_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -2820,6 +2861,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int32 mode = 11;
       private int mode_ ;
       /**
        * <code>optional int32 mode = 11;</code>
@@ -2852,6 +2894,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 mount_id = 12;
       private long mountId_ ;
       /**
        * <code>optional int64 mount_id = 12;</code>
@@ -2895,10 +2938,10 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.WriteRequest)
   }
 
-  public interface ResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.dataserver.Response)
-      com.google.protobuf.MessageOrBuilder {
+  public interface ResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
+    // optional .alluxio.proto.status.PStatus status = 1;
     /**
      * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
      */
@@ -2908,6 +2951,7 @@ public final class Protocol {
      */
     alluxio.proto.status.Status.PStatus getStatus();
 
+    // optional string message = 2;
     /**
      * <code>optional string message = 2;</code>
      */
@@ -2931,9 +2975,8 @@ public final class Protocol {
    * </pre>
    */
   public static final class Response extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.dataserver.Response)
-      ResponseOrBuilder {
+      com.google.protobuf.GeneratedMessage
+      implements ResponseOrBuilder {
     // Use Response.newBuilder() to construct.
     private Response(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -2991,9 +3034,8 @@ public final class Protocol {
               break;
             }
             case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              message_ = bs;
+              message_ = input.readBytes();
               break;
             }
           }
@@ -3036,6 +3078,7 @@ public final class Protocol {
     }
 
     private int bitField0_;
+    // optional .alluxio.proto.status.PStatus status = 1;
     public static final int STATUS_FIELD_NUMBER = 1;
     private alluxio.proto.status.Status.PStatus status_;
     /**
@@ -3051,6 +3094,7 @@ public final class Protocol {
       return status_;
     }
 
+    // optional string message = 2;
     public static final int MESSAGE_FIELD_NUMBER = 2;
     private java.lang.Object message_;
     /**
@@ -3100,8 +3144,7 @@ public final class Protocol {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
+      if (isInitialized != -1) return isInitialized == 1;
 
       memoizedIsInitialized = 1;
       return true;
@@ -3220,9 +3263,8 @@ public final class Protocol {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.dataserver.Response)
-        alluxio.proto.dataserver.Protocol.ResponseOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.ResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Response_descriptor;
@@ -3346,6 +3388,7 @@ public final class Protocol {
       }
       private int bitField0_;
 
+      // optional .alluxio.proto.status.PStatus status = 1;
       private alluxio.proto.status.Status.PStatus status_ = alluxio.proto.status.Status.PStatus.OK;
       /**
        * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
@@ -3381,6 +3424,7 @@ public final class Protocol {
         return this;
       }
 
+      // optional string message = 2;
       private java.lang.Object message_ = "";
       /**
        * <code>optional string message = 2;</code>
@@ -3394,12 +3438,9 @@ public final class Protocol {
       public java.lang.String getMessage() {
         java.lang.Object ref = message_;
         if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            message_ = s;
-          }
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          message_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -3468,17 +3509,17 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.Response)
   }
 
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_ReadRequest_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_WriteRequest_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_Response_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -3511,37 +3552,36 @@ public final class Protocol {
       "\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
+      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
+        public com.google.protobuf.ExtensionRegistry assignDescriptors(
+            com.google.protobuf.Descriptors.FileDescriptor root) {
+          descriptor = root;
+          internal_static_alluxio_proto_dataserver_ReadRequest_descriptor =
+            getDescriptor().getMessageTypes().get(0);
+          internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
+              new java.lang.String[] { "Type", "Id", "Offset", "Length", "Cancel", "LockId", "SessionId", "NoCache", "PacketSize", });
+          internal_static_alluxio_proto_dataserver_WriteRequest_descriptor =
+            getDescriptor().getMessageTypes().get(1);
+          internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
+          internal_static_alluxio_proto_dataserver_Response_descriptor =
+            getDescriptor().getMessageTypes().get(2);
+          internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_Response_descriptor,
+              new java.lang.String[] { "Status", "Message", });
+          return null;
+        }
+      };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.proto.status.Status.getDescriptor(),
         }, assigner);
-    internal_static_alluxio_proto_dataserver_ReadRequest_descriptor =
-      getDescriptor().getMessageTypes().get(0);
-    internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
-        new java.lang.String[] { "Type", "Id", "Offset", "Length", "Cancel", "LockId", "SessionId", "NoCache", "PacketSize", });
-    internal_static_alluxio_proto_dataserver_WriteRequest_descriptor =
-      getDescriptor().getMessageTypes().get(1);
-    internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-        new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
-    internal_static_alluxio_proto_dataserver_Response_descriptor =
-      getDescriptor().getMessageTypes().get(2);
-    internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_alluxio_proto_dataserver_Response_descriptor,
-        new java.lang.String[] { "Status", "Message", });
-    alluxio.proto.status.Status.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)
