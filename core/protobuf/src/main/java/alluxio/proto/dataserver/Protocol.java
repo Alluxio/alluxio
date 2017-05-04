@@ -3408,6 +3408,24 @@ public final class Protocol {
      * <code>optional int64 block_id = 1;</code>
      */
     long getBlockId();
+
+    // optional int64 session_id = 2;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    boolean hasSessionId();
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    long getSessionId();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenRequest}
@@ -3469,6 +3487,11 @@ public final class Protocol {
               blockId_ = input.readInt64();
               break;
             }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              sessionId_ = input.readInt64();
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -3525,8 +3548,33 @@ public final class Protocol {
       return blockId_;
     }
 
+    // optional int64 session_id = 2;
+    public static final int SESSION_ID_FIELD_NUMBER = 2;
+    private long sessionId_;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    public boolean hasSessionId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    public long getSessionId() {
+      return sessionId_;
+    }
+
     private void initFields() {
       blockId_ = 0L;
+      sessionId_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3543,6 +3591,9 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, blockId_);
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, sessionId_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -3555,6 +3606,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, sessionId_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3678,6 +3733,8 @@ public final class Protocol {
         super.clear();
         blockId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
+        sessionId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -3710,6 +3767,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000001;
         }
         result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.sessionId_ = sessionId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3728,6 +3789,9 @@ public final class Protocol {
         if (other == alluxio.proto.dataserver.Protocol.LocalBlockOpenRequest.getDefaultInstance()) return this;
         if (other.hasBlockId()) {
           setBlockId(other.getBlockId());
+        }
+        if (other.hasSessionId()) {
+          setSessionId(other.getSessionId());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3789,6 +3853,55 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 session_id = 2;
+      private long sessionId_ ;
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public boolean hasSessionId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public long getSessionId() {
+        return sessionId_;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public Builder setSessionId(long value) {
+        bitField0_ |= 0x00000002;
+        sessionId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public Builder clearSessionId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        sessionId_ = 0L;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.LocalBlockOpenRequest)
     }
 
@@ -3817,20 +3930,6 @@ public final class Protocol {
      */
     com.google.protobuf.ByteString
         getPathBytes();
-
-    // optional .alluxio.proto.dataserver.Response response = 2;
-    /**
-     * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-     */
-    boolean hasResponse();
-    /**
-     * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-     */
-    alluxio.proto.dataserver.Protocol.Response getResponse();
-    /**
-     * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-     */
-    alluxio.proto.dataserver.Protocol.ResponseOrBuilder getResponseOrBuilder();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenResponse}
@@ -3890,19 +3989,6 @@ public final class Protocol {
             case 10: {
               bitField0_ |= 0x00000001;
               path_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              alluxio.proto.dataserver.Protocol.Response.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000002) == 0x00000002)) {
-                subBuilder = response_.toBuilder();
-              }
-              response_ = input.readMessage(alluxio.proto.dataserver.Protocol.Response.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(response_);
-                response_ = subBuilder.buildPartial();
-              }
-              bitField0_ |= 0x00000002;
               break;
             }
           }
@@ -3988,31 +4074,8 @@ public final class Protocol {
       }
     }
 
-    // optional .alluxio.proto.dataserver.Response response = 2;
-    public static final int RESPONSE_FIELD_NUMBER = 2;
-    private alluxio.proto.dataserver.Protocol.Response response_;
-    /**
-     * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-     */
-    public boolean hasResponse() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-     */
-    public alluxio.proto.dataserver.Protocol.Response getResponse() {
-      return response_;
-    }
-    /**
-     * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-     */
-    public alluxio.proto.dataserver.Protocol.ResponseOrBuilder getResponseOrBuilder() {
-      return response_;
-    }
-
     private void initFields() {
       path_ = "";
-      response_ = alluxio.proto.dataserver.Protocol.Response.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4029,9 +4092,6 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, getPathBytes());
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeMessage(2, response_);
-      }
       getUnknownFields().writeTo(output);
     }
 
@@ -4044,10 +4104,6 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, getPathBytes());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, response_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4161,7 +4217,6 @@ public final class Protocol {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-          getResponseFieldBuilder();
         }
       }
       private static Builder create() {
@@ -4172,12 +4227,6 @@ public final class Protocol {
         super.clear();
         path_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
-        if (responseBuilder_ == null) {
-          response_ = alluxio.proto.dataserver.Protocol.Response.getDefaultInstance();
-        } else {
-          responseBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -4210,14 +4259,6 @@ public final class Protocol {
           to_bitField0_ |= 0x00000001;
         }
         result.path_ = path_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        if (responseBuilder_ == null) {
-          result.response_ = response_;
-        } else {
-          result.response_ = responseBuilder_.build();
-        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4238,9 +4279,6 @@ public final class Protocol {
           bitField0_ |= 0x00000001;
           path_ = other.path_;
           onChanged();
-        }
-        if (other.hasResponse()) {
-          mergeResponse(other.getResponse());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4343,123 +4381,6 @@ public final class Protocol {
         return this;
       }
 
-      // optional .alluxio.proto.dataserver.Response response = 2;
-      private alluxio.proto.dataserver.Protocol.Response response_ = alluxio.proto.dataserver.Protocol.Response.getDefaultInstance();
-      private com.google.protobuf.SingleFieldBuilder<
-          alluxio.proto.dataserver.Protocol.Response, alluxio.proto.dataserver.Protocol.Response.Builder, alluxio.proto.dataserver.Protocol.ResponseOrBuilder> responseBuilder_;
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public boolean hasResponse() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.Response getResponse() {
-        if (responseBuilder_ == null) {
-          return response_;
-        } else {
-          return responseBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public Builder setResponse(alluxio.proto.dataserver.Protocol.Response value) {
-        if (responseBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          response_ = value;
-          onChanged();
-        } else {
-          responseBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000002;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public Builder setResponse(
-          alluxio.proto.dataserver.Protocol.Response.Builder builderForValue) {
-        if (responseBuilder_ == null) {
-          response_ = builderForValue.build();
-          onChanged();
-        } else {
-          responseBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000002;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public Builder mergeResponse(alluxio.proto.dataserver.Protocol.Response value) {
-        if (responseBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) == 0x00000002) &&
-              response_ != alluxio.proto.dataserver.Protocol.Response.getDefaultInstance()) {
-            response_ =
-              alluxio.proto.dataserver.Protocol.Response.newBuilder(response_).mergeFrom(value).buildPartial();
-          } else {
-            response_ = value;
-          }
-          onChanged();
-        } else {
-          responseBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000002;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public Builder clearResponse() {
-        if (responseBuilder_ == null) {
-          response_ = alluxio.proto.dataserver.Protocol.Response.getDefaultInstance();
-          onChanged();
-        } else {
-          responseBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000002);
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.Response.Builder getResponseBuilder() {
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return getResponseFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.ResponseOrBuilder getResponseOrBuilder() {
-        if (responseBuilder_ != null) {
-          return responseBuilder_.getMessageOrBuilder();
-        } else {
-          return response_;
-        }
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.Response response = 2;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          alluxio.proto.dataserver.Protocol.Response, alluxio.proto.dataserver.Protocol.Response.Builder, alluxio.proto.dataserver.Protocol.ResponseOrBuilder> 
-          getResponseFieldBuilder() {
-        if (responseBuilder_ == null) {
-          responseBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              alluxio.proto.dataserver.Protocol.Response, alluxio.proto.dataserver.Protocol.Response.Builder, alluxio.proto.dataserver.Protocol.ResponseOrBuilder>(
-                  response_,
-                  getParentForChildren(),
-                  isClean());
-          response_ = null;
-        }
-        return responseBuilder_;
-      }
-
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.LocalBlockOpenResponse)
     }
 
@@ -4483,6 +4404,24 @@ public final class Protocol {
      * <code>optional int64 block_id = 1;</code>
      */
     long getBlockId();
+
+    // optional int64 session_id = 2;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    boolean hasSessionId();
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    long getSessionId();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCloseRequest}
@@ -4544,6 +4483,11 @@ public final class Protocol {
               blockId_ = input.readInt64();
               break;
             }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              sessionId_ = input.readInt64();
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -4600,8 +4544,33 @@ public final class Protocol {
       return blockId_;
     }
 
+    // optional int64 session_id = 2;
+    public static final int SESSION_ID_FIELD_NUMBER = 2;
+    private long sessionId_;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    public boolean hasSessionId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     *
+     * <pre>
+     * Safe to remove before 1.5.0.
+     * </pre>
+     */
+    public long getSessionId() {
+      return sessionId_;
+    }
+
     private void initFields() {
       blockId_ = 0L;
+      sessionId_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4618,6 +4587,9 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, blockId_);
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, sessionId_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -4630,6 +4602,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, sessionId_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4753,6 +4729,8 @@ public final class Protocol {
         super.clear();
         blockId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
+        sessionId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -4785,6 +4763,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000001;
         }
         result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.sessionId_ = sessionId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4803,6 +4785,9 @@ public final class Protocol {
         if (other == alluxio.proto.dataserver.Protocol.LocalBlockCloseRequest.getDefaultInstance()) return this;
         if (other.hasBlockId()) {
           setBlockId(other.getBlockId());
+        }
+        if (other.hasSessionId()) {
+          setSessionId(other.getSessionId());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4860,6 +4845,55 @@ public final class Protocol {
       public Builder clearBlockId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         blockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 session_id = 2;
+      private long sessionId_ ;
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public boolean hasSessionId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public long getSessionId() {
+        return sessionId_;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public Builder setSessionId(long value) {
+        bitField0_ |= 0x00000002;
+        sessionId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       *
+       * <pre>
+       * Safe to remove before 1.5.0.
+       * </pre>
+       */
+      public Builder clearSessionId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        sessionId_ = 0L;
         onChanged();
         return this;
       }
@@ -4927,14 +4961,13 @@ public final class Protocol {
       "\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005gr" +
       "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\020\n\010mount_id\030\014 \001(" +
       "\003\"J\n\010Response\022-\n\006status\030\001 \001(\0162\035.alluxio." +
-      "proto.status.PStatus\022\017\n\007message\030\002 \001(\t\")\n" +
+      "proto.status.PStatus\022\017\n\007message\030\002 \001(\t\"=\n" +
       "\025LocalBlockOpenRequest\022\020\n\010block_id\030\001 \001(\003" +
-      "\"\\\n\026LocalBlockOpenResponse\022\014\n\004path\030\001 \001(\t" +
-      "\0224\n\010response\030\002 \001(\0132\".alluxio.proto.datas" +
-      "erver.Response\"*\n\026LocalBlockCloseRequest" +
-      "\022\020\n\010block_id\030\001 \001(\003*=\n\013RequestType\022\021\n\rALL" +
-      "UXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020",
-      "\002"
+      "\022\022\n\nsession_id\030\002 \001(\003\"&\n\026LocalBlockOpenRe" +
+      "sponse\022\014\n\004path\030\001 \001(\t\">\n\026LocalBlockCloseR" +
+      "equest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002" +
+      " \001(\003*=\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020\000\022\014" +
+      "\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4964,19 +4997,19 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor,
-              new java.lang.String[] { "BlockId", });
+              new java.lang.String[] { "BlockId", "SessionId", });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor,
-              new java.lang.String[] { "Path", "Response", });
+              new java.lang.String[] { "Path", });
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor =
             getDescriptor().getMessageTypes().get(5);
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor,
-              new java.lang.String[] { "BlockId", });
+              new java.lang.String[] { "BlockId", "SessionId", });
           return null;
         }
       };

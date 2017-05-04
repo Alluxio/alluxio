@@ -19,7 +19,6 @@ import alluxio.client.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -60,6 +59,9 @@ public final class LocalFilePacketReader implements PacketReader {
   /**
    * Creates an instance of {@link LocalFilePacketReader}.
    *
+   * @param context the file system context
+   * @param address the data server address
+   * @param blockId the block ID
    * @param offset the offset
    * @param len the length to read
    */
@@ -79,30 +81,12 @@ public final class LocalFilePacketReader implements PacketReader {
     if (mPos >= mEnd) {
       return null;
     }
-
     initIfNot();
 
     ByteBuffer buffer = mReader.read(mPos, Math.min(LOCAL_READ_PACKET_SIZE, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
     return dataBuffer;
-  }
-
-  void initIfNot() {
-    if (mClosed) {
-      return;
-    }
-
-    if (mReader == null) {
-      ProtoMessage message = NettyRPC
-          .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-              new ProtoMessage(
-                  Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId).build()));
-      Preconditions.checkState(message.isLocalBlockOpenResponse());
-      Protocol.LocalBlockOpenResponse response = message.asLocalBlockOpenResponse();
-      CommonUtils.unwrapResponse(response.getResponse());
-      mReader = new LocalFileBlockReader(message.asLocalBlockOpenResponse().getPath());
-    }
   }
 
   @Override
@@ -121,7 +105,7 @@ public final class LocalFilePacketReader implements PacketReader {
       closer.register(new Closeable() {
         @Override
         public void close() throws IOException {
-          NettyRPC.callDefaultResponse(
+          NettyRPC.call(
               NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
               new ProtoMessage(
                   Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build()));
@@ -132,6 +116,24 @@ public final class LocalFilePacketReader implements PacketReader {
       }
     } finally {
       mContext.releaseNettyChannel(mAddress, mChannel);
+    }
+  }
+
+  /**
+   * Initializes the local file block reader if it has not been initialized.
+   */
+  private void initIfNot() {
+    if (mClosed) {
+      return;
+    }
+
+    if (mReader == null) {
+      ProtoMessage message = NettyRPC
+          .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
+              new ProtoMessage(
+                  Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId).build()));
+      Preconditions.checkState(message.isLocalBlockOpenResponse());
+      mReader = new LocalFileBlockReader(message.asLocalBlockOpenResponse().getPath());
     }
   }
 

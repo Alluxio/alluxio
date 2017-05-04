@@ -18,7 +18,6 @@ import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.dataserver.Protocol.Response;
-import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Objects;
@@ -138,11 +137,17 @@ public final class RPCProtoMessage extends RPCMessage {
   @Override
   public Type getType() {
     if (mMessage.isReadRequest()) {
-      return RPCMessage.Type.RPC_READ_REQUEST;
+      return Type.RPC_READ_REQUEST;
     } else if (mMessage.isWriteRequest()) {
-      return RPCMessage.Type.RPC_WRITE_REQUEST;
+      return Type.RPC_WRITE_REQUEST;
     } else if (mMessage.isResponse()) {
-      return RPCMessage.Type.RPC_RESPONSE;
+      return Type.RPC_RESPONSE;
+    } else if (mMessage.isLocalBlockOpenResponse()) {
+      return Type.RPC_LOCAL_BLOCK_OPEN_REQUEST;
+    } else if (mMessage.isLocalBlockOpenResponse()) {
+      return Type.RPC_LOCAL_BLOCK_OPEN_RESPONSE;
+    } else if (mMessage.isLocalBlockCloseRequest()) {
+      return Type.RPC_LOCAL_BLOCK_CLOSE_REQUEST;
     } else {
       return RPCMessage.Type.RPC_UNKNOWN;
     }
