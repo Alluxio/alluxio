@@ -167,7 +167,7 @@ public final class NettyPacketWriterTest {
   private PacketWriter create(long length) throws Exception {
     PacketWriter writer =
         new NettyPacketWriter(mContext, mAddress, BLOCK_ID, length, SESSION_ID, TIER,
-            Protocol.RequestType.ALLUXIO_BLOCK);
+            Protocol.RequestType.ALLUXIO_BLOCK, PACKET_SIZE);
     mChannel.finishChannelCreation();
     return writer;
   }

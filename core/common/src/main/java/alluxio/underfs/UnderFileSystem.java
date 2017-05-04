@@ -213,13 +213,6 @@ public interface UnderFileSystem extends Closeable {
   long getBlockSizeByte(String path) throws IOException;
 
   /**
-   * Gets the configuration object for UnderFileSystem.
-   *
-   * @return configuration object used for concrete ufs instance
-   */
-  Object getConf();
-
-  /**
    * Gets the list of locations of the indicated path.
    *
    * @param path the file name
@@ -428,12 +421,12 @@ public interface UnderFileSystem extends Closeable {
   AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
 
   /**
-   * Sets the configuration object for UnderFileSystem. The conf object is understood by the
-   * concrete underfs's implementation.
+   * Changes posix file mode.
    *
-   * @param conf the configuration object accepted by ufs
+   * @param path the path of the file
+   * @param mode the mode to set in short format, e.g. 0777
    */
-  void setConf(Object conf);
+  void setMode(String path, short mode) throws IOException;
 
   /**
    * Sets the user and group of the given path. An empty implementation should be provided if
@@ -451,14 +444,6 @@ public interface UnderFileSystem extends Closeable {
    * @param properties a {@link Map} of property names to values
    */
   void setProperties(Map<String, String> properties);
-
-  /**
-   * Changes posix file mode.
-   *
-   * @param path the path of the file
-   * @param mode the mode to set in short format, e.g. 0777
-   */
-  void setMode(String path, short mode) throws IOException;
 
   /**
    * Whether this type of UFS supports flush.

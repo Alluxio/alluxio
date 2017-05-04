@@ -81,7 +81,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
           closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
       PacketInStream inStream = closer.register(PacketInStream
           .createLocalPacketInStream(lockBlockResource.getResult().getBlockPath(), blockId,
-              blockSize));
+              blockSize, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (RuntimeException e) {
@@ -112,7 +112,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       PacketInStream inStream = closer.register(PacketInStream
           .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
               lockBlockResource.getResult().getLockId(), blockWorkerClient.getSessionId(),
-              blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK));
+              blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (RuntimeException e) {
@@ -164,12 +164,13 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
             .equals(NetworkAddressUtils.getClientHostName());
         if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
           inStream = closer.register(PacketInStream
-              .createLocalPacketInStream(lockBlockResult.getBlockPath(), blockId, blockSize));
+              .createLocalPacketInStream(
+                  lockBlockResult.getBlockPath(), blockId, blockSize, options));
         } else {
           inStream = closer.register(PacketInStream
               .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
                   lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
-                  Protocol.RequestType.ALLUXIO_BLOCK));
+                  Protocol.RequestType.ALLUXIO_BLOCK, options));
         }
         blockWorkerClient.accessBlock(blockId);
       } else {
@@ -177,7 +178,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
         inStream = closer.register(PacketInStream
             .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
                 lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
-                !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK));
+                !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK,
+                options));
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (RuntimeException e) {

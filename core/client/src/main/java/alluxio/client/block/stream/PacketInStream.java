@@ -11,10 +11,13 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
@@ -58,10 +61,14 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @param path the local file path
    * @param id the ID
    * @param length the block or file length
+   * @param options the in stream options
    * @return the {@link PacketInStream} created
    */
-  public static PacketInStream createLocalPacketInStream(String path, long id, long length) {
-    return new PacketInStream(new LocalFilePacketReader.Factory(path), id, length);
+  public static PacketInStream createLocalPacketInStream(
+      String path, long id, long length, InStreamOptions options) {
+    long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
+    PacketReader.Factory factory = new LocalFilePacketReader.Factory(path, packetSize);
+    return new PacketInStream(factory, id, length);
   }
 
   /**
@@ -75,13 +82,16 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @param length the block or file length
    * @param noCache do not cache the block to the Alluxio worker if read from UFS when this is set
    * @param type the read request type (either block read or UFS file read)
+   * @param options the in stream options
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
       InetSocketAddress address, long id, long lockId, long sessionId, long length,
-      boolean noCache, Protocol.RequestType type) {
-    PacketReader.Factory factory =
-        new NettyPacketReader.Factory(context, address, id, lockId, sessionId, noCache, type);
+      boolean noCache, Protocol.RequestType type, InStreamOptions options) {
+    long packetSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
+    PacketReader.Factory factory = new NettyPacketReader.Factory(
+        context, address, id, lockId, sessionId, noCache, type, packetSize);
     return new PacketInStream(factory, id, length);
   }
 
