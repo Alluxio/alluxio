@@ -165,7 +165,7 @@ should also be loaded by the main classloader, and you can append the `alluxio` 
 `spark.sql.hive.metastore.sharedPrefixes` to inform Spark to load Alluxio with the main classloader. For example, the
 parameter may be set to:
 
-```
+```bash
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 
@@ -179,7 +179,7 @@ be set to `alluxio.hadoop.FaultTolerantFileSystem`. There are a few alternatives
 
 You can update the Hadoop configuration in the SparkContext by:
 
-```
+```scala
 sc.hadoopConfiguration.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem")
 sc.hadoopConfiguration.set("fs.alluxio-ft.impl", "alluxio.hadoop.FaultTolerantFileSystem")
 ```
@@ -191,7 +191,7 @@ This should be done early in your `spark-shell` session, before any Alluxio oper
 You can also add the properties to Hadoop's configuration files, and point Spark to the Hadoop configuration files.
 The following should be added to Hadoop's `core-site.xml`.
 
-```
+```xml
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
