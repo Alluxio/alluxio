@@ -19,14 +19,11 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
-import alluxio.util.network.NettyUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
-import io.netty.channel.unix.DomainSocketAddress;
 
 import java.io.FilterOutputStream;
-import java.net.SocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -84,16 +81,9 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-
-      SocketAddress address;
-      if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
-        address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
-      } else {
-        address = client.getDataServerAddress();
-      }
       PacketOutStream outStream = PacketOutStream
-          .createNettyPacketOutStream(context, address, client.getSessionId(), blockId, blockSize,
-              Protocol.RequestType.ALLUXIO_BLOCK, options);
+          .createNettyPacketOutStream(context, workerNetAddress, client.getSessionId(), blockId,
+              blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (RuntimeException e) {

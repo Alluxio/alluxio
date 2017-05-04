@@ -17,8 +17,6 @@ import alluxio.client.resource.LockBlockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
-import java.net.InetSocketAddress;
-
 /**
  * Interface for an Alluxio block worker client.
  */
@@ -68,11 +66,6 @@ public interface BlockWorkerClient extends QuietlyCloseable {
    * @param blockId the ID of the block to be cancelled
    */
   void cancelBlock(final long blockId);
-
-  /**
-   * @return the address of the worker's data server
-   */
-  InetSocketAddress getDataServerAddress();
 
   /**
    * @return the ID of the session

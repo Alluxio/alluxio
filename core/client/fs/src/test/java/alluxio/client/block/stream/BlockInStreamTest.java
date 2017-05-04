@@ -35,7 +35,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.Closeable;
-import java.net.InetSocketAddress;
 
 /**
  * Unit tests for {@link BlockInStream}.
@@ -62,18 +61,18 @@ public final class BlockInStreamTest {
           .thenReturn(lockResource);
 
       // Set the data server hostname to match the client hostname.
-      when(blockWorkerClient.getDataServerAddress())
-          .thenReturn(InetSocketAddress.createUnresolved(clientHostname, 0));
+      when(blockWorkerClient.getWorkerNetAddress())
+          .thenReturn(new WorkerNetAddress().setHost(clientHostname));
       BlockInStream stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
-          0, 0, new WorkerNetAddress(), InStreamOptions.defaults());
+          0, 0, new WorkerNetAddress().setHost(clientHostname), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.
       Assert.assertTrue(stream.isShortCircuit());
 
       // Set the data server hostname to not match the client hostname.
-      when(blockWorkerClient.getDataServerAddress())
-          .thenReturn(InetSocketAddress.createUnresolved("remotehost", 0));
+      when(blockWorkerClient.getWorkerNetAddress())
+          .thenReturn(new WorkerNetAddress().setHost("remotehost"));
       stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
-          0, 0, new WorkerNetAddress(), InStreamOptions.defaults());
+          0, 0, new WorkerNetAddress().setHost("remotehost"), InStreamOptions.defaults());
       // The client hostname matches the worker hostname, so the stream should go to a local file.
       Assert.assertFalse(stream.isShortCircuit());
     }

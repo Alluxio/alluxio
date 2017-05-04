@@ -21,6 +21,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
@@ -36,7 +37,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
+@PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
 public final class NettyPacketReaderTest {
   private static final int PACKET_SIZE = 1024;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);
@@ -55,14 +55,14 @@ public final class NettyPacketReaderTest {
   private static final long LOCK_ID = 3L;
 
   private FileSystemContext mContext;
-  private InetSocketAddress mAddress;
+  private WorkerNetAddress mAddress;
   private EmbeddedChannels.EmbeddedEmptyCtorChannel mChannel;
   private NettyPacketReader.Factory mFactory;
 
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
-    mAddress = Mockito.mock(InetSocketAddress.class);
+    mAddress = Mockito.mock(WorkerNetAddress.class);
     mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
         false, Protocol.RequestType.ALLUXIO_BLOCK, PACKET_SIZE);
 
