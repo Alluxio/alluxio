@@ -65,7 +65,6 @@ public final class RestUtils {
      * The REST endpoint implementation.
      *
      * @return the return value from the callable
-     * @throws Exception if an exception occurs
      */
     T call() throws Exception;
   }

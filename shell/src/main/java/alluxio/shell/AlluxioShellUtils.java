@@ -54,7 +54,6 @@ public final class AlluxioShellUtils {
    *
    * @param path the path to obtain the local path from
    * @return the local path in string format
-   * @throws IOException if the given path is not valid
    */
   public static String getFilePath(String path) throws IOException {
     path = validatePath(path);
@@ -74,7 +73,6 @@ public final class AlluxioShellUtils {
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         alluxio.master.hostname and alluxio.master.port, respectively.
-   * @throws IOException if the given path is not valid
    */
   public static String validatePath(String path) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
@@ -102,8 +100,6 @@ public final class AlluxioShellUtils {
    * @param alluxioClient the client used to fetch information of Alluxio files
    * @param inputURI the input URI (could contain wildcards)
    * @return a list of {@link AlluxioURI}s that matches the inputURI
-   * @throws IOException if any filesystem errors are encountered when expanding paths with
-   *                     wildcards
    */
   public static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI)
       throws IOException {
@@ -131,8 +127,6 @@ public final class AlluxioShellUtils {
    * @param parentDir the {@link AlluxioURI} of the directory in which we are searching matched
    *                  files
    * @return a list of {@link AlluxioURI}s of the files that match the inputURI in parentDir
-   * @throws IOException if any filesystem errors are encountered when expanding paths with
-   *                     wildcards
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
       AlluxioURI parentDir) throws IOException {

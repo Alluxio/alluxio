@@ -15,6 +15,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -70,13 +71,18 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   /** The Local block store. */
   private final BlockStore mLocalBlockStore;
 
+  /** The manager for all ufs. */
+  private final UfsManager mUfsManager;
+
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
    * @param localBlockStore the local block store
+   * @param ufsManager the file manager
    */
-  public UnderFileSystemBlockStore(BlockStore localBlockStore) {
+  public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
+    mUfsManager = ufsManager;
   }
 
   /**
@@ -130,7 +136,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @throws IOException if it fails to clean up
    */
   public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
@@ -209,7 +214,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
-   * @throws IOException if any I/O errors occur
    */
   public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
       boolean noCache) throws BlockDoesNotExistException, IOException {
@@ -222,7 +226,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       }
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore,
+            mUfsManager);
     blockInfo.setBlockReader(reader);
     return reader;
   }
@@ -365,8 +370,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
 
     /**
      * Closes the block reader or writer.
-     *
-     * @throws IOException if it fails to close block reader or writer
      */
     public synchronized void closeReaderOrWriter() throws IOException {
       if (mBlockReader != null) {

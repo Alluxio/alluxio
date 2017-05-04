@@ -99,8 +99,6 @@ final class UfsJournalLogWriter implements JournalWriter {
     /**
      * Closes the stream by committing the log. The implementation must be idempotent as this
      * close can fail and be retried.
-     *
-     * @throws IOException if it fails to close
      */
     @Override
     public void close() throws IOException {
@@ -141,7 +139,6 @@ final class UfsJournalLogWriter implements JournalWriter {
    *
    * @param journal the handle to the journal
    * @param options the options to create the journal log writer
-   * @throws IOException if any I/O exceptions occur
    */
   UfsJournalLogWriter(UfsJournal journal, JournalWriterOptions options) throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
@@ -179,8 +176,6 @@ final class UfsJournalLogWriter implements JournalWriter {
   /**
    * Closes the current journal output stream and creates a new one.
    * The implementation must be idempotent so that it can work when retrying during failures.
-   *
-   * @throws IOException if an IO exception occurs during the log rotation
    */
   private void maybeRotateLog() throws IOException {
     if (!mRotateLogForNextWrite) {

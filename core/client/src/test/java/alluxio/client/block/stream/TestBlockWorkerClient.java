@@ -14,11 +14,9 @@ package alluxio.client.block.stream;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.resource.LockBlockResource;
-import alluxio.exception.AlluxioException;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -29,13 +27,13 @@ public class TestBlockWorkerClient implements BlockWorkerClient {
   private static final int PORT = 29998;
 
   @Override
-  public void accessBlock(long blockId) throws IOException {}
+  public void accessBlock(long blockId) {}
 
   @Override
-  public void cacheBlock(long blockId) throws IOException, AlluxioException {}
+  public void cacheBlock(long blockId) {}
 
   @Override
-  public void cancelBlock(long blockId) throws IOException, AlluxioException {}
+  public void cancelBlock(long blockId) {}
 
   @Override
   public InetSocketAddress getDataServerAddress() {
@@ -53,44 +51,41 @@ public class TestBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public LockBlockResource lockBlock(long blockId, LockBlockOptions options) throws IOException,
-      AlluxioException {
+  public LockBlockResource lockBlock(long blockId, LockBlockOptions options) {
     return null;
   }
 
   @Override
-  public LockBlockResource lockUfsBlock(long blockId, LockBlockOptions options)
-      throws IOException, AlluxioException {
+  public LockBlockResource lockUfsBlock(long blockId, LockBlockOptions options) {
     return null;
   }
 
   @Override
-  public boolean promoteBlock(long blockId) throws IOException, AlluxioException {
+  public boolean promoteBlock(long blockId) {
     return false;
   }
 
   @Override
-  public void removeBlock(long blockId) throws IOException, AlluxioException {}
+  public void removeBlock(long blockId) {}
 
   @Override
-  public String requestBlockLocation(long blockId, long initialBytes, int tier)
-      throws IOException {
+  public String requestBlockLocation(long blockId, long initialBytes, int tier) {
     return null;
   }
 
   @Override
-  public boolean requestSpace(long blockId, long requestBytes) throws IOException {
+  public boolean requestSpace(long blockId, long requestBytes) {
     return false;
   }
 
   @Override
-  public boolean unlockBlock(long blockId) throws IOException {
+  public boolean unlockBlock(long blockId) {
     return false;
   }
 
   @Override
-  public void sessionHeartbeat(RetryPolicy retryPolicy) throws IOException, InterruptedException {}
+  public void sessionHeartbeat(RetryPolicy retryPolicy) {}
 
   @Override
-  public void close() throws IOException {}
+  public void close() {}
 }

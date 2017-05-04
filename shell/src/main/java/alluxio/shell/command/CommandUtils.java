@@ -47,8 +47,6 @@ public final class CommandUtils {
    *        created file should be kept around before it is automatically deleted, irrespective of
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
    * @param ttlAction Action to perform on Ttl expiry
-   * @throws AlluxioException when an Alluxio exception occurs
-   * @throws IOException when a non-Alluxio exception occurs
    */
   public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs,
       TtlAction ttlAction) throws AlluxioException, IOException {
@@ -74,8 +72,6 @@ public final class CommandUtils {
    * @param fs The {@link FileSystem} client
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param pinned the state to be set
-   * @throws AlluxioException when an Alluxio exception occurs
-   * @throws IOException when a non-Alluxio exception occurs
    */
   public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned)
       throws AlluxioException, IOException {

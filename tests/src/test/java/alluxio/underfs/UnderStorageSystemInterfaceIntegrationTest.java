@@ -68,8 +68,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    mUfs = (UnderFileSystemWithLogging) UnderFileSystem.Factory
-        .get(mUnderfsAddress + AlluxioURI.SEPARATOR);
+    mUfs = (UnderFileSystemWithLogging) UnderFileSystem.Factory.getForRoot();
   }
 
   @After
@@ -862,7 +861,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    *
    * @param testFile path of file to create
    * @return the number of copies of TEST_BYTES made
-   * @throws IOException if a non-Alluxio error occurs
    */
   private int prepareMultiBlockFile(String testFile) throws IOException {
     OutputStream outputStream = mUfs.create(testFile);
@@ -883,7 +881,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * through Alluxio). No breadcrumbs are created for directories.
    *
    * @param ufs the {@link ObjectUnderFileSystem} to test
-   * @throws IOException if a non-Alluxio error occurs
    * @return configuration for the pre-populated objects
    */
   private ObjectStorePreConfig prepareObjectStore(ObjectUnderFileSystem ufs) throws IOException {

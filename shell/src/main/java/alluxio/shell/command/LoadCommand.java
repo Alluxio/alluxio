@@ -57,8 +57,6 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * Loads a file or directory in Alluxio space, makes it resident in memory.
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void load(AlluxioURI filePath) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);

@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
+import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -79,6 +80,52 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public Inode<?> getChild(String name) {
     return mChildren.getFirst(name);
+  }
+
+  /**
+   * @param name the name of the child
+   * @param lockList the lock list to add the lock to
+   * @return the read-locked inode with the given name, or null if there is no such child
+   * @throws InvalidPathException if the path to the child is invalid
+   */
+  public Inode<?> getChildReadLock(String name, InodeLockList lockList) throws
+      InvalidPathException {
+    while (true) {
+      Inode child = mChildren.getFirst(name);
+      if (child == null) {
+        return null;
+      }
+      lockList.lockReadAndCheckParent(child, this);
+      if (mChildren.getFirst(name) != child) {
+        // The locked child has changed, so unlock and try again.
+        lockList.unlockLast();
+        continue;
+      }
+      return child;
+    }
+  }
+
+  /**
+   * @param name the name of the child
+   * @param lockList the lock list to add the lock to
+   * @return the write-locked inode with the given name, or null if there is no such child
+   * @throws InvalidPathException if the path to the child is invalid
+   */
+  public Inode<?> getChildWriteLock(String name, InodeLockList lockList) throws
+      InvalidPathException {
+    while (true) {
+      Inode child = mChildren.getFirst(name);
+      if (child == null) {
+        return null;
+      }
+      lockList.lockWriteAndCheckParent(child, this);
+      if (mChildren.getFirst(name) != child) {
+        // The locked child has changed, so unlock and try again.
+        lockList.unlockLast();
+        continue;
+      }
+      return child;
+    }
   }
 
   /**

@@ -63,7 +63,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param file the local file to display
    * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
-   * @throws IOException if an I/O error occurs
    */
   private void displayLocalFile(File file, HttpServletRequest request, long offset)
       throws IOException {
@@ -101,7 +100,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)

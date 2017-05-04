@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.security.auth.Subject;
@@ -73,9 +72,8 @@ public interface TransportProvider {
    *
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
-   * @throws IOException if building a TransportFactory fails or user login fails
    */
-  TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException;
+  TTransport getClientTransport(InetSocketAddress serverAddress);
 
   /**
    * Similar as {@link TransportProvider#getClientTransport(InetSocketAddress)} but it also
@@ -84,10 +82,8 @@ public interface TransportProvider {
    * @param subject the subject, set to null if not present
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
-   * @throws IOException if building a TransportFactory fails or user login fails
    */
-  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
-      throws IOException;
+  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress);
 
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is

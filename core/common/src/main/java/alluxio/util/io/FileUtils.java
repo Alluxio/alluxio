@@ -54,7 +54,6 @@ public final class FileUtils {
    *
    * @param path that will change owner
    * @param group the new group
-   * @throws IOException if the group is unable to be changed
    */
   public static void changeLocalFileGroup(String path, String group) throws IOException {
     UserPrincipalLookupService lookupService =
@@ -71,7 +70,6 @@ public final class FileUtils {
    *
    * @param filePath that will change permission
    * @param perms the permission, e.g. "rwxr--r--"
-   * @throws IOException when fails to change permission
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
     Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
@@ -81,7 +79,6 @@ public final class FileUtils {
    * Changes local file's permission to be "rwxrwxrwx".
    *
    * @param filePath that will change permission
-   * @throws IOException when fails to change file's permission to "rwxrwxrwx"
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "rwxrwxrwx");
@@ -92,7 +89,6 @@ public final class FileUtils {
    *
    * @param filePath the file path
    * @return the owner of the local file
-   * @throws IOException when fails to get the owner
    */
   public static String getLocalFileOwner(String filePath) throws IOException {
     PosixFileAttributes attr =
@@ -105,7 +101,6 @@ public final class FileUtils {
    *
    * @param filePath the file path
    * @return the group of the local file
-   * @throws IOException when fails to get the group
    */
   public static String getLocalFileGroup(String filePath) throws IOException {
     PosixFileAttributes attr =
@@ -118,7 +113,6 @@ public final class FileUtils {
    *
    * @param filePath the file path
    * @return the file mode in short, e.g. 0777
-   * @throws IOException when fails to get the permission
    */
   public static short getLocalFileMode(String filePath) throws IOException {
     Set<PosixFilePermission> permission =
@@ -137,7 +131,6 @@ public final class FileUtils {
    *
    * @param path that will change owner
    * @param user the new user
-   * @throws IOException if the group is unable to be changed
    */
   public static void changeLocalFileUser(String path, String user) throws IOException {
     UserPrincipalLookupService lookupService =
@@ -181,8 +174,6 @@ public final class FileUtils {
    * permissions.
    *
    * @param path the path of the block
-   * @throws IOException when fails to create block path and parent directories with appropriate
-   *         permissions.
    */
   public static void createBlockPath(String path) throws IOException {
     try {
@@ -204,7 +195,6 @@ public final class FileUtils {
    *
    * @param srcPath pathname string of source file
    * @param dstPath pathname string of destination file
-   * @throws IOException when fails to move
    */
   public static void move(String srcPath, String dstPath) throws IOException {
     com.google.common.io.Files.move(new File(srcPath), new File(dstPath));
@@ -217,7 +207,6 @@ public final class FileUtils {
    * solution.
    *
    * @param path pathname string of file or directory
-   * @throws IOException when fails to delete
    */
   public static void delete(String path) throws IOException {
     File file = new File(path);
@@ -227,10 +216,9 @@ public final class FileUtils {
   }
 
   /**
-   * Deletes a path recursively.
+   * Deletes a file or a directory, recursively if it is a directory.
    *
    * @param path pathname to be deleted
-   * @throws IOException when fails to delete
    */
   public static void deletePathRecursively(String path) throws IOException {
     Path root = Paths.get(path);
@@ -260,7 +248,6 @@ public final class FileUtils {
    * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
    *
    * @param path storage directory path to create
-   * @throws IOException when fails to create storage directory path
    */
   public static void createStorageDirPath(String path) throws IOException {
     File dir = new File(path);
@@ -284,7 +271,6 @@ public final class FileUtils {
    * Creates an empty file and its intermediate directories if necessary.
    *
    * @param filePath pathname string of the file to create
-   * @throws IOException if an I/O error occurred or file already exists
    */
   public static void createFile(String filePath) throws IOException {
     File file = new File(filePath);
@@ -298,7 +284,6 @@ public final class FileUtils {
    * Creates an empty directory and its intermediate directories if necessary.
    *
    * @param path path of the directory to create
-   * @throws IOException if an I/O error occurred or directory already exists
    */
   public static void createDir(String path) throws IOException {
     new File(path).mkdirs();

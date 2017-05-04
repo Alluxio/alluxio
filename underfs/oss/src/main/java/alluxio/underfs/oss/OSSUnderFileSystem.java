@@ -17,7 +17,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
@@ -59,20 +61,24 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * Constructs a new instance of {@link OSSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @param conf the configuration for this UFS
    * @return the created {@link OSSUnderFileSystem} instance
-   * @throws Exception when a connection to GCS could not be created
    */
-  public static OSSUnderFileSystem createInstance(AlluxioURI uri) throws Exception {
-    String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
+  public static OSSUnderFileSystem createInstance(AlluxioURI uri,
+      UnderFileSystemConfiguration conf) throws Exception {
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
+    Preconditions.checkArgument(
+        conf.containsKey(PropertyKey.OSS_ACCESS_KEY),
         "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_SECRET_KEY),
+    Preconditions.checkArgument(
+        conf.containsKey(PropertyKey.OSS_SECRET_KEY),
         "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
+    Preconditions.checkArgument(
+        conf.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
         "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    String accessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
-    String accessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
-    String endPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
+    String accessId = conf.getValue(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = conf.getValue(PropertyKey.OSS_SECRET_KEY);
+    String endPoint = conf.getValue(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
@@ -87,9 +93,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param ossClient Aliyun OSS client
    * @param bucketName bucket name of user's configured Alluxio bucket
    */
-  protected OSSUnderFileSystem(AlluxioURI uri,
-      OSSClient ossClient,
-      String bucketName) {
+  protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName) {
     super(uri);
     mClient = ossClient;
     mBucketName = bucketName;
@@ -204,14 +208,13 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Wrapper over OSS {@link StorageObjectsChunk}.
+   * Wrapper over OSS {@link ObjectListingChunk}.
    */
   private final class OSSObjectListingChunk implements ObjectListingChunk {
     final ListObjectsRequest mRequest;
     final ObjectListing mResult;
 
-    OSSObjectListingChunk(ListObjectsRequest request, ObjectListing result)
-        throws IOException {
+    OSSObjectListingChunk(ListObjectsRequest request, ObjectListing result) throws IOException {
       mRequest = request;
       mResult = result;
       if (mResult == null) {
@@ -274,10 +277,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    */
   private static ClientConfiguration initializeOSSClientConfig() {
     ClientConfiguration ossClientConf = new ClientConfiguration();
-    ossClientConf.setConnectionTimeout(
-        Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
-    ossClientConf.setSocketTimeout(
-        Configuration.getInt(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
+    ossClientConf
+        .setConnectionTimeout(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
+    ossClientConf.setSocketTimeout(Configuration.getInt(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
     ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;

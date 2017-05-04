@@ -81,7 +81,7 @@ public final class UfsJournalWriter implements JournalWriter {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    mUfs = UnderFileSystem.Factory.get(mJournal.getLocation().toString());
+    mUfs = UnderFileSystem.Factory.get(mJournal.getLocation());
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 
@@ -112,7 +112,7 @@ public final class UfsJournalWriter implements JournalWriter {
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
           latestSequenceNumber, mNextEntrySequenceNumber);
-      UnderFileSystemUtils.deleteFileIfExists(mTempCheckpoint.toString());
+      UnderFileSystemUtils.deleteFileIfExists(mUfs, mTempCheckpoint.toString());
       mCheckpointOutputStream = new CheckpointOutputStream(
           new DataOutputStream(mUfs.create(mTempCheckpoint.toString())));
     }
@@ -225,7 +225,6 @@ public final class UfsJournalWriter implements JournalWriter {
      * number to the passed in entry.
      *
      * @param entry an entry to write to the journal checkpoint file
-     * @throws IOException if an I/O error occurs
      */
     @Override
     public synchronized void write(JournalEntry entry) throws IOException {
@@ -245,8 +244,6 @@ public final class UfsJournalWriter implements JournalWriter {
      * already reflects that state.
      *
      * The current log file (if it exists) will be closed and marked as complete.
-     *
-     * @throws IOException if an I/O error occurs
      */
     @Override
     public synchronized void close() throws IOException {
@@ -315,7 +312,6 @@ public final class UfsJournalWriter implements JournalWriter {
      * @param journalFormatter the journal formatter to use when writing journal entries
      * @param journalWriter the journal writer to use to get journal entry sequence numbers and
      *        complete the log when it needs to be rotated
-     * @throws IOException if the ufs can't create an outstream to logPath
      */
     public EntryOutputStream(UnderFileSystem ufs, URI log, JournalFormatter journalFormatter,
         UfsJournalWriter journalWriter) throws IOException {
@@ -335,7 +331,6 @@ public final class UfsJournalWriter implements JournalWriter {
      * sequence number to the passed in entry.
      *
      * @param entry an entry to write to the journal checkpoint file
-     * @throws IOException if an I/O error occurs
      */
     @Override
     public synchronized void write(JournalEntry entry) throws IOException {
@@ -406,8 +401,6 @@ public final class UfsJournalWriter implements JournalWriter {
 
     /**
      * Completes the current log and rotates in a new log.
-     *
-     * @throws IOException if an IO exception occurs during the log rotation
      */
     private void rotateLog() throws IOException {
       mDataOutputStream.close();

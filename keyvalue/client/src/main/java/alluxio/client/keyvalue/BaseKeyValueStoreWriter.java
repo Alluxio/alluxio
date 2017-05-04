@@ -17,6 +17,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
@@ -60,10 +62,8 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    * store at the given {@link AlluxioURI}.
    *
    * @param uri URI of the store
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
-  BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException, AlluxioException {
+  BaseKeyValueStoreWriter(AlluxioURI uri) {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
     mMasterClient = new KeyValueMasterClient(FileSystemContext.INSTANCE.getMasterAddress());
 
@@ -86,7 +86,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
         completePartition();
         mMasterClient.completeStore(mStoreUri);
       }
-    } catch (AlluxioException e) {
+    } catch (Exception e) {
       throw new IOException(e);
     } finally {
       mMasterClient.close();
@@ -171,9 +171,6 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
 
   /**
    * Completes the current partition.
-   *
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
   private void completePartition() throws IOException, AlluxioException {
     if (mWriter == null) {
@@ -183,7 +180,13 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     List<Long> blockIds = mFileSystem.getStatus(getPartitionName()).getBlockIds();
     long blockId = blockIds.get(0);
     PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId, mWriter.keyCount());
-    mMasterClient.completePartition(mStoreUri, info);
+    try {
+      mMasterClient.completePartition(mStoreUri, info);
+    } catch (UnavailableException e) {
+      throw new IOException(e);
+    } catch (AlluxioStatusException e) {
+      e.toAlluxioException();
+    }
     mPartitionIndex++;
   }
 }

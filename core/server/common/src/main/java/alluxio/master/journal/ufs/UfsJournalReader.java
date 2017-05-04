@@ -149,7 +149,6 @@ final class UfsJournalReader implements JournalReader {
    * The real read implementation that reads a journal entry from a journal file.
    *
    * @return the journal entry, null if no journal entry is found
-   * @throws IOException if any I/O errors occur
    * @throws InvalidJournalEntryException if the journal entry found is invalid
    */
   private Journal.JournalEntry readInternal() throws IOException, InvalidJournalEntryException {

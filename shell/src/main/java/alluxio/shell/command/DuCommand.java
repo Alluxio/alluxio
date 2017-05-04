@@ -53,8 +53,6 @@ public final class DuCommand extends WithWildCardPathCommand {
    * @param fs a {@link FileSystem}
    * @param path a {@link AlluxioURI} denoting the path
    * @return total size of the specified path in byte
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private long getFileOrFolderSize(FileSystem fs, AlluxioURI path)
       throws AlluxioException, IOException {

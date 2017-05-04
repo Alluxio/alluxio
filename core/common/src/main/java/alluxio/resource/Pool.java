@@ -23,7 +23,6 @@ public interface Pool<T> {
    * Acquires a resource from the pool.
    *
    * @return the acquired resource which should not be null
-   * @throws Exception if it fails
    */
   T acquire() throws Exception;
 
@@ -33,7 +32,6 @@ public interface Pool<T> {
    * @param time time it takes before timeout if no resource is available
    * @param unit the unit of the time
    * @return the acquired resource which should not be null
-   * @throws Exception if it fails
    */
   T acquire(long time, TimeUnit unit) throws Exception;
 

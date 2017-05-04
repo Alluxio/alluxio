@@ -42,16 +42,6 @@ Here `fs.oss.accessKeyId` is the Access Key Id string and `fs.oss.accessKeySecre
 
 After these changes, Alluxio should be configured to work with OSS as its under storage system, and you can try to run alluxio locally with OSS.
 
-## Configuring Distributed Applications
-
-If you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you need to make sure that your Aliyun credentials are provided to the application JVM processes as well. The easiest way to do this is to add them as command line options when starting your client JVM process. For example:
-
-{% include Configuring-Alluxio-with-OSS/java-bash.md %}
-
-Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting credentials) to the classpath
-of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or append the path to this site properties file to
-the classpath.
-
 ## Running Alluxio Locally with OSS
 
 After everything is configured, you can start up Alluxio locally to see that everything works.

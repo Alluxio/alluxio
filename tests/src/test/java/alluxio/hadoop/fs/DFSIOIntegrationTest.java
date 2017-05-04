@@ -13,8 +13,8 @@ package alluxio.hadoop.fs;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopConfigurationUtils;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
@@ -242,7 +242,6 @@ public class DFSIOIntegrationTest implements Tool {
 
   /**
    * Writes into files, then calculates and collects the write test statistics.
-   * @throws Exception if has error
    */
   public static void writeTest() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
