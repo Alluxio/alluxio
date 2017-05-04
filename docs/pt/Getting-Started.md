@@ -29,7 +29,7 @@ os que são suportados são: [Amazon S3](Configuring-Alluxio-with-S3.html),
 
 O Alluxio provê uma [interface de file system](File-System-API.html) para permitir que as aplicações
 interajam com os dados armazenados no Alluxio. Se você quer que uma aplicação escreva diretamente
-no topo do Alluxio, simplesmente adicione a dependencia `alluxio-core-client` no seu programa. Por
+no topo do Alluxio, simplesmente adicione a dependencia `alluxio-core-client-fs` no seu programa. Por
 exemplo, se uma aplicação está compilada através do `Maven`:
 
 {% include Getting-Started/config-application.md %}
