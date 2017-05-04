@@ -29,8 +29,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalFilePacketWriter implements PacketWriter {
-  private static final long PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
 
@@ -41,6 +39,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
   private final long mBlockId;
   private final LocalFileBlockWriter mWriter;
   private final BlockWorkerClient mBlockWorkerClient;
+  private final long mPacketSize;
   private boolean mClosed = false;
 
   /**
@@ -50,11 +49,12 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
    * @param tier the target tier
+   * @param packetSize the packet size
    * @return the {@link LocalFilePacketWriter} created
    */
   public static LocalFilePacketWriter create(BlockWorkerClient blockWorkerClient,
-      long blockId, int tier) {
-    return new LocalFilePacketWriter(blockWorkerClient, blockId, tier);
+      long blockId, int tier, long packetSize) {
+    return new LocalFilePacketWriter(blockWorkerClient, blockId, tier, packetSize);
   }
 
   @Override
@@ -64,7 +64,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
 
   @Override
   public int packetSize() {
-    return (int) PACKET_SIZE;
+    return (int) mPacketSize;
   }
 
   @Override
@@ -108,14 +108,17 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param blockWorkerClient the block worker client, not owned by this class
    * @param blockId the block ID
    * @param tier the target tier
+   * @param packetSize the packet size
    */
-  private LocalFilePacketWriter(BlockWorkerClient blockWorkerClient, long blockId, int tier) {
+  private LocalFilePacketWriter(
+      BlockWorkerClient blockWorkerClient, long blockId, int tier, long packetSize) {
     String blockPath =
         blockWorkerClient.requestBlockLocation(blockId, FILE_BUFFER_BYTES, tier);
     mWriter = new LocalFileBlockWriter(blockPath);
     mPosReserved += FILE_BUFFER_BYTES;
     mBlockId = blockId;
     mBlockWorkerClient = blockWorkerClient;
+    mPacketSize = packetSize;
   }
 
   /**

@@ -40,7 +40,7 @@ import java.util.Random;
 
 public abstract class DataServerReadHandlerTest {
   protected static final long PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   protected String mFile;

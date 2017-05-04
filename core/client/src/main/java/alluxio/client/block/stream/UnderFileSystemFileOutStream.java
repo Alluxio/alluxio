@@ -14,7 +14,6 @@ package alluxio.client.block.stream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.security.authorization.Mode;
 
 import java.io.FilterOutputStream;
 import java.io.OutputStream;
@@ -38,8 +37,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    */
   public static OutputStream create(FileSystemContext context, InetSocketAddress address,
       OutStreamOptions options) {
-    return new UnderFileSystemFileOutStream(context, address, options.getMountId(),
-        options.getUfsPath(), options.getOwner(), options.getGroup(), options.getMode());
+    return new UnderFileSystemFileOutStream(context, address, options);
   }
 
   private final PacketOutStream mOutStream;
@@ -49,18 +47,16 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    *
    * @param context the file system context
    * @param address the data server address
-   * @param mountId the mount id
-   * @param ufsPath the UFS file path
-   * @param owner the owner of the ufs file
-   * @param group the group of the ufs file
-   * @param mode the mode of the ufs file
+   * @param options the out stream options
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
-      long mountId, String ufsPath, String owner, String group, Mode mode) {
+      OutStreamOptions options) {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
         Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
-            .setType(Protocol.RequestType.UFS_FILE).setMountId(mountId).setUfsPath(ufsPath)
-            .setOwner(owner).setGroup(group).setMode(mode.toShort()).buildPartial()));
+            .setType(Protocol.RequestType.UFS_FILE).setMountId(options.getMountId())
+            .setUfsPath(options.getUfsPath()).setOwner(options.getOwner())
+            .setGroup(options.getGroup()).setMode(options.getMode().toShort()).buildPartial(),
+        options));
     mOutStream = (PacketOutStream) out;
   }
 
