@@ -222,7 +222,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     public DeleteBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
-      mCurrentBatchBuffer = null;
+      mCurrentBatchBuffer = new LinkedList<>();
       mEntriesAdded = 0;
     }
 
@@ -234,12 +234,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     public void add(String path) throws IOException {
       // Delete batch size is same as listing length
-      if (mCurrentBatchBuffer != null && mCurrentBatchBuffer.size() == getListingChunkLength()) {
+      if (mCurrentBatchBuffer.size() == getListingChunkLength()) {
         // Batch is full
-        processBatch();
-      }
-      if (mCurrentBatchBuffer == null) {
-        mCurrentBatchBuffer = new LinkedList<>();
+        submitBatch();
       }
       mCurrentBatchBuffer.add(path);
       mEntriesAdded++;
@@ -252,7 +249,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @throws IOException if a non-Alluxio error occurs
      */
     public List<String> getResult() throws IOException {
-      processBatch();
+      submitBatch();
       LinkedList<String> result = new LinkedList<>();
       for (Future<List<String>> list : mBatchesResult) {
         try {
@@ -267,24 +264,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Process a single batch.
+     * Process the current batch asynchronously.
      */
-    private void processBatch() throws IOException {
-      if (mCurrentBatchBuffer != null) {
+    private void submitBatch() throws IOException {
+      if (mCurrentBatchBuffer.size() != 0) {
         int batchNumber = mBatches.size();
         mBatches.add(new LinkedList<>(mCurrentBatchBuffer));
-        mCurrentBatchBuffer = null;
-        processBatchInThread(batchNumber);
+        mCurrentBatchBuffer.clear();
+        mBatchesResult.add(batchNumber,
+            mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
       }
-    }
-
-    /**
-     * Launch a thread for processing an individual batch.
-     * @param batchNumber index starting from 0
-     */
-    private void processBatchInThread(int batchNumber) throws IOException {
-      mBatchesResult.add(batchNumber,
-          mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
     }
 
     /**
