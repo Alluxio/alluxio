@@ -19,15 +19,12 @@ import alluxio.client.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import io.netty.channel.Channel;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -41,16 +38,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LocalFilePacketReader implements PacketReader {
   private static final long LOCAL_READ_PACKET_SIZE =
       Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
-  private static final long READ_TIMEOUT_MS =
-      Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
-  private final FileSystemContext mContext;
-  private final Channel mChannel;
-  private final InetSocketAddress mAddress;
-  private final long mBlockId;
 
   /** The file reader to read a local block. */
-  private LocalFileBlockReader mReader;
+  private final LocalFileBlockReader mReader;
 
   private long mPos;
   private final long mEnd;
@@ -60,19 +51,12 @@ public final class LocalFilePacketReader implements PacketReader {
   /**
    * Creates an instance of {@link LocalFilePacketReader}.
    *
-   * @param context the file system context
-   * @param address the data server address
-   * @param blockId the block ID
+   * @param path the block path
    * @param offset the offset
    * @param len the length to read
    */
-  public LocalFilePacketReader(FileSystemContext context, InetSocketAddress address, long blockId,
-      long offset, long len) {
-    mContext = context;
-    mAddress = address;
-    mChannel = mContext.acquireNettyChannel(mAddress);
-    mBlockId = blockId;
-
+  private LocalFilePacketReader(String path, long offset, long len) {
+    mReader = new LocalFileBlockReader(path);
     mPos = offset;
     mEnd = offset + len;
   }
@@ -82,7 +66,6 @@ public final class LocalFilePacketReader implements PacketReader {
     if (mPos >= mEnd) {
       return null;
     }
-    initIfNot();
 
     ByteBuffer buffer = mReader.read(mPos, Math.min(LOCAL_READ_PACKET_SIZE, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
@@ -101,51 +84,21 @@ public final class LocalFilePacketReader implements PacketReader {
       return;
     }
     mClosed = true;
-    try {
-      Closer closer = Closer.create();
-      closer.register(new Closeable() {
-        @Override
-        public void close() throws IOException {
-          NettyRPC.call(
-              NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-              new ProtoMessage(
-                  Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build()));
-        }
-      });
-      if (mReader != null) {
-        closer.register(mReader);
-      }
-      CommonUtils.close(closer);
-    } finally {
-      mContext.releaseNettyChannel(mAddress, mChannel);
-    }
-  }
-
-  /**
-   * Initializes the local file block reader if it has not been initialized.
-   */
-  private void initIfNot() {
-    if (mClosed) {
-      return;
-    }
-
-    if (mReader == null) {
-      ProtoMessage message = NettyRPC
-          .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-              new ProtoMessage(
-                  Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId).build()));
-      Preconditions.checkState(message.isLocalBlockOpenResponse());
-      mReader = new LocalFileBlockReader(message.asLocalBlockOpenResponse().getPath());
-    }
+    mReader.close();;
   }
 
   /**
    * Factory class to create {@link LocalFilePacketReader}s.
    */
   public static class Factory implements PacketReader.Factory {
-    private final FileSystemContext mContext;
-    private final InetSocketAddress mAddress;
+    private static final long READ_TIMEOUT_MS =
+        Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+
+    private final Channel mChannel;
     private final long mBlockId;
+    private final long mSessionId;
+    private final String mPath;
+
 
     /**
      * Creates an instance of {@link Factory}.
@@ -154,20 +107,36 @@ public final class LocalFilePacketReader implements PacketReader {
      * @param address the worker address
      * @param blockId the block ID
      */
-    public Factory(FileSystemContext context, InetSocketAddress address, long blockId) {
-      mContext = context;
-      mAddress = address;
+    public Factory(FileSystemContext context, InetSocketAddress address, long blockId,
+        long sessionId) {
       mBlockId = blockId;
+      mSessionId = sessionId;
+
+      mChannel = context.acquireNettyChannel(address);
+      ProtoMessage message = NettyRPC
+          .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
+              new ProtoMessage(Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
+                  .setSessionId(mSessionId).build()));
+      Preconditions.checkState(message.isLocalBlockOpenResponse());
+      mPath = message.asLocalBlockOpenResponse().getPath();
     }
 
     @Override
     public PacketReader create(long offset, long len) {
-      return new LocalFilePacketReader(mContext, mAddress, mBlockId, offset, len);
+      return new LocalFilePacketReader(mPath, offset, len);
     }
 
     @Override
     public boolean isShortCircuit() {
       return true;
+    }
+
+    @Override
+    public void close() throws IOException {
+      NettyRPC.call(
+          NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
+          new ProtoMessage(
+              Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build()));
     }
   }
 }

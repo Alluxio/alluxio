@@ -64,8 +64,8 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    */
   public static PacketInStream createLocalPacketInStream(FileSystemContext context,
       InetSocketAddress address, long blockId, long sessionId, long length) {
-    return new PacketInStream(new LocalFilePacketReader.Factory(context, address, blockId), blockId,
-        length);
+    return new PacketInStream(
+        new LocalFilePacketReader.Factory(context, address, blockId, sessionId), blockId, length);
   }
 
   /**

@@ -14,6 +14,8 @@ package alluxio.client.block.stream;
 import alluxio.QuietlyCloseable;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
+import java.io.Closeable;
+
 /**
  * The interface to read packets.
  */
@@ -34,7 +36,7 @@ public interface PacketReader extends QuietlyCloseable {
   /**
    * The factory interface to create {@link PacketReader}s.
    */
-  interface Factory {
+  interface Factory extends Closeable {
     /**
      * Creates an instance of {@link PacketReader}.
      *

@@ -380,6 +380,9 @@ public final class NettyPacketReader implements PacketReader {
     public boolean isShortCircuit() {
       return false;
     }
+
+    @Override
+    public void close() throws IOException {}
   }
 }
 

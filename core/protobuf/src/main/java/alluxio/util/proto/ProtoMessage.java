@@ -31,8 +31,50 @@ public final class ProtoMessage {
    *
    * @param message the message to wrap
    */
-  public ProtoMessage(MessageLite message) {
+  ProtoMessage(MessageLite message) {
     mMessage = message;
+  }
+
+  /**
+   * @param readRequest the read request
+   */
+  public ProtoMessage(Protocol.ReadRequest readRequest) {
+    mMessage = readRequest;
+  }
+
+  /**
+   * @param writeRequest the write request
+   */
+  public ProtoMessage(Protocol.WriteRequest writeRequest) {
+    mMessage = writeRequest;
+  }
+
+  /**
+   * @param response  the response
+   */
+  public ProtoMessage(Protocol.Response response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block open request
+   */
+  public ProtoMessage(Protocol.LocalBlockOpenRequest request) {
+    mMessage = request;
+  }
+
+  /**
+   * @param response the local block open response
+   */
+  public ProtoMessage(Protocol.LocalBlockOpenResponse response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block close request
+   */
+  public ProtoMessage(Protocol.LocalBlockCloseRequest request) {
+    mMessage = request;
   }
 
   /**
