@@ -22,6 +22,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -79,7 +80,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      SocketAddress address, long sessionId, long id, long length,
+      WorkerNetAddress address, long sessionId, long id, long length,
       Protocol.RequestType type, OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
@@ -99,7 +100,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      SocketAddress address, long length, Protocol.WriteRequest partialRequest,
+      WorkerNetAddress address, long length, Protocol.WriteRequest partialRequest,
       OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);

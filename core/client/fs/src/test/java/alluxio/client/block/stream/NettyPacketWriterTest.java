@@ -22,6 +22,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
@@ -62,13 +63,13 @@ public final class NettyPacketWriterTest {
   private static final int TIER = 0;
 
   private FileSystemContext mContext;
-  private InetSocketAddress mAddress;
+  private WorkerNetAddress mAddress;
   private EmbeddedChannels.EmbeddedEmptyCtorChannel mChannel;
 
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
-    mAddress = Mockito.mock(InetSocketAddress.class);
+    mAddress = Mockito.mock(WorkerNetAddress.class);
 
     mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);

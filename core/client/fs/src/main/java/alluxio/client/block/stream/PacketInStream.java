@@ -22,6 +22,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 
@@ -86,7 +87,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
-      SocketAddress address, long id, long lockId, long sessionId, long length,
+      WorkerNetAddress address, long id, long lockId, long sessionId, long length,
       boolean noCache, Protocol.RequestType type, InStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);

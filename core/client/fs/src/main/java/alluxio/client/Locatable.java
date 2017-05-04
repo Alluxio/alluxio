@@ -11,6 +11,8 @@
 
 package alluxio.client;
 
+import alluxio.wire.WorkerNetAddress;
+
 import java.net.InetSocketAddress;
 
 /**
@@ -20,7 +22,7 @@ public interface Locatable {
   /**
    * @return the network location
    */
-  InetSocketAddress location();
+  WorkerNetAddress location();
 
   /**
    * @return true if it is local

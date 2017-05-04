@@ -27,20 +27,16 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
-import alluxio.util.network.NettyUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
-import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.SocketAddress;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,14 +102,8 @@ public class FileOutStream extends AbstractOutStream {
       try {
         WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
             options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
-        SocketAddress address;
-        if (NettyUtils.isDomainSocketSupported(workerNetAddress)) {
-          address = new DomainSocketAddress(workerNetAddress.getDomainSocketPath());
-        } else {
-          address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-        }
-        mUnderStorageOutputStream =
-            mCloser.register(UnderFileSystemFileOutStream.create(mContext, address, mOptions));
+        mUnderStorageOutputStream = mCloser
+            .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
       } catch (AlluxioStatusException e) {
         CommonUtils.closeQuietly(mCloser);
         throw e.toIOException();

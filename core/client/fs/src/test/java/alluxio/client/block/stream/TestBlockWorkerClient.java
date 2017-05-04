@@ -17,15 +17,10 @@ import alluxio.client.resource.LockBlockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
-import java.net.InetSocketAddress;
-
 /**
  * A mock {@link BlockWorkerClient} which returns local host for the data server address.
  */
 public class TestBlockWorkerClient implements BlockWorkerClient {
-  private static final String HOSTNAME = "localhost";
-  private static final int PORT = 29998;
-
   @Override
   public void accessBlock(long blockId) {}
 
@@ -34,11 +29,6 @@ public class TestBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public void cancelBlock(long blockId) {}
-
-  @Override
-  public InetSocketAddress getDataServerAddress() {
-    return new InetSocketAddress(HOSTNAME, PORT);
-  }
 
   @Override
   public long getSessionId() {

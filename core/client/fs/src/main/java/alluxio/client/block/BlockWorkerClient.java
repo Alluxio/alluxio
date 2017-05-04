@@ -70,11 +70,6 @@ public interface BlockWorkerClient extends QuietlyCloseable {
   void cancelBlock(final long blockId);
 
   /**
-   * @return the address of the worker's data server
-   */
-  InetSocketAddress getDataServerAddress();
-
-  /**
    * @return the ID of the session
    */
   long getSessionId();
