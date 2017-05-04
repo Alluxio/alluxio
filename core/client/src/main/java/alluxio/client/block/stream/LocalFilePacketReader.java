@@ -93,6 +93,8 @@ public final class LocalFilePacketReader implements PacketReader {
     private static final long READ_TIMEOUT_MS =
         Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
+    private final FileSystemContext mContext;
+    private final InetSocketAddress mAddress;
     private final Channel mChannel;
     private final long mBlockId;
     private final long mSessionId;
@@ -108,6 +110,8 @@ public final class LocalFilePacketReader implements PacketReader {
      */
     public Factory(FileSystemContext context, InetSocketAddress address, long blockId,
         long sessionId) {
+      mContext = context;
+      mAddress = address;
       mBlockId = blockId;
       mSessionId = sessionId;
 
@@ -132,10 +136,13 @@ public final class LocalFilePacketReader implements PacketReader {
 
     @Override
     public void close() throws IOException {
-      NettyRPC.call(
-          NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-          new ProtoMessage(
-              Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build()));
+      try {
+        NettyRPC.call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
+            new ProtoMessage(
+                Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build()));
+      } finally {
+        mContext.releaseNettyChannel(mAddress, mChannel);
+      }
     }
   }
 }

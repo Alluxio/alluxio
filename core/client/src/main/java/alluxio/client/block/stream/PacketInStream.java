@@ -22,6 +22,7 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 
@@ -217,8 +218,12 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public void close() {
-    closePacketReader();
+  public void close() throws IOException {
+    try {
+      closePacketReader();
+    } finally {
+      mPacketReaderFactory.close();
+    }
     mClosed = true;
   }
 
