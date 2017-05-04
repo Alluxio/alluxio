@@ -59,7 +59,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
     }
 
     ProtoMessage message = ((RPCProtoMessage) msg).getMessage();
-    if (message.isLocalBlockCloseRequest()) {
+    if (message.isLocalBlockOpenRequest()) {
       handleBlockOpenRequest(ctx, message.asLocalBlockOpenRequest());
     } else {
       Preconditions.checkState(message.isLocalBlockCloseRequest());
@@ -89,7 +89,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
    */
   void handleBlockOpenRequest(ChannelHandlerContext ctx, Protocol.LocalBlockOpenRequest request) {
     // It is a no-op to lock the same block multiple times within the same channel.
-    if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
+    if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
       try {
         mLockId = mBlockWorker.lockBlock(request.getSessionId(), request.getBlockId());
         Protocol.LocalBlockOpenResponse response = Protocol.LocalBlockOpenResponse.newBuilder()

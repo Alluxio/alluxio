@@ -220,6 +220,15 @@ public abstract class RPCMessage implements EncodedMessage {
         return RPCProtoMessage.decode(in, new ProtoMessage(Protocol.Response.getDefaultInstance()));
       case RPC_UFS_BLOCK_READ_REQUEST:
         return RPCUnderFileSystemBlockReadRequest.decode(in);
+      case RPC_LOCAL_BLOCK_OPEN_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockOpenRequest.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_OPEN_RESPONSE:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockOpenResponse.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_CLOSE_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCloseRequest.getDefaultInstance()));
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }
