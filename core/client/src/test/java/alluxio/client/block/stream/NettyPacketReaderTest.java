@@ -64,7 +64,7 @@ public final class NettyPacketReaderTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(InetSocketAddress.class);
     mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
-        false, Protocol.RequestType.ALLUXIO_BLOCK);
+        false, Protocol.RequestType.ALLUXIO_BLOCK, PACKET_SIZE);
 
     mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
