@@ -207,21 +207,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   @NotThreadSafe
   protected class DeleteBuffer {
-    /**
-     * A list of objects in batches to be deleted in parallel.
-     */
+    /** A list of objects in batches to be deleted in parallel. */
     private ArrayList<List<String>> mBatches;
-    /**
-     * A list of the successfully deleted objects for each batch delete.
-     */
+    /** A list of the successfully deleted objects for each batch delete. */
     private ArrayList<Future<List<String>>> mBatchesResult;
-    /**
-     * Buffer for a batch of objects to be deleted.
-     */
+    /** Buffer for a batch of objects to be deleted. */
     private List<String> mCurrentBatchBuffer;
-    /**
-     * Total number of objects to be deleted across batches.
-     */
+    /** Total number of objects to be deleted across batches. */
     private int mEntriesAdded;
 
     /**
