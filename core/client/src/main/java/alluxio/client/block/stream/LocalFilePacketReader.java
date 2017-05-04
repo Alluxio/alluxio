@@ -15,6 +15,8 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import com.google.common.base.Preconditions;
+
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -41,6 +43,7 @@ public final class LocalFilePacketReader implements PacketReader {
    */
   public LocalFilePacketReader(
       LocalFileBlockReader reader, long offset, long len, long packetSize) {
+    Preconditions.checkArgument(packetSize > 0);
     mReader = reader;
     mPos = offset;
     mEnd = offset + len;
