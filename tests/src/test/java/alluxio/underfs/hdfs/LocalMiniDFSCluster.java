@@ -12,7 +12,10 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.underfs.UnderFileSystemCluster;
+import alluxio.util.io.FileUtils;
 
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.slf4j.Logger;
@@ -144,7 +147,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     LOG.info("Starting DFS cluster.");
     if (!mIsStarted) {
 
-      cleanup();
+      FileUtils.deletePathRecursively(mBaseDir);
+      FileUtils.createDir(mBaseDir);
 
       // TODO(hy): For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused
       // by "umask 002" (should be 022) see [HDFS-2556]. So the following code only works for
@@ -161,6 +165,18 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       // {@link org.apache.hadoop.fs.FileSystem} rather than {@link DistributedFileSystem}
       mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
       mIsStarted = true;
+    }
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+    DistributedFileSystem client = getDFSClient();
+    FileStatus[] files = client.listStatus(new Path(getUnderFilesystemAddress()));
+    if (files == null) {
+      return;
+    }
+    for (FileStatus status : files) {
+      client.delete(status.getPath(), true);
     }
   }
 }
