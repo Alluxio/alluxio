@@ -86,8 +86,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
   private long mPosToWrite;
-  @GuardedBy("mLock")
-  private long mPacketSize;
 
   /**
    * mEof, mCancel and mError are the notifications processed by the packet reader thread. They can
@@ -198,7 +196,6 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     try (LockResource lr = new LockResource(mLock)) {
       mPosToQueue = mRequest.mStart;
       mPosToWrite = mRequest.mStart;
-      mPacketSize = mRequest.mPacketSize;
 
       mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
       mPacketReaderActive = true;
@@ -216,7 +213,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    */
   @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
-    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mPacketSize;
+    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mRequest.mPacketSize;
   }
 
   /**
@@ -362,7 +359,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
       }
 
       try (LockResource lr = new LockResource(mLock)) {
-        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= mPacketSize,
+        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= mRequest.mPacketSize,
             "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
         mPosToWrite = mPosToWriteUncommitted;
@@ -427,7 +424,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
             break;
           }
 
-          packetSize = (int) Math.min(mRequest.mEnd - mPosToQueue, mPacketSize);
+          packetSize = (int) Math.min(mRequest.mEnd - mPosToQueue, mRequest.mPacketSize);
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
