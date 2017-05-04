@@ -123,13 +123,12 @@ public final class UfsSyncChecker {
         for (UnderFileStatus child : mListedDirectories.get(curUri.toString())) {
           String childPath = PathUtils.concatPath(curUri, child.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
-          // TODO(adit): only return immediate children
           if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
             childrenList.add(new UnderFileStatus(childPath.substring(prefix.length()),
                 child.isDirectory()));
           }
         }
-        return childrenList.toArray(new UnderFileStatus[childrenList.size()]);
+        return trimIndirect(childrenList.toArray(new UnderFileStatus[childrenList.size()]));
       }
       curUri = curUri.getParent();
     }
@@ -139,7 +138,26 @@ public final class UfsSyncChecker {
     if (children != null) {
       mListedDirectories.put(ufsUri.toString(), children);
     }
-    // TODO(adit): only return immediate children
-    return children;
+    return trimIndirect(children);
+  }
+
+  /**
+   * Remove indirect children from children list returned from recursive listing.
+   *
+   * @param children list from recursive listing
+   * @return trimmed list, null if input is null
+   */
+  private UnderFileStatus[] trimIndirect(UnderFileStatus[] children) {
+    if (children == null) {
+      return null;
+    }
+    List<UnderFileStatus> childrenList = new LinkedList<>();
+    for (UnderFileStatus child : children) {
+      int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
+      if (index < 0 || index == child.getName().length()) {
+        childrenList.add(child);
+      }
+    }
+    return childrenList.toArray(new UnderFileStatus[childrenList.size()]);
   }
 }
