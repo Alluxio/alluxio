@@ -72,7 +72,11 @@ public final class LoginUser {
     Subject subject = new Subject();
 
     try {
-      LoginContext loginContext = createLoginContext(authType, subject);
+      // Use the class loader of User.class to construct the LoginContext. LoginContext uses this
+      // class loader to dynamically instantiate login modules. This enables
+      // Subject#getPrincipals to use reflection to search for User.class instances.
+      LoginContext loginContext =
+          createLoginContext(authType, subject, User.class.getClassLoader());
       loginContext.login();
     } catch (LoginException e) {
       throw new UnauthenticatedException("Failed to login: " + e.getMessage(), e);
@@ -112,21 +116,19 @@ public final class LoginUser {
    *
    * @param authType the {@link AuthType} to use
    * @param subject the {@link Subject} to use
+   * @param classLoader the {@link ClassLoader} to use
    * @return the new {@link LoginContext} instance
    * @throws LoginException if LoginContext cannot be created
    */
-  private static LoginContext createLoginContext(AuthType authType, Subject subject)
-      throws LoginException {
+  private static LoginContext createLoginContext(AuthType authType, Subject subject,
+      ClassLoader classLoader) throws LoginException {
     CallbackHandler callbackHandler = null;
     if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
       callbackHandler = new AppLoginModule.AppCallbackHandler();
     }
 
-    // Set the thread context class loader to the same class loader as User.class. LoginContext
-    // uses this thread context class loader to instantiate login modules. This enables
-    // Subject#getPrincipals to use reflection to search for User.class instances.
     ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(User.class.getClassLoader());
+    Thread.currentThread().setContextClassLoader(classLoader);
     try {
       // Create LoginContext based on authType, corresponding LoginModule should be registered
       // under the authType name in LoginModuleConfiguration.
