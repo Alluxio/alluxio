@@ -270,7 +270,7 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsMount = deletePersistedDirectoryHelper(false, false, false);
     Assert.assertFalse(Files.exists(Paths.get(ufsMount.join("top").getPath())));
   }
-  
+
    /**
    * Tests if a persisted directory is deleted from the UFS correctly when UFS contents are in
    * sync and check = true. The directory being deleted has nested non-empty directories.
@@ -280,7 +280,7 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsMount = deletePersistedDirectoryHelper(true, false, true);
     Assert.assertFalse(Files.exists(Paths.get(ufsMount.join("top").getPath())));
   }
-  
+
   /**
    * Tests if a persisted directory is deleted from the UFS correctly when UFS contents are in
    * sync and check = true.
@@ -290,7 +290,7 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsMount = deletePersistedDirectoryHelper(false, true, false);
     Assert.assertFalse(Files.exists(Paths.get(ufsMount.join("top").getPath())));
   }
-  
+
   /**
    * Tests if a persisted directory is not deleted from the UFS when UFS contents are not in
    * sync and check = true.
