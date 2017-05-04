@@ -83,7 +83,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
       Protocol.RequestType type, OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
-    NettyPacketWriter packetWriter = new NettyPacketWriter(
+    PacketWriter packetWriter = new NettyPacketWriter(
         context, address, id, length, sessionId, options.getWriteTier(), type, packetSize);
     return new PacketOutStream(packetWriter, length);
   }
@@ -103,7 +103,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
       Protocol.WriteRequest partialRequest, OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
-    NettyPacketWriter packetWriter =
+    PacketWriter packetWriter =
         new NettyPacketWriter(context, address, length, partialRequest, packetSize);
     return new PacketOutStream(packetWriter, length);
   }
