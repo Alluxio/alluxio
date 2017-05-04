@@ -14,7 +14,6 @@ package alluxio.util;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.math.BigDecimal;
 /**
  * Tests the {@link HFSUtils} class.
  */
@@ -27,55 +26,63 @@ public class HFSUtilsTest {
   public void getSectorTest0() {
     String testRequestSize = "0";
     String testSectorSize = "512";
-    BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(new BigDecimal("1"), result);
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(1L, result);
   }
 
   @Test
   public void getSectorTest20() {
     String testRequestSize = "20";
     String testSectorSize = "512";
-    BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(new BigDecimal("1"), result);
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(1L, result);
   }
 
   @Test
   public void getSectorTest512() {
     String testRequestSize = "512";
     String testSectorSize = "512";
-    BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(new BigDecimal("2"), result);
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(2L, result);
   }
 
   @Test
   public void getSectorTestMB() {
     String testRequestSize = "1048576"; // 1MB
     String testSectorSize = "512";
-    BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(new BigDecimal("2080"), result); // 1MB/512B = 2048
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(2080L, result); // 1MB/512B = 2048
   }
 
   @Test
   public void getSectorTestGB() {
     String testRequestSize = "1073741824"; // 1GB
     String testSectorSize = "512";
-    BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(new BigDecimal("2128667"), result); // 1GB/512B = 2097152
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(2128667L, result); // 1GB/512B = 2097152
   }
 
   @Test
   public void getSectorTest100GB() {
     String testRequestSize = "107374182400"; // 100GB
     String testSectorSize = "512";
-    BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(new BigDecimal("212866577"), result); // 100GB/512B = 209715200
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(212866577L, result); // 100GB/512B = 209715200
+  }
+
+  @Test
+  public void getSectorTest512GB() {
+    String testRequestSize = "549755813888"; // 512GB
+    String testSectorSize = "512";
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(1089876870L, result);
   }
 
   @Test
   public void getSectorTestTB() {
     String testRequestSize = "1099511627776"; // 1TB
     String testSectorSize = "512";
-    BigDecimal result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(new BigDecimal("2179753739"), result);
+    long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
+    Assert.assertEquals(2179753739L, result);
   }
 }

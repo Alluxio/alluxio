@@ -13,70 +13,58 @@ package alluxio.util;
 
 import alluxio.Constants;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 /**
- * This util class is called in alluxio-mount.sh to convert the memory size to number of sectors.
+ * Utility method called in alluxio-mount.sh to calculate space for Mac OS X HFS+.
+ * Metadata zone size is estimated by using specifications noted at
+ * http://dubeiko.com/development/FileSystems/HFSPLUS/tn1150.html#MetadataZone,
+ * which is slightly larger than actually metadata zone size created by hdiuitl command.
  */
 public final class HFSUtils {
 
   /**
-   * Convert the memory size to number of sectors.
+   * Converts the memory size to number of sectors.
    *
-   * @param requestSize the size of memory in bytes
+   * @param requestSize requested filesystem size in bytes
    * @param sectorSize the size of each sector in bytes
    * @return 0 if getNumSectors execute successfully
    */
-  public static BigDecimal getNumSector(String requestSize, String sectorSize) {
-    // Metadata zone size is estimated by using specifications noted at
-    // http://dubeiko.com/development/FileSystems/HFSPLUS/tn1150.html#MetadataZone,
-    // which is slightly larger than actually metadata zone size created by hdiuitl command.
-    BigDecimal memSize = new BigDecimal(requestSize);
-    BigDecimal sectorBytes = new BigDecimal(sectorSize);
+  public static long getNumSector(String requestSize, String sectorSize) {
+    Double memSize = Double.parseDouble(requestSize);
+    Double sectorBytes = Double.parseDouble(sectorSize);
 
-    BigDecimal sizeKB = new BigDecimal(Constants.KB);
-    BigDecimal sizeMB = new BigDecimal(Constants.MB);
-    BigDecimal sizeGB = new BigDecimal(Constants.GB);
-    BigDecimal hundredGB = sizeGB.multiply(BigDecimal.valueOf(100));
-
-    BigDecimal nSectors = memSize.divide(sectorBytes);
-    BigDecimal memSizeKB = memSize.divide(sizeKB, 4, RoundingMode.HALF_UP); // round up
-    BigDecimal memSizeGB = memSize.divide(sizeGB, 4, RoundingMode.HALF_UP); // round up
-    BigDecimal memSize100GB = memSize.divide(hundredGB, 8, RoundingMode.HALF_UP); // round up
+    Double nSectors = memSize / sectorBytes;
+    Double memSizeKB = memSize / Constants.KB;
+    Double memSizeGB = memSize / Constants.GB;
+    Double memSize100GB = memSize / (100 * Constants.GB);
 
     // allocation bitmap file: one bit per sector
-    BigDecimal allocBitmapSize = nSectors.divide(BigDecimal.valueOf(8));
+    Double allocBitmapSize = nSectors / 8;
 
     // extend overflow file: 4MB, plus 4MB per 100GB
-    BigDecimal extOverflowFileSize = memSize100GB.multiply(sizeMB).multiply(BigDecimal.valueOf(4));
+    Double extOverflowFileSize = memSize100GB * Constants.MB * 4;
 
     // journal file: 8MB, plus 8MB per 100GB
-    BigDecimal journalFileSize = memSize100GB.multiply(sizeMB).multiply(BigDecimal.valueOf(8));
+    Double journalFileSize = memSize100GB * Constants.MB * 8;
 
     // catalog file: 10bytes per KB
-    BigDecimal catalogFileSize = memSizeKB.multiply(BigDecimal.valueOf(10));
+    Double catalogFileSize = memSizeKB * 10;
 
     // hot files: 5bytes per KB
-    BigDecimal hotFileSize = memSizeKB.multiply(BigDecimal.valueOf(5));
+    Double hotFileSize = memSizeKB * 5;
 
     // quota users file and quota groups file
     // quotaUsersFileSize = (memSizeGB * 256 + 1) * 64;
     // quotaGroupsFileSize = (memSizeGB * 32 + 1) * 64;
-    BigDecimal quotaUsersFileSize = memSizeGB.multiply(BigDecimal.valueOf(16384))
-        .add(BigDecimal.valueOf(64));
-    BigDecimal quotaGroupsFileSize = memSizeGB.multiply(BigDecimal.valueOf(2048))
-        .add(BigDecimal.valueOf(64));
+    Double quotaUsersFileSize = (memSizeGB * 256 + 1) * 64;
+    Double quotaGroupsFileSize = (memSizeGB * 32 + 1) * 64;
+    Double metadataSize = allocBitmapSize + extOverflowFileSize + journalFileSize
+        + catalogFileSize + hotFileSize + quotaUsersFileSize + quotaGroupsFileSize;
 
-    BigDecimal metadataSize = allocBitmapSize.add(extOverflowFileSize)
-        .add(journalFileSize).add(catalogFileSize).add(hotFileSize)
-        .add(quotaUsersFileSize).add(quotaGroupsFileSize);
+    Double allocSize = memSize + metadataSize;
+    Double numSectors = allocSize / sectorBytes;
 
-    BigDecimal allocSize = memSize.add(metadataSize);
-    BigDecimal numSectors = allocSize.divide(sectorBytes, 0, RoundingMode.UP);
-
-    System.out.println(numSectors);
-    return numSectors;
+    System.out.println(numSectors.longValue() + 1); // round up
+    return numSectors.longValue() + 1;
   }
 
   /**
