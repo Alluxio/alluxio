@@ -19,6 +19,7 @@ import alluxio.client.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -114,6 +115,7 @@ public final class LocalFilePacketReader implements PacketReader {
       if (mReader != null) {
         closer.register(mReader);
       }
+      CommonUtils.close(closer);
     } finally {
       mContext.releaseNettyChannel(mAddress, mChannel);
     }
