@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -53,7 +54,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    if (!acceptMessage(msg)) {
+    if (!(msg instanceof RPCProtoMessage)) {
       ctx.fireChannelRead(msg);
       return;
     }
@@ -61,9 +62,10 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
     ProtoMessage message = ((RPCProtoMessage) msg).getMessage();
     if (message.isLocalBlockOpenRequest()) {
       handleBlockOpenRequest(ctx, message.asLocalBlockOpenRequest());
-    } else {
-      Preconditions.checkState(message.isLocalBlockCloseRequest());
+    } else if (message.isLocalBlockCloseRequest()) {
       handleBlockCloseRequest(ctx, message.asLocalBlockCloseRequest());
+    } else {
+      ctx.fireChannelRead(msg);
     }
   }
 
@@ -87,16 +89,6 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * @param msg the message
-   * @return true if the message should be processed in handler
-   */
-  private boolean acceptMessage(Object msg) {
-    return (msg instanceof RPCProtoMessage) && (
-        ((RPCProtoMessage) msg).getMessage().isLocalBlockOpenRequest() || ((RPCProtoMessage) msg)
-            .getMessage().isLocalBlockCloseRequest());
-  }
-
-  /**
    * Handles {@link Protocol.LocalBlockOpenRequest}. No exceptions should be thrown.
    *
    * @param ctx the channel handler context
@@ -110,7 +102,10 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
       if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
         mLockId = mBlockWorker.lockBlock(request.getSessionId(), request.getBlockId());
       } else {
-        LOG.warn("Lock block {} without releasing previous block lock.", request.getBlockId());
+        LOG.warn("Lock block {} without releasing previous block lock {}.", request.getBlockId(),
+            mLockId);
+        throw new InvalidWorkerStateException(
+            ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
       }
       Protocol.LocalBlockOpenResponse response = Protocol.LocalBlockOpenResponse.newBuilder()
           .setPath(mBlockWorker.readBlock(request.getSessionId(), request.getBlockId(), mLockId))

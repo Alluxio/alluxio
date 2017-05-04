@@ -75,8 +75,8 @@ public final class BlockInStreamTest {
           .thenReturn(InetSocketAddress.createUnresolved("remotehost", 0));
       stream = BlockInStream.createUfsBlockInStream(context, "ufsPath", blockId, 100,
           0, 0, new WorkerNetAddress(), InStreamOptions.defaults());
-      // The client hostname matches the worker hostname, so the stream should not go to a local
-      // file.
+      // The client hostname do not matches the worker hostname, so the stream should not go to a
+      // local file.
       Assert.assertFalse(stream.isShortCircuit());
     }
   }
