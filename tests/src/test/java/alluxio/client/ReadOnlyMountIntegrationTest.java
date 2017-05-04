@@ -73,8 +73,6 @@ public class ReadOnlyMountIntegrationTest {
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
-    mUfs = UnderFileSystem.Factory.getForRoot();
-
   }
 
   @After

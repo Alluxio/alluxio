@@ -125,7 +125,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts the worker(s).
    */
-  protected void startWorkers() throws Exception {
+  public void startWorkers() throws Exception {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; i++) {
       mWorkers.add(WorkerProcess.Factory.create());

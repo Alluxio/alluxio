@@ -210,7 +210,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorkers() throws Exception {
+  public void startWorkers() throws Exception {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     super.startWorkers();
   }
