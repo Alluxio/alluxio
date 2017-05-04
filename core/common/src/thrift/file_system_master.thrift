@@ -56,6 +56,10 @@ struct ListStatusTOptions {
   2: optional LoadMetadataTType loadMetadataType
 }
 
+struct GetFileInfoTOptions {
+  1: optional LoadMetadataTType loadMetadataType
+}
+
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 * offset in the file, and the under file system locations of the block replicas.
