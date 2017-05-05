@@ -90,6 +90,13 @@ public final class ProtoMessage {
   }
 
   /**
+   * @return true if the message is of type {@link Protocol.Heartbeat}
+   */
+  public boolean isHeartbeat() {
+    return mMessage instanceof Protocol.Heartbeat;
+  }
+
+  /**
    * @return the serialized message as byte array
    */
   public byte[] toByteArray() {

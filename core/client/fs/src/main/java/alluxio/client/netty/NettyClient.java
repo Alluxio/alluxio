@@ -28,9 +28,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollMode;
+import io.netty.handler.timeout.IdleStateHandler;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -81,6 +83,8 @@ public final class NettyClient {
         pipeline.addLast(RPCMessage.createFrameDecoder());
         pipeline.addLast(ENCODER);
         pipeline.addLast(DECODER);
+        pipeline.addLast(new IdleStateHandler(0, 1, 0));
+        pipeline.addLast(new IdleWriteHandler());
       }
     });
 

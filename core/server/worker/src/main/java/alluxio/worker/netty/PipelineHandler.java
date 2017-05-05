@@ -22,8 +22,10 @@ import alluxio.worker.block.BlockWorker;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.timeout.IdleStateHandler;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Adds the data server's pipeline into the channel.
@@ -50,6 +52,11 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
+
+    // Idle Event Handlers
+    pipeline.addLast("idleEventHandler", new IdleStateHandler(5, 0, 0));
+    pipeline.addLast("idleReadHandler", new IdleReadHandler());
+    pipeline.addLast("heartbeatHandler", new DataServerHeartbeatHandler());
 
     // Block Handlers
     pipeline.addLast("dataServerBlockReadHandler",
