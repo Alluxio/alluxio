@@ -48,13 +48,16 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
   protected void initChannel(Channel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
 
+    final long timeoutMs = Configuration.getInt(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
+
     // Decoders & Encoders
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
 
     // Idle Event Handlers
-    pipeline.addLast("idleEventHandler", new IdleStateHandler(5, 0, 0));
+    pipeline.addLast("idleEventHandler", new IdleStateHandler(timeoutMs, 0, 0,
+        TimeUnit.MILLISECONDS));
     pipeline.addLast("idleReadHandler", new IdleReadHandler());
     pipeline.addLast("heartbeatHandler", new DataServerHeartbeatHandler());
 

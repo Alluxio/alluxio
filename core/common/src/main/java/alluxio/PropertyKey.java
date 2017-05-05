@@ -49,6 +49,8 @@ public class PropertyKey {
       create(Name.METRICS_CONF_FILE, String.format("${%s}/metrics.properties", Name.CONF_DIR));
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       create(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000);
+  public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+      create(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, 30000);
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       create(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB");
   public static final PropertyKey SITE_CONF_DIR =
@@ -669,6 +671,8 @@ public class PropertyKey {
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout.ms";
+    public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+        "alluxio.network.netty.heartbeat.timeout.ms";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
