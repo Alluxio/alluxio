@@ -17,8 +17,8 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -79,7 +79,7 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mountWithMultipleOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
         new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
-    UnderFileSystemRegistry.register(factory);
+    UnderFileSystemFactoryRegistry.register(factory);
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
     Assert.assertEquals(0, mFsShell
@@ -88,14 +88,14 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
     Assert.assertTrue(status.isPersisted());
-    UnderFileSystemRegistry.unregister(factory);
+    UnderFileSystemFactoryRegistry.unregister(factory);
   }
 
   @Test
   public void mountWithWrongOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
         new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
-    UnderFileSystemRegistry.register(factory);
+    UnderFileSystemFactoryRegistry.register(factory);
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
     // one property is wrong
@@ -109,7 +109,7 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(-1, mFsShell
         .run("mount", "--option", "k1=v1", "--option", "k2=v2", "--option", "k3=v3",
             mountPoint.toString(), ufsPath));
-    UnderFileSystemRegistry.unregister(factory);
+    UnderFileSystemFactoryRegistry.unregister(factory);
   }
 
   @Test

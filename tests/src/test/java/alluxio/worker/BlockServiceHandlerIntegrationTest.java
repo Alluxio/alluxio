@@ -165,7 +165,7 @@ public class BlockServiceHandlerIntegrationTest {
     // The local path should exist
     Assert.assertNotNull(localPath);
 
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(localPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(localPath);
     byte[] data = new byte[blockSize];
     InputStream in = ufs.open(localPath);
     int bytesRead = in.read(data);
@@ -299,7 +299,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(filename);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(filename);
     ufs.mkdirs(PathUtils.getParent(filename));
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);

@@ -68,7 +68,7 @@ public final class FileSystemRenameIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sUfsRoot = alluxio.Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    sUfs = UnderFileSystem.Factory.get(sUfsRoot);
+    sUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   @Test

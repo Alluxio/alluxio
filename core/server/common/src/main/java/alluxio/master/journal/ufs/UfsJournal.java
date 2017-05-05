@@ -81,7 +81,7 @@ public class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    this(location, UnderFileSystem.Factory.get(location));
+    this(location, UnderFileSystem.Factory.create(location));
   }
 
   /**
