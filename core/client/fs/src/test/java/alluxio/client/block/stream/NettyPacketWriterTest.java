@@ -22,6 +22,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
+@PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
 public final class NettyPacketWriterTest {
   private static final Logger LOG = LoggerFactory.getLogger(NettyPacketWriterTest.class);
 
@@ -62,13 +62,13 @@ public final class NettyPacketWriterTest {
   private static final int TIER = 0;
 
   private FileSystemContext mContext;
-  private InetSocketAddress mAddress;
+  private WorkerNetAddress mAddress;
   private EmbeddedChannels.EmbeddedEmptyCtorChannel mChannel;
 
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
-    mAddress = Mockito.mock(InetSocketAddress.class);
+    mAddress = Mockito.mock(WorkerNetAddress.class);
 
     mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
