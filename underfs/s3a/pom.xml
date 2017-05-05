@@ -65,7 +65,7 @@
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
-            <id>shade-jets3t</id>
+            <id>shade-s3a</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -108,8 +108,8 @@
                   <shadedPattern>${shading.prefix}.com.amazonaws</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>com.fasterxml</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml</shadedPattern>
+                  <pattern>com.fasterxml.jackson</pattern>
+                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache</pattern>
@@ -120,8 +120,8 @@
                   <shadedPattern>${shading.prefix}.org.jdom</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.joda</pattern>
-                  <shadedPattern>${shading.prefix}.org.joda</shadedPattern>
+                  <pattern>org.joda.time</pattern>
+                  <shadedPattern>${shading.prefix}.org.joda.time</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
