@@ -14,6 +14,7 @@ package alluxio.client.netty;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.proto.ProtoMessage;
+
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
@@ -23,6 +24,11 @@ import io.netty.handler.timeout.IdleStateEvent;
  * Sends a keep-alive to the server whenever the channel has been idle for a period of time.
  */
 public class IdleWriteHandler extends ChannelDuplexHandler {
+  /**
+   * Creates a new idle write handler.
+   */
+  public IdleWriteHandler() {}
+
   @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
     if (evt instanceof IdleStateEvent) {

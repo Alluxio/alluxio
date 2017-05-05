@@ -16,7 +16,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
+/**
+ * Closes the channel if it has been idle for too long.
+ */
 public class IdleReadHandler extends ChannelDuplexHandler {
+  /**
+   * Creates a new idle read handler.
+   */
+  public IdleReadHandler() {}
+
   @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
     if (evt instanceof IdleStateEvent) {
