@@ -1212,8 +1212,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       List<Inode> inodesToDelete = new LinkedList<>();
       // Inodes that are not safe for recursive deletes
       Set<Long> unsafeInodes = new HashSet<>();
-      // UFS URIs which could not be deleted
-      List<String> failedUfsUris = new LinkedList<>();
+      // Alluxio URIs which could not be deleted
+      List<String> failedUris = new LinkedList<>();
 
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
@@ -1227,7 +1227,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         boolean failedToDelete = false;
         if (unsafeInodes.contains(delInode.getId())) {
           failedToDelete = true;
-          unsafeInodes.add(delInode.getParentId());
         }
         if (!replayed && delInode.isPersisted() && !failedToDelete) {
           try {
@@ -1267,11 +1266,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                         ufsUri);
                   }
                 }
-                if (failedToDelete) {
-                  unsafeInodes.add(delInode.getId());
-                  unsafeInodes.add(delInode.getParentId());
-                  failedUfsUris.add(ufsUri);
-                }
               }
             }
           } catch (InvalidPathException e) {
@@ -1284,6 +1278,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
           }
           inodesToDelete.add(delInode);
+        } else {
+          unsafeInodes.add(delInode.getId());
+          unsafeInodes.add(delInode.getParentId());
+          failedUris.add(alluxioUriToDel.toString());
         }
       }
       // Delete Inodes
@@ -1296,9 +1294,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               NoopJournalContext.INSTANCE);
         }
       }
-      if (!failedUfsUris.isEmpty()) {
+      if (!failedUris.isEmpty()) {
         throw new IOException(
-            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(failedUfsUris, ',')));
+            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(failedUris, ',')));
       }
     }
 

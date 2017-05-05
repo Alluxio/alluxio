@@ -343,6 +343,41 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL)));
   }
+  
+  @Test
+  public void deleteUnsyncedPersistedMultilevelDirectoryWithCheck() throws Exception {
+    AlluxioURI ufsMount = createPersistedDirectories(3);
+    mountUfs(ufsMount);
+    loadPersistedDirectories(3);
+    // Add a file to the UFS down the tree
+    Files.createFile(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(DIR_PREFIX + 0)
+        .join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
+    mThrown.expect(IOException.class);
+    // delete top-level directory
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
+    Assert.assertTrue(Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).getPath())));
+    Assert.assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL)));
+    // Check all that could be deleted
+    for (int i = 0; i < DIR_WIDTH; ++i) {
+      Assert.assertFalse(
+          Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + i).getPath())));
+      Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+          new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL).join(FILE_PREFIX + i));
+      if (i == 0) {
+        Assert.assertTrue(
+            Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(DIR_PREFIX + i).getPath())));
+        Assert.assertNotEquals(IdUtils.INVALID_FILE_ID,
+            new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL).join(DIR_PREFIX + i));
+      } else {
+        Assert.assertFalse(
+            Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(DIR_PREFIX + i).getPath())));
+        Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+            new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL).join(DIR_PREFIX + i));
+      }
+    }
+  }
 
   private AlluxioURI createPersistedDirectories(int levels) throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
