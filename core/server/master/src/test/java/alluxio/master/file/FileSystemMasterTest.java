@@ -261,97 +261,89 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
   }
 
-  /**
-   * Tests if a persisted directory is deleted from the UFS correctly when UFS contents are in
-   * sync and check = true.
-   */
+  private static final String DIR_PREFIX = "dir";
+  private static final String DIR_TOP_LEVEL = "top";
+  private static final String FILE_PREFIX = "file";
+  private static final String MOUNT_PARENT_URI = "/mnt";
+  private static final String MOUNT_URI = "/mnt/local";
+  private static final int DIR_WIDTH = 2;
+
   @Test
-  public void deletePersistedDirectoryInSyncWithCheck() throws Exception {
-    AlluxioURI ufsMount = deletePersistedDirectoryHelper(false, false, false);
-    Assert.assertFalse(Files.exists(Paths.get(ufsMount.join("top").getPath())));
+  public void deleteSyncedPersistedDirectoryWithCheck() throws Exception {
+    deleteSyncedPersistedDirectory(1, false);
   }
 
-   /**
-   * Tests if a persisted directory is deleted from the UFS correctly when UFS contents are in
-   * sync and check = true. The directory being deleted has nested non-empty directories.
-   */
   @Test
-  public void deletePersistedDirectoryInSyncWithCheckMultiLevel() throws Exception {
-    AlluxioURI ufsMount = deletePersistedDirectoryHelper(true, false, true);
-    Assert.assertFalse(Files.exists(Paths.get(ufsMount.join("top").getPath())));
+  public void deleteSyncedPersistedDirectoryWithoutCheck() throws Exception {
+    deleteSyncedPersistedDirectory(1, true);
   }
 
-  /**
-   * Tests if a persisted directory is deleted from the UFS correctly when UFS contents are in
-   * sync and check = true.
-   */
   @Test
-  public void deletePersistedDirectoryInSyncSkipCheck() throws Exception {
-    AlluxioURI ufsMount = deletePersistedDirectoryHelper(false, true, false);
-    Assert.assertFalse(Files.exists(Paths.get(ufsMount.join("top").getPath())));
+  public void deleteSyncedPersistedMultilevelDirectoryWithCheck() throws Exception {
+    deleteSyncedPersistedDirectory(3, false);
   }
 
-  /**
-   * Tests if a persisted directory is not deleted from the UFS when UFS contents are not in
-   * sync and check = true.
-   */
   @Test
-  public void deletePersistedDirectoryNotInSyncWithCheck() throws Exception {
-    mThrown.expect(IOException.class);
-    deletePersistedDirectoryHelper(true, false, false);
+  public void deleteSyncedPersistedMultilevelDirectoryWithoutCheck() throws Exception {
+    deleteSyncedPersistedDirectory(3, true);
   }
 
-  /**
-   * Tests if a persisted directory is deleted from the UFS when if UFS contents are not
-   * in sync and check = false.
-   */
-  @Test
-  public void deletePersistedDirectoryNotInSyncSkipCheck() throws Exception {
-    AlluxioURI ufsMount = deletePersistedDirectoryHelper(true, true, false);
-    Assert.assertFalse(Files.exists(Paths.get(ufsMount.join("top").getPath())));
-  }
-
-  /**
-   * Helper function for deletePeristed* tests.
-   *
-   * @param secondLevel whether to create a second level of directories
-   * @param skipCheck whether to skip UFS sync check
-   * @param syncSecondLevel whether load contents of second level to be in sync with UFS
-   * @return the UFS uri of mount point
-   */
-  private AlluxioURI deletePersistedDirectoryHelper(boolean secondLevel, boolean skipCheck,
-      boolean syncSecondLevel) throws Exception {
-    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
-    // Create top-level directory in UFS and mount
-    Files.createDirectory(Paths.get(ufsMount.join("top").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
-    // Create files and nested directories in UFS
-    for (int i = 0; i < 20; ++i) {
-      Files.createFile(Paths.get(ufsMount.join("top").join("file" + i).getPath()));
-      Files.createDirectories(Paths.get(ufsMount.join("top").join("dir" + i).getPath()));
-      if (secondLevel) {
-        for (int j = 0; j < 20; ++j) {
-          Files.createFile(
-              Paths.get(ufsMount.join("top").join("dir" + i).join("file" + j).getPath()));
-        }
-      }
-    }
-    // load persisted ufs entries to alluxio
-    mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"),
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
-    mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local/top"),
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
-    if (syncSecondLevel) {
-      for (int i = 0; i < 20; ++i) {
-        mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local/top/dir" + i),
-            ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
-      }
-    }
+  private void deleteSyncedPersistedDirectory(int levels, boolean unchecked) throws Exception {
+    AlluxioURI ufsMount = createPersistedDirectories(levels);
+    mountUfs(ufsMount);
+    loadPersistedDirectories(levels);
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI("/mnt/local/top"),
-        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(skipCheck));
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(unchecked));
+    Assert.assertFalse(Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).getPath())));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL)));
+  }
+
+  private AlluxioURI createPersistedDirectories(int levels) throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    // Create top-level directory in UFS
+    Files.createDirectory(Paths.get(ufsMount.join(DIR_TOP_LEVEL).getPath()));
+    createLevel(levels, ufsMount.join(DIR_TOP_LEVEL));
     return ufsMount;
+  }
+
+  private void createLevel(int levels, AlluxioURI ufsTop) throws Exception {
+    if (levels <= 0) {
+      return;
+    }
+    // Create files and nested directories in UFS
+    for (int i = 0; i < DIR_WIDTH; ++i) {
+      Files.createFile(Paths.get(ufsTop.join(FILE_PREFIX + i).getPath()));
+      Files.createDirectories(Paths.get(ufsTop.join(DIR_PREFIX + i).getPath()));
+      createLevel(levels - 1, ufsTop.join(DIR_PREFIX + i));
+    }
+  }
+
+  private void mountUfs(AlluxioURI ufsMount) throws Exception {
+    mFileSystemMaster.createDirectory(new AlluxioURI(MOUNT_PARENT_URI),
+        CreateDirectoryOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI(MOUNT_URI), ufsMount, MountOptions.defaults());
+  }
+
+  private void loadPersistedDirectories(int levels) throws Exception {
+    // load persisted ufs entries to alluxio
+    mFileSystemMaster.listStatus(new AlluxioURI(MOUNT_URI),
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    loadLevel(levels, new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
+  }
+
+  private void loadLevel(int levels, AlluxioURI alluxioTop) throws Exception {
+    if (levels <= 0) {
+      return;
+    }
+
+    mFileSystemMaster.listStatus(alluxioTop,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+
+    for (int i = 0; i < DIR_WIDTH; ++i) {
+      loadLevel(levels - 1, alluxioTop.join(DIR_PREFIX + i));
+    }
   }
 
   /**
