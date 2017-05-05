@@ -269,7 +269,7 @@ into the Alluxio code base.
 
 Congratulations! You have successfully contributed to Alluxio! Thank you for joining the community!
 
-## [](){:name="video"}Video
+## Video
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
 
