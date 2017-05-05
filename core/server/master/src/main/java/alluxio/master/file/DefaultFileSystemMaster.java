@@ -1268,6 +1268,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   }
                 }
                 if (failedToDelete) {
+                  unsafeInodes.add(delInode.getId());
                   unsafeInodes.add(delInode.getParentId());
                   failedUfsUris.add(ufsUri);
                 }

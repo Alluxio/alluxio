@@ -300,6 +300,50 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileId(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL)));
   }
 
+  @Test
+  public void deleteUnsyncedPersistedDirectoryWithCheck() throws Exception {
+    AlluxioURI ufsMount = createPersistedDirectories(1);
+    mountUfs(ufsMount);
+    loadPersistedDirectories(1);
+    // Add a file to the UFS
+    Files.createFile(
+        Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
+    mThrown.expect(IOException.class);
+    // delete top-level directory
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
+    Assert.assertTrue(Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).getPath())));
+    Assert.assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL)));
+    // Check all that could be deleted
+    for (int i = 0; i < DIR_WIDTH; ++i) {
+      Assert.assertFalse(
+          Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + i).getPath())));
+      Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+          new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL).join(FILE_PREFIX + i));
+      Assert.assertFalse(
+          Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(DIR_PREFIX + i).getPath())));
+      Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+          new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL).join(DIR_PREFIX + i));
+    }
+  }
+
+  @Test
+  public void deleteUnsyncedPersistedDirectoryWithoutCheck() throws Exception {
+    AlluxioURI ufsMount = createPersistedDirectories(1);
+    mountUfs(ufsMount);
+    loadPersistedDirectories(1);
+    // Add a file to the UFS
+    Files.createFile(
+        Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
+    // delete top-level directory
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(true));
+    Assert.assertFalse(Files.exists(Paths.get(ufsMount.join(DIR_TOP_LEVEL).getPath())));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL)));
+  }
+
   private AlluxioURI createPersistedDirectories(int levels) throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
     // Create top-level directory in UFS
