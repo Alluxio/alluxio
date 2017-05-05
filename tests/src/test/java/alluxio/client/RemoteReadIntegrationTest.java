@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -367,30 +366,6 @@ public class RemoteReadIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, "1000"})
   public void heartbeat1() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    int size = 100;
-    AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + size);
-    FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, size);
-
-    FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
-    CommonUtils.sleepMs(2000);
-    byte[] ret = new byte[size];
-    Assert.assertEquals(size, is.read(ret));
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, ret));
-    Assert.assertEquals(-1, is.read(ret));
-    is.close();
-    Assert.assertFalse(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
-  }
-
-  /**
-   * Tests the read API from a remote location after a delay longer than the netty heartbeat
-   * timeout and the client does not send periodic heartbeats.
-   */
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, "1000"})
-  public void heartbeat2() throws Exception {
-    Configuration.set(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, Long.MAX_VALUE);
     String uniqPath = PathUtils.uniqPath();
     int size = 100;
     AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + size);
