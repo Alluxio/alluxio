@@ -18,7 +18,10 @@ import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.network.ChannelType;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -29,6 +32,7 @@ import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
+import io.netty.channel.unix.DomainSocketAddress;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -58,6 +62,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** Server for data requests and responses. */
   private DataServer mDataServer;
 
+  /** If started (i.e. not null), this server is used to serve local data transfer. */
+  private DataServer mDomainSocketDataServer;
+
   /** Whether the worker is serving the RPC server. */
   private boolean mIsServingRPC = false;
 
@@ -84,12 +91,16 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
 
+  /** The manager for all ufs. */
+  private UfsManager mUfsManager;
+
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
   AlluxioWorkerProcess() {
     try {
       mStartTimeMs = System.currentTimeMillis();
+      mUfsManager = new WorkerUfsManager();
       mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
       for (final WorkerFactory factory : ServiceUtils.getWorkerServiceLoader()) {
@@ -97,7 +108,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           @Override
           public Void call() throws Exception {
             if (factory.isEnabled()) {
-              factory.create(mRegistry);
+              factory.create(mRegistry, mUfsManager);
             }
             return null;
           }
@@ -123,6 +134,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup Data server
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
+
+      if (isDomainSocketEnabled()) {
+        String domainSocketPath =
+            Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
+        mDomainSocketDataServer =
+            DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -140,12 +159,20 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public String getDataBindHost() {
-    return mDataServer.getBindHost();
+    return ((InetSocketAddress) mDataServer.getBindAddress()).getHostString();
   }
 
   @Override
   public int getDataLocalPort() {
-    return mDataServer.getPort();
+    return ((InetSocketAddress) mDataServer.getBindAddress()).getPort();
+  }
+
+  @Override
+  public String getDataDomainSocketPath() {
+    if (mDomainSocketDataServer != null) {
+      return ((DomainSocketAddress) mDomainSocketDataServer.getBindAddress()).path();
+    }
+    return "";
   }
 
   @Override
@@ -161,6 +188,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   @Override
   public <T extends Worker> T getWorker(Class<T> clazz) {
     return mRegistry.get(clazz);
+  }
+
+  @Override
+  public UfsManager getUfsManager() {
+    return mUfsManager;
   }
 
   @Override
@@ -212,8 +244,13 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   private void stopServing() throws IOException {
     mDataServer.close();
+    if (mDomainSocketDataServer != null) {
+      mDomainSocketDataServer.close();
+      mDomainSocketDataServer = null;
+    }
     mThriftServer.stop();
     mThriftServerSocket.close();
+    mUfsManager.close();
     try {
       mWebServer.stop();
     } catch (Exception e) {
@@ -275,6 +312,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
   }
 
+  /**
+   * @return true if domain socket is enabled
+   */
+  private boolean isDomainSocketEnabled() {
+    return Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class)
+        == ChannelType.EPOLL && !Configuration
+        .get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
+  }
+
   @Override
   public void waitForReady() {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
@@ -291,7 +337,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
         .setRpcPort(mRpcAddress.getPort())
-        .setDataPort(mDataServer.getPort())
+        .setDataPort(getDataLocalPort())
+        .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort());
   }
 

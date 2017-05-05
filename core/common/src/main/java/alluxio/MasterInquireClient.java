@@ -63,6 +63,13 @@ public final class MasterInquireClient {
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
+  /**
+   * Constructor for {@link MasterInquireClient}.
+   *
+   * @param zookeeperAddress the address for Zookeeper
+   * @param electionPath the path of the master election
+   * @param leaderPath the path of the leader
+   */
   private MasterInquireClient(String zookeeperAddress, String electionPath, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;

@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import java.util.Random;
 
-public class LockBlockResultTest {
+public final class LockBlockResultTest {
 
   @Test
   public void json() throws Exception {

@@ -25,6 +25,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -110,11 +111,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /**
    * Constructs a default block worker.
+   *
+   * @param ufsManager ufs manager
    */
-  DefaultBlockWorker() {
+  DefaultBlockWorker(UfsManager ufsManager) {
     this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new Sessions(), new TieredBlockStore());
+        new Sessions(), new TieredBlockStore(), ufsManager);
   }
 
   /**
@@ -124,9 +127,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
+   * @param ufsManager ufs manager
    */
   DefaultBlockWorker(BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore) {
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
+      UfsManager ufsManager) {
     super(Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;
@@ -139,7 +144,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore);
+    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
   }

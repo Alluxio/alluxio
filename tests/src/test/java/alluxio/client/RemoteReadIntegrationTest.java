@@ -76,9 +76,8 @@ public class RemoteReadIntegrationTest {
     List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
-    // TODO(calvin): Reenable this after File Channel Transfer is well supported
-    // list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-    //   IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
@@ -262,7 +261,7 @@ public class RemoteReadIntegrationTest {
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
@@ -294,7 +293,7 @@ public class RemoteReadIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int start = 0;
@@ -323,7 +322,7 @@ public class RemoteReadIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
       int start = 0;
@@ -543,7 +542,7 @@ public class RemoteReadIntegrationTest {
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
@@ -561,7 +560,7 @@ public class RemoteReadIntegrationTest {
       BlockInStream is2 = null;
       try {
         is2 =
-            BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(),
+            BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(),
                 workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
       } catch (NotFoundException e) {
         // Expected since the file has been deleted.

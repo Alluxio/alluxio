@@ -50,7 +50,7 @@ public class S3AUnderFileSystemTest {
     mClient = Mockito.mock(AmazonS3Client.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        BUCKET_MODE, ACCOUNT_OWNER, mManager);
+        BUCKET_MODE, ACCOUNT_OWNER, mManager, null);
   }
 
   /**

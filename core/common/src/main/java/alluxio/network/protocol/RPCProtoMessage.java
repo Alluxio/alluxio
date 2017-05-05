@@ -91,11 +91,11 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param prototype the prototype of the message used to identify the type of the message
    * @param data the data which can be null
    */
-  public RPCProtoMessage(byte[] serialized, ProtoMessage.Type prototype, DataBuffer data) {
+  public RPCProtoMessage(byte[] serialized, ProtoMessage prototype, DataBuffer data) {
     Preconditions
         .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
             "Only DataNettyBufferV2 and DataFileChannel are allowed.");
-    mMessage = ProtoMessage.parseFrom(prototype, serialized);
+    mMessage = ProtoMessage.parseFrom(serialized, prototype);
     mMessageEncoded = Arrays.copyOf(serialized, serialized.length);
     if (data != null && data.getLength() > 0) {
       mData = data;
@@ -126,7 +126,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param prototype a message prototype used to infer the type of the message
    * @return the message decoded
    */
-  public static RPCProtoMessage decode(ByteBuf in, ProtoMessage.Type prototype) {
+  public static RPCProtoMessage decode(ByteBuf in, ProtoMessage prototype) {
     int length = in.readInt();
     byte[] serialized = new byte[length];
     in.readBytes(serialized);
@@ -138,7 +138,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * Throws the exception represented by this {@link RPCProtoMessage} if there is one.
    */
   public void unwrapException() {
-    Response response = getMessage().<Protocol.Response>getMessage();
+    Response response = getMessage().asResponse();
     Status status = Status.fromProto(response.getStatus());
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, response.getMessage());
@@ -147,15 +147,14 @@ public final class RPCProtoMessage extends RPCMessage {
 
   @Override
   public Type getType() {
-    switch (mMessage.getType()) {
-      case READ_REQUEST:
-        return RPCMessage.Type.RPC_READ_REQUEST;
-      case WRITE_REQUEST:
-        return RPCMessage.Type.RPC_WRITE_REQUEST;
-      case RESPONSE:
-        return RPCMessage.Type.RPC_RESPONSE;
-      default:
-        return RPCMessage.Type.RPC_UNKNOWN;
+    if (mMessage.isReadRequest()) {
+      return RPCMessage.Type.RPC_READ_REQUEST;
+    } else if (mMessage.isWriteRequest()) {
+      return RPCMessage.Type.RPC_WRITE_REQUEST;
+    } else if (mMessage.isResponse()) {
+      return RPCMessage.Type.RPC_RESPONSE;
+    } else {
+      return RPCMessage.Type.RPC_UNKNOWN;
     }
   }
 

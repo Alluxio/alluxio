@@ -39,29 +39,31 @@ public class FileInfoTest {
   }
 
   public void checkEquality(FileInfo a, FileInfo b) {
-    Assert.assertEquals(a.getFileId(), b.getFileId());
-    Assert.assertEquals(a.getName(), b.getName());
-    Assert.assertEquals(a.getPath(), b.getPath());
-    Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
-    Assert.assertEquals(a.getLength(), b.getLength());
+    Assert.assertEquals(a.getBlockIds(), b.getBlockIds());
     Assert.assertEquals(a.getBlockSizeBytes(), b.getBlockSizeBytes());
     Assert.assertEquals(a.getCreationTimeMs(), b.getCreationTimeMs());
-    Assert.assertEquals(a.isCompleted(), b.isCompleted());
-    Assert.assertEquals(a.isFolder(), b.isFolder());
-    Assert.assertEquals(a.isPinned(), b.isPinned());
-    Assert.assertEquals(a.isCacheable(), b.isCacheable());
-    Assert.assertEquals(a.isPersisted(), b.isPersisted());
-    Assert.assertEquals(a.getBlockIds(), b.getBlockIds());
+    Assert.assertEquals(a.getFileBlockInfos(), b.getFileBlockInfos());
+    Assert.assertEquals(a.getFileId(), b.getFileId());
+    Assert.assertEquals(a.getGroup(), b.getGroup());
     Assert.assertEquals(a.getInMemoryPercentage(), b.getInMemoryPercentage());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
+    Assert.assertEquals(a.getLength(), b.getLength());
+    Assert.assertEquals(a.getMode(), b.getMode());
+    Assert.assertEquals(a.getName(), b.getName());
+    Assert.assertEquals(a.getOwner(), b.getOwner());
+    Assert.assertEquals(a.getPath(), b.getPath());
+    Assert.assertEquals(a.getPersistenceState(), b.getPersistenceState());
     Assert.assertEquals(a.getTtl(), b.getTtl());
     Assert.assertEquals(a.getTtlAction(), b.getTtlAction());
-    Assert.assertEquals(a.getOwner(), b.getOwner());
-    Assert.assertEquals(a.getGroup(), b.getGroup());
-    Assert.assertEquals(a.getMode(), b.getMode());
-    Assert.assertEquals(a.getPersistenceState(), b.getPersistenceState());
+    Assert.assertEquals(a.getMountId(), b.getMountId());
+    Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
+    Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
+    Assert.assertEquals(a.isCacheable(), b.isCacheable());
+    Assert.assertEquals(a.isCompleted(), b.isCompleted());
+    Assert.assertEquals(a.isFolder(), b.isFolder());
     Assert.assertEquals(a.isMountPoint(), b.isMountPoint());
-    Assert.assertEquals(a.getFileBlockInfos(), b.getFileBlockInfos());
+    Assert.assertEquals(a.isPersisted(), b.isPersisted());
+    Assert.assertEquals(a.isPinned(), b.isPinned());
     Assert.assertEquals(a, b);
   }
 
@@ -73,6 +75,7 @@ public class FileInfoTest {
     String name = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String path = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String ufsPath = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    long mountId = random.nextLong();
     long length = random.nextLong();
     long blockSizeBytes = random.nextLong();
     long creationTimeMs = random.nextLong();
@@ -100,30 +103,30 @@ public class FileInfoTest {
       fileBlocksInfos.add(FileBlockInfoTest.createRandom());
     }
 
-    result.setFileId(fileId);
-    result.setName(name);
-    result.setPath(path);
-    result.setUfsPath(ufsPath);
-    result.setLength(length);
-    result.setBlockSizeBytes(blockSizeBytes);
-    result.setCreationTimeMs(creationTimeMs);
-    result.setCompleted(completed);
-    result.setFolder(folder);
-    result.setPinned(pinned);
-    result.setCacheable(cacheable);
-    result.setPersisted(persisted);
     result.setBlockIds(blockIds);
+    result.setBlockSizeBytes(blockSizeBytes);
+    result.setCacheable(cacheable);
+    result.setCompleted(completed);
+    result.setCreationTimeMs(creationTimeMs);
+    result.setFileBlockInfos(fileBlocksInfos);
+    result.setFileId(fileId);
+    result.setFolder(folder);
+    result.setGroup(groupName);
     result.setInMemoryPercentage(inMemoryPercentage);
     result.setLastModificationTimeMs(lastModificationTimeMs);
+    result.setLength(length);
+    result.setMode(permission);
+    result.setMountPoint(mountPoint);
+    result.setName(name);
+    result.setOwner(userName);
+    result.setPath(path);
+    result.setPersisted(persisted);
+    result.setPersistenceState(persistenceState);
+    result.setPinned(pinned);
     result.setTtl(ttl);
     result.setTtlAction(TtlAction.DELETE);
-    result.setOwner(userName);
-    result.setGroup(groupName);
-    result.setMode(permission);
-    result.setPersistenceState(persistenceState);
-    result.setMountPoint(mountPoint);
-    result.setFileBlockInfos(fileBlocksInfos);
-
+    result.setMountId(mountId);
+    result.setUfsPath(ufsPath);
     return result;
   }
 }

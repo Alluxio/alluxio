@@ -22,14 +22,14 @@ public interface UnderFileSystemFactory {
    * provided is insufficient to create a client.
    *
    * @param path file path
-   * @param ufsConf optional configuration object for the UFS, may be null
+   * @param conf optional configuration object for the UFS, may be null
    * @return the client
    */
-  UnderFileSystem create(String path, Object ufsConf);
+  UnderFileSystem create(String path, UnderFileSystemConfiguration conf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, Object)} can succeed for this path.
+   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for this path.
    *
    * @param path file path
    * @return true if the path is supported, false otherwise
