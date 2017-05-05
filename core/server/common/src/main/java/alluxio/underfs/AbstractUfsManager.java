@@ -80,10 +80,16 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   /**
-   * This map keeps track of the reference counter for an {@link UnderFileSystem}.
+   * Since Key <-> UnderFileSystem is one to one, counter for the UnderFileSystem is
+   * exactly the same for the Key.
    */
-  private final ConcurrentHashMap<Class<? extends UnderFileSystem>, AtomicLong> mReferenceCounter =
+  private final ConcurrentHashMap<Key, AtomicLong> mReferenceCounter =
       new ConcurrentHashMap<>();
+
+  /**
+   * Maps from mount id to key. This map does benefit for easy remove.
+   */
+  private final ConcurrentHashMap<Long, Key> mMountIdToKey = new ConcurrentHashMap<>();
 
   /**
    * Maps from key to {@link UnderFileSystem} instances. This map keeps the entire set of UFS
@@ -117,15 +123,21 @@ public abstract class AbstractUfsManager implements UfsManager {
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return this.
-   *
+   * @param mountId the mount id
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
    * @throws IOException if it is failed to create the UFS instance
    */
-  private UnderFileSystem getOrAdd(String ufsUri, Map<String, String> ufsConf) throws IOException {
+  private UnderFileSystem getOrAdd(long mountId, String ufsUri, Map<String, String> ufsConf)
+      throws IOException {
     Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
+    // Update fs's reference counter.
+    // It may be a new key (add), or another reference (get)
+    updateUfsReferenceCounter(key, CounterAct.INCREASE);
+    // Update mountId to key.
+    mMountIdToKey.putIfAbsent(mountId, key);
     if (cachedFs != null) {
       return cachedFs;
     }
@@ -137,8 +149,6 @@ public abstract class AbstractUfsManager implements UfsManager {
       throw e;
     }
     cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-    // Update fs's reference counter. It may be a new created or already existed
-    updateUfsReferenceCounter(fs, CounterAct.INCREASE);
     if (cachedFs == null) {
       // above insert is successful
       mCloser.register(fs);
@@ -158,7 +168,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       throws IOException {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
-    UnderFileSystem ufs = getOrAdd(ufsUri, ufsConf);
+    UnderFileSystem ufs = getOrAdd(mountId, ufsUri, ufsConf);
     mMountIdToUnderFileSystemMap.put(mountId, ufs);
     return ufs;
   }
@@ -166,20 +176,17 @@ public abstract class AbstractUfsManager implements UfsManager {
   @Override
   public void removeMount(long mountId) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    UnderFileSystem ufs = mMountIdToUnderFileSystemMap.remove(mountId);
-    AtomicLong refCount = updateUfsReferenceCounter(ufs, CounterAct.DECREASE);
-    // Remove ufs in mUnderFileSystemMap if refCount is zero.
-    synchronized (mUnderFileSystemMap) {
-      if (refCount.get() == 0) {
-        Iterator<Entry<Key, UnderFileSystem>> it = mUnderFileSystemMap.entrySet().iterator();
-        while (it.hasNext()) {
-          Entry<Key, UnderFileSystem> entry = it.next();
-          if (entry.getValue().getClass().equals(ufs.getClass())) {
-            it.remove();
-          }
-        }
-        mReferenceCounter.remove(ufs.getClass());
-      }
+    mMountIdToUnderFileSystemMap.remove(mountId);
+    Key key = mMountIdToKey.get(mountId);
+    AtomicLong refCount = updateUfsReferenceCounter(key, CounterAct.DECREASE);
+    if (refCount.get() == 0) {
+      // If refCount is zero:
+      //  1. remove ufs
+      //  2. remove reference counter
+      //  3. remove key
+      mUnderFileSystemMap.remove(key);
+      mReferenceCounter.remove(key);
+      mMountIdToKey.remove(mountId);
     }
   }
 
@@ -217,16 +224,17 @@ public abstract class AbstractUfsManager implements UfsManager {
 
   /**
    * Update reference counter of a UnderFileSystem.
-   * @param fs a reference to a UnderFileSystem
+   * If it is a new key, reference count is 1, otherwise reference count plus 1.
+   * @param key a key for a UnderFileSystem
    * @param act use CounterAct.INCREASE or CounterAct.DECREASE to update counter
    * @return updated counter for a UnderFileSystem
    */
-  private AtomicLong updateUfsReferenceCounter(UnderFileSystem fs, CounterAct act) {
-    Preconditions.checkArgument(fs != null);
+  private AtomicLong updateUfsReferenceCounter(Key key, CounterAct act) {
+    Preconditions.checkArgument(key != null);
     // Maybe a new ufs instance.
-    AtomicLong counter = mReferenceCounter.putIfAbsent(fs.getClass(), new AtomicLong(1));
+    AtomicLong counter = mReferenceCounter.putIfAbsent(key, new AtomicLong(1));
     if (counter == null) {
-      return mReferenceCounter.get(fs.getClass());
+      return mReferenceCounter.get(key);
     }
     // A new added or removed reference.
     switch (act) {
