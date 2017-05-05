@@ -99,6 +99,7 @@ public final class LocalFilePacketReader implements PacketReader {
     private final long mBlockId;
     private final long mSessionId;
     private final String mPath;
+    private boolean mClosed;
 
     /**
      * Creates an instance of {@link Factory}.
@@ -136,11 +137,15 @@ public final class LocalFilePacketReader implements PacketReader {
 
     @Override
     public void close() throws IOException {
+      if (mClosed) {
+        return;
+      }
       try {
         NettyRPC.call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
             new ProtoMessage(
                 Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build()));
       } finally {
+        mClosed = true;
         mContext.releaseNettyChannel(mAddress, mChannel);
       }
     }
