@@ -100,16 +100,28 @@
                   <shadedPattern>${shading.prefix}.com.aliyun.oss</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache</shadedPattern>
+                  <pattern>net.sf.json</pattern>
+                  <shadedPattern>${shading.prefix}.net.sf.json</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.beanutils</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.beanutils</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.collections</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.collections</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.logging</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.http</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.http</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.jdom</pattern>
                   <shadedPattern>${shading.prefix}.org.jdom</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>net.sf.json</pattern>
-                  <shadedPattern>${shading.prefix}.net.sf.json</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

@@ -87,8 +87,8 @@
               </filters>
               <relocations>
                 <relocation>
-                  <pattern>com.jamesmurty</pattern>
-                  <shadedPattern>${shading.prefix}.com.jamesmurty</shadedPattern>
+                  <pattern>com.jamesmurty.utils</pattern>
+                  <shadedPattern>${shading.prefix}.com.jamesmurty.utils</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>contribs.mx</pattern>
@@ -97,6 +97,18 @@
                 <relocation>
                   <pattern>net.iharder.base64</pattern>
                   <shadedPattern>${shading.prefix}.net.iharder.base64</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.codec</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.codec</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.httpclient</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.logging</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache</pattern>

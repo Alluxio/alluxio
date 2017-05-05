@@ -10,7 +10,8 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio</groupId>
@@ -44,10 +45,6 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -108,12 +105,28 @@
                   <shadedPattern>${shading.prefix}.com.amazonaws</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>com.fasterxml.jackson</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson</shadedPattern>
+                  <pattern>com.fasterxml.jackson.annotation</pattern>
+                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.annotation</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache</shadedPattern>
+                  <pattern>com.fasterxml.jackson.core</pattern>
+                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.core</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson.databind</pattern>
+                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.databind</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson.dataformat.cbor</pattern>
+                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.dataformat.cbor</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.logging</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.jdom</pattern>
