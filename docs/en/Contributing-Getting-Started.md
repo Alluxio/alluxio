@@ -70,8 +70,6 @@ Body:
 	Full Name: John Smith
 ```
 
-<br />
-
 ## Forking the Alluxio Repository
 
 In order to contribute code to Alluxio, you first have to fork the Alluxio repo. If you have not
@@ -268,7 +266,7 @@ into the Alluxio code base.
 
 Congratulations! You have successfully contributed to Alluxio! Thank you for joining the community!
 
-## <a name="video"></a>Video
+## [](){:name="video"}Video
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
 
