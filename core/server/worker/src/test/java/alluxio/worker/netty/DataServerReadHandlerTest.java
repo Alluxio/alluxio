@@ -27,6 +27,7 @@ import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.FileRegion;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -35,7 +36,9 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 import java.util.Random;
 
 public abstract class DataServerReadHandlerTest {
@@ -193,11 +196,31 @@ public abstract class DataServerReadHandlerTest {
           buf.release();
         } else {
           Assert.assertTrue(buffer instanceof DataFileChannel);
-          ByteBuffer buf = buffer.getReadOnlyByteBuffer();
-          byte[] array = new byte[buf.remaining()];
-          buf.get(array);
-          for (int i = 0; i < array.length; i++) {
-            checksumActual += BufferUtils.byteToInt(array[i]);
+          final ByteBuffer byteBuffer = ByteBuffer.allocate((int) buffer.getLength());
+          WritableByteChannel writableByteChannel = new WritableByteChannel() {
+            @Override
+            public boolean isOpen() {
+              return true;
+            }
+
+            @Override
+            public void close() throws IOException {}
+
+            @Override
+            public int write(ByteBuffer src) throws IOException {
+              int sz = src.remaining();
+              byteBuffer.put(src);
+              return sz;
+            }
+          };
+          try {
+            ((FileRegion) buffer.getNettyOutput()).transferTo(writableByteChannel, 0);
+          } catch (IOException e) {
+            Assert.fail();
+          }
+          byteBuffer.flip();
+          while (byteBuffer.remaining() > 0) {
+            checksumActual += BufferUtils.byteToInt(byteBuffer.get());
           }
         }
       }

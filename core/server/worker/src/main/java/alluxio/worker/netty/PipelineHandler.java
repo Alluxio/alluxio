@@ -19,9 +19,9 @@ import alluxio.network.protocol.RPCMessageEncoder;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Adds the data server's pipeline into the channel.
  */
 @ThreadSafe
-final class PipelineHandler extends ChannelInitializer<SocketChannel> {
+final class PipelineHandler extends ChannelInitializer<Channel> {
   private final WorkerProcess mWorkerProcess;
   private final FileTransferType mFileTransferType;
 
@@ -43,7 +43,7 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   }
 
   @Override
-  protected void initChannel(SocketChannel ch) throws Exception {
+  protected void initChannel(Channel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
 
     // Decoders & Encoders

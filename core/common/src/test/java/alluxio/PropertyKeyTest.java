@@ -32,8 +32,8 @@ public final class PropertyKeyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    Assert.assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"),
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"));
+    Assert.assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"),
+        PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"));
     Assert.assertEquals(PropertyKey.HOME, PropertyKey.HOME);
   }
 
@@ -46,7 +46,7 @@ public final class PropertyKeyTest {
   public void isValid() throws Exception {
     Assert.assertTrue(PropertyKey.isValid(PropertyKey.HOME.toString()));
     Assert.assertTrue(PropertyKey
-        .isValid(PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo").toString()));
+        .isValid(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo").toString()));
     Assert.assertFalse(PropertyKey.isValid(""));
     Assert.assertFalse(PropertyKey.isValid(" "));
     Assert.assertFalse(PropertyKey.isValid("foo"));
@@ -123,15 +123,15 @@ public final class PropertyKeyTest {
   @Test
   public void mountTableRootProperties() throws Exception {
     Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("root"));
+        PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("root"));
     Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_UFS.format("root"));
+        PropertyKey.Template.MASTER_MOUNT_TABLE_UFS.format("root"));
     Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY,
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_READONLY.format("root"));
+        PropertyKey.Template.MASTER_MOUNT_TABLE_READONLY.format("root"));
     Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED,
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_SHARED.format("root"));
+        PropertyKey.Template.MASTER_MOUNT_TABLE_SHARED.format("root"));
     Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION,
-        PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_OPTION.format("root"));
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("root"));
   }
 
   @Test
@@ -162,7 +162,7 @@ public final class PropertyKeyTest {
   public void fromStringParameterized() throws Exception {
     Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
         PropertyKey.fromString("alluxio.master.mount.table.root.alluxio"));
-    Assert.assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO.format("foo"),
+    Assert.assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"),
         PropertyKey.fromString("alluxio.master.mount.table.foo.alluxio"));
   }
 

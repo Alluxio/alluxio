@@ -24,6 +24,8 @@ alluxio.worker.data.port:
   运行Alluxio worker数据服务的端口。
 alluxio.worker.data.server.class:
   选择运行worker的网络栈，可选值为：`alluxio.worker.netty.NettyDataServer`。
+alluxio.worker.data.server.domain.socket.address:
+  domain socket 路径。如果设置，Alluxio worker 通过这个路径读写数据。
 alluxio.worker.evictor.class:
   当某个存储层空间不足时，worker剔除块文件的策略。可选值包括`alluxio.worker.block.evictor.LRFUEvictor`、
   `alluxio.worker.block.evictor.GreedyEvictor`、 `alluxio.worker.block.evictor.LRUEvictor`。
