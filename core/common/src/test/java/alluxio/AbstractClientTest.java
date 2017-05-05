@@ -38,7 +38,7 @@ public final class AbstractClientTest {
   private final class TestClient extends AbstractClient {
 
     private TestClient() {
-      super(null, Mockito.mock(InetSocketAddress.class), "");
+      super(null, Mockito.mock(InetSocketAddress.class));
     }
 
     @Override

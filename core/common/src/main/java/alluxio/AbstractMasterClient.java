@@ -40,7 +40,7 @@ public abstract class AbstractMasterClient extends AbstractClient implements Mas
    * @param masterAddress the master address
    */
   public AbstractMasterClient(Subject subject, InetSocketAddress masterAddress) {
-    super(subject, masterAddress, "master");
+    super(subject, masterAddress);
     if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       mZkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
     } else {
@@ -55,7 +55,7 @@ public abstract class AbstractMasterClient extends AbstractClient implements Mas
    * @param zkLeaderPath the Zookeeper path holding the leader master address
    */
   public AbstractMasterClient(Subject subject, String zkLeaderPath) {
-    super(subject, NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath), "master");
+    super(subject, NetworkAddressUtils.getLeaderAddressFromZK(zkLeaderPath));
     Preconditions.checkState(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     mZkLeaderPath = zkLeaderPath;
   }
