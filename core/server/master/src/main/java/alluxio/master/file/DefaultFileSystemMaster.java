@@ -1208,6 +1208,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
 
+      // Inodes that are not safe for recursive deletes
+      Set<Long> unsafeInodes = new HashSet<>();
       // UFS URIs which could not be deleted
       List<String> failedUfsUris = new LinkedList<>();
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
@@ -1220,7 +1222,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
         boolean failedToDelete = false;
-        if (!replayed && delInode.isPersisted()) {
+        if (unsafeInodes.contains(delInode.getId())) {
+          failedToDelete = true;
+          unsafeInodes.add(delInode.getParentId());
+        }
+        if (!replayed && delInode.isPersisted() && !failedToDelete) {
           try {
             // If this is a mount point, we have deleted all the children and can unmount it
             // TODO(calvin): Add tests (ALLUXIO-1831)
@@ -1259,6 +1265,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   }
                 }
                 if (failedToDelete) {
+                  unsafeInodes.add(delInode.getParentId());
                   failedUfsUris.add(ufsUri);
                 }
               }
@@ -1272,9 +1279,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             // Remove corresponding blocks from workers and delete metadata in master.
             mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
           }
-          // TODO(adit): Do not journal individually for performance
-          deleteOptions.setRecursive(false);
-          mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext);
+          // Do not journal entries covered recursively for performance
+          if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
+            mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext);
+          } else {
+            mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions,
+                NoopJournalContext.INSTANCE);
+          }
         }
       }
       if (!failedUfsUris.isEmpty()) {
