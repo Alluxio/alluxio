@@ -229,6 +229,7 @@ public final class PermissionCheckerTest {
     }
   }
 
+  //Verifies that the list of inodes are same as the expected ones.
   private static void verifyInodesList(String[] expectedInodes, List<Inode<?>> inodes) {
     String[] inodesName = new String[inodes.size()];
     for (int i = 0; i < inodes.size(); i++) {
