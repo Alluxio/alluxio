@@ -22,6 +22,7 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 
@@ -55,13 +56,17 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   /**
    * Creates a {@link PacketInStream} to read from a local file.
    *
-   * @param path the local file path
-   * @param id the ID
-   * @param length the block or file length
+   * @param context the file system context
+   * @param address the network address of the netty data server
+   * @param blockId the block ID
+   * @param sessionId the session ID
+   * @param length the block length
    * @return the {@link PacketInStream} created
    */
-  public static PacketInStream createLocalPacketInStream(String path, long id, long length) {
-    return new PacketInStream(new LocalFilePacketReader.Factory(path), id, length);
+  public static PacketInStream createLocalPacketInStream(FileSystemContext context,
+      InetSocketAddress address, long blockId, long sessionId, long length) {
+    return new PacketInStream(
+        new LocalFilePacketReader.Factory(context, address, blockId, sessionId), blockId, length);
   }
 
   /**
@@ -213,8 +218,12 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public void close() {
-    closePacketReader();
+  public void close() throws IOException {
+    try {
+      closePacketReader();
+    } finally {
+      mPacketReaderFactory.close();
+    }
     mClosed = true;
   }
 

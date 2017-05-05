@@ -166,13 +166,18 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mShouldCachePartiallyReadBlock) {
         readCurrentBlockToEnd();
       }
-      if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.close();
-      }
-      closeOrCancelCacheStream();
-      mClosed = true;
     } catch (AlluxioStatusException e) {
       throw e.toIOException();
+    } finally {
+      try {
+        if (mCurrentBlockInStream != null) {
+          mCurrentBlockInStream.close();
+        }
+        closeOrCancelCacheStream();
+      } catch (AlluxioStatusException e) {
+        throw e.toIOException();
+      }
+      mClosed = true;
     }
   }
 
@@ -629,7 +634,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       }
       return mBlockStore.getInStream(blockId, mInStreamOptions);
     } catch (Exception e) {
-      LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
+      LOG.error("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
           e);
       if (!mStatus.isPersisted()) {
         LOG.error("Could not obtain data for block with ID {} from Alluxio."

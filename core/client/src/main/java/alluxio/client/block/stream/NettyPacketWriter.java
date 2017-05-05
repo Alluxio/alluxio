@@ -130,8 +130,8 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param partialRequest details of the write request which are constant for all requests
    */
-  public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long
-      length, Protocol.WriteRequest partialRequest) {
+  public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long length,
+      Protocol.WriteRequest partialRequest) {
     mContext = context;
     mAddress = address;
     mLength = length;
@@ -314,7 +314,8 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-      Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
+      Preconditions.checkState(acceptMessage(msg),
+          String.format("Incorrect response type %s.", msg.toString()));
       RPCProtoMessage response = (RPCProtoMessage) msg;
       // Canceled is considered a valid status and handled in the writer. We avoid creating a
       // CanceledException as an optimization.

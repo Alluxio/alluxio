@@ -31,8 +31,50 @@ public final class ProtoMessage {
    *
    * @param message the message to wrap
    */
-  public ProtoMessage(MessageLite message) {
+  ProtoMessage(MessageLite message) {
     mMessage = message;
+  }
+
+  /**
+   * @param readRequest the read request
+   */
+  public ProtoMessage(Protocol.ReadRequest readRequest) {
+    mMessage = readRequest;
+  }
+
+  /**
+   * @param writeRequest the write request
+   */
+  public ProtoMessage(Protocol.WriteRequest writeRequest) {
+    mMessage = writeRequest;
+  }
+
+  /**
+   * @param response  the response
+   */
+  public ProtoMessage(Protocol.Response response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block open request
+   */
+  public ProtoMessage(Protocol.LocalBlockOpenRequest request) {
+    mMessage = request;
+  }
+
+  /**
+   * @param response the local block open response
+   */
+  public ProtoMessage(Protocol.LocalBlockOpenResponse response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block close request
+   */
+  public ProtoMessage(Protocol.LocalBlockCloseRequest request) {
+    mMessage = request;
   }
 
   /**
@@ -87,6 +129,60 @@ public final class ProtoMessage {
    */
   public boolean isResponse() {
     return mMessage instanceof Protocol.Response;
+  }
+
+  /**
+   * Gets the local block open request or throws runtime exception if mMessage is not of type
+   * {@link Protocol.LocalBlockOpenRequest}.
+   *
+   * @return the Protocol.LocalBlockOpenRequest
+   */
+  public Protocol.LocalBlockOpenRequest asLocalBlockOpenRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockOpenRequest);
+    return (Protocol.LocalBlockOpenRequest) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockOpenRequest}
+   */
+  public boolean isLocalBlockOpenRequest() {
+    return mMessage instanceof Protocol.LocalBlockOpenRequest;
+  }
+
+  /**
+   * Gets the local block open response or throws runtime exception if mMessage is not of type
+   * {@link Protocol.LocalBlockOpenResponse}.
+   *
+   * @return the Protocol.LocalBlockOpenResponse
+   */
+  public Protocol.LocalBlockOpenResponse asLocalBlockOpenResponse() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockOpenResponse);
+    return (Protocol.LocalBlockOpenResponse) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockOpenResponse}
+   */
+  public boolean isLocalBlockOpenResponse() {
+    return mMessage instanceof Protocol.LocalBlockOpenResponse;
+  }
+
+  /**
+   * Gets the local block close request or throws runtime exception if mMessage is not of type
+   * {@link Protocol.LocalBlockCloseRequest}.
+   *
+   * @return the Protocol.LocalBlockCloseRequest
+   */
+  public Protocol.LocalBlockCloseRequest asLocalBlockCloseRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCloseRequest);
+    return (Protocol.LocalBlockCloseRequest) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCloseRequest}
+   */
+  public boolean isLocalBlockCloseRequest() {
+    return mMessage instanceof Protocol.LocalBlockCloseRequest;
   }
 
   /**

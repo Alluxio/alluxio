@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.Locatable;
@@ -77,11 +75,9 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
     try {
       BlockWorkerClient blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
-      LockBlockResource lockBlockResource =
-          closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
       PacketInStream inStream = closer.register(PacketInStream
-          .createLocalPacketInStream(lockBlockResource.getResult().getBlockPath(), blockId,
-              blockSize));
+          .createLocalPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
+              blockWorkerClient.getSessionId(), blockSize));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (RuntimeException e) {
@@ -160,17 +156,10 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
           closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
       PacketInStream inStream;
       if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
-        boolean local = blockWorkerClient.getDataServerAddress().getHostName()
-            .equals(NetworkAddressUtils.getClientHostName());
-        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
-          inStream = closer.register(PacketInStream
-              .createLocalPacketInStream(lockBlockResult.getBlockPath(), blockId, blockSize));
-        } else {
-          inStream = closer.register(PacketInStream
-              .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
-                  lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
-                  Protocol.RequestType.ALLUXIO_BLOCK));
-        }
+        inStream = closer.register(PacketInStream
+            .createNettyPacketInStream(context, blockWorkerClient.getDataServerAddress(), blockId,
+                lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
+                Protocol.RequestType.ALLUXIO_BLOCK));
         blockWorkerClient.accessBlock(blockId);
       } else {
         Preconditions.checkState(lockBlockResult.getLockBlockStatus().ufsTokenAcquired());
