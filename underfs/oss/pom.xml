@@ -27,6 +27,8 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.underfs.oss</shading.prefix>
   </properties>
 
   <dependencies>
@@ -40,8 +42,8 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -51,4 +53,81 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade-oss</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>com.aliyun.oss:aliyun-sdk-oss</include>
+                  <!-- transitive dependencies introduced by aliyun-sdk-oss -->
+                  <include>commons-beanutils:commons-beanutils</include>
+                  <include>commons-collections:commons-collections</include>
+                  <include>commons-httpclient:commons-httpclient</include>
+                  <include>commons-logging:commons-logging</include>
+                  <include>net.sf.ezmorph:ezmorp</include>
+                  <include>net.sf.json-lib:json-lib</include>
+                  <include>org.apache.httpcomponents:httpclient</include>
+                  <include>org.apache.httpcomponents:httpcore</include>
+                  <include>org.jdom:jdom</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>com.aliyun.oss</pattern>
+                  <shadedPattern>${shading.prefix}.com.aliyun.oss</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net.sf.json</pattern>
+                  <shadedPattern>${shading.prefix}.net.sf.json</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.beanutils</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.beanutils</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.collections</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.collections</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.logging</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.http</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.http</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.jdom</pattern>
+                  <shadedPattern>${shading.prefix}.org.jdom</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

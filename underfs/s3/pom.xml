@@ -38,32 +38,8 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <!-- jets3t dependency that needs to included explicitly, because jets3t is shaded. -->
-      <groupId>com.jamesmurty.utils</groupId>
-      <artifactId>java-xmlbuilder</artifactId>
-    </dependency>
-    <dependency>
-      <!-- jets3t dependency that needs to included explicitly, because jets3t is shaded. -->
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-    </dependency>
-    <dependency>
-      <!-- jets3t dependency that needs to included explicitly, because jets3t is shaded. -->
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-    </dependency>
-    <dependency>
-      <!-- jets3t dependency that needs to included explicitly, because jets3t is shaded. -->
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-    </dependency>
-    <dependency>
       <groupId>net.java.dev.jets3t</groupId>
       <artifactId>jets3t</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -89,18 +65,55 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>net.java.dev.jets3t</include>
+                  <include>net.java.dev.jets3t:jets3t</include>
+                  <!-- transitive dependencies introduced by jets3t -->
+                  <include>com.jamesmurty.utils:java-xmlbuilder</include>
+                  <include>commons-codec:commons-codec</include>
+                  <include>commons-logging:commons-logging</include>
+                  <include>commons-httpclient:commons-httpclient</include>
                 </includes>
               </artifactSet>
               <filters>
                 <filter>
-                  <artifact>net.java.dev.jets3t:jets3t</artifact>
-                  <includes>
-                    <include>org/jets3t/**</include>
-                  </includes>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
                 </filter>
               </filters>
               <relocations>
+                <relocation>
+                  <pattern>com.jamesmurty.utils</pattern>
+                  <shadedPattern>${shading.prefix}.com.jamesmurty.utils</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>contribs.mx</pattern>
+                  <shadedPattern>${shading.prefix}.contribs.mx</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net.iharder.base64</pattern>
+                  <shadedPattern>${shading.prefix}.net.iharder.base64</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.codec</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.codec</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.httpclient</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.logging</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache</shadedPattern>
+                </relocation>
                 <relocation>
                   <pattern>org.jets3t</pattern>
                   <shadedPattern>${shading.prefix}.org.jets3t</shadedPattern>
