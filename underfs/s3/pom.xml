@@ -67,10 +67,10 @@
                 <includes>
                   <include>net.java.dev.jets3t:jets3t</include>
                   <!-- transitive dependencies introduced by jets3t -->
+                  <include>com.jamesmurty.utils:java-xmlbuilder</include>
                   <include>commons-codec:commons-codec</include>
                   <include>commons-logging:commons-logging</include>
                   <include>commons-httpclient:commons-httpclient</include>
-                  <include>com.jamesmurty.utils:java-xmlbuilder</include>
                 </includes>
               </artifactSet>
               <filters>
@@ -87,8 +87,8 @@
               </filters>
               <relocations>
                 <relocation>
-                  <pattern>com.jamesmurty.utils</pattern>
-                  <shadedPattern>${shading.prefix}.com.jamesmurty.utils</shadedPattern>
+                  <pattern>com.jamesmurty</pattern>
+                  <shadedPattern>${shading.prefix}.com.jamesmurty</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>contribs.mx</pattern>
@@ -99,8 +99,8 @@
                   <shadedPattern>${shading.prefix}.net.iharder.base64</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.commons</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons</shadedPattern>
+                  <pattern>org.apache</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.jets3t</pattern>

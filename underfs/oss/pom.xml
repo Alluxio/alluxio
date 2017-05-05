@@ -100,12 +100,8 @@
                   <shadedPattern>${shading.prefix}.com.aliyun.oss</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.commons</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
+                  <pattern>org.apache</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.jdom</pattern>
