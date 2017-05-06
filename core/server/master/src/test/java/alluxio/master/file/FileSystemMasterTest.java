@@ -395,7 +395,7 @@ public final class FileSystemMasterTest {
         .join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(true));
     checkPersistedDirectoriesDeleted(3, ufsMount, Collections.EMPTY_LIST);
   }
 
