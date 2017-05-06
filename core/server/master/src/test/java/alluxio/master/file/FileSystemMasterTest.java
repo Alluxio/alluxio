@@ -101,6 +101,14 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final String TEST_USER = "test";
 
+  // Constants for tests on persisted directories
+  private static final String DIR_PREFIX = "dir";
+  private static final String DIR_TOP_LEVEL = "top";
+  private static final String FILE_PREFIX = "file";
+  private static final String MOUNT_PARENT_URI = "/mnt";
+  private static final String MOUNT_URI = "/mnt/local";
+  private static final int DIR_WIDTH = 2;
+
   private CreateFileOptions mNestedFileOptions;
   private MasterRegistry mRegistry;
   private JournalFactory mJournalFactory;
@@ -263,33 +271,43 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
   }
 
-  private static final String DIR_PREFIX = "dir";
-  private static final String DIR_TOP_LEVEL = "top";
-  private static final String FILE_PREFIX = "file";
-  private static final String MOUNT_PARENT_URI = "/mnt";
-  private static final String MOUNT_URI = "/mnt/local";
-  private static final int DIR_WIDTH = 2;
-
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a directory with persistent entries with a sync check.
+   */
   @Test
   public void deleteSyncedPersistedDirectoryWithCheck() throws Exception {
     deleteSyncedPersistedDirectory(1, false);
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a directory with persistent entries without a sync check.
+   */
   @Test
   public void deleteSyncedPersistedDirectoryWithoutCheck() throws Exception {
     deleteSyncedPersistedDirectory(1, true);
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a multi-level directory with persistent entries with a sync check.
+   */
   @Test
   public void deleteSyncedPersistedMultilevelDirectoryWithCheck() throws Exception {
     deleteSyncedPersistedDirectory(3, false);
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a multi-level directory with persistent entries without a sync check.
+   */
   @Test
   public void deleteSyncedPersistedMultilevelDirectoryWithoutCheck() throws Exception {
     deleteSyncedPersistedDirectory(3, true);
   }
 
+  // Helper method for deleteSynctedPersisted* tests
   private void deleteSyncedPersistedDirectory(int levels, boolean unchecked) throws Exception {
     AlluxioURI ufsMount = createPersistedDirectories(levels);
     mountPersistedDirectories(ufsMount);
@@ -300,6 +318,10 @@ public final class FileSystemMasterTest {
     checkPersistedDirectoriesDeleted(levels, ufsMount, Collections.EMPTY_LIST);
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a directory with un-synced persistent entries with a sync check.
+   */
   @Test
   public void deleteUnsyncedPersistedDirectoryWithCheck() throws Exception {
     AlluxioURI ufsMount = createPersistedDirectories(1);
@@ -318,6 +340,10 @@ public final class FileSystemMasterTest {
     checkPersistedDirectoriesDeleted(1, ufsMount, except);
   }
 
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a directory with un-synced persistent entries without a sync check.
+   */
   @Test
   public void deleteUnsyncedPersistedDirectoryWithoutCheck() throws Exception {
     AlluxioURI ufsMount = createPersistedDirectories(1);
@@ -331,7 +357,11 @@ public final class FileSystemMasterTest {
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(true));
     checkPersistedDirectoriesDeleted(1, ufsMount, Collections.EMPTY_LIST);
   }
-  
+
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a multi-level directory with un-synced persistent entries with a sync check.
+   */
   @Test
   public void deleteUnsyncedPersistedMultilevelDirectoryWithCheck() throws Exception {
     AlluxioURI ufsMount = createPersistedDirectories(3);
@@ -351,6 +381,11 @@ public final class FileSystemMasterTest {
     checkPersistedDirectoriesDeleted(3, ufsMount, except);
   }
 
+
+  /**
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
+   * a multi-level directory with un-synced persistent entries without a sync check.
+   */
   @Test
   public void deleteUnsyncedPersistedMultilevelDirectoryWithoutCheck() throws Exception {
     AlluxioURI ufsMount = createPersistedDirectories(3);
@@ -365,6 +400,7 @@ public final class FileSystemMasterTest {
     checkPersistedDirectoriesDeleted(3, ufsMount, Collections.EMPTY_LIST);
   }
 
+  // Helper method to check if expected entries were deleted
   private void checkPersistedDirectoriesDeleted(int levels, AlluxioURI ufsMount,
       List<AlluxioURI> except) throws Exception {
     checkPersistedDirectoryDeletedLevel(levels, new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
@@ -394,6 +430,7 @@ public final class FileSystemMasterTest {
     }
   }
 
+  // Helper method to construct a directory tree in the UFS
   private AlluxioURI createPersistedDirectories(int levels) throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
     // Create top-level directory in UFS
@@ -414,6 +451,7 @@ public final class FileSystemMasterTest {
     }
   }
 
+  // Helper method to load a tree from the UFS
   private void loadPersistedDirectories(int levels) throws Exception {
     // load persisted ufs entries to alluxio
     mFileSystemMaster.listStatus(new AlluxioURI(MOUNT_URI),
@@ -434,6 +472,7 @@ public final class FileSystemMasterTest {
     }
   }
 
+  // Helper method to mount UFS tree
   private void mountPersistedDirectories(AlluxioURI ufsMount) throws Exception {
     mFileSystemMaster.createDirectory(new AlluxioURI(MOUNT_PARENT_URI),
         CreateDirectoryOptions.defaults());
