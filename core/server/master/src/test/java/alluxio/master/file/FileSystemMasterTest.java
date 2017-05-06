@@ -381,7 +381,6 @@ public final class FileSystemMasterTest {
     checkPersistedDirectoriesDeleted(3, ufsMount, except);
   }
 
-
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method for
    * a multi-level directory with un-synced persistent entries without a sync check.
