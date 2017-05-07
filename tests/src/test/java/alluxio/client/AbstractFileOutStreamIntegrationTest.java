@@ -130,7 +130,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected void checkFileInUnderStorage(AlluxioURI filePath, int fileLen) throws Exception {
     URIStatus status = mFileSystem.getStatus(filePath);
     String checkpointPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(checkpointPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath);
 
     try (InputStream is = ufs.open(checkpointPath)) {
       byte[] res = new byte[(int) status.getLength()];

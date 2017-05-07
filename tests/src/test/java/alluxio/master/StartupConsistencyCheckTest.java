@@ -89,7 +89,7 @@ public class StartupConsistencyCheckTest {
     String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
     String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
     mCluster.stopFS();
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(topLevelFileUfsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(topLevelFileUfsPath);
     ufs.deleteFile(topLevelFileUfsPath);
     ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();

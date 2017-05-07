@@ -50,7 +50,7 @@ public final class StatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(
         Option.builder("f")
             .required(false)

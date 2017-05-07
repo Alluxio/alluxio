@@ -13,8 +13,8 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;

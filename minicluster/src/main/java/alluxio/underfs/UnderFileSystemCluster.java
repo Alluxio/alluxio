@@ -11,10 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.io.PathUtils;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +66,6 @@ public abstract class UnderFileSystemCluster {
    * Creates an underfs test bed and register the shutdown hook.
    *
    * @param baseDir base directory
-   * @throws IOException when the operation fails
    * @return an instance of the UnderFileSystemCluster class
    */
   public static synchronized UnderFileSystemCluster get(String baseDir)
@@ -135,23 +130,8 @@ public abstract class UnderFileSystemCluster {
    * system for the next test round instead of turning on/off it from time to time. This function is
    * expected to be called either before or after each test case which avoids certain overhead from
    * the bootstrap.
-   *
-   * @throws IOException when the operation fails
    */
-  public void cleanup() throws IOException {
-    if (isStarted()) {
-      String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
-      UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-      for (UnderFileStatus p : ufs.listStatus(path)) {
-        String childPath = PathUtils.concatPath(path, p.getName());
-        if (p.isDirectory()) {
-          ufs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true));
-        } else {
-          ufs.deleteFile(childPath);
-        }
-      }
-    }
-  }
+  public abstract void cleanup() throws IOException;
 
   /**
    * @return the address of the UFS
@@ -166,8 +146,6 @@ public abstract class UnderFileSystemCluster {
   /**
    * Adds a shutdown hook. The {@link #shutdown()} phase will be automatically called while the
    * process exists.
-   *
-   * @throws IOException when the operation fails
    */
   public void registerJVMOnExistHook() throws IOException {
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
@@ -175,15 +153,11 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * Stops the underfs cluster system.
-   *
-   * @throws IOException when the operation fails
    */
   public abstract void shutdown() throws IOException;
 
   /**
    * Starts the underfs cluster system.
-   *
-   * @throws IOException when the operation fails
    */
   public abstract void start() throws IOException;
 }

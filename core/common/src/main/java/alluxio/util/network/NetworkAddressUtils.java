@@ -21,6 +21,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.netty.channel.unix.DomainSocketAddress;
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -441,7 +443,6 @@ public final class NetworkAddressUtils {
    * @param timeoutMs Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
    * @return a {@code boolean} indicating if the given address is externally resolvable address
-   * @throws IOException if the address resolution fails
    */
   private static boolean isValidAddress(InetAddress address, int timeoutMs) throws IOException {
     return !address.isAnyLocalAddress() && !address.isLinkLocalAddress()
@@ -548,7 +549,6 @@ public final class NetworkAddressUtils {
    *
    * @param address socket address to parse
    * @return InetSocketAddress of the String
-   * @throws IOException if the socket address is invalid
    */
   public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
     if (address == null) {
@@ -574,15 +574,21 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Extracts dataPort InetSocketAddress from Alluxio representation of network address.
+   * Extracts dataPort socket address from Alluxio representation of network address.
    *
    * @param netAddress the input network address representation
-   * @return InetSocketAddress
+   * @return the socket address
    */
-  public static InetSocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress) {
-    String host = netAddress.getHost();
-    int port = netAddress.getDataPort();
-    return new InetSocketAddress(host, port);
+  public static SocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress) {
+    SocketAddress address;
+    if (NettyUtils.isDomainSocketSupported(netAddress)) {
+      address = new DomainSocketAddress(netAddress.getDomainSocketPath());
+    } else {
+      String host = netAddress.getHost();
+      int port = netAddress.getDataPort();
+      address = new InetSocketAddress(host, port);
+    }
+    return address;
   }
 
   /**

@@ -15,10 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
-import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DataServer;
+import alluxio.worker.WorkerProcess;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -28,11 +27,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollMode;
+import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,20 +46,17 @@ public final class NettyDataServer implements DataServer {
 
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
-  // Use a shared handler for all pipelines.
-  private final DataServerHandler mDataServerHandler;
+  private final SocketAddress mSocketAddress;
 
   /**
    * Creates a new instance of {@link NettyDataServer}.
    *
    * @param address the server address
-   * @param worker the Alluxio worker which contains the appropriate components to handle data
-   *               operations
+   * @param workerProcess the Alluxio worker process
    */
-  public NettyDataServer(final InetSocketAddress address, final AlluxioWorkerService worker) {
-    mDataServerHandler = new DataServerHandler(Preconditions.checkNotNull(worker));
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(worker, mDataServerHandler));
-
+  public NettyDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
+    mSocketAddress = address;
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(workerProcess));
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
     } catch (InterruptedException e) {
@@ -139,17 +136,8 @@ public final class NettyDataServer implements DataServer {
   }
 
   @Override
-  public String getBindHost() {
-    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
-    // InetSocketAddress to get detailed info such as port.
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostString();
-  }
-
-  @Override
-  public int getPort() {
-    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
-    // InetSocketAddress to get detailed info such as port.
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
+  public SocketAddress getBindAddress() {
+    return mChannelFuture.channel().localAddress();
   }
 
   @Override
@@ -170,13 +158,17 @@ public final class NettyDataServer implements DataServer {
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     final int workerThreadCount =
         Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
-    final EventLoopGroup bossGroup =
-        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
-    final EventLoopGroup workerGroup =
-        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d", false);
+    String dataServerEventLoopNamePrefix =
+        "data-server-" + ((mSocketAddress instanceof DomainSocketAddress) ? "domain-socket" :
+            "tcp-socket");
+    final EventLoopGroup bossGroup = NettyUtils
+        .createEventLoop(type, bossThreadCount, dataServerEventLoopNamePrefix + "-boss-%d", false);
+    final EventLoopGroup workerGroup = NettyUtils
+        .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
+            false);
 
-    final Class<? extends ServerChannel> socketChannelClass =
-        NettyUtils.getServerChannelClass(type);
+    final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(type,
+         mSocketAddress instanceof DomainSocketAddress);
     boot.group(bossGroup, workerGroup).channel(socketChannelClass);
     if (type == ChannelType.EPOLL) {
       boot.childOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);

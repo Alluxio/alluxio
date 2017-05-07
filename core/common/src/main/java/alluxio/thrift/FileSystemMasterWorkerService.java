@@ -59,6 +59,14 @@ public class FileSystemMasterWorkerService {
      */
     public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
+    /**
+     * Returns the UFS information for the given mount point identified by its id.
+     * 
+     * 
+     * @param mountId the id of the ufs
+     */
+    public UfsInfo getUfsInfo(long mountId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
@@ -68,6 +76,8 @@ public class FileSystemMasterWorkerService {
     public void getPinIdList(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void heartbeat(long workerId, List<Long> persistedFiles, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void getUfsInfo(long mountId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -167,6 +177,32 @@ public class FileSystemMasterWorkerService {
         throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "heartbeat failed: unknown result");
+    }
+
+    public UfsInfo getUfsInfo(long mountId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    {
+      send_getUfsInfo(mountId);
+      return recv_getUfsInfo();
+    }
+
+    public void send_getUfsInfo(long mountId) throws org.apache.thrift.TException
+    {
+      getUfsInfo_args args = new getUfsInfo_args();
+      args.setMountId(mountId);
+      sendBase("getUfsInfo", args);
+    }
+
+    public UfsInfo recv_getUfsInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    {
+      getUfsInfo_result result = new getUfsInfo_result();
+      receiveBase(result, "getUfsInfo");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      if (result.e != null) {
+        throw result.e;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsInfo failed: unknown result");
     }
 
   }
@@ -283,6 +319,38 @@ public class FileSystemMasterWorkerService {
       }
     }
 
+    public void getUfsInfo(long mountId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      getUfsInfo_call method_call = new getUfsInfo_call(mountId, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class getUfsInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long mountId;
+      public getUfsInfo_call(long mountId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.mountId = mountId;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getUfsInfo", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getUfsInfo_args args = new getUfsInfo_args();
+        args.setMountId(mountId);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public UfsInfo getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_getUfsInfo();
+      }
+    }
+
   }
 
   public static class Processor<I extends Iface> extends alluxio.thrift.AlluxioService.Processor<I> implements org.apache.thrift.TProcessor {
@@ -299,6 +367,7 @@ public class FileSystemMasterWorkerService {
       processMap.put("getFileInfo", new getFileInfo());
       processMap.put("getPinIdList", new getPinIdList());
       processMap.put("heartbeat", new heartbeat());
+      processMap.put("getUfsInfo", new getUfsInfo());
       return processMap;
     }
 
@@ -374,6 +443,30 @@ public class FileSystemMasterWorkerService {
       }
     }
 
+    public static class getUfsInfo<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getUfsInfo_args> {
+      public getUfsInfo() {
+        super("getUfsInfo");
+      }
+
+      public getUfsInfo_args getEmptyArgsInstance() {
+        return new getUfsInfo_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public getUfsInfo_result getResult(I iface, getUfsInfo_args args) throws org.apache.thrift.TException {
+        getUfsInfo_result result = new getUfsInfo_result();
+        try {
+          result.success = iface.getUfsInfo(args.mountId);
+        } catch (alluxio.thrift.AlluxioTException e) {
+          result.e = e;
+        }
+        return result;
+      }
+    }
+
   }
 
   public static class AsyncProcessor<I extends AsyncIface> extends alluxio.thrift.AlluxioService.AsyncProcessor<I> {
@@ -390,6 +483,7 @@ public class FileSystemMasterWorkerService {
       processMap.put("getFileInfo", new getFileInfo());
       processMap.put("getPinIdList", new getPinIdList());
       processMap.put("heartbeat", new heartbeat());
+      processMap.put("getUfsInfo", new getUfsInfo());
       return processMap;
     }
 
@@ -561,6 +655,63 @@ public class FileSystemMasterWorkerService {
 
       public void start(I iface, heartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<FileSystemCommand> resultHandler) throws TException {
         iface.heartbeat(args.workerId, args.persistedFiles,resultHandler);
+      }
+    }
+
+    public static class getUfsInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getUfsInfo_args, UfsInfo> {
+      public getUfsInfo() {
+        super("getUfsInfo");
+      }
+
+      public getUfsInfo_args getEmptyArgsInstance() {
+        return new getUfsInfo_args();
+      }
+
+      public AsyncMethodCallback<UfsInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<UfsInfo>() { 
+          public void onComplete(UfsInfo o) {
+            getUfsInfo_result result = new getUfsInfo_result();
+            result.success = o;
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            getUfsInfo_result result = new getUfsInfo_result();
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+             else 
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, getUfsInfo_args args, org.apache.thrift.async.AsyncMethodCallback<UfsInfo> resultHandler) throws TException {
+        iface.getUfsInfo(args.mountId,resultHandler);
       }
     }
 
@@ -2050,13 +2201,13 @@ public class FileSystemMasterWorkerService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set82 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set82.size);
-                  long _elem83;
-                  for (int _i84 = 0; _i84 < _set82.size; ++_i84)
+                  org.apache.thrift.protocol.TSet _set92 = iprot.readSetBegin();
+                  struct.success = new HashSet<Long>(2*_set92.size);
+                  long _elem93;
+                  for (int _i94 = 0; _i94 < _set92.size; ++_i94)
                   {
-                    _elem83 = iprot.readI64();
-                    struct.success.add(_elem83);
+                    _elem93 = iprot.readI64();
+                    struct.success.add(_elem93);
                   }
                   iprot.readSetEnd();
                 }
@@ -2093,9 +2244,9 @@ public class FileSystemMasterWorkerService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, struct.success.size()));
-            for (long _iter85 : struct.success)
+            for (long _iter95 : struct.success)
             {
-              oprot.writeI64(_iter85);
+              oprot.writeI64(_iter95);
             }
             oprot.writeSetEnd();
           }
@@ -2134,9 +2285,9 @@ public class FileSystemMasterWorkerService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (long _iter86 : struct.success)
+            for (long _iter96 : struct.success)
             {
-              oprot.writeI64(_iter86);
+              oprot.writeI64(_iter96);
             }
           }
         }
@@ -2151,13 +2302,13 @@ public class FileSystemMasterWorkerService {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set87 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set87.size);
-            long _elem88;
-            for (int _i89 = 0; _i89 < _set87.size; ++_i89)
+            org.apache.thrift.protocol.TSet _set97 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.success = new HashSet<Long>(2*_set97.size);
+            long _elem98;
+            for (int _i99 = 0; _i99 < _set97.size; ++_i99)
             {
-              _elem88 = iprot.readI64();
-              struct.success.add(_elem88);
+              _elem98 = iprot.readI64();
+              struct.success.add(_elem98);
             }
           }
           struct.setSuccessIsSet(true);
@@ -2593,13 +2744,13 @@ public class FileSystemMasterWorkerService {
             case 2: // PERSISTED_FILES
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list90 = iprot.readListBegin();
-                  struct.persistedFiles = new ArrayList<Long>(_list90.size);
-                  long _elem91;
-                  for (int _i92 = 0; _i92 < _list90.size; ++_i92)
+                  org.apache.thrift.protocol.TList _list100 = iprot.readListBegin();
+                  struct.persistedFiles = new ArrayList<Long>(_list100.size);
+                  long _elem101;
+                  for (int _i102 = 0; _i102 < _list100.size; ++_i102)
                   {
-                    _elem91 = iprot.readI64();
-                    struct.persistedFiles.add(_elem91);
+                    _elem101 = iprot.readI64();
+                    struct.persistedFiles.add(_elem101);
                   }
                   iprot.readListEnd();
                 }
@@ -2630,9 +2781,9 @@ public class FileSystemMasterWorkerService {
           oprot.writeFieldBegin(PERSISTED_FILES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.persistedFiles.size()));
-            for (long _iter93 : struct.persistedFiles)
+            for (long _iter103 : struct.persistedFiles)
             {
-              oprot.writeI64(_iter93);
+              oprot.writeI64(_iter103);
             }
             oprot.writeListEnd();
           }
@@ -2669,9 +2820,9 @@ public class FileSystemMasterWorkerService {
         if (struct.isSetPersistedFiles()) {
           {
             oprot.writeI32(struct.persistedFiles.size());
-            for (long _iter94 : struct.persistedFiles)
+            for (long _iter104 : struct.persistedFiles)
             {
-              oprot.writeI64(_iter94);
+              oprot.writeI64(_iter104);
             }
           }
         }
@@ -2687,13 +2838,13 @@ public class FileSystemMasterWorkerService {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list95 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.persistedFiles = new ArrayList<Long>(_list95.size);
-            long _elem96;
-            for (int _i97 = 0; _i97 < _list95.size; ++_i97)
+            org.apache.thrift.protocol.TList _list105 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.persistedFiles = new ArrayList<Long>(_list105.size);
+            long _elem106;
+            for (int _i107 = 0; _i107 < _list105.size; ++_i107)
             {
-              _elem96 = iprot.readI64();
-              struct.persistedFiles.add(_elem96);
+              _elem106 = iprot.readI64();
+              struct.persistedFiles.add(_elem106);
             }
           }
           struct.setPersistedFilesIsSet(true);
@@ -3163,6 +3314,847 @@ public class FileSystemMasterWorkerService {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = new FileSystemCommand();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.e = new alluxio.thrift.AlluxioTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class getUfsInfo_args implements org.apache.thrift.TBase<getUfsInfo_args, getUfsInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getUfsInfo_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUfsInfo_args");
+
+    private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getUfsInfo_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getUfsInfo_argsTupleSchemeFactory());
+    }
+
+    private long mountId; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      /**
+       * the id of the ufs
+       */
+      MOUNT_ID((short)1, "mountId");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // MOUNT_ID
+            return MOUNT_ID;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __MOUNTID_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.MOUNT_ID, new org.apache.thrift.meta_data.FieldMetaData("mountId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUfsInfo_args.class, metaDataMap);
+    }
+
+    public getUfsInfo_args() {
+    }
+
+    public getUfsInfo_args(
+      long mountId)
+    {
+      this();
+      this.mountId = mountId;
+      setMountIdIsSet(true);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getUfsInfo_args(getUfsInfo_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.mountId = other.mountId;
+    }
+
+    public getUfsInfo_args deepCopy() {
+      return new getUfsInfo_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setMountIdIsSet(false);
+      this.mountId = 0;
+    }
+
+    /**
+     * the id of the ufs
+     */
+    public long getMountId() {
+      return this.mountId;
+    }
+
+    /**
+     * the id of the ufs
+     */
+    public getUfsInfo_args setMountId(long mountId) {
+      this.mountId = mountId;
+      setMountIdIsSet(true);
+      return this;
+    }
+
+    public void unsetMountId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MOUNTID_ISSET_ID);
+    }
+
+    /** Returns true if field mountId is set (has been assigned a value) and false otherwise */
+    public boolean isSetMountId() {
+      return EncodingUtils.testBit(__isset_bitfield, __MOUNTID_ISSET_ID);
+    }
+
+    public void setMountIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MOUNTID_ISSET_ID, value);
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case MOUNT_ID:
+        if (value == null) {
+          unsetMountId();
+        } else {
+          setMountId((Long)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case MOUNT_ID:
+        return getMountId();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case MOUNT_ID:
+        return isSetMountId();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getUfsInfo_args)
+        return this.equals((getUfsInfo_args)that);
+      return false;
+    }
+
+    public boolean equals(getUfsInfo_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_mountId = true;
+      boolean that_present_mountId = true;
+      if (this_present_mountId || that_present_mountId) {
+        if (!(this_present_mountId && that_present_mountId))
+          return false;
+        if (this.mountId != that.mountId)
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_mountId = true;
+      list.add(present_mountId);
+      if (present_mountId)
+        list.add(mountId);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(getUfsInfo_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetMountId()).compareTo(other.isSetMountId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMountId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mountId, other.mountId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getUfsInfo_args(");
+      boolean first = true;
+
+      sb.append("mountId:");
+      sb.append(this.mountId);
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getUfsInfo_argsStandardSchemeFactory implements SchemeFactory {
+      public getUfsInfo_argsStandardScheme getScheme() {
+        return new getUfsInfo_argsStandardScheme();
+      }
+    }
+
+    private static class getUfsInfo_argsStandardScheme extends StandardScheme<getUfsInfo_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // MOUNT_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.mountId = iprot.readI64();
+                struct.setMountIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(MOUNT_ID_FIELD_DESC);
+        oprot.writeI64(struct.mountId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getUfsInfo_argsTupleSchemeFactory implements SchemeFactory {
+      public getUfsInfo_argsTupleScheme getScheme() {
+        return new getUfsInfo_argsTupleScheme();
+      }
+    }
+
+    private static class getUfsInfo_argsTupleScheme extends TupleScheme<getUfsInfo_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetMountId()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetMountId()) {
+          oprot.writeI64(struct.mountId);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.mountId = iprot.readI64();
+          struct.setMountIdIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class getUfsInfo_result implements org.apache.thrift.TBase<getUfsInfo_result, getUfsInfo_result._Fields>, java.io.Serializable, Cloneable, Comparable<getUfsInfo_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUfsInfo_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getUfsInfo_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getUfsInfo_resultTupleSchemeFactory());
+    }
+
+    private UfsInfo success; // required
+    private alluxio.thrift.AlluxioTException e; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          case 1: // E
+            return E;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UfsInfo.class)));
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUfsInfo_result.class, metaDataMap);
+    }
+
+    public getUfsInfo_result() {
+    }
+
+    public getUfsInfo_result(
+      UfsInfo success,
+      alluxio.thrift.AlluxioTException e)
+    {
+      this();
+      this.success = success;
+      this.e = e;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getUfsInfo_result(getUfsInfo_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new UfsInfo(other.success);
+      }
+      if (other.isSetE()) {
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
+      }
+    }
+
+    public getUfsInfo_result deepCopy() {
+      return new getUfsInfo_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+      this.e = null;
+    }
+
+    public UfsInfo getSuccess() {
+      return this.success;
+    }
+
+    public getUfsInfo_result setSuccess(UfsInfo success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public alluxio.thrift.AlluxioTException getE() {
+      return this.e;
+    }
+
+    public getUfsInfo_result setE(alluxio.thrift.AlluxioTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((UfsInfo)value);
+        }
+        break;
+
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((alluxio.thrift.AlluxioTException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      case E:
+        return getE();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      case E:
+        return isSetE();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getUfsInfo_result)
+        return this.equals((getUfsInfo_result)that);
+      return false;
+    }
+
+    public boolean equals(getUfsInfo_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(getUfsInfo_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getUfsInfo_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getUfsInfo_resultStandardSchemeFactory implements SchemeFactory {
+      public getUfsInfo_resultStandardScheme getScheme() {
+        return new getUfsInfo_resultStandardScheme();
+      }
+    }
+
+    private static class getUfsInfo_resultStandardScheme extends StandardScheme<getUfsInfo_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new UfsInfo();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new alluxio.thrift.AlluxioTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getUfsInfo_resultTupleSchemeFactory implements SchemeFactory {
+      public getUfsInfo_resultTupleScheme getScheme() {
+        return new getUfsInfo_resultTupleScheme();
+      }
+    }
+
+    private static class getUfsInfo_resultTupleScheme extends TupleScheme<getUfsInfo_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        if (struct.isSetE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.success = new UfsInfo();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

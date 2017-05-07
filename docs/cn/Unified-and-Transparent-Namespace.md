@@ -74,6 +74,6 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 
 {% include Unified-and-Transparent-Namespace/unmount.md %}
 
-##资源
+## 资源
 
 [统一命名空间博客帖子](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)

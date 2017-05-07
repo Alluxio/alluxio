@@ -13,13 +13,10 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
-import alluxio.master.journal.MutableJournal;
-import alluxio.underfs.UnderFileStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
+import alluxio.ServiceUtils;
+import alluxio.master.journal.Journal;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -28,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -49,25 +49,12 @@ public final class Format {
   }
 
   private static void formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
-    if (ufs.isDirectory(folder)) {
-      for (UnderFileStatus p : ufs.listStatus(folder)) {
-        String childPath = PathUtils.concatPath(folder, p.getName());
-        boolean failedToDelete;
-        if (p.isDirectory()) {
-          failedToDelete = !ufs.deleteDirectory(childPath,
-              DeleteOptions.defaults().setRecursive(true));
-        } else {
-          failedToDelete = !ufs.deleteFile(childPath);
-        }
-        if (failedToDelete) {
-          throw new IOException(String.format("Failed to delete %s", childPath));
-        }
-      }
-    } else if (!ufs.mkdirs(folder)) {
-      throw new IOException(String.format("Failed to create dir %s", folder));
+    Path path = Paths.get(folder);
+    if (Files.isDirectory(path)) {
+      FileUtils.deletePathRecursively(folder);
     }
+    Files.createDirectory(path);
   }
 
   /**
@@ -80,12 +67,16 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    Mode mode = null;
     try {
-      format(Mode.valueOf(args[0].toUpperCase()));
+      mode = Mode.valueOf(args[0].toUpperCase());
     } catch (IllegalArgumentException e) {
       LOG.error("Unrecognized format mode: {}", args[0]);
       LOG.error("Usage: {}", USAGE);
       System.exit(-1);
+    }
+    try {
+      format(mode);
     } catch (Exception e) {
       LOG.error("Failed to format", e);
       System.exit(-1);
@@ -98,20 +89,19 @@ public final class Format {
    * Formats the Alluxio file system.
    *
    * @param mode either {@code MASTER} or {@code WORKER}
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void format(Mode mode) throws IOException {
     switch (mode) {
       case MASTER:
         String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
         LOG.info("MASTER JOURNAL: {}", masterJournal);
-        MutableJournal.Factory factory;
+        Journal.Factory factory;
         try {
-          factory = new MutableJournal.Factory(new URI(masterJournal));
+          factory = new Journal.Factory(new URI(masterJournal));
         } catch (URISyntaxException e) {
           throw new IOException(e.getMessage());
         }
-        for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
+        for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
           factory.create(masterServiceName).format();
         }
         break;
@@ -120,13 +110,12 @@ public final class Format {
         int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
         for (int level = 0; level < storageLevels; level++) {
           PropertyKey tierLevelDirPath =
-              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
           String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
           String name = "TIER_" + level + "_DIR_PATH";
           for (String dirPath : dirPaths) {
             String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-            UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
-            if (ufs.isDirectory(dirWorkerDataFolder)) {
+            if (Files.isDirectory(Paths.get(dirWorkerDataFolder))) {
               try {
                 formatFolder(name, dirWorkerDataFolder);
               } catch (IOException e) {

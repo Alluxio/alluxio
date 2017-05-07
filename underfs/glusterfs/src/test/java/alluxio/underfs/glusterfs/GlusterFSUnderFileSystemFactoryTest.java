@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
@@ -53,22 +53,22 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mMount));
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
-    UnderFileSystem gfs = UnderFileSystem.Factory.get("glusterfs:///");
+    UnderFileSystem gfs = UnderFileSystem.Factory.create("glusterfs:///");
     Assert.assertNotNull(gfs.create("alluxio_test"));
   }
 
   /**
-   * Tests the {@link UnderFileSystemRegistry#find(String)} method.
+   * Tests the {@link UnderFileSystemFactoryRegistry#find(String)} method.
    */
   @Test
   public void factory() {
     UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
+        UnderFileSystemFactoryRegistry.find("glusterfs://localhost/test/path");
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for Gluster FS paths when using this module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("alluxio://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("alluxio://localhost/test/path");
     Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using"
         + " this module.", factory);
   }

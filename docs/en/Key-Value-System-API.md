@@ -105,7 +105,7 @@ Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCo
 
 See an [example](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java) in the codebase.
 
-If you have [configured Alluxio to use HDFS as under storage](Configuring-Alluxio-with-HDFS.md), and have enabled
+If you have [configured Alluxio to use HDFS as under storage](Configuring-Alluxio-with-HDFS.html), and have enabled
 Key-Value system, you can run the example via
 
 {% include Key-Value-Store-API/run-mapreduce-example.md %}

@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.status.AlluxioStatusException;
+
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
@@ -39,13 +41,16 @@ public final class LocalFileBlockReader implements BlockReader {
    * Constructs a Block reader given the file path of the block.
    *
    * @param path file path of the block
-   * @throws IOException if its file can not be open with "r" mode
    */
-  public LocalFileBlockReader(String path) throws IOException {
+  public LocalFileBlockReader(String path) {
     mFilePath = Preconditions.checkNotNull(path);
-    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
+    try {
+      mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
+      mFileSize = mLocalFile.length();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-    mFileSize = mLocalFile.length();
   }
 
   @Override
@@ -58,29 +63,46 @@ public final class LocalFileBlockReader implements BlockReader {
     return mFileSize;
   }
 
+  /**
+   * @return the file path
+   */
+  public String getFilePath() {
+    return mFilePath;
+  }
+
   @Override
-  public ByteBuffer read(long offset, long length) throws IOException {
+  public ByteBuffer read(long offset, long length) {
     Preconditions.checkArgument(offset + length <= mFileSize,
         "offset=%s, length=%s, exceeding fileSize=%s", offset, length, mFileSize);
     // TODO(calvin): May need to make sure length is an int.
     if (length == -1L) {
       length = mFileSize - offset;
     }
-    return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
+    try {
+      return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
   }
 
   @Override
-  public int transferTo(ByteBuf buf) throws IOException {
-    return buf.writeBytes(mLocalFileChannel, buf.writableBytes());
+  public int transferTo(ByteBuf buf) {
+    try {
+      return buf.writeBytes(mLocalFileChannel, buf.writableBytes());
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     if (mClosed) {
       return;
     }
     try {
       mCloser.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
     } finally {
       mClosed = true;
     }

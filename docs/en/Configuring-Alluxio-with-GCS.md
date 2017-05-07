@@ -66,27 +66,13 @@ you can try [Running Alluxio Locally with GCS](#running-alluxio-locally-with-gcs
 
 ### Configuring Application Dependency
 
-When building your application to use Alluxio, your application will have to include the
-`alluxio-core-client` module. If you are using [maven](https://maven.apache.org/), you can add the
-dependency to your application with:
+When building your application to use Alluxio, your application should include a client module, the
+`alluxio-core-client-fs` module to use the [Alluxio file system interface](File-System-API.html) or
+the `alluxio-core-client-hdfs` module to use the
+[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
+are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
 
 {% include Configuring-Alluxio-with-GCS/dependency.md %}
-
-### Configuring Distributed Applications Runtime
-
-When I/O is delegated to Alluxio workers (i.e., Alluxio configuration
-`alluxio.user.ufs.operation.delegation` is true,  which is false by default since Alluxio 1.1), you
-do not have to do any thing special for your applications. Otherwise, since you are using an Alluxio
-client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you
-need to make sure that your Google credentials are provided to the application JVM processes as
-well. There are different ways to do this. The first approach is to add them as command line options
-when starting your client JVM process. For example:
-
-{% include Configuring-Alluxio-with-GCS/java-bash.md %}
-
-Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting
-credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
-append the path of this site properties file to the classpath.
 
 ## Running Alluxio Locally with GCS
 

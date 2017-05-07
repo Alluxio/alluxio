@@ -18,23 +18,25 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
-import alluxio.master.journal.JournalCheckpointStreamable;
-import alluxio.master.journal.JournalOutputStream;
+import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -45,12 +47,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is used for keeping track of Alluxio mount points.
  */
 @ThreadSafe
-public final class MountTable implements JournalCheckpointStreamable {
+public final class MountTable implements JournalEntryIterable {
   private static final Logger LOG = LoggerFactory.getLogger(MountTable.class);
 
   public static final String ROOT = "/";
 
-  private final ReentrantReadWriteLock mLock;
   private final Lock mReadLock;
   private final Lock mWriteLock;
 
@@ -58,44 +59,77 @@ public final class MountTable implements JournalCheckpointStreamable {
   @GuardedBy("mLock")
   private final Map<String, MountInfo> mMountTable;
 
+  /** The manager of all ufs. */
+  private final UfsManager mUfsManager;
+
   /**
    * Creates a new instance of {@link MountTable}.
+   *
+   * @param ufsManager the UFS manager
    */
-  public MountTable() {
+  public MountTable(UfsManager ufsManager) {
     final int initialCapacity = 10;
     mMountTable = new HashMap<>(initialCapacity);
-    mLock = new ReentrantReadWriteLock();
-    mReadLock = mLock.readLock();
-    mWriteLock = mLock.writeLock();
+    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    mReadLock = lock.readLock();
+    mWriteLock = lock.writeLock();
+    mUfsManager = ufsManager;
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
-      String alluxioPath = entry.getKey();
-      MountInfo info = entry.getValue();
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    final Iterator<Map.Entry<String, MountInfo>> it = mMountTable.entrySet().iterator();
+    return new Iterator<Journal.JournalEntry>() {
+      /** mEntry is always set to the next non-root mount point if exists. */
+      private Map.Entry<String, MountInfo> mEntry = null;
 
-      // do not journal the root mount point
-      if (alluxioPath.equals(ROOT)) {
-        continue;
+      @Override
+      public boolean hasNext() {
+        if (mEntry != null) {
+          return true;
+        }
+        while (it.hasNext()) {
+          mEntry = it.next();
+          // Do not journal the root mount point.
+          if (!mEntry.getKey().equals(ROOT)) {
+            return true;
+          } else {
+            mEntry = null;
+          }
+        }
+        return false;
       }
 
-      Map<String, String> properties = info.getOptions().getProperties();
-      List<File.StringPairEntry> protoProperties = new ArrayList<>(properties.size());
-      for (Map.Entry<String, String> property : properties.entrySet()) {
-        protoProperties.add(File.StringPairEntry.newBuilder()
-            .setKey(property.getKey())
-            .setValue(property.getValue())
-            .build());
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        String alluxioPath = mEntry.getKey();
+        MountInfo info = mEntry.getValue();
+        mEntry = null;
+
+        Map<String, String> properties = info.getOptions().getProperties();
+        List<File.StringPairEntry> protoProperties = new ArrayList<>(properties.size());
+        for (Map.Entry<String, String> property : properties.entrySet()) {
+          protoProperties.add(File.StringPairEntry.newBuilder()
+              .setKey(property.getKey())
+              .setValue(property.getValue())
+              .build());
+        }
+
+        AddMountPointEntry addMountPoint =
+            AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
+                .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
+                .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
+        return Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
       }
 
-      AddMountPointEntry addMountPoint = AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
-          .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
-          .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
-      Journal.JournalEntry journalEntry =
-          Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
-      outputStream.write(journalEntry);
-    }
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException("Mountable#Iterator#remove is not supported.");
+      }
+    };
   }
 
   /**
@@ -104,11 +138,12 @@ public final class MountTable implements JournalCheckpointStreamable {
    *
    * @param alluxioUri an Alluxio path URI
    * @param ufsUri a UFS path URI
+   * @param mountId the mount id
    * @param options the mount options
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, MountOptions options)
+  public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
@@ -144,7 +179,21 @@ public final class MountTable implements JournalCheckpointStreamable {
           }
         }
       }
-      mMountTable.put(alluxioPath, new MountInfo(ufsUri, options));
+      mMountTable.put(alluxioPath, new MountInfo(ufsUri, mountId, options));
+    }
+  }
+
+  /**
+   * Clears all the mount point except the root.
+   */
+  public void clear() {
+    LOG.info("Clearing mount table (except the root).");
+    try (LockResource r = new LockResource(mWriteLock)) {
+      MountInfo mountInfo = mMountTable.get(ROOT);
+      mMountTable.clear();
+      if (mountInfo != null) {
+        mMountTable.put(ROOT, mountInfo);
+      }
     }
   }
 
@@ -164,6 +213,7 @@ public final class MountTable implements JournalCheckpointStreamable {
 
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mMountTable.containsKey(path)) {
+        mUfsManager.removeMount(mMountTable.get(path).getMountId());
         mMountTable.remove(path);
         return true;
       }
@@ -235,13 +285,12 @@ public final class MountTable implements JournalCheckpointStreamable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsUri.toString());
-        ufs.setProperties(info.getOptions().getProperties());
+        UnderFileSystem ufs = mUfsManager.get(info.getMountId());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-        return new Resolution(resolvedUri, ufs, info.getOptions().isShared());
+        return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
       }
-      return new Resolution(uri, null, false);
+      // TODO(binfan): throw exception as we should never reach here
+      return new Resolution(uri, null, false, IdUtils.INVALID_MOUNT_ID);
     }
   }
 
@@ -266,6 +315,21 @@ public final class MountTable implements JournalCheckpointStreamable {
   }
 
   /**
+   * @param mountId the given ufs id
+   * @return the mount information with this id or null if this mount id is not found
+   */
+  public MountInfo getMountInfo(long mountId) {
+    try (LockResource r = new LockResource(mReadLock)) {
+      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+        if (entry.getValue().getMountId() == mountId) {
+          return entry.getValue();
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
    * for the UFS path are available.
    */
@@ -273,11 +337,13 @@ public final class MountTable implements JournalCheckpointStreamable {
     private final AlluxioURI mUri;
     private final UnderFileSystem mUfs;
     private final boolean mShared;
+    private final long mMountId;
 
-    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared) {
+    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, long mountId) {
       mUri = uri;
       mUfs = ufs;
       mShared = shared;
+      mMountId = mountId;
     }
 
     /**
@@ -299,6 +365,13 @@ public final class MountTable implements JournalCheckpointStreamable {
      */
     public boolean getShared() {
       return mShared;
+    }
+
+    /**
+     * @return the id of this mount point
+     */
+    public long getMountId() {
+      return mMountId;
     }
   }
 }

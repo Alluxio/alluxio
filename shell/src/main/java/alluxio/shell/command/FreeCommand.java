@@ -40,7 +40,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(FORCE_OPTION);
   }
 

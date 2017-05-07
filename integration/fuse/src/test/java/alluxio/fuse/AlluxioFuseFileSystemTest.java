@@ -54,10 +54,9 @@ import java.util.List;
 // TODO(andreareale): this test suite should be completed
 public class AlluxioFuseFileSystemTest {
 
-  private static final String TEST_MASTER_ADDRESS = "alluxio://localhost:19998";
   private static final String TEST_ROOT_PATH = "/t/root";
   private static final AlluxioURI BASE_EXPECTED_URI =
-      new AlluxioURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH);
+      new AlluxioURI(TEST_ROOT_PATH);
 
   private AlluxioFuseFileSystem mFuseFs;
   private FileSystem mFileSystem;
@@ -65,7 +64,6 @@ public class AlluxioFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
     Configuration.set(PropertyKey.FUSE_CACHED_PATHS_MAX, "0");
 
     final List<String> empty = Collections.emptyList();
@@ -224,11 +222,11 @@ public class AlluxioFuseFileSystemTest {
     final LoadingCache<String, AlluxioURI> resolver =
         mFuseFs.getPathResolverCache();
 
-    AlluxioURI expected = new AlluxioURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH);
+    AlluxioURI expected = new AlluxioURI(TEST_ROOT_PATH);
     AlluxioURI actual = resolver.apply("/");
     Assert.assertEquals("/ should resolve to " + expected, expected, actual);
 
-    expected = new AlluxioURI(TEST_MASTER_ADDRESS + TEST_ROOT_PATH + "/home/foo");
+    expected = new AlluxioURI(TEST_ROOT_PATH + "/home/foo");
     actual = resolver.apply("/home/foo");
     Assert.assertEquals("/home/foo should resolve to " + expected, expected, actual);
   }

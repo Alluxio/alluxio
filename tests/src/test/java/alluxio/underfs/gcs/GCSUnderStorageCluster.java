@@ -67,7 +67,7 @@ public class GCSUnderStorageCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     LOG.info("Shutting down GCS testing cluster, deleting bucket contents in: " + mGCSBucket);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mGCSBucket);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(mGCSBucket);
     ufs.deleteDirectory(mGCSBucket, DeleteOptions.defaults().setRecursive(true));
   }
 

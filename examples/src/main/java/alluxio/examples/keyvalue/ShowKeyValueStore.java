@@ -51,7 +51,6 @@ public final class ShowKeyValueStore {
    * @param args two parameters, the first is the key-value store URI, the second is the scope of
    *    the store to be shown ("key" to show only keys, "value" to show only values, and "all" to
    *    show both keys and values)
-   * @throws Exception if any exception happens
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
