@@ -256,8 +256,8 @@ function main {
     exit 1
   ;;
   "runClass")
-    CLASS="alluxio.cli.Class"
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    CLASS=$1
+    shift
     runJavaClass "$@"
   ;;
   "runTest")
