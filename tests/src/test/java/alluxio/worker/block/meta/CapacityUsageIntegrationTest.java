@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -44,11 +43,12 @@ public class CapacityUsageIntegrationTest {
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, MEM_CAPACITY_BYTES / 2)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
           .setProperty(
-              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(1), "HDD")
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "HDD")
           .setProperty(
-              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(1), "/disk1")
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
+              "/disk1")
           .setProperty(
-              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(1),
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
               String.valueOf(DISK_CAPACITY_BYTES))
           .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
               String.valueOf(HEARTBEAT_INTERVAL_MS))

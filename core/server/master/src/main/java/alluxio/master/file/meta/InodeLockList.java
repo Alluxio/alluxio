@@ -95,6 +95,25 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
+   * Downgrades the last inode that was locked, if the inode was previously WRITE locked. If the
+   * inode was previously READ locked, no additional locking will occur.
+   */
+  public synchronized void downgradeLast() {
+    if (mInodes.isEmpty()) {
+      return;
+    }
+    if (mLockModes.get(mLockModes.size() - 1) != InodeTree.LockMode.READ) {
+      // The last inode was previously WRITE locked, so downgrade the lock.
+      Inode<?> inode = mInodes.get(mInodes.size() - 1);
+      inode.lockRead();
+      inode.unlockWrite();
+      // Update the last lock mode to READ
+      mLockModes.remove(mLockModes.size() - 1);
+      mLockModes.add(InodeTree.LockMode.READ);
+    }
+  }
+
+  /**
    * Locks the given inode in write mode, and adds it to this lock list. This call should only be
    * used when locking the root or an inode by id and not path or parent.
    *

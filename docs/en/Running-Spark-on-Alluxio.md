@@ -150,3 +150,64 @@ executors. For example, if `host1` contains `blockA` and a job using `blockA` is
 cluster with `--num-executors=1`, Spark might place the only executor on `host2` and have poor locality.
 However, if `--num-executors=2` and executors are started on `host1` and `host2`, Spark will be smart
 enough to prioritize placing the job on `host1`.
+
+## `Failed to login` Issues with Spark Shell
+
+To run the `spark-shell` with the Alluxio client, the Alluxio client jar will have to be added to the classpath of the
+Spark driver and Spark executors, as described earlier. However, sometimes Alluxio will fail to determine the security
+user and will result in an error message similar to: `Failed to login: No Alluxio User is found.` Here are some
+solutions.
+
+### [Recommended] Configure `spark.sql.hive.metastore.sharedPrefixes` for Spark 1.4.0+
+
+This is the recommended solution for this issue.
+
+In Spark 1.4.0 and later, Spark uses an isolated classloader to load java classes for accessing the hive metastore.
+However, the isolated classloader ignores certain packages and allows the main classloader to load "shared" classes
+(the Hadoop HDFS client is one of these "shared" classes). The Alluxio client should also be loaded by the main
+classloader, and you can append the `alluxio` package to the configuration parameter
+`spark.sql.hive.metastore.sharedPrefixes` to inform Spark to load Alluxio with the main classloader. For example, the
+parameter may be set to:
+
+```bash
+spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
+```
+
+### [Workaround] Specify `fs.alluxio.impl` for Hadoop Configuration
+
+If the recommended solution described above is infeasible, this is a workaround which can also solve this issue.
+
+Specifying the Hadoop configuration `fs.alluxio.impl` may also help in resolving this error. `fs.alluxio.impl` should
+be set to `alluxio.hadoop.FileSystem` and if you are using Alluxio in fault tolerant mode, `fs.alluxio-ft.impl` should
+be set to `alluxio.hadoop.FaultTolerantFileSystem`. There are a few alternatives to set these parameters.
+
+#### Update `hadoopConfiguration` in SparkContext
+
+You can update the Hadoop configuration in the SparkContext by:
+
+```scala
+sc.hadoopConfiguration.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem")
+sc.hadoopConfiguration.set("fs.alluxio-ft.impl", "alluxio.hadoop.FaultTolerantFileSystem")
+```
+
+This should be done early in your `spark-shell` session, before any Alluxio operations.
+
+#### Update Hadoop Configuration Files
+
+You can also add the properties to Hadoop's configuration files, and point Spark to the Hadoop configuration files.
+The following should be added to Hadoop's `core-site.xml`.
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+  <property>
+    <name>fs.alluxio-ft.impl</name>
+    <value>alluxio.hadoop.FaultTolerantFileSystem</value>
+  </property>
+</configuration>
+```
+
+You can point Spark to the Hadoop configuration files by setting `HADOOP_CONF_DIR` in `spark-env.sh`.

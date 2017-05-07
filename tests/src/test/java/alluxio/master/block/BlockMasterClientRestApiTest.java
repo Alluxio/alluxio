@@ -37,7 +37,7 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
+    mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = BlockMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
@@ -60,7 +60,7 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
     String tierAlias = "MEM";
     long initialBytes = 3;
 
-    BlockWorker blockWorker = mResource.get().getWorker().getBlockWorker();
+    BlockWorker blockWorker = mResource.get().getWorkerProcess().getWorker(BlockWorker.class);
     String file = blockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes);
     FileOutputStream outStream = new FileOutputStream(file);
     outStream.write("abc".getBytes());

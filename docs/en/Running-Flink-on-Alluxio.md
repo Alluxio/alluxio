@@ -59,10 +59,9 @@ We need to make the Alluxio `jar` file available to Flink, because it contains t
 
 There are different ways to achieve that:
 
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-`lib` directory of Flink (for local and standalone cluster setups)
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-`ship` directory for Flink on YARN.
+- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of Flink (for local and
+standalone cluster setups)
+- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `ship` directory for Flink on YARN.
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 

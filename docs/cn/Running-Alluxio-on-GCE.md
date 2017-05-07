@@ -83,7 +83,7 @@ priority: 4
 Alluxio Web UI的默认端口为 **19999**.
 
 在访问Web UI之前, 需要配置防火墙以允许19999端口上的tcp传输。
-可以通过在 [Console](console.cloud.google.com) UI 上完成或者使用类似如下的gcloud命令，假设网络名是 'default'.
+可以通过在 [Console](https://console.cloud.google.com) UI 上完成或者使用类似如下的gcloud命令，假设网络名是 'default'.
 
 {% include Running-Alluxio-on-GCE/add-firewall-rule.md %}
 

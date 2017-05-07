@@ -19,7 +19,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -110,7 +110,7 @@ public final class AlluxioFrameworkIntegrationTest {
                 try {
                   try {
                     return !client.getWorkerInfoList().isEmpty();
-                  } catch (ConnectionFailedException e) {
+                  } catch (UnavailableException e) {
                     // block master isn't up yet, keep waiting
                     return false;
                   }
@@ -207,7 +207,6 @@ public final class AlluxioFrameworkIntegrationTest {
 
   /**
    * @param args arguments
-   * @throws Exception if an exception occurs
    */
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();

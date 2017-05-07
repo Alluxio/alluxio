@@ -16,7 +16,6 @@ import alluxio.util.io.PathUtils;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
 import org.javaswift.joss.model.StoredObject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,6 @@ public class SwiftMockOutputStream extends OutputStream {
    * @param account simulated Swift account
    * @param containerName container name
    * @param objectName name of file or folder to write
-   * @throws IOException if an I/O error occurs
    */
   public SwiftMockOutputStream(Account account, String containerName, String objectName)
       throws IOException {

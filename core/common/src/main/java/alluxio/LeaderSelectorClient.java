@@ -133,13 +133,11 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
    * @param currentMasterThread the thread to use as the master thread
    */
   public void setCurrentMasterThread(Thread currentMasterThread) {
-    mCurrentMasterThread = Preconditions.checkNotNull(currentMasterThread);
+    mCurrentMasterThread = Preconditions.checkNotNull(currentMasterThread, "currentMasterThread");
   }
 
   /**
    * Starts the leader selection.
-   *
-   * @throws IOException if an error occurs during leader selection
    */
   public void start() throws IOException {
     mLeaderSelector.start();

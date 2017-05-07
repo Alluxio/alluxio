@@ -27,7 +27,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -51,7 +50,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -106,14 +104,12 @@ public class FileSystemMasterIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   private FileSystemMaster mFsMaster;
-  private InodeTree mInodeTree;
 
   @Before
   public final void before() throws Exception {
-    mFsMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+    mFsMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
     AuthenticatedClientUser.set(TEST_USER);
-    mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
   }
 
   @After
@@ -121,6 +117,9 @@ public class FileSystemMasterIntegrationTest {
     AuthenticatedClientUser.remove();
   }
 
+  /**
+   * Tests the {@link FileInfo} of a directory.
+   */
   @Test
   public void clientFileInfoDirectory() throws Exception {
     AlluxioURI path = new AlluxioURI("/testFolder");
@@ -139,6 +138,9 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
 
+  /**
+   * Tests the {@link FileInfo} of an empty file.
+   */
   @Test
   public void clientFileInfoEmptyFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
@@ -184,6 +186,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * Tests concurrent create of files.
+   */
   @Test
   public void concurrentCreate() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -193,8 +198,6 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * Tests concurrent delete of files.
-   *
-   * @throws Exception if an error occurs during creating or deleting files
    */
   @Test
   public void concurrentDelete() throws Exception {
@@ -212,8 +215,6 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * Tests concurrent free of files.
-   *
-   * @throws Exception if an error occurs during creating or freeing files
    */
   @Test
   public void concurrentFree() throws Exception {
@@ -228,8 +229,6 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * Tests concurrent rename of files.
-   *
-   * @throws Exception if an error occurs during creating or renaming files
    */
   @Test
   public void concurrentRename() throws Exception {
@@ -247,6 +246,9 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.listStatus(ROOT_PATH2, ListStatusOptions.defaults()).size());
   }
 
+  /**
+   * Tests that creating a file which already exists.
+   */
   @Test
   public void createAlreadyExistFile() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
@@ -254,6 +256,9 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFile"), CreateDirectoryOptions.defaults());
   }
 
+  /**
+   * Tests that creating a directory.
+   */
   @Test
   public void createDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
@@ -415,8 +420,9 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void getCapacityBytes() {
-    BlockMaster blockMaster = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
-        .getMaster(BlockMaster.class);
+    BlockMaster blockMaster =
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(BlockMaster.class);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
@@ -752,7 +758,6 @@ public class FileSystemMasterIntegrationTest {
      * files in one directory by multiple concurrent threads.
      *
      * @return null
-     * @throws Exception if an exception occurs
      */
     @Override
     public Void call() throws Exception {
@@ -767,7 +772,6 @@ public class FileSystemMasterIntegrationTest {
      * @param depth the depth of files to be created in one directory
      * @param concurrencyDepth the concurrency depth of files to be created in one directory
      * @param path the directory of files to be created in
-     * @throws Exception if an exception occurs
      */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
@@ -820,6 +824,13 @@ public class FileSystemMasterIntegrationTest {
     private int mConcurrencyDepth;
     private AlluxioURI mInitPath;
 
+    /**
+     * Constructs the concurrent freer.
+     *
+     * @param depth the depth of files to be freed
+     * @param concurrencyDepth the concurrency depth of files to be freed
+     * @param initPath the directory of files to be freed
+     */
     ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
@@ -844,7 +855,6 @@ public class FileSystemMasterIntegrationTest {
      * @param depth the depth of files to be freed in one directory
      * @param concurrencyDepth the concurrency depth of files to be freed in one directory
      * @param path the directory of files to be freed in
-     * @throws Exception if an exception occurs
      */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
@@ -918,7 +928,6 @@ public class FileSystemMasterIntegrationTest {
      * @param depth the depth of files to be deleted in one directory
      * @param concurrencyDepth the concurrency depth of files to be deleted in one directory
      * @param path the directory of files to be deleted in
-     * @throws Exception if an exception occurs
      */
     public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
       if (depth < 1) {
