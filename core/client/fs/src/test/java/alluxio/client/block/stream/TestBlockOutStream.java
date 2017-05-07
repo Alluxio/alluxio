@@ -41,7 +41,7 @@ public class TestBlockOutStream extends BlockOutStream {
   }
   
   /**
-   * Returns an array of bytes that is written to the out stream.
+   * Returns an array of bytes that is written to the outstream.
    */
   public byte[] getWrittenData() {
     try {
