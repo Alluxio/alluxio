@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -67,7 +68,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
   /** Executor service used for parallel UFS operations such as bulk deletes. */
-  ExecutorService mExecutorService;
+  protected ExecutorService mExecutorService;
 
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
@@ -186,7 +187,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     DeleteBuffer deleteBuffer = new DeleteBuffer();
     UnderFileStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
     if (pathsToDelete == null) {
-      LOG.error("Unable to delete {} because listInternal returns null", path);
+      LOG.warn("Unable to delete {} because listInternal returns null", path);
       return false;
     }
     for (UnderFileStatus pathToDelete : pathsToDelete) {
@@ -205,31 +206,41 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Objects added to a {@link DeleteBuffer} will be deleted in batches. Multiple batches are
    * processed in parallel.
    */
-  class DeleteBuffer {
-    ArrayList<List<String>> mBatches;
-    ArrayList<Future<List<String>>> mBatchesResult;
-    List<String> mCurrentBatchBuffer;
-    int mEntriesAdded;
+  @NotThreadSafe
+  protected class DeleteBuffer {
+    /** A list of objects in batches to be deleted in parallel. */
+    private ArrayList<List<String>> mBatches;
+    /** A list of the successfully deleted objects for each batch delete. */
+    private ArrayList<Future<List<String>>> mBatchesResult;
+    /** Buffer for a batch of objects to be deleted. */
+    private List<String> mCurrentBatchBuffer;
+    /** Total number of objects to be deleted across batches. */
+    private int mEntriesAdded;
 
-    DeleteBuffer() {
+    /**
+     * Construct a new {@link DeleteBuffer} instance.
+     */
+    public DeleteBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
-      mCurrentBatchBuffer = null;
+      mCurrentBatchBuffer = new LinkedList<>();
       mEntriesAdded = 0;
     }
 
-    void add(String path) throws IOException {
-      mEntriesAdded++;
-      if (mCurrentBatchBuffer == null) {
-        mCurrentBatchBuffer = new LinkedList<>();
-      }
+    /**
+     * Add a new object to be deleted.
+     *
+     * @param path of object
+     * @throws IOException if a non-Alluxio error occurs
+     */
+    public void add(String path) throws IOException {
       // Delete batch size is same as listing length
-      if (mCurrentBatchBuffer.size() < getListingChunkLength()) {
-        mCurrentBatchBuffer.add(path);
-      } else {
+      if (mCurrentBatchBuffer.size() == getListingChunkLength()) {
         // Batch is full
-        processBatch();
+        submitBatch();
       }
+      mCurrentBatchBuffer.add(path);
+      mEntriesAdded++;
     }
 
     /**
@@ -238,8 +249,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return a list of successfully deleted objects
      * @throws IOException if a non-Alluxio error occurs
      */
-    List<String> getResult() throws IOException {
-      processBatch();
+    public List<String> getResult() throws IOException {
+      submitBatch();
       LinkedList<String> result = new LinkedList<>();
       for (Future<List<String>> list : mBatchesResult) {
         try {
@@ -254,31 +265,23 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Process a single batch.
+     * Process the current batch asynchronously.
      */
-    void processBatch() throws IOException {
-      if (mCurrentBatchBuffer != null) {
+    private void submitBatch() throws IOException {
+      if (mCurrentBatchBuffer.size() != 0) {
         int batchNumber = mBatches.size();
         mBatches.add(new LinkedList<>(mCurrentBatchBuffer));
-        mCurrentBatchBuffer = null;
-        processBatchInThread(batchNumber);
+        mCurrentBatchBuffer.clear();
+        mBatchesResult.add(batchNumber,
+            mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
       }
-    }
-
-    /**
-     * Launch a thread for processing a individual batch.
-     * @param batchNumber index starting from 0
-     */
-    void processBatchInThread(int batchNumber) throws IOException {
-      mBatchesResult.add(batchNumber,
-          getExecutorService().submit(new DeleteThread(mBatches.get(batchNumber))));
     }
 
     /**
      * Thread class to delete a batch of objects.
      */
     @NotThreadSafe
-    class DeleteThread implements Callable<List<String>> {
+    protected class DeleteThread implements Callable<List<String>> {
 
       List<String> mBatch;
 
@@ -296,7 +299,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           return deleteObjects(mBatch);
         } catch (IOException e) {
           // Do not append to success list
-          return null;
+          return Collections.emptyList();
         }
       }
     }
@@ -311,13 +314,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-  }
-
-  // Not supported
-  @Override
-  public Object getConf() {
-    LOG.debug("getConf is not supported when using default ObjectUnderFileSystem.");
-    return null;
   }
 
   // Not supported
@@ -482,10 +478,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         && deleteObject(stripPrefixIfPresent(src));
   }
 
-  // Default object UFS does not provide a mechanism for updating the configuration, no-op
-  @Override
-  public void setConf(Object conf) {}
-
   @Override
   public boolean supportsFlush() {
     return false;
@@ -554,13 +546,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     return result;
-  }
-
-  /**
-   * @return the {@link ExecutorService} for this object storage
-   */
-  protected ExecutorService getExecutorService() {
-    return mExecutorService;
   }
 
   /**

@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.cli.Format;
 import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
@@ -26,8 +25,10 @@ import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
@@ -125,7 +126,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts the worker(s).
    */
-  protected void startWorkers() throws Exception {
+  public void startWorkers() throws Exception {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; i++) {
       mWorkers.add(WorkerProcess.Factory.create());
@@ -160,22 +161,23 @@ public abstract class AbstractLocalAlluxioCluster {
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
-    String underfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
+    String underfsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
-    UnderFileSystemUtils.deleteDirIfExists(underfsAddress);
+    UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
-    UnderFileSystemUtils.mkdirIfNotExists(underfsAddress);
+    UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
 
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
-        UnderFileSystemUtils.mkdirIfNotExists(dirPath);
+        FileUtils.createDir(dirPath);
       }
     }
 
@@ -193,12 +195,12 @@ public abstract class AbstractLocalAlluxioCluster {
     Format.format(Format.Mode.MASTER);
 
     // If we are using anything except LocalFileSystemCluster as UnderFS,
-    // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
+    // we need to update the MASTER_MOUNT_TABLE_ROOT_UFS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
-      UnderFileSystemUtils.mkdirIfNotExists(ufsAddress);
-      Configuration.set(PropertyKey.UNDERFS_ADDRESS, ufsAddress);
+      UnderFileSystemUtils.mkdirIfNotExists(ufs, ufsAddress);
+      Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsAddress);
     }
   }
 
@@ -322,15 +324,15 @@ public abstract class AbstractLocalAlluxioCluster {
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
     Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(0), "MEM");
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
     Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
         ramdiskPath);
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
@@ -338,7 +340,7 @@ public abstract class AbstractLocalAlluxioCluster {
         newPaths.add(newPath);
       }
       Configuration.set(
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level),
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
           Joiner.on(',').join(newPaths));
     }
 

@@ -11,14 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.Journal;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +51,6 @@ public final class AlluxioSecondaryMaster implements Process {
 
   @Override
   public void start() throws Exception {
-    connectToUFS();
     mRegistry.start(false);
     mLatch.await();
   }
@@ -89,15 +84,5 @@ public final class AlluxioSecondaryMaster implements Process {
 
     AlluxioSecondaryMaster master = new AlluxioSecondaryMaster();
     ProcessUtils.run(master);
-  }
-
-  /**
-   * Connects to the UFS.
-   */
-  private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
-    ufs.connectFromMaster(
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
   }
 }

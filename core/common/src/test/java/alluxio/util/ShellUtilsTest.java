@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Tests the {@link ShellUtils} class.
  */
-public class ShellUtilsTest {
+public final class ShellUtilsTest {
 
   /**
    * Tests the {@link ShellUtils#execCommand(String...)} method.

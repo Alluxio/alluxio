@@ -13,6 +13,7 @@ public final class Protocol {
    *
    * <pre>
    * The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+   * next available id: 3
    * </pre>
    */
   public enum RequestType
@@ -209,12 +210,31 @@ public final class Protocol {
      * </pre>
      */
     boolean getNoCache();
+
+    // optional int64 packet_size = 9;
+    /**
+     * <code>optional int64 packet_size = 9;</code>
+     *
+     * <pre>
+     * If set, the server should send packets in the specified packet size.
+     * </pre>
+     */
+    boolean hasPacketSize();
+    /**
+     * <code>optional int64 packet_size = 9;</code>
+     *
+     * <pre>
+     * If set, the server should send packets in the specified packet size.
+     * </pre>
+     */
+    long getPacketSize();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.ReadRequest}
    *
    * <pre>
    * The read request.
+   * next available id: 9
    * </pre>
    */
   public static final class ReadRequest extends
@@ -309,6 +329,11 @@ public final class Protocol {
             case 64: {
               bitField0_ |= 0x00000080;
               noCache_ = input.readBool();
+              break;
+            }
+            case 72: {
+              bitField0_ |= 0x00000100;
+              packetSize_ = input.readInt64();
               break;
             }
           }
@@ -503,6 +528,30 @@ public final class Protocol {
       return noCache_;
     }
 
+    // optional int64 packet_size = 9;
+    public static final int PACKET_SIZE_FIELD_NUMBER = 9;
+    private long packetSize_;
+    /**
+     * <code>optional int64 packet_size = 9;</code>
+     *
+     * <pre>
+     * If set, the server should send packets in the specified packet size.
+     * </pre>
+     */
+    public boolean hasPacketSize() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <code>optional int64 packet_size = 9;</code>
+     *
+     * <pre>
+     * If set, the server should send packets in the specified packet size.
+     * </pre>
+     */
+    public long getPacketSize() {
+      return packetSize_;
+    }
+
     private void initFields() {
       type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
@@ -512,6 +561,7 @@ public final class Protocol {
       lockId_ = 0L;
       sessionId_ = 0L;
       noCache_ = false;
+      packetSize_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -548,6 +598,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         output.writeBool(8, noCache_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        output.writeInt64(9, packetSize_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -589,6 +642,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(8, noCache_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(9, packetSize_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -673,6 +730,7 @@ public final class Protocol {
      *
      * <pre>
      * The read request.
+     * next available id: 9
      * </pre>
      */
     public static final class Builder extends
@@ -726,6 +784,8 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000040);
         noCache_ = false;
         bitField0_ = (bitField0_ & ~0x00000080);
+        packetSize_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000100);
         return this;
       }
 
@@ -786,6 +846,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000080;
         }
         result.noCache_ = noCache_;
+        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+          to_bitField0_ |= 0x00000100;
+        }
+        result.packetSize_ = packetSize_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -825,6 +889,9 @@ public final class Protocol {
         }
         if (other.hasNoCache()) {
           setNoCache(other.getNoCache());
+        }
+        if (other.hasPacketSize()) {
+          setPacketSize(other.getPacketSize());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1168,6 +1235,55 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 packet_size = 9;
+      private long packetSize_ ;
+      /**
+       * <code>optional int64 packet_size = 9;</code>
+       *
+       * <pre>
+       * If set, the server should send packets in the specified packet size.
+       * </pre>
+       */
+      public boolean hasPacketSize() {
+        return ((bitField0_ & 0x00000100) == 0x00000100);
+      }
+      /**
+       * <code>optional int64 packet_size = 9;</code>
+       *
+       * <pre>
+       * If set, the server should send packets in the specified packet size.
+       * </pre>
+       */
+      public long getPacketSize() {
+        return packetSize_;
+      }
+      /**
+       * <code>optional int64 packet_size = 9;</code>
+       *
+       * <pre>
+       * If set, the server should send packets in the specified packet size.
+       * </pre>
+       */
+      public Builder setPacketSize(long value) {
+        bitField0_ |= 0x00000100;
+        packetSize_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 packet_size = 9;</code>
+       *
+       * <pre>
+       * If set, the server should send packets in the specified packet size.
+       * </pre>
+       */
+      public Builder clearPacketSize() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        packetSize_ = 0L;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.ReadRequest)
     }
 
@@ -1334,12 +1450,23 @@ public final class Protocol {
      * <code>optional int32 mode = 11;</code>
      */
     int getMode();
+
+    // optional int64 mount_id = 12;
+    /**
+     * <code>optional int64 mount_id = 12;</code>
+     */
+    boolean hasMountId();
+    /**
+     * <code>optional int64 mount_id = 12;</code>
+     */
+    long getMountId();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.WriteRequest}
    *
    * <pre>
    * The write request.
+   * next available id: 13
    * </pre>
    */
   public static final class WriteRequest extends
@@ -1449,6 +1576,11 @@ public final class Protocol {
             case 88: {
               bitField0_ |= 0x00000400;
               mode_ = input.readInt32();
+              break;
+            }
+            case 96: {
+              bitField0_ |= 0x00000800;
+              mountId_ = input.readInt64();
               break;
             }
           }
@@ -1776,6 +1908,22 @@ public final class Protocol {
       return mode_;
     }
 
+    // optional int64 mount_id = 12;
+    public static final int MOUNT_ID_FIELD_NUMBER = 12;
+    private long mountId_;
+    /**
+     * <code>optional int64 mount_id = 12;</code>
+     */
+    public boolean hasMountId() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    /**
+     * <code>optional int64 mount_id = 12;</code>
+     */
+    public long getMountId() {
+      return mountId_;
+    }
+
     private void initFields() {
       type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
@@ -1788,6 +1936,7 @@ public final class Protocol {
       owner_ = "";
       group_ = "";
       mode_ = 0;
+      mountId_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1833,6 +1982,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         output.writeInt32(11, mode_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        output.writeInt64(12, mountId_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1886,6 +2038,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(11, mode_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(12, mountId_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1970,6 +2126,7 @@ public final class Protocol {
      *
      * <pre>
      * The write request.
+     * next available id: 13
      * </pre>
      */
     public static final class Builder extends
@@ -2029,6 +2186,8 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000200);
         mode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000400);
+        mountId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
 
@@ -2101,6 +2260,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000400;
         }
         result.mode_ = mode_;
+        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+          to_bitField0_ |= 0x00000800;
+        }
+        result.mountId_ = mountId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2155,6 +2318,9 @@ public final class Protocol {
         }
         if (other.hasMode()) {
           setMode(other.getMode());
+        }
+        if (other.hasMountId()) {
+          setMountId(other.getMountId());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2728,6 +2894,39 @@ public final class Protocol {
         return this;
       }
 
+      // optional int64 mount_id = 12;
+      private long mountId_ ;
+      /**
+       * <code>optional int64 mount_id = 12;</code>
+       */
+      public boolean hasMountId() {
+        return ((bitField0_ & 0x00000800) == 0x00000800);
+      }
+      /**
+       * <code>optional int64 mount_id = 12;</code>
+       */
+      public long getMountId() {
+        return mountId_;
+      }
+      /**
+       * <code>optional int64 mount_id = 12;</code>
+       */
+      public Builder setMountId(long value) {
+        bitField0_ |= 0x00000800;
+        mountId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 mount_id = 12;</code>
+       */
+      public Builder clearMountId() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        mountId_ = 0L;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.WriteRequest)
     }
 
@@ -2772,6 +2971,7 @@ public final class Protocol {
    *
    * <pre>
    * The response.
+   * next available id: 2
    * </pre>
    */
   public static final class Response extends
@@ -3059,6 +3259,7 @@ public final class Protocol {
      *
      * <pre>
      * The response.
+     * next available id: 2
      * </pre>
      */
     public static final class Builder extends
@@ -3333,21 +3534,22 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocol.proto\022\030alluxio.proto.dataserv" +
-      "er\032\014status.proto\"\265\001\n\013ReadRequest\0223\n\004type" +
+      "er\032\014status.proto\"\312\001\n\013ReadRequest\0223\n\004type" +
       "\030\001 \001(\0162%.alluxio.proto.dataserver.Reques" +
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
       "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\"\334\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.alluxi" +
-      "o.proto.dataserver.RequestType\022\n\n\002id\030\002 \001" +
-      "(\003\022\016\n\006offset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014" +
-      "\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(",
-      "\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005gr" +
-      "oup\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\"J\n\010Response\022-\n\006s" +
-      "tatus\030\001 \001(\0162\035.alluxio.proto.status.PStat" +
-      "us\022\017\n\007message\030\002 \001(\t*=\n\013RequestType\022\021\n\rAL" +
-      "LUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK" +
-      "\020\002"
+      "\022\023\n\013packet_size\030\t \001(\003\"\356\001\n\014WriteRequest\0223" +
+      "\n\004type\030\001 \001(\0162%.alluxio.proto.dataserver." +
+      "RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022" +
+      "\022\n\nsession_id\030\004 \001(\003\022\014\n\004tier\030\005 \001(\005\022\013\n\003eof",
+      "\030\006 \001(\010\022\016\n\006cancel\030\007 \001(\010\022\020\n\010ufs_path\030\010 \001(\t" +
+      "\022\r\n\005owner\030\t \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004mode\030\013" +
+      " \001(\005\022\020\n\010mount_id\030\014 \001(\003\"J\n\010Response\022-\n\006st" +
+      "atus\030\001 \001(\0162\035.alluxio.proto.status.PStatu" +
+      "s\022\017\n\007message\030\002 \001(\t*=\n\013RequestType\022\021\n\rALL" +
+      "UXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020" +
+      "\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3359,13 +3561,13 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "Length", "Cancel", "LockId", "SessionId", "NoCache", });
+              new java.lang.String[] { "Type", "Id", "Offset", "Length", "Cancel", "LockId", "SessionId", "NoCache", "PacketSize", });
           internal_static_alluxio_proto_dataserver_WriteRequest_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(2);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new

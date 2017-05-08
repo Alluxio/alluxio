@@ -49,10 +49,10 @@ public final class PersistMultipleMountsIntegrationTest
   public void before() throws Exception {
     super.before();
 
-    mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
     mUfs = UnderFileSystem.Factory.get(mUfsRoot);
 
-    mMountedUfsRoot = mTempFolder.getRoot().toURI().toString();
+    mMountedUfsRoot = mTempFolder.getRoot().getAbsolutePath();
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(mMountedUfsRoot));
     mMountedUfs = UnderFileSystem.Factory.get(mMountedUfsRoot);
   }

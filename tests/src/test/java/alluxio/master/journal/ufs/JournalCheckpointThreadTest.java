@@ -50,7 +50,7 @@ public final class JournalCheckpointThreadTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.get(location.toString()));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.get(location));
     mJournal = new UfsJournal(location, mUfs);
   }
 
@@ -116,6 +116,9 @@ public final class JournalCheckpointThreadTest {
     Assert.assertEquals(10, sz);
   }
 
+  /**
+   * Builds complete log.
+   */
   private void buildCompletedLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     JournalWriter writer = mJournal.getWriter(
@@ -126,6 +129,9 @@ public final class JournalCheckpointThreadTest {
     writer.close();
   }
 
+  /**
+   * Builds incomplete log.
+   */
   private void buildIncompleteLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     buildCompletedLog(start, end);

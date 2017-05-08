@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DeleteOptions {
   private boolean mRecursive;
   private boolean mAlluxioOnly;
-  private boolean mSkipConsistencyCheck;
+  private boolean mUnchecked;
 
   /**
    * @return the default {@link DeleteOptions}
@@ -39,13 +39,13 @@ public final class DeleteOptions {
   public DeleteOptions(DeleteTOptions options) {
     mRecursive = options.isRecursive();
     mAlluxioOnly = options.isAlluxioOnly();
-    mSkipConsistencyCheck = options.isSkipConsistencyCheck();
+    mUnchecked = options.isUnchecked();
   }
 
   private DeleteOptions() {
     mRecursive = false;
     mAlluxioOnly = false;
-    mSkipConsistencyCheck = false;
+    mUnchecked = false;
   }
 
   /**
@@ -65,10 +65,10 @@ public final class DeleteOptions {
   }
 
   /**
-   * @return if the UFS consistency check should be skipped
+   * @return if the UFS sync check should be skipped
    */
-  public boolean isSkipConsistencyCheck() {
-    return mSkipConsistencyCheck;
+  public boolean isUnchecked() {
+    return mUnchecked;
   }
   /**
    * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
@@ -91,11 +91,11 @@ public final class DeleteOptions {
   }
 
   /**
-   * @param skipConsistencyCheck whether to skip UFS consistency check
+   * @param unchecked whether to skip UFS sync check
    * @return the updated options object
    */
-  public DeleteOptions setSkipConsistencyCheck(boolean skipConsistencyCheck) {
-    mSkipConsistencyCheck = skipConsistencyCheck;
+  public DeleteOptions setUnchecked(boolean unchecked) {
+    mUnchecked = unchecked;
     return this;
   }
 
@@ -110,12 +110,12 @@ public final class DeleteOptions {
     DeleteOptions that = (DeleteOptions) o;
     return Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mAlluxioOnly, that.mAlluxioOnly)
-        && Objects.equal(mSkipConsistencyCheck, that.mSkipConsistencyCheck);
+        && Objects.equal(mUnchecked, that.mUnchecked);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mAlluxioOnly, mSkipConsistencyCheck);
+    return Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked);
   }
 
   @Override
@@ -123,7 +123,7 @@ public final class DeleteOptions {
     return Objects.toStringHelper(this)
          .add("recursive", mRecursive)
          .add("alluxioOnly", mAlluxioOnly)
-         .add("skipConsistencyCheck", mSkipConsistencyCheck)
+         .add("unchecked", mUnchecked)
          .toString();
   }
 }

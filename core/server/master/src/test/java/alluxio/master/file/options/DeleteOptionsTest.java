@@ -31,7 +31,7 @@ public class DeleteOptionsTest {
     DeleteOptions options = DeleteOptions.defaults();
     Assert.assertFalse(options.isRecursive());
     Assert.assertFalse(options.isAlluxioOnly());
-    Assert.assertFalse(options.isSkipConsistencyCheck());
+    Assert.assertFalse(options.isUnchecked());
   }
 
   /**
@@ -47,11 +47,11 @@ public class DeleteOptionsTest {
 
     options.setRecursive(recursive);
     options.setAlluxioOnly(alluxioOnly);
-    options.setSkipConsistencyCheck(skipCheck);
+    options.setUnchecked(skipCheck);
 
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(alluxioOnly, options.isAlluxioOnly());
-    Assert.assertEquals(skipCheck, options.isSkipConsistencyCheck());
+    Assert.assertEquals(skipCheck, options.isUnchecked());
   }
 
   @Test

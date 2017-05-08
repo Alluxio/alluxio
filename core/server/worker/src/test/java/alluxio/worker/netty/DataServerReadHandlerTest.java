@@ -40,7 +40,7 @@ import java.util.Random;
 
 public abstract class DataServerReadHandlerTest {
   protected static final long PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   protected String mFile;
@@ -109,7 +109,7 @@ public abstract class DataServerReadHandlerTest {
     long fileSize = PACKET_SIZE * 100 + 1;
     populateInputFile(fileSize, 0, fileSize - 1);
     RPCProtoMessage readRequest = buildReadRequest(0, fileSize);
-    Protocol.ReadRequest request = readRequest.getMessage().getMessage();
+    Protocol.ReadRequest request = readRequest.getMessage().asReadRequest();
     RPCProtoMessage cancelRequest =
         new RPCProtoMessage(new ProtoMessage(request.toBuilder().setCancel(true).build()), null);
     mChannel.writeInbound(readRequest);
@@ -217,13 +217,12 @@ public abstract class DataServerReadHandlerTest {
     Assert.assertTrue(readResponse instanceof RPCProtoMessage);
 
     ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
-    Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
+    Assert.assertTrue(response.isResponse());
     DataBuffer buffer = ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
     if (buffer != null) {
-      Assert.assertEquals(PStatus.OK, response.<Protocol.Response>getMessage().getStatus());
+      Assert.assertEquals(PStatus.OK, response.asResponse().getStatus());
     } else {
-      Assert.assertEquals(statusExpected,
-          response.<Protocol.Response>getMessage().getStatus());
+      Assert.assertEquals(statusExpected, response.asResponse().getStatus());
     }
     return buffer;
   }

@@ -50,7 +50,7 @@ for PROFILE in "${FRAMEWORKS[@]}"; do
   VERSION=$(bin/alluxio version)
   rm conf/alluxio-env.sh
   mkdir -p ${CLIENT_DIR}/${PROFILE}
-  cp core/client/target/alluxio-core-client-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar
+  cp core/client/runtime/target/alluxio-core-client-runtime-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar
 done
 PREFIX=alluxio-${VERSION}
 

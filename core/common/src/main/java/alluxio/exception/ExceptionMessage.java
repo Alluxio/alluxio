@@ -176,6 +176,7 @@ public enum ExceptionMessage {
 
   // configuration
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
+  INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
