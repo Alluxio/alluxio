@@ -150,7 +150,7 @@ public final class FileDataManagerTest {
           .thenReturn(mockedBlockMeta);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
 
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -235,7 +235,7 @@ public final class FileDataManagerTest {
           .readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 
@@ -274,7 +274,7 @@ public final class FileDataManagerTest {
           .thenReturn(reader);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 

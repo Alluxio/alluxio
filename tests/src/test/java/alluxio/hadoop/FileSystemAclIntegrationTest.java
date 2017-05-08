@@ -89,8 +89,8 @@ public final class FileSystemAclIntegrationTest {
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.Factory.get(sUfsRoot);
+    sUfsRoot = alluxio.Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   @After

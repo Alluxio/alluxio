@@ -51,7 +51,9 @@ This will stop the background alluxio-fuse java process and unmount the file sys
 
 ### Optional configuration steps
 
-Alluxio-FUSE is based on the standard java alluxio-core-client to perform its operations. You might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you would for any other client application.
+Alluxio-FUSE is based on the standard java `alluxio-core-client-fs` to perform its operations. You
+might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
+would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/integration/fuse/bin/alluxio-fuse.sh` and add your specific alluxio client options in the `ALLUXIO_JAVA_OPTS` variable.
 
@@ -94,7 +96,7 @@ opened  with the `O_WRONLY` flag.
 
 ## Performance considerations
 
-Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to be considerably worse than what you would see by using the `alluxio-core-client` directly. In other words, if you are concerned about performance rather then functionality, then Alluxio-FUSE is not what you are looking for.
+Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to be considerably worse than what you would see by using the `alluxio-core-client-fs` directly. In other words, if you are concerned about performance rather then functionality, then Alluxio-FUSE is not what you are looking for.
 
 Most of the problems come from the fact that there are several memory copies going on for each call on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This could be probably improved by a large extent by leveraging the FUSE cache write-backs feature introduced in kernel 3.15 (not supported yet, however, by libfuse 2.x userspace libs).
 

@@ -61,7 +61,7 @@ public final class FileSystemIntegrationTest {
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    mUfs = UnderFileSystem.Factory.getForRoot();
+    mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   @Test
@@ -146,7 +146,7 @@ public final class FileSystemIntegrationTest {
    */
   private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
-        new AlluxioURI(Configuration.get(PropertyKey.UNDERFS_ADDRESS)).getParent();
+        new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, alternateUfsRoot);
     return alternateUfsRoot;
@@ -239,7 +239,7 @@ public final class FileSystemIntegrationTest {
 
   @Test
   public void mountShadowUfs() throws Exception {
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsSubdir);
 

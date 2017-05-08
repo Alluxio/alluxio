@@ -28,6 +28,7 @@ import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
@@ -125,7 +126,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts the worker(s).
    */
-  protected void startWorkers() throws Exception {
+  public void startWorkers() throws Exception {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; i++) {
       mWorkers.add(WorkerProcess.Factory.create());
@@ -160,7 +161,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
     String underfsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
@@ -176,7 +177,7 @@ public abstract class AbstractLocalAlluxioCluster {
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
-        UnderFileSystemUtils.mkdirIfNotExists(ufs, dirPath);
+        FileUtils.createDir(dirPath);
       }
     }
 

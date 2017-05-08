@@ -33,7 +33,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -127,7 +127,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   private void registerFileSystemMock() throws IOException {
-    Configuration.set(PropertyKey.UNDERFS_ADDRESS, TEST_PATH);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
     when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
     when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
@@ -140,7 +140,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         UFS_SPACE_USED);
     when(underFileSystemFactoryMock.create(eq(TEST_PATH),
         Matchers.<UnderFileSystemConfiguration>any())).thenReturn(underFileSystemMock);
-    UnderFileSystemRegistry.register(underFileSystemFactoryMock);
+    UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }
 
   @After

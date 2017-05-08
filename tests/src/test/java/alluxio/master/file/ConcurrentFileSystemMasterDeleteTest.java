@@ -21,7 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 
@@ -73,7 +73,7 @@ public class ConcurrentFileSystemMasterDeleteTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.UNDERFS_ADDRESS,
+      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
           "sleep://" + mLocalUfsPath).setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
@@ -83,12 +83,12 @@ public class ConcurrentFileSystemMasterDeleteTest {
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
     options.setDeleteFileMs(SLEEP_MS).setDeleteDirectoryMs(SLEEP_MS);
-    UnderFileSystemRegistry.register(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
-    UnderFileSystemRegistry.unregister(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
   }
 
   @Before

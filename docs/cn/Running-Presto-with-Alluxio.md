@@ -62,6 +62,13 @@ HA模式的Alluxio需要加入如下配置
 </property>
 ```
 
+另外，你也可以将[`alluxio-site.properties`](Configuration-Settings.html)的路径追加到Presto JVM配置中，该配置在Presto目录下的`etc/jvm.config`文件中。该方法的好处是只需在`alluxio-site.properties`配置文件中设置所有Alluxio属性。
+
+```bash
+...
+-Xbootclasspath/p:<path-to-alluxio-site-properties>
+```
+
 此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读异地大文件时的超时问题。
 
 #### 提高`hive.max-split-size`值
@@ -73,8 +80,7 @@ Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.gi
 将Alluxio客户端Jar包分发到Presto所有节点中：
 - 因为Presto使用的guava版本是18.0，而Alluxio使用的是14.0，所以需要将Alluxio client端的pom.xml中guava版本修改为18.0并重新编译Alluxio客户端。
 
-- 你必须将Alluxio客户端jar包 `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-（在`/<PATH_TO_ALLUXIO>/core/client/target/`目录下）放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
+- 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
 
 # Presto命令行示例
