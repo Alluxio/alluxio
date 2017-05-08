@@ -139,7 +139,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     if (cachedFs != null) {
       return cachedFs;
     }
-    UnderFileSystem fs = UnderFileSystemRegistry.create(ufsUri, ufsConf);
+    UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri, ufsConf);
     try {
       connect(fs);
     } catch (IOException e) {
