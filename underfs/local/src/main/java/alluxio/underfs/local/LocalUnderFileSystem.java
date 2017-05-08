@@ -42,6 +42,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -173,20 +176,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
-    return file.length();
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
-    return file.lastModified();
-  }
-
-  @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     path = stripPath(path);
     File file = new File(path);
@@ -225,7 +214,12 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       UnderFileStatus[] rtn = new UnderFileStatus[files.length];
       int i = 0;
       for (File f : files) {
-        rtn[i++] = new UnderFileStatus(f.getName(), f.isDirectory());
+        // TODO (adit): do we need extra call for attributes?
+        PosixFileAttributes attr =
+            Files.readAttributes(Paths.get(f.getPath()), PosixFileAttributes.class);
+        rtn[i++] = new UnderFileStatus(f.getName(), f.length(), f.isDirectory(), f.lastModified(),
+            attr.owner().getName(), attr.group().getName(),
+            FileUtils.translatePermissionMode(attr.permissions()));
       }
       return rtn;
     } else {
@@ -344,24 +338,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     path = stripPath(path);
     String posixPerm = new Mode(mode).toString();
     FileUtils.changeLocalFilePermission(path, posixPerm);
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    path = stripPath(path);
-    return FileUtils.getLocalFileOwner(path);
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    path = stripPath(path);
-    return FileUtils.getLocalFileGroup(path);
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    path = stripPath(path);
-    return FileUtils.getLocalFileMode(path);
   }
 
   @Override

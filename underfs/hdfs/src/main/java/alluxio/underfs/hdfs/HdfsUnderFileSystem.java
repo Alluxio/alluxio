@@ -302,7 +302,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     int i = 0;
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
-      rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
+      rtn[i++] = new UnderFileStatus(status.getPath().getName(), status.getLen(), status.isDir(),
+          status.getModificationTime(), status.getOwner(), status.getGroup(),
+          status.getPermission().toShort());
     }
     return rtn;
   }
@@ -453,36 +455,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
       LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getOwner();
-    } catch (IOException e) {
-      LOG.warn("Fail to get owner for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getGroup();
-    } catch (IOException e) {
-      LOG.warn("Fail to get group for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
-    } catch (IOException e) {
-      LOG.warn("Fail to get permission for {} : {}", path, e.getMessage());
       throw e;
     }
   }

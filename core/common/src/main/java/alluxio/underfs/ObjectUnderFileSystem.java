@@ -685,7 +685,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
     keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
-    Map<String, Boolean> children = new HashMap<>();
+    Map<String, UnderFileStatus> children = new HashMap<>();
     while (chunk != null) {
       // Directories in UFS can be possibly encoded in two different ways:
       // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or

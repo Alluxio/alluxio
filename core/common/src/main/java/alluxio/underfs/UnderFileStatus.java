@@ -19,8 +19,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UnderFileStatus {
-  private final boolean mIsDirectory;
-  private final String mName;
+  private long mContentLength;
+  private boolean mIsDirectory;
+  private long mLastModifiedTimeMs;
+  private String mName;
+
+  // Permissions
+  private String mOwner;
+  private String mGroup;
+  private short mMode;
 
   /**
    * Creates new instance for under file information.
@@ -28,9 +35,15 @@ public class UnderFileStatus {
    * @param name relative path of file or directory
    * @param isDirectory whether the path is a directory
    */
-  public UnderFileStatus(String name, boolean isDirectory) {
+  public UnderFileStatus(String name, long contentLength, boolean isDirectory,
+      long lastModifiedTimeMs, String owner, String group, short mode) {
+    mContentLength = contentLength;
     mIsDirectory = isDirectory;
+    mLastModifiedTimeMs = lastModifiedTimeMs;
     mName = name;
+    mOwner = owner;
+    mGroup = group;
+    mMode = mode;
   }
 
   /**
@@ -48,10 +61,55 @@ public class UnderFileStatus {
   }
 
   /**
+   * Get the content size in bytes.
+   *
+   * @return if a file, file size in bytes; otherwise, 0
+   */
+  public long getContentLength() {
+    return mContentLength;
+  }
+
+  /**
+   * Gets the group of the given path.
+   *
+   * @return the group of the file
+   */
+  public String getGroup() {
+    return mGroup;
+  }
+
+  /**
+   * Gets the UTC time of when the indicated path was modified recently in ms.
+   *
+   * @return modification time in milliseconds
+   */
+  public long getLastModifiedTime() {
+    return mLastModifiedTimeMs;
+  }
+
+  /**
+   * Gets the mode of the given path in short format, e.g 0700.
+   *
+   * @return the mode of the file
+   */
+  public short getMode() {
+    return mMode;
+  }
+
+  /**
    * @return name of file or directory
    */
   public String getName() {
     return mName;
+  }
+
+  /**
+   * Gets the owner of the given path.
+   *
+   * @return the owner of the path
+   */
+  public String getOwner() {
+    return mOwner;
   }
 
   @Override
