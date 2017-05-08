@@ -27,6 +27,8 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.underfs.hdfs</shading.prefix>
   </properties>
 
   <dependencies>
@@ -42,10 +44,6 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -64,4 +62,102 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade-hdfs</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>com.*</include>
+                  <include>commons-*</include>
+                  <include>io.*</include>
+                  <include>javax.*</include>
+                  <include>net.*</include>
+                  <include>org.*</include>
+                  <include>xmlenc:xmlenc</include>
+                  <include>hsqldb:hsqldb</include>
+                  <include>oro:oro</include>
+                  <include>xerces:xercesImpl</include>
+                  <include>xml-apis:xml-apis</include>
+                </includes>
+                <excludes>
+                  <!-- direct dependencies -->
+                  <exclude>com.google.code.findbugs:jsr305</exclude>
+                  <exclude>com.google.guava:guava</exclude>
+                  <exclude>org.alluxio:alluxio-core-common</exclude>
+                  <exclude>org.apache.commons:commons-lang3</exclude>
+                  <exclude>org.slf4j:slf4j-api</exclude>
+
+                  <!-- transitive dependencies introduced by alluxio-core-common -->
+                  <exclude>com.fasterxml.jackson.core:jackson-annotations</exclude>
+                  <exclude>com.fasterxml.jackson.core:jackson-core</exclude>
+                  <exclude>com.fasterxml.jackson.core:jackson-databind</exclude>
+                  <exclude>commons-io:commons-io</exclude>
+                  <exclude>commons-lang:commons-lang</exclude>
+                  <exclude>io.dropwizard.metrics:metrics-core</exclude>
+                  <exclude>io.dropwizard.metrics:metrics-graphite</exclude>
+                  <exclude>io.dropwizard.metrics:metrics-json</exclude>
+                  <exclude>io.dropwizard.metrics:metrics-jvm</exclude>
+                  <exclude>io.netty:netty-all</exclude>
+                  <exclude>org.alluxio:alluxio-core-protobuf</exclude>
+                  <exclude>org.apache.curator:*</exclude>
+                  <exclude>org.apache.httpcomponents:httpclient</exclude>
+                  <exclude>org.apache.httpcomponents:httpcore</exclude>
+                  <exclude>org.apache.thrift:libthrift</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>com</pattern>
+                  <shadedPattern>${shading.prefix}.com</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net</pattern>
+                  <shadedPattern>${shading.prefix}.net</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io</pattern>
+                  <shadedPattern>${shading.prefix}.io</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>javax</pattern>
+                  <shadedPattern>${shading.prefix}.javax</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org</pattern>
+                  <shadedPattern>${shading.prefix}.org</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>webapps</pattern>
+                  <shadedPattern>${shading.prefix}.webapps</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
