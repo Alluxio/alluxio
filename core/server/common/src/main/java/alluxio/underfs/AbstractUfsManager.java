@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
-import org.junit.runners.Parameterized.UseParametersRunnerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
