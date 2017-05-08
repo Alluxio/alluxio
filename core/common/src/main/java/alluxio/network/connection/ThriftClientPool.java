@@ -157,7 +157,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     do {
-      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
+      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, mServiceName, mAddress);
       try {
         if (!transport.isOpen()) {

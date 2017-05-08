@@ -42,7 +42,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     super.before();
 
     mUfsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    mUfs = UnderFileSystem.Factory.getForRoot();
+    mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   @Test

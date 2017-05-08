@@ -42,7 +42,7 @@ public class LocalUnderFileSystemTest {
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs = UnderFileSystem.Factory.get(mLocalUfsRoot);
+    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsRoot);
   }
 
   @Test

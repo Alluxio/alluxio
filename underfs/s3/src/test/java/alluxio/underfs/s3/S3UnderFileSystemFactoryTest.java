@@ -12,7 +12,7 @@
 package alluxio.underfs.s3;
 
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,8 +27,8 @@ public class S3UnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("s3n://test-bucket/path");
-    UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("s3://test-bucket/path");
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3n://test-bucket/path");
+    UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find("s3://test-bucket/path");
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for s3n paths when using this module", factory);
