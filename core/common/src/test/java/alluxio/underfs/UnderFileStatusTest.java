@@ -28,11 +28,21 @@ public final class UnderFileStatusTest {
   @Test
   public void fields() {
     Random random = new Random();
+    long contentLength = random.nextLong();
     boolean isDirectory = random.nextBoolean();
-    UnderFileStatus status = new UnderFileStatus("name", isDirectory);
+    long lastModifiedTimeMs = random.nextLong();
+    short mode = 077;
+    UnderFileStatus status = new UnderFileStatus("name", contentLength, isDirectory,
+        lastModifiedTimeMs, "owner", "group", mode);
 
+    Assert.assertEquals("name", status.getName());
+    Assert.assertEquals(contentLength, status.getContentLength());
     Assert.assertEquals(isDirectory, status.isDirectory());
     Assert.assertEquals(!isDirectory, status.isFile());
+    Assert.assertEquals(lastModifiedTimeMs, status.getLastModifiedTime());
+    Assert.assertEquals("owner", status.getOwner());
+    Assert.assertEquals("group", status.getGroup());
+    Assert.assertEquals(mode, status.getMode());
   }
 
   @Test

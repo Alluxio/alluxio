@@ -159,8 +159,7 @@ public final class UfsSyncChecker {
           String childPath = PathUtils.concatPath(curUri, child.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
           if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-            childrenList.add(new UnderFileStatus(childPath.substring(prefix.length()),
-                child.isDirectory()));
+            childrenList.add(child.setName(childPath.substring(prefix.length())));
           }
         }
         return trimIndirect(childrenList.toArray(new UnderFileStatus[childrenList.size()]));

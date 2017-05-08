@@ -232,32 +232,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    Path tPath = new Path(path);
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        FileStatus fs = mFileSystem.getFileStatus(tPath);
-        return fs.getLen();
-      } catch (IOException e) {
-        LOG.warn("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage());
-      }
-    }
-    return -1;
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    Path tPath = new Path(path);
-    if (!mFileSystem.exists(tPath)) {
-      throw new FileNotFoundException(path);
-    }
-    FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return fs.getModificationTime();
-  }
-
-  @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Alluxio can load/store data out of entire HDFS cluster

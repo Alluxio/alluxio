@@ -112,6 +112,17 @@ public class UnderFileStatus {
     return mOwner;
   }
 
+  /**
+   * Set the name of file or directory
+   *
+   * @param name of entry
+   * @return this object
+   */
+  public UnderFileStatus setName(String name) {
+    mName = name;
+    return this;
+  }
+
   @Override
   public String toString() {
     return getName();
