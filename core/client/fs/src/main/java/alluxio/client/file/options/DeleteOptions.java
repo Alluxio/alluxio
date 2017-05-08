@@ -11,6 +11,8 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.DeleteTOptions;
 
@@ -29,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DeleteOptions {
   private boolean mRecursive;
   private boolean mAlluxioOnly;
+  private boolean mUnchecked;
 
   /**
    * @return the default {@link DeleteOptions}
@@ -40,6 +43,8 @@ public final class DeleteOptions {
   private DeleteOptions() {
     mRecursive = false;
     mAlluxioOnly = false;
+    mUnchecked =
+        Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED);
   }
 
   /**
@@ -56,6 +61,13 @@ public final class DeleteOptions {
    */
   public boolean isAlluxioOnly() {
     return mAlluxioOnly;
+  }
+
+  /**
+   * @return if the UFS sync check should be skipped
+   */
+  public boolean isUnchecked() {
+    return mUnchecked;
   }
 
   /**
@@ -78,6 +90,15 @@ public final class DeleteOptions {
     return this;
   }
 
+  /**
+   * @param unchecked whether to skip UFS sync check
+   * @return the updated options object
+   */
+  public DeleteOptions setUnchecked(boolean unchecked) {
+    mUnchecked = unchecked;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -88,12 +109,13 @@ public final class DeleteOptions {
     }
     DeleteOptions that = (DeleteOptions) o;
     return Objects.equal(mRecursive, that.mRecursive)
-        && Objects.equal(mAlluxioOnly, that.mAlluxioOnly);
+        && Objects.equal(mAlluxioOnly, that.mAlluxioOnly)
+        && Objects.equal(mUnchecked, that.mUnchecked);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mAlluxioOnly);
+    return Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked);
   }
 
   @Override
@@ -101,6 +123,7 @@ public final class DeleteOptions {
     return Objects.toStringHelper(this)
         .add("recursive", mRecursive)
         .add("alluxioOnly", mAlluxioOnly)
+        .add("unchecked", mUnchecked)
         .toString();
   }
 
@@ -111,6 +134,7 @@ public final class DeleteOptions {
     DeleteTOptions options = new DeleteTOptions();
     options.setRecursive(mRecursive);
     options.setAlluxioOnly(mAlluxioOnly);
+    options.setUnchecked(mUnchecked);
     return options;
   }
 }
