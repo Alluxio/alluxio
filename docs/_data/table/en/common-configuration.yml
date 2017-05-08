@@ -20,6 +20,10 @@ alluxio.network.host.resolution.&#8203;timeout.ms:
   automatically attempt to select an appropriate host name if one was not explicitly specified.
   This represents the maximum amount of time spent waiting to determine if a candidate host name
   is resolvable over the network.
+alluxio.network.netty.heartbeat.&#8203;timeout.ms:
+  The amount of time the server will wait before closing a netty connection if there has not been
+  any incoming traffic. The client will periodically heartbeat when there is no activity on a
+  connection. This value should be the same on the clients and server.
 alluxio.network.thrift.frame.&#8203;size.bytes.max:
   (Experimental) The largest allowable frame size used for Thrift RPC communication.
 alluxio.site.conf.dir:
