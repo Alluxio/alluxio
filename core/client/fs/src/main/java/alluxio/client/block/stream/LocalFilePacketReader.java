@@ -109,6 +109,7 @@ public final class LocalFilePacketReader implements PacketReader {
      * @param address the worker address
      * @param blockId the block ID
      * @param sessionId the session ID
+     * @param packetSize the packet size
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long sessionId, long packetSize) {
