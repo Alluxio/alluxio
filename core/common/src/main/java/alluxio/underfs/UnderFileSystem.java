@@ -21,11 +21,15 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,38 +47,81 @@ public interface UnderFileSystem extends Closeable {
    * The factory for the {@link UnderFileSystem}.
    */
   class Factory {
+    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
+
     private Factory() {} // prevent instantiation
 
     /**
-     * Gets the {@link UnderFileSystem} instance according to its UFS path. This method should only
-     * be used for journal operations and tests.
+     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
+     * only be used for journal operations and tests.
      *
      * @param path the file path storing over the ufs
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem get(String path) {
-      return UnderFileSystemRegistry.create(path, null);
+    public static UnderFileSystem create(String path) {
+      return create(path, null);
     }
 
     /**
-     * Gets the {@link UnderFileSystem} instance according to its UFS path. This method should only
-     * be used for journal operations and tests.
+     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
+     * only be used for journal operations and tests.
      *
      * @param path journal path in ufs
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem get(URI path) {
-      return get(path.toString());
+    public static UnderFileSystem create(URI path) {
+      return create(path.toString());
+    }
+
+    /**
+     * Creates a client for operations involved with the under file system. An
+     * {@link IllegalArgumentException} is thrown if there is no under file system for the given
+     * path or if no under file system could successfully be created.
+     *
+     * @param path path
+     * @param ufsConf optional configuration object for the UFS, may be null
+     * @return client for the under file system
+     */
+    public static UnderFileSystem create(String path, Map<String, String> ufsConf) {
+      // Try to obtain the appropriate factory
+      List<UnderFileSystemFactory> factories = UnderFileSystemFactoryRegistry.findAll(path);
+      if (factories.isEmpty()) {
+        throw new IllegalArgumentException("No Under File System Factory found for: " + path);
+      }
+
+      List<Throwable> errors = new ArrayList<>();
+      for (UnderFileSystemFactory factory : factories) {
+        try {
+          // Use the factory to create the actual client for the Under File System
+          return new UnderFileSystemWithLogging(
+              factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
+        } catch (Exception e) {
+          errors.add(e);
+          LOG.warn("Failed to create ufs", e);
+        }
+      }
+
+      // If we reach here no factories were able to successfully create for this path likely due to
+      // missing configuration since if we reached here at least some factories claimed to support
+      // the path
+      // Need to collate the errors
+      StringBuilder errorStr = new StringBuilder();
+      errorStr.append("All eligible Under File Systems were unable to create an instance for the "
+          + "given path: ").append(path).append('\n');
+      for (Throwable e : errors) {
+        errorStr.append(e).append('\n');
+      }
+      throw new IllegalArgumentException(errorStr.toString());
     }
 
     /**
      * @return the instance of under file system for Alluxio root directory
      */
-    public static UnderFileSystem getForRoot() {
+    public static UnderFileSystem createForRoot() {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return UnderFileSystemRegistry.create(ufsRoot, ufsConf);
+      return create(ufsRoot, ufsConf);
     }
   }
 
@@ -211,13 +258,6 @@ public interface UnderFileSystem extends Closeable {
    * @return the block size in bytes
    */
   long getBlockSizeByte(String path) throws IOException;
-
-  /**
-   * Gets the configuration object for UnderFileSystem.
-   *
-   * @return configuration object used for concrete ufs instance
-   */
-  Object getConf();
 
   /**
    * Gets the list of locations of the indicated path.
@@ -428,12 +468,12 @@ public interface UnderFileSystem extends Closeable {
   AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
 
   /**
-   * Sets the configuration object for UnderFileSystem. The conf object is understood by the
-   * concrete underfs's implementation.
+   * Changes posix file mode.
    *
-   * @param conf the configuration object accepted by ufs
+   * @param path the path of the file
+   * @param mode the mode to set in short format, e.g. 0777
    */
-  void setConf(Object conf);
+  void setMode(String path, short mode) throws IOException;
 
   /**
    * Sets the user and group of the given path. An empty implementation should be provided if
@@ -451,14 +491,6 @@ public interface UnderFileSystem extends Closeable {
    * @param properties a {@link Map} of property names to values
    */
   void setProperties(Map<String, String> properties);
-
-  /**
-   * Changes posix file mode.
-   *
-   * @param path the path of the file
-   * @param mode the mode to set in short format, e.g. 0777
-   */
-  void setMode(String path, short mode) throws IOException;
 
   /**
    * Whether this type of UFS supports flush.

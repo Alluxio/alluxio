@@ -31,7 +31,7 @@ public final class ProtoMessage {
    *
    * @param message the message to wrap
    */
-  ProtoMessage(MessageLite message) {
+  private ProtoMessage(MessageLite message) {
     mMessage = message;
   }
 

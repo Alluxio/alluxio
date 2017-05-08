@@ -13,7 +13,7 @@ package alluxio.mesos;
 
 import alluxio.cli.Format;
 import alluxio.master.AlluxioMaster;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
@@ -72,7 +72,7 @@ public class AlluxioMasterExecutor implements Executor {
           LOG.info("Launching task {}", task.getTaskId().getValue());
 
           Thread.currentThread().setContextClassLoader(
-              UnderFileSystemRegistry.class.getClassLoader());
+              UnderFileSystemFactoryRegistry.class.getClassLoader());
 
           Format.format(Format.Mode.MASTER);
           AlluxioMaster.main(new String[] {});

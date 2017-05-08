@@ -67,8 +67,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public final void before() throws Exception {
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
-    mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    mUfs = (UnderFileSystemWithLogging) UnderFileSystem.Factory.getForRoot();
+    mUnderfsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mUfs = (UnderFileSystemWithLogging) UnderFileSystem.Factory.createForRoot();
   }
 
   @After

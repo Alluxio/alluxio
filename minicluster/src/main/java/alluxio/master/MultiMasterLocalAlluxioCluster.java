@@ -182,7 +182,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    UnderFileSystem ufs = UnderFileSystem.Factory.getForRoot();
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
     String path = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {
       ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
@@ -210,7 +210,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorkers() throws Exception {
+  public void startWorkers() throws Exception {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     super.startWorkers();
   }

@@ -55,7 +55,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.UNDERFS_ADDRESS, mFolder.getRoot().getAbsolutePath());
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mFolder.getRoot().getAbsolutePath());
 
     String testFilePath = mFolder.newFile().getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE * 2);
@@ -69,7 +69,7 @@ public final class UnderFileSystemBlockReaderTest {
             Mockito.anyLong())).thenReturn(mTempBlockMeta);
     Mockito.when(mTempBlockMeta.getPath()).thenReturn(mFolder.newFile().getAbsolutePath());
     Mockito.when(mUfsManager.get(Mockito.anyLong()))
-        .thenReturn(UnderFileSystem.Factory.get(testFilePath));
+        .thenReturn(UnderFileSystem.Factory.create(testFilePath));
 
     LockBlockTOptions options = new LockBlockTOptions();
     options.setMaxUfsReadConcurrency(10);

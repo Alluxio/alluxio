@@ -27,6 +27,8 @@ message ReadRequest {
   optional int64 session_id = 7;
   // If set, do not try to cache the block locally when reading the data from the UFS.
   optional bool no_cache = 8;
+  // If set, the server should send packets in the specified packet size.
+  optional int64 packet_size = 9;
 }
 
 // The write request.

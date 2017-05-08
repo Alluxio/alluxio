@@ -87,7 +87,7 @@ public final class JournalUpgrader {
       mJournalV1 = (new Journal.Factory(
           getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))).create(master);
 
-      mUfs = UnderFileSystem.Factory.get(sJournalDirectoryV0);
+      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0);
 
       mCheckpointV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "checkpoint.data");
       mCompletedLogsV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "completed");

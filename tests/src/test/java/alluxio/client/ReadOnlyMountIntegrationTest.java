@@ -59,7 +59,7 @@ public class ReadOnlyMountIntegrationTest {
     // a second Ufs.
     AlluxioURI parentURI =
         new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getParent();
-    mUfs = UnderFileSystem.Factory.getForRoot();
+    mUfs = UnderFileSystem.Factory.createForRoot();
     mAlternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, mAlternateUfsRoot);
@@ -73,8 +73,6 @@ public class ReadOnlyMountIntegrationTest {
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
-    mUfs = UnderFileSystem.Factory.getForRoot();
-
   }
 
   @After
