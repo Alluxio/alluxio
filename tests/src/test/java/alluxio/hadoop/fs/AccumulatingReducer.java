@@ -65,7 +65,6 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
    * @param values the values to accumulates
    * @param output collect the result of accumulating
    * @param reporter to report progress and update status information
-   * @throws IOException
    */
   public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output,
       Reporter reporter) throws IOException {

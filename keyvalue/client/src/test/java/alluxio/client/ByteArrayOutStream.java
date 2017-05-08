@@ -36,11 +36,6 @@ public final class ByteArrayOutStream extends AbstractOutStream {
   }
 
   @Override
-  public int getBytesWritten() {
-    return mBytesWritten;
-  }
-
-  @Override
   public void close() {
     mClosed = true;
   }

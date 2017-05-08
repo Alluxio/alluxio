@@ -63,7 +63,6 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
    *
    * @param journal the handle to the journal
    * @param options the options to create the journal writer
-   * @throws IOException if any I/O errors occur
    */
   UfsJournalCheckpointWriter(UfsJournal journal, JournalWriterOptions options)
       throws IOException {

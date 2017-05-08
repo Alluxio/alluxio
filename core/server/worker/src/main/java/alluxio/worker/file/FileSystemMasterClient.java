@@ -13,12 +13,11 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -73,11 +72,9 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
-   * @throws AlluxioException if an Alluxio error occurs
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized FileInfo getFileInfo(final long fileId) throws AlluxioException, IOException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<FileInfo>() {
+  public synchronized FileInfo getFileInfo(final long fileId) {
+    return retryRPC(new RpcCallable<FileInfo>() {
       @Override
       public FileInfo call() throws TException {
         return ThriftUtils.fromThrift(mClient.getFileInfo(fileId));
@@ -87,14 +84,26 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
 
   /**
    * @return the set of pinned file ids
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
    */
-  public synchronized Set<Long> getPinList() throws ConnectionFailedException, IOException {
+  public synchronized Set<Long> getPinList() {
     return retryRPC(new RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws TException {
         return mClient.getPinIdList();
+      }
+    });
+  }
+
+  /**
+   * @param mountId the id of the mount
+   * @return the ufs information for the give ufs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized UfsInfo getUfsInfo(final long mountId) throws IOException {
+    return retryRPC(new RpcCallable<UfsInfo>() {
+      @Override
+      public UfsInfo call() throws TException {
+        return mClient.getUfsInfo(mountId);
       }
     });
   }
@@ -105,12 +114,10 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files which have been persisted since the last heartbeat
    * @return the command for file system worker
-   * @throws IOException if file persistence fails
-   * @throws AlluxioException if an error occurs on Alluxio master
    */
   public synchronized FileSystemCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles) throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<FileSystemCommand>() {
+      final List<Long> persistedFiles) {
+    return retryRPC(new RpcCallable<FileSystemCommand>() {
       @Override
       public FileSystemCommand call() throws AlluxioTException, TException {
         return mClient.heartbeat(workerId, persistedFiles);

@@ -221,11 +221,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public Object getConf() {
-    return mUnderFileSystem.getConf();
-  }
-
-  @Override
   public List<String> getFileLocations(final String path) throws IOException {
     return call(new UfsCallable<List<String>>() {
       @Override
@@ -513,11 +508,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {
-    mUnderFileSystem.setConf(conf);
-  }
-
-  @Override
   public void setOwner(final String path, final String owner, final String group)
       throws IOException {
     call(new UfsCallable<Void>() {
@@ -580,7 +570,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
      * Executes the call.
      *
      * @return the result of the call
-     * @throws IOException if an error occurs during the external communication
      */
     T call() throws IOException;
   }
@@ -591,7 +580,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    * @param callable the callable to invoke
    * @param <T> the return type
    * @return the result of the callable
-   * @throws IOException if an error occurs when invoking the operation on the underlying storage
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     LOG.debug("Enter: {}", callable);

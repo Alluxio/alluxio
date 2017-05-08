@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -25,17 +24,16 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -50,6 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Matchers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -61,8 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
@@ -90,12 +87,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
       "SSD", 200L);
 
-  private AlluxioMasterService mMaster;
-  private ServletContext mContext;
+  private MasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
+  private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
-  private ManualClock mClock;
-  private ExecutorService mExecutorService;
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
@@ -108,22 +103,18 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Before
   public void before() throws Exception {
-    mMaster = mock(AlluxioMasterService.class);
-    mContext = mock(ServletContext.class);
-    MasterRegistry registry = new MasterRegistry();
+    mMasterProcess = mock(MasterProcess.class);
+    ServletContext context = mock(ServletContext.class);
+    mRegistry = new MasterRegistry();
     JournalFactory factory =
         new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mClock = new ManualClock();
-    mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new BlockMaster(registry, factory, mClock,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
-    mBlockMaster.start(true);
-    when(mMaster.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
-    when(mContext.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
-        mMaster);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);
+    mRegistry.start(true);
+    when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
+    when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        mMasterProcess);
     registerFileSystemMock();
-    mHandler = new AlluxioMasterRestServiceHandler(mContext);
+    mHandler = new AlluxioMasterRestServiceHandler(context);
     // Register two workers
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
@@ -136,7 +127,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   private void registerFileSystemMock() throws IOException {
-    Configuration.set(PropertyKey.UNDERFS_ADDRESS, TEST_PATH);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
     when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
     when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
@@ -147,13 +138,14 @@ public final class AlluxioMasterRestServiceHandlerTest {
         .thenReturn(UFS_SPACE_TOTAL);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH), anyObject())).thenReturn(
-        underFileSystemMock);
-    UnderFileSystemRegistry.register(underFileSystemFactoryMock);
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH),
+        Matchers.<UnderFileSystemConfiguration>any())).thenReturn(underFileSystemMock);
+    UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }
 
   @After
-  public void after() {
+  public void after() throws Exception {
+    mRegistry.stop();
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -173,7 +165,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getRpcAddress() {
-    when(mMaster.getRpcAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
+    when(mMasterProcess.getRpcAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
     Response response = mHandler.getRpcAddress();
     try {
       assertNotNull("Response must be not null!", response);
@@ -221,7 +213,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getStartTimeMs() {
-    when(mMaster.getStartTimeMs()).thenReturn(100L);
+    when(mMasterProcess.getStartTimeMs()).thenReturn(100L);
     Response response = mHandler.getStartTimeMs();
     try {
       assertNotNull("Response must be not null!", response);
@@ -236,7 +228,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Test
   public void getUptimeMs() {
-    when(mMaster.getUptimeMs()).thenReturn(100L);
+    when(mMasterProcess.getUptimeMs()).thenReturn(100L);
     Response response = mHandler.getUptimeMs();
     try {
       assertNotNull("Response must be not null!", response);

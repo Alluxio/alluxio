@@ -16,11 +16,12 @@ import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.network.protocol.RPCMessageEncoder;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
+import alluxio.worker.block.BlockWorker;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,21 +29,21 @@ import javax.annotation.concurrent.ThreadSafe;
  * Adds the data server's pipeline into the channel.
  */
 @ThreadSafe
-final class PipelineHandler extends ChannelInitializer<SocketChannel> {
-  private final AlluxioWorkerService mWorker;
+final class PipelineHandler extends ChannelInitializer<Channel> {
+  private final WorkerProcess mWorkerProcess;
   private final FileTransferType mFileTransferType;
 
   /**
-   * @param worker the Alluxio worker
+   * @param workerProcess the Alluxio worker process
    */
-  public PipelineHandler(AlluxioWorkerService worker) {
-    mWorker = worker;
+  public PipelineHandler(WorkerProcess workerProcess) {
+    mWorkerProcess = workerProcess;
     mFileTransferType = Configuration
         .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   @Override
-  protected void initChannel(SocketChannel ch) throws Exception {
+  protected void initChannel(Channel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
 
     // Decoders & Encoders
@@ -51,16 +52,17 @@ final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
 
     // Block Handlers
-    pipeline.addLast("dataServerBlockReadHandler", new DataServerBlockReadHandler(
-        NettyExecutors.BLOCK_READER_EXECUTOR, mWorker.getBlockWorker(), mFileTransferType));
+    pipeline.addLast("dataServerBlockReadHandler",
+        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
+            mWorkerProcess.getWorker(BlockWorker.class), mFileTransferType));
     pipeline.addLast("dataServerBlockWriteHandler", new DataServerBlockWriteHandler(
-        NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorker.getBlockWorker()));
+        NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class)));
 
     // UFS Handlers
     pipeline.addLast("dataServerUfsBlockReadHandler", new DataServerUfsBlockReadHandler(
-        NettyExecutors.UFS_BLOCK_READER_EXECUTOR, mWorker.getBlockWorker()));
+        NettyExecutors.UFS_BLOCK_READER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class)));
     pipeline.addLast("dataServerUfsFileWriteHandler", new DataServerUfsFileWriteHandler(
-        NettyExecutors.FILE_WRITER_EXECUTOR));
+        NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
 
     // Unsupported Message Handler
     pipeline.addLast("dataServerUnsupportedMessageHandler", new

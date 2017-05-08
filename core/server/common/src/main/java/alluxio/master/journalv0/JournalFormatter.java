@@ -55,7 +55,6 @@ public interface JournalFormatter {
    *
    * @param entry The journal entry to serialize
    * @param outputStream the output stream to serialize the entry to
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   void serialize(JournalEntry entry, OutputStream outputStream) throws IOException;
 
@@ -66,7 +65,6 @@ public interface JournalFormatter {
    * @param inputStream The input stream to deserialize
    * @return a {@link JournalInputStream} for reading all the journal entries in the given input
    *         stream.
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   JournalInputStream deserialize(InputStream inputStream) throws IOException;
 }

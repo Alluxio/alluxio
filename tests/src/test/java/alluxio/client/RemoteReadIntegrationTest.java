@@ -21,11 +21,12 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -43,7 +44,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -76,9 +76,8 @@ public class RemoteReadIntegrationTest {
     List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
-    // TODO(calvin): Reenable this after File Channel Transfer is well supported
-    // list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-    //   IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
@@ -262,7 +261,7 @@ public class RemoteReadIntegrationTest {
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
@@ -294,7 +293,7 @@ public class RemoteReadIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int start = 0;
@@ -323,7 +322,7 @@ public class RemoteReadIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
       int start = 0;
@@ -543,7 +542,7 @@ public class RemoteReadIntegrationTest {
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
               FileSystemContext.INSTANCE, InStreamOptions.defaults());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
@@ -561,10 +560,10 @@ public class RemoteReadIntegrationTest {
       BlockInStream is2 = null;
       try {
         is2 =
-            BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(),
+            BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(),
                 workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
-      } catch (IOException e) {
-        Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
+      } catch (NotFoundException e) {
+        // Expected since the file has been deleted.
       } finally {
         if (is2 != null) {
           is2.close();

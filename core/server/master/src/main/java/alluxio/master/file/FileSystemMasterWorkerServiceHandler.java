@@ -18,6 +18,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.UfsInfo;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
@@ -71,6 +72,16 @@ public final class FileSystemMasterWorkerServiceHandler
       @Override
       public Set<Long> call() throws AlluxioException {
         return mFileSystemMaster.getPinIdList();
+      }
+    });
+  }
+
+  @Override
+  public UfsInfo getUfsInfo(final long mountId) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<UfsInfo>() {
+      @Override
+      public UfsInfo call() throws AlluxioException {
+        return mFileSystemMaster.getUfsInfo(mountId);
       }
     });
   }

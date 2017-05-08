@@ -28,7 +28,6 @@ public interface JournalReader extends Closeable {
    * Reads an entry from the journal. Return null if there is no more entry left.
    *
    * @return the journal entry, null if no more entry left
-   * @throws IOException if it failed to read an entry due to an I/O error
    * @throws InvalidJournalEntryException if the journal entry is invalid (e.g. corrupted entry)
    */
   JournalEntry read() throws IOException, InvalidJournalEntryException;

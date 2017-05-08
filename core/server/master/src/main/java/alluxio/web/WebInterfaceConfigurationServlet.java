@@ -59,7 +59,6 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
    * @param request The {@link HttpServletRequest} object
    * @param response The {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)

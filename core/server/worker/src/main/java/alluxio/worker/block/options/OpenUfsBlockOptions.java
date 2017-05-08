@@ -25,9 +25,10 @@ public final class OpenUfsBlockOptions {
   private final long mOffset;
   /** The block size in bytes. */
   private final long mBlockSize;
-
   /** The maximum concurrent UFS reader on the UFS block allowed when opening the block. */
   private final int mMaxUfsReadConcurrency;
+  /** The id of the mount of this file is mapped to. */
+  private final long mMountId;
 
   /**
    * Creates an instance of {@link OpenUfsBlockOptions}.
@@ -39,6 +40,7 @@ public final class OpenUfsBlockOptions {
     mOffset = options.getOffset();
     mBlockSize = options.getBlockSize();
     mMaxUfsReadConcurrency = options.getMaxUfsReadConcurrency();
+    mMountId = options.getMountId();
   }
 
   /**
@@ -69,6 +71,13 @@ public final class OpenUfsBlockOptions {
     return mMaxUfsReadConcurrency;
   }
 
+  /**
+   * @return the id of the mount
+   */
+  public long getMountId() {
+    return mMountId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -80,13 +89,15 @@ public final class OpenUfsBlockOptions {
     OpenUfsBlockOptions that = (OpenUfsBlockOptions) o;
     return Objects.equal(mBlockSize, that.mBlockSize)
         && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
+        && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOffset, that.mOffset)
         && Objects.equal(mUnderFileSystemPath, that.mUnderFileSystemPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockSize, mMaxUfsReadConcurrency, mOffset, mUnderFileSystemPath);
+    return Objects
+        .hashCode(mBlockSize, mMaxUfsReadConcurrency, mOffset, mMountId, mUnderFileSystemPath);
   }
 
   @Override
@@ -94,6 +105,7 @@ public final class OpenUfsBlockOptions {
     return Objects.toStringHelper(this)
         .add("blockSize", mBlockSize)
         .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
+        .add("mountId", mMountId)
         .add("offset", mOffset)
         .add("underFileSystemPath", mUnderFileSystemPath)
         .toString();

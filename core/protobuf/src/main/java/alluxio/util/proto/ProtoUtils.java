@@ -31,7 +31,6 @@ public final class ProtoUtils {
    * @param firstByte first byte in the input stream
    * @param input input stream
    * @return an int value read from the input stream
-   * @throws IOException if the proto message being parsed is invalid
    */
   public static int readRawVarint32(int firstByte, InputStream input) throws IOException {
     return CodedInputStream.readRawVarint32(firstByte, input);

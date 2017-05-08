@@ -6,8 +6,10 @@ alluxio.worker.tieredstore.level{x}.dirs.path:
   The paths of storage directories in storage tier x, delimited by comma. x represents the storage tier number (top tier is 0). It is suggested to have one storage directory per hardware device for the SSD and HDD tiers.
 alluxio.worker.tieredstore.level{x}.dirs.quota:
   The quotas for all storage directories in storage tier x, delimited by comma. x represents the storage tier number (starting from 0). For a particular storage tier, if the list of quotas is shorter than the list of directories of that tier, then the quotas for the remaining directories will just use the last-defined quota. Quota definitions use these suffixes&#58; KB, MB, GB, TB, PB.
-alluxio.worker.tieredstore.level{x}.reserved.ratio:
-  Value is between 0 and 1, it sets the portion of space reserved on storage tier x. If the space is unavailable, the space reserver will evict blocks until the reserved space is available again.
+alluxio.worker.tieredstore.level{x}.watermark.high.ratio:
+  Value is between 0 and 1, it sets the high watermark of the space on storage tier x. If the used space reach the high watermark, the space reserver will evict blocks until the used space drop to the low watermark.
+alluxio.worker.tieredstore.level{x}.watermark.low.ratio:
+  Value is between 0 and 1, it sets the low watermark of the space on storage tier x. If the used space reach the high watermark, the space reserver will evict blocks until the used space drop to the low watermark.
 alluxio.worker.tieredstore.reserver.enabled:
   Flag for enabling the space reserver service.
 alluxio.worker.tieredstore.reserver.interval.ms:

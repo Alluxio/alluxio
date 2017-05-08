@@ -19,7 +19,6 @@ import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.thrift.OpenUfsFileTOptions;
-import alluxio.thrift.ThriftIOException;
 
 import java.util.List;
 
@@ -54,7 +53,7 @@ public final class FileSystemWorkerClientServiceHandler
    */
   @Override
   public void cancelUfsFile(final long sessionId, final long tempUfsFileId,
-      final CancelUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
+      final CancelUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
@@ -68,7 +67,7 @@ public final class FileSystemWorkerClientServiceHandler
    */
   @Override
   public void closeUfsFile(final long sessionId, final long tempUfsFileId,
-      final CloseUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
+      final CloseUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
@@ -79,11 +78,11 @@ public final class FileSystemWorkerClientServiceHandler
    * @param tempUfsFileId the worker id of the ufs file
    * @param options the options for completing the file
    * @return this method always throws an exception
-   * @throws UnsupportedOperationException always
+   * @throws UnsupportedOperationException alwayss
    */
   @Override
   public long completeUfsFile(final long sessionId, final long tempUfsFileId,
-      final CompleteUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
+      final CompleteUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
@@ -98,7 +97,7 @@ public final class FileSystemWorkerClientServiceHandler
    */
   @Override
   public long createUfsFile(final long sessionId, final String ufsUri,
-      final CreateUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
+      final CreateUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
@@ -112,7 +111,7 @@ public final class FileSystemWorkerClientServiceHandler
    */
   @Override
   public long openUfsFile(final long sessionId, final String ufsUri,
-      final OpenUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
+      final OpenUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 

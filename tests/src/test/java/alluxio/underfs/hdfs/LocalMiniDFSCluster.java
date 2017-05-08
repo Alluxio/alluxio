@@ -12,16 +12,16 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -30,60 +30,7 @@ import java.io.IOException;
  * cluster.
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
-  /**
-   * Tests the local minidfscluster only.
-   */
-  public static void main(String[] args) throws Exception {
-    LocalMiniDFSCluster cluster = null;
-    try {
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321);
-      cluster.start();
-      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
-      Thread.sleep(10);
-      DistributedFileSystem dfs = cluster.getDFSClient();
-      dfs.mkdirs(new Path("/1"));
-      mkdirs(cluster.getUnderFilesystemAddress() + "/1/2");
-      FileStatus[] fs = dfs.listStatus(new Path(AlluxioURI.SEPARATOR));
-      assert fs.length != 0;
-      System.out.println(fs[0].getPath().toUri());
-      dfs.close();
-
-      cluster.shutdown();
-
-      cluster = new LocalMiniDFSCluster("/tmp/dfs", 3);
-      cluster.start();
-      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
-
-      dfs = cluster.getDFSClient();
-      dfs.mkdirs(new Path("/1"));
-
-      UnderFileSystemUtils.touch(
-          cluster.getUnderFilesystemAddress() + "/1" + "/_format_" + System.currentTimeMillis());
-      fs = dfs.listStatus(new Path("/1"));
-      assert fs.length != 0;
-      System.out.println(fs[0].getPath().toUri());
-      dfs.close();
-
-      cluster.shutdown();
-    } finally {
-      if (cluster != null && cluster.isStarted()) {
-        cluster.shutdown();
-      }
-    }
-  }
-
-  /**
-   * Creates a directory in the under filesystem.
-   *
-   * @param path the directory path to be created
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public static boolean mkdirs(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-    return ufs.mkdirs(path);
-  }
-
+  private static final Logger LOG = LoggerFactory.getLogger(LocalMiniDFSCluster.class);
   private org.apache.hadoop.conf.Configuration mConf = new org.apache.hadoop.conf.Configuration();
   private int mNamenodePort;
 
@@ -149,16 +96,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     mNumDataNode = numDataNode;
   }
 
-  private void delete(String path, boolean isRecursively) throws IOException {
-    File file = new File(path);
-    if (isRecursively && file.isDirectory()) {
-      for (File subdir : file.listFiles()) {
-        delete(subdir.getAbsolutePath(), isRecursively);
-      }
-    }
-    file.delete();
-  }
-
   /**
    * @return {@link #mDfsClient}
    */
@@ -193,11 +130,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     return mIsStarted;
   }
 
-  /**
-   * Shuts down the minidfscluster in teardown phase.
-   */
   @Override
   public void shutdown() throws IOException {
+    LOG.info("Shutting down DFS cluster.");
     if (mIsStarted) {
       mDfsClient.close();
       mDfsCluster.shutdown();
@@ -210,12 +145,11 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   @Override
   public void start() throws IOException {
+    LOG.info("Starting DFS cluster.");
     if (!mIsStarted) {
 
-      delete(mBaseDir, true);
-      if (!mkdirs(mBaseDir)) {
-        throw new IOException("Failed to make folder: " + mBaseDir);
-      }
+      FileUtils.deletePathRecursively(mBaseDir);
+      FileUtils.createDir(mBaseDir);
 
       // TODO(hy): For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused
       // by "umask 002" (should be 022) see [HDFS-2556]. So the following code only works for
@@ -232,6 +166,22 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       // {@link org.apache.hadoop.fs.FileSystem} rather than {@link DistributedFileSystem}
       mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
       mIsStarted = true;
+    }
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+    if (!isStarted()) {
+      return;
+    }
+    DistributedFileSystem client = getDFSClient();
+    FileStatus[] files =
+        client.listStatus(new Path(getUnderFilesystemAddress() + AlluxioURI.SEPARATOR));
+    if (files == null) {
+      return;
+    }
+    for (FileStatus status : files) {
+      client.delete(status.getPath(), true);
     }
   }
 }

@@ -222,6 +222,7 @@
     <module name="JavadocMethod">
       <property name="id" value="ProductionScope"/>
       <property name="scope" value="public"/>
+      <property name="allowMissingThrowsTags" value="true"/>
     </module>
     <!-- Checks Javadoc comments for public class and interface definitions. Only applies to
          production code -->

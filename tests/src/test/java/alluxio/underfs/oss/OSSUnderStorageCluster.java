@@ -33,7 +33,7 @@ public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
   @Override
   public void cleanup() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mBaseDir);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(mBaseDir);
     ufs.deleteDirectory(mBaseDir, DeleteOptions.defaults().setRecursive(true));
     mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }
