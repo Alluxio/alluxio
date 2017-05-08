@@ -78,6 +78,27 @@ public final class ProtoMessage {
   }
 
   /**
+   * @param request the local block create request
+   */
+  public ProtoMessage(Protocol.LocalBlockCreateRequest request) {
+    mMessage = request;
+  }
+
+  /**
+   * @param response the local block create response
+   */
+  public ProtoMessage(Protocol.LocalBlockCreateResponse response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block complete request
+   */
+  public ProtoMessage(Protocol.LocalBlockCompleteRequest request) {
+    mMessage = request;
+  }
+
+  /**
    * Gets the read request or throws runtime exception if mMessage is not of type
    * {@link Protocol.ReadRequest}.
    *
@@ -183,6 +204,33 @@ public final class ProtoMessage {
    */
   public boolean isLocalBlockCloseRequest() {
     return mMessage instanceof Protocol.LocalBlockCloseRequest;
+  }
+
+  public Protocol.LocalBlockCreateRequest asLocalBlockCreateRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCreateRequest);
+    return (Protocol.LocalBlockCreateRequest) mMessage;
+  }
+
+  public boolean isLocalBlockCreateRequest() {
+    return mMessage instanceof Protocol.LocalBlockCreateRequest;
+  }
+
+  public Protocol.LocalBlockCreateResponse asLocalBlockCreateResponse() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCreateResponse);
+    return (Protocol.LocalBlockCreateResponse) mMessage;
+  }
+
+  public boolean isLocalBlockCreateResponse() {
+    return mMessage instanceof Protocol.LocalBlockCreateResponse;
+  }
+
+  public Protocol.LocalBlockCompleteRequest asLocalBlockCompleteRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCompleteRequest);
+    return (Protocol.LocalBlockCompleteRequest) mMessage;
+  }
+
+  public boolean isLocalBlockCompleteRequest() {
+    return mMessage instanceof Protocol.LocalBlockCompleteRequest;
   }
 
   /**

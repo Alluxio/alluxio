@@ -16,14 +16,15 @@ import alluxio.client.QuietlyCancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.FilterOutputStream;
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -57,7 +58,8 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
       PacketOutStream outStream = PacketOutStream
-          .createLocalPacketOutStream(client, blockId, blockSize, options);
+          .createLocalPacketOutStream(context, workerNetAddress, client.getSessionId(), blockId,
+              blockSize, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (RuntimeException e) {
@@ -115,26 +117,14 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     if (mClosed) {
       return;
     }
-    Exception exception = null;
-    try {
-      mOutStream.cancel();
-    } catch (Exception e) {
-      exception = e;
-    }
-    try {
-      mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (Exception e) {
-      exception = e;
-    }
-
-    if (exception == null) {
-      mClosed = true;
-      return;
-    }
-
-    CommonUtils.closeQuietly(mCloser);
     mClosed = true;
-    throw AlluxioStatusException.from(exception);
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mOutStream.cancel();
+      }
+    });
+    CommonUtils.close(mCloser);
   }
 
   @Override
@@ -142,15 +132,8 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     if (mClosed) {
       return;
     }
-    try {
-      mOutStream.close();
-      if (remaining() < mBlockSize) {
-        mBlockWorkerClient.cacheBlock(mBlockId);
-      }
-    } finally {
-      CommonUtils.close(mCloser);
-      mClosed = true;
-    }
+    mClosed = true;
+    CommonUtils.close(mCloser);
   }
 
   /**
