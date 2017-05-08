@@ -13,10 +13,10 @@ package alluxio.underfs;
 
 import alluxio.CommonTestUtils;
 
-import java.util.Random;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Random;
 
 /**
  * Tests for the {@link UnderFileStatus} class.
@@ -32,7 +32,7 @@ public final class UnderFileStatusTest {
     UnderFileStatus status = new UnderFileStatus("name", isDirectory);
 
     Assert.assertEquals(isDirectory, status.isDirectory());
-    Assert.assertEquals(!isDirectory, status.isFile()();
+    Assert.assertEquals(!isDirectory, status.isFile());
   }
 
   @Test
