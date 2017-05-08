@@ -24,9 +24,7 @@ import com.google.common.base.Function;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
@@ -102,7 +100,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
         if (mWebServer == null || !mWebServer.getServer().isRunning()) {
           return false;
         }
-        HttpClient client = HttpClientBuilder.create().build();;
+        HttpClient client = HttpClientBuilder.create().build();
         HttpPost method = new HttpPost(String
             .format("http://%s:%d%s/%s///%s", mWebServer.getBindHost(), mWebServer.getLocalPort(),
                 Constants.REST_API_PREFIX, PathsRestServiceHandler.SERVICE_PREFIX,
