@@ -51,6 +51,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -271,6 +272,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
 
+  /** This caches absent paths in the UFS. */
+  private final UfsAbsentPathCache mUfsAbsentPathCache;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -321,6 +325,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
+    mUfsAbsentPathCache = new UfsAbsentPathCache(mMountTable);
 
     Metrics.registerGauges(this, mUfsManager);
   }
@@ -664,9 +669,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // The file already exists, so metadata does not need to be loaded.
         return getFileInfoInternal(inodePath);
       }
+
+      if (options.getLoadMetadataType() == LoadMetadataType.Never || (
+          options.getLoadMetadataType() == LoadMetadataType.Once && mUfsAbsentPathCache
+              .isAbsent(path))) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(inodePath.getUri()));
+      }
+
       loadMetadataIfNotExistAndJournal(inodePath,
           LoadMetadataOptions.defaults().setCreateAncestors(true), journalContext);
-      mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+
+      boolean exists = false;
+      try {
+        mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+        exists = true;
+      } finally {
+        if (!exists) {
+          mUfsAbsentPathCache.addAbsentPath(path);
+        }
+      }
       return getFileInfoInternal(inodePath);
     }
   }
@@ -730,10 +752,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
           loadMetadataOptions.setLoadDirectChildren(false);
         }
+      } else {
+        if (listStatusOptions.getLoadMetadataType() == LoadMetadataType.Never || (
+            listStatusOptions.getLoadMetadataType() == LoadMetadataType.Once && mUfsAbsentPathCache
+                .isAbsent(path))) {
+          throw new FileDoesNotExistException(
+              ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(inodePath.getUri()));
+        }
       }
 
       loadMetadataIfNotExistAndJournal(inodePath, loadMetadataOptions, journalContext);
-      mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+
+      boolean exists = false;
+      try {
+        mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+        exists = true;
+      } finally {
+        if (!exists) {
+          mUfsAbsentPathCache.addAbsentPath(path);
+        }
+      }
+
       inode = inodePath.getInode();
 
       List<FileInfo> ret = new ArrayList<>();
@@ -1000,6 +1039,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
 
     mTtlBuckets.insert(inode);
+
+    if (options.isPersisted()) {
+      // The path exists in UFS, so it is no longer absent.
+      mUfsAbsentPathCache.removeAbsentPath(inodePath.getUri());
+    }
 
     Metrics.FILES_CREATED.inc();
     Metrics.DIRECTORIES_CREATED.inc();
@@ -1467,6 +1511,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // If inodeDirectory's ttl not equals Constants.NO_TTL, it should insert into mTtlBuckets
       if (createResult.getCreated().size() > 0) {
         mTtlBuckets.insert(inodeDirectory);
+      }
+
+      if (options.isPersisted()) {
+        // The path exists in UFS, so it is no longer absent.
+        mUfsAbsentPathCache.removeAbsentPath(inodePath.getUri());
       }
 
       return createResult;
@@ -2300,6 +2349,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }
+    mUfsAbsentPathCache.removeMountPoint(mMountTable.resolve(inodePath.getUri()).getMountId());
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.

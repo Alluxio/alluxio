@@ -446,10 +446,16 @@ public final class FileSystemMasterTest {
 
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
-    List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(uri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
-    Assert.assertEquals(0, fileInfoList.size());
-    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+    try {
+      mFileSystemMaster.listStatus(uri,
+          ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+      Assert.fail("listStatus() with load metadata NEVER should throw exception.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+
+    // 3 directories exist. No additional directories.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
   }
 
   @Test

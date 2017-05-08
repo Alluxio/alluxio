@@ -185,7 +185,7 @@ public class UfsAbsentPathCacheTest {
   /**
    * Checks for absent paths (descendants) and existing paths (ancestors) in the UFS.
    *
-   * @param firstAbsent the first Alluxio path which should not exist in the UFS.
+   * @param firstAbsent the first Alluxio path which should not exist in the UFS
    */
   private void checkAbsentPaths(AlluxioURI firstAbsent) throws Exception {
     // Check for additional non-existing paths as descendants of the first absent path

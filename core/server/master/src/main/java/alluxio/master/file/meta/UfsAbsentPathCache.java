@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
@@ -49,7 +50,7 @@ public final class UfsAbsentPathCache {
     mCaches.remove(mountId);
   }
 
-  public void addAbsentPath(AlluxioURI path) throws InvalidPathException, IOException {
+  public void addAbsentPath(AlluxioURI path) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
@@ -64,32 +65,37 @@ public final class UfsAbsentPathCache {
     AlluxioURI uri =
         new AlluxioURI(ufsUri.getScheme(), ufsUri.getAuthority(), "/", ufsUri.getQueryMap());
 
+    // TODO(gpang): Traversal is expensive with the UFS calls. Consider an async version.
     // Traverse through the ufs path components, staring from the root, to find the first
     // non-existing ufs path.
     for (String component : components) {
       uri = uri.join(component);
       String uriPath = uri.getPath();
-      if (ufs.exists(uri.toString())) {
-        // This ufs path exists. Remove the cache entry.
-        cache.remove(uriPath);
-      } else {
-        // This is the first ufs path which does not exist. Add it to the cache.
-        cache.add(uriPath);
+      try {
+        if (ufs.exists(uri.toString())) {
+          // This ufs path exists. Remove the cache entry.
+          cache.remove(uriPath);
+        } else {
+          // This is the first ufs path which does not exist. Add it to the cache.
+          cache.add(uriPath);
 
-        // Remove cache entries which has this non-existing directory as a prefix. This is not for
-        // correctness, but to "compress" information.
-        String dirPath = uriPath + "/";
-        Iterator<String> it = cache.tailSet(dirPath).iterator();
-        while (it.hasNext()) {
-          String existingPath = it.next();
-          if (existingPath.startsWith(dirPath)) {
-            // An existing cache entry has the non-existing path as a prefix. Remove the entry,
-            // since the non-existing path ancestor implies the descendant does not exist.
-            it.remove();
+          // Remove cache entries which has this non-existing directory as a prefix. This is not for
+          // correctness, but to "compress" information.
+          String dirPath = uriPath + "/";
+          Iterator<String> it = cache.tailSet(dirPath).iterator();
+          while (it.hasNext()) {
+            String existingPath = it.next();
+            if (existingPath.startsWith(dirPath)) {
+              // An existing cache entry has the non-existing path as a prefix. Remove the entry,
+              // since the non-existing path ancestor implies the descendant does not exist.
+              it.remove();
+            }
           }
+          // The first non-existing path was found, so further traversal is unnecessary.
+          break;
         }
-        // The first non-existing path was found, so further traversal is unnecessary.
-        break;
+      } catch (IOException e) {
+        throw new InvalidPathException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path), e);
       }
     }
   }
