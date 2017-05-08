@@ -75,8 +75,8 @@ public final class LoginUser {
       // Use the class loader of User.class to construct the LoginContext. LoginContext uses this
       // class loader to dynamically instantiate login modules. This enables
       // Subject#getPrincipals to use reflection to search for User.class instances.
-      LoginContext loginContext =
-          createLoginContext(authType, subject, User.class.getClassLoader());
+      LoginContext loginContext = createLoginContext(authType, subject, User.class.getClassLoader(),
+          new LoginModuleConfiguration());
       loginContext.login();
     } catch (LoginException e) {
       throw new UnauthenticatedException("Failed to login: " + e.getMessage(), e);
@@ -117,11 +117,13 @@ public final class LoginUser {
    * @param authType the {@link AuthType} to use
    * @param subject the {@link Subject} to use
    * @param classLoader the {@link ClassLoader} to use
+   * @param configuration the {@link javax.security.auth.login.Configuration} to use
    * @return the new {@link LoginContext} instance
    * @throws LoginException if LoginContext cannot be created
    */
   private static LoginContext createLoginContext(AuthType authType, Subject subject,
-      ClassLoader classLoader) throws LoginException {
+      ClassLoader classLoader, javax.security.auth.login.Configuration configuration)
+      throws LoginException {
     CallbackHandler callbackHandler = null;
     if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
       callbackHandler = new AppLoginModule.AppCallbackHandler();
@@ -132,8 +134,7 @@ public final class LoginUser {
     try {
       // Create LoginContext based on authType, corresponding LoginModule should be registered
       // under the authType name in LoginModuleConfiguration.
-      return new LoginContext(authType.getAuthName(), subject, callbackHandler,
-              new LoginModuleConfiguration());
+      return new LoginContext(authType.getAuthName(), subject, callbackHandler, configuration);
     } finally {
       Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
