@@ -27,6 +27,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.net.URLClassLoader;
+
 import javax.security.sasl.AuthenticationException;
 
 /**
@@ -93,6 +95,30 @@ public final class MasterClientAuthenticationIntegrationTest {
       mThrown.expect(UnavailableException.class);
       masterClient.connect();
     }
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+  public void simpleAuthenticationIsolatedClassLoader() throws Exception {
+    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    Assert.assertFalse(masterClient.isConnected());
+
+    // Get the current context class loader to retrieve the classpath URLs.
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    Assert.assertTrue(contextClassLoader instanceof URLClassLoader);
+
+    // Set the context class loader to an isolated class loader.
+    ClassLoader isolatedClassLoader =
+        new URLClassLoader(((URLClassLoader) contextClassLoader).getURLs(), null);
+    Thread.currentThread().setContextClassLoader(isolatedClassLoader);
+    try {
+      masterClient.connect();
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+    Assert.assertTrue(masterClient.isConnected());
   }
 
   /**
