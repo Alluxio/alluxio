@@ -55,7 +55,9 @@ public final class NettyRPC {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     } finally {
-      channel.pipeline().removeLast();
+      if (channel.isOpen()) {
+        channel.pipeline().removeLast();
+      }
     }
     if (message.isResponse()) {
       CommonUtils.unwrapResponse(message.asResponse());
@@ -66,7 +68,7 @@ public final class NettyRPC {
   /**
    * Netty RPC client handler.
    */
-  private static class RPCHandler extends ChannelInboundHandlerAdapter {
+  public static class RPCHandler extends ChannelInboundHandlerAdapter {
     /** The promise to wait for the response. */
     private final Promise<ProtoMessage> mPromise;
 

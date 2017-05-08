@@ -52,6 +52,9 @@ public abstract class RPCMessage implements EncodedMessage {
     RPC_LOCAL_BLOCK_OPEN_REQUEST(104),
     RPC_LOCAL_BLOCK_OPEN_RESPONSE(105),
     RPC_LOCAL_BLOCK_CLOSE_REQUEST(106),
+    RPC_LOCAL_BLOCK_CREATE_REQUEST(107),
+    RPC_LOCAL_BLOCK_CREATE_RESPONSE(108),
+    RPC_LOCAL_BLOCK_COMPLETE_REQUEST(109),
 
     RPC_UNKNOWN(1000),
     ;
@@ -129,6 +132,12 @@ public abstract class RPCMessage implements EncodedMessage {
           return RPC_LOCAL_BLOCK_OPEN_RESPONSE;
         case 106:
           return RPC_LOCAL_BLOCK_CLOSE_REQUEST;
+        case 107:
+          return RPC_LOCAL_BLOCK_CREATE_REQUEST;
+        case 108:
+          return RPC_LOCAL_BLOCK_CREATE_RESPONSE;
+        case 109:
+          return RPC_LOCAL_BLOCK_COMPLETE_REQUEST;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
       }
@@ -229,6 +238,15 @@ public abstract class RPCMessage implements EncodedMessage {
       case RPC_LOCAL_BLOCK_CLOSE_REQUEST:
         return RPCProtoMessage
             .decode(in, new ProtoMessage(Protocol.LocalBlockCloseRequest.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_CREATE_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCreateRequest.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_CREATE_RESPONSE:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCreateResponse.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_COMPLETE_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCompleteRequest.getDefaultInstance()));
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }

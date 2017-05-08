@@ -206,29 +206,47 @@ public final class ProtoMessage {
     return mMessage instanceof Protocol.LocalBlockCloseRequest;
   }
 
+  /**
+   * @return the Protocol.LocalBlockCreateRequest
+   */
   public Protocol.LocalBlockCreateRequest asLocalBlockCreateRequest() {
     Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCreateRequest);
     return (Protocol.LocalBlockCreateRequest) mMessage;
   }
 
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCreateRequest}
+   */
   public boolean isLocalBlockCreateRequest() {
     return mMessage instanceof Protocol.LocalBlockCreateRequest;
   }
 
+  /**
+   * @return the Protocol.LocalBlockCreateRequest
+   */
   public Protocol.LocalBlockCreateResponse asLocalBlockCreateResponse() {
     Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCreateResponse);
     return (Protocol.LocalBlockCreateResponse) mMessage;
   }
 
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCreateResponse}
+   */
   public boolean isLocalBlockCreateResponse() {
     return mMessage instanceof Protocol.LocalBlockCreateResponse;
   }
 
+  /**
+   * @return the Protocol.LocalBlockCompleteRequest
+   */
   public Protocol.LocalBlockCompleteRequest asLocalBlockCompleteRequest() {
     Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCompleteRequest);
     return (Protocol.LocalBlockCompleteRequest) mMessage;
   }
 
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCompleteRequest}
+   */
   public boolean isLocalBlockCompleteRequest() {
     return mMessage instanceof Protocol.LocalBlockCompleteRequest;
   }

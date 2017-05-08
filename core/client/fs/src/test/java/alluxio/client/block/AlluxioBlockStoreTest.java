@@ -17,11 +17,15 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.client.netty.NettyRPC;
+import alluxio.client.netty.NettyRPCContext;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.LockBlockResult;
@@ -37,7 +41,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -56,7 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Tests for {@link AlluxioBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
+@PrepareForTest({FileSystemContext.class, NettyRPC.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;
@@ -213,9 +216,11 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getOutStreamLocal() throws Exception {
     File tmp = mTestFolder.newFile();
-    Mockito.when(mBlockWorkerClient
-        .requestBlockLocation(Matchers.eq(BLOCK_ID), Matchers.anyLong(), Matchers.anyInt()))
-        .thenReturn(tmp.getAbsolutePath());
+    ProtoMessage message = new ProtoMessage(
+        Protocol.LocalBlockCreateResponse.newBuilder().setPath(tmp.getAbsolutePath()).build());
+    PowerMockito.mockStatic(NettyRPC.class);
+    Mockito.when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
+        .thenReturn(message);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setLocationPolicy(new MockFileWriteLocationPolicy(

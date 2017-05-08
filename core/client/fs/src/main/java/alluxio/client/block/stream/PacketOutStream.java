@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
 import alluxio.client.QuietlyCancelable;
-import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.PreconditionMessage;
@@ -52,6 +51,9 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   /**
    * Creates a {@link PacketOutStream} that writes to a local file.
    *
+   * @param context the file system context
+   * @param address the worker network address
+   * @param sessionId the session ID
    * @param id the ID
    * @param length the block or file length
    * @param options the out stream options
