@@ -46,60 +46,95 @@ public final class UfsSyncChecker {
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
 
+  /** Directories in sync with the UFS. */
+  private Map<AlluxioURI, Inode<?>> mSyncedDirectories = new HashMap<>();
+
+  /** Whether to skip sync check. */
+  private final boolean mUnchecked;
+
   /**
    * Create a new instance of {@link UfsSyncChecker}.
    *
    * @param mountTable to resolve path in under storage
+   * @param unchecked whether to skip sync check
    */
-  public UfsSyncChecker(MountTable mountTable) {
+  public UfsSyncChecker(MountTable mountTable, boolean unchecked) {
     mListedDirectories = new HashMap<>();
     mMountTable = mountTable;
+    mUnchecked = unchecked;
   }
   /**
    * Check if immediate children of directory are in sync with UFS.
    *
    * @param inode read-locked directory to check
    * @param alluxioUri path of directory to to check
-   * @return true is contents of directory match
    */
-  public boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI alluxioUri)
+  public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
 
-    UnderFileStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
-    // Empty directories are not persisted
-    if (ufsChildren == null) {
-      return true;
+    boolean synced = true;
+    if (!mUnchecked) {
+      UnderFileStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
+      if (ufsChildren == null) {
+        // Empty directories are not persisted
+        synced = true;
+      } else {
+        // Sort-merge compare
+        Arrays.sort(ufsChildren, new Comparator<UnderFileStatus>() {
+          @Override
+          public int compare(UnderFileStatus a, UnderFileStatus b) {
+            return a.getName().compareTo(b.getName());
+          }
+        });
+        int numInodeChildren = inode.getChildren().size();
+        Inode[] inodeChildren = new Inode[numInodeChildren];
+        inodeChildren = inode.getChildren().toArray(inodeChildren);
+        Arrays.sort(inodeChildren, new Comparator<Inode>() {
+          @Override
+          public int compare(Inode a, Inode b) {
+            return a.getName().compareTo(b.getName());
+          }
+        });
+        int ufsPos = 0;
+        int inodePos = 0;
+        while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
+          String ufsName = ufsChildren[ufsPos].getName();
+          if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
+            ufsName = ufsName.substring(0, ufsName.length() - 1);
+          }
+          if (ufsName.equals(inodeChildren[inodePos].getName())) {
+            ufsPos++;
+          }
+          inodePos++;
+        }
+        synced = (ufsPos == ufsChildren.length);
+      }
     }
-    // Sort-merge compare
-    Arrays.sort(ufsChildren, new Comparator<UnderFileStatus>() {
-      @Override
-      public int compare(UnderFileStatus a, UnderFileStatus b) {
-        return a.getName().compareTo(b.getName());
+
+    if (synced) {
+      mSyncedDirectories.put(alluxioUri, inode);
+    } else {
+      // Invalidate ancestor directories if not a mount point
+      AlluxioURI currentPath = alluxioUri;
+      while (currentPath.getParent() != null && !mMountTable.isMountPoint(currentPath)
+          && mSyncedDirectories.containsKey(currentPath.getParent())) {
+        mSyncedDirectories.remove(currentPath.getParent());
+        currentPath = currentPath.getParent();
       }
-    });
-    int numInodeChildren = inode.getChildren().size();
-    Inode[] inodeChildren = new Inode[numInodeChildren];
-    inodeChildren = inode.getChildren().toArray(inodeChildren);
-    Arrays.sort(inodeChildren, new Comparator<Inode>() {
-      @Override
-      public int compare(Inode a, Inode b) {
-        return a.getName().compareTo(b.getName());
-      }
-    });
-    int ufsPos = 0;
-    int inodePos = 0;
-    while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
-      String ufsName = ufsChildren[ufsPos].getName();
-      if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
-        ufsName = ufsName.substring(0, ufsName.length() - 1);
-      }
-      if (ufsName.equals(inodeChildren[inodePos].getName())) {
-        ufsPos++;
-      }
-      inodePos++;
     }
-    return ufsPos == ufsChildren.length;
+  }
+
+  /**
+   * Based on directories for which
+   * {@link UfsSyncChecker#checkDirectory(InodeDirectory, AlluxioURI)} was called, this method
+   * returns whether any un-synced entries were found.
+   *
+   * @param alluxioUri path of directory to check
+   * @return true, if in sync; false, otherwise
+   */
+  public boolean isDirectoryInSync(AlluxioURI alluxioUri) {
+    return mSyncedDirectories.containsKey(alluxioUri);
   }
 
   /**
