@@ -1239,9 +1239,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
-              AlluxioURI parentURI = alluxioUriToDel.getParent();
-              // Check if parent is deleted recursively
-              if (!safeRecursiveUFSDeletes.containsKey(parentURI)) {
+              AlluxioURI parentUri = alluxioUriToDel.getParent();
+              if (!safeRecursiveUFSDeletes.containsKey(parentUri)) {
+                // Parent will not recursively delete, so delete this inode individually
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
                     failedToDelete = ufs.isFile(ufsUri);
@@ -1280,6 +1280,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           inodesToDelete.add(delInode);
         } else {
           unsafeInodes.add(delInode.getId());
+          // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
           unsafeInodes.add(delInode.getParentId());
           failedUris.add(alluxioUriToDel.toString());
         }
