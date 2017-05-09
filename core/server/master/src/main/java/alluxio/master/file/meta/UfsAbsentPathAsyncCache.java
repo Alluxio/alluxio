@@ -25,6 +25,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * This is a version of {@link UfsAbsentPathCache} which implements an asynchronous add to the
+ * cache, since the processing of the path may be slow.
+ */
 @ThreadSafe
 public final class UfsAbsentPathAsyncCache extends UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathAsyncCache.class);
