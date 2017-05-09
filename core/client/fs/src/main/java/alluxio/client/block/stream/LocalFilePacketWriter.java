@@ -165,15 +165,22 @@ public final class LocalFilePacketWriter implements PacketWriter {
         mContext.releaseNettyChannel(mAddress, mChannel);
       }
     });
-    mCreateRequest = new ProtoMessage(
-        Protocol.LocalBlockCreateRequest.newBuilder().setBlockId(blockId).setSessionId(sessionId)
-            .setTier(tier).setSpaceToReserve(FILE_BUFFER_BYTES).build());
-    mNettyRPCContext = NettyRPCContext.defaults().setChannel(mChannel).setTimeout(WRITE_TIMEOUT_MS);
+    try {
+      mCreateRequest = new ProtoMessage(
+          Protocol.LocalBlockCreateRequest.newBuilder().setBlockId(blockId).setSessionId(sessionId)
+              .setTier(tier).setSpaceToReserve(FILE_BUFFER_BYTES).build());
+      mNettyRPCContext =
+          NettyRPCContext.defaults().setChannel(mChannel).setTimeout(WRITE_TIMEOUT_MS);
 
-    ProtoMessage message = NettyRPC.call(mNettyRPCContext, mCreateRequest);
-    Preconditions.checkState(message.isLocalBlockCreateResponse());
-    mWriter =
-        mCloser.register(new LocalFileBlockWriter(message.asLocalBlockCreateResponse().getPath()));
+      ProtoMessage message = NettyRPC.call(mNettyRPCContext, mCreateRequest);
+      Preconditions.checkState(message.isLocalBlockCreateResponse());
+      mWriter = mCloser
+          .register(new LocalFileBlockWriter(message.asLocalBlockCreateResponse().getPath()));
+    } catch (Exception e) {
+      CommonUtils.closeQuietly(mCloser);
+      throw e;
+    }
+
     mPosReserved += FILE_BUFFER_BYTES;
     mBlockId = blockId;
     mSessionId = sessionId;

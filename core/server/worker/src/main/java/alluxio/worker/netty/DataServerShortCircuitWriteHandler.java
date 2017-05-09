@@ -11,6 +11,7 @@
 
 package alluxio.worker.netty;
 
+import alluxio.RpcUtils;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.status.AlluxioStatusException;
@@ -57,11 +58,7 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
 
     ProtoMessage message = ((RPCProtoMessage) msg).getMessage();
     if (message.isLocalBlockCreateRequest()) {
-      if (message.asLocalBlockCreateRequest().getOnlyReserveSpace()) {
-        handleReserveSpaceRequest(ctx, message.asLocalBlockCreateRequest());
-      } else {
-        handleBlockCreateRequest(ctx, message.asLocalBlockCreateRequest());
-      }
+      handleBlockCreateRequest(ctx, message.asLocalBlockCreateRequest());
     } else if (message.isLocalBlockCompleteRequest()) {
       handleBlockCompleteRequest(ctx, message.asLocalBlockCompleteRequest());
     } else {
@@ -84,37 +81,40 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
    * @param ctx the channel handler context
    * @param request the local block create request
    */
-  private void handleBlockCreateRequest(ChannelHandlerContext ctx,
-      Protocol.LocalBlockCreateRequest request) {
-    LOG.debug("Create block: {}.", request);
-    try {
-      String path = mBlockWorker.createBlock(request.getSessionId(), request.getBlockId(),
-          mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
-      Protocol.LocalBlockCreateResponse response =
-          Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
-      ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
-    } catch (Exception e) {
-      ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(e)));
-    }
-  }
+  private void handleBlockCreateRequest(final ChannelHandlerContext ctx,
+      final Protocol.LocalBlockCreateRequest request) {
+    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRPCCallable<Void>() {
 
-  /**
-   * Handles {@link Protocol.LocalBlockCreateRequest} to reserve space only. No exceptions should
-   * be thrown.
-   *
-   * @param ctx the channel handler context
-   * @param request the local block create request
-   */
-  private void handleReserveSpaceRequest(ChannelHandlerContext ctx,
-      Protocol.LocalBlockCreateRequest request) {
-    LOG.debug("Reserve space: {}.", request);
-    try {
-      mBlockWorker
-          .requestSpace(request.getSessionId(), request.getBlockId(), request.getSpaceToReserve());
-      ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
-    } catch (Exception e) {
-      ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(e)));
-    }
+      @Override
+      public Void call() throws Exception {
+        if (request.getOnlyReserveSpace()) {
+          String path = mBlockWorker.createBlock(request.getSessionId(), request.getBlockId(),
+              mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
+          Protocol.LocalBlockCreateResponse response =
+              Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
+          ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
+        } else {
+          mBlockWorker.requestSpace(request.getSessionId(), request.getBlockId(),
+              request.getSpaceToReserve());
+          ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
+        }
+        return null;
+      }
+
+      @Override
+      public void exceptionCaught(Throwable throwable) {
+        ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(throwable)));
+      }
+
+      @Override
+      public String toString() {
+        if (request.getOnlyReserveSpace()) {
+          return String.format("Create block: %s", request.toString());
+        } else {
+          return String.format("Reserve space: %s", request.toString());
+        }
+      }
+    });
   }
 
   /**
@@ -123,19 +123,34 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
    * @param ctx the channel handler context
    * @param request the local block close request
    */
-  private void handleBlockCompleteRequest(ChannelHandlerContext ctx,
-      Protocol.LocalBlockCompleteRequest request) {
-    try {
-      if (request.getCancel()) {
-        LOG.debug("Abort block: {}.", request);
-        mBlockWorker.abortBlock(request.getSessionId(), request.getBlockId());
-      } else {
-        LOG.debug("Commit block: {}.", request);
-        mBlockWorker.commitBlock(request.getSessionId(), request.getBlockId());
+  private void handleBlockCompleteRequest(final ChannelHandlerContext ctx,
+      final Protocol.LocalBlockCompleteRequest request) {
+    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRPCCallable<Void>() {
+
+      @Override
+      public Void call() throws Exception {
+        if (request.getCancel()) {
+          mBlockWorker.abortBlock(request.getSessionId(), request.getBlockId());
+        } else {
+          mBlockWorker.commitBlock(request.getSessionId(), request.getBlockId());
+        }
+        ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
+        return null;
       }
-      ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
-    } catch (Exception e) {
-      ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(e)));
-    }
+
+      @Override
+      public void exceptionCaught(Throwable throwable) {
+        ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(throwable)));
+      }
+
+      @Override
+      public String toString() {
+        if (request.getCancel()) {
+          return String.format("Abort block: %s", request.toString());
+        } else {
+          return String.format("Commit block: %s", request.toString());
+        }
+      }
+    });
   }
 }
