@@ -230,7 +230,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       UnderFileStatus[] rtn = new UnderFileStatus[files.length];
       int i = 0;
       for (File f : files) {
-        // TODO (adit): do we need extra call for attributes?
+        // TODO(adit): do we need extra call for attributes?
         PosixFileAttributes attr =
             Files.readAttributes(Paths.get(f.getPath()), PosixFileAttributes.class);
         rtn[i++] = new UnderFileStatus(f.getName(), f.length(), f.isDirectory(), f.lastModified(),

@@ -243,7 +243,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     return new UnderFileStatus(tPath.getName(), fs.getLen(), fs.isDirectory(),
         fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
-  
+
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
