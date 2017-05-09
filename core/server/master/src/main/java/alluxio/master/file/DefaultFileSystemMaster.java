@@ -2034,14 +2034,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         isFile = ufs.isFile(ufsUri.toString());
       }
       if (isFile) {
-        if (options.getUnderFileStatus() == null) {
-          options.setUnderFileStatus(ufs.getFileStatus(ufsUri.toString()));
-        }
         loadFileMetadataAndJournal(inodePath, resolution, options, journalContext);
       } else {
-        if (options.getUnderFileStatus() == null) {
-          options.setUnderFileStatus(ufs.getDirectoryStatus(ufsUri.toString()));
-        }
         loadDirectoryMetadataAndJournal(inodePath, options, journalContext);
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
@@ -2093,14 +2087,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    long ufsLength = options.getUnderFileStatus().getContentLength();
+    UnderFileStatus ufsStatus = options.getUnderFileStatus();
+    if (ufsStatus == null) {
+      ufsStatus = ufs.getFileStatus(ufsUri.toString());
+    }
+    long ufsLength = ufsStatus.getContentLength();
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
-    String ufsOwner = options.getUnderFileStatus().getOwner();
-    String ufsGroup = options.getUnderFileStatus().getGroup();
-    short ufsMode = options.getUnderFileStatus().getMode();
+    String ufsOwner = ufsStatus.getOwner();
+    String ufsGroup = ufsStatus.getGroup();
+    short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
@@ -2143,9 +2141,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    String ufsOwner = options.getUnderFileStatus().getOwner();
-    String ufsGroup = options.getUnderFileStatus().getGroup();
-    short ufsMode = options.getUnderFileStatus().getMode();
+    UnderFileStatus ufsStatus = options.getUnderFileStatus();
+    if (ufsStatus == null) {
+      AlluxioURI ufsUri = resolution.getUri();
+      UnderFileSystem ufs = resolution.getUfs();
+      ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
+    }
+    String ufsOwner = ufsStatus.getOwner();
+    String ufsGroup = ufsStatus.getGroup();
+    short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
