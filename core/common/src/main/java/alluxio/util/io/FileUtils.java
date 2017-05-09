@@ -117,7 +117,7 @@ public final class FileUtils {
   public static short getLocalFileMode(String filePath) throws IOException {
     Set<PosixFilePermission> permission =
         Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class).permissions();
-    return translatePermissionMode(permission);
+    return translatePosixPermissionToMode(permission);
   }
 
   /**
@@ -126,7 +126,7 @@ public final class FileUtils {
    * @param permission posix file permission
    * @return mode for file
    */
-  public static short translatePermissionMode(Set<PosixFilePermission> permission) {
+  public static short translatePosixPermissionToMode(Set<PosixFilePermission> permission) {
     int mode = 0;
     for (PosixFilePermission action : PosixFilePermission.values()) {
       mode = mode << 1;

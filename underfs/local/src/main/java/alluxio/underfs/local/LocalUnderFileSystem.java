@@ -188,7 +188,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
     return new UnderFileStatus(path, file.length(), file.isDirectory(), file.lastModified(),
         attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePermissionMode(attr.permissions()));
+        FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
 
   @Override
@@ -235,7 +235,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
             Files.readAttributes(Paths.get(f.getPath()), PosixFileAttributes.class);
         rtn[i++] = new UnderFileStatus(f.getName(), f.length(), f.isDirectory(), f.lastModified(),
             attr.owner().getName(), attr.group().getName(),
-            FileUtils.translatePermissionMode(attr.permissions()));
+            FileUtils.translatePosixPermissionToMode(attr.permissions()));
       }
       return rtn;
     } else {
