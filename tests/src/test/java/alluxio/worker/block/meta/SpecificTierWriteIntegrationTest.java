@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -41,7 +42,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 
-public class SpecificTierWriteIntegrationTest {
+public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
   private static final int FILE_SIZE = CAPACITY_BYTES;
   private static final String BLOCK_SIZE_BYTES = "1KB";

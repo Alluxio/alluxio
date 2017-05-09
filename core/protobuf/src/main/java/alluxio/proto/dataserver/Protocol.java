@@ -3509,6 +3509,323 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.Response)
   }
 
+  public interface HeartbeatOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.Heartbeat}
+   *
+   * <pre>
+   * A heartbeat
+   * </pre>
+   */
+  public static final class Heartbeat extends
+      com.google.protobuf.GeneratedMessage
+      implements HeartbeatOrBuilder {
+    // Use Heartbeat.newBuilder() to construct.
+    private Heartbeat(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private Heartbeat(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final Heartbeat defaultInstance;
+    public static Heartbeat getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public Heartbeat getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Heartbeat(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Heartbeat_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Heartbeat_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.Heartbeat.class, alluxio.proto.dataserver.Protocol.Heartbeat.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<Heartbeat> PARSER =
+        new com.google.protobuf.AbstractParser<Heartbeat>() {
+      public Heartbeat parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new Heartbeat(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Heartbeat> getParserForType() {
+      return PARSER;
+    }
+
+    private void initFields() {
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.Heartbeat parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.Heartbeat prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.Heartbeat}
+     *
+     * <pre>
+     * A heartbeat
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.HeartbeatOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Heartbeat_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Heartbeat_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.Heartbeat.class, alluxio.proto.dataserver.Protocol.Heartbeat.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.Heartbeat.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Heartbeat_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.Heartbeat getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.Heartbeat.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.Heartbeat build() {
+        alluxio.proto.dataserver.Protocol.Heartbeat result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.Heartbeat buildPartial() {
+        alluxio.proto.dataserver.Protocol.Heartbeat result = new alluxio.proto.dataserver.Protocol.Heartbeat(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.Heartbeat) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.Heartbeat)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.Heartbeat other) {
+        if (other == alluxio.proto.dataserver.Protocol.Heartbeat.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.Heartbeat parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.Heartbeat) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.Heartbeat)
+    }
+
+    static {
+      defaultInstance = new Heartbeat(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.Heartbeat)
+  }
+
   public interface LocalBlockOpenRequestOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -4958,6 +5275,1811 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.LocalBlockCloseRequest)
   }
 
+  public interface LocalBlockCreateRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional int64 block_id = 1;
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    boolean hasBlockId();
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    long getBlockId();
+
+    // optional int64 session_id = 2;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    boolean hasSessionId();
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    long getSessionId();
+
+    // optional int32 tier = 3;
+    /**
+     * <code>optional int32 tier = 3;</code>
+     */
+    boolean hasTier();
+    /**
+     * <code>optional int32 tier = 3;</code>
+     */
+    int getTier();
+
+    // optional int64 space_to_reserve = 4;
+    /**
+     * <code>optional int64 space_to_reserve = 4;</code>
+     */
+    boolean hasSpaceToReserve();
+    /**
+     * <code>optional int64 space_to_reserve = 4;</code>
+     */
+    long getSpaceToReserve();
+
+    // optional bool only_reserve_space = 5;
+    /**
+     * <code>optional bool only_reserve_space = 5;</code>
+     *
+     * <pre>
+     * If set, only reserve space for the block.
+     * </pre>
+     */
+    boolean hasOnlyReserveSpace();
+    /**
+     * <code>optional bool only_reserve_space = 5;</code>
+     *
+     * <pre>
+     * If set, only reserve space for the block.
+     * </pre>
+     */
+    boolean getOnlyReserveSpace();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCreateRequest}
+   *
+   * <pre>
+   * next available id: 6
+   * </pre>
+   */
+  public static final class LocalBlockCreateRequest extends
+      com.google.protobuf.GeneratedMessage
+      implements LocalBlockCreateRequestOrBuilder {
+    // Use LocalBlockCreateRequest.newBuilder() to construct.
+    private LocalBlockCreateRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private LocalBlockCreateRequest(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final LocalBlockCreateRequest defaultInstance;
+    public static LocalBlockCreateRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public LocalBlockCreateRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private LocalBlockCreateRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              blockId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              sessionId_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              tier_ = input.readInt32();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              spaceToReserve_ = input.readInt64();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              onlyReserveSpace_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest.class, alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<LocalBlockCreateRequest> PARSER =
+        new com.google.protobuf.AbstractParser<LocalBlockCreateRequest>() {
+      public LocalBlockCreateRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LocalBlockCreateRequest(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LocalBlockCreateRequest> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional int64 block_id = 1;
+    public static final int BLOCK_ID_FIELD_NUMBER = 1;
+    private long blockId_;
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    public boolean hasBlockId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    public long getBlockId() {
+      return blockId_;
+    }
+
+    // optional int64 session_id = 2;
+    public static final int SESSION_ID_FIELD_NUMBER = 2;
+    private long sessionId_;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    public boolean hasSessionId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    public long getSessionId() {
+      return sessionId_;
+    }
+
+    // optional int32 tier = 3;
+    public static final int TIER_FIELD_NUMBER = 3;
+    private int tier_;
+    /**
+     * <code>optional int32 tier = 3;</code>
+     */
+    public boolean hasTier() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int32 tier = 3;</code>
+     */
+    public int getTier() {
+      return tier_;
+    }
+
+    // optional int64 space_to_reserve = 4;
+    public static final int SPACE_TO_RESERVE_FIELD_NUMBER = 4;
+    private long spaceToReserve_;
+    /**
+     * <code>optional int64 space_to_reserve = 4;</code>
+     */
+    public boolean hasSpaceToReserve() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 space_to_reserve = 4;</code>
+     */
+    public long getSpaceToReserve() {
+      return spaceToReserve_;
+    }
+
+    // optional bool only_reserve_space = 5;
+    public static final int ONLY_RESERVE_SPACE_FIELD_NUMBER = 5;
+    private boolean onlyReserveSpace_;
+    /**
+     * <code>optional bool only_reserve_space = 5;</code>
+     *
+     * <pre>
+     * If set, only reserve space for the block.
+     * </pre>
+     */
+    public boolean hasOnlyReserveSpace() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool only_reserve_space = 5;</code>
+     *
+     * <pre>
+     * If set, only reserve space for the block.
+     * </pre>
+     */
+    public boolean getOnlyReserveSpace() {
+      return onlyReserveSpace_;
+    }
+
+    private void initFields() {
+      blockId_ = 0L;
+      sessionId_ = 0L;
+      tier_ = 0;
+      spaceToReserve_ = 0L;
+      onlyReserveSpace_ = false;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, sessionId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt32(3, tier_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(4, spaceToReserve_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(5, onlyReserveSpace_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, sessionId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, tier_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, spaceToReserve_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, onlyReserveSpace_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCreateRequest}
+     *
+     * <pre>
+     * next available id: 6
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.LocalBlockCreateRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest.class, alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        blockId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        sessionId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        tier_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        spaceToReserve_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onlyReserveSpace_ = false;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest build() {
+        alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest buildPartial() {
+        alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest result = new alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.sessionId_ = sessionId_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.tier_ = tier_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.spaceToReserve_ = spaceToReserve_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.onlyReserveSpace_ = onlyReserveSpace_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest other) {
+        if (other == alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest.getDefaultInstance()) return this;
+        if (other.hasBlockId()) {
+          setBlockId(other.getBlockId());
+        }
+        if (other.hasSessionId()) {
+          setSessionId(other.getSessionId());
+        }
+        if (other.hasTier()) {
+          setTier(other.getTier());
+        }
+        if (other.hasSpaceToReserve()) {
+          setSpaceToReserve(other.getSpaceToReserve());
+        }
+        if (other.hasOnlyReserveSpace()) {
+          setOnlyReserveSpace(other.getOnlyReserveSpace());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.LocalBlockCreateRequest) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional int64 block_id = 1;
+      private long blockId_ ;
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public boolean hasBlockId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public long getBlockId() {
+        return blockId_;
+      }
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public Builder setBlockId(long value) {
+        bitField0_ |= 0x00000001;
+        blockId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public Builder clearBlockId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        blockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 session_id = 2;
+      private long sessionId_ ;
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public boolean hasSessionId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public long getSessionId() {
+        return sessionId_;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public Builder setSessionId(long value) {
+        bitField0_ |= 0x00000002;
+        sessionId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public Builder clearSessionId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        sessionId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int32 tier = 3;
+      private int tier_ ;
+      /**
+       * <code>optional int32 tier = 3;</code>
+       */
+      public boolean hasTier() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int32 tier = 3;</code>
+       */
+      public int getTier() {
+        return tier_;
+      }
+      /**
+       * <code>optional int32 tier = 3;</code>
+       */
+      public Builder setTier(int value) {
+        bitField0_ |= 0x00000004;
+        tier_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 tier = 3;</code>
+       */
+      public Builder clearTier() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        tier_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 space_to_reserve = 4;
+      private long spaceToReserve_ ;
+      /**
+       * <code>optional int64 space_to_reserve = 4;</code>
+       */
+      public boolean hasSpaceToReserve() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int64 space_to_reserve = 4;</code>
+       */
+      public long getSpaceToReserve() {
+        return spaceToReserve_;
+      }
+      /**
+       * <code>optional int64 space_to_reserve = 4;</code>
+       */
+      public Builder setSpaceToReserve(long value) {
+        bitField0_ |= 0x00000008;
+        spaceToReserve_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 space_to_reserve = 4;</code>
+       */
+      public Builder clearSpaceToReserve() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        spaceToReserve_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bool only_reserve_space = 5;
+      private boolean onlyReserveSpace_ ;
+      /**
+       * <code>optional bool only_reserve_space = 5;</code>
+       *
+       * <pre>
+       * If set, only reserve space for the block.
+       * </pre>
+       */
+      public boolean hasOnlyReserveSpace() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool only_reserve_space = 5;</code>
+       *
+       * <pre>
+       * If set, only reserve space for the block.
+       * </pre>
+       */
+      public boolean getOnlyReserveSpace() {
+        return onlyReserveSpace_;
+      }
+      /**
+       * <code>optional bool only_reserve_space = 5;</code>
+       *
+       * <pre>
+       * If set, only reserve space for the block.
+       * </pre>
+       */
+      public Builder setOnlyReserveSpace(boolean value) {
+        bitField0_ |= 0x00000010;
+        onlyReserveSpace_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool only_reserve_space = 5;</code>
+       *
+       * <pre>
+       * If set, only reserve space for the block.
+       * </pre>
+       */
+      public Builder clearOnlyReserveSpace() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onlyReserveSpace_ = false;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.LocalBlockCreateRequest)
+    }
+
+    static {
+      defaultInstance = new LocalBlockCreateRequest(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.LocalBlockCreateRequest)
+  }
+
+  public interface LocalBlockCreateResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional string path = 1;
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    boolean hasPath();
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    java.lang.String getPath();
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getPathBytes();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCreateResponse}
+   *
+   * <pre>
+   * next available id: 2
+   * </pre>
+   */
+  public static final class LocalBlockCreateResponse extends
+      com.google.protobuf.GeneratedMessage
+      implements LocalBlockCreateResponseOrBuilder {
+    // Use LocalBlockCreateResponse.newBuilder() to construct.
+    private LocalBlockCreateResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private LocalBlockCreateResponse(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final LocalBlockCreateResponse defaultInstance;
+    public static LocalBlockCreateResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public LocalBlockCreateResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private LocalBlockCreateResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              bitField0_ |= 0x00000001;
+              path_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse.class, alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<LocalBlockCreateResponse> PARSER =
+        new com.google.protobuf.AbstractParser<LocalBlockCreateResponse>() {
+      public LocalBlockCreateResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LocalBlockCreateResponse(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LocalBlockCreateResponse> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional string path = 1;
+    public static final int PATH_FIELD_NUMBER = 1;
+    private java.lang.Object path_;
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public boolean hasPath() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public java.lang.String getPath() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          path_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPathBytes() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        path_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private void initFields() {
+      path_ = "";
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getPathBytes());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getPathBytes());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCreateResponse}
+     *
+     * <pre>
+     * next available id: 2
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.LocalBlockCreateResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse.class, alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        path_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse build() {
+        alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse buildPartial() {
+        alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse result = new alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.path_ = path_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse other) {
+        if (other == alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse.getDefaultInstance()) return this;
+        if (other.hasPath()) {
+          bitField0_ |= 0x00000001;
+          path_ = other.path_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.LocalBlockCreateResponse) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional string path = 1;
+      private java.lang.Object path_ = "";
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public boolean hasPath() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public java.lang.String getPath() {
+        java.lang.Object ref = path_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          path_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getPathBytes() {
+        java.lang.Object ref = path_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          path_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public Builder setPath(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        path_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public Builder clearPath() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        path_ = getDefaultInstance().getPath();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public Builder setPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        path_ = value;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.LocalBlockCreateResponse)
+    }
+
+    static {
+      defaultInstance = new LocalBlockCreateResponse(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.LocalBlockCreateResponse)
+  }
+
+  public interface LocalBlockCompleteRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional int64 block_id = 1;
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    boolean hasBlockId();
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    long getBlockId();
+
+    // optional int64 session_id = 2;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    boolean hasSessionId();
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    long getSessionId();
+
+    // optional bool cancel = 3;
+    /**
+     * <code>optional bool cancel = 3;</code>
+     */
+    boolean hasCancel();
+    /**
+     * <code>optional bool cancel = 3;</code>
+     */
+    boolean getCancel();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCompleteRequest}
+   *
+   * <pre>
+   * next available id: 4
+   * </pre>
+   */
+  public static final class LocalBlockCompleteRequest extends
+      com.google.protobuf.GeneratedMessage
+      implements LocalBlockCompleteRequestOrBuilder {
+    // Use LocalBlockCompleteRequest.newBuilder() to construct.
+    private LocalBlockCompleteRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private LocalBlockCompleteRequest(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final LocalBlockCompleteRequest defaultInstance;
+    public static LocalBlockCompleteRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public LocalBlockCompleteRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private LocalBlockCompleteRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              blockId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              sessionId_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              cancel_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest.class, alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<LocalBlockCompleteRequest> PARSER =
+        new com.google.protobuf.AbstractParser<LocalBlockCompleteRequest>() {
+      public LocalBlockCompleteRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LocalBlockCompleteRequest(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LocalBlockCompleteRequest> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional int64 block_id = 1;
+    public static final int BLOCK_ID_FIELD_NUMBER = 1;
+    private long blockId_;
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    public boolean hasBlockId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 block_id = 1;</code>
+     */
+    public long getBlockId() {
+      return blockId_;
+    }
+
+    // optional int64 session_id = 2;
+    public static final int SESSION_ID_FIELD_NUMBER = 2;
+    private long sessionId_;
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    public boolean hasSessionId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 session_id = 2;</code>
+     */
+    public long getSessionId() {
+      return sessionId_;
+    }
+
+    // optional bool cancel = 3;
+    public static final int CANCEL_FIELD_NUMBER = 3;
+    private boolean cancel_;
+    /**
+     * <code>optional bool cancel = 3;</code>
+     */
+    public boolean hasCancel() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bool cancel = 3;</code>
+     */
+    public boolean getCancel() {
+      return cancel_;
+    }
+
+    private void initFields() {
+      blockId_ = 0L;
+      sessionId_ = 0L;
+      cancel_ = false;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, sessionId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBool(3, cancel_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, sessionId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, cancel_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCompleteRequest}
+     *
+     * <pre>
+     * next available id: 4
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest.class, alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        blockId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        sessionId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        cancel_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest build() {
+        alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest buildPartial() {
+        alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest result = new alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.sessionId_ = sessionId_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.cancel_ = cancel_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest other) {
+        if (other == alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest.getDefaultInstance()) return this;
+        if (other.hasBlockId()) {
+          setBlockId(other.getBlockId());
+        }
+        if (other.hasSessionId()) {
+          setSessionId(other.getSessionId());
+        }
+        if (other.hasCancel()) {
+          setCancel(other.getCancel());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.LocalBlockCompleteRequest) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional int64 block_id = 1;
+      private long blockId_ ;
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public boolean hasBlockId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public long getBlockId() {
+        return blockId_;
+      }
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public Builder setBlockId(long value) {
+        bitField0_ |= 0x00000001;
+        blockId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 block_id = 1;</code>
+       */
+      public Builder clearBlockId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        blockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 session_id = 2;
+      private long sessionId_ ;
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public boolean hasSessionId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public long getSessionId() {
+        return sessionId_;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public Builder setSessionId(long value) {
+        bitField0_ |= 0x00000002;
+        sessionId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 session_id = 2;</code>
+       */
+      public Builder clearSessionId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        sessionId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bool cancel = 3;
+      private boolean cancel_ ;
+      /**
+       * <code>optional bool cancel = 3;</code>
+       */
+      public boolean hasCancel() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional bool cancel = 3;</code>
+       */
+      public boolean getCancel() {
+        return cancel_;
+      }
+      /**
+       * <code>optional bool cancel = 3;</code>
+       */
+      public Builder setCancel(boolean value) {
+        bitField0_ |= 0x00000004;
+        cancel_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool cancel = 3;</code>
+       */
+      public Builder clearCancel() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        cancel_ = false;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.LocalBlockCompleteRequest)
+    }
+
+    static {
+      defaultInstance = new LocalBlockCompleteRequest(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.LocalBlockCompleteRequest)
+  }
+
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_ReadRequest_descriptor;
   private static
@@ -4974,6 +7096,11 @@ public final class Protocol {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_Heartbeat_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_Heartbeat_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -4988,6 +7115,21 @@ public final class Protocol {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -5011,13 +7153,19 @@ public final class Protocol {
       "\022\r\n\005owner\030\t \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004mode\030\013" +
       " \001(\005\022\020\n\010mount_id\030\014 \001(\003\"J\n\010Response\022-\n\006st" +
       "atus\030\001 \001(\0162\035.alluxio.proto.status.PStatu" +
-      "s\022\017\n\007message\030\002 \001(\t\"=\n\025LocalBlockOpenRequ" +
+      "s\022\017\n\007message\030\002 \001(\t\"\013\n\tHeartbeat\"=\n\025Local" +
+      "BlockOpenRequest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nse" +
+      "ssion_id\030\002 \001(\003\"&\n\026LocalBlockOpenResponse" +
+      "\022\014\n\004path\030\001 \001(\t\">\n\026LocalBlockCloseRequest" +
+      "\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\"\203" +
+      "\001\n\027LocalBlockCreateRequest\022\020\n\010block_id\030\001",
+      " \001(\003\022\022\n\nsession_id\030\002 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030" +
+      "\n\020space_to_reserve\030\004 \001(\003\022\032\n\022only_reserve" +
+      "_space\030\005 \001(\010\"(\n\030LocalBlockCreateResponse" +
+      "\022\014\n\004path\030\001 \001(\t\"Q\n\031LocalBlockCompleteRequ" +
       "est\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(" +
-      "\003\"&\n\026LocalBlockOpenResponse\022\014\n\004path\030\001 \001(" +
-      "\t\">\n\026LocalBlockCloseRequest\022\020\n\010block_id\030" +
-      "\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003*=\n\013RequestType" +
-      "\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS",
-      "_BLOCK\020\002"
+      "\003\022\016\n\006cancel\030\003 \001(\010*=\n\013RequestType\022\021\n\rALLU" +
+      "XIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5042,24 +7190,48 @@ public final class Protocol {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Response_descriptor,
               new java.lang.String[] { "Status", "Message", });
-          internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor =
+          internal_static_alluxio_proto_dataserver_Heartbeat_descriptor =
             getDescriptor().getMessageTypes().get(3);
+          internal_static_alluxio_proto_dataserver_Heartbeat_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_Heartbeat_descriptor,
+              new java.lang.String[] { });
+          internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor =
+            getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor,
               new java.lang.String[] { "BlockId", "SessionId", });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor =
-            getDescriptor().getMessageTypes().get(4);
+            getDescriptor().getMessageTypes().get(5);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor,
               new java.lang.String[] { "Path", });
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor =
-            getDescriptor().getMessageTypes().get(5);
+            getDescriptor().getMessageTypes().get(6);
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor,
               new java.lang.String[] { "BlockId", "SessionId", });
+          internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor =
+            getDescriptor().getMessageTypes().get(7);
+          internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor,
+              new java.lang.String[] { "BlockId", "SessionId", "Tier", "SpaceToReserve", "OnlyReserveSpace", });
+          internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor =
+            getDescriptor().getMessageTypes().get(8);
+          internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor,
+              new java.lang.String[] { "Path", });
+          internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor =
+            getDescriptor().getMessageTypes().get(9);
+          internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor,
+              new java.lang.String[] { "BlockId", "SessionId", "Cancel", });
           return null;
         }
       };

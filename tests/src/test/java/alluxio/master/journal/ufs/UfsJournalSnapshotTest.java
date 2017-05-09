@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.BaseIntegrationTest;
 import alluxio.util.URIUtils;
 
 import org.junit.Assert;
@@ -26,7 +27,7 @@ import java.util.Queue;
 /**
  * Unit tests for {@link UfsJournalSnapshot}.
  */
-public final class UfsJournalSnapshotTest {
+public final class UfsJournalSnapshotTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 

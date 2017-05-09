@@ -61,6 +61,11 @@ message Response {
   optional string message = 2;
 }
 
+// A heartbeat
+message Heartbeat {
+  // Empty message
+}
+
 // Netty RPCs. Every RPC needs to define a request type and optionally a response type (default to Response).
 
 // next available id: 3
@@ -78,4 +83,26 @@ message LocalBlockOpenResponse {
 message LocalBlockCloseRequest {
   optional int64 block_id = 1;
   optional int64 session_id = 2;
+}
+
+// next available id: 6
+message LocalBlockCreateRequest {
+  optional int64 block_id = 1;
+  optional int64 session_id = 2;
+  optional int32 tier = 3;
+  optional int64 space_to_reserve = 4;
+  // If set, only reserve space for the block.
+  optional bool only_reserve_space = 5;
+}
+
+// next available id: 2
+message LocalBlockCreateResponse {
+  optional string path = 1;
+}
+
+// next available id: 4
+message LocalBlockCompleteRequest {
+  optional int64 block_id = 1;
+  optional int64 session_id = 2;
+  optional bool cancel = 3;
 }

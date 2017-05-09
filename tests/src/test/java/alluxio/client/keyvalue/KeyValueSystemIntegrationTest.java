@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -45,7 +46,7 @@ import java.util.List;
  */
 @Ignore("TODO(Bin): Clear the resources when done with tests. Run the following two tests together "
     + "KeyValuePartitionIntegrationTest,KeyValueSystemIntegrationTest to reproduce.")
-public final class KeyValueSystemIntegrationTest {
+public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
   private static final String BASE_VALUE = "base_value";

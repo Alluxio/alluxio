@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -60,7 +61,7 @@ import java.util.Map;
 /**
  * Test master journal, including checkpoint and entry log.
  */
-public class UfsJournalIntegrationTest {
+public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()

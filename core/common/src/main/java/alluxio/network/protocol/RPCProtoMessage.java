@@ -148,6 +148,14 @@ public final class RPCProtoMessage extends RPCMessage {
       return Type.RPC_LOCAL_BLOCK_OPEN_RESPONSE;
     } else if (mMessage.isLocalBlockCloseRequest()) {
       return Type.RPC_LOCAL_BLOCK_CLOSE_REQUEST;
+    } else if (mMessage.isLocalBlockCreateRequest()) {
+      return Type.RPC_LOCAL_BLOCK_CREATE_REQUEST;
+    } else if (mMessage.isLocalBlockCreateResponse()) {
+      return Type.RPC_LOCAL_BLOCK_CREATE_RESPONSE;
+    } else if (mMessage.isLocalBlockCompleteRequest()) {
+      return Type.RPC_LOCAL_BLOCK_COMPLETE_REQUEST;
+    } else if (mMessage.isHeartbeat()) {
+      return Type.RPC_HEARTBEAT;
     } else {
       return RPCMessage.Type.RPC_UNKNOWN;
     }

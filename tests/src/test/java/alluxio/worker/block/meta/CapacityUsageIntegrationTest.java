@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -31,7 +32,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class CapacityUsageIntegrationTest {
+public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 20 * Constants.MB;
   private static final int DISK_CAPACITY_BYTES = Constants.GB;
   private static final int HEARTBEAT_INTERVAL_MS = 30;

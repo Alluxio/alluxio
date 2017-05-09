@@ -16,14 +16,15 @@ import alluxio.client.QuietlyCancelable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
 
+import java.io.Closeable;
 import java.io.FilterOutputStream;
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,10 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockOutStream extends FilterOutputStream implements BoundedStream, QuietlyCancelable {
-  private final long mBlockId;
-  private final long mBlockSize;
   private final Closer mCloser;
-  private final BlockWorkerClient mBlockWorkerClient;
   private final PacketOutStream mOutStream;
   private boolean mClosed;
 
@@ -56,10 +54,10 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      PacketOutStream outStream = PacketOutStream
-          .createLocalPacketOutStream(client, blockId, blockSize, options);
-      closer.register(outStream);
-      return new BlockOutStream(outStream, blockId, blockSize, client, options);
+      PacketOutStream outStream = closer.register(PacketOutStream
+          .createLocalPacketOutStream(context, workerNetAddress, client.getSessionId(), blockId,
+              blockSize, options));
+      return new BlockOutStream(outStream, closer, options);
     } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);
       throw e;
@@ -81,11 +79,10 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      PacketOutStream outStream = PacketOutStream
+      PacketOutStream outStream = closer.register(PacketOutStream
           .createNettyPacketOutStream(context, workerNetAddress, client.getSessionId(), blockId,
-              blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options);
-      closer.register(outStream);
-      return new BlockOutStream(outStream, blockId, blockSize, client, options);
+              blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options));
+      return new BlockOutStream(outStream, closer, options);
     } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);
       throw e;
@@ -115,26 +112,14 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     if (mClosed) {
       return;
     }
-    Exception exception = null;
-    try {
-      mOutStream.cancel();
-    } catch (Exception e) {
-      exception = e;
-    }
-    try {
-      mBlockWorkerClient.cancelBlock(mBlockId);
-    } catch (Exception e) {
-      exception = e;
-    }
-
-    if (exception == null) {
-      mClosed = true;
-      return;
-    }
-
-    CommonUtils.closeQuietly(mCloser);
     mClosed = true;
-    throw AlluxioStatusException.from(exception);
+    mCloser.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        mOutStream.cancel();
+      }
+    });
+    CommonUtils.close(mCloser);
   }
 
   @Override
@@ -142,35 +127,19 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     if (mClosed) {
       return;
     }
-    try {
-      mOutStream.close();
-      if (remaining() < mBlockSize) {
-        mBlockWorkerClient.cacheBlock(mBlockId);
-      }
-    } finally {
-      CommonUtils.close(mCloser);
-      mClosed = true;
-    }
+    mClosed = true;
+    CommonUtils.close(mCloser);
   }
 
   /**
    * Creates a new block output stream.
    *
    * @param outStream the {@link PacketOutStream} associated with this {@link BlockOutStream}
-   * @param blockId the block id
-   * @param blockSize the block size
-   * @param blockWorkerClient the block worker client
    * @param options the options
    */
-  protected BlockOutStream(PacketOutStream outStream, long blockId, long blockSize,
-      BlockWorkerClient blockWorkerClient, OutStreamOptions options) {
+  protected BlockOutStream(PacketOutStream outStream, Closer closer, OutStreamOptions options) {
     super(outStream);
-
     mOutStream = outStream;
-    mBlockId = blockId;
-    mBlockSize = blockSize;
-    mCloser = Closer.create();
-    mBlockWorkerClient = mCloser.register(blockWorkerClient);
-    mClosed = false;
+    mCloser = closer;
   }
 }

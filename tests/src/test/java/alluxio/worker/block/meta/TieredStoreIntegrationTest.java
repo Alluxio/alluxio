@@ -14,6 +14,7 @@ package alluxio.worker.block.meta;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
  */
-public class TieredStoreIntegrationTest {
+public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
 
   private FileSystem mFileSystem;

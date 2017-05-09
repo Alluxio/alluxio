@@ -18,6 +18,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -61,13 +62,21 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     @Override
     public void close() throws IOException {
       mBlockWriter.close();
-      // TODO(peis): We can call mWorker.commitBlock() here.
+      try {
+        mWorker.commitBlock(mRequest.mSessionId, mRequest.mId);
+      } catch (Exception e) {
+        throw CommonUtils.castToIOException(e);
+      }
     }
 
     @Override
     void cancel() throws IOException {
       mBlockWriter.close();
-      // TODO(peis): We can call mWorker.abortBlock() here.
+      try {
+        mWorker.abortBlock(mRequest.mSessionId, mRequest.mId);
+      } catch (Exception e) {
+        throw CommonUtils.castToIOException(e);
+      }
     }
   }
 

@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
 import alluxio.client.QuietlyCancelable;
-import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.PreconditionMessage;
@@ -52,17 +51,19 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   /**
    * Creates a {@link PacketOutStream} that writes to a local file.
    *
-   * @param client the block worker client
+   * @param context the file system context
+   * @param address the worker network address
+   * @param sessionId the session ID
    * @param id the ID
    * @param length the block or file length
    * @param options the out stream options
    * @return the {@link PacketOutStream} created
    */
-  public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
-      long id, long length, OutStreamOptions options) {
+  public static PacketOutStream createLocalPacketOutStream(FileSystemContext context,
+      WorkerNetAddress address, long sessionId, long id, long length, OutStreamOptions options) {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
-    PacketWriter packetWriter =
-        LocalFilePacketWriter.create(client, id, options.getWriteTier(), packetSize);
+    PacketWriter packetWriter = LocalFilePacketWriter
+        .create(context, address, sessionId, id, options.getWriteTier(), packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 

@@ -22,8 +22,10 @@ import alluxio.worker.block.BlockWorker;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.timeout.IdleStateHandler;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Adds the data server's pipeline into the channel.
@@ -46,10 +48,18 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
   protected void initChannel(Channel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
 
+    final long timeoutMs = Configuration.getInt(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
+
     // Decoders & Encoders
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
+
+    // Idle Event Handlers
+    pipeline.addLast("idleEventHandler", new IdleStateHandler(timeoutMs, 0, 0,
+        TimeUnit.MILLISECONDS));
+    pipeline.addLast("idleReadHandler", new IdleReadHandler());
+    pipeline.addLast("heartbeatHandler", new DataServerHeartbeatHandler());
 
     // Block Handlers
     pipeline.addLast("dataServerBlockReadHandler",
@@ -59,6 +69,8 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
         NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class)));
     pipeline.addLast("dataServerShortCircuitReadHandler",
         new DataServerShortCircuitReadHandler(mWorkerProcess.getWorker(BlockWorker.class)));
+    pipeline.addLast("dataServerShortCircuitWriteHandler",
+        new DataServerShortCircuitWriteHandler(mWorkerProcess.getWorker(BlockWorker.class)));
 
     // UFS Handlers
     pipeline.addLast("dataServerUfsBlockReadHandler", new DataServerUfsBlockReadHandler(

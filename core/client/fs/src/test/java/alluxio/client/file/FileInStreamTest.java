@@ -94,7 +94,7 @@ public class FileInStreamTest {
     List<Long> blockIds = new ArrayList<>();
     for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
-      mCacheStreams.add(new TestBlockOutStream(ByteBuffer.allocate(1000), i, getBlockLength(i)));
+      mCacheStreams.add(new TestBlockOutStream(ByteBuffer.allocate(1000), getBlockLength(i)));
       Mockito.when(mBlockStore.getWorkerInfoList())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       Mockito

@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -42,7 +43,7 @@ import java.util.Map;
 /**
  * Integration tests for mounting multiple UFSes into Alluxio, each with a different configuration.
  */
-public final class MultiUfsMountIntegrationTest {
+public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   private static final String MOUNT_POINT1 = "/mnt1";
   private static final String MOUNT_POINT2 = "/mnt2";
   private static final Map<String, String> UFS_CONF1 = ImmutableMap.of("key1", "val1");
