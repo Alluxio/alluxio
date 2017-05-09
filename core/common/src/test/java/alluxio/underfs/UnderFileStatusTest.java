@@ -55,16 +55,7 @@ public final class UnderFileStatusTest {
     short mode = 077;
     UnderFileStatus statusToCopy = new UnderFileStatus("name", contentLength, isDirectory,
         lastModifiedTimeMs, "owner", "group", mode);
-
     UnderFileStatus status = new UnderFileStatus(statusToCopy);
-
-    Assert.assertEquals("name", status.getName());
-    Assert.assertEquals(contentLength, status.getContentLength());
-    Assert.assertEquals(isDirectory, status.isDirectory());
-    Assert.assertEquals(!isDirectory, status.isFile());
-    Assert.assertEquals(lastModifiedTimeMs, status.getLastModifiedTime());
-    Assert.assertEquals("owner", status.getOwner());
-    Assert.assertEquals("group", status.getGroup());
-    Assert.assertEquals(mode, status.getMode());
+    Assert.assertEquals(statusToCopy, status);
   }
 }
