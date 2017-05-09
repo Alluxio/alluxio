@@ -88,15 +88,15 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (request.getOnlyReserveSpace()) {
+          mBlockWorker.requestSpace(request.getSessionId(), request.getBlockId(),
+              request.getSpaceToReserve());
+          ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
+        } else {
           String path = mBlockWorker.createBlock(request.getSessionId(), request.getBlockId(),
               mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
           Protocol.LocalBlockCreateResponse response =
               Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
           ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
-        } else {
-          mBlockWorker.requestSpace(request.getSessionId(), request.getBlockId(),
-              request.getSpaceToReserve());
-          ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         }
         return null;
       }

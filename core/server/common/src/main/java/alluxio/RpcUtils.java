@@ -183,6 +183,7 @@ public final class RpcUtils {
       return result;
     } catch (Exception e) {
       logger.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
+      callable.exceptionCaught(e);
     }
     return null;
   }
