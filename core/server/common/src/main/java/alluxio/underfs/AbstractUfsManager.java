@@ -143,6 +143,8 @@ public abstract class AbstractUfsManager implements UfsManager {
       mCloser.register(ufsCounter.getFirst());
       return ufsCounter;
     }
+    // It is a get operation, increase reference count.
+    cachedFs.getSecond().incrementAndGet();
     try {
       fs.close();
     } catch (IOException e) {
