@@ -88,6 +88,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Adds a concurrent task.
+   */
   private class ConcurrentAdd extends ConcurrentTask {
     public ConcurrentAdd(CyclicBarrier barrier) {
       super(barrier);
@@ -99,6 +102,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Adds a concurrent task with check.
+   */
   private class ConcurrentAddWithCheck extends ConcurrentTask {
     public ConcurrentAddWithCheck(CyclicBarrier barrier) {
       super(barrier);
@@ -122,6 +128,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Removes a concurrent task.
+   */
   private class ConcurrentRemove extends ConcurrentTask {
     public ConcurrentRemove(CyclicBarrier barrier) {
       super(barrier);
