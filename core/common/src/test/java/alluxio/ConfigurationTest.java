@@ -415,7 +415,7 @@ public class ConfigurationTest {
   public void systemVariableSubstitution() throws Exception {
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.MASTER_HOSTNAME.toString(), "new_master").toResource()) {
-      Configuration.defaultInit();
+      Configuration.init();
       Assert.assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
     }
   }
@@ -474,7 +474,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.defaultInit();
+      Configuration.init();
       Assert.assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           Configuration.get(PropertyKey.LOGGER_TYPE));
     }
@@ -493,7 +493,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.defaultInit();
+      Configuration.init();
       Assert.assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
     }
   }

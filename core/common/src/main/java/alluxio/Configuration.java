@@ -75,7 +75,7 @@ public final class Configuration {
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
 
   static {
-    defaultInit();
+    init();
   }
 
   /**
@@ -84,7 +84,7 @@ public final class Configuration {
    * The order of preference is (1) system properties, (2) properties in the specified file, (3)
    * default property values.
    */
-  public static void defaultInit() {
+  static void init() {
     // Load default
     Properties defaultProps = createDefaultProps();
 

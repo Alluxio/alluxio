@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
 import alluxio.master.MockMaster;
@@ -57,7 +58,7 @@ public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
