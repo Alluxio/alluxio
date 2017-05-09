@@ -132,6 +132,9 @@
                 <relocation>
                   <pattern>com</pattern>
                   <shadedPattern>${shading.prefix}.com</shadedPattern>
+                  <excludes>
+                    <exclude>com.google.common.**</exclude>
+                  </excludes>
                 </relocation>
                 <relocation>
                   <pattern>net</pattern>
@@ -144,10 +147,16 @@
                 <relocation>
                   <pattern>javax</pattern>
                   <shadedPattern>${shading.prefix}.javax</shadedPattern>
+                  <excludes>
+                    <exclude>javax.annotation.concurrent.*</exclude>
+                  </excludes>
                 </relocation>
                 <relocation>
                   <pattern>org</pattern>
                   <shadedPattern>${shading.prefix}.org</shadedPattern>
+                  <excludes>
+                    <exclude>org.slf4j.*</exclude>
+                  </excludes>
                 </relocation>
                 <relocation>
                   <pattern>webapps</pattern>
