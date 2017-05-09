@@ -60,6 +60,21 @@ public final class UnderFileStatus {
   }
 
   /**
+   * Creates a new instance of under file information as a copy.
+   *
+   * @param status file information to copy
+   */
+  public UnderFileStatus(UnderFileStatus status) {
+    mContentLength = status.mContentLength;
+    mIsDirectory = status.mIsDirectory;
+    mLastModifiedTimeMs = status.mLastModifiedTimeMs;
+    mName = status.mName;
+    mOwner = status.mOwner;
+    mGroup = status.mGroup;
+    mMode = status.mMode;
+  }
+
+  /**
    * Converts an array of UFS file status to a listing result where each element in the array is
    * a file or directory name.
    *

@@ -155,11 +155,13 @@ public final class UfsSyncChecker {
     while (curUri != null) {
       if (mListedDirectories.containsKey(curUri.toString())) {
         List<UnderFileStatus> childrenList = new LinkedList<>();
-        for (UnderFileStatus child : mListedDirectories.get(curUri.toString())) {
-          String childPath = PathUtils.concatPath(curUri, child.getName());
+        for (UnderFileStatus childStatus : mListedDirectories.get(curUri.toString())) {
+          String childPath = PathUtils.concatPath(curUri, childStatus.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
           if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-            childrenList.add(child.setName(childPath.substring(prefix.length())));
+            UnderFileStatus newStatus = new UnderFileStatus(childStatus);
+            newStatus.setName(childPath.substring(prefix.length()));
+            childrenList.add(newStatus);
           }
         }
         return trimIndirect(childrenList.toArray(new UnderFileStatus[childrenList.size()]));
