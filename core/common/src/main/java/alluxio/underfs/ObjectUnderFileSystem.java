@@ -338,7 +338,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
+  public long getFileStatus(String path) throws IOException {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
       return details.getContentLength();

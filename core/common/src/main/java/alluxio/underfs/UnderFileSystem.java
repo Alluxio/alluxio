@@ -213,6 +213,14 @@ public interface UnderFileSystem extends Closeable {
   long getBlockSizeByte(String path) throws IOException;
 
   /**
+   * Gets the directory status.
+   *
+   * @param path the file name
+   * @return the directory status
+   */
+  UnderFileStatus getDirectoryStatus(String path) throws IOException;
+
+  /**
    * Gets the list of locations of the indicated path.
    *
    * @param path the file name
@@ -230,7 +238,7 @@ public interface UnderFileSystem extends Closeable {
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file status.
+   * Gets the file status. Note: Do not use this method for a directory.
    *
    * @param path the file name
    * @return the file status

@@ -2027,12 +2027,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode.setDirectChildrenLoaded(true);
         return;
       }
-      if (options.getUnderFileStatus() == null) {
-        options.setUnderFileStatus(ufs.getFileStatus(ufsUri.toString()));
-      }
-      if (options.getUnderFileStatus().isFile()) {
+      if (ufs.isFile(ufsUri.toString())) {
+        if (options.getUnderFileStatus() == null) {
+          options.setUnderFileStatus(ufs.getFileStatus(ufsUri.toString()));
+        }
         loadFileMetadataAndJournal(inodePath, resolution, options, journalContext);
       } else {
+        if (options.getUnderFileStatus() == null) {
+          options.setUnderFileStatus(ufs.getDirectoryStatus(ufsUri.toString()));
+        }
         loadDirectoryMetadataAndJournal(inodePath, options, journalContext);
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
