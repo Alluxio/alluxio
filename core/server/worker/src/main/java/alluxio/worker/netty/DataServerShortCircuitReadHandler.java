@@ -18,6 +18,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.IdUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
@@ -31,6 +32,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Netty handler that handles short circuit read requests.
+ *
+ * This handler is associates any resources such as locks or temporary blocks with the same
+ * session id and will clean up these resources if the channel is closed.
  */
 @NotThreadSafe
 class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
@@ -39,7 +43,9 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
 
   /** The block worker. */
   private final BlockWorker mBlockWorker;
-  /** The lock Id of the block being read. */
+  /** The session id of this handler. */
+  private final long mSessionId;
+  /** The lock id of the block being read. */
   private long mLockId;
 
   /**
@@ -49,6 +55,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
    */
   DataServerShortCircuitReadHandler(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
+    mSessionId = IdUtils.getRandomNonNegativeLong();
     mLockId = BlockLockManager.INVALID_LOCK_ID;
   }
 
@@ -86,6 +93,9 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
         LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
       }
     }
+    // Currently this is a no-op since there are no temporary blocks held by this handler. This
+    // is here for consistency.
+    mBlockWorker.cleanupSession(mSessionId);
   }
 
   /**
@@ -102,7 +112,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
       public Void call() throws Exception {
         // It is a no-op to lock the same block multiple times within the same channel.
         if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
-          mLockId = mBlockWorker.lockBlock(request.getSessionId(), request.getBlockId());
+          mLockId = mBlockWorker.lockBlock(mSessionId, request.getBlockId());
         } else {
           LOG.warn("Lock block {} without releasing previous block lock {}.", request.getBlockId(),
               mLockId);
@@ -110,7 +120,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
               ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
         }
         Protocol.LocalBlockOpenResponse response = Protocol.LocalBlockOpenResponse.newBuilder()
-            .setPath(mBlockWorker.readBlock(request.getSessionId(), request.getBlockId(), mLockId))
+            .setPath(mBlockWorker.readBlock(mSessionId, request.getBlockId(), mLockId))
             .build();
         ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
 
