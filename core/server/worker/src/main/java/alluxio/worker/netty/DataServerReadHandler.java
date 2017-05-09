@@ -21,13 +21,13 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.worker.SessionCleanable;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    of {@link DataServerReadHandler#mCancel#mEof#mError}.
  */
 @NotThreadSafe
-abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
+abstract class DataServerReadHandler extends DataServerSessionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerReadHandler.class);
 
   private static final long MAX_PACKETS_IN_FLIGHT =
@@ -160,7 +160,8 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    *
    * @param executorService the executor service to run {@link PacketReader}s
    */
-  DataServerReadHandler(ExecutorService executorService) {
+  DataServerReadHandler(ExecutorService executorService, SessionCleanable... cleanables) {
+    super(cleanables);
     mPacketReaderExecutor = executorService;
   }
 

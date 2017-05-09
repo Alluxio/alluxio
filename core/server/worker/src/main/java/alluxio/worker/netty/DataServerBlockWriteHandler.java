@@ -87,7 +87,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
    * @param blockWorker the block worker
    */
   DataServerBlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
-    super(executorService);
+    super(executorService, blockWorker);
     mWorker = blockWorker;
   }
 

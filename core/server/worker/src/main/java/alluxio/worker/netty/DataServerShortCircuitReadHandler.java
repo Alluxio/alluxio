@@ -18,13 +18,11 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.IdUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,19 +31,16 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Netty handler that handles short circuit read requests.
  *
- * This handler is associates any resources such as locks or temporary blocks with the same
- * session id and will clean up these resources if the channel is closed. Resources can also be
- * cleaned up through normal operations, for example if the client closes or cancels the request.
+ * This handler holds a lock resource which is cleaned up whenever the channel is closed or an
+ * error occurs.
  */
 @NotThreadSafe
-class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
+class DataServerShortCircuitReadHandler extends DataServerSessionHandler {
   private static final Logger LOG =
       LoggerFactory.getLogger(DataServerShortCircuitReadHandler.class);
 
   /** The block worker. */
   private final BlockWorker mBlockWorker;
-  /** The session id of this handler. */
-  private final long mSessionId;
   /** The lock id of the block being read. */
   private long mLockId;
 
@@ -55,8 +50,8 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
    * @param blockWorker the block worker
    */
   DataServerShortCircuitReadHandler(BlockWorker blockWorker) {
+    super(blockWorker);
     mBlockWorker = blockWorker;
-    mSessionId = IdUtils.getRandomNonNegativeLong();
     mLockId = BlockLockManager.INVALID_LOCK_ID;
   }
 
@@ -94,10 +89,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
         LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
       }
     }
-    // Currently this is a no-op since there are no temporary blocks held by this handler. This
-    // is here for consistency.
-    mBlockWorker.cleanupSession(mSessionId);
-    ctx.fireChannelUnregistered();
+    super.channelUnregistered(ctx);
   }
 
   /**

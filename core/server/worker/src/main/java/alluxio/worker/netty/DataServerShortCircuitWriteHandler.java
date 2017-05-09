@@ -30,21 +30,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Netty handler that handles short circuit write requests.
- *
- * This handler is associates any resources such as locks or temporary blocks with the same
- * session id and will clean up these resources if the channel is closed. Resources can also be
- * cleaned up through normal operations, for example if the client closes or cancels the request.
- *
  */
 @NotThreadSafe
-class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
+class DataServerShortCircuitWriteHandler extends DataServerSessionHandler {
   private static final Logger LOG =
       LoggerFactory.getLogger(DataServerShortCircuitWriteHandler.class);
 
   /** The block worker. */
   private final BlockWorker mBlockWorker;
-  /** The session id of this handler. */
-  private final long mSessionId;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
@@ -54,14 +47,8 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
    * @param blockWorker the block worker
    */
   DataServerShortCircuitWriteHandler(BlockWorker blockWorker) {
+    super(blockWorker);
     mBlockWorker = blockWorker;
-    mSessionId = IdUtils.getRandomNonNegativeLong();
-  }
-
-  @Override
-  public void channelUnregistered(ChannelHandlerContext ctx) {
-    mBlockWorker.cleanupSession(mSessionId);
-    ctx.fireChannelUnregistered();
   }
 
   @Override

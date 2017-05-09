@@ -85,7 +85,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
    */
   DataServerBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
       FileTransferType fileTransferType) {
-    super(executorService);
+    super(executorService, blockWorker);
     mWorker = blockWorker;
     mTransferType = fileTransferType;
   }
