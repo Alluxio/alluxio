@@ -13,8 +13,11 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
@@ -28,6 +31,7 @@ import alluxio.wire.LoadMetadataType;
 import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -63,6 +67,11 @@ public class LoadMetadataTest {
     UnderFileSystemRegistry.register(sSleepingUfsFactory);
   }
 
+  @AfterClass
+  public static void afterClass() throws Exception {
+    UnderFileSystemRegistry.unregister(sSleepingUfsFactory);
+  }
+
   @Before
   public void before() throws Exception {
     mFileSystem = FileSystem.Factory.get();
@@ -76,6 +85,7 @@ public class LoadMetadataTest {
 
   @After
   public void after() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
@@ -158,6 +168,30 @@ public class LoadMetadataTest {
 
     // 'ONCE' should still not load metadata, since the ancestor is absent
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
+  }
+
+  @Test
+  public void loadAlwaysConfiguration() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Always.toString());
+    GetStatusOptions options = GetStatusOptions.defaults();
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
+  }
+
+  @Test
+  public void loadOnceConfiguration() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
+    GetStatusOptions options = GetStatusOptions.defaults();
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
+  }
+
+  @Test
+  public void loadNeverConfiguration() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Never.toString());
+    GetStatusOptions options = GetStatusOptions.defaults();
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
 
   /**

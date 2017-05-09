@@ -61,13 +61,19 @@ public class UfsAbsentPathCache {
       return;
     }
 
-    // create a ufs uri of the root.
-    AlluxioURI uri =
-        new AlluxioURI(ufsUri.getScheme(), ufsUri.getAuthority(), "/", ufsUri.getQueryMap());
+    // create a ufs uri of the root of the mount point.
+    AlluxioURI uri = mMountTable.getMountInfo(resolution.getMountId()).getUfsUri();
+    int mountPointBase = uri.getDepth();
 
     // Traverse through the ufs path components, staring from the root, to find the first
     // non-existing ufs path.
-    for (String component : components) {
+    for (int i = 0; i < components.length; i++) {
+      if (i > 0 && i <= mountPointBase) {
+        // Do not process components before the base of the mount point.
+        // However, process the first component, since that will be the actual mount point base.
+        continue;
+      }
+      String component = components[i];
       uri = uri.join(component);
       String uriPath = uri.getPath();
       try {
