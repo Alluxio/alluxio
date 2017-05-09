@@ -88,7 +88,7 @@ function mount_ramfs_linux() {
 
 function mount_ramfs_mac() {
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
-  local num_sectors=$(${bin}/alluxio runClass alluxio.util.HFSUtils ${MEM_SIZE} 512)
+  local num_sectors=$(${BIN}/alluxio runClass alluxio.util.HFSUtils ${MEM_SIZE} 512)
 
   # Format the RAM FS
   # We may have a pre-existing RAM FS which we need to throw away
