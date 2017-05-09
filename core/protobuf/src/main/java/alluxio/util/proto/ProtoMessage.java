@@ -160,7 +160,6 @@ public final class ProtoMessage {
   }
 
   /**
-<<<<<<< HEAD
    * Gets the local block open request or throws runtime exception if mMessage is not of type
    * {@link Protocol.LocalBlockOpenRequest}.
    *
