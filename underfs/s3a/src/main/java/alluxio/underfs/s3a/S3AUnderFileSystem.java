@@ -251,24 +251,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // Returns the account owner.
-  @Override
-  public String getOwner(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // No group in S3 ACL, returns the account owner.
-  @Override
-  public String getGroup(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the S3 bucket.
-  @Override
-  public short getMode(String path) throws IOException {
-    return mBucketMode;
-  }
-
   @Override
   protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
@@ -347,6 +329,24 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
+  }
+
+  // Returns the account owner.
+  @Override
+  protected String getBucketOwner() {
+    return mAccountOwner;
+  }
+
+  // No group in S3 ACL, returns the account owner.
+  @Override
+  protected String getBucketGroup() throws IOException {
+    return mAccountOwner;
+  }
+
+  // Returns the account owner's permission mode to the S3 bucket.
+  @Override
+  protected short getBucketMode() throws IOException {
+    return mBucketMode;
   }
 
   @Override

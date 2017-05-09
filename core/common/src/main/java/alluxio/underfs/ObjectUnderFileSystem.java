@@ -123,7 +123,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      *
      * @return a list of object names
      */
-    String[] getObjectNames();
+    UnderFileStatus[] getObjectStatuses();
 
     /**
      * Use common prefixes to infer pseudo-directories in object store.
@@ -549,6 +549,29 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Owner of the mounted bucket.
+   *
+   * @return owner for the file
+   */
+  protected abstract String getBucketOwner();
+
+
+  /**
+   * Group of the mounted bucket.
+   *
+   * @return group for the file
+   */
+  protected abstract String getBucketGroup();
+
+
+  /**
+   * Mode of the mounted bucket.
+   *
+   * @return owner for the file
+   */
+  protected abstract short getBucketMode();
+
+  /**
    * Maximum number of items in a single listing chunk supported by the under store.
    *
    * @return the maximum length for a single listing query
@@ -649,7 +672,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && ((objs.getObjectNames() != null && objs.getObjectNames().length > 0)
+    if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // If the breadcrumb exists, this is a no-op
       mkdirsInternal(dir);
@@ -703,15 +726,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       // - commonPrefix = ufs/dir2/, child = dir2
 
       // Handle case (1)
-      for (String obj : chunk.getObjectNames()) {
+      for (UnderFileStatus status : chunk.getObjectStatuses()) {
         // Remove parent portion of the key
-        String child = getChildName(obj, keyPrefix);
+        String child = getChildName(status.getName(), keyPrefix);
         // Prune the special folder suffix
         boolean isDir = child.endsWith(getFolderSuffix());
         child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
         // Only add if the path is not empty (removes results equal to the path)
         if (!child.isEmpty()) {
-          children.put(child, isDir);
+          children.put(child, status.setName(child));
         }
       }
       // Handle case (2)
@@ -720,7 +743,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         // In case of a recursive listing infer pseudo-directories as the commonPrefixes returned
         // from the object store is empty for an empty delimiter.
         HashSet<String> prefixes = new HashSet<>();
-        for (String objectName : chunk.getObjectNames()) {
+        for (UnderFileStatus objectStatus : chunk.getObjectStatuses()) {
+          String objectName = objectStatus.getName();
           while (objectName.startsWith(keyPrefix)) {
             objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
             if (!objectName.isEmpty()) {
@@ -744,7 +768,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             mkdirsInternal(commonPrefix);
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
-            children.put(child, true);
+            children.put(child, new UnderFileStatus(child, 0L, true, -1L, getBucketOwner(),
+                getBucketGroup(), getBucketMode()));
           }
         }
       }
@@ -752,8 +777,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     UnderFileStatus[] ret = new UnderFileStatus[children.size()];
     int pos = 0;
-    for (Map.Entry<String, Boolean> entry : children.entrySet()) {
-      ret[pos++] = new UnderFileStatus(entry.getKey(), entry.getValue());
+    for (UnderFileStatus status : children.values()) {
+      ret[pos++] = status;
     }
     return ret;
   }
