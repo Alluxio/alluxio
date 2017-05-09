@@ -132,7 +132,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Objects in a pseudo-directory which may be a file or a directory.
      *
-     * @return a list of object names
+     * @return a list of object statuses
      */
     ObjectStatus[] getObjectStatuses();
 

@@ -143,6 +143,12 @@ public final class UnderFileStatus {
     return mOwner;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mName, mContentLength, mIsDirectory, mLastModifiedTimeMs, mOwner,
+        mGroup, mMode);
+  }
+
   /**
    * Set the name of file or directory.
    *
@@ -158,7 +164,6 @@ public final class UnderFileStatus {
   public String toString() {
     return getName();
   }
-
 
   @Override
   public boolean equals(Object o) {
