@@ -120,7 +120,12 @@ public final class FileUtils {
     return translatePermissionMode(permission);
   }
 
-  // Translate posix file permissions to short mode.
+  /**
+   * Translate posix file permissions to short mode.
+   *
+   * @param permission posix file permission
+   * @return mode for file
+   */
   public static short translatePermissionMode(Set<PosixFilePermission> permission) {
     int mode = 0;
     for (PosixFilePermission action : PosixFilePermission.values()) {

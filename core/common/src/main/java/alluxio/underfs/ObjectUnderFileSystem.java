@@ -89,10 +89,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected class ObjectStatus {
     final long mContentLength;
     final long mLastModifiedTimeMs;
+    final String mName;
 
-    public ObjectStatus(long contentLength, long lastModifiedTimeMs) {
+    public ObjectStatus(String name, long contentLength, long lastModifiedTimeMs) {
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
+      mName = name;
     }
 
     /**
@@ -112,6 +114,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     public long getLastModifiedTimeMs() {
       return mLastModifiedTimeMs;
     }
+
+    /**
+     * Gets the name of the object.
+     *
+     * @return object name
+     */
+    public String getName() {
+      return mName;
+    }
   }
 
   /**
@@ -123,7 +134,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      *
      * @return a list of object names
      */
-    UnderFileStatus[] getObjectStatuses();
+    ObjectStatus[] getObjectStatuses();
 
     /**
      * Use common prefixes to infer pseudo-directories in object store.
@@ -316,6 +327,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
+  @Override
+  public UnderFileStatus getDirectoryStatus(String path) throws IOException {
+    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+    ObjectStatus details = getObjectStatus(keyAsFolder);
+    if (details != null) {
+      return new UnderFileStatus(path, details.getContentLength(), true,
+          details.getLastModifiedTimeMs(), getBucketOwner(), getBucketGroup(), getBucketMode());
+    } else {
+      LOG.error("Error fetching file size, assuming file does not exist");
+      throw new FileNotFoundException(path);
+    }
+  }
+
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
@@ -338,22 +362,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public long getFileStatus(String path) throws IOException {
+  public UnderFileStatus getFileStatus(String path) throws IOException {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
-      return details.getContentLength();
+      return new UnderFileStatus(path, details.getContentLength(), false,
+          details.getLastModifiedTimeMs(), getBucketOwner(), getBucketGroup(), getBucketMode());
     } else {
       LOG.error("Error fetching file size, assuming file does not exist");
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
-    if (details != null) {
-      return details.getLastModifiedTimeMs();
-    } else {
       throw new FileNotFoundException(path);
     }
   }
@@ -555,14 +570,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected abstract String getBucketOwner();
 
-
   /**
    * Group of the mounted bucket.
    *
    * @return group for the file
    */
   protected abstract String getBucketGroup();
-
 
   /**
    * Mode of the mounted bucket.
@@ -726,7 +739,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       // - commonPrefix = ufs/dir2/, child = dir2
 
       // Handle case (1)
-      for (UnderFileStatus status : chunk.getObjectStatuses()) {
+      for (ObjectStatus status : chunk.getObjectStatuses()) {
         // Remove parent portion of the key
         String child = getChildName(status.getName(), keyPrefix);
         // Prune the special folder suffix
@@ -734,7 +747,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
         // Only add if the path is not empty (removes results equal to the path)
         if (!child.isEmpty()) {
-          children.put(child, status.setName(child));
+          children.put(child, new UnderFileStatus(child, status.getContentLength(), isDir,
+              status.getLastModifiedTimeMs(), getBucketOwner(), getBucketGroup(), getBucketMode()));
         }
       }
       // Handle case (2)
@@ -743,7 +757,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         // In case of a recursive listing infer pseudo-directories as the commonPrefixes returned
         // from the object store is empty for an empty delimiter.
         HashSet<String> prefixes = new HashSet<>();
-        for (UnderFileStatus objectStatus : chunk.getObjectStatuses()) {
+        for (ObjectStatus objectStatus : chunk.getObjectStatuses()) {
           String objectName = objectStatus.getName();
           while (objectName.startsWith(keyPrefix)) {
             objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
@@ -768,8 +782,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             mkdirsInternal(commonPrefix);
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
-            children.put(child, new UnderFileStatus(child, 0L, true, -1L, getBucketOwner(),
-                getBucketGroup(), getBucketMode()));
+            children.put(child,
+                new UnderFileStatus(child, UnderFileStatus.DIRECTORY_CONTENT_LENGTH, true,
+                    UnderFileStatus.INVALID_MODIFIED_TIME, getBucketOwner(), getBucketGroup(),
+                    getBucketMode()));
           }
         }
       }

@@ -19,6 +19,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UnderFileStatus {
+  /** Size of a directory. */
+  public static final long DIRECTORY_CONTENT_LENGTH = 0L;
+
+  /** Last modified time for a directory. */
+  public static final long INVALID_MODIFIED_TIME = 0L;
+
   private long mContentLength;
   private boolean mIsDirectory;
   private long mLastModifiedTimeMs;
@@ -33,7 +39,12 @@ public class UnderFileStatus {
    * Creates new instance for under file information.
    *
    * @param name relative path of file or directory
+   * @param contentLength in bytes
    * @param isDirectory whether the path is a directory
+   * @param lastModifiedTimeMs UTC time
+   * @param owner of the file
+   * @param group of the file
+   * @param mode of the file
    */
   public UnderFileStatus(String name, long contentLength, boolean isDirectory,
       long lastModifiedTimeMs, String owner, String group, short mode) {
@@ -113,7 +124,7 @@ public class UnderFileStatus {
   }
 
   /**
-   * Set the name of file or directory
+   * Set the name of file or directory.
    *
    * @param name of entry
    * @return this object

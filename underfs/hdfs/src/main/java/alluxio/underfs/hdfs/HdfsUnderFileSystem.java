@@ -204,6 +204,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public UnderFileStatus getDirectoryStatus(String path) throws IOException {
+    return getFileStatus(path);
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     return getFileLocations(path, FileLocationOptions.defaults());
   }
@@ -231,6 +236,14 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     return ret;
   }
 
+  @Override
+  public UnderFileStatus getFileStatus(String path) throws IOException {
+    Path tPath = new Path(path);
+    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    return new UnderFileStatus(tPath.getName(), fs.getLen(), fs.isDirectory(),
+        fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+  }
+  
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster

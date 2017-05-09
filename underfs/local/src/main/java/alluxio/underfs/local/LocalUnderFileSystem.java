@@ -163,6 +163,11 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public UnderFileStatus getDirectoryStatus(String path) throws IOException {
+    return getFileStatus(path);
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<>();
     ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC));
@@ -173,6 +178,17 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
     return getFileLocations(path);
+  }
+
+  @Override
+  public UnderFileStatus getFileStatus(String path) throws IOException {
+    path = stripPath(path);
+    File file = new File(path);
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+    return new UnderFileStatus(path, file.length(), file.isDirectory(), file.lastModified(),
+        attr.owner().getName(), attr.group().getName(),
+        FileUtils.translatePermissionMode(attr.permissions()));
   }
 
   @Override

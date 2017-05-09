@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
@@ -339,13 +340,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   // No group in S3 ACL, returns the account owner.
   @Override
-  protected String getBucketGroup() throws IOException {
+  protected String getBucketGroup() {
     return mAccountOwner;
   }
 
   // Returns the account owner's permission mode to the S3 bucket.
   @Override
-  protected short getBucketMode() throws IOException {
+  protected short getBucketMode() {
     return mBucketMode;
   }
 
@@ -403,12 +404,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public String[] getObjectNames() {
+    public ObjectStatus[] getObjectStatuses() {
       List<S3ObjectSummary> objects = mResult.getObjectSummaries();
-      String[] ret = new String[objects.size()];
+      ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i++] = obj.getKey();
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -438,7 +439,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(meta.getContentLength(), meta.getLastModified().getTime());
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
     } catch (AmazonClientException e) {
       return null;
     }
