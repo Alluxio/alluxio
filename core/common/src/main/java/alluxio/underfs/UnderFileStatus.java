@@ -230,7 +230,7 @@ public final class UnderFileStatus {
    * @param owner for the entry
    * @param group for the entry
    * @param mode for the entry
-   * @return
+   * @return this object
    */
   public UnderFileStatus setPermissions(String owner, String group, short mode) {
     mOwner = owner;
