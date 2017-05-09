@@ -297,21 +297,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public long getModificationTimeMs(final String path) throws IOException {
-    return call(new UfsCallable<Long>() {
-      @Override
-      public Long call() throws IOException {
-        return mUnderFileSystem.getModificationTimeMs(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetModificationTimeMs: path=%s", path);
-      }
-    });
-  }
-
-  @Override
   public String getOwner(final String path) throws IOException {
     return call(new UfsCallable<String>() {
       @Override

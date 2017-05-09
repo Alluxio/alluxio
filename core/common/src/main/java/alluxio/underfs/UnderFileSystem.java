@@ -255,14 +255,6 @@ public interface UnderFileSystem extends Closeable {
   short getMode(String path) throws IOException;
 
   /**
-   * Gets the UTC time of when the indicated path was modified recently in ms.
-   *
-   * @param path the file name
-   * @return modification time in milliseconds
-   */
-  long getModificationTimeMs(String path) throws IOException;
-
-  /**
    * Gets the owner of the given path. An empty implementation should be provided if not supported.
    *
    * @param path the path of the file
