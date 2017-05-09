@@ -14,6 +14,7 @@ package alluxio.security;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.status.UnavailableException;
@@ -37,7 +38,7 @@ import javax.security.sasl.AuthenticationException;
  */
 // TODO(bin): add tests for {@link MultiMasterLocalAlluxioCluster} in fault tolerant mode
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
-public final class MasterClientAuthenticationIntegrationTest {
+public final class MasterClientAuthenticationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();

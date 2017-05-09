@@ -13,6 +13,7 @@ package alluxio.security;
 
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
@@ -32,7 +33,7 @@ import org.junit.rules.ExpectedException;
  * KERBEROS.
  */
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
-public final class BlockWorkerClientAuthenticationIntegrationTest {
+public final class BlockWorkerClientAuthenticationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileInStream;
@@ -54,7 +55,7 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for reading from a remote worker.
  */
 @RunWith(Parameterized.class)
-public class RemoteReadIntegrationTest {
+public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;

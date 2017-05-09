@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.BaseIntegrationTest;
 import alluxio.util.URIUtils;
 
 import org.junit.Assert;
@@ -28,7 +29,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link UfsJournalFile}.
  */
-public final class UfsJournalFileTest {
+public final class UfsJournalFileTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 

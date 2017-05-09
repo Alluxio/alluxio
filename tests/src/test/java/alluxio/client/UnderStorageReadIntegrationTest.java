@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -41,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Integration tests for reading data which is only stored in Alluxio's under storage.
  */
-public class UnderStorageReadIntegrationTest {
+public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(UnderStorageReadIntegrationTest.class);
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;

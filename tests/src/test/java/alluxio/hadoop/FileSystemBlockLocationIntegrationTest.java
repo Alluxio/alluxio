@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 
@@ -28,7 +29,7 @@ import java.net.URI;
 /**
  * Integration tests for {@link FileSystem#getFileBlockLocations(FileStatus, long, long)}.
  */
-public class FileSystemBlockLocationIntegrationTest {
+public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
   private static final int FILE_LEN = BLOCK_SIZE * 3;
