@@ -17,6 +17,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.IdUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockWorker;
 
@@ -28,7 +29,12 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Netty handler that handles short circuit read requests.
+ * Netty handler that handles short circuit write requests.
+ *
+ * This handler is associates any resources such as locks or temporary blocks with the same
+ * session id and will clean up these resources if the channel is closed. Resources can also be
+ * cleaned up through normal operations, for example if the client closes or cancels the request.
+ *
  */
 @NotThreadSafe
 class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
@@ -37,6 +43,8 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
 
   /** The block worker. */
   private final BlockWorker mBlockWorker;
+  /** The session id of this handler. */
+  private final long mSessionId;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
@@ -47,6 +55,13 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
    */
   DataServerShortCircuitWriteHandler(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
+    mSessionId = IdUtils.getRandomNonNegativeLong();
+  }
+
+  @Override
+  public void channelUnregistered(ChannelHandlerContext ctx) {
+    mBlockWorker.cleanupSession(mSessionId);
+    ctx.fireChannelUnregistered();
   }
 
   @Override
@@ -88,11 +103,11 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (request.getOnlyReserveSpace()) {
-          mBlockWorker.requestSpace(request.getSessionId(), request.getBlockId(),
+          mBlockWorker.requestSpace(mSessionId, request.getBlockId(),
               request.getSpaceToReserve());
           ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         } else {
-          String path = mBlockWorker.createBlock(request.getSessionId(), request.getBlockId(),
+          String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
               mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
           Protocol.LocalBlockCreateResponse response =
               Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
@@ -130,9 +145,9 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (request.getCancel()) {
-          mBlockWorker.abortBlock(request.getSessionId(), request.getBlockId());
+          mBlockWorker.abortBlock(mSessionId, request.getBlockId());
         } else {
-          mBlockWorker.commitBlock(request.getSessionId(), request.getBlockId());
+          mBlockWorker.commitBlock(mSessionId, request.getBlockId());
         }
         ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         return null;

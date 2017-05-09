@@ -34,7 +34,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Netty handler that handles short circuit read requests.
  *
  * This handler is associates any resources such as locks or temporary blocks with the same
- * session id and will clean up these resources if the channel is closed.
+ * session id and will clean up these resources if the channel is closed. Resources can also be
+ * cleaned up through normal operations, for example if the client closes or cancels the request.
  */
 @NotThreadSafe
 class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
@@ -96,6 +97,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
     // Currently this is a no-op since there are no temporary blocks held by this handler. This
     // is here for consistency.
     mBlockWorker.cleanupSession(mSessionId);
+    ctx.fireChannelUnregistered();
   }
 
   /**
