@@ -50,6 +50,8 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
             Mockito.anyLong());
     Mockito.doNothing().when(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
     mFile = mTestFolder.newFile().getPath();
     mBlockWriter = new LocalFileBlockWriter(mFile);
     Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
