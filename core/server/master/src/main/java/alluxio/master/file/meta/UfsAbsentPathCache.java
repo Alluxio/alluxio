@@ -28,13 +28,13 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
-public final class UfsAbsentPathCache {
+public class UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathCache.class);
 
   /** The mount table. */
-  private final MountTable mMountTable;
+  protected final MountTable mMountTable;
   /** Stores a cache for each mount point (the key is mount id). */
-  private final ConcurrentHashMapV8<Long, ConcurrentSkipListSet<String>> mCaches;
+  protected final ConcurrentHashMapV8<Long, ConcurrentSkipListSet<String>> mCaches;
 
   /**
    * Creates a new instance of {@link UfsAbsentPathCache}.
@@ -65,7 +65,6 @@ public final class UfsAbsentPathCache {
     AlluxioURI uri =
         new AlluxioURI(ufsUri.getScheme(), ufsUri.getAuthority(), "/", ufsUri.getQueryMap());
 
-    // TODO(gpang): Traversal is expensive with the UFS calls. Consider an async version.
     // Traverse through the ufs path components, staring from the root, to find the first
     // non-existing ufs path.
     for (String component : components) {
@@ -135,7 +134,7 @@ public final class UfsAbsentPathCache {
     return false;
   }
 
-  private ConcurrentSkipListSet<String> getCache(long mountId) {
+  protected ConcurrentSkipListSet<String> getCache(long mountId) {
     ConcurrentSkipListSet<String> set = mCaches.get(mountId);
     if (set != null) {
       return set;

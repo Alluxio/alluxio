@@ -18,12 +18,14 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
 import alluxio.wire.LoadMetadataType;
 
+import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
@@ -31,6 +33,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -165,7 +168,7 @@ public class LoadMetadataTest {
    * @param expectExists if true, the path should exist
    * @param expectLoadFromUfs if true, the get status call will load from ufs
    */
-  private void checkGetStatus(String path, GetStatusOptions options, boolean expectExists,
+  private void checkGetStatus(final String path, GetStatusOptions options, boolean expectExists,
       boolean expectLoadFromUfs)
       throws Exception {
     long startMs = CommonUtils.getCurrentMs();
@@ -186,6 +189,28 @@ public class LoadMetadataTest {
     } else {
       Assert.assertTrue("Expected to be fast (no ufs load). actual duration (ms): " + durationMs,
           durationMs < SLEEP_MS / 2);
+    }
+
+    if (!expectExists && expectLoadFromUfs) {
+      // The metadata is loaded from Ufs, but the path does not exist, so it will be added to the
+      // absent cache. Wait until the path shows up in the absent cache.
+      final UfsAbsentPathCache cache = Whitebox.getInternalState(
+          mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+              .getMaster(FileSystemMaster.class), "mUfsAbsentPathCache");
+      CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
+          new Function<Void, Boolean>() {
+            @Override
+            public Boolean apply(Void input) {
+              try {
+                if (cache.isAbsent(new AlluxioURI(path))) {
+                  return true;
+                }
+              } catch (Exception e) {
+                return false;
+              }
+              return false;
+            }
+          });
     }
   }
 }
