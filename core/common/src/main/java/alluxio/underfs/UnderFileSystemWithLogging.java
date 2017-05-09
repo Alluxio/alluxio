@@ -252,16 +252,16 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public long getFileSize(final String path) throws IOException {
-    return call(new UfsCallable<Long>() {
+  public UnderFileStatus getFileStatus(final String path) throws IOException {
+    return call(new UfsCallable<UnderFileStatus>() {
       @Override
-      public Long call() throws IOException {
-        return mUnderFileSystem.getFileSize(path);
+      public UnderFileStatus call() throws IOException {
+        return mUnderFileSystem.getFileStatus(path);
       }
 
       @Override
       public String toString() {
-        return String.format("GetFileSize: path=%s", path);
+        return String.format("GetFileStatus: path=%s", path);
       }
     });
   }

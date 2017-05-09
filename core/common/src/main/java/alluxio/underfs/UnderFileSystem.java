@@ -230,12 +230,12 @@ public interface UnderFileSystem extends Closeable {
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file size in bytes.
+   * Gets the file status.
    *
    * @param path the file name
-   * @return the file size in bytes
+   * @return the file status
    */
-  long getFileSize(String path) throws IOException;
+  UnderFileStatus getFileStatus(String path) throws IOException;
 
   /**
    * Gets the group of the given path. An empty implementation should be provided if not supported.

@@ -820,7 +820,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return ufs.isDirectory(ufsPath);
     } else {
       InodeFile file = (InodeFile) inode;
-      return ufs.isFile(ufsPath) && ufs.getFileSize(ufsPath) == file.getLength();
+      return ufs.isFile(ufsPath)
+          && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
     }
   }
 
@@ -2026,13 +2027,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode.setDirectChildrenLoaded(true);
         return;
       }
-      boolean isFile;
-      if (options.getUnderFileStatus() != null) {
-        isFile = options.getUnderFileStatus().isFile();
-      } else {
-        isFile = ufs.isFile(ufsUri.toString());
+      if (options.getUnderFileStatus() == null) {
+        options.setUnderFileStatus(ufs.getFileStatus(ufsUri.toString()));
       }
-      if (isFile) {
+      if (options.getUnderFileStatus().isFile()) {
         loadFileMetadataAndJournal(inodePath, resolution, options, journalContext);
       } else {
         loadDirectoryMetadataAndJournal(inodePath, options, journalContext);
@@ -2040,16 +2038,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
         if (options.isLoadDirectChildren()) {
           UnderFileStatus[] files = ufs.listStatus(ufsUri.toString());
-          for (UnderFileStatus file : files) {
-            if (PathUtils.isTemporaryFileName(file.getName())
-                || inode.getChild(file.getName()) != null) {
+          for (UnderFileStatus status : files) {
+            if (PathUtils.isTemporaryFileName(status.getName())
+                || inode.getChild(status.getName()) != null) {
               continue;
             }
             TempInodePathForChild tempInodePath =
-                new TempInodePathForChild(inodePath, file.getName());
+                new TempInodePathForChild(inodePath, status.getName());
             LoadMetadataOptions loadMetadataOptions =
                 LoadMetadataOptions.defaults().setLoadDirectChildren(false)
-                    .setCreateAncestors(false).setUnderFileStatus(file);
+                    .setCreateAncestors(false).setUnderFileStatus(status);
             loadMetadataAndJournal(tempInodePath, loadMetadataOptions, journalContext);
           }
           inode.setDirectChildrenLoaded(true);
@@ -2086,14 +2084,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    long ufsLength = ufs.getFileSize(ufsUri.toString());
+    long ufsLength = options.getUnderFileStatus().getContentLength();
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
-    String ufsOwner = ufs.getOwner(ufsUri.toString());
-    String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsMode = ufs.getMode(ufsUri.toString());
+    String ufsOwner = options.getUnderFileStatus().getOwner();
+    String ufsGroup = options.getUnderFileStatus().getGroup();
+    short ufsMode = options.getUnderFileStatus().getMode();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
