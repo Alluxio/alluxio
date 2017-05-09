@@ -44,9 +44,4 @@ public final class UnderFileStatusTest {
     Assert.assertEquals("group", status.getGroup());
     Assert.assertEquals(mode, status.getMode());
   }
-
-  @Test
-  public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(UnderFileStatus.class);
-  }
 }

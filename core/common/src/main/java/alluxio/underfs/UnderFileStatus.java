@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -18,7 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link UnderFileSystem} returns entries of this class.
  */
 @NotThreadSafe
-public class UnderFileStatus {
+public final class UnderFileStatus {
   /** Size of a directory. */
   public static final long DIRECTORY_CONTENT_LENGTH = 0L;
 
@@ -55,6 +57,24 @@ public class UnderFileStatus {
     mOwner = owner;
     mGroup = group;
     mMode = mode;
+  }
+
+  /**
+   * Converts an array of UFS file status to a listing result where each element in the array is
+   * a file or directory name.
+   *
+   * @param children array of listing statuses
+   * @return array of file or directory names, or null if the input is null
+   */
+  public static String[] convertToNames(UnderFileStatus[] children) {
+    if (children == null) {
+      return null;
+    }
+    String[] ret = new String[children.length];
+    for (int i = 0; i < children.length; ++i) {
+      ret[i] = children[i].getName();
+    }
+    return ret;
   }
 
   /**
@@ -139,21 +159,22 @@ public class UnderFileStatus {
     return getName();
   }
 
-  /**
-   * Converts an array of UFS file status to a listing result where each element in the array is
-   * a file or directory name.
-   *
-   * @param children array of listing statuses
-   * @return array of file or directory names, or null if the input is null
-   */
-  public static String[] convertToNames(UnderFileStatus[] children) {
-    if (children == null) {
-      return null;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-    String[] ret = new String[children.length];
-    for (int i = 0; i < children.length; ++i) {
-      ret[i] = children[i].getName();
+    if (!(o instanceof UnderFileStatus)) {
+      return false;
     }
-    return ret;
+    UnderFileStatus that = (UnderFileStatus) o;
+    return Objects.equal(mName, that.mName)
+        && Objects.equal(mContentLength, that.mContentLength)
+        && Objects.equal(mIsDirectory, that.mIsDirectory)
+        && Objects.equal(mLastModifiedTimeMs, that.mLastModifiedTimeMs)
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mMode, that.mMode);
   }
 }
