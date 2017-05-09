@@ -154,6 +154,8 @@ public final class RPCProtoMessage extends RPCMessage {
       return Type.RPC_LOCAL_BLOCK_CREATE_RESPONSE;
     } else if (mMessage.isLocalBlockCompleteRequest()) {
       return Type.RPC_LOCAL_BLOCK_COMPLETE_REQUEST;
+    } else if (mMessage.isHeartbeat()) {
+      return Type.RPC_HEARTBEAT;
     } else {
       return RPCMessage.Type.RPC_UNKNOWN;
     }

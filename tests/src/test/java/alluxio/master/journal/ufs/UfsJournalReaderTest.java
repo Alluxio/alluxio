@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
+import alluxio.BaseIntegrationTest;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalReaderOptions;
@@ -33,7 +34,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournalReader}.
  */
-public final class UfsJournalReaderTest {
+public final class UfsJournalReaderTest extends BaseIntegrationTest {
   private static final long CHECKPOINT_SIZE = 10;
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();

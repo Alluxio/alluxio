@@ -99,6 +99,13 @@ public final class ProtoMessage {
   }
 
   /**
+   * @param heartbeat the heartbeat
+   */
+  public ProtoMessage(Protocol.Heartbeat heartbeat) {
+    mMessage = heartbeat;
+  }
+
+  /**
    * Gets the read request or throws runtime exception if mMessage is not of type
    * {@link Protocol.ReadRequest}.
    *
@@ -153,6 +160,7 @@ public final class ProtoMessage {
   }
 
   /**
+<<<<<<< HEAD
    * Gets the local block open request or throws runtime exception if mMessage is not of type
    * {@link Protocol.LocalBlockOpenRequest}.
    *
@@ -249,6 +257,13 @@ public final class ProtoMessage {
    */
   public boolean isLocalBlockCompleteRequest() {
     return mMessage instanceof Protocol.LocalBlockCompleteRequest;
+  }
+
+  /**
+   * @return true if the message is of type {@link Protocol.Heartbeat}
+   */
+  public boolean isHeartbeat() {
+    return mMessage instanceof Protocol.Heartbeat;
   }
 
   /**

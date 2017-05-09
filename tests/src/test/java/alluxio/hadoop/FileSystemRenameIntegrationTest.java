@@ -13,6 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -33,7 +34,7 @@ import java.net.URI;
  * Integration tests for {@link FileSystem#rename(Path, Path)}.
  */
 // TODO(jiri): Test persisting rename operations to UFS.
-public final class FileSystemRenameIntegrationTest {
+public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();

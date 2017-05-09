@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -40,7 +41,7 @@ import java.util.Arrays;
 /**
  * Integration tests for {@link HdfsFileInputStream}.
  */
-public final class HdfsFileInputStreamIntegrationTest {
+public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTest {
   private static final int FILE_LEN = 255;
   private static final int BUFFER_SIZE = 50;
   private static final String IN_MEMORY_FILE = "/inMemoryFile";

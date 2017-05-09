@@ -49,9 +49,8 @@ Alluxio uses two different storage types: Alluxio managed storage and under stor
 storage is the memory, SSD, and/or HDD allocated to Alluxio workers. Under storage is the storage
 resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
 interaction with the Alluxio's native storage and under storage through `ReadType` and `WriteType`.
-`ReadType` specifies the data read behavior when reading a new file, ie. whether the data should be
-saved in Alluxio Storage. `WriteType` specifies the data write behavior when writing a new file, ie.
-whether the data should be written in Alluxio Storage.
+`ReadType` specifies the data read behavior when reading a file. `WriteType` specifies the data
+write behavior when writing a new file, ie. whether the data should be written in Alluxio Storage.
 
 Below is a table of the expected behaviors of `ReadType`. Reads will always prefer Alluxio storage
 over the under storage system.
@@ -84,10 +83,12 @@ Below is a table of the expected behaviors of `WriteType`
 
 Alluxio provides location policy to choose which workers to store the blocks of a file.
 
-Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for writing files and `OpenFileOptions` for reading files into
-Alluxio.
+Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for writing files and
+`OpenFileOptions` for reading files into Alluxio.
 
-Users can simply override the default policy class in the [configuration file](Configuration-Settings.html) at property `alluxio.user.file.write.location.policy.class`. The built-in policies include:
+Users can simply override the default policy class in the
+[configuration file](Configuration-Settings.html) at property
+`alluxio.user.file.write.location.policy.class`. The built-in policies include:
 
 * **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
 
@@ -107,8 +108,10 @@ Users can simply override the default policy class in the [configuration file](C
 
     Returns a worker with the specified host name. This policy cannot be set as default policy.
 
-Alluxio supports custom policies, so you can also develop your own policy appropriate for your workload by implementing interface `alluxio.client.file.policyFileWriteLocationPolicy`. Note that a default policy must have an empty constructor. And to use ASYNC_THROUGH write
-type, all the blocks of a file must be written to the same worker.
+Alluxio supports custom policies, so you can also develop your own policy appropriate for your
+workload by implementing interface `alluxio.client.file.policyFileWriteLocationPolicy`. Note that a
+default policy must have an empty constructor. And to use ASYNC_THROUGH write type, all the blocks
+of a file must be written to the same worker.
 
 ### Write Tier
 
@@ -146,12 +149,13 @@ the REST API and the Native API is in how streams are represented. While the nat
 can use in-memory streams, the REST API decouples the stream creation and access (see the
 `create` and `open` REST API methods and the `streams` resource endpoints for details).
 
-The HTTP proxy is a standalone server that can be started using `${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`
-and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`. By default, the REST API is available on port 39999.
+The HTTP proxy is a standalone server that can be started using
+`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy` and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh
+proxy`. By default, the REST API is available on port 39999.
 
-There are performance implications of using the HTTP proxy. In particular, using the proxy requires an
-extra hop. For optimal performance, it is recommended to run the proxy server an Alluxio worker on each
-compute node.
+There are performance implications of using the HTTP proxy. In particular, using the proxy requires
+an extra hop. For optimal performance, it is recommended to run the proxy server an Alluxio worker
+on each compute node.
 
 ## Hadoop API
 

@@ -13,6 +13,7 @@ package alluxio.rest;
 
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.security.authentication.AuthType;
 
 import org.junit.Rule;
@@ -20,7 +21,7 @@ import org.junit.Rule;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class RestApiTest {
+public abstract class RestApiTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = new HashMap<>();
 
   protected String mHostname;

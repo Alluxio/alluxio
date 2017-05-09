@@ -13,6 +13,7 @@ package alluxio.hadoop.fs;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;
 
@@ -84,7 +85,7 @@ import java.util.StringTokenizer;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
-public class DFSIOIntegrationTest implements Tool {
+public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   // Constants for DFSIOIntegrationTest
   private static final Logger LOG = LoggerFactory.getLogger(DFSIOIntegrationTest.class);
 

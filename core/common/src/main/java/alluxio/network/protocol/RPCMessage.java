@@ -49,12 +49,13 @@ public abstract class RPCMessage implements EncodedMessage {
     RPC_WRITE_REQUEST(101),
     RPC_RESPONSE(102),
     RPC_UFS_BLOCK_READ_REQUEST(103),
-    RPC_LOCAL_BLOCK_OPEN_REQUEST(104),
-    RPC_LOCAL_BLOCK_OPEN_RESPONSE(105),
-    RPC_LOCAL_BLOCK_CLOSE_REQUEST(106),
-    RPC_LOCAL_BLOCK_CREATE_REQUEST(107),
-    RPC_LOCAL_BLOCK_CREATE_RESPONSE(108),
-    RPC_LOCAL_BLOCK_COMPLETE_REQUEST(109),
+    RPC_HEARTBEAT(104),
+    RPC_LOCAL_BLOCK_OPEN_REQUEST(105),
+    RPC_LOCAL_BLOCK_OPEN_RESPONSE(106),
+    RPC_LOCAL_BLOCK_CLOSE_REQUEST(107),
+    RPC_LOCAL_BLOCK_CREATE_REQUEST(108),
+    RPC_LOCAL_BLOCK_CREATE_RESPONSE(109),
+    RPC_LOCAL_BLOCK_COMPLETE_REQUEST(110),
 
     RPC_UNKNOWN(1000),
     ;
@@ -127,16 +128,18 @@ public abstract class RPCMessage implements EncodedMessage {
         case 103:
           return RPC_UFS_BLOCK_READ_REQUEST;
         case 104:
-          return RPC_LOCAL_BLOCK_OPEN_REQUEST;
+          return RPC_HEARTBEAT;
         case 105:
-          return RPC_LOCAL_BLOCK_OPEN_RESPONSE;
+          return RPC_LOCAL_BLOCK_OPEN_REQUEST;
         case 106:
-          return RPC_LOCAL_BLOCK_CLOSE_REQUEST;
+          return RPC_LOCAL_BLOCK_OPEN_RESPONSE;
         case 107:
-          return RPC_LOCAL_BLOCK_CREATE_REQUEST;
+          return RPC_LOCAL_BLOCK_CLOSE_REQUEST;
         case 108:
-          return RPC_LOCAL_BLOCK_CREATE_RESPONSE;
+          return RPC_LOCAL_BLOCK_CREATE_REQUEST;
         case 109:
+          return RPC_LOCAL_BLOCK_CREATE_RESPONSE;
+        case 110:
           return RPC_LOCAL_BLOCK_COMPLETE_REQUEST;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
@@ -247,6 +250,9 @@ public abstract class RPCMessage implements EncodedMessage {
       case RPC_LOCAL_BLOCK_COMPLETE_REQUEST:
         return RPCProtoMessage
             .decode(in, new ProtoMessage(Protocol.LocalBlockCompleteRequest.getDefaultInstance()));
+      case RPC_HEARTBEAT:
+        return
+            RPCProtoMessage.decode(in, new ProtoMessage(Protocol.Heartbeat.getDefaultInstance()));
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }

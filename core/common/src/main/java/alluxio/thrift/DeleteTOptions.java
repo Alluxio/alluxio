@@ -40,6 +40,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
 
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)1);
   private static final org.apache.thrift.protocol.TField ALLUXIO_ONLY_FIELD_DESC = new org.apache.thrift.protocol.TField("alluxioOnly", org.apache.thrift.protocol.TType.BOOL, (short)2);
+  private static final org.apache.thrift.protocol.TField UNCHECKED_FIELD_DESC = new org.apache.thrift.protocol.TField("unchecked", org.apache.thrift.protocol.TType.BOOL, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -49,11 +50,13 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
 
   private boolean recursive; // optional
   private boolean alluxioOnly; // optional
+  private boolean unchecked; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     RECURSIVE((short)1, "recursive"),
-    ALLUXIO_ONLY((short)2, "alluxioOnly");
+    ALLUXIO_ONLY((short)2, "alluxioOnly"),
+    UNCHECKED((short)3, "unchecked");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -72,6 +75,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
           return RECURSIVE;
         case 2: // ALLUXIO_ONLY
           return ALLUXIO_ONLY;
+        case 3: // UNCHECKED
+          return UNCHECKED;
         default:
           return null;
       }
@@ -114,14 +119,17 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
   // isset id assignments
   private static final int __RECURSIVE_ISSET_ID = 0;
   private static final int __ALLUXIOONLY_ISSET_ID = 1;
+  private static final int __UNCHECKED_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.ALLUXIO_ONLY};
+  private static final _Fields optionals[] = {_Fields.RECURSIVE,_Fields.ALLUXIO_ONLY,_Fields.UNCHECKED};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.ALLUXIO_ONLY, new org.apache.thrift.meta_data.FieldMetaData("alluxioOnly", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.UNCHECKED, new org.apache.thrift.meta_data.FieldMetaData("unchecked", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DeleteTOptions.class, metaDataMap);
@@ -137,6 +145,7 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     __isset_bitfield = other.__isset_bitfield;
     this.recursive = other.recursive;
     this.alluxioOnly = other.alluxioOnly;
+    this.unchecked = other.unchecked;
   }
 
   public DeleteTOptions deepCopy() {
@@ -149,6 +158,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     this.recursive = false;
     setAlluxioOnlyIsSet(false);
     this.alluxioOnly = false;
+    setUncheckedIsSet(false);
+    this.unchecked = false;
   }
 
   public boolean isRecursive() {
@@ -197,6 +208,29 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ALLUXIOONLY_ISSET_ID, value);
   }
 
+  public boolean isUnchecked() {
+    return this.unchecked;
+  }
+
+  public DeleteTOptions setUnchecked(boolean unchecked) {
+    this.unchecked = unchecked;
+    setUncheckedIsSet(true);
+    return this;
+  }
+
+  public void unsetUnchecked() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UNCHECKED_ISSET_ID);
+  }
+
+  /** Returns true if field unchecked is set (has been assigned a value) and false otherwise */
+  public boolean isSetUnchecked() {
+    return EncodingUtils.testBit(__isset_bitfield, __UNCHECKED_ISSET_ID);
+  }
+
+  public void setUncheckedIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UNCHECKED_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case RECURSIVE:
@@ -215,6 +249,14 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       }
       break;
 
+    case UNCHECKED:
+      if (value == null) {
+        unsetUnchecked();
+      } else {
+        setUnchecked((Boolean)value);
+      }
+      break;
+
     }
   }
 
@@ -225,6 +267,9 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
 
     case ALLUXIO_ONLY:
       return isAlluxioOnly();
+
+    case UNCHECKED:
+      return isUnchecked();
 
     }
     throw new IllegalStateException();
@@ -241,6 +286,8 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       return isSetRecursive();
     case ALLUXIO_ONLY:
       return isSetAlluxioOnly();
+    case UNCHECKED:
+      return isSetUnchecked();
     }
     throw new IllegalStateException();
   }
@@ -276,6 +323,15 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
         return false;
     }
 
+    boolean this_present_unchecked = true && this.isSetUnchecked();
+    boolean that_present_unchecked = true && that.isSetUnchecked();
+    if (this_present_unchecked || that_present_unchecked) {
+      if (!(this_present_unchecked && that_present_unchecked))
+        return false;
+      if (this.unchecked != that.unchecked)
+        return false;
+    }
+
     return true;
   }
 
@@ -292,6 +348,11 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     list.add(present_alluxioOnly);
     if (present_alluxioOnly)
       list.add(alluxioOnly);
+
+    boolean present_unchecked = true && (isSetUnchecked());
+    list.add(present_unchecked);
+    if (present_unchecked)
+      list.add(unchecked);
 
     return list.hashCode();
   }
@@ -320,6 +381,16 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
     }
     if (isSetAlluxioOnly()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.alluxioOnly, other.alluxioOnly);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetUnchecked()).compareTo(other.isSetUnchecked());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetUnchecked()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.unchecked, other.unchecked);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -353,6 +424,12 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (!first) sb.append(", ");
       sb.append("alluxioOnly:");
       sb.append(this.alluxioOnly);
+      first = false;
+    }
+    if (isSetUnchecked()) {
+      if (!first) sb.append(", ");
+      sb.append("unchecked:");
+      sb.append(this.unchecked);
       first = false;
     }
     sb.append(")");
@@ -416,6 +493,14 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 3: // UNCHECKED
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.unchecked = iprot.readBool();
+              struct.setUncheckedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -439,6 +524,11 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (struct.isSetAlluxioOnly()) {
         oprot.writeFieldBegin(ALLUXIO_ONLY_FIELD_DESC);
         oprot.writeBool(struct.alluxioOnly);
+        oprot.writeFieldEnd();
+      }
+      if (struct.isSetUnchecked()) {
+        oprot.writeFieldBegin(UNCHECKED_FIELD_DESC);
+        oprot.writeBool(struct.unchecked);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -465,19 +555,25 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (struct.isSetAlluxioOnly()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetUnchecked()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetRecursive()) {
         oprot.writeBool(struct.recursive);
       }
       if (struct.isSetAlluxioOnly()) {
         oprot.writeBool(struct.alluxioOnly);
       }
+      if (struct.isSetUnchecked()) {
+        oprot.writeBool(struct.unchecked);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, DeleteTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.recursive = iprot.readBool();
         struct.setRecursiveIsSet(true);
@@ -485,6 +581,10 @@ public class DeleteTOptions implements org.apache.thrift.TBase<DeleteTOptions, D
       if (incoming.get(1)) {
         struct.alluxioOnly = iprot.readBool();
         struct.setAlluxioOnlyIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.unchecked = iprot.readBool();
+        struct.setUncheckedIsSet(true);
       }
     }
   }
