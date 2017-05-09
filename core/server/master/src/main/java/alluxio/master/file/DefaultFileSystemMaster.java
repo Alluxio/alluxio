@@ -2027,7 +2027,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode.setDirectChildrenLoaded(true);
         return;
       }
-      if (ufs.isFile(ufsUri.toString())) {
+      boolean isFile;
+      if (options.getUnderFileStatus() != null) {
+        isFile = options.getUnderFileStatus().isFile();
+      } else {
+        isFile = ufs.isFile(ufsUri.toString());
+      }
+      if (isFile) {
         if (options.getUnderFileStatus() == null) {
           options.setUnderFileStatus(ufs.getFileStatus(ufsUri.toString()));
         }
