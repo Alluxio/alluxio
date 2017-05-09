@@ -126,22 +126,19 @@ abstract class DataServerWriteHandler extends DataServerSessionHandler {
 
   /**
    * mRequest is initialized only once for a whole file or block in
-   * {@link DataServerReadHandler#channelRead(ChannelHandlerContext, Object)}.
-   * After that, it should only be used by the packet writer thread.
-   * It is safe to read those final primitive fields (e.g. mId, mSessionId) if mError is not set
-   * from any thread (not such usage in the code now). It is destroyed when the write request is
-   * done (complete or cancel) or an error is seen.
+   * {@link DataServerReadHandler#channelRead(ChannelHandlerContext, Object)}. After that, it should
+   * only be used by the packet writer thread. It is safe to read those final primitive fields (e.g.
+   * mId) if mError is not set from any thread (not such usage in the code now). It is destroyed
+   * when the write request is done (complete or cancel) or an error is seen.
    */
   protected volatile WriteRequestInternal mRequest;
 
   abstract class WriteRequestInternal implements Closeable {
     /** This ID can either be block ID or temp UFS file ID. */
     final long mId;
-    final long mSessionId;
 
-    WriteRequestInternal(long id, long sessionId) {
+    WriteRequestInternal(long id) {
       mId = id;
-      mSessionId = sessionId;
     }
 
     /**

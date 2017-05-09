@@ -51,19 +51,19 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     final BlockWriter mBlockWriter;
 
     BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      super(request.getId(), request.getSessionId());
+      super(request.getId());
       Preconditions.checkState(request.getOffset() == 0);
-      mWorker.createBlockRemote(request.getSessionId(), request.getId(),
+      mWorker.createBlockRemote(mSessionId, request.getId(),
           mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
       mBytesReserved = FILE_BUFFER_SIZE;
-      mBlockWriter = mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId());
+      mBlockWriter = mWorker.getTempBlockWriterRemote(mSessionId, request.getId());
     }
 
     @Override
     public void close() throws IOException {
       mBlockWriter.close();
       try {
-        mWorker.commitBlock(mRequest.mSessionId, mRequest.mId);
+        mWorker.commitBlock(mSessionId, mRequest.mId);
       } catch (Exception e) {
         throw CommonUtils.castToIOException(e);
       }
@@ -73,7 +73,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     void cancel() throws IOException {
       mBlockWriter.close();
       try {
-        mWorker.abortBlock(mRequest.mSessionId, mRequest.mId);
+        mWorker.abortBlock(mSessionId, mRequest.mId);
       } catch (Exception e) {
         throw CommonUtils.castToIOException(e);
       }
@@ -118,7 +118,7 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     if (mBytesReserved < pos) {
       long bytesToReserve = Math.max(FILE_BUFFER_SIZE, pos - mBytesReserved);
       // Allocate enough space in the existing temporary block for the write.
-      mWorker.requestSpace(mRequest.mSessionId, mRequest.mId, bytesToReserve);
+      mWorker.requestSpace(mSessionId, mRequest.mId, bytesToReserve);
       mBytesReserved += bytesToReserve;
     }
     BlockWriter blockWriter = ((BlockWriteRequestInternal) mRequest).mBlockWriter;

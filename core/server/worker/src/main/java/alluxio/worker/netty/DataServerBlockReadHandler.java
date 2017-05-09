@@ -62,8 +62,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
           request.getPacketSize());
       mBlockReader = mWorker
-          .readBlockRemote(request.getSessionId(), request.getId(), request.getLockId());
-      mWorker.accessBlock(request.getSessionId(), mId);
+          .readBlockRemote(mSessionId, request.getId(), request.getLockId());
+      mWorker.accessBlock(mSessionId, mId);
 
       ((FileChannel) mBlockReader.getChannel()).position(mStart);
     }
