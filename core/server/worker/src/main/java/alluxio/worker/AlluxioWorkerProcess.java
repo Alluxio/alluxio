@@ -23,6 +23,7 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
@@ -329,7 +330,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         return mThriftServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
             && mWebServer.getServer().isRunning();
       }
-    });
+    }, WaitForOptions.defaults().setTimeout(10000));
   }
 
   @Override
