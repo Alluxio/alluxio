@@ -333,8 +333,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
     createEmptyFile(testFileEmpty);
     createTestBytesFile(testFileNonEmpty);
-    Assert.assertEquals(mUfs.getFileSize(testFileEmpty), 0);
-    Assert.assertEquals(mUfs.getFileSize(testFileNonEmpty), TEST_BYTES.length);
+    Assert.assertEquals(mUfs.getFileStatus(testFileEmpty).getContentLength(), 0);
+    Assert.assertEquals(mUfs.getFileStatus(testFileNonEmpty).getContentLength(), TEST_BYTES.length);
   }
 
   /**
@@ -347,7 +347,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createTestBytesFile(testFile);
     long end = System.currentTimeMillis();
-    long modTime = mUfs.getModificationTimeMs(testFile);
+    long modTime = mUfs.getFileStatus(testFile).getLastModifiedTime();
     Assert.assertTrue(modTime >= start - slack);
     Assert.assertTrue(modTime <= end + slack);
   }
