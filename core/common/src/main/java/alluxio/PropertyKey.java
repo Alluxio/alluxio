@@ -289,7 +289,8 @@ public class PropertyKey {
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
       create(Name.WORKER_DATA_SERVER_CLASS, "alluxio.worker.netty.NettyDataServer");
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
-      create(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS, "");
+      create(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS,
+          String.format("${%s}/domain-socket-path", Name.CONF_DIR));
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
       create(Name.WORKER_DATA_TMP_FOLDER, ".tmp_blocks");
   public static final PropertyKey WORKER_DATA_TMP_SUBDIR_MAX =
