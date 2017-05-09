@@ -222,7 +222,7 @@ public final class ProtoMessage {
   }
 
   /**
-   * @return the Protocol.LocalBlockCreateRequest
+   * @return the Protocol.LocalBlockCreateResponse
    */
   public Protocol.LocalBlockCreateResponse asLocalBlockCreateResponse() {
     Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCreateResponse);
