@@ -67,6 +67,14 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .desc("print human-readable format sizes")
           .build();
 
+  protected static final String REMOVE_UNCHECKED_OPTION_CHAR = "U";
+  protected static final Option REMOVE_UNCHECKED_OPTION =
+      Option.builder(REMOVE_UNCHECKED_OPTION_CHAR)
+            .required(false)
+            .hasArg(false)
+            .desc("remove directories without checking UFS contents are in sync")
+            .build();
+
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
   }

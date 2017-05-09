@@ -28,9 +28,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollMode;
+import io.netty.handler.timeout.IdleStateHandler;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -73,6 +75,10 @@ public final class NettyClient {
       boot.option(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
     }
 
+    // After 10 missed heartbeat attempts and no write activity, the server will close the channel.
+    final long timeoutMs = Configuration.getLong(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
+    final long heartbeatPeriodMs = Math.max(timeoutMs / 10, 1);
+
     boot.handler(new ChannelInitializer<Channel>() {
       @Override
       public void initChannel(Channel ch) throws Exception {
@@ -81,6 +87,8 @@ public final class NettyClient {
         pipeline.addLast(RPCMessage.createFrameDecoder());
         pipeline.addLast(ENCODER);
         pipeline.addLast(DECODER);
+        pipeline.addLast(new IdleStateHandler(0, heartbeatPeriodMs, 0, TimeUnit.MILLISECONDS));
+        pipeline.addLast(new IdleWriteHandler());
       }
     });
 

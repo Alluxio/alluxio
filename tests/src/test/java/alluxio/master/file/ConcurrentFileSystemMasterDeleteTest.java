@@ -16,6 +16,7 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -46,7 +47,7 @@ import java.util.List;
  * The tests also validate that operations are concurrent by injecting a short sleep in the
  * critical code path. Tests will timeout if the critical section is performed serially.
  */
-public class ConcurrentFileSystemMasterDeleteTest {
+public class ConcurrentFileSystemMasterDeleteTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */

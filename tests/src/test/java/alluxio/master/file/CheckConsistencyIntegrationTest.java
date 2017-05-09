@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -39,7 +40,7 @@ import java.util.List;
  * Integration test for
  * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}.
  */
-public class CheckConsistencyIntegrationTest {
+public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
   private static final String TEST_USER = "test";

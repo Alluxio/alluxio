@@ -317,7 +317,7 @@ For example, `report` can be used to force recomputation of a file.
 
 The `rm` command removes a file from Alluxio space and the under storage system. The file will be unavailable immediately after this command returns, but the actual data may be deleted a while later.
 
-Add `-R` option will delete all contents of the directory and then the directory itself.
+Add `-R` option will delete all contents of the directory and then the directory itself. Add `-U` option to not check whether the UFS contents being deleted are in-sync with Alluxio before attempting to delete persisted directories.
 
 For example, `rm` can be used to remove temporary files which are no longer needed.
 

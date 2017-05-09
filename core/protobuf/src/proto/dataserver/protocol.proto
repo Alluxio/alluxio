@@ -61,6 +61,11 @@ message Response {
   optional string message = 2;
 }
 
+// A heartbeat
+message Heartbeat {
+  // Empty message
+}
+
 // Netty RPCs. Every RPC needs to define a request type and optionally a response type (default to Response).
 
 // next available id: 3

@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * Tests the consistency check which happens on master start up.
  */
-public class StartupConsistencyCheckTest {
+public class StartupConsistencyCheckTest extends BaseIntegrationTest {
   private static final AlluxioURI TOP_LEVEL_FILE = new AlluxioURI("/file");
   private static final AlluxioURI TOP_LEVEL_DIR = new AlluxioURI("/dir");
   private static final AlluxioURI SECOND_LEVEL_FILE = new AlluxioURI("/dir/file");
