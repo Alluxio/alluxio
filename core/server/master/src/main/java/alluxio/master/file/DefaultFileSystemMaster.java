@@ -2134,11 +2134,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
-    String ufsOwner = ufs.getOwner(ufsUri.toString());
-    String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsMode = ufs.getMode(ufsUri.toString());
+    String ufsOwner = options.getUnderFileStatus().getOwner();
+    String ufsGroup = options.getUnderFileStatus().getGroup();
+    short ufsMode = options.getUnderFileStatus().getMode();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));

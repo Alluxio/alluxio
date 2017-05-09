@@ -267,51 +267,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public String getGroup(final String path) throws IOException {
-    return call(new UfsCallable<String>() {
-      @Override
-      public String call() throws IOException {
-        return mUnderFileSystem.getGroup(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetGroup: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public short getMode(final String path) throws IOException {
-    return call(new UfsCallable<Short>() {
-      @Override
-      public Short call() throws IOException {
-        return mUnderFileSystem.getMode(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetMode: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public String getOwner(final String path) throws IOException {
-    return call(new UfsCallable<String>() {
-      @Override
-      public String call() throws IOException {
-        return mUnderFileSystem.getOwner(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetOwner: path=%s", path);
-      }
-    });
-  }
-
-  @Override
   public Map<String, String> getProperties() {
     return mUnderFileSystem.getProperties();
   }

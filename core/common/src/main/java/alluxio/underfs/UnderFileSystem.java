@@ -238,31 +238,6 @@ public interface UnderFileSystem extends Closeable {
   UnderFileStatus getFileStatus(String path) throws IOException;
 
   /**
-   * Gets the group of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the group of the file
-   */
-  String getGroup(String path) throws IOException;
-
-  /**
-   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
-   * be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the mode of the file
-   */
-  short getMode(String path) throws IOException;
-
-  /**
-   * Gets the owner of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   */
-  String getOwner(String path) throws IOException;
-
-  /**
    * @return the property map for this {@link UnderFileSystem}
    */
   Map<String, String> getProperties();
