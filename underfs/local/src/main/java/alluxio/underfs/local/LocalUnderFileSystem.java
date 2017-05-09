@@ -182,8 +182,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public UnderFileStatus getFileStatus(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
+    String tpath = stripPath(path);
+    File file = new File(tpath);
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
     return new UnderFileStatus(path, file.length(), file.isDirectory(), file.lastModified(),

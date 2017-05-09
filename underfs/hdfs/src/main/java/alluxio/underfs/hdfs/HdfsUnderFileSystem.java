@@ -240,7 +240,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public UnderFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return new UnderFileStatus(tPath.getName(), fs.getLen(), fs.isDirectory(),
+    return new UnderFileStatus(path, fs.getLen(), fs.isDirectory(),
         fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
 
