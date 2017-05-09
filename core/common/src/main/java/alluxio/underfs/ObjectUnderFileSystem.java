@@ -783,7 +783,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
             children.put(child,
-                new UnderFileStatus(child, UnderFileStatus.DIRECTORY_CONTENT_LENGTH, true,
+                new UnderFileStatus(child, UnderFileStatus.INVALID_CONTENT_LENGTH, true,
                     UnderFileStatus.INVALID_MODIFIED_TIME, getBucketOwner(), getBucketGroup(),
                     getBucketMode()));
           }

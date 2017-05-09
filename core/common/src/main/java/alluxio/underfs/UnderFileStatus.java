@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.Constants;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -22,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileStatus {
   /** Size of a directory. */
-  public static final long DIRECTORY_CONTENT_LENGTH = 0L;
+  public static final long INVALID_CONTENT_LENGTH = 0L;
 
   /** Last modified time for a directory. */
   public static final long INVALID_MODIFIED_TIME = 0L;
@@ -72,6 +74,20 @@ public final class UnderFileStatus {
     mOwner = status.mOwner;
     mGroup = status.mGroup;
     mMode = status.mMode;
+  }
+
+  /**
+   * Create a new instance for under file information with defaults.
+   *
+   */
+  public UnderFileStatus() {
+    mContentLength = INVALID_CONTENT_LENGTH;
+    mIsDirectory = false;
+    mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
+    mName = "";
+    mOwner = "";
+    mGroup = "";
+    mMode = Constants.DEFAULT_FILE_SYSTEM_MODE;
   }
 
   /**
@@ -165,6 +181,39 @@ public final class UnderFileStatus {
   }
 
   /**
+   * Set the content length of file or directory.
+   *
+   * @param contentLength of entry
+   * @return this object
+   */
+  public UnderFileStatus setContentLength(long contentLength) {
+    mContentLength = contentLength;
+    return this;
+  }
+
+  /**
+   * Set if the entry is a directory.
+   *
+   * @param isDirectory true, if entry is a directory
+   * @return this object
+   */
+  public UnderFileStatus setIsDirectory(boolean isDirectory) {
+    mIsDirectory = isDirectory;
+    return this;
+  }
+
+  /**
+   * Set the last modified time in milliseconds.
+   *
+   * @param lastModifiedTimeMs UTC time in ms
+   * @return this object
+   */
+  public UnderFileStatus setLastModifiedTimeMs(long lastModifiedTimeMs) {
+    mLastModifiedTimeMs = lastModifiedTimeMs;
+    return this;
+  }
+
+  /**
    * Set the name of file or directory.
    *
    * @param name of entry
@@ -172,6 +221,21 @@ public final class UnderFileStatus {
    */
   public UnderFileStatus setName(String name) {
     mName = name;
+    return this;
+  }
+
+  /**
+   * Set the permissions.
+   *
+   * @param owner for the entry
+   * @param group for the entry
+   * @param mode for the entry
+   * @return
+   */
+  public UnderFileStatus setPermissions(String owner, String group, short mode) {
+    mOwner = owner;
+    mGroup = group;
+    mMode = mode;
     return this;
   }
 

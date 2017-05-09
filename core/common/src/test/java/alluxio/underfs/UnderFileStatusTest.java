@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.CommonTestUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -57,5 +59,10 @@ public final class UnderFileStatusTest {
         lastModifiedTimeMs, "owner", "group", mode);
     UnderFileStatus status = new UnderFileStatus(statusToCopy);
     Assert.assertEquals(statusToCopy, status);
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(UnderFileStatus.class);
   }
 }
