@@ -11,12 +11,15 @@
 
 package alluxio.worker.netty;
 
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
@@ -25,6 +28,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +56,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
    */
   private final class BlockReadRequestInternal extends ReadRequestInternal {
     final BlockReader mBlockReader;
+    final long mLockId;
 
     /**
      * Creates an instance of {@link BlockReadRequestInternal}.
@@ -61,8 +66,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
       super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
           request.getPacketSize());
-      mBlockReader = mWorker
-          .readBlockRemote(mSessionId, request.getId(), request.getLockId());
+      mLockId = mWorker.lockBlock(mSessionId, mId);
+      mBlockReader = mWorker.readBlockRemote(mSessionId, request.getId(), mLockId);
       mWorker.accessBlock(mSessionId, mId);
 
       ((FileChannel) mBlockReader.getChannel()).position(mStart);
@@ -72,6 +77,11 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     public void close() throws IOException {
       if (mBlockReader != null) {
         mBlockReader.close();
+      }
+      try {
+        mWorker.unlockBlock(mLockId);
+      } catch (BlockDoesNotExistException e) {
+        throw new NotFoundException(e);
       }
     }
   }
@@ -88,6 +98,30 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     super(executorService, blockWorker);
     mWorker = blockWorker;
     mTransferType = fileTransferType;
+  }
+
+  @Override
+  public void channelUnregistered(ChannelHandlerContext ctx) {
+    if (mRequest != null) {
+      try {
+        mRequest.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close block read request {} with error {}.", mRequest, e.getMessage());
+      }
+    }
+    ctx.fireChannelUnregistered();
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    if (mRequest != null) {
+      try {
+        mRequest.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close block read request {} with error {}.", mRequest, e.getMessage());
+      }
+    }
+    super.exceptionCaught(ctx, cause);
   }
 
   @Override
