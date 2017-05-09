@@ -461,6 +461,8 @@ public class PropertyKey {
       create(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
       create(Name.USER_FILE_MASTER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_FILE_METADATA_LOAD_TYPE =
+      create(Name.USER_FILE_METADATA_LOAD_TYPE, "Once");
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       create(Name.USER_FILE_PASSIVE_CACHE_ENABLED, true);
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
@@ -953,6 +955,8 @@ public class PropertyKey {
         "alluxio.user.file.cache.partially.read.block";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
         "alluxio.user.file.master.client.threads";
+    public static final String USER_FILE_METADATA_LOAD_TYPE =
+        "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
