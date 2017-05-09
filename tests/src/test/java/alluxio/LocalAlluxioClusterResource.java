@@ -132,6 +132,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
+    Configuration.validate();
     // Start the cluster
     mLocalAlluxioCluster.start();
   }

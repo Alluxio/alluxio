@@ -422,7 +422,7 @@ public class ConfigurationTest {
 
   @Test
   public void userFileBufferBytesOverFlowException() {
-    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expect(IllegalStateException.class);
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES,
         String.valueOf(Integer.MAX_VALUE + 1) + "B");
   }

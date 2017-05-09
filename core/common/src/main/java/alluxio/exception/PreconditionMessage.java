@@ -55,8 +55,11 @@ public enum PreconditionMessage {
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   UFS_READ_LOCATION_POLICY_UNSPECIFIED("The UFS read location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
+  INCONSISTENT_ZK_CONFIGURATION(
+      "Inconsistent Zookeeper configuration; both %s and %s need to be either set or not set"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
-  INVALID_USER_FILE_BUFFER_BYTES("Invalid \"" + PropertyKey.USER_FILE_BUFFER_BYTES + "\": %d"),
+  INVALID_PROPERTY("Invalid property: %s"),
+  INVALID_USER_FILE_BUFFER_BYTES("Invalid value of %s: %d"),
   PERMISSION_GROUP_IS_NULL("Group cannot be null when constructing Permission"),
   PERMISSION_MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_OWNER_IS_NULL("Owner cannot be null when constructing Permission"),
