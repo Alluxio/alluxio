@@ -258,13 +258,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return false;
   }
 
-  // Returns the account owner.
-  // No group in Swift ACL, returns the account owner for group.
-  @Override
-  protected ObjectPermissions getPermissions() {
-    return new ObjectPermissions(mAccountOwner, mAccountOwner, mAccountMode);
-  }
-
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -342,6 +335,13 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       return new ObjectStatus(key, meta.getContentLength(), meta.getLastModifiedAsDate().getTime());
     }
     return null;
+  }
+
+  // Returns the account owner.
+  // No group in Swift ACL, returns the account owner for group.
+  @Override
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mAccountMode);
   }
 
   @Override

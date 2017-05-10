@@ -153,12 +153,6 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     return true;
   }
 
-  // No ACL integration currently, returns default empty value
-  @Override
-  protected ObjectPermissions getPermissions() {
-    return new ObjectPermissions("", "", Constants.DEFAULT_FILE_SYSTEM_MODE);
-  }
-
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -251,6 +245,12 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       LOG.warn("Failed to get Object {}, return null", key, e);
       return null;
     }
+  }
+
+  // No ACL integration currently, returns default empty value
+  @Override
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions("", "", Constants.DEFAULT_FILE_SYSTEM_MODE);
   }
 
   @Override

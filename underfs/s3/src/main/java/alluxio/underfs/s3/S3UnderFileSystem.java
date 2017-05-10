@@ -237,13 +237,6 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
     return true;
   }
 
-  // Returns the account owner.
-  // No group in S3 ACL, returns the account owner for group.
-  @Override
-  protected ObjectPermissions getPermissions() {
-    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
-  }
-
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -331,6 +324,13 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
     } catch (ServiceException e) {
       return null;
     }
+  }
+
+  // Returns the account owner.
+  // No group in S3 ACL, returns the account owner for group.
+  @Override
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
   }
 
   @Override

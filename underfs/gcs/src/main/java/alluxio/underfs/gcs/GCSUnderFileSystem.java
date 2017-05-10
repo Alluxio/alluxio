@@ -200,13 +200,6 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return true;
   }
 
-  // Returns the account permissions.
-  // No group in GCS ACL, returns the account owner for group.
-  @Override
-  protected ObjectPermissions getPermissions() {
-    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
-  }
-
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -294,6 +287,13 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     } catch (ServiceException e) {
       return null;
     }
+  }
+
+  // Returns the account permissions.
+  // No group in GCS ACL, returns the account owner for group.
+  @Override
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
   }
 
   @Override
