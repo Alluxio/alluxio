@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.Server;
-import alluxio.master.AlluxioMasterService;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
@@ -26,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 public interface AlluxioWorkerService extends Server {
   /**
-   * Factory for creating {@link AlluxioMasterService}.
+   * Factory for creating {@link AlluxioWorkerService}.
    */
   @ThreadSafe
   final class Factory {

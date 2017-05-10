@@ -113,6 +113,7 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
+  @ReturnType("alluxio.wire.AlluxioMasterInfo")
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(new RestUtils.RestCallable<AlluxioMasterInfo>() {

@@ -30,6 +30,7 @@ import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.file.DefaultFileSystemWorker;
 import alluxio.worker.file.FileSystemWorker;
 
+import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
@@ -195,7 +196,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
     // Start serving the web server, this will not block.
     mWebServer.addHandler(mMetricsServlet.getHandler());
-
     mWebServer.start();
 
     // Start each worker
@@ -214,13 +214,11 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping Alluxio worker @ {}", mRpcAddress);
     if (mIsServingRPC) {
-      LOG.info("Stopping RPC server on Alluxio worker @ {}", mRpcAddress);
       stopServing();
       stopWorkers();
       mIsServingRPC = false;
-    } else {
-      LOG.info("Stopping Alluxio worker @ {}", mRpcAddress);
     }
   }
 
@@ -313,14 +311,13 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
 
   @Override
   public void waitForReady() {
-    while (true) {
-      if (mThriftServer.isServing()
-          && mWorkerId.get() != null
-          && mWebServer.getServer().isRunning()) {
-        return;
+    CommonUtils.waitFor("Alluxio worker to start", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return mThriftServer.isServing() && mWorkerId.get() != null && mWebServer.getServer()
+            .isRunning();
       }
-      CommonUtils.sleepMs(10);
-    }
+    });
   }
 
   @Override

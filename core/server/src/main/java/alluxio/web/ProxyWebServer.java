@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.StreamCache;
+import alluxio.proxy.AlluxioProxyService;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -33,6 +34,7 @@ import javax.servlet.ServletException;
 @NotThreadSafe
 public final class ProxyWebServer extends WebServer {
 
+  public static final String ALLUXIO_PROXY_SERVLET_RESOURCE_KEY = "Alluxio Proxy";
   public static final String FILE_SYSTEM_SERVLET_RESOURCE_KEY = "File System";
   public static final String STREAM_CACHE_SERVLET_RESOURCE_KEY = "Stream Cache";
 
@@ -41,8 +43,10 @@ public final class ProxyWebServer extends WebServer {
    *
    * @param serviceName the service name
    * @param address the service address
+   * @param proxy the Alluxio proxy service
    */
-  public ProxyWebServer(String serviceName, InetSocketAddress address) {
+  public ProxyWebServer(String serviceName, InetSocketAddress address,
+      final AlluxioProxyService proxy) {
     super(serviceName, address);
 
     // REST configuration
@@ -53,6 +57,7 @@ public final class ProxyWebServer extends WebServer {
       @Override
       public void init() throws ServletException {
         super.init();
+        getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxy);
         getServletContext()
             .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, FileSystem.Factory.get());
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
