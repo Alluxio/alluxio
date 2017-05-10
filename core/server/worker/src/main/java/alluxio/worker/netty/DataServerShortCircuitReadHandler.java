@@ -103,6 +103,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
         // It is a no-op to lock the same block multiple times within the same channel.
         if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
           mLockId = mBlockWorker.lockBlock(request.getSessionId(), request.getBlockId());
+          mBlockWorker.accessBlock(request.getSessionId(), request.getBlockId());
         } else {
           LOG.warn("Lock block {} without releasing previous block lock {}.", request.getBlockId(),
               mLockId);

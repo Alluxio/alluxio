@@ -155,11 +155,12 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
           request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
+          mWorker.accessBlock(request.mSessionId, request.mId);
+          return;
         } catch (Exception e) {
           mWorker.unlockBlock(lockId);
           throw e;
         }
-        break;
       }
 
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
@@ -167,11 +168,11 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
         try {
           request.mBlockReader = mWorker
               .readUfsBlock(request.mSessionId, request.mId, request.mStart, request.mNoCache);
+          return;
         } catch (Exception e) {
           mWorker.closeUfsBlock(request.mSessionId, request.mId);
           throw e;
         }
-        break;
       }
 
       // Sends an empty buffer to the client to make sure that the client does not timeout when

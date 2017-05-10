@@ -12,8 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.QuietlyCloseable;
-import alluxio.client.block.options.LockBlockOptions;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
