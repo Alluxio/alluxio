@@ -13,8 +13,6 @@ package alluxio.underfs;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import com.google.common.base.Objects;
-
 /**
  * Information about a directory in the under file system.
  */
@@ -42,7 +40,7 @@ public class UfsDirectoryStatus extends UfsStatus {
   }
 
   @Override
-  public UfsDirectoryStatus clone() {
+  public UfsDirectoryStatus copy() {
     return new UfsDirectoryStatus(this);
   }
 }

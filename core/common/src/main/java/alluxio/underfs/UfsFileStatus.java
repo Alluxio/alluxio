@@ -18,8 +18,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UfsFileStatus extends UfsStatus {
-  final protected long mContentLength;
-  final protected long mLastModifiedTimeMs;
+  protected final long mContentLength;
+  protected final long mLastModifiedTimeMs;
 
   /**
    * Creates new instance of {@link UfsFileStatus}.
@@ -50,7 +50,7 @@ public class UfsFileStatus extends UfsStatus {
   }
 
   @Override
-  public UfsFileStatus clone() {
+  public UfsFileStatus copy() {
     return new UfsFileStatus(this);
   }
 

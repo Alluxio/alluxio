@@ -21,13 +21,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class UfsStatus {
-  final protected boolean mIsDirectory;
+  protected final boolean mIsDirectory;
   protected String mName;
 
   // Permissions
-  final protected String mOwner;
-  final protected String mGroup;
-  final protected short mMode;
+  protected final String mOwner;
+  protected final String mGroup;
+  protected final short mMode;
 
   /**
    * Creates new instance of {@link UfsStatus}.
@@ -62,11 +62,11 @@ public abstract class UfsStatus {
   }
 
   /**
-   * Create a clone of {@link UfsStatus}.
+   * Create a copy of {@link UfsStatus}.
    *
-   * @return new instance as a copy.
+   * @return new instance as a copy
    */
-  public abstract UfsStatus clone();
+  public abstract UfsStatus copy();
 
   /**
    * Converts an array of UFS file status to a listing result where each element in the array is

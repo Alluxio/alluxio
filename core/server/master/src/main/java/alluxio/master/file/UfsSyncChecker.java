@@ -159,7 +159,7 @@ public final class UfsSyncChecker {
           String childPath = PathUtils.concatPath(curUri, childStatus.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
           if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-            UfsStatus newStatus = childStatus.clone();
+            UfsStatus newStatus = childStatus.copy();
             newStatus.setName(childPath.substring(prefix.length()));
             childrenList.add(newStatus);
           }
