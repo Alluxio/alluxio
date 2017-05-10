@@ -35,7 +35,7 @@ import java.net.InetSocketAddress;
 import java.util.HashSet;
 
 /**
- * Test the pin operation of file and directory.
+ * Integration tests for the pin operation.
  */
 public final class PinIntegrationTest extends BaseIntegrationTest {
   @Rule
@@ -62,8 +62,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Test recursive pinness that pinning/unpinning a folder should recursively take effect on its
-   * subfolders.
+   * Tests that pinning/unpinning a folder should recursively take effect on its subfolders.
    */
   @Test
   public void recursivePinness() throws Exception {
@@ -108,8 +107,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Test inherit pinness that children should inherit the isPinned attribute from their parent
-   * on creation.
+   * Tests that children should inherit the isPinned attribute from their parent on creation.
    */
   @Test
   public void newFilesInheritPinness() throws Exception {
