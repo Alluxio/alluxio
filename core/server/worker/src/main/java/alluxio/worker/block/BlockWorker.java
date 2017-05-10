@@ -17,6 +17,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.wire.FileInfo;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A block worker in the Alluxio system.
  */
-public interface BlockWorker extends Worker {
+public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * @return the worker data service bind host
    */

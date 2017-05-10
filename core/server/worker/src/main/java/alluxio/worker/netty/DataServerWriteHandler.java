@@ -22,6 +22,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
+import alluxio.worker.SessionCleanable;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -29,7 +30,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +65,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    NOTE: it is guaranteed that there is only one packet writer thread active at a given time.
  */
 @NotThreadSafe
-abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
+abstract class DataServerWriteHandler extends DataServerSessionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerWriteHandler.class);
 
   private static final int MAX_PACKETS_IN_FLIGHT =
@@ -126,22 +126,19 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
   /**
    * mRequest is initialized only once for a whole file or block in
-   * {@link DataServerReadHandler#channelRead(ChannelHandlerContext, Object)}.
-   * After that, it should only be used by the packet writer thread.
-   * It is safe to read those final primitive fields (e.g. mId, mSessionId) if mError is not set
-   * from any thread (not such usage in the code now). It is destroyed when the write request is
-   * done (complete or cancel) or an error is seen.
+   * {@link DataServerReadHandler#channelRead(ChannelHandlerContext, Object)}. After that, it should
+   * only be used by the packet writer thread. It is safe to read those final primitive fields (e.g.
+   * mId) if mError is not set from any thread (not such usage in the code now). It is destroyed
+   * when the write request is done (complete or cancel) or an error is seen.
    */
   protected volatile WriteRequestInternal mRequest;
 
   abstract class WriteRequestInternal implements Closeable {
     /** This ID can either be block ID or temp UFS file ID. */
     final long mId;
-    final long mSessionId;
 
-    WriteRequestInternal(long id, long sessionId) {
+    WriteRequestInternal(long id) {
       mId = id;
-      mSessionId = sessionId;
     }
 
     /**
@@ -165,7 +162,8 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    *
    * @param executorService the executor service to run {@link PacketWriter}s
    */
-  DataServerWriteHandler(ExecutorService executorService) {
+  DataServerWriteHandler(ExecutorService executorService, SessionCleanable... cleanables) {
+    super(cleanables);
     mPacketWriterExecutor = executorService;
   }
 

@@ -21,17 +21,16 @@ import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockWorker;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Netty handler that handles short circuit read requests.
+ * Netty handler that handles short circuit write requests.
  */
 @NotThreadSafe
-class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
+class DataServerShortCircuitWriteHandler extends DataServerSessionHandler {
   private static final Logger LOG =
       LoggerFactory.getLogger(DataServerShortCircuitWriteHandler.class);
 
@@ -46,6 +45,7 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
    * @param blockWorker the block worker
    */
   DataServerShortCircuitWriteHandler(BlockWorker blockWorker) {
+    super(blockWorker);
     mBlockWorker = blockWorker;
   }
 
@@ -88,11 +88,11 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (request.getOnlyReserveSpace()) {
-          mBlockWorker.requestSpace(request.getSessionId(), request.getBlockId(),
+          mBlockWorker.requestSpace(mSessionId, request.getBlockId(),
               request.getSpaceToReserve());
           ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         } else {
-          String path = mBlockWorker.createBlock(request.getSessionId(), request.getBlockId(),
+          String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
               mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
           Protocol.LocalBlockCreateResponse response =
               Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
@@ -130,9 +130,9 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (request.getCancel()) {
-          mBlockWorker.abortBlock(request.getSessionId(), request.getBlockId());
+          mBlockWorker.abortBlock(mSessionId, request.getBlockId());
         } else {
-          mBlockWorker.commitBlock(request.getSessionId(), request.getBlockId());
+          mBlockWorker.commitBlock(mSessionId, request.getBlockId());
         }
         ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         return null;

@@ -150,6 +150,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public void cleanupSession(long sessionId) {
+    mBlockStore.cleanupSession(sessionId);
+    mUnderFileSystemBlockStore.cleanupSession(sessionId);
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return new HashSet<>();
   }
