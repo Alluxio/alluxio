@@ -24,12 +24,12 @@ import alluxio.underfs.options.MkdirsOptions;
 public interface DirectoryUnderFileSystem extends UnderFileSystem {
 
   /**
-   * Gets the directory status.
+   * Checks if a file or directory exists in under file system.
    *
-   * @param path the file name
-   * @return the directory status
+   * @param path the absolute path
+   * @return true if the path exists, false otherwise
    */
-  UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
+  boolean exists(String path) throws IOException;
 
   /**
    * Checks if a directory exists in under file system.
