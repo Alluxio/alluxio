@@ -14,12 +14,12 @@ package alluxio.collections;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A class representing the definition of an index for this {@link IndexedSet}. Each instance of
+ * A class representing the definition of an index for an {@link IndexedSet}. Each instance of
  * this class must implement the method to define how to get the value of the field chosen as
  * the index key. Users use this indexDefinition class as the parameter in all methods of
  * {@link IndexedSet} to represent an index.
  *
- * @param <T> type of objects in this {@link IndexedSet}
+ * @param <T> type of objects in an {@link IndexedSet}
  */
 @ThreadSafe
 public abstract class IndexDefinition<T> {
