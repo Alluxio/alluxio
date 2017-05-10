@@ -80,7 +80,7 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
   @Override
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset).setSessionId(1L)
+        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
             .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
     DataBuffer buffer = null;
     if (len > 0) {
