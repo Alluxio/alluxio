@@ -103,7 +103,7 @@ public final class AlluxioMasterRestServiceHandler {
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
-    mUfs = UnderFileSystem.Factory.getForRoot();
+    mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   /**

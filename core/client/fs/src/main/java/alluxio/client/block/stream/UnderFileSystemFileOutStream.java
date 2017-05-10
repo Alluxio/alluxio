@@ -14,10 +14,10 @@ package alluxio.client.block.stream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.FilterOutputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -35,7 +35,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param options the options to construct this stream with
    * @return a new {@link UnderFileSystemFileOutStream}
    */
-  public static OutputStream create(FileSystemContext context, InetSocketAddress address,
+  public static OutputStream create(FileSystemContext context, WorkerNetAddress address,
       OutStreamOptions options) {
     return new UnderFileSystemFileOutStream(context, address, options);
   }
@@ -49,7 +49,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param address the data server address
    * @param options the out stream options
    */
-  public UnderFileSystemFileOutStream(FileSystemContext context, InetSocketAddress address,
+  public UnderFileSystemFileOutStream(FileSystemContext context, WorkerNetAddress address,
       OutStreamOptions options) {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
         Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)

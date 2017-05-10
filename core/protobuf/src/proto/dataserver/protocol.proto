@@ -60,3 +60,8 @@ message Response {
   optional status.PStatus status = 1;
   optional string message = 2;
 }
+
+// A heartbeat
+message Heartbeat {
+  // Empty message
+}

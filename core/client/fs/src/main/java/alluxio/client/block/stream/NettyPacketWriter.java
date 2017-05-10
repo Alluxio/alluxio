@@ -25,6 +25,7 @@ import alluxio.proto.status.Status.PStatus;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -37,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -72,7 +72,7 @@ public final class NettyPacketWriter implements PacketWriter {
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
-  private final InetSocketAddress mAddress;
+  private final WorkerNetAddress mAddress;
   private final long mLength;
   private final Protocol.WriteRequest mPartialRequest;
   private final long mPacketSize;
@@ -108,7 +108,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * Creates an instance of {@link NettyPacketWriter}.
    *
    * @param context the file system context
-   * @param address the data server network address
+   * @param address the data server address
    * @param id the block ID or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param sessionId the session ID
@@ -116,7 +116,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param type the request type (block or UFS file)
    * @param packetSize the packet size
    */
-  public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long id,
+  public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long id,
       long length, long sessionId, int tier, Protocol.RequestType type, long packetSize) {
     this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id)
         .setSessionId(sessionId).setTier(tier).setType(type).buildPartial(), packetSize);
@@ -126,12 +126,12 @@ public final class NettyPacketWriter implements PacketWriter {
    * Creates an instance of {@link NettyPacketWriter}.
    *
    * @param context the file system context
-   * @param address the data server network address
+   * @param address the data server address
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param partialRequest details of the write request which are constant for all requests
    * @param packetSize the packet size
    */
-  public NettyPacketWriter(FileSystemContext context, final InetSocketAddress address, long
+  public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long
       length, Protocol.WriteRequest partialRequest, long packetSize) {
     mContext = context;
     mAddress = address;

@@ -59,7 +59,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -154,7 +153,7 @@ public class FileOutStreamTest {
     PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
     PowerMockito.when(
         UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
-            any(InetSocketAddress.class), any(OutStreamOptions.class))).thenReturn(
+            any(WorkerNetAddress.class), any(OutStreamOptions.class))).thenReturn(
         mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)

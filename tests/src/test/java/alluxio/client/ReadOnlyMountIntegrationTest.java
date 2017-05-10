@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -39,7 +40,7 @@ import java.io.IOException;
 /**
  * Integration tests for mounting (reuse the {@link LocalAlluxioCluster}).
  */
-public class ReadOnlyMountIntegrationTest {
+public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   private static final String MOUNT_PATH = PathUtils.concatPath("/", "mnt", "foo");
   private static final String FILE_PATH = PathUtils.concatPath(MOUNT_PATH, "file");
   private static final String SUB_DIR_PATH = PathUtils.concatPath(MOUNT_PATH, "sub", "dir");
@@ -59,7 +60,7 @@ public class ReadOnlyMountIntegrationTest {
     // a second Ufs.
     AlluxioURI parentURI =
         new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getParent();
-    mUfs = UnderFileSystem.Factory.getForRoot();
+    mUfs = UnderFileSystem.Factory.createForRoot();
     mAlternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, mAlternateUfsRoot);

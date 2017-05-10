@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -97,16 +96,14 @@ public class FileOutStream extends AbstractOutStream {
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
-
     if (!mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream = null;
     } else { // Write is through to the under storage, create mUnderStorageOutputStream
       try {
-        WorkerNetAddress worker = // not storing data to Alluxio, so block size is 0
+        WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
             options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
-        InetSocketAddress location = new InetSocketAddress(worker.getHost(), worker.getDataPort());
-        mUnderStorageOutputStream =
-            mCloser.register(UnderFileSystemFileOutStream.create(mContext, location, mOptions));
+        mUnderStorageOutputStream = mCloser
+            .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
       } catch (AlluxioStatusException e) {
         CommonUtils.closeQuietly(mCloser);
         throw e.toIOException();

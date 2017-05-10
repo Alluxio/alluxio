@@ -22,11 +22,11 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -75,7 +75,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * Creates a {@link PacketInStream} to read from a netty data server.
    *
    * @param context the file system context
-   * @param address the network address of the netty data server
+   * @param address the address of the netty data server
    * @param id the ID
    * @param lockId the lock ID (set to -1 if not applicable)
    * @param sessionId the session ID (set to -1 if not applicable)
@@ -86,7 +86,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
-      InetSocketAddress address, long id, long lockId, long sessionId, long length,
+      WorkerNetAddress address, long id, long lockId, long sessionId, long length,
       boolean noCache, Protocol.RequestType type, InStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);

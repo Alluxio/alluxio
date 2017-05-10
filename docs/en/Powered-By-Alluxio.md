@@ -8,7 +8,7 @@ There are many companies and organizations that use Alluxio. Here is a list of s
 users. If your organization is using Alluxio, please feel free to 
 [edit this list](https://github.com/alluxio/alluxio/edit/master/docs/en/Powered-By-Alluxio.md)
 or let us know by email (project.alluxio@gmail.com) or
-[survey](https://docs.google.com/forms/d/e/1FAIpQLSfRTSKlysTNq9Zg-_Q87tRvs9CPWc49LjdMkEYUW-DlXSxPig/viewform).
+[survey](http://alluxio.org/resources/survey-users).
 
 * [Alibaba](http://www.alibaba.com/)
 * [Alluxio](http://www.alluxio.com/)

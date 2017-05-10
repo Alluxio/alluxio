@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -31,7 +32,7 @@ import java.util.Scanner;
 /**
  * Tests the web server is up when Alluxio starts.
  */
-public class WebServerIntegrationTest {
+public class WebServerIntegrationTest extends BaseIntegrationTest {
 
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =

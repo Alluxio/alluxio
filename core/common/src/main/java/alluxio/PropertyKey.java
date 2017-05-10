@@ -49,6 +49,8 @@ public class PropertyKey {
       create(Name.METRICS_CONF_FILE, String.format("${%s}/metrics.properties", Name.CONF_DIR));
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       create(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000);
+  public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+      create(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, 30000);
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       create(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB");
   public static final PropertyKey SITE_CONF_DIR =
@@ -286,6 +288,8 @@ public class PropertyKey {
   public static final PropertyKey WORKER_DATA_PORT = create(Name.WORKER_DATA_PORT, 29999);
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
       create(Name.WORKER_DATA_SERVER_CLASS, "alluxio.worker.netty.NettyDataServer");
+  public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
+      create(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS, "");
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
       create(Name.WORKER_DATA_TMP_FOLDER, ".tmp_blocks");
   public static final PropertyKey WORKER_DATA_TMP_SUBDIR_MAX =
@@ -671,6 +675,8 @@ public class PropertyKey {
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout.ms";
+    public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+        "alluxio.network.netty.heartbeat.timeout.ms";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
@@ -686,7 +692,7 @@ public class PropertyKey {
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
 
-    //
+   //
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
@@ -847,6 +853,8 @@ public class PropertyKey {
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
+    public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
+        "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";

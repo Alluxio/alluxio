@@ -31,8 +31,36 @@ public final class ProtoMessage {
    *
    * @param message the message to wrap
    */
-  public ProtoMessage(MessageLite message) {
+  private ProtoMessage(MessageLite message) {
     mMessage = message;
+  }
+
+  /**
+   * @param readRequest the read request
+   */
+  public ProtoMessage(Protocol.ReadRequest readRequest) {
+    mMessage = readRequest;
+  }
+
+  /**
+   * @param writeRequest the write request
+   */
+  public ProtoMessage(Protocol.WriteRequest writeRequest) {
+    mMessage = writeRequest;
+  }
+
+  /**
+   * @param response  the response
+   */
+  public ProtoMessage(Protocol.Response response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param heartbeat the heartbeat
+   */
+  public ProtoMessage(Protocol.Heartbeat heartbeat) {
+    mMessage = heartbeat;
   }
 
   /**
@@ -87,6 +115,13 @@ public final class ProtoMessage {
    */
   public boolean isResponse() {
     return mMessage instanceof Protocol.Response;
+  }
+
+  /**
+   * @return true if the message is of type {@link Protocol.Heartbeat}
+   */
+  public boolean isHeartbeat() {
+    return mMessage instanceof Protocol.Heartbeat;
   }
 
   /**

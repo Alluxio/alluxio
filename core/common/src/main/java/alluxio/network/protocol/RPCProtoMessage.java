@@ -153,6 +153,8 @@ public final class RPCProtoMessage extends RPCMessage {
       return RPCMessage.Type.RPC_WRITE_REQUEST;
     } else if (mMessage.isResponse()) {
       return RPCMessage.Type.RPC_RESPONSE;
+    } else if (mMessage.isHeartbeat()) {
+      return RPCMessage.Type.RPC_HEARTBEAT;
     } else {
       return RPCMessage.Type.RPC_UNKNOWN;
     }

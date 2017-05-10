@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -23,7 +24,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -42,7 +43,7 @@ import java.util.Map;
 /**
  * Integration tests for mounting multiple UFSes into Alluxio, each with a different configuration.
  */
-public final class MultiUfsMountIntegrationTest {
+public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   private static final String MOUNT_POINT1 = "/mnt1";
   private static final String MOUNT_POINT2 = "/mnt2";
   private static final Map<String, String> UFS_CONF1 = ImmutableMap.of("key1", "val1");
@@ -69,8 +70,8 @@ public final class MultiUfsMountIntegrationTest {
   public void before() throws Exception {
     mUfsFactory1 = new ConfExpectingUnderFileSystemFactory("ufs1", UFS_CONF1);
     mUfsFactory2 = new ConfExpectingUnderFileSystemFactory("ufs2", UFS_CONF2);
-    UnderFileSystemRegistry.register(mUfsFactory1);
-    UnderFileSystemRegistry.register(mUfsFactory2);
+    UnderFileSystemFactoryRegistry.register(mUfsFactory1);
+    UnderFileSystemFactoryRegistry.register(mUfsFactory2);
 
     mUfsUri1 = "ufs1://" + mFolder.newFolder().getAbsoluteFile();
     mUfsUri2 = "ufs2://" + mFolder.newFolder().getAbsoluteFile();
@@ -90,8 +91,8 @@ public final class MultiUfsMountIntegrationTest {
 
   @After
   public void after() throws Exception {
-    UnderFileSystemRegistry.unregister(mUfsFactory1);
-    UnderFileSystemRegistry.unregister(mUfsFactory2);
+    UnderFileSystemFactoryRegistry.unregister(mUfsFactory1);
+    UnderFileSystemFactoryRegistry.unregister(mUfsFactory2);
   }
 
   @Test

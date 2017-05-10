@@ -24,6 +24,7 @@ import alluxio.proto.status.Status.PStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -36,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +77,7 @@ public final class NettyPacketReader implements PacketReader {
   private final FileSystemContext mContext;
   private final Channel mChannel;
   private final Protocol.RequestType mRequestType;
-  private final InetSocketAddress mAddress;
+  private final WorkerNetAddress mAddress;
   private final long mId;
   private final long mStart;
   private final long mBytesToRead;
@@ -115,7 +115,7 @@ public final class NettyPacketReader implements PacketReader {
    * requires the block to be locked beforehand and the lock ID is passed to this class.
    *
    * @param context the file system context
-   * @param address the netty data server network address
+   * @param address the netty data server address
    * @param id the block ID or UFS file ID
    * @param offset the offset
    * @param len the length to read
@@ -125,7 +125,7 @@ public final class NettyPacketReader implements PacketReader {
    * @param type the request type (block or UFS file)
    * @param packetSize the packet size
    */
-  private NettyPacketReader(FileSystemContext context, InetSocketAddress address, long id,
+  private NettyPacketReader(FileSystemContext context, WorkerNetAddress address, long id,
       long offset, long len, long lockId, long sessionId, boolean noCache,
       Protocol.RequestType type, long packetSize) {
     Preconditions.checkArgument(offset >= 0 && len > 0 && packetSize > 0);
@@ -345,7 +345,7 @@ public final class NettyPacketReader implements PacketReader {
    */
   public static class Factory implements PacketReader.Factory {
     private final FileSystemContext mContext;
-    private final InetSocketAddress mAddress;
+    private final WorkerNetAddress mAddress;
     private final long mId;
     private final long mLockId;
     private final long mSessionId;
@@ -365,7 +365,7 @@ public final class NettyPacketReader implements PacketReader {
      * @param type the request type
      * @param packetSize the packet size
      */
-    public Factory(FileSystemContext context, InetSocketAddress address, long id, long lockId,
+    public Factory(FileSystemContext context, WorkerNetAddress address, long id, long lockId,
         long sessionId, boolean noCache, Protocol.RequestType type, long packetSize) {
       mContext = context;
       mAddress = address;

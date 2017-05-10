@@ -69,7 +69,7 @@ public final class UnderFileSystemBlockReaderTest {
             Mockito.anyLong())).thenReturn(mTempBlockMeta);
     Mockito.when(mTempBlockMeta.getPath()).thenReturn(mFolder.newFile().getAbsolutePath());
     Mockito.when(mUfsManager.get(Mockito.anyLong()))
-        .thenReturn(UnderFileSystem.Factory.get(testFilePath));
+        .thenReturn(UnderFileSystem.Factory.create(testFilePath));
 
     LockBlockTOptions options = new LockBlockTOptions();
     options.setMaxUfsReadConcurrency(10);

@@ -47,7 +47,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 
@@ -109,7 +108,7 @@ public final class AlluxioBlockStoreTest {
   private AlluxioBlockStore mBlockStore;
   private Channel mChannel;
   private ChannelPipeline mPipeline;
-  private InetSocketAddress mLocalAddr;
+  private WorkerNetAddress mLocalAddr;
   private FileSystemContext mContext;
 
   @Before
@@ -123,15 +122,15 @@ public final class AlluxioBlockStoreTest {
     // Mock block store context to return our mock clients
     Mockito.when(mContext.createBlockWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mBlockWorkerClient);
-    mLocalAddr = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), 0);
-    Mockito.when(mBlockWorkerClient.getDataServerAddress()).thenReturn(mLocalAddr);
 
     Mockito.when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
+    mLocalAddr = new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName());
+    Mockito.when(mBlockWorkerClient.getWorkerNetAddress()).thenReturn(mLocalAddr);
 
     mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
 
-    Mockito.when(mContext.acquireNettyChannel(Mockito.any(InetSocketAddress.class)))
+    Mockito.when(mContext.acquireNettyChannel(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mChannel);
     Mockito.when(mChannel.pipeline()).thenReturn(mPipeline);
     Mockito.when(mPipeline.last()).thenReturn(new RPCMessageDecoder());

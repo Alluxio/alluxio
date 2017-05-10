@@ -42,7 +42,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   private boolean mClosed;
 
   /**
-   * Creates a new local block output stream.
+   * Creates a new block output stream that writes to local file directly.
    *
    * @param blockId the block id
    * @param blockSize the block size
@@ -51,7 +51,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param options the options
    * @return the {@link BlockOutStream} instance created
    */
-  public static BlockOutStream createLocalBlockOutStream(long blockId, long blockSize,
+  public static BlockOutStream createShortCircuitBlockOutStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
     Closer closer = Closer.create();
     try {
@@ -67,7 +67,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   }
 
   /**
-   * Creates a new remote block output stream.
+   * Creates a new netty block output stream.
    *
    * @param blockId the block id
    * @param blockSize the block size
@@ -76,15 +76,14 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param options the options
    * @return the {@link BlockOutStream} instance created
    */
-  public static BlockOutStream createRemoteBlockOutStream(long blockId, long blockSize,
+  public static BlockOutStream createNettyBlockOutStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-
       PacketOutStream outStream = PacketOutStream
-          .createNettyPacketOutStream(context, client.getDataServerAddress(), client.getSessionId(),
-              blockId, blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options);
+          .createNettyPacketOutStream(context, workerNetAddress, client.getSessionId(), blockId,
+              blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
     } catch (RuntimeException e) {
