@@ -108,7 +108,7 @@ public final class UfsSyncChecker {
       inodePos++;
     }
 
-    if (ufsPos == ufsChildren.length) {
+    if (ufsPos == numUfsChildren) {
       // Directory is in sync
       mSyncedDirectories.put(alluxioUri, inode);
     } else {
