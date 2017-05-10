@@ -127,4 +127,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public void stopMasters() throws Exception {
     mMaster.stop();
   }
+
+  @Override
+  public void killMasters() throws Exception {
+    mMaster.kill();
+  }
 }

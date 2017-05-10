@@ -506,7 +506,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void ls() throws Exception {
+  public void listStatus() throws Exception {
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
 
     for (int i = 0; i < 10; i++) {
@@ -661,7 +661,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       }
 
       // Stop Alluxio.
-      mLocalAlluxioClusterResource.get().stopFS();
+      mLocalAlluxioClusterResource.get().kill();
       // Create the master using the existing journal.
       createFileSystemMasterFromJournal();
     } finally {

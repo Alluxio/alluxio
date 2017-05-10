@@ -67,7 +67,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    mMultiMasterLocalAlluxioCluster.stop();
+    mMultiMasterLocalAlluxioCluster.kill();
   }
 
   @Before
@@ -318,7 +318,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           Collections.EMPTY_MAP, Collections.EMPTY_MAP);
 
     } finally {
-      cluster.stop();
+      cluster.kill();
     }
 
     // Start the default cluster.

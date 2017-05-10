@@ -77,6 +77,12 @@ public abstract class AbstractLocalAlluxioCluster {
     mWorkerThreads = new ArrayList<>();
   }
 
+  public void kill() throws Exception {
+    killProxy();
+    killWorkers();
+    killMasters();
+  }
+
   /**
    * Starts both master and a worker using the configurations in test conf respectively.
    */
@@ -112,6 +118,8 @@ public abstract class AbstractLocalAlluxioCluster {
       public void run() {
         try {
           mProxyProcess.start();
+        } catch (InterruptedException e) {
+          // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start proxy error", e);
@@ -140,7 +148,8 @@ public abstract class AbstractLocalAlluxioCluster {
         public void run() {
           try {
             worker.start();
-
+          } catch (InterruptedException e) {
+            // this is expected
           } catch (Exception e) {
             // Log the exception as the RuntimeException will be caught and handled silently by
             // JUnit
@@ -242,11 +251,21 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected abstract void stopMasters() throws Exception;
 
+  protected abstract void killMasters() throws Exception;
+
   /**
    * Stops the proxy.
    */
   protected void stopProxy() throws Exception {
     mProxyProcess.stop();
+    killProxy();
+  }
+
+  protected void killProxy() throws Exception {
+    if (mProxyThread != null) {
+      mProxyThread.interrupt();
+      mProxyThread = null;
+    }
   }
 
   /**
@@ -256,6 +275,10 @@ public abstract class AbstractLocalAlluxioCluster {
     for (WorkerProcess worker : mWorkers) {
       worker.stop();
     }
+    killWorkers();
+  }
+
+  protected void killWorkers() throws Exception {
     for (Thread thread : mWorkerThreads) {
       thread.interrupt();
     }
@@ -282,6 +305,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0);
 
     Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);

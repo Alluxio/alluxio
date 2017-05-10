@@ -73,12 +73,11 @@ public class StartupConsistencyCheckTest extends BaseIntegrationTest {
    */
   @Test
   public void consistent() throws Exception {
-    mCluster.stopFS();
+    mCluster.kill();
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);
     Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
-    registry.stop();
   }
 
   /**
@@ -89,7 +88,7 @@ public class StartupConsistencyCheckTest extends BaseIntegrationTest {
   public void inconsistent() throws Exception {
     String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
     String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
-    mCluster.stopFS();
+    mCluster.kill();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(topLevelFileUfsPath);
     ufs.deleteFile(topLevelFileUfsPath);
     ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
@@ -102,6 +101,5 @@ public class StartupConsistencyCheckTest extends BaseIntegrationTest {
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
-    registry.stop();
   }
 }

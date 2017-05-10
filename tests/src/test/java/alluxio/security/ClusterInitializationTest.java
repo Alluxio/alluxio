@@ -72,7 +72,7 @@ public final class ClusterInitializationTest extends BaseIntegrationTest {
   public void recoverClusterSuccess() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile")).close();
-    mLocalAlluxioClusterResource.get().stopFS();
+    mLocalAlluxioClusterResource.get().kill();
 
     LoginUserTestUtils.resetLoginUser(SUPER_USER);
 
@@ -83,7 +83,6 @@ public final class ClusterInitializationTest extends BaseIntegrationTest {
     AuthenticatedClientUser.set(SUPER_USER);
     Assert.assertEquals(SUPER_USER,
         fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getOwner());
-    registry.stop();
   }
 
   /**
@@ -100,7 +99,7 @@ public final class ClusterInitializationTest extends BaseIntegrationTest {
 
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile")).close();
-    mLocalAlluxioClusterResource.get().stopFS();
+    mLocalAlluxioClusterResource.get().kill();
 
     LoginUserTestUtils.resetLoginUser(USER);
 

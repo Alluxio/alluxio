@@ -82,12 +82,10 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     runCreateFileThread(cluster.getClient());
     // Shutdown the cluster
-    cluster.stopFS();
+    cluster.kill();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
   }
 
   @Test
@@ -99,11 +97,9 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.waitForNewMaster(120 * Constants.SECOND_MS);
       Assert.assertTrue(cluster.stopLeader());
     }
-    cluster.stopFS();
+    cluster.kill();
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
   }
 
   /**

@@ -100,6 +100,8 @@ public final class LocalAlluxioMaster {
         try {
           LOG.info("Starting Alluxio master {}.", mMasterProcess);
           mMasterProcess.start();
+        } catch (InterruptedException e) {
+          // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start master error", e);
@@ -112,12 +114,7 @@ public final class LocalAlluxioMaster {
     mMasterThread.setName("MasterThread-" + System.identityHashCode(this));
     mMasterThread.start();
     mMasterProcess.waitForReady();
-  }
 
-  /**
-   * Starts the secondary master.
-   */
-  public void startSecondary() {
     mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
@@ -125,6 +122,8 @@ public final class LocalAlluxioMaster {
         try {
           LOG.info("Starting secondary master {}.", mSecondaryMaster);
           mSecondaryMaster.start();
+        } catch (InterruptedException e) {
+          // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start secondary master error", e);
@@ -149,26 +148,24 @@ public final class LocalAlluxioMaster {
    * Stops the master and cleans up client connections.
    */
   public void stop() throws Exception {
-    // This shutdown needs to be done in a loop with retry because the interrupt signal can
-    // sometimes be ignored in the master implementation. For example, if the master is doing
-    // a hdfs listStatus RPC (hadoop version is 1.x), the interrupt signal is not properly handled.
-    while (mMasterThread.isAlive()) {
-      mMasterProcess.stop();
-      mMasterThread.interrupt();
-      LOG.info("Stopping master thread {}.", System.identityHashCode(this));
-      mMasterThread.join(1000);
-    }
-
-    if (mSecondaryMaster != null) {
-      mSecondaryMaster.stop();
-    }
-    if (mSecondaryMasterThread != null) {
-      mSecondaryMasterThread.interrupt();
-    }
+    mMasterProcess.stop();
+    mSecondaryMaster.stop();
+    kill();
 
     clearClients();
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
+  }
+
+  public void kill() throws Exception {
+    if (mMasterThread != null) {
+      mMasterThread.interrupt();
+      mMasterThread = null;
+    }
+    if (mSecondaryMasterThread != null) {
+      mSecondaryMasterThread.interrupt();
+      mSecondaryMasterThread = null;
+    }
   }
 
   /**
