@@ -96,7 +96,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -124,7 +124,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -154,7 +154,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -183,7 +183,7 @@ public class BaseFileSystem implements FileSystem {
       // TODO(andrew): Change the server so that a prefix being a file means the path does not exist
       return false;
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -207,7 +207,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -230,7 +230,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -254,7 +254,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -290,7 +290,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -313,7 +313,7 @@ public class BaseFileSystem implements FileSystem {
       masterClient.mount(alluxioPath, ufsPath, options);
       LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -356,7 +356,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -380,7 +380,7 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -401,7 +401,7 @@ public class BaseFileSystem implements FileSystem {
       masterClient.unmount(path);
       LOG.debug("Unmounted {}, options: {}", path.getPath(), options);
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {

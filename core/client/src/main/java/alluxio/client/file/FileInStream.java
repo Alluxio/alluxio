@@ -158,22 +158,18 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   @Override
   public void close() throws IOException {
-    try {
-      if (mClosed) {
-        return;
-      }
-      updateStreams();
-      if (mShouldCachePartiallyReadBlock) {
-        readCurrentBlockToEnd();
-      }
-      if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.close();
-      }
-      closeOrCancelCacheStream();
-      mClosed = true;
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
+    if (mClosed) {
+      return;
     }
+    updateStreams();
+    if (mShouldCachePartiallyReadBlock) {
+      readCurrentBlockToEnd();
+    }
+    if (mCurrentBlockInStream != null) {
+      mCurrentBlockInStream.close();
+    }
+    closeOrCancelCacheStream();
+    mClosed = true;
   }
 
   @Override
@@ -263,11 +259,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    try {
-      return positionedReadInternal(pos, b, off, len);
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
-    }
+    return positionedReadInternal(pos, b, off, len);
   }
 
   private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
@@ -314,36 +306,28 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   @Override
   public void seek(long pos) throws IOException {
-    try {
-      if (mPos == pos) {
-        return;
-      }
-      Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-      Preconditions.checkArgument(pos <= maxSeekPosition(),
-          PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), pos);
-      if (!mShouldCachePartiallyReadBlock) {
-        seekInternal(pos);
-      } else {
-        seekInternalWithCachingPartiallyReadBlock(pos);
-      }
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
+    if (mPos == pos) {
+      return;
+    }
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
+    Preconditions.checkArgument(pos <= maxSeekPosition(),
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), pos);
+    if (!mShouldCachePartiallyReadBlock) {
+      seekInternal(pos);
+    } else {
+      seekInternalWithCachingPartiallyReadBlock(pos);
     }
   }
 
   @Override
   public long skip(long n) throws IOException {
-    try {
-      if (n <= 0) {
-        return 0;
-      }
-
-      long toSkip = Math.min(n, remaining());
-      seek(mPos + toSkip);
-      return toSkip;
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
+    if (n <= 0) {
+      return 0;
     }
+
+    long toSkip = Math.min(n, remaining());
+    seek(mPos + toSkip);
+    return toSkip;
   }
 
   /**
