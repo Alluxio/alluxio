@@ -19,9 +19,9 @@ import org.junit.Test;
 import java.util.Random;
 
 /**
- * Tests for the {@link UnderFileStatus} class.
+ * Tests for the {@link UfsStatus} class.
  */
-public final class UnderFileStatusTest {
+public final class UfsStatusTest {
   /**
    * Tests getting and setting fields.
    */
@@ -32,7 +32,7 @@ public final class UnderFileStatusTest {
     boolean isDirectory = random.nextBoolean();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
-    UnderFileStatus status = new UnderFileStatus("name", contentLength, isDirectory,
+    UfsStatus status = new UfsStatus("name", contentLength, isDirectory,
         lastModifiedTimeMs, "owner", "group", mode);
 
     Assert.assertEquals("name", status.getName());
@@ -55,14 +55,14 @@ public final class UnderFileStatusTest {
     boolean isDirectory = random.nextBoolean();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
-    UnderFileStatus statusToCopy = new UnderFileStatus("name", contentLength, isDirectory,
+    UfsStatus statusToCopy = new UfsStatus("name", contentLength, isDirectory,
         lastModifiedTimeMs, "owner", "group", mode);
-    UnderFileStatus status = new UnderFileStatus(statusToCopy);
+    UfsStatus status = new UfsStatus(statusToCopy);
     Assert.assertEquals(statusToCopy, status);
   }
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(UnderFileStatus.class);
+    CommonTestUtils.testEquals(UfsStatus.class);
   }
 }

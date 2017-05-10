@@ -12,7 +12,7 @@
 package alluxio.underfs.sleepfs;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -107,7 +107,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus getFileStatus(String path) throws IOException {
+  public UfsStatus getFileStatus(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFileStatusMs());
     return super.getFileStatus(cleanPath(path));
   }
@@ -137,7 +137,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     sleepIfNecessary(mOptions.getListStatusMs());
     return super.listStatus(cleanPath(path));
   }

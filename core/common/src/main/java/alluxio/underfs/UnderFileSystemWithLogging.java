@@ -221,10 +221,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus getDirectoryStatus(final String path) throws IOException {
-    return call(new UfsCallable<UnderFileStatus>() {
+  public UfsStatus getDirectoryStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsStatus>() {
       @Override
-      public UnderFileStatus call() throws IOException {
+      public UfsStatus call() throws IOException {
         return mUnderFileSystem.getDirectoryStatus(path);
       }
 
@@ -267,10 +267,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus getFileStatus(final String path) throws IOException {
-    return call(new UfsCallable<UnderFileStatus>() {
+  public UfsStatus getFileStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsStatus>() {
       @Override
-      public UnderFileStatus call() throws IOException {
+      public UfsStatus call() throws IOException {
         return mUnderFileSystem.getFileStatus(path);
       }
 
@@ -337,10 +337,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(final String path) throws IOException {
-    return call(new UfsCallable<UnderFileStatus[]>() {
+  public UfsStatus[] listStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsStatus[]>() {
       @Override
-      public UnderFileStatus[] call() throws IOException {
+      public UfsStatus[] call() throws IOException {
         return mUnderFileSystem.listStatus(path);
       }
 
@@ -352,11 +352,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(final String path, final ListOptions options)
+  public UfsStatus[] listStatus(final String path, final ListOptions options)
       throws IOException {
-    return call(new UfsCallable<UnderFileStatus[]>() {
+    return call(new UfsCallable<UfsStatus[]>() {
       @Override
-      public UnderFileStatus[] call() throws IOException {
+      public UfsStatus[] call() throws IOException {
         return mUnderFileSystem.listStatus(path, options);
       }
 

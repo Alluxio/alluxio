@@ -18,7 +18,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
@@ -204,7 +204,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus getDirectoryStatus(String path) throws IOException {
+  public UfsStatus getDirectoryStatus(String path) throws IOException {
     return getFileStatus(path);
   }
 
@@ -237,10 +237,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus getFileStatus(String path) throws IOException {
+  public UfsStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return new UnderFileStatus(path, fs.getLen(), fs.isDirectory(),
+    return new UfsStatus(path, fs.getLen(), fs.isDirectory(),
         fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
 
@@ -280,16 +280,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     FileStatus[] files = listStatusInternal(path);
     if (files == null) {
       return null;
     }
-    UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+    UfsStatus[] rtn = new UfsStatus[files.length];
     int i = 0;
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
-      rtn[i++] = new UnderFileStatus(status.getPath().getName(), status.getLen(), status.isDir(),
+      rtn[i++] = new UfsStatus(status.getPath().getName(), status.getLen(), status.isDir(),
           status.getModificationTime(), status.getOwner(), status.getGroup(),
           status.getPermission().toShort());
     }

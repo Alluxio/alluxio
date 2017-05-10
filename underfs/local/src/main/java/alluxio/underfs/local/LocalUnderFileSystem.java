@@ -19,7 +19,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -163,7 +163,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus getDirectoryStatus(String path) throws IOException {
+  public UfsStatus getDirectoryStatus(String path) throws IOException {
     return getFileStatus(path);
   }
 
@@ -181,12 +181,12 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus getFileStatus(String path) throws IOException {
+  public UfsStatus getFileStatus(String path) throws IOException {
     String tpath = stripPath(path);
     File file = new File(tpath);
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    return new UnderFileStatus(path, file.length(), file.isDirectory(), file.lastModified(),
+    return new UfsStatus(path, file.length(), file.isDirectory(), file.lastModified(),
         attr.owner().getName(), attr.group().getName(),
         FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
@@ -222,18 +222,18 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     File[] files = file.listFiles();
     if (files != null) {
-      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+      UfsStatus[] rtn = new UfsStatus[files.length];
       int i = 0;
       for (File f : files) {
         // TODO(adit): do we need extra call for attributes?
         PosixFileAttributes attr =
             Files.readAttributes(Paths.get(f.getPath()), PosixFileAttributes.class);
-        rtn[i++] = new UnderFileStatus(f.getName(), f.length(), f.isDirectory(), f.lastModified(),
+        rtn[i++] = new UfsStatus(f.getName(), f.length(), f.isDirectory(), f.lastModified(),
             attr.owner().getName(), attr.group().getName(),
             FileUtils.translatePosixPermissionToMode(attr.permissions()));
       }

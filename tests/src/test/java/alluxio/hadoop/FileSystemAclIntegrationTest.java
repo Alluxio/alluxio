@@ -16,7 +16,7 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -286,7 +286,7 @@ public final class FileSystemAclIntegrationTest {
     fs = sTFS.getFileStatus(fileA);
     Assert.assertEquals(testOwner, fs.getOwner());
     Assert.assertEquals(defaultGroup, fs.getGroup());
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
     Assert.assertEquals(testOwner, ufsStatus.getOwner());
     Assert.assertEquals(defaultGroup, ufsStatus.getGroup());
   }
@@ -321,7 +321,7 @@ public final class FileSystemAclIntegrationTest {
     fs = sTFS.getFileStatus(fileB);
     Assert.assertEquals(defaultOwner, fs.getOwner());
     Assert.assertEquals(testGroup, fs.getGroup());
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileB));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileB));
     Assert.assertEquals(defaultOwner, ufsStatus.getOwner());
     Assert.assertEquals(testGroup, ufsStatus.getGroup());
   }
@@ -356,7 +356,7 @@ public final class FileSystemAclIntegrationTest {
     fs = sTFS.getFileStatus(fileC);
     Assert.assertEquals(testOwner, fs.getOwner());
     Assert.assertEquals(testGroup, fs.getGroup());
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileC));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileC));
     Assert.assertEquals(testOwner, ufsStatus.getOwner());
     Assert.assertEquals(testGroup, ufsStatus.getGroup());
   }
@@ -399,7 +399,7 @@ public final class FileSystemAclIntegrationTest {
     FileStatus parentFs = sTFS.getFileStatus(dir.getParent());
     Short parentMode = parentFs.getPermission().toShort();
 
-    UnderFileStatus ufsStatus = sUfs.getDirectoryStatus(PathUtils.concatPath(sUfsRoot, dir));
+    UfsStatus ufsStatus = sUfs.getDirectoryStatus(PathUtils.concatPath(sUfsRoot, dir));
     Assert.assertEquals(defaultOwner, ufsStatus.getOwner());
     Assert.assertEquals((int) dirMode, (int) ufsStatus.getMode());
     Assert.assertEquals((int) parentMode,
@@ -505,7 +505,7 @@ public final class FileSystemAclIntegrationTest {
 
     // Without providing "alluxio.underfs.s3.canonical.owner.id.to.username.mapping", the default
     // display name of the S3 owner account is NOT empty.
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
     Assert.assertNotEquals("", ufsStatus.getOwner());
     Assert.assertNotEquals("", ufsStatus.getGroup());
     Assert.assertEquals((short) 0700, ufsStatus.getMode());
@@ -523,7 +523,7 @@ public final class FileSystemAclIntegrationTest {
     // Without providing "alluxio.underfs.gcs.owner.id.to.username.mapping", the default
     // display name of the GCS owner account is empty. The owner will be the GCS account id, which
     // is not empty.
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
     Assert.assertNotEquals("", ufsStatus.getOwner());
     Assert.assertNotEquals("", ufsStatus.getGroup());
     Assert.assertEquals((short) 0700, ufsStatus.getMode());
@@ -537,7 +537,7 @@ public final class FileSystemAclIntegrationTest {
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
     Assert.assertNotEquals("", ufsStatus.getOwner());
     Assert.assertNotEquals("", ufsStatus.getGroup());
     Assert.assertEquals((short) 0700, ufsStatus.getMode());
@@ -553,7 +553,7 @@ public final class FileSystemAclIntegrationTest {
 
     // Verify the owner, group and permission of OSS UFS is not supported and thus returns default
     // values.
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
     Assert.assertNotEquals("", ufsStatus.getOwner());
     Assert.assertNotEquals("", ufsStatus.getGroup());
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE, ufsStatus.getMode());
@@ -570,7 +570,7 @@ public final class FileSystemAclIntegrationTest {
 
     // Set owner to Alluxio files that are persisted in UFS will NOT propagate to underlying object.
     sTFS.setOwner(fileA, newOwner, newGroup);
-    UnderFileStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
     Assert.assertNotEquals("", ufsStatus.getOwner());
     Assert.assertNotEquals("", ufsStatus.getGroup());
   }

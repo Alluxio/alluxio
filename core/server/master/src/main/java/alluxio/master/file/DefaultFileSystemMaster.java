@@ -93,7 +93,7 @@ import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.util.CommonUtils;
@@ -2040,8 +2040,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
         if (options.isLoadDirectChildren()) {
-          UnderFileStatus[] files = ufs.listStatus(ufsUri.toString());
-          for (UnderFileStatus status : files) {
+          UfsStatus[] files = ufs.listStatus(ufsUri.toString());
+          for (UfsStatus status : files) {
             if (PathUtils.isTemporaryFileName(status.getName())
                 || inode.getChild(status.getName()) != null) {
               continue;
@@ -2087,7 +2087,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    UnderFileStatus ufsStatus = options.getUnderFileStatus();
+    UfsStatus ufsStatus = options.getUnderFileStatus();
     if (ufsStatus == null) {
       ufsStatus = ufs.getFileStatus(ufsUri.toString());
     }
@@ -2141,7 +2141,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    UnderFileStatus ufsStatus = options.getUnderFileStatus();
+    UfsStatus ufsStatus = options.getUnderFileStatus();
     if (ufsStatus == null) {
       AlluxioURI ufsUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();

@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link UnderFileSystem} returns entries of this class.
  */
 @NotThreadSafe
-public final class UnderFileStatus {
+public final class UfsStatus {
   /** Size of a directory. */
   public static final long INVALID_CONTENT_LENGTH = -1L;
 
@@ -50,8 +50,8 @@ public final class UnderFileStatus {
    * @param group of the file
    * @param mode of the file
    */
-  public UnderFileStatus(String name, long contentLength, boolean isDirectory,
-      long lastModifiedTimeMs, String owner, String group, short mode) {
+  public UfsStatus(String name, long contentLength, boolean isDirectory,
+                   long lastModifiedTimeMs, String owner, String group, short mode) {
     mContentLength = contentLength;
     mIsDirectory = isDirectory;
     mLastModifiedTimeMs = lastModifiedTimeMs;
@@ -66,7 +66,7 @@ public final class UnderFileStatus {
    *
    * @param status file information to copy
    */
-  public UnderFileStatus(UnderFileStatus status) {
+  public UfsStatus(UfsStatus status) {
     mContentLength = status.mContentLength;
     mIsDirectory = status.mIsDirectory;
     mLastModifiedTimeMs = status.mLastModifiedTimeMs;
@@ -80,7 +80,7 @@ public final class UnderFileStatus {
    * Create a new instance for under file information with defaults.
    *
    */
-  public UnderFileStatus() {
+  public UfsStatus() {
     mContentLength = INVALID_CONTENT_LENGTH;
     mIsDirectory = false;
     mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
@@ -97,7 +97,7 @@ public final class UnderFileStatus {
    * @param children array of listing statuses
    * @return array of file or directory names, or null if the input is null
    */
-  public static String[] convertToNames(UnderFileStatus[] children) {
+  public static String[] convertToNames(UfsStatus[] children) {
     if (children == null) {
       return null;
     }
@@ -186,7 +186,7 @@ public final class UnderFileStatus {
    * @param name of entry
    * @return this object
    */
-  public UnderFileStatus setName(String name) {
+  public UfsStatus setName(String name) {
     mName = name;
     return this;
   }
@@ -201,10 +201,10 @@ public final class UnderFileStatus {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof UnderFileStatus)) {
+    if (!(o instanceof UfsStatus)) {
       return false;
     }
-    UnderFileStatus that = (UnderFileStatus) o;
+    UfsStatus that = (UfsStatus) o;
     return Objects.equal(mName, that.mName)
         && Objects.equal(mContentLength, that.mContentLength)
         && Objects.equal(mIsDirectory, that.mIsDirectory)

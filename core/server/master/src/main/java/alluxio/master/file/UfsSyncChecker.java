@@ -17,7 +17,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UfsSyncChecker {
 
   /** UFS directories for which list was called. */
-  private Map<String, UnderFileStatus[]> mListedDirectories;
+  private Map<String, UfsStatus[]> mListedDirectories;
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
@@ -75,15 +75,15 @@ public final class UfsSyncChecker {
 
     boolean synced = true;
     if (!mUnchecked) {
-      UnderFileStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
+      UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
       if (ufsChildren == null) {
         // Empty directories are not persisted
         synced = true;
       } else {
         // Sort-merge compare
-        Arrays.sort(ufsChildren, new Comparator<UnderFileStatus>() {
+        Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
           @Override
-          public int compare(UnderFileStatus a, UnderFileStatus b) {
+          public int compare(UfsStatus a, UfsStatus b) {
             return a.getName().compareTo(b.getName());
           }
         });
@@ -145,7 +145,7 @@ public final class UfsSyncChecker {
    * @throws InvalidPathException if aluxioUri is invalid
    * @throws IOException if a non-alluxio error occurs
    */
-  private UnderFileStatus[] getChildrenInUFS(AlluxioURI alluxioUri)
+  private UfsStatus[] getChildrenInUFS(AlluxioURI alluxioUri)
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
@@ -154,21 +154,21 @@ public final class UfsSyncChecker {
     AlluxioURI curUri = ufsUri;
     while (curUri != null) {
       if (mListedDirectories.containsKey(curUri.toString())) {
-        List<UnderFileStatus> childrenList = new LinkedList<>();
-        for (UnderFileStatus childStatus : mListedDirectories.get(curUri.toString())) {
+        List<UfsStatus> childrenList = new LinkedList<>();
+        for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
           String childPath = PathUtils.concatPath(curUri, childStatus.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
           if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-            UnderFileStatus newStatus = new UnderFileStatus(childStatus);
+            UfsStatus newStatus = new UfsStatus(childStatus);
             newStatus.setName(childPath.substring(prefix.length()));
             childrenList.add(newStatus);
           }
         }
-        return trimIndirect(childrenList.toArray(new UnderFileStatus[childrenList.size()]));
+        return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
       }
       curUri = curUri.getParent();
     }
-    UnderFileStatus[] children =
+    UfsStatus[] children =
         ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
     // Assumption: multiple mounted UFSs cannot have the same ufsUri
     if (children != null) {
@@ -183,17 +183,17 @@ public final class UfsSyncChecker {
    * @param children list from recursive listing
    * @return trimmed list, null if input is null
    */
-  private UnderFileStatus[] trimIndirect(UnderFileStatus[] children) {
+  private UfsStatus[] trimIndirect(UfsStatus[] children) {
     if (children == null) {
       return null;
     }
-    List<UnderFileStatus> childrenList = new LinkedList<>();
-    for (UnderFileStatus child : children) {
+    List<UfsStatus> childrenList = new LinkedList<>();
+    for (UfsStatus child : children) {
       int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
       if (index < 0 || index == child.getName().length()) {
         childrenList.add(child);
       }
     }
-    return childrenList.toArray(new UnderFileStatus[childrenList.size()]);
+    return childrenList.toArray(new UfsStatus[childrenList.size()]);
   }
 }
