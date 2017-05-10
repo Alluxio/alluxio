@@ -68,7 +68,8 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
           LOG.warn("Failed to close block reader for block {}.", mId);
         }
       }
-      mWorker.cleanupSession(mSessionId);
+      // Add this back when the commit block logic is moved to Netty
+      // mWorker.cleanupSession(mSessionId);
     }
   }
 
