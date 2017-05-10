@@ -471,6 +471,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
   }
 
+  @Override
+  public void cleanupSession(long sessionId) {
+    mBlockStore.cleanupSession(sessionId);
+    mUnderFileSystemBlockStore.cleanupSession(sessionId);
+  }
+
   /**
    * This class contains some metrics related to the block worker.
    * This class is public because the metric names are referenced in
