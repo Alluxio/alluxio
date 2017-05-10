@@ -14,8 +14,6 @@ package alluxio.hadoop.contract;
 import alluxio.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractContractDeleteTest;
-import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.junit.Rule;
 
 public class FileSystemContractDeleteIntegrationTest extends AbstractContractDeleteTest {
