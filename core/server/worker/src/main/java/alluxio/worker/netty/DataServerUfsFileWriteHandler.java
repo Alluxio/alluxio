@@ -41,7 +41,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
-  private static final long UNUSED_SESSION_ID = -1;
   private final UfsManager mUfsManager;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
@@ -50,7 +49,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     private final OutputStream mOutputStream;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      super(request.getId(), UNUSED_SESSION_ID);
+      super(request.getId());
       mUfsPath = request.getUfsPath();
       mUnderFileSystem = mUfsManager.get(request.getMountId());
       mOutputStream =
