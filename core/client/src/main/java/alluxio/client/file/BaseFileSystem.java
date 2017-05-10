@@ -44,7 +44,6 @@ import alluxio.exception.status.UnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -333,7 +332,7 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     URIStatus status = getStatus(path);
     if (status.isFolder()) {
-      throw new FileNotFoundException(
+      throw new FileDoesNotExistException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
     InStreamOptions inStreamOptions = options.toInStreamOptions();

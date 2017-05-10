@@ -136,9 +136,6 @@ public class AlluxioStatusException extends IOException {
    * @return this exception converted to an IOException
    */
   public IOException toIOException() {
-    if (mIOException != null) {
-      return mIOException;
-    }
     return new IOException(getMessage(), this);
   }
 
@@ -230,7 +227,7 @@ public class AlluxioStatusException extends IOException {
    * caution because it could potentially convert an unchecked exception (indicating a bug) to a
    * checked Alluxio status exception.
    *
-   * @param throwable a throwable
+   * @param t a throwable
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromThrowable(Throwable t) {

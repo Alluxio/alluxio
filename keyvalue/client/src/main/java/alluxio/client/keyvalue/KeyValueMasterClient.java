@@ -69,7 +69,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param path URI of the key-value store
    * @param info information of this completed partition
    */
-  public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info) throws IOException {
+  public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

@@ -220,8 +220,7 @@ public final class RetryHandlingBlockWorkerClient
   public LockBlockResource lockBlock(final long blockId, final LockBlockOptions options)
       throws IOException {
     LockBlockResult result =
-        retryRPC(
-        new RpcCallable<LockBlockResult, BlockWorkerClientService.Client>() {
+        retryRPC(new RpcCallable<LockBlockResult, BlockWorkerClientService.Client>() {
           @Override
           public LockBlockResult call(BlockWorkerClientService.Client client) throws TException {
             return ThriftUtils
