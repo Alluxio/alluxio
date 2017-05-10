@@ -178,7 +178,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     RPCProtoMessage msg = (RPCProtoMessage) object;
-    Protocol.WriteRequest writeRequest = msg.getMessage().getMessage();
+    Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
     // Only initialize (open the readers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
       initializeRequest(msg);

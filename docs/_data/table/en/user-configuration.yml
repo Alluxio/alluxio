@@ -55,6 +55,8 @@ alluxio.user.file.writetype.default:
 alluxio.user.file.cache.partially.read.block:
   When read type is CACHE_PROMOTE or CACHE and this property is set to true, the entire block will be cached by Alluxio
   space even if the client only reads a part of this block.
+alluxio.user.file.delete.unchecked:
+  Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.
 alluxio.user.file.seek.buffer.size.bytes:
   The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.
 alluxio.user.heartbeat.interval.ms:
@@ -68,6 +70,8 @@ alluxio.user.lineage.master.client.threads:
 alluxio.user.network.netty.timeout.ms:
   The maximum number of milliseconds for a netty client (for block reads and block writes) to
   wait for a response from the data server.
+alluxio.user.network.netty.writer.close.timeout.ms:
+  The maximum number of milliseconds to close a netty writer client.
 alluxio.user.network.netty.worker.threads:
   How many threads to use for remote block worker client to read from remote block workers.
 alluxio.user.network.netty.channel.pool.size.max:

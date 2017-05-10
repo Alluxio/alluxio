@@ -34,11 +34,10 @@ public final class UnderFileSystemUtils {
   /**
    * Deletes the directory at the given path if it exists.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path path to the directory
    */
-  public static void deleteDirIfExists(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
+  public static void deleteDirIfExists(UnderFileSystem ufs, String path) throws IOException {
     if (ufs.isDirectory(path)
         && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -48,11 +47,10 @@ public final class UnderFileSystemUtils {
   /**
    * Attempts to create the directory if it does not already exist.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path path to the directory
    */
-  public static void mkdirIfNotExists(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
+  public static void mkdirIfNotExists(UnderFileSystem ufs, String path) throws IOException {
     if (!ufs.isDirectory(path)) {
       if (!ufs.mkdirs(path)) {
         throw new IOException("Failed to make folder: " + path);
@@ -63,10 +61,10 @@ public final class UnderFileSystemUtils {
   /**
    * Creates an empty file.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path path to the file
    */
-  public static void touch(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
+  public static void touch(UnderFileSystem ufs, String path) throws IOException {
     OutputStream os = ufs.create(path);
     os.close();
   }
@@ -74,10 +72,10 @@ public final class UnderFileSystemUtils {
   /**
    * Deletes the specified path from the specified under file system if it is a file and exists.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path the path to delete
    */
-  public static void deleteFileIfExists(final String path) {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
+  public static void deleteFileIfExists(UnderFileSystem ufs, String path) {
     try {
       if (ufs.isFile(path)) {
         ufs.deleteFile(path);

@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -32,8 +31,9 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -48,6 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Matchers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -126,7 +127,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   private void registerFileSystemMock() throws IOException {
-    Configuration.set(PropertyKey.UNDERFS_ADDRESS, TEST_PATH);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
     when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
     when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
@@ -137,9 +138,9 @@ public final class AlluxioMasterRestServiceHandlerTest {
         .thenReturn(UFS_SPACE_TOTAL);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH), anyObject())).thenReturn(
-        underFileSystemMock);
-    UnderFileSystemRegistry.register(underFileSystemFactoryMock);
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH),
+        Matchers.<UnderFileSystemConfiguration>any())).thenReturn(underFileSystemMock);
+    UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }
 
   @After

@@ -1,6 +1,7 @@
 namespace java alluxio.thrift
 
 include "common.thrift"
+include "exception.thrift"
 
 struct MasterInfo {
   1: i32 webPort
@@ -22,4 +23,5 @@ service MetaMasterClientService extends common.AlluxioService {
     /** optional filter for what fields to return, defaults to all */
     1: set<MasterInfoField> fields,
     )
+    throws (1: exception.AlluxioTException e)
 }

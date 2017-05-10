@@ -13,6 +13,7 @@ package alluxio;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -24,6 +25,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -328,6 +330,46 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getNestedProperties() {
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            PropertyKey.WEB_THREADS.toString()), "val1");
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            "alluxio.unknown.property"), "val2");
+    Map<String, String> expected = new HashMap<>();
+    expected.put(PropertyKey.WEB_THREADS.toString(), "val1");
+    expected.put("alluxio.unknown.property", "val2");
+    Assert.assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
+        CoreMatchers.is(expected));
+  }
+
+  @Test
+  public void getNestedPropertiesEmptyTrailingProperty() {
+    Configuration.set(PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY
+        .format("foo", ""), "val");
+    Map<String, String> empty = new HashMap<>();
+    Assert.assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
+        CoreMatchers.is(empty));
+  }
+
+  @Test
+  public void getNestedPropertiesWrongPrefix() {
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            PropertyKey.WEB_THREADS.toString()),
+        "val");
+    Map<String, String> empty = new HashMap<>();
+    Assert.assertThat(Configuration.getNestedProperties(PropertyKey.HOME),
+        CoreMatchers.is(empty));
+    Assert.assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("bar")),
+        CoreMatchers.is(empty));
+  }
+
+  @Test
   public void getClassTest() { // The name getClass is already reserved.
     Configuration.set(PropertyKey.WEB_THREADS, "java.lang.String");
     Assert.assertEquals(String.class, Configuration.getClass(PropertyKey.WEB_THREADS));
@@ -373,14 +415,14 @@ public class ConfigurationTest {
   public void systemVariableSubstitution() throws Exception {
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.MASTER_HOSTNAME.toString(), "new_master").toResource()) {
-      Configuration.defaultInit();
+      Configuration.init();
       Assert.assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
     }
   }
 
   @Test
   public void userFileBufferBytesOverFlowException() {
-    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expect(IllegalStateException.class);
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES,
         String.valueOf(Integer.MAX_VALUE + 1) + "B");
   }
@@ -432,7 +474,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.defaultInit();
+      Configuration.init();
       Assert.assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           Configuration.get(PropertyKey.LOGGER_TYPE));
     }
@@ -451,7 +493,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.defaultInit();
+      Configuration.init();
       Assert.assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
     }
   }

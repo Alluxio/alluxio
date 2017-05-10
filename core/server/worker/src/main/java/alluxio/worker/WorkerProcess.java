@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Process;
+import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 
 import java.net.InetSocketAddress;
@@ -43,6 +44,11 @@ public interface WorkerProcess extends Process {
   WorkerNetAddress getAddress();
 
   /**
+   * @return the block worker for this Alluxio worker
+   */
+  UfsManager getUfsManager();
+
+  /**
    * @return the worker's data service bind host (used by unit test only)
    */
   String getDataBindHost();
@@ -51,6 +57,11 @@ public interface WorkerProcess extends Process {
    * @return the worker's data service port (used by unit test only)
    */
   int getDataLocalPort();
+
+  /**
+   * @return the worker's data service domain socket path if available or "" if not available
+   */
+  String getDataDomainSocketPath();
 
   /**
    * @return this worker's rpc address

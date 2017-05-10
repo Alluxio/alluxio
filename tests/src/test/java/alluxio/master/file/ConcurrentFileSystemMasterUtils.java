@@ -52,6 +52,9 @@ public class ConcurrentFileSystemMasterUtils {
   private static CreateFileOptions sCreatePersistedFileOptions =
       CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
 
+  /**
+   * Unary file operations for concurrent tests.
+   */
   public enum UnaryOperation {
     CREATE,
     DELETE,

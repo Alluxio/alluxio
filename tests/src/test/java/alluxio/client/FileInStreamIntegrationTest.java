@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -42,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
-public final class FileInStreamIntegrationTest {
+public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
