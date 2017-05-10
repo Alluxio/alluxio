@@ -42,7 +42,7 @@ public final class LoadMetadataOptions {
   /**
    * @return null if unknown, else the status of UFS path for which loading metadata
    */
-  public UfsStatus getUnderFileStatus() {
+  public UfsStatus getUfsStatus() {
     return mUfsStatus;
   }
 
@@ -92,7 +92,7 @@ public final class LoadMetadataOptions {
    * @param status UFS status of path
    * @return the updated object
    */
-  public LoadMetadataOptions setUnderFileStatus(UfsStatus status) {
+  public LoadMetadataOptions setUfsStatus(UfsStatus status) {
     mUfsStatus = status;
     return this;
   }
@@ -120,6 +120,6 @@ public final class LoadMetadataOptions {
   public String toString() {
     return Objects.toStringHelper(this).add("createAncestors", mCreateAncestors)
         .add("loadDirectChildren", mLoadDirectChildren)
-        .add("underFileStatus", mUfsStatus).toString();
+        .add("ufsStatus", mUfsStatus).toString();
   }
 }

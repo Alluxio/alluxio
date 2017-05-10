@@ -2023,15 +2023,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (options.getUnderFileStatus() == null && !ufs.exists(ufsUri.toString())) {
+      if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
         inode.setDirectChildrenLoaded(true);
         return;
       }
       boolean isFile;
-      if (options.getUnderFileStatus() != null) {
-        isFile = options.getUnderFileStatus().isFile();
+      if (options.getUfsStatus() != null) {
+        isFile = options.getUfsStatus().isFile();
       } else {
         isFile = ufs.isFile(ufsUri.toString());
       }
@@ -2052,7 +2052,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 new TempInodePathForChild(inodePath, status.getName());
             LoadMetadataOptions loadMetadataOptions =
                 LoadMetadataOptions.defaults().setLoadDirectChildren(false)
-                    .setCreateAncestors(false).setUnderFileStatus(status);
+                    .setCreateAncestors(false).setUfsStatus(status);
             loadMetadataAndJournal(tempInodePath, loadMetadataOptions, journalContext);
           }
           inode.setDirectChildrenLoaded(true);
@@ -2089,7 +2089,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    UfsFileStatus ufsStatus = (UfsFileStatus) options.getUnderFileStatus();
+    UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
     if (ufsStatus == null) {
       ufsStatus = ufs.getFileStatus(ufsUri.toString());
     }
@@ -2143,7 +2143,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    UfsStatus ufsStatus = options.getUnderFileStatus();
+    UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
       AlluxioURI ufsUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();

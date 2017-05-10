@@ -27,7 +27,7 @@ public final class LoadMetadataOptionsTest {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
     Assert.assertEquals(false, options.isCreateAncestors());
     Assert.assertEquals(false, options.isLoadDirectChildren());
-    Assert.assertEquals(null, options.getUnderFileStatus());
+    Assert.assertEquals(null, options.getUfsStatus());
   }
 
   @Test
@@ -38,7 +38,7 @@ public final class LoadMetadataOptionsTest {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
     options.setCreateAncestors(isCreateAncestors);
     options.setLoadDirectChildren(isLoadDirectChildren);
-    options.setUnderFileStatus(null);
+    options.setUfsStatus(null);
     Assert.assertEquals(isCreateAncestors, options.isCreateAncestors());
     Assert.assertEquals(isLoadDirectChildren, options.isLoadDirectChildren());
   }
