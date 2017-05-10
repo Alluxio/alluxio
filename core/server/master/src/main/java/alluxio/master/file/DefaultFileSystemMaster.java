@@ -1226,7 +1226,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
               AlluxioURI parentUri = alluxioUriToDel.getParent();
-              if (!ufsSyncChecker.isDirectoryInSync(parentUri)) {
+              if (alluxioUriToDel.equals(inodePath.getUri())
+                  || !ufsSyncChecker.isDirectoryInSync(parentUri)) {
                 // Parent will not recursively delete, so delete this inode individually
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
