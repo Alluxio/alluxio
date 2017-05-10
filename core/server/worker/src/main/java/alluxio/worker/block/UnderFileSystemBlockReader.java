@@ -296,7 +296,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     } catch (BlockAlreadyExistsException | InvalidWorkerStateException e) {
       // We cannot skip the exception here because we need to make sure that the user of this
       // reader does not commit the block if it fails to abort the block.
-      throw AlluxioStatusException.from(e);
+      throw AlluxioStatusException.fromAlluxioException(e);
     }
     try {
       if (mBlockWriter == null && offset == 0 && !mNoCache) {

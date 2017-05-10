@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -23,7 +24,6 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.resource.LockResource;
-import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
@@ -157,7 +157,8 @@ public final class NettyPacketWriter implements PacketWriter {
       Preconditions.checkArgument(buf.readableBytes() <= PACKET_SIZE);
       while (true) {
         if (mPacketWriteException != null) {
-          throw CommonUtils.propagate(mPacketWriteException);
+          Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
+          throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
         }
         if (!tooManyPacketsInFlight()) {
           offset = mPosToQueue;
@@ -172,7 +173,7 @@ public final class NettyPacketWriter implements PacketWriter {
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw AlluxioStatusException.from(e);
+          throw new CanceledException(e);
         }
       }
     } catch (IOException e) {
@@ -204,9 +205,8 @@ public final class NettyPacketWriter implements PacketWriter {
           return;
         }
         if (mPacketWriteException != null) {
-          Throwables.propagateIfPossible(mPacketWriteException);
-          Throwables.propagateIfInstanceOf(mPacketWriteException, IOException.class);
-          throw AlluxioStatusException.from(mPacketWriteException);
+          Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
+          throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
         }
         if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new DeadlineExceededException(

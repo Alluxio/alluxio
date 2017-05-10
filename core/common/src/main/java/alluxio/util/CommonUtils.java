@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
@@ -454,24 +453,4 @@ public final class CommonUtils {
   }
 
   private CommonUtils() {} // prevent instantiation
-
-  /**
-   * Propagates a Throwable by either converting to an {@link AlluxioStatusException} or re-throwing
-   * as an unchecked exception.
-   *
-   * @param t the throwable to propagate
-   * @return this method never returns; the return type is for ease of use in
-   *         {@code throw propagate(t);}
-   */
-  public static RuntimeException propagate(Throwable t) throws IOException {
-    if (t instanceof Error) {
-      throw (Error) t;
-    } else if (t instanceof RuntimeException) {
-      throw (RuntimeException) t;
-    } else if (t instanceof Exception) {
-      throw AlluxioStatusException.from(t);
-    } else {
-      throw new IllegalStateException("Encountered a non-Error, non-Exception Throwable", t);
-    }
-  }
 }

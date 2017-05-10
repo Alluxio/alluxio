@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -25,6 +26,7 @@ import alluxio.util.network.NettyUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -165,7 +167,7 @@ public final class NettyPacketReader implements PacketReader {
       buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw AlluxioStatusException.from(e);
+      throw new CanceledException(e);
     }
     if (buf == null) {
       throw new DeadlineExceededException(
@@ -173,13 +175,8 @@ public final class NettyPacketReader implements PacketReader {
     }
     if (buf == THROWABLE) {
       Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
-      if (mPacketReaderException instanceof RuntimeException) {
-        throw (RuntimeException) mPacketReaderException;
-      } else if (mPacketReaderException instanceof Error) {
-        throw (Error) mPacketReaderException;
-      } else {
-        throw AlluxioStatusException.from(mPacketReaderException);
-      }
+      Throwables.propagateIfPossible(mPacketReaderException, IOException.class);
+      throw AlluxioStatusException.fromCheckedException(mPacketReaderException);
     }
     if (buf == EOF_OR_CANCELLED) {
       mDone = true;

@@ -14,7 +14,6 @@ package alluxio.resource;
 import alluxio.Constants;
 import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
-import alluxio.exception.status.AlluxioStatusException;
 
 import com.google.common.base.Preconditions;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
@@ -303,7 +302,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param unit the unit to use for time
    * @return a resource taken from the pool
    * @throws TimeoutException if it fails to acquire because of time out
-   * @throws InterruptedException if this thread is interrupted
    */
   @Override
   public T acquire(long time, TimeUnit unit) throws TimeoutException, IOException {
@@ -341,8 +339,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             throw new TimeoutException("Acquire resource times out.");
           }
         } catch (InterruptedException e) {
-
-          throw AlluxioStatusException.from(e);
+          // Restore the interrupt flag so that it can be handled later.
+          Thread.currentThread().interrupt();
         }
       }
     } finally {
@@ -467,10 +465,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param endTimeMs the end time to wait till
    * @return the resource
    * @throws TimeoutException if it times out to wait for a resource
-   * @throws InterruptedException if this thread is interrupted
    */
-  private T checkHealthyAndRetry(T resource, long endTimeMs)
-      throws TimeoutException, IOException {
+  private T checkHealthyAndRetry(T resource, long endTimeMs) throws TimeoutException, IOException {
     if (isHealthy(resource)) {
       return resource;
     } else {
