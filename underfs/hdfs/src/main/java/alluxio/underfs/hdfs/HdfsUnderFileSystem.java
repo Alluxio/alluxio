@@ -18,6 +18,8 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -204,8 +206,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UfsStatus getDirectoryStatus(String path) throws IOException {
-    return getFileStatus(path);
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    Path tPath = new Path(path);
+    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
 
   @Override
@@ -237,11 +241,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UfsStatus getFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return new UfsStatus(path, fs.getLen(), fs.isDirectory(),
-        fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+    return new UfsFileStatus(path, fs.getLen(), fs.getModificationTime(), fs.getOwner(),
+        fs.getGroup(), fs.getPermission().toShort());
   }
 
   @Override
@@ -289,9 +293,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     int i = 0;
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
-      rtn[i++] = new UfsStatus(status.getPath().getName(), status.getLen(), status.isDir(),
-          status.getModificationTime(), status.getOwner(), status.getGroup(),
-          status.getPermission().toShort());
+      UfsStatus retStatus;
+      if (status.isDirectory()) {
+        retStatus = new UfsFileStatus(status.getPath().getName(), status.getLen(),
+            status.getModificationTime(), status.getOwner(), status.getGroup(),
+            status.getPermission().toShort());
+      } else {
+        retStatus = new UfsDirectoryStatus(status.getPath().getName(), status.getOwner(),
+            status.getGroup(), status.getPermission().toShort());
+      }
+      rtn[i++] = retStatus;
     }
     return rtn;
   }

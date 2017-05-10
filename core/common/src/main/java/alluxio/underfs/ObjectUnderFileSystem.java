@@ -328,12 +328,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getDirectoryStatus(String path) throws IOException {
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
     String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
     ObjectStatus details = getObjectStatus(keyAsFolder);
     if (details != null) {
-      return new UfsStatus(path, details.getContentLength(), true,
-          details.getLastModifiedTimeMs(), getBucketOwner(), getBucketGroup(), getBucketMode());
+      return new UfsDirectoryStatus(path, getBucketOwner(), getBucketGroup(), getBucketMode());
     } else {
       LOG.error("Error fetching file size, assuming file does not exist");
       throw new FileNotFoundException(path);
@@ -362,11 +361,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path) throws IOException {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
-      return new UfsStatus(path, details.getContentLength(), false,
-          details.getLastModifiedTimeMs(), getBucketOwner(), getBucketGroup(), getBucketMode());
+      return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
+          getBucketOwner(), getBucketGroup(), getBucketMode());
     } else {
       LOG.error("Error fetching file size, assuming file does not exist");
       throw new FileNotFoundException(path);
@@ -747,8 +746,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
         // Only add if the path is not empty (removes results equal to the path)
         if (!child.isEmpty()) {
-          children.put(child, new UfsStatus(child, status.getContentLength(), isDir,
-              status.getLastModifiedTimeMs(), getBucketOwner(), getBucketGroup(), getBucketMode()));
+          if (isDir) {
+            children.put(child,
+                new UfsDirectoryStatus(child, getBucketOwner(), getBucketGroup(), getBucketMode()));
+          } else {
+            children.put(child,
+                new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
+                    getBucketOwner(), getBucketGroup(), getBucketMode()));
+          }
         }
       }
       // Handle case (2)
@@ -783,9 +788,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
             children.put(child,
-                new UfsStatus(child, UfsStatus.INVALID_CONTENT_LENGTH, true,
-                    UfsStatus.INVALID_MODIFIED_TIME, getBucketOwner(), getBucketGroup(),
-                    getBucketMode()));
+                new UfsDirectoryStatus(child, getBucketOwner(), getBucketGroup(), getBucketMode()));
           }
         }
       }

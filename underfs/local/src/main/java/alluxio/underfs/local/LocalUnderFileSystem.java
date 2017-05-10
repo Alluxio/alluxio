@@ -19,6 +19,8 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -163,8 +165,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UfsStatus getDirectoryStatus(String path) throws IOException {
-    return getFileStatus(path);
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    String tpath = stripPath(path);
+    File file = new File(tpath);
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
+        FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
 
   @Override
@@ -181,14 +188,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UfsStatus getFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path) throws IOException {
     String tpath = stripPath(path);
     File file = new File(tpath);
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    return new UfsStatus(path, file.length(), file.isDirectory(), file.lastModified(),
-        attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    return new UfsFileStatus(path, file.length(), file.lastModified(), attr.owner().getName(),
+        attr.group().getName(), FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
 
   @Override
@@ -233,9 +239,16 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         // TODO(adit): do we need extra call for attributes?
         PosixFileAttributes attr =
             Files.readAttributes(Paths.get(f.getPath()), PosixFileAttributes.class);
-        rtn[i++] = new UfsStatus(f.getName(), f.length(), f.isDirectory(), f.lastModified(),
-            attr.owner().getName(), attr.group().getName(),
-            FileUtils.translatePosixPermissionToMode(attr.permissions()));
+        short mode = FileUtils.translatePosixPermissionToMode(attr.permissions());
+        UfsStatus retStatus;
+        if (f.isDirectory()) {
+          retStatus = new UfsDirectoryStatus(f.getName(), attr.owner().getName(),
+              attr.group().getName(), mode);
+        } else {
+          retStatus = new UfsFileStatus(f.getName(), f.length(), f.lastModified(),
+              attr.owner().getName(), attr.group().getName(), mode);
+        }
+        rtn[i++] = retStatus;
       }
       return rtn;
     } else {

@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Constants;
-
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -22,25 +20,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link UnderFileSystem} returns entries of this class.
  */
 @NotThreadSafe
-public final class UfsStatus {
-  /** Size of a directory. */
-  public static final long INVALID_CONTENT_LENGTH = -1L;
-
-  /** Last modified time for a directory. */
-  public static final long INVALID_MODIFIED_TIME = -1L;
-
-  final private long mContentLength;
-  final private boolean mIsDirectory;
-  final private long mLastModifiedTimeMs;
-  private String mName;
+public abstract class UfsStatus {
+  final protected boolean mIsDirectory;
+  protected String mName;
 
   // Permissions
-  final private String mOwner;
-  final private String mGroup;
-  final private short mMode;
+  final protected String mOwner;
+  final protected String mGroup;
+  final protected short mMode;
 
   /**
-   * Creates new instance for under file information.
+   * Creates new instance of {@link UfsStatus}.
    *
    * @param name relative path of file or directory
    * @param contentLength in bytes
@@ -50,11 +40,8 @@ public final class UfsStatus {
    * @param group of the file
    * @param mode of the file
    */
-  public UfsStatus(String name, long contentLength, boolean isDirectory,
-                   long lastModifiedTimeMs, String owner, String group, short mode) {
-    mContentLength = contentLength;
+  protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode) {
     mIsDirectory = isDirectory;
-    mLastModifiedTimeMs = lastModifiedTimeMs;
     mName = name;
     mOwner = owner;
     mGroup = group;
@@ -62,32 +49,16 @@ public final class UfsStatus {
   }
 
   /**
-   * Creates a new instance of under file information as a copy.
+   * Creates a new instance of {@link UfsStatus} as a copy.
    *
    * @param status file information to copy
    */
-  public UfsStatus(UfsStatus status) {
-    mContentLength = status.mContentLength;
+  protected UfsStatus(UfsStatus status) {
     mIsDirectory = status.mIsDirectory;
-    mLastModifiedTimeMs = status.mLastModifiedTimeMs;
     mName = status.mName;
     mOwner = status.mOwner;
     mGroup = status.mGroup;
     mMode = status.mMode;
-  }
-
-  /**
-   * Create a new instance for under file information with defaults.
-   *
-   */
-  public UfsStatus() {
-    mContentLength = INVALID_CONTENT_LENGTH;
-    mIsDirectory = false;
-    mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
-    mName = "";
-    mOwner = "";
-    mGroup = "";
-    mMode = Constants.DEFAULT_FILE_SYSTEM_MODE;
   }
 
   /**
@@ -123,30 +94,12 @@ public final class UfsStatus {
   }
 
   /**
-   * Get the content size in bytes.
-   *
-   * @return if a file, file size in bytes; otherwise, 0
-   */
-  public long getContentLength() {
-    return mContentLength;
-  }
-
-  /**
    * Gets the group of the given path.
    *
    * @return the group of the file
    */
   public String getGroup() {
     return mGroup;
-  }
-
-  /**
-   * Gets the UTC time of when the indicated path was modified recently in ms.
-   *
-   * @return modification time in milliseconds
-   */
-  public long getLastModifiedTime() {
-    return mLastModifiedTimeMs;
   }
 
   /**
@@ -176,8 +129,7 @@ public final class UfsStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mName, mContentLength, mIsDirectory, mLastModifiedTimeMs, mOwner,
-        mGroup, mMode);
+    return Objects.hashCode(mName, mIsDirectory, mOwner, mGroup, mMode);
   }
 
   /**
@@ -206,9 +158,7 @@ public final class UfsStatus {
     }
     UfsStatus that = (UfsStatus) o;
     return Objects.equal(mName, that.mName)
-        && Objects.equal(mContentLength, that.mContentLength)
         && Objects.equal(mIsDirectory, that.mIsDirectory)
-        && Objects.equal(mLastModifiedTimeMs, that.mLastModifiedTimeMs)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode);

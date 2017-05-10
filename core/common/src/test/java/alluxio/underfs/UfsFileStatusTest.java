@@ -11,17 +11,15 @@
 
 package alluxio.underfs;
 
-import alluxio.CommonTestUtils;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
 
 /**
- * Tests for the {@link UfsStatus} class.
+ * Tests for the {@link UfsFileStatus} class.
  */
-public final class UfsStatusTest {
+public final class UfsFileStatusTest {
   /**
    * Tests getting and setting fields.
    */
@@ -29,16 +27,15 @@ public final class UfsStatusTest {
   public void fields() {
     Random random = new Random();
     long contentLength = random.nextLong();
-    boolean isDirectory = random.nextBoolean();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
-    UfsStatus status = new UfsStatus("name", contentLength, isDirectory,
-        lastModifiedTimeMs, "owner", "group", mode);
+    UfsFileStatus status =
+        new UfsFileStatus("name", contentLength, lastModifiedTimeMs, "owner", "group", mode);
 
     Assert.assertEquals("name", status.getName());
     Assert.assertEquals(contentLength, status.getContentLength());
-    Assert.assertEquals(isDirectory, status.isDirectory());
-    Assert.assertEquals(!isDirectory, status.isFile());
+    Assert.assertEquals(false, status.isDirectory());
+    Assert.assertEquals(true, status.isFile());
     Assert.assertEquals(lastModifiedTimeMs, status.getLastModifiedTime());
     Assert.assertEquals("owner", status.getOwner());
     Assert.assertEquals("group", status.getGroup());
@@ -52,17 +49,11 @@ public final class UfsStatusTest {
   public void copy() {
     Random random = new Random();
     long contentLength = random.nextLong();
-    boolean isDirectory = random.nextBoolean();
     long lastModifiedTimeMs = random.nextLong();
     short mode = 077;
-    UfsStatus statusToCopy = new UfsStatus("name", contentLength, isDirectory,
-        lastModifiedTimeMs, "owner", "group", mode);
-    UfsStatus status = new UfsStatus(statusToCopy);
+    UfsFileStatus statusToCopy =
+        new UfsFileStatus("name", contentLength, lastModifiedTimeMs, "owner", "group", mode);
+    UfsFileStatus status = new UfsFileStatus(statusToCopy);
     Assert.assertEquals(statusToCopy, status);
-  }
-
-  @Test
-  public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(UfsStatus.class);
   }
 }

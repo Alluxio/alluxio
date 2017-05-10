@@ -218,7 +218,7 @@ public interface UnderFileSystem extends Closeable {
    * @param path the file name
    * @return the directory status
    */
-  UfsStatus getDirectoryStatus(String path) throws IOException;
+  UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
 
   /**
    * Gets the list of locations of the indicated path.
@@ -243,7 +243,7 @@ public interface UnderFileSystem extends Closeable {
    * @param path the file name
    * @return the file status
    */
-  UfsStatus getFileStatus(String path) throws IOException;
+  UfsFileStatus getFileStatus(String path) throws IOException;
 
   /**
    * @return the property map for this {@link UnderFileSystem}
