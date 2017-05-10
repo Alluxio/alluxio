@@ -146,12 +146,14 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     final long mStart;
     final long mEnd;
     final long mPacketSize;
+    final long mSessionId;
 
-    ReadRequestInternal(long id, long start, long end, long packetSize) {
+    ReadRequestInternal(long id, long start, long end, long packetSize, long sessionId) {
       mId = id;
       mStart = start;
       mEnd = end;
       mPacketSize = packetSize;
+      mSessionId = sessionId;
     }
   }
 
