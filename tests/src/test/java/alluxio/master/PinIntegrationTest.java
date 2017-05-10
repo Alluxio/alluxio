@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -36,7 +37,7 @@ import java.util.HashSet;
 /**
  * Test the pin operation of file and directory.
  */
-public final class PinIntegrationTest {
+public final class PinIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();

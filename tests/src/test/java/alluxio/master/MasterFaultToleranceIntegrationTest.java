@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
@@ -46,7 +47,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2818")
-public class MasterFaultToleranceIntegrationTest {
+public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   // Fail if the cluster doesn't come up after this amount of time.
   private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private static final long WORKER_CAPACITY_BYTES = 10000;

@@ -20,6 +20,10 @@ alluxio.network.host.resolution.&#8203;timeout.ms:
   automatically attempt to select an appropriate host name if one was not explicitly specified.
   This represents the maximum amount of time spent waiting to determine if a candidate host name
   is resolvable over the network.
+alluxio.network.netty.heartbeat.&#8203;timeout.ms:
+  The amount of time the server will wait before closing a netty connection if there has not been
+  any incoming traffic. The client will periodically heartbeat when there is no activity on a
+  connection. This value should be the same on the clients and server.
 alluxio.network.thrift.frame.&#8203;size.bytes.max:
   (Experimental) The largest allowable frame size used for Thrift RPC communication.
 alluxio.site.conf.dir:
@@ -51,6 +55,8 @@ alluxio.underfs.hdfs.remote:
 alluxio.underfs.listing.length:
   The maximum number of directory entries to list in a single query to under file system. If the
   total number of entries is greater than the specified length, multiple queries will be issued.
+alluxio.underfs.object.store.service.threads:
+  The number of threads in executor pool for parallel object store UFS operations.
 alluxio.underfs.object.store.mount.shared.publicly:
   Whether or not to share object storage under storage system mounted point with all Alluxio users.
   Note that this configuration has no effect on HDFS nor local UFS. The default value is false.

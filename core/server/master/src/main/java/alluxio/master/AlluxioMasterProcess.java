@@ -21,6 +21,7 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -178,7 +179,7 @@ public class AlluxioMasterProcess implements MasterProcess {
         return mThriftServer != null && mThriftServer.isServing()
             && mWebServer != null && mWebServer.getServer().isRunning();
       }
-    });
+    }, WaitForOptions.defaults().setTimeout(10000));
   }
 
   @Override

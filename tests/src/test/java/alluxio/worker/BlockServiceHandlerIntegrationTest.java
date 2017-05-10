@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
@@ -53,7 +54,7 @@ import java.net.InetSocketAddress;
 /**
  * Integration tests for {@link BlockWorkerClientServiceHandler}.
  */
-public class BlockServiceHandlerIntegrationTest {
+public class BlockServiceHandlerIntegrationTest extends BaseIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10 * Constants.MB;
   private static final long SESSION_ID = 1L;
 
