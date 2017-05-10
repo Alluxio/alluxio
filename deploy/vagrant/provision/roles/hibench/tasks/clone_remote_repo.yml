@@ -1,0 +1,14 @@
+# Clone remote git repo, like github
+#  can specify version, which is either branch or commit hash
+---
+
+- name: mkdir /hibench
+  script: mkdir.sh
+
+- name: clone hibench from {{ hibench_repo }} {{ hibench_version }}
+  git: >
+    repo={{ hibench_repo }}
+    dest=/hibench
+    version={{ hibench_version }}
+
+# vim :set filetype=ansible.yaml:
