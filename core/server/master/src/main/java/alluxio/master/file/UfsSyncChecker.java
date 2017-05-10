@@ -93,11 +93,11 @@ public final class UfsSyncChecker {
       Inode[] inodeChildren = new Inode[numInodeChildren];
       inodeChildren = inode.getChildren().toArray(inodeChildren);
       Arrays.sort(inodeChildren, new Comparator<Inode>() {
-                               @Override
-                               public int compare(Inode a, Inode b) {
-                                                       return a.getName().compareTo(b.getName());
-                                                                                                 }
-                                                                                                 });
+        @Override
+        public int compare(Inode a, Inode b) {
+          return a.getName().compareTo(b.getName());
+        }
+      });
       int ufsPos = 0;
       int inodePos = 0;
       while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
