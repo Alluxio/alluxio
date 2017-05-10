@@ -83,8 +83,7 @@ public final class BlockLocation implements Serializable {
    * @return the block location
    */
   public BlockLocation setWorkerAddress(WorkerNetAddress workerAddress) {
-    Preconditions.checkNotNull(workerAddress);
-    mWorkerAddress = workerAddress;
+    mWorkerAddress = Preconditions.checkNotNull(workerAddress);
     return this;
   }
 
