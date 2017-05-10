@@ -101,6 +101,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
     try {
       BlockWorkerClient blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
+      // TODO(calvin): Remove block worker logic.
       PacketInStream inStream =
           closer.register(PacketInStream.createNettyPacketInStream(context, workerNetAddress,
               blockId, -1, blockWorkerClient.getSessionId(), blockSize, false,
