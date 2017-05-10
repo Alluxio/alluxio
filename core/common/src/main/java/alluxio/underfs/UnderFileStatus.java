@@ -29,15 +29,15 @@ public final class UnderFileStatus {
   /** Last modified time for a directory. */
   public static final long INVALID_MODIFIED_TIME = -1L;
 
-  private long mContentLength;
-  private boolean mIsDirectory;
-  private long mLastModifiedTimeMs;
+  final private long mContentLength;
+  final private boolean mIsDirectory;
+  final private long mLastModifiedTimeMs;
   private String mName;
 
   // Permissions
-  private String mOwner;
-  private String mGroup;
-  private short mMode;
+  final private String mOwner;
+  final private String mGroup;
+  final private short mMode;
 
   /**
    * Creates new instance for under file information.
@@ -181,39 +181,6 @@ public final class UnderFileStatus {
   }
 
   /**
-   * Set the content length of file or directory.
-   *
-   * @param contentLength of entry
-   * @return this object
-   */
-  public UnderFileStatus setContentLength(long contentLength) {
-    mContentLength = contentLength;
-    return this;
-  }
-
-  /**
-   * Set if the entry is a directory.
-   *
-   * @param isDirectory true, if entry is a directory
-   * @return this object
-   */
-  public UnderFileStatus setIsDirectory(boolean isDirectory) {
-    mIsDirectory = isDirectory;
-    return this;
-  }
-
-  /**
-   * Set the last modified time in milliseconds.
-   *
-   * @param lastModifiedTimeMs UTC time in ms
-   * @return this object
-   */
-  public UnderFileStatus setLastModifiedTimeMs(long lastModifiedTimeMs) {
-    mLastModifiedTimeMs = lastModifiedTimeMs;
-    return this;
-  }
-
-  /**
    * Set the name of file or directory.
    *
    * @param name of entry
@@ -221,21 +188,6 @@ public final class UnderFileStatus {
    */
   public UnderFileStatus setName(String name) {
     mName = name;
-    return this;
-  }
-
-  /**
-   * Set the permissions.
-   *
-   * @param owner for the entry
-   * @param group for the entry
-   * @param mode for the entry
-   * @return this object
-   */
-  public UnderFileStatus setPermissions(String owner, String group, short mode) {
-    mOwner = owner;
-    mGroup = group;
-    mMode = mode;
     return this;
   }
 
