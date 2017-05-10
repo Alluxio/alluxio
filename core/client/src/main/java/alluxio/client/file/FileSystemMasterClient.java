@@ -23,6 +23,8 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.exception.status.AlreadyExistsException;
+import alluxio.exception.status.NotFoundException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -80,6 +82,7 @@ public interface FileSystemMasterClient extends MasterClient {
    *
    * @param path the directory path
    * @param options method options
+   * @throws AlreadyExistsException if the directory already exists
    */
   void createDirectory(AlluxioURI path, CreateDirectoryOptions options) throws IOException;
 
@@ -88,6 +91,7 @@ public interface FileSystemMasterClient extends MasterClient {
    *
    * @param path the file path
    * @param options method options
+   * @throws AlreadyExistsException if the file already exists
    */
   void createFile(AlluxioURI path, CreateFileOptions options) throws IOException;
 
@@ -112,12 +116,14 @@ public interface FileSystemMasterClient extends MasterClient {
    *
    * @param path the path to free
    * @param options method options
+   * @throws NotFoundException if the path does not exist
    */
   void free(AlluxioURI path, FreeOptions options) throws IOException;
 
   /**
    * @param path the file path
    * @return the file info for the given file id
+   * @throws NotFoundException if the path does not exist
    */
   URIStatus getStatus(AlluxioURI path) throws IOException;
 
@@ -131,6 +137,7 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param path the path to list
    * @param options the listStatus options
    * @return the list of file information for the given path
+   * @throws NotFoundException if the path does not exist
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options) throws IOException;
 
@@ -140,6 +147,7 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param path the path of the file to load metadata for
    * @param options method options
    * @deprecated since version 1.1 and will be removed in version 2.0
+   * @throws NotFoundException if the path does not exist
    */
   @Deprecated
   void loadMetadata(AlluxioURI path, LoadMetadataOptions options) throws IOException;
@@ -158,6 +166,7 @@ public interface FileSystemMasterClient extends MasterClient {
    *
    * @param src the path to rename
    * @param dst new file path
+   * @throws NotFoundException if the path does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst) throws IOException;
 
@@ -166,6 +175,7 @@ public interface FileSystemMasterClient extends MasterClient {
    *
    * @param path the file or directory path
    * @param options the file or directory attribute options to be set
+   * @throws NotFoundException if the path does not exist
    */
   void setAttribute(AlluxioURI path, SetAttributeOptions options) throws IOException;
 
