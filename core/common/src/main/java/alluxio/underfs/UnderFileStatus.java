@@ -24,10 +24,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileStatus {
   /** Size of a directory. */
-  public static final long INVALID_CONTENT_LENGTH = 0L;
+  public static final long INVALID_CONTENT_LENGTH = -1L;
 
   /** Last modified time for a directory. */
-  public static final long INVALID_MODIFIED_TIME = 0L;
+  public static final long INVALID_MODIFIED_TIME = -1L;
 
   private long mContentLength;
   private boolean mIsDirectory;
