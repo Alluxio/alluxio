@@ -4,18 +4,9 @@ package alluxio.proto.dataserver;
 
 import "status.proto";
 
-// The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
-// next available id: 3
-enum RequestType {
-  ALLUXIO_BLOCK = 0;
-  UFS_FILE = 1;
-  UFS_BLOCK = 2;
-}
-
 // The read request.
 // next available id: 9
 message ReadRequest {
-  optional RequestType type = 1;
   // The block ID.
   optional int64 id = 2;
   optional int64 offset = 3;
@@ -23,7 +14,6 @@ message ReadRequest {
   // If set, this request is to cancel the reading request for the id.
   optional bool cancel = 5;
 
-  optional int64 lock_id = 6;
   optional int64 session_id = 7;
   // If set, do not try to cache the block locally when reading the data from the UFS.
   optional bool no_cache = 8;

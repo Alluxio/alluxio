@@ -11,6 +11,8 @@
 
 package alluxio.worker.netty;
 
+import static alluxio.worker.netty.FileTransferType.TRANSFER;
+
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -19,6 +21,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
@@ -27,13 +30,17 @@ import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -50,6 +57,8 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
 
   /** The Block Worker. */
   private final BlockWorker mWorker;
+  /** The transfer type used by the data server. */
+  private final FileTransferType mTransferType;
 
   /**
    * The block read request internal representation.
@@ -100,19 +109,13 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
    *
    * @param executorService the executor service to run {@link PacketReader}s
    * @param blockWorker the block worker
+   * @param fileTransferType the file transfer type
    */
-  public DataServerUfsBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker) {
+  public DataServerUfsBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
+      FileTransferType fileTransferType) {
     super(executorService);
     mWorker = blockWorker;
-  }
-
-  @Override
-  protected boolean acceptMessage(Object object) {
-    if (!super.acceptMessage(object)) {
-      return false;
-    }
-    Protocol.ReadRequest request = ((RPCProtoMessage) object).getMessage().asReadRequest();
-    return request.getType() == Protocol.RequestType.UFS_BLOCK;
+    mTransferType = fileTransferType;
   }
 
   @Override
@@ -122,17 +125,24 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
 
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
-    openUfsBlock(channel);
+    openBlock(channel);
     BlockReader blockReader = ((UfsBlockReadRequestInternal) mRequest).mBlockReader;
-    // This buf is released by netty.
-    ByteBuf buf = channel.alloc().buffer(len, len);
-    try {
-      while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+
+    if (mTransferType == TRANSFER && !(blockReader instanceof UnderFileSystemBlockReader)) {
+      return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
+          offset, len);
+    } else {
+      ByteBuf buf = channel.alloc().buffer(len, len);
+      try {
+        FileChannel fileChannel = (FileChannel) blockReader.getChannel();
+        Preconditions.checkState(fileChannel.position() == offset);
+        while (buf.writableBytes() > 0 && buf.writeBytes(fileChannel, buf.writableBytes()) != -1) {
+        }
+        return new DataNettyBufferV2(buf);
+      } catch (Throwable e) {
+        buf.release();
+        throw e;
       }
-      return new DataNettyBufferV2(buf);
-    } catch (Throwable e) {
-      buf.release();
-      throw e;
     }
   }
 
@@ -142,20 +152,27 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
    * @param channel the netty channel
    * @throws Exception if it fails to open the UFS block
    */
-  private void openUfsBlock(Channel channel) throws Exception {
+  private void openBlock(Channel channel) throws Exception {
     UfsBlockReadRequestInternal request = (UfsBlockReadRequestInternal) mRequest;
     if (request.mBlockReader != null) {
       return;
     }
+
     int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
     do {
-      long lockId = mWorker.lockBlockNoException(request.mSessionId, request.mId);
+      long lockId;
+      if (request.mOpenUfsBlockOptions != null) {
+        lockId = mWorker.lockBlockNoException(request.mSessionId, request.mId);
+      } else {
+        lockId = mWorker.lockBlock(request.mSessionId, request.mId);
+      }
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
           request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
           mWorker.accessBlock(request.mSessionId, request.mId);
+          ((FileChannel) request.mBlockReader.getChannel()).position(request.mStart);
           return;
         } catch (Exception e) {
           mWorker.unlockBlock(lockId);
