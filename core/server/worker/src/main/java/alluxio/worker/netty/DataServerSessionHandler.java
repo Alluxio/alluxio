@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.util.IdUtils;
 import alluxio.worker.SessionCleanable;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -30,6 +31,11 @@ abstract class DataServerSessionHandler extends ChannelInboundHandlerAdapter {
   /** The session id of this handler. */
   protected final long mSessionId;
 
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param sessionCleanables cleanables which should be updated on channel close
+   */
   protected DataServerSessionHandler(SessionCleanable... sessionCleanables) {
     mCleanables = sessionCleanables;
     mSessionId = IdUtils.getRandomNonNegativeLong();

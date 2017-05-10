@@ -20,7 +20,6 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -102,12 +101,10 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
     try {
       BlockWorkerClient blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
-      LockBlockResource lockBlockResource =
-          closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
-      PacketInStream inStream = closer.register(PacketInStream
-          .createNettyPacketInStream(context, workerNetAddress, blockId,
-              lockBlockResource.getResult().getLockId(), blockWorkerClient.getSessionId(),
-              blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK, options));
+      PacketInStream inStream =
+          closer.register(PacketInStream.createNettyPacketInStream(context, workerNetAddress,
+              blockId, -1, blockWorkerClient.getSessionId(), blockSize, false,
+              Protocol.RequestType.ALLUXIO_BLOCK, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (RuntimeException e) {
