@@ -52,7 +52,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link UnderFileSystem} interface should derive from this class.
  */
 @ThreadSafe
-public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
+public abstract class ObjectUnderFileSystem extends DefaultUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(ObjectUnderFileSystem.class);
 
   /** Default maximum length for a single listing query. */

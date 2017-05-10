@@ -39,19 +39,19 @@ import javax.annotation.concurrent.ThreadSafe;
  * A base abstract {@link UnderFileSystem}.
  */
 @ThreadSafe
-public abstract class BaseUnderFileSystem implements UnderFileSystem {
-  /** The UFS {@link AlluxioURI} used to create this {@link BaseUnderFileSystem}. */
+public abstract class DefaultUnderFileSystem implements UnderFileSystem {
+  /** The UFS {@link AlluxioURI} used to create this {@link DefaultUnderFileSystem}. */
   protected final AlluxioURI mUri;
 
   /** A map of property names to values. */
   protected HashMap<String, String> mProperties = new HashMap<>();
 
   /**
-   * Constructs an {@link BaseUnderFileSystem}.
+   * Constructs an {@link DefaultUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
    */
-  protected BaseUnderFileSystem(AlluxioURI uri) {
+  protected DefaultUnderFileSystem(AlluxioURI uri) {
     mUri = Preconditions.checkNotNull(uri);
   }
 
