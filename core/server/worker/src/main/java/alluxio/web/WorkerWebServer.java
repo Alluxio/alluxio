@@ -61,6 +61,7 @@ public final class WorkerWebServer extends WebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
     mWebAppContext
         .addServlet(new ServletHolder(new WebInterfaceWorkerMetricsServlet()), "/metricsui");
+    mWebAppContext.addServlet(new ServletHolder(new LogLevel.Servlet()), "/logLevel");
 
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
