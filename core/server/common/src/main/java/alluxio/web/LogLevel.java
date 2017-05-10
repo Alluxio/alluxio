@@ -17,8 +17,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.impl.Jdk14Logger;
 import org.apache.commons.logging.impl.Log4JLogger;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.util.ServletUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +62,7 @@ public class LogLevel {
       return;
     } else if (args.length == 4 && "-setlevel".equals(args[0])) {
       process("http://" + args[1] + "/logLevel?log=" + args[2]
-              + "&level=" + args[3]);
+          + "&level=" + args[3]);
       return;
     }
 
@@ -106,8 +104,6 @@ public class LogLevel {
   /**
    * A servlet implementation.
    */
-  @InterfaceAudience.LimitedPrivate({"HDFS", "MapReduce"})
-  @InterfaceStability.Unstable
   public static class Servlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -164,7 +160,6 @@ public class LogLevel {
       }
 
       out.println(FORMS);
-      out.println(ServletUtil.HTML_TAIL);
     }
 
     static final String FORMS = "\n<br /><hr /><h3>Get / Set</h3>"
@@ -177,7 +172,7 @@ public class LogLevel {
         + "</form>";
 
     private static void process(org.apache.log4j.Logger log, String level,
-        PrintWriter out) throws IOException {
+                                PrintWriter out) throws IOException {
       if (level != null) {
         if (!level.equals(org.apache.log4j.Level.toLevel(level).toString())) {
           out.println(MARKER + "Bad level : <b>" + level + "</b><br />");
@@ -191,7 +186,7 @@ public class LogLevel {
     }
 
     private static void process(java.util.logging.Logger log, String level,
-        PrintWriter out) throws IOException {
+                                PrintWriter out) throws IOException {
       if (level != null) {
         log.setLevel(java.util.logging.Level.parse(level));
         out.println(MARKER + "Setting Level to " + level + " ...<br />");
