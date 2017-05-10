@@ -515,7 +515,7 @@ public final class Configuration {
    */
   private static void checkZkConfiguration() {
     Preconditions.checkState(
-        containsKey(PropertyKey.ZOOKEEPER_ADDRESS) == containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
+        containsKey(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
         PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
