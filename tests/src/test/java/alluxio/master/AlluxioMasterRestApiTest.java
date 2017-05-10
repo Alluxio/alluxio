@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.file.FileSystemMaster;
@@ -58,10 +59,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @After
   public void after() {
-    // Reset Configuration in case some properties are set to custom values during the tests,
-    // e.g. getConfiguration(). Since JVM is shared among tests, if this is not reset, the
-    // changed properties will affect other tests.
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
