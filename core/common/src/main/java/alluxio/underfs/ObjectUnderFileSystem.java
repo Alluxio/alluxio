@@ -363,7 +363,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
           permissions.getMode());
     } else {
-      LOG.error("Error fetching file size, assuming file does not exist");
+      LOG.error("Error fetching directory status, assuming directory does not exist");
       throw new FileNotFoundException(path);
     }
   }
@@ -397,7 +397,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
           permissions.getOwner(), permissions.getGroup(), permissions.getMode());
     } else {
-      LOG.error("Error fetching file size, assuming file does not exist");
+      LOG.error("Error fetching file status, assuming file does not exist");
       throw new FileNotFoundException(path);
     }
   }
