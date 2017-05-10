@@ -660,7 +660,6 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-
     <!-- Dependencies in the test scope. -->
     <dependency>
       <groupId>junit</groupId>
