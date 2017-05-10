@@ -82,7 +82,6 @@ public final class NettyPacketReader implements PacketReader {
   private final long mStart;
   private final long mBytesToRead;
   private final boolean mNoCache;
-  private final long mPacketSize;
 
   /**
    * This queue contains buffers read from netty. Its length is bounded by MAX_PACKETS_IN_FLIGHT.
@@ -119,14 +118,13 @@ public final class NettyPacketReader implements PacketReader {
    * @param id the block ID or UFS file ID
    * @param offset the offset
    * @param len the length to read
-   * @param lockId the lock ID
    * @param sessionId the session ID
    * @param noCache do not cache the block to the Alluxio worker if read from UFS when this is set
    * @param type the request type (block or UFS file)
    * @param packetSize the packet size
    */
   private NettyPacketReader(FileSystemContext context, WorkerNetAddress address, long id,
-      long offset, long len, long lockId, long sessionId, boolean noCache,
+      long offset, long len, long sessionId, boolean noCache,
       Protocol.RequestType type, long packetSize) {
     Preconditions.checkArgument(offset >= 0 && len > 0 && packetSize > 0);
 
@@ -138,7 +136,6 @@ public final class NettyPacketReader implements PacketReader {
     mBytesToRead = len;
     mRequestType = type;
     mNoCache = noCache;
-    mPacketSize = packetSize;
 
     mChannel = mContext.acquireNettyChannel(address);
 
@@ -146,7 +143,7 @@ public final class NettyPacketReader implements PacketReader {
 
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setId(id).setOffset(offset).setLength(len)
-            .setLockId(lockId).setSessionId(sessionId).setType(type).setNoCache(noCache)
+            .setSessionId(sessionId).setType(type).setNoCache(noCache)
             .setPacketSize(packetSize).build();
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(readRequest)))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
@@ -166,22 +163,29 @@ public final class NettyPacketReader implements PacketReader {
     if (!tooManyPacketsPending()) {
       NettyUtils.enableAutoRead(mChannel);
     }
-    try {
-      buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-    if (buf == null) {
-      throw new DeadlineExceededException(
-          String.format("Timeout to read %d from %s.", mId, mChannel.toString()));
-    }
-    if (buf == THROWABLE) {
-      Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
-      throw CommonUtils.propagate(mPacketReaderException);
-    }
-    if (buf == EOF_OR_CANCELLED) {
-      mDone = true;
-      return null;
+    while (true) {
+      try {
+        buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      if (buf == null) {
+        throw new DeadlineExceededException(
+            String.format("Timeout to read %d from %s.", mId, mChannel.toString()));
+      }
+      if (buf == THROWABLE) {
+        Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
+        throw CommonUtils.propagate(mPacketReaderException);
+      }
+      if (buf == EOF_OR_CANCELLED) {
+        mDone = true;
+        return null;
+      }
+      if (buf.readableBytes() > 0) {
+        // Something useful is read. An empty packet can be read while the server is polling
+        // on acquiring access to a UFS block.
+        break;
+      }
     }
     mPosToRead += buf.readableBytes();
     Preconditions.checkState(mPosToRead - mStart <= mBytesToRead);
@@ -286,8 +290,7 @@ public final class NettyPacketReader implements PacketReader {
       if (dataBuffer == null) {
         buf = EOF_OR_CANCELLED;
       } else {
-        Preconditions.checkState(
-            dataBuffer.getLength() > 0 && (dataBuffer.getNettyOutput() instanceof ByteBuf));
+        Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf);
         buf = (ByteBuf) dataBuffer.getNettyOutput();
       }
 
@@ -347,7 +350,6 @@ public final class NettyPacketReader implements PacketReader {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
     private final long mId;
-    private final long mLockId;
     private final long mSessionId;
     private final boolean mNoCache;
     private final Protocol.RequestType mRequestType;
@@ -359,18 +361,16 @@ public final class NettyPacketReader implements PacketReader {
      * @param context the file system context
      * @param address the worker address
      * @param id the block ID or UFS ID
-     * @param lockId the lock ID
      * @param sessionId the session ID
      * @param noCache if set, the block won't be cached in Alluxio if the block is a UFS block
      * @param type the request type
      * @param packetSize the packet size
      */
-    public Factory(FileSystemContext context, WorkerNetAddress address, long id, long lockId,
+    public Factory(FileSystemContext context, WorkerNetAddress address, long id,
         long sessionId, boolean noCache, Protocol.RequestType type, long packetSize) {
       mContext = context;
       mAddress = address;
       mId = id;
-      mLockId = lockId;
       mSessionId = sessionId;
       mNoCache = noCache;
       mRequestType = type;
@@ -379,7 +379,7 @@ public final class NettyPacketReader implements PacketReader {
 
     @Override
     public PacketReader create(long offset, long len) {
-      return new NettyPacketReader(mContext, mAddress, mId, offset, len, mLockId, mSessionId,
+      return new NettyPacketReader(mContext, mAddress, mId, offset, len, mSessionId,
           mNoCache, mRequestType, mPacketSize);
     }
 

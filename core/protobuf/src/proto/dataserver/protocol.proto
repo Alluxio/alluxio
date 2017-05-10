@@ -16,7 +16,7 @@ enum RequestType {
 // next available id: 9
 message ReadRequest {
   optional RequestType type = 1;
-  // The block ID or UFS file ID.
+  // The block ID.
   optional int64 id = 2;
   optional int64 offset = 3;
   optional int64 length = 4;
@@ -29,6 +29,19 @@ message ReadRequest {
   optional bool no_cache = 8;
   // If set, the server should send packets in the specified packet size.
   optional int64 packet_size = 9;
+
+  // This is only set for UFS block read.
+  optional OpenUfsBlockOptions open_ufs_block_options = 10;
+}
+
+message OpenUfsBlockOptions {
+  optional string ufsPath = 1;
+  // The offset of the block in within the file.
+  optional int64 offset_in_file = 2;
+  // The block size.
+  optional int64 block_size = 3;
+  optional int32 maxUfsReadConcurrency = 4;
+  optional int64 mountId = 5;
 }
 
 // The write request.

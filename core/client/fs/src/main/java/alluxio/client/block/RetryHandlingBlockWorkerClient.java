@@ -206,37 +206,6 @@ public final class RetryHandlingBlockWorkerClient
   }
 
   @Override
-  public LockBlockResource lockBlock(final long blockId, final LockBlockOptions options) {
-    LockBlockResult result = retryRPC(
-        new RpcCallable<LockBlockResult, BlockWorkerClientService.Client>() {
-          @Override
-          public LockBlockResult call(BlockWorkerClientService.Client client) throws TException {
-            return ThriftUtils
-                .fromThrift(client.lockBlock(blockId, getSessionId(), options.toThrift()));
-          }
-        });
-    return new LockBlockResource(this, result, blockId);
-  }
-
-  @Override
-  public LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options) {
-    int retryInterval = Constants.SECOND_MS;
-    RetryPolicy retryPolicy = new TimeoutRetry(Configuration
-        .getLong(PropertyKey.USER_UFS_BLOCK_OPEN_TIMEOUT_MS), retryInterval);
-    do {
-      LockBlockResource resource = lockBlock(blockId, options);
-      if (resource.getResult().getLockBlockStatus().ufsTokenNotAcquired()) {
-        LOG.debug("Failed to acquire a UFS read token because of contention for block {} with "
-            + "LockBlockOptions {}", blockId, options);
-      } else {
-        return resource;
-      }
-    } while (retryPolicy.attemptRetry());
-    throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
-        .getMessage(blockId, options.getUfsPath()));
-  }
-
-  @Override
   public boolean promoteBlock(final long blockId) {
     return retryRPC(
         new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
@@ -289,16 +258,6 @@ public final class RetryHandlingBlockWorkerClient
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mRpcAddress, blockId));
     }
     return true;
-  }
-
-  @Override
-  public boolean unlockBlock(final long blockId) {
-    return retryRPC(new RpcCallable<Boolean, BlockWorkerClientService.Client>() {
-      @Override
-      public Boolean call(BlockWorkerClientService.Client client) throws TException {
-          return client.unlockBlock(blockId, getSessionId());
-      }
-    });
   }
 
   /**

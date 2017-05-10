@@ -82,7 +82,6 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @param context the file system context
    * @param address the address of the netty data server
    * @param id the ID
-   * @param lockId the lock ID (set to -1 if not applicable)
    * @param sessionId the session ID (set to -1 if not applicable)
    * @param length the block or file length
    * @param noCache do not cache the block to the Alluxio worker if read from UFS when this is set
@@ -91,12 +90,12 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
-      WorkerNetAddress address, long id, long lockId, long sessionId, long length,
+      WorkerNetAddress address, long id, long sessionId, long length,
       boolean noCache, Protocol.RequestType type, InStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(
-        context, address, id, lockId, sessionId, noCache, type, packetSize);
+        context, address, id, sessionId, noCache, type, packetSize);
     return new PacketInStream(factory, id, length);
   }
 

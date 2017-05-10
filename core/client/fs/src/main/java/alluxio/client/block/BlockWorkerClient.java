@@ -78,27 +78,6 @@ public interface BlockWorkerClient extends QuietlyCloseable {
   WorkerNetAddress getWorkerNetAddress();
 
   /**
-   * Locks the block, therefore, the worker will not evict the block from the memory until it is
-   * unlocked.
-   *
-   * @param blockId the ID of the block
-   * @param options the lock block options
-   * @return the lock block result
-   */
-  LockBlockResource lockBlock(final long blockId, final LockBlockOptions options);
-
-  /**
-   * A wrapper over {@link BlockWorkerClient#lockBlock(long, LockBlockOptions)} to lock a block
-   * that is not in Alluxio but in UFS. It retries if it fails to lock because of contention for
-   * the block on the worker.
-   *
-   * @param blockId the block ID
-   * @param options the lock block options
-   * @return the lock block result
-   */
-  LockBlockResource lockUfsBlock(final long blockId, final LockBlockOptions options);
-
-  /**
    * Promotes block back to the top StorageTier.
    *
    * @param blockId the ID of the block that will be promoted
@@ -132,14 +111,6 @@ public interface BlockWorkerClient extends QuietlyCloseable {
    *         space due to space exhaustion
    */
   boolean requestSpace(final long blockId, final long requestBytes);
-
-  /**
-   * Unlocks the block.
-   *
-   * @param blockId the ID of the block
-   * @return true if success, false otherwise
-   */
-  boolean unlockBlock(final long blockId);
 
   /**
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as

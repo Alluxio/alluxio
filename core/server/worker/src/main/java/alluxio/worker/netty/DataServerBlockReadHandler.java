@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
@@ -59,19 +58,35 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      * @param request the block read request
      */
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
-          request.getPacketSize());
-      mBlockReader = mWorker
-          .readBlockRemote(request.getSessionId(), request.getId(), request.getLockId());
+      super(request.getSessionId(), request.getId(), request.getOffset(),
+          request.getOffset() + request.getLength(), request.getPacketSize());
+      long lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
+      try {
+        mBlockReader =
+            mWorker.readBlockRemote(request.getSessionId(), request.getId(), request.getLockId());
+      } catch (Exception e) {
+        mWorker.unlockBlock(lockId);
+        throw e;
+      }
       mWorker.accessBlock(request.getSessionId(), mId);
 
       ((FileChannel) mBlockReader.getChannel()).position(mStart);
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
       if (mBlockReader != null) {
-        mBlockReader.close();
+        try {
+          mBlockReader.close();
+        } catch (Exception e) {
+          LOG.warn("Failed to close block reader for block {} with error {}.", mId, e.getMessage());
+        }
+
+        try {
+          mWorker.unlockBlock(mRequest.mSessionId, mRequest.mId);
+        } catch (Exception e) {
+          LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());
+        }
       }
     }
   }
@@ -105,7 +120,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   }
 
   @Override
-  protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws IOException {
+  protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
     LocalFileBlockReader blockReader =
         (LocalFileBlockReader) ((BlockReadRequestInternal) mRequest).mBlockReader;
     Preconditions.checkArgument(blockReader.getChannel() instanceof FileChannel,

@@ -16,12 +16,12 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.FileInfo;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import java.io.IOException;
 import java.util.Set;
@@ -371,7 +371,7 @@ public interface BlockWorker extends Worker {
    * @throws BlockAlreadyExistsException if the UFS block already exists in the
    *         {@link UnderFileSystemBlockStore}
    */
-  boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+  boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException;
 
   /**

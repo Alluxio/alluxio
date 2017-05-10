@@ -146,12 +146,14 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     final long mStart;
     final long mEnd;
     final long mPacketSize;
+    final long mSessionId;
 
-    ReadRequestInternal(long id, long start, long end, long packetSize) {
+    ReadRequestInternal(long sessionId, long id, long start, long end, long packetSize) {
       mId = id;
       mStart = start;
       mEnd = end;
       mPacketSize = packetSize;
+      mSessionId = sessionId;
     }
   }
 
@@ -328,7 +330,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @return a {@link DataBuffer} representing the data
    */
   protected abstract DataBuffer getDataBuffer(Channel channel, long offset, int len)
-      throws IOException;
+      throws Exception;
 
   /**
    * @param bytesRead bytes read

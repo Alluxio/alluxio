@@ -102,12 +102,10 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
     try {
       BlockWorkerClient blockWorkerClient =
           closer.register(context.createBlockWorkerClient(workerNetAddress));
-      LockBlockResource lockBlockResource =
-          closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
       PacketInStream inStream = closer.register(PacketInStream
           .createNettyPacketInStream(context, workerNetAddress, blockId,
-              lockBlockResource.getResult().getLockId(), blockWorkerClient.getSessionId(),
-              blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK, options));
+              blockWorkerClient.getSessionId(), blockSize, false,
+              Protocol.RequestType.ALLUXIO_BLOCK, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (RuntimeException e) {
@@ -156,7 +154,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       PacketInStream inStream;
       if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
         inStream = closer.register(PacketInStream
-            .createNettyPacketInStream(context, blockWorkerClient.getWorkerNetAddress(), blockId,
+            .createNettyPacketInStream(context, workerNetAddress, blockId,
                 lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
                 Protocol.RequestType.ALLUXIO_BLOCK, options));
         blockWorkerClient.accessBlock(blockId);

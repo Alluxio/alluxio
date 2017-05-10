@@ -14,13 +14,13 @@ package alluxio.worker.block;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -96,7 +96,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @return whether an access token is acquired
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    */
-  public boolean acquireAccess(long sessionId, long blockId, OpenUfsBlockOptions options)
+  public boolean acquireAccess(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
     try (LockResource lr = new LockResource(mLock)) {

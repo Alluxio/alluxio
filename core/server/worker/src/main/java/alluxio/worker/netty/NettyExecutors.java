@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class NettyExecutors {
-  private static final long THREAD_STOP_MS = Constants.MINUTE_MS;
+  private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
