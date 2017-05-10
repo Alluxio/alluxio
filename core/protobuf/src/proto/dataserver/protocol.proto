@@ -38,7 +38,7 @@ message WriteRequest {
   // The block ID or UFS file ID.
   optional int64 id = 2;
   optional int64 offset = 3;
-  optional int64 session_id = 4;
+  optional int64 session_id_deprecated = 4;
 
   // This is only applicable for block write.
   optional int32 tier = 5;

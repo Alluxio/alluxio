@@ -1336,15 +1336,15 @@ public final class Protocol {
      */
     long getOffset();
 
-    // optional int64 session_id = 4;
+    // optional int64 session_id_deprecated = 4;
     /**
-     * <code>optional int64 session_id = 4;</code>
+     * <code>optional int64 session_id_deprecated = 4;</code>
      */
-    boolean hasSessionId();
+    boolean hasSessionIdDeprecated();
     /**
-     * <code>optional int64 session_id = 4;</code>
+     * <code>optional int64 session_id_deprecated = 4;</code>
      */
-    long getSessionId();
+    long getSessionIdDeprecated();
 
     // optional int32 tier = 5;
     /**
@@ -1540,7 +1540,7 @@ public final class Protocol {
             }
             case 32: {
               bitField0_ |= 0x00000008;
-              sessionId_ = input.readInt64();
+              sessionIdDeprecated_ = input.readInt64();
               break;
             }
             case 40: {
@@ -1679,20 +1679,20 @@ public final class Protocol {
       return offset_;
     }
 
-    // optional int64 session_id = 4;
-    public static final int SESSION_ID_FIELD_NUMBER = 4;
-    private long sessionId_;
+    // optional int64 session_id_deprecated = 4;
+    public static final int SESSION_ID_DEPRECATED_FIELD_NUMBER = 4;
+    private long sessionIdDeprecated_;
     /**
-     * <code>optional int64 session_id = 4;</code>
+     * <code>optional int64 session_id_deprecated = 4;</code>
      */
-    public boolean hasSessionId() {
+    public boolean hasSessionIdDeprecated() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional int64 session_id = 4;</code>
+     * <code>optional int64 session_id_deprecated = 4;</code>
      */
-    public long getSessionId() {
-      return sessionId_;
+    public long getSessionIdDeprecated() {
+      return sessionIdDeprecated_;
     }
 
     // optional int32 tier = 5;
@@ -1928,7 +1928,7 @@ public final class Protocol {
       type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
       offset_ = 0L;
-      sessionId_ = 0L;
+      sessionIdDeprecated_ = 0L;
       tier_ = 0;
       eof_ = false;
       cancel_ = false;
@@ -1960,7 +1960,7 @@ public final class Protocol {
         output.writeInt64(3, offset_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt64(4, sessionId_);
+        output.writeInt64(4, sessionIdDeprecated_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt32(5, tier_);
@@ -2009,7 +2009,7 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, sessionId_);
+          .computeInt64Size(4, sessionIdDeprecated_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
@@ -2170,7 +2170,7 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000002);
         offset_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
-        sessionId_ = 0L;
+        sessionIdDeprecated_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
         tier_ = 0;
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -2231,7 +2231,7 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
-        result.sessionId_ = sessionId_;
+        result.sessionIdDeprecated_ = sessionIdDeprecated_;
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
@@ -2289,8 +2289,8 @@ public final class Protocol {
         if (other.hasOffset()) {
           setOffset(other.getOffset());
         }
-        if (other.hasSessionId()) {
-          setSessionId(other.getSessionId());
+        if (other.hasSessionIdDeprecated()) {
+          setSessionIdDeprecated(other.getSessionIdDeprecated());
         }
         if (other.hasTier()) {
           setTier(other.getTier());
@@ -2467,35 +2467,35 @@ public final class Protocol {
         return this;
       }
 
-      // optional int64 session_id = 4;
-      private long sessionId_ ;
+      // optional int64 session_id_deprecated = 4;
+      private long sessionIdDeprecated_ ;
       /**
-       * <code>optional int64 session_id = 4;</code>
+       * <code>optional int64 session_id_deprecated = 4;</code>
        */
-      public boolean hasSessionId() {
+      public boolean hasSessionIdDeprecated() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional int64 session_id = 4;</code>
+       * <code>optional int64 session_id_deprecated = 4;</code>
        */
-      public long getSessionId() {
-        return sessionId_;
+      public long getSessionIdDeprecated() {
+        return sessionIdDeprecated_;
       }
       /**
-       * <code>optional int64 session_id = 4;</code>
+       * <code>optional int64 session_id_deprecated = 4;</code>
        */
-      public Builder setSessionId(long value) {
+      public Builder setSessionIdDeprecated(long value) {
         bitField0_ |= 0x00000008;
-        sessionId_ = value;
+        sessionIdDeprecated_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 session_id = 4;</code>
+       * <code>optional int64 session_id_deprecated = 4;</code>
        */
-      public Builder clearSessionId() {
+      public Builder clearSessionIdDeprecated() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        sessionId_ = 0L;
+        sessionIdDeprecated_ = 0L;
         onChanged();
         return this;
       }
@@ -7145,27 +7145,28 @@ public final class Protocol {
       "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
       "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
       "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\022\023\n\013packet_size\030\t \001(\003\"\356\001\n\014WriteRequest\0223" +
+      "\022\023\n\013packet_size\030\t \001(\003\"\371\001\n\014WriteRequest\0223" +
       "\n\004type\030\001 \001(\0162%.alluxio.proto.dataserver." +
       "RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022" +
-      "\022\n\nsession_id\030\004 \001(\003\022\014\n\004tier\030\005 \001(\005\022\013\n\003eof",
-      "\030\006 \001(\010\022\016\n\006cancel\030\007 \001(\010\022\020\n\010ufs_path\030\010 \001(\t" +
-      "\022\r\n\005owner\030\t \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004mode\030\013" +
-      " \001(\005\022\020\n\010mount_id\030\014 \001(\003\"J\n\010Response\022-\n\006st" +
-      "atus\030\001 \001(\0162\035.alluxio.proto.status.PStatu" +
-      "s\022\017\n\007message\030\002 \001(\t\"\013\n\tHeartbeat\"=\n\025Local" +
-      "BlockOpenRequest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nse" +
-      "ssion_id\030\002 \001(\003\"&\n\026LocalBlockOpenResponse" +
-      "\022\014\n\004path\030\001 \001(\t\">\n\026LocalBlockCloseRequest" +
-      "\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\"\203" +
-      "\001\n\027LocalBlockCreateRequest\022\020\n\010block_id\030\001",
-      " \001(\003\022\022\n\nsession_id\030\002 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030" +
-      "\n\020space_to_reserve\030\004 \001(\003\022\032\n\022only_reserve" +
-      "_space\030\005 \001(\010\"(\n\030LocalBlockCreateResponse" +
-      "\022\014\n\004path\030\001 \001(\t\"Q\n\031LocalBlockCompleteRequ" +
-      "est\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(" +
-      "\003\022\016\n\006cancel\030\003 \001(\010*=\n\013RequestType\022\021\n\rALLU" +
-      "XIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\tUFS_BLOCK\020\002"
+      "\035\n\025session_id_deprecated\030\004 \001(\003\022\014\n\004tier\030\005",
+      " \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(\010\022\020\n\010ufs" +
+      "_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005group\030\n \001(" +
+      "\t\022\014\n\004mode\030\013 \001(\005\022\020\n\010mount_id\030\014 \001(\003\"J\n\010Res" +
+      "ponse\022-\n\006status\030\001 \001(\0162\035.alluxio.proto.st" +
+      "atus.PStatus\022\017\n\007message\030\002 \001(\t\"\013\n\tHeartbe" +
+      "at\"=\n\025LocalBlockOpenRequest\022\020\n\010block_id\030" +
+      "\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\"&\n\026LocalBlockO" +
+      "penResponse\022\014\n\004path\030\001 \001(\t\">\n\026LocalBlockC" +
+      "loseRequest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsession" +
+      "_id\030\002 \001(\003\"\203\001\n\027LocalBlockCreateRequest\022\020\n",
+      "\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\022\014\n\004t" +
+      "ier\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022o" +
+      "nly_reserve_space\030\005 \001(\010\"(\n\030LocalBlockCre" +
+      "ateResponse\022\014\n\004path\030\001 \001(\t\"Q\n\031LocalBlockC" +
+      "ompleteRequest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsess" +
+      "ion_id\030\002 \001(\003\022\016\n\006cancel\030\003 \001(\010*=\n\013RequestT" +
+      "ype\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n\t" +
+      "UFS_BLOCK\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7183,7 +7184,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
+              new java.lang.String[] { "Type", "Id", "Offset", "SessionIdDeprecated", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(2);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
