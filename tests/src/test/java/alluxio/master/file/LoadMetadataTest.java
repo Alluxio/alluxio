@@ -22,7 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.meta.UfsAbsentPathCache;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
@@ -64,12 +64,12 @@ public class LoadMetadataTest {
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     options.setExistsMs(SLEEP_MS);
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    UnderFileSystemRegistry.register(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
-    UnderFileSystemRegistry.unregister(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
   }
 
   @Before
