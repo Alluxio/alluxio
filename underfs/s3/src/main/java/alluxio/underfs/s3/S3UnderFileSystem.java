@@ -326,7 +326,6 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
-  // Returns the account owner.
   // No group in S3 ACL, returns the account owner for group.
   @Override
   protected ObjectPermissions getPermissions() {

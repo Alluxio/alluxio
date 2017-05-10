@@ -289,7 +289,6 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
-  // Returns the account permissions.
   // No group in GCS ACL, returns the account owner for group.
   @Override
   protected ObjectPermissions getPermissions() {

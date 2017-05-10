@@ -337,7 +337,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return null;
   }
 
-  // Returns the account owner.
   // No group in Swift ACL, returns the account owner for group.
   @Override
   protected ObjectPermissions getPermissions() {
