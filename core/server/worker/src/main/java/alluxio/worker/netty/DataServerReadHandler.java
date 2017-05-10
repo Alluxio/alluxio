@@ -21,6 +21,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.util.IdUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -148,12 +149,12 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     final long mPacketSize;
     final long mSessionId;
 
-    ReadRequestInternal(long sessionId, long id, long start, long end, long packetSize) {
+    ReadRequestInternal(long id, long start, long end, long packetSize) {
       mId = id;
       mStart = start;
       mEnd = end;
       mPacketSize = packetSize;
-      mSessionId = sessionId;
+      mSessionId = IdUtils.getRandomNonNegativeLong();
     }
   }
 

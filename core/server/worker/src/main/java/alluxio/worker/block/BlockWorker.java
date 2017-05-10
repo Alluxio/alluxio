@@ -18,6 +18,7 @@ import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.FileInfo;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A block worker in the Alluxio system.
  */
-public interface BlockWorker extends Worker {
+public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * @return the worker data service bind host
    */
@@ -287,11 +288,10 @@ public interface BlockWorker extends Worker {
    * @param sessionId the client session ID
    * @param blockId the ID of the UFS block to read
    * @param offset the offset within the block
-   * @param noCache if set, do not try to cache the block in the Alluxio worker
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
    */
-  BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+  BlockReader readUfsBlock(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException;
 
   /**

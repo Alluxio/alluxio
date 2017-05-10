@@ -21,6 +21,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.base.Preconditions;
@@ -137,11 +138,12 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   abstract class WriteRequestInternal implements Closeable {
     /** This ID can either be block ID or temp UFS file ID. */
     final long mId;
+    /** The session id associated with all temporary resources of this request. */
     final long mSessionId;
 
-    WriteRequestInternal(long id, long sessionId) {
+    WriteRequestInternal(long id) {
       mId = id;
-      mSessionId = sessionId;
+      mSessionId = IdUtils.getRandomNonNegativeLong();
     }
 
     /**

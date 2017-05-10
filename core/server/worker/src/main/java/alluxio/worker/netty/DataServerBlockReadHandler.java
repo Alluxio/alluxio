@@ -61,12 +61,12 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   private final FileTransferType mTransferType;
 
   /**
-   * The block read request internal representation.
+   * The block read request internal representation. When this request is closed, it will clean
+   * up any temporary state it may have accumulated.
    */
   private final class BlockReadRequestInternal extends ReadRequestInternal {
     BlockReader mBlockReader;
     final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
-    final boolean mNoCache;
 
     /**
      * Creates an instance of {@link BlockReadRequestInternal}.
@@ -74,11 +74,10 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      * @param request the block read request
      */
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      super(request.getSessionId(), request.getId(), request.getOffset(),
-          request.getOffset() + request.getLength(), request.getPacketSize());
+      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
+          request.getPacketSize());
 
       mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
-      mNoCache = request.getNoCache();
       // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 
@@ -101,6 +100,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       } catch (Exception e) {
         LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());
       }
+      mWorker.cleanupSession(mSessionId);
     }
   }
 
@@ -184,7 +184,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       if (mWorker.openUfsBlock(request.mSessionId, request.mId, request.mOpenUfsBlockOptions)) {
         try {
           request.mBlockReader = mWorker
-              .readUfsBlock(request.mSessionId, request.mId, request.mStart, request.mNoCache);
+              .readUfsBlock(request.mSessionId, request.mId, request.mStart);
           return;
         } catch (Exception e) {
           mWorker.closeUfsBlock(request.mSessionId, request.mId);

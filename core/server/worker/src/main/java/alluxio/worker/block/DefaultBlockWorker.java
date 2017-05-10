@@ -402,9 +402,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+  public BlockReader readUfsBlock(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException {
-    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, noCache);
+    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset);
   }
 
   @Override
@@ -469,6 +469,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
     }
     mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
+  }
+
+  @Override
+  public void cleanupSession(long sessionId) {
+    mBlockStore.cleanupSession(sessionId);
+    mUnderFileSystemBlockStore.cleanupSession(sessionId);
   }
 
   /**

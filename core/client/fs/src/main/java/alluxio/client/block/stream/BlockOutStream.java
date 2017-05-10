@@ -78,10 +78,9 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
     Closer closer = Closer.create();
     try {
-      BlockWorkerClient client = closer.register(context.createBlockWorkerClient(workerNetAddress));
-      PacketOutStream outStream = closer.register(PacketOutStream
-          .createNettyPacketOutStream(context, workerNetAddress, client.getSessionId(), blockId,
-              blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options));
+      PacketOutStream outStream =
+          closer.register(PacketOutStream.createNettyPacketOutStream(context, workerNetAddress,
+              blockId, blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options));
       return new BlockOutStream(outStream, closer, options);
     } catch (RuntimeException e) {
       CommonUtils.closeQuietly(closer);

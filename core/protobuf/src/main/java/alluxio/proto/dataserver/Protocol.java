@@ -8,114 +8,8 @@ public final class Protocol {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  /**
-   * Protobuf enum {@code alluxio.proto.dataserver.RequestType}
-   *
-   * <pre>
-   * The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
-   * next available id: 3
-   * </pre>
-   */
-  public enum RequestType
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>ALLUXIO_BLOCK = 0;</code>
-     */
-    ALLUXIO_BLOCK(0, 0),
-    /**
-     * <code>UFS_FILE = 1;</code>
-     */
-    UFS_FILE(1, 1),
-    /**
-     * <code>UFS_BLOCK = 2;</code>
-     */
-    UFS_BLOCK(2, 2),
-    ;
-
-    /**
-     * <code>ALLUXIO_BLOCK = 0;</code>
-     */
-    public static final int ALLUXIO_BLOCK_VALUE = 0;
-    /**
-     * <code>UFS_FILE = 1;</code>
-     */
-    public static final int UFS_FILE_VALUE = 1;
-    /**
-     * <code>UFS_BLOCK = 2;</code>
-     */
-    public static final int UFS_BLOCK_VALUE = 2;
-
-
-    public final int getNumber() { return value; }
-
-    public static RequestType valueOf(int value) {
-      switch (value) {
-        case 0: return ALLUXIO_BLOCK;
-        case 1: return UFS_FILE;
-        case 2: return UFS_BLOCK;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<RequestType>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static com.google.protobuf.Internal.EnumLiteMap<RequestType>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<RequestType>() {
-            public RequestType findValueByNumber(int number) {
-              return RequestType.valueOf(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return alluxio.proto.dataserver.Protocol.getDescriptor().getEnumTypes().get(0);
-    }
-
-    private static final RequestType[] VALUES = values();
-
-    public static RequestType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int index;
-    private final int value;
-
-    private RequestType(int index, int value) {
-      this.index = index;
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.RequestType)
-  }
-
   public interface ReadRequestOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
-
-    // optional .alluxio.proto.dataserver.RequestType type = 1;
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    boolean hasType();
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    alluxio.proto.dataserver.Protocol.RequestType getType();
 
     // optional int64 id = 2;
     /**
@@ -173,16 +67,6 @@ public final class Protocol {
      */
     boolean getCancel();
 
-    // optional int64 lock_id = 6;
-    /**
-     * <code>optional int64 lock_id = 6;</code>
-     */
-    boolean hasLockId();
-    /**
-     * <code>optional int64 lock_id = 6;</code>
-     */
-    long getLockId();
-
     // optional int64 session_id = 7;
     /**
      * <code>optional int64 session_id = 7;</code>
@@ -192,24 +76,6 @@ public final class Protocol {
      * <code>optional int64 session_id = 7;</code>
      */
     long getSessionId();
-
-    // optional bool no_cache = 8;
-    /**
-     * <code>optional bool no_cache = 8;</code>
-     *
-     * <pre>
-     * If set, do not try to cache the block locally when reading the data from the UFS.
-     * </pre>
-     */
-    boolean hasNoCache();
-    /**
-     * <code>optional bool no_cache = 8;</code>
-     *
-     * <pre>
-     * If set, do not try to cache the block locally when reading the data from the UFS.
-     * </pre>
-     */
-    boolean getNoCache();
 
     // optional int64 packet_size = 9;
     /**
@@ -311,60 +177,39 @@ public final class Protocol {
               }
               break;
             }
-            case 8: {
-              int rawValue = input.readEnum();
-              alluxio.proto.dataserver.Protocol.RequestType value = alluxio.proto.dataserver.Protocol.RequestType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(1, rawValue);
-              } else {
-                bitField0_ |= 0x00000001;
-                type_ = value;
-              }
-              break;
-            }
             case 16: {
-              bitField0_ |= 0x00000002;
+              bitField0_ |= 0x00000001;
               id_ = input.readInt64();
               break;
             }
             case 24: {
-              bitField0_ |= 0x00000004;
+              bitField0_ |= 0x00000002;
               offset_ = input.readInt64();
               break;
             }
             case 32: {
-              bitField0_ |= 0x00000008;
+              bitField0_ |= 0x00000004;
               length_ = input.readInt64();
               break;
             }
             case 40: {
-              bitField0_ |= 0x00000010;
+              bitField0_ |= 0x00000008;
               cancel_ = input.readBool();
               break;
             }
-            case 48: {
-              bitField0_ |= 0x00000020;
-              lockId_ = input.readInt64();
-              break;
-            }
             case 56: {
-              bitField0_ |= 0x00000040;
+              bitField0_ |= 0x00000010;
               sessionId_ = input.readInt64();
               break;
             }
-            case 64: {
-              bitField0_ |= 0x00000080;
-              noCache_ = input.readBool();
-              break;
-            }
             case 72: {
-              bitField0_ |= 0x00000100;
+              bitField0_ |= 0x00000020;
               packetSize_ = input.readInt64();
               break;
             }
             case 82: {
               alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000200) == 0x00000200)) {
+              if (((bitField0_ & 0x00000040) == 0x00000040)) {
                 subBuilder = openUfsBlockOptions_.toBuilder();
               }
               openUfsBlockOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.PARSER, extensionRegistry);
@@ -372,7 +217,7 @@ public final class Protocol {
                 subBuilder.mergeFrom(openUfsBlockOptions_);
                 openUfsBlockOptions_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000200;
+              bitField0_ |= 0x00000040;
               break;
             }
           }
@@ -415,22 +260,6 @@ public final class Protocol {
     }
 
     private int bitField0_;
-    // optional .alluxio.proto.dataserver.RequestType type = 1;
-    public static final int TYPE_FIELD_NUMBER = 1;
-    private alluxio.proto.dataserver.Protocol.RequestType type_;
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    public boolean hasType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    public alluxio.proto.dataserver.Protocol.RequestType getType() {
-      return type_;
-    }
-
     // optional int64 id = 2;
     public static final int ID_FIELD_NUMBER = 2;
     private long id_;
@@ -442,7 +271,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasId() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
      * <code>optional int64 id = 2;</code>
@@ -462,7 +291,7 @@ public final class Protocol {
      * <code>optional int64 offset = 3;</code>
      */
     public boolean hasOffset() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional int64 offset = 3;</code>
@@ -478,7 +307,7 @@ public final class Protocol {
      * <code>optional int64 length = 4;</code>
      */
     public boolean hasLength() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
      * <code>optional int64 length = 4;</code>
@@ -498,7 +327,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasCancel() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>optional bool cancel = 5;</code>
@@ -511,22 +340,6 @@ public final class Protocol {
       return cancel_;
     }
 
-    // optional int64 lock_id = 6;
-    public static final int LOCK_ID_FIELD_NUMBER = 6;
-    private long lockId_;
-    /**
-     * <code>optional int64 lock_id = 6;</code>
-     */
-    public boolean hasLockId() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    /**
-     * <code>optional int64 lock_id = 6;</code>
-     */
-    public long getLockId() {
-      return lockId_;
-    }
-
     // optional int64 session_id = 7;
     public static final int SESSION_ID_FIELD_NUMBER = 7;
     private long sessionId_;
@@ -534,37 +347,13 @@ public final class Protocol {
      * <code>optional int64 session_id = 7;</code>
      */
     public boolean hasSessionId() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
      * <code>optional int64 session_id = 7;</code>
      */
     public long getSessionId() {
       return sessionId_;
-    }
-
-    // optional bool no_cache = 8;
-    public static final int NO_CACHE_FIELD_NUMBER = 8;
-    private boolean noCache_;
-    /**
-     * <code>optional bool no_cache = 8;</code>
-     *
-     * <pre>
-     * If set, do not try to cache the block locally when reading the data from the UFS.
-     * </pre>
-     */
-    public boolean hasNoCache() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
-    }
-    /**
-     * <code>optional bool no_cache = 8;</code>
-     *
-     * <pre>
-     * If set, do not try to cache the block locally when reading the data from the UFS.
-     * </pre>
-     */
-    public boolean getNoCache() {
-      return noCache_;
     }
 
     // optional int64 packet_size = 9;
@@ -578,7 +367,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasPacketSize() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
      * <code>optional int64 packet_size = 9;</code>
@@ -602,7 +391,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasOpenUfsBlockOptions() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
      * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 10;</code>
@@ -626,14 +415,11 @@ public final class Protocol {
     }
 
     private void initFields() {
-      type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
       offset_ = 0L;
       length_ = 0L;
       cancel_ = false;
-      lockId_ = 0L;
       sessionId_ = 0L;
-      noCache_ = false;
       packetSize_ = 0L;
       openUfsBlockOptions_ = alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance();
     }
@@ -650,33 +436,24 @@ public final class Protocol {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeEnum(1, type_.getNumber());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(2, id_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(3, offset_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(4, length_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeBool(5, cancel_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeInt64(6, lockId_);
-      }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt64(7, sessionId_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeBool(8, noCache_);
-      }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
         output.writeInt64(9, packetSize_);
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeMessage(10, openUfsBlockOptions_);
       }
       getUnknownFields().writeTo(output);
@@ -690,41 +467,29 @@ public final class Protocol {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(1, type_.getNumber());
+          .computeInt64Size(2, id_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, id_);
+          .computeInt64Size(3, offset_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, offset_);
+          .computeInt64Size(4, length_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, length_);
+          .computeBoolSize(5, cancel_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(5, cancel_);
+          .computeInt64Size(7, sessionId_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(6, lockId_);
-      }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(7, sessionId_);
-      }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(8, noCache_);
-      }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(9, packetSize_);
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(10, openUfsBlockOptions_);
       }
@@ -850,30 +615,24 @@ public final class Protocol {
 
       public Builder clear() {
         super.clear();
-        type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
-        bitField0_ = (bitField0_ & ~0x00000001);
         id_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         offset_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         length_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         cancel_ = false;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        lockId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000008);
         sessionId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000040);
-        noCache_ = false;
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000010);
         packetSize_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000020);
         if (openUfsBlockOptionsBuilder_ == null) {
           openUfsBlockOptions_ = alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance();
         } else {
           openUfsBlockOptionsBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
 
@@ -905,41 +664,29 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.type_ = type_;
+        result.id_ = id_;
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        result.id_ = id_;
+        result.offset_ = offset_;
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.offset_ = offset_;
+        result.length_ = length_;
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
-        result.length_ = length_;
+        result.cancel_ = cancel_;
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
-        result.cancel_ = cancel_;
+        result.sessionId_ = sessionId_;
         if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000020;
         }
-        result.lockId_ = lockId_;
+        result.packetSize_ = packetSize_;
         if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
           to_bitField0_ |= 0x00000040;
-        }
-        result.sessionId_ = sessionId_;
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-          to_bitField0_ |= 0x00000080;
-        }
-        result.noCache_ = noCache_;
-        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
-          to_bitField0_ |= 0x00000100;
-        }
-        result.packetSize_ = packetSize_;
-        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
-          to_bitField0_ |= 0x00000200;
         }
         if (openUfsBlockOptionsBuilder_ == null) {
           result.openUfsBlockOptions_ = openUfsBlockOptions_;
@@ -962,9 +709,6 @@ public final class Protocol {
 
       public Builder mergeFrom(alluxio.proto.dataserver.Protocol.ReadRequest other) {
         if (other == alluxio.proto.dataserver.Protocol.ReadRequest.getDefaultInstance()) return this;
-        if (other.hasType()) {
-          setType(other.getType());
-        }
         if (other.hasId()) {
           setId(other.getId());
         }
@@ -977,14 +721,8 @@ public final class Protocol {
         if (other.hasCancel()) {
           setCancel(other.getCancel());
         }
-        if (other.hasLockId()) {
-          setLockId(other.getLockId());
-        }
         if (other.hasSessionId()) {
           setSessionId(other.getSessionId());
-        }
-        if (other.hasNoCache()) {
-          setNoCache(other.getNoCache());
         }
         if (other.hasPacketSize()) {
           setPacketSize(other.getPacketSize());
@@ -1019,42 +757,6 @@ public final class Protocol {
       }
       private int bitField0_;
 
-      // optional .alluxio.proto.dataserver.RequestType type = 1;
-      private alluxio.proto.dataserver.Protocol.RequestType type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public boolean hasType() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.RequestType getType() {
-        return type_;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public Builder setType(alluxio.proto.dataserver.Protocol.RequestType value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        bitField0_ |= 0x00000001;
-        type_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public Builder clearType() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
-        onChanged();
-        return this;
-      }
-
       // optional int64 id = 2;
       private long id_ ;
       /**
@@ -1065,7 +767,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasId() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
        * <code>optional int64 id = 2;</code>
@@ -1085,7 +787,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder setId(long value) {
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         id_ = value;
         onChanged();
         return this;
@@ -1098,7 +800,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder clearId() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         id_ = 0L;
         onChanged();
         return this;
@@ -1110,7 +812,7 @@ public final class Protocol {
        * <code>optional int64 offset = 3;</code>
        */
       public boolean hasOffset() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional int64 offset = 3;</code>
@@ -1122,7 +824,7 @@ public final class Protocol {
        * <code>optional int64 offset = 3;</code>
        */
       public Builder setOffset(long value) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         offset_ = value;
         onChanged();
         return this;
@@ -1131,7 +833,7 @@ public final class Protocol {
        * <code>optional int64 offset = 3;</code>
        */
       public Builder clearOffset() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         offset_ = 0L;
         onChanged();
         return this;
@@ -1143,7 +845,7 @@ public final class Protocol {
        * <code>optional int64 length = 4;</code>
        */
       public boolean hasLength() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
        * <code>optional int64 length = 4;</code>
@@ -1155,7 +857,7 @@ public final class Protocol {
        * <code>optional int64 length = 4;</code>
        */
       public Builder setLength(long value) {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         length_ = value;
         onChanged();
         return this;
@@ -1164,7 +866,7 @@ public final class Protocol {
        * <code>optional int64 length = 4;</code>
        */
       public Builder clearLength() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         length_ = 0L;
         onChanged();
         return this;
@@ -1180,7 +882,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasCancel() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>optional bool cancel = 5;</code>
@@ -1200,7 +902,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder setCancel(boolean value) {
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         cancel_ = value;
         onChanged();
         return this;
@@ -1213,41 +915,8 @@ public final class Protocol {
        * </pre>
        */
       public Builder clearCancel() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         cancel_ = false;
-        onChanged();
-        return this;
-      }
-
-      // optional int64 lock_id = 6;
-      private long lockId_ ;
-      /**
-       * <code>optional int64 lock_id = 6;</code>
-       */
-      public boolean hasLockId() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
-      }
-      /**
-       * <code>optional int64 lock_id = 6;</code>
-       */
-      public long getLockId() {
-        return lockId_;
-      }
-      /**
-       * <code>optional int64 lock_id = 6;</code>
-       */
-      public Builder setLockId(long value) {
-        bitField0_ |= 0x00000020;
-        lockId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 lock_id = 6;</code>
-       */
-      public Builder clearLockId() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        lockId_ = 0L;
         onChanged();
         return this;
       }
@@ -1258,7 +927,7 @@ public final class Protocol {
        * <code>optional int64 session_id = 7;</code>
        */
       public boolean hasSessionId() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+        return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
        * <code>optional int64 session_id = 7;</code>
@@ -1270,7 +939,7 @@ public final class Protocol {
        * <code>optional int64 session_id = 7;</code>
        */
       public Builder setSessionId(long value) {
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000010;
         sessionId_ = value;
         onChanged();
         return this;
@@ -1279,57 +948,8 @@ public final class Protocol {
        * <code>optional int64 session_id = 7;</code>
        */
       public Builder clearSessionId() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000010);
         sessionId_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional bool no_cache = 8;
-      private boolean noCache_ ;
-      /**
-       * <code>optional bool no_cache = 8;</code>
-       *
-       * <pre>
-       * If set, do not try to cache the block locally when reading the data from the UFS.
-       * </pre>
-       */
-      public boolean hasNoCache() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
-      }
-      /**
-       * <code>optional bool no_cache = 8;</code>
-       *
-       * <pre>
-       * If set, do not try to cache the block locally when reading the data from the UFS.
-       * </pre>
-       */
-      public boolean getNoCache() {
-        return noCache_;
-      }
-      /**
-       * <code>optional bool no_cache = 8;</code>
-       *
-       * <pre>
-       * If set, do not try to cache the block locally when reading the data from the UFS.
-       * </pre>
-       */
-      public Builder setNoCache(boolean value) {
-        bitField0_ |= 0x00000080;
-        noCache_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bool no_cache = 8;</code>
-       *
-       * <pre>
-       * If set, do not try to cache the block locally when reading the data from the UFS.
-       * </pre>
-       */
-      public Builder clearNoCache() {
-        bitField0_ = (bitField0_ & ~0x00000080);
-        noCache_ = false;
         onChanged();
         return this;
       }
@@ -1344,7 +964,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasPacketSize() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
+        return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
        * <code>optional int64 packet_size = 9;</code>
@@ -1364,7 +984,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder setPacketSize(long value) {
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000020;
         packetSize_ = value;
         onChanged();
         return this;
@@ -1377,7 +997,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder clearPacketSize() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000020);
         packetSize_ = 0L;
         onChanged();
         return this;
@@ -1395,7 +1015,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasOpenUfsBlockOptions() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
+        return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       /**
        * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 10;</code>
@@ -1428,7 +1048,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000040;
         return this;
       }
       /**
@@ -1446,7 +1066,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000040;
         return this;
       }
       /**
@@ -1458,7 +1078,7 @@ public final class Protocol {
        */
       public Builder mergeOpenUfsBlockOptions(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions value) {
         if (openUfsBlockOptionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000200) == 0x00000200) &&
+          if (((bitField0_ & 0x00000040) == 0x00000040) &&
               openUfsBlockOptions_ != alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance()) {
             openUfsBlockOptions_ =
               alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.newBuilder(openUfsBlockOptions_).mergeFrom(value).buildPartial();
@@ -1469,7 +1089,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000040;
         return this;
       }
       /**
@@ -1486,7 +1106,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
       /**
@@ -1497,7 +1117,7 @@ public final class Protocol {
        * </pre>
        */
       public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder getOpenUfsBlockOptionsBuilder() {
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000040;
         onChanged();
         return getOpenUfsBlockOptionsFieldBuilder().getBuilder();
       }
@@ -1620,6 +1240,24 @@ public final class Protocol {
      * <code>optional int64 mountId = 5;</code>
      */
     long getMountId();
+
+    // optional bool no_cache = 6;
+    /**
+     * <code>optional bool no_cache = 6;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    boolean hasNoCache();
+    /**
+     * <code>optional bool no_cache = 6;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    boolean getNoCache();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.OpenUfsBlockOptions}
@@ -1695,6 +1333,11 @@ public final class Protocol {
             case 40: {
               bitField0_ |= 0x00000010;
               mountId_ = input.readInt64();
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              noCache_ = input.readBool();
               break;
             }
           }
@@ -1860,12 +1503,37 @@ public final class Protocol {
       return mountId_;
     }
 
+    // optional bool no_cache = 6;
+    public static final int NO_CACHE_FIELD_NUMBER = 6;
+    private boolean noCache_;
+    /**
+     * <code>optional bool no_cache = 6;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    public boolean hasNoCache() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional bool no_cache = 6;</code>
+     *
+     * <pre>
+     * If set, do not try to cache the block locally when reading the data from the UFS.
+     * </pre>
+     */
+    public boolean getNoCache() {
+      return noCache_;
+    }
+
     private void initFields() {
       ufsPath_ = "";
       offsetInFile_ = 0L;
       blockSize_ = 0L;
       maxUfsReadConcurrency_ = 0;
       mountId_ = 0L;
+      noCache_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1893,6 +1561,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt64(5, mountId_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeBool(6, noCache_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1922,6 +1593,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(5, mountId_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(6, noCache_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2049,6 +1724,8 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000008);
         mountId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000010);
+        noCache_ = false;
+        bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
 
@@ -2097,6 +1774,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000010;
         }
         result.mountId_ = mountId_;
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.noCache_ = noCache_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2129,6 +1810,9 @@ public final class Protocol {
         }
         if (other.hasMountId()) {
           setMountId(other.getMountId());
+        }
+        if (other.hasNoCache()) {
+          setNoCache(other.getNoCache());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2395,6 +2079,55 @@ public final class Protocol {
         return this;
       }
 
+      // optional bool no_cache = 6;
+      private boolean noCache_ ;
+      /**
+       * <code>optional bool no_cache = 6;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public boolean hasNoCache() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional bool no_cache = 6;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public boolean getNoCache() {
+        return noCache_;
+      }
+      /**
+       * <code>optional bool no_cache = 6;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public Builder setNoCache(boolean value) {
+        bitField0_ |= 0x00000020;
+        noCache_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool no_cache = 6;</code>
+       *
+       * <pre>
+       * If set, do not try to cache the block locally when reading the data from the UFS.
+       * </pre>
+       */
+      public Builder clearNoCache() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        noCache_ = false;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.OpenUfsBlockOptions)
     }
 
@@ -2408,16 +2141,6 @@ public final class Protocol {
 
   public interface WriteRequestOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
-
-    // optional .alluxio.proto.dataserver.RequestType type = 1;
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    boolean hasType();
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    alluxio.proto.dataserver.Protocol.RequestType getType();
 
     // optional int64 id = 2;
     /**
@@ -2446,16 +2169,6 @@ public final class Protocol {
      * <code>optional int64 offset = 3;</code>
      */
     long getOffset();
-
-    // optional int64 session_id = 4;
-    /**
-     * <code>optional int64 session_id = 4;</code>
-     */
-    boolean hasSessionId();
-    /**
-     * <code>optional int64 session_id = 4;</code>
-     */
-    long getSessionId();
 
     // optional int32 tier = 5;
     /**
@@ -2628,69 +2341,53 @@ public final class Protocol {
               }
               break;
             }
-            case 8: {
-              int rawValue = input.readEnum();
-              alluxio.proto.dataserver.Protocol.RequestType value = alluxio.proto.dataserver.Protocol.RequestType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(1, rawValue);
-              } else {
-                bitField0_ |= 0x00000001;
-                type_ = value;
-              }
-              break;
-            }
             case 16: {
-              bitField0_ |= 0x00000002;
+              bitField0_ |= 0x00000001;
               id_ = input.readInt64();
               break;
             }
             case 24: {
-              bitField0_ |= 0x00000004;
+              bitField0_ |= 0x00000002;
               offset_ = input.readInt64();
               break;
             }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              sessionId_ = input.readInt64();
-              break;
-            }
             case 40: {
-              bitField0_ |= 0x00000010;
+              bitField0_ |= 0x00000004;
               tier_ = input.readInt32();
               break;
             }
             case 48: {
-              bitField0_ |= 0x00000020;
+              bitField0_ |= 0x00000008;
               eof_ = input.readBool();
               break;
             }
             case 56: {
-              bitField0_ |= 0x00000040;
+              bitField0_ |= 0x00000010;
               cancel_ = input.readBool();
               break;
             }
             case 66: {
-              bitField0_ |= 0x00000080;
+              bitField0_ |= 0x00000020;
               ufsPath_ = input.readBytes();
               break;
             }
             case 74: {
-              bitField0_ |= 0x00000100;
+              bitField0_ |= 0x00000040;
               owner_ = input.readBytes();
               break;
             }
             case 82: {
-              bitField0_ |= 0x00000200;
+              bitField0_ |= 0x00000080;
               group_ = input.readBytes();
               break;
             }
             case 88: {
-              bitField0_ |= 0x00000400;
+              bitField0_ |= 0x00000100;
               mode_ = input.readInt32();
               break;
             }
             case 96: {
-              bitField0_ |= 0x00000800;
+              bitField0_ |= 0x00000200;
               mountId_ = input.readInt64();
               break;
             }
@@ -2734,22 +2431,6 @@ public final class Protocol {
     }
 
     private int bitField0_;
-    // optional .alluxio.proto.dataserver.RequestType type = 1;
-    public static final int TYPE_FIELD_NUMBER = 1;
-    private alluxio.proto.dataserver.Protocol.RequestType type_;
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    public boolean hasType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-     */
-    public alluxio.proto.dataserver.Protocol.RequestType getType() {
-      return type_;
-    }
-
     // optional int64 id = 2;
     public static final int ID_FIELD_NUMBER = 2;
     private long id_;
@@ -2761,7 +2442,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasId() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
      * <code>optional int64 id = 2;</code>
@@ -2781,29 +2462,13 @@ public final class Protocol {
      * <code>optional int64 offset = 3;</code>
      */
     public boolean hasOffset() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional int64 offset = 3;</code>
      */
     public long getOffset() {
       return offset_;
-    }
-
-    // optional int64 session_id = 4;
-    public static final int SESSION_ID_FIELD_NUMBER = 4;
-    private long sessionId_;
-    /**
-     * <code>optional int64 session_id = 4;</code>
-     */
-    public boolean hasSessionId() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional int64 session_id = 4;</code>
-     */
-    public long getSessionId() {
-      return sessionId_;
     }
 
     // optional int32 tier = 5;
@@ -2817,7 +2482,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasTier() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
      * <code>optional int32 tier = 5;</code>
@@ -2837,7 +2502,7 @@ public final class Protocol {
      * <code>optional bool eof = 6;</code>
      */
     public boolean hasEof() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>optional bool eof = 6;</code>
@@ -2853,7 +2518,7 @@ public final class Protocol {
      * <code>optional bool cancel = 7;</code>
      */
     public boolean hasCancel() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
      * <code>optional bool cancel = 7;</code>
@@ -2873,7 +2538,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasUfsPath() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
      * <code>optional string ufs_path = 8;</code>
@@ -2924,7 +2589,7 @@ public final class Protocol {
      * <code>optional string owner = 9;</code>
      */
     public boolean hasOwner() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
      * <code>optional string owner = 9;</code>
@@ -2967,7 +2632,7 @@ public final class Protocol {
      * <code>optional string group = 10;</code>
      */
     public boolean hasGroup() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
      * <code>optional string group = 10;</code>
@@ -3010,7 +2675,7 @@ public final class Protocol {
      * <code>optional int32 mode = 11;</code>
      */
     public boolean hasMode() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00000100) == 0x00000100);
     }
     /**
      * <code>optional int32 mode = 11;</code>
@@ -3026,7 +2691,7 @@ public final class Protocol {
      * <code>optional int64 mount_id = 12;</code>
      */
     public boolean hasMountId() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
+      return ((bitField0_ & 0x00000200) == 0x00000200);
     }
     /**
      * <code>optional int64 mount_id = 12;</code>
@@ -3036,10 +2701,8 @@ public final class Protocol {
     }
 
     private void initFields() {
-      type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
       id_ = 0L;
       offset_ = 0L;
-      sessionId_ = 0L;
       tier_ = 0;
       eof_ = false;
       cancel_ = false;
@@ -3062,39 +2725,33 @@ public final class Protocol {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeEnum(1, type_.getNumber());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(2, id_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(3, offset_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt64(4, sessionId_);
-      }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt32(5, tier_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeBool(6, eof_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBool(7, cancel_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
         output.writeBytes(8, getUfsPathBytes());
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeBytes(9, getOwnerBytes());
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
         output.writeBytes(10, getGroupBytes());
       }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
         output.writeInt32(11, mode_);
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
         output.writeInt64(12, mountId_);
       }
       getUnknownFields().writeTo(output);
@@ -3108,49 +2765,41 @@ public final class Protocol {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(1, type_.getNumber());
+          .computeInt64Size(2, id_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, id_);
+          .computeInt64Size(3, offset_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, offset_);
+          .computeInt32Size(5, tier_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, sessionId_);
+          .computeBoolSize(6, eof_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(5, tier_);
+          .computeBoolSize(7, cancel_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(6, eof_);
+          .computeBytesSize(8, getUfsPathBytes());
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(7, cancel_);
+          .computeBytesSize(9, getOwnerBytes());
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(8, getUfsPathBytes());
+          .computeBytesSize(10, getGroupBytes());
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(9, getOwnerBytes());
-      }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(10, getGroupBytes());
-      }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(11, mode_);
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(12, mountId_);
       }
@@ -3275,30 +2924,26 @@ public final class Protocol {
 
       public Builder clear() {
         super.clear();
-        type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
-        bitField0_ = (bitField0_ & ~0x00000001);
         id_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         offset_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000004);
-        sessionId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000002);
         tier_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000004);
         eof_ = false;
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000008);
         cancel_ = false;
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000010);
         ufsPath_ = "";
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000020);
         owner_ = "";
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000040);
         group_ = "";
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000080);
         mode_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000400);
+        bitField0_ = (bitField0_ & ~0x00000100);
         mountId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000800);
+        bitField0_ = (bitField0_ & ~0x00000200);
         return this;
       }
 
@@ -3330,49 +2975,41 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.type_ = type_;
+        result.id_ = id_;
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        result.id_ = id_;
+        result.offset_ = offset_;
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.offset_ = offset_;
+        result.tier_ = tier_;
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
-        result.sessionId_ = sessionId_;
+        result.eof_ = eof_;
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
-        result.tier_ = tier_;
+        result.cancel_ = cancel_;
         if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000020;
         }
-        result.eof_ = eof_;
+        result.ufsPath_ = ufsPath_;
         if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
           to_bitField0_ |= 0x00000040;
         }
-        result.cancel_ = cancel_;
+        result.owner_ = owner_;
         if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
           to_bitField0_ |= 0x00000080;
         }
-        result.ufsPath_ = ufsPath_;
+        result.group_ = group_;
         if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
           to_bitField0_ |= 0x00000100;
         }
-        result.owner_ = owner_;
+        result.mode_ = mode_;
         if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
           to_bitField0_ |= 0x00000200;
-        }
-        result.group_ = group_;
-        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
-          to_bitField0_ |= 0x00000400;
-        }
-        result.mode_ = mode_;
-        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
-          to_bitField0_ |= 0x00000800;
         }
         result.mountId_ = mountId_;
         result.bitField0_ = to_bitField0_;
@@ -3391,17 +3028,11 @@ public final class Protocol {
 
       public Builder mergeFrom(alluxio.proto.dataserver.Protocol.WriteRequest other) {
         if (other == alluxio.proto.dataserver.Protocol.WriteRequest.getDefaultInstance()) return this;
-        if (other.hasType()) {
-          setType(other.getType());
-        }
         if (other.hasId()) {
           setId(other.getId());
         }
         if (other.hasOffset()) {
           setOffset(other.getOffset());
-        }
-        if (other.hasSessionId()) {
-          setSessionId(other.getSessionId());
         }
         if (other.hasTier()) {
           setTier(other.getTier());
@@ -3413,17 +3044,17 @@ public final class Protocol {
           setCancel(other.getCancel());
         }
         if (other.hasUfsPath()) {
-          bitField0_ |= 0x00000080;
+          bitField0_ |= 0x00000020;
           ufsPath_ = other.ufsPath_;
           onChanged();
         }
         if (other.hasOwner()) {
-          bitField0_ |= 0x00000100;
+          bitField0_ |= 0x00000040;
           owner_ = other.owner_;
           onChanged();
         }
         if (other.hasGroup()) {
-          bitField0_ |= 0x00000200;
+          bitField0_ |= 0x00000080;
           group_ = other.group_;
           onChanged();
         }
@@ -3460,42 +3091,6 @@ public final class Protocol {
       }
       private int bitField0_;
 
-      // optional .alluxio.proto.dataserver.RequestType type = 1;
-      private alluxio.proto.dataserver.Protocol.RequestType type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public boolean hasType() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public alluxio.proto.dataserver.Protocol.RequestType getType() {
-        return type_;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public Builder setType(alluxio.proto.dataserver.Protocol.RequestType value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        bitField0_ |= 0x00000001;
-        type_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.dataserver.RequestType type = 1;</code>
-       */
-      public Builder clearType() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        type_ = alluxio.proto.dataserver.Protocol.RequestType.ALLUXIO_BLOCK;
-        onChanged();
-        return this;
-      }
-
       // optional int64 id = 2;
       private long id_ ;
       /**
@@ -3506,7 +3101,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasId() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
        * <code>optional int64 id = 2;</code>
@@ -3526,7 +3121,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder setId(long value) {
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         id_ = value;
         onChanged();
         return this;
@@ -3539,7 +3134,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder clearId() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         id_ = 0L;
         onChanged();
         return this;
@@ -3551,7 +3146,7 @@ public final class Protocol {
        * <code>optional int64 offset = 3;</code>
        */
       public boolean hasOffset() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional int64 offset = 3;</code>
@@ -3563,7 +3158,7 @@ public final class Protocol {
        * <code>optional int64 offset = 3;</code>
        */
       public Builder setOffset(long value) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         offset_ = value;
         onChanged();
         return this;
@@ -3572,41 +3167,8 @@ public final class Protocol {
        * <code>optional int64 offset = 3;</code>
        */
       public Builder clearOffset() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         offset_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional int64 session_id = 4;
-      private long sessionId_ ;
-      /**
-       * <code>optional int64 session_id = 4;</code>
-       */
-      public boolean hasSessionId() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional int64 session_id = 4;</code>
-       */
-      public long getSessionId() {
-        return sessionId_;
-      }
-      /**
-       * <code>optional int64 session_id = 4;</code>
-       */
-      public Builder setSessionId(long value) {
-        bitField0_ |= 0x00000008;
-        sessionId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 session_id = 4;</code>
-       */
-      public Builder clearSessionId() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        sessionId_ = 0L;
         onChanged();
         return this;
       }
@@ -3621,7 +3183,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasTier() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
        * <code>optional int32 tier = 5;</code>
@@ -3641,7 +3203,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder setTier(int value) {
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000004;
         tier_ = value;
         onChanged();
         return this;
@@ -3654,7 +3216,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder clearTier() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000004);
         tier_ = 0;
         onChanged();
         return this;
@@ -3666,7 +3228,7 @@ public final class Protocol {
        * <code>optional bool eof = 6;</code>
        */
       public boolean hasEof() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>optional bool eof = 6;</code>
@@ -3678,7 +3240,7 @@ public final class Protocol {
        * <code>optional bool eof = 6;</code>
        */
       public Builder setEof(boolean value) {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000008;
         eof_ = value;
         onChanged();
         return this;
@@ -3687,7 +3249,7 @@ public final class Protocol {
        * <code>optional bool eof = 6;</code>
        */
       public Builder clearEof() {
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000008);
         eof_ = false;
         onChanged();
         return this;
@@ -3699,7 +3261,7 @@ public final class Protocol {
        * <code>optional bool cancel = 7;</code>
        */
       public boolean hasCancel() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+        return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
        * <code>optional bool cancel = 7;</code>
@@ -3711,7 +3273,7 @@ public final class Protocol {
        * <code>optional bool cancel = 7;</code>
        */
       public Builder setCancel(boolean value) {
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000010;
         cancel_ = value;
         onChanged();
         return this;
@@ -3720,7 +3282,7 @@ public final class Protocol {
        * <code>optional bool cancel = 7;</code>
        */
       public Builder clearCancel() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000010);
         cancel_ = false;
         onChanged();
         return this;
@@ -3736,7 +3298,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasUfsPath() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
+        return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
        * <code>optional string ufs_path = 8;</code>
@@ -3788,7 +3350,7 @@ public final class Protocol {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  bitField0_ |= 0x00000020;
         ufsPath_ = value;
         onChanged();
         return this;
@@ -3801,7 +3363,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder clearUfsPath() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000020);
         ufsPath_ = getDefaultInstance().getUfsPath();
         onChanged();
         return this;
@@ -3818,7 +3380,7 @@ public final class Protocol {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000080;
+  bitField0_ |= 0x00000020;
         ufsPath_ = value;
         onChanged();
         return this;
@@ -3830,7 +3392,7 @@ public final class Protocol {
        * <code>optional string owner = 9;</code>
        */
       public boolean hasOwner() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
+        return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       /**
        * <code>optional string owner = 9;</code>
@@ -3870,7 +3432,7 @@ public final class Protocol {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000100;
+  bitField0_ |= 0x00000040;
         owner_ = value;
         onChanged();
         return this;
@@ -3879,7 +3441,7 @@ public final class Protocol {
        * <code>optional string owner = 9;</code>
        */
       public Builder clearOwner() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000040);
         owner_ = getDefaultInstance().getOwner();
         onChanged();
         return this;
@@ -3892,7 +3454,7 @@ public final class Protocol {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000100;
+  bitField0_ |= 0x00000040;
         owner_ = value;
         onChanged();
         return this;
@@ -3904,7 +3466,7 @@ public final class Protocol {
        * <code>optional string group = 10;</code>
        */
       public boolean hasGroup() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
+        return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       /**
        * <code>optional string group = 10;</code>
@@ -3944,7 +3506,7 @@ public final class Protocol {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  bitField0_ |= 0x00000080;
         group_ = value;
         onChanged();
         return this;
@@ -3953,7 +3515,7 @@ public final class Protocol {
        * <code>optional string group = 10;</code>
        */
       public Builder clearGroup() {
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000080);
         group_ = getDefaultInstance().getGroup();
         onChanged();
         return this;
@@ -3966,7 +3528,7 @@ public final class Protocol {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  bitField0_ |= 0x00000080;
         group_ = value;
         onChanged();
         return this;
@@ -3978,7 +3540,7 @@ public final class Protocol {
        * <code>optional int32 mode = 11;</code>
        */
       public boolean hasMode() {
-        return ((bitField0_ & 0x00000400) == 0x00000400);
+        return ((bitField0_ & 0x00000100) == 0x00000100);
       }
       /**
        * <code>optional int32 mode = 11;</code>
@@ -3990,7 +3552,7 @@ public final class Protocol {
        * <code>optional int32 mode = 11;</code>
        */
       public Builder setMode(int value) {
-        bitField0_ |= 0x00000400;
+        bitField0_ |= 0x00000100;
         mode_ = value;
         onChanged();
         return this;
@@ -3999,7 +3561,7 @@ public final class Protocol {
        * <code>optional int32 mode = 11;</code>
        */
       public Builder clearMode() {
-        bitField0_ = (bitField0_ & ~0x00000400);
+        bitField0_ = (bitField0_ & ~0x00000100);
         mode_ = 0;
         onChanged();
         return this;
@@ -4011,7 +3573,7 @@ public final class Protocol {
        * <code>optional int64 mount_id = 12;</code>
        */
       public boolean hasMountId() {
-        return ((bitField0_ & 0x00000800) == 0x00000800);
+        return ((bitField0_ & 0x00000200) == 0x00000200);
       }
       /**
        * <code>optional int64 mount_id = 12;</code>
@@ -4023,7 +3585,7 @@ public final class Protocol {
        * <code>optional int64 mount_id = 12;</code>
        */
       public Builder setMountId(long value) {
-        bitField0_ |= 0x00000800;
+        bitField0_ |= 0x00000200;
         mountId_ = value;
         onChanged();
         return this;
@@ -4032,7 +3594,7 @@ public final class Protocol {
        * <code>optional int64 mount_id = 12;</code>
        */
       public Builder clearMountId() {
-        bitField0_ = (bitField0_ & ~0x00000800);
+        bitField0_ = (bitField0_ & ~0x00000200);
         mountId_ = 0L;
         onChanged();
         return this;
@@ -8256,38 +7818,33 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocol.proto\022\030alluxio.proto.dataserv" +
-      "er\032\014status.proto\"\231\002\n\013ReadRequest\0223\n\004type" +
-      "\030\001 \001(\0162%.alluxio.proto.dataserver.Reques" +
-      "tType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006len" +
-      "gth\030\004 \001(\003\022\016\n\006cancel\030\005 \001(\010\022\017\n\007lock_id\030\006 \001" +
-      "(\003\022\022\n\nsession_id\030\007 \001(\003\022\020\n\010no_cache\030\010 \001(\010" +
-      "\022\023\n\013packet_size\030\t \001(\003\022M\n\026open_ufs_block_" +
-      "options\030\n \001(\0132-.alluxio.proto.dataserver" +
-      ".OpenUfsBlockOptions\"\202\001\n\023OpenUfsBlockOpt" +
-      "ions\022\017\n\007ufsPath\030\001 \001(\t\022\026\n\016offset_in_file\030",
-      "\002 \001(\003\022\022\n\nblock_size\030\003 \001(\003\022\035\n\025maxUfsReadC" +
-      "oncurrency\030\004 \001(\005\022\017\n\007mountId\030\005 \001(\003\"\356\001\n\014Wr" +
-      "iteRequest\0223\n\004type\030\001 \001(\0162%.alluxio.proto" +
-      ".dataserver.RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006o" +
-      "ffset\030\003 \001(\003\022\022\n\nsession_id\030\004 \001(\003\022\014\n\004tier\030" +
-      "\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006cancel\030\007 \001(\010\022\020\n\010uf" +
-      "s_path\030\010 \001(\t\022\r\n\005owner\030\t \001(\t\022\r\n\005group\030\n \001" +
-      "(\t\022\014\n\004mode\030\013 \001(\005\022\020\n\010mount_id\030\014 \001(\003\"J\n\010Re" +
-      "sponse\022-\n\006status\030\001 \001(\0162\035.alluxio.proto.s" +
-      "tatus.PStatus\022\017\n\007message\030\002 \001(\t\"\013\n\tHeartb",
-      "eat\"=\n\025LocalBlockOpenRequest\022\020\n\010block_id" +
-      "\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\"&\n\026LocalBlock" +
-      "OpenResponse\022\014\n\004path\030\001 \001(\t\">\n\026LocalBlock" +
-      "CloseRequest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsessio" +
-      "n_id\030\002 \001(\003\"\203\001\n\027LocalBlockCreateRequest\022\020" +
-      "\n\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\022\014\n\004" +
-      "tier\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022" +
-      "only_reserve_space\030\005 \001(\010\"(\n\030LocalBlockCr" +
-      "eateResponse\022\014\n\004path\030\001 \001(\t\"Q\n\031LocalBlock" +
-      "CompleteRequest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nses",
-      "sion_id\030\002 \001(\003\022\016\n\006cancel\030\003 \001(\010*=\n\013Request" +
-      "Type\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\r\n" +
-      "\tUFS_BLOCK\020\002"
+      "er\032\014status.proto\"\301\001\n\013ReadRequest\022\n\n\002id\030\002" +
+      " \001(\003\022\016\n\006offset\030\003 \001(\003\022\016\n\006length\030\004 \001(\003\022\016\n\006" +
+      "cancel\030\005 \001(\010\022\022\n\nsession_id\030\007 \001(\003\022\023\n\013pack" +
+      "et_size\030\t \001(\003\022M\n\026open_ufs_block_options\030" +
+      "\n \001(\0132-.alluxio.proto.dataserver.OpenUfs" +
+      "BlockOptions\"\224\001\n\023OpenUfsBlockOptions\022\017\n\007" +
+      "ufsPath\030\001 \001(\t\022\026\n\016offset_in_file\030\002 \001(\003\022\022\n" +
+      "\nblock_size\030\003 \001(\003\022\035\n\025maxUfsReadConcurren" +
+      "cy\030\004 \001(\005\022\017\n\007mountId\030\005 \001(\003\022\020\n\010no_cache\030\006 ",
+      "\001(\010\"\245\001\n\014WriteRequest\022\n\n\002id\030\002 \001(\003\022\016\n\006offs" +
+      "et\030\003 \001(\003\022\014\n\004tier\030\005 \001(\005\022\013\n\003eof\030\006 \001(\010\022\016\n\006c" +
+      "ancel\030\007 \001(\010\022\020\n\010ufs_path\030\010 \001(\t\022\r\n\005owner\030\t" +
+      " \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\020\n\010mou" +
+      "nt_id\030\014 \001(\003\"J\n\010Response\022-\n\006status\030\001 \001(\0162" +
+      "\035.alluxio.proto.status.PStatus\022\017\n\007messag" +
+      "e\030\002 \001(\t\"\013\n\tHeartbeat\"=\n\025LocalBlockOpenRe" +
+      "quest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nsession_id\030\002 " +
+      "\001(\003\"&\n\026LocalBlockOpenResponse\022\014\n\004path\030\001 " +
+      "\001(\t\">\n\026LocalBlockCloseRequest\022\020\n\010block_i",
+      "d\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\"\203\001\n\027LocalBlo" +
+      "ckCreateRequest\022\020\n\010block_id\030\001 \001(\003\022\022\n\nses" +
+      "sion_id\030\002 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020space_to_" +
+      "reserve\030\004 \001(\003\022\032\n\022only_reserve_space\030\005 \001(" +
+      "\010\"(\n\030LocalBlockCreateResponse\022\014\n\004path\030\001 " +
+      "\001(\t\"Q\n\031LocalBlockCompleteRequest\022\020\n\010bloc" +
+      "k_id\030\001 \001(\003\022\022\n\nsession_id\030\002 \001(\003\022\016\n\006cancel" +
+      "\030\003 \001(\010"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -8299,19 +7856,19 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "Length", "Cancel", "LockId", "SessionId", "NoCache", "PacketSize", "OpenUfsBlockOptions", });
+              new java.lang.String[] { "Id", "Offset", "Length", "Cancel", "SessionId", "PacketSize", "OpenUfsBlockOptions", });
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor,
-              new java.lang.String[] { "UfsPath", "OffsetInFile", "BlockSize", "MaxUfsReadConcurrency", "MountId", });
+              new java.lang.String[] { "UfsPath", "OffsetInFile", "BlockSize", "MaxUfsReadConcurrency", "MountId", "NoCache", });
           internal_static_alluxio_proto_dataserver_WriteRequest_descriptor =
             getDescriptor().getMessageTypes().get(2);
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
-              new java.lang.String[] { "Type", "Id", "Offset", "SessionId", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
+              new java.lang.String[] { "Id", "Offset", "Tier", "Eof", "Cancel", "UfsPath", "Owner", "Group", "Mode", "MountId", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
             getDescriptor().getMessageTypes().get(3);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new

@@ -51,29 +51,30 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
     final BlockWriter mBlockWriter;
 
     BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      super(request.getId(), request.getSessionId());
+      super(request.getId());
       Preconditions.checkState(request.getOffset() == 0);
-      mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+      mWorker.createBlockRemote(mSessionId, mId, mStorageTierAssoc.getAlias(request.getTier()),
+          FILE_BUFFER_SIZE);
       mBytesReserved = FILE_BUFFER_SIZE;
-      mBlockWriter = mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId());
+      mBlockWriter = mWorker.getTempBlockWriterRemote(mSessionId, mId);
     }
 
     @Override
     public void close() throws IOException {
       mBlockWriter.close();
       try {
-        mWorker.commitBlock(mRequest.mSessionId, mRequest.mId);
+        mWorker.commitBlock(mSessionId, mId);
       } catch (Exception e) {
         throw CommonUtils.castToIOException(e);
       }
+      mWorker.cleanupSession(mSessionId);
     }
 
     @Override
     void cancel() throws IOException {
       mBlockWriter.close();
       try {
-        mWorker.abortBlock(mRequest.mSessionId, mRequest.mId);
+        mWorker.abortBlock(mSessionId, mId);
       } catch (Exception e) {
         throw CommonUtils.castToIOException(e);
       }

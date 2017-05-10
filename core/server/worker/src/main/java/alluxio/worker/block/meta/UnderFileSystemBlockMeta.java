@@ -26,6 +26,8 @@ public final class UnderFileSystemBlockMeta {
   private final long mBlockSize;
   /** The id of the mount point. */
   private final long mMountId;
+  /** Do not cache the block to the local Alluxio worker if set. */
+  private final boolean mNoCache;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockMeta}.
@@ -34,13 +36,15 @@ public final class UnderFileSystemBlockMeta {
    * @param blockId the block ID
    * @param options the {@link Protocol.OpenUfsBlockOptions}
    */
-  public UnderFileSystemBlockMeta(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options) {
+  public UnderFileSystemBlockMeta(long sessionId, long blockId,
+      Protocol.OpenUfsBlockOptions options) {
     mSessionId = sessionId;
     mBlockId = blockId;
     mUnderFileSystemPath = options.getUfsPath();
     mOffset = options.getOffsetInFile();
     mBlockSize = options.getBlockSize();
     mMountId = options.getMountId();
+    mNoCache = options.getNoCache();
   }
 
   /**
@@ -83,5 +87,12 @@ public final class UnderFileSystemBlockMeta {
    */
   public long getMountId() {
     return mMountId;
+  }
+
+  /**
+   * @return true if mNoCache is set
+   */
+  public boolean getNoCache() {
+    return mNoCache;
   }
 }

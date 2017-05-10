@@ -7,16 +7,12 @@ import "status.proto";
 // The read request.
 // next available id: 9
 message ReadRequest {
-  // The block ID.
-  optional int64 id = 2;
+  optional int64 block_id = 2;
   optional int64 offset = 3;
   optional int64 length = 4;
   // If set, this request is to cancel the reading request for the id.
   optional bool cancel = 5;
 
-  optional int64 session_id = 7;
-  // If set, do not try to cache the block locally when reading the data from the UFS.
-  optional bool no_cache = 8;
   // If set, the server should send packets in the specified packet size.
   optional int64 packet_size = 9;
 
@@ -32,16 +28,15 @@ message OpenUfsBlockOptions {
   optional int64 block_size = 3;
   optional int32 maxUfsReadConcurrency = 4;
   optional int64 mountId = 5;
+  // If set, do not try to cache the block locally when reading the data from the UFS.
+  optional bool no_cache = 6;
 }
 
 // The write request.
 // next available id: 13
 message WriteRequest {
-  optional RequestType type = 1;
-  // The block ID or UFS file ID.
-  optional int64 id = 2;
+  optional int64 block_id = 2;
   optional int64 offset = 3;
-  optional int64 session_id = 4;
 
   // This is only applicable for block write.
   optional int32 tier = 5;

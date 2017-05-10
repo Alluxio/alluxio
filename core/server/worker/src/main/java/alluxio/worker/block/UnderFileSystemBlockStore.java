@@ -210,13 +210,12 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param sessionId the client session ID that requested this read
    * @param blockId the ID of the block to read
    * @param offset the read offset within the block (NOT the file)
-   * @param noCache if set, do not try to cache the block in the Alluxio worker
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
-      boolean noCache) throws BlockDoesNotExistException, IOException {
+  public BlockReader getBlockReader(final long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException {
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = getBlockInfo(sessionId, blockId);
@@ -226,7 +225,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       }
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore,
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, mLocalBlockStore,
             mUfsManager);
     blockInfo.setBlockReader(reader);
     return reader;
