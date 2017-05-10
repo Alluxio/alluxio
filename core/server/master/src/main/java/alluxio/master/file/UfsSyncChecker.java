@@ -40,6 +40,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsSyncChecker {
 
+  /** Empty array for a directory with no children. */
+  private static final UfsStatus[] EMPTY_CHILDREN = new UfsStatus[0];
+
   /** UFS directories for which list was called. */
   private Map<String, UfsStatus[]> mListedDirectories;
 
@@ -77,16 +80,12 @@ public final class UfsSyncChecker {
 
     Preconditions.checkArgument(inode.isPersisted());
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
-    int numUfsChildren = 0;
-    if (ufsChildren != null) {
-      numUfsChildren = ufsChildren.length;
-      Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
-        @Override
-        public int compare(UfsStatus a, UfsStatus b) {
-          return a.getName().compareTo(b.getName());
-        }
-      });
-    }
+    Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
+      @Override
+      public int compare(UfsStatus a, UfsStatus b) {
+        return a.getName().compareTo(b.getName());
+      }
+    });
     int numInodeChildren = inode.getChildren().size();
     Inode[] inodeChildren = inode.getChildren().toArray(new Inode[numInodeChildren]);
     Arrays.sort(inodeChildren, new Comparator<Inode>() {
@@ -97,7 +96,7 @@ public final class UfsSyncChecker {
     });
     int ufsPos = 0;
     int inodePos = 0;
-    while (ufsPos < numUfsChildren && inodePos < numInodeChildren) {
+    while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
       String ufsName = ufsChildren[ufsPos].getName();
       if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
         ufsName = ufsName.substring(0, ufsName.length() - 1);
@@ -108,7 +107,7 @@ public final class UfsSyncChecker {
       inodePos++;
     }
 
-    if (ufsPos == numUfsChildren) {
+    if (ufsPos == ufsChildren.length) {
       // Directory is in sync
       mSyncedDirectories.put(alluxioUri, inode);
     } else {
@@ -172,7 +171,7 @@ public final class UfsSyncChecker {
         ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
     // Assumption: multiple mounted UFSs cannot have the same ufsUri
     if (children == null) {
-      return null;
+      return EMPTY_CHILDREN;
     }
     mListedDirectories.put(ufsUri.toString(), children);
     return trimIndirect(children);
