@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -39,7 +40,7 @@ import java.util.List;
 /**
  * Integration tests on Alluxio client (do not reuse the {@link LocalAlluxioCluster}).
  */
-public class IsolatedFileSystemIntegrationTest {
+public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 

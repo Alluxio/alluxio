@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -68,7 +69,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * For example, (concurrently) creating/deleting/renaming files.
  */
-public class FileSystemMasterIntegrationTest {
+public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;

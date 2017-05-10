@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
@@ -31,7 +32,7 @@ import java.io.IOException;
 /**
  * Tests the internal implementation of alluxio Master via a {@link FileSystemMasterClient}.
  */
-public final class FileSystemMasterClientIntegrationTest {
+public final class FileSystemMasterClientIntegrationTest extends BaseIntegrationTest {
   private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
 
   @Rule

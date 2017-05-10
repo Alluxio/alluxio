@@ -81,7 +81,7 @@ public final class UfsJournalWriter implements JournalWriter {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    mUfs = UnderFileSystem.Factory.get(mJournal.getLocation());
+    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation());
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 

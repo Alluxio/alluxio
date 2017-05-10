@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
+import alluxio.BaseIntegrationTest;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal;
@@ -31,7 +32,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournalCheckpointWriter}.
  */
-public final class UfsJournalCheckpointWriterTest {
+public final class UfsJournalCheckpointWriterTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -42,7 +43,7 @@ public final class UfsJournalCheckpointWriterTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.get(location));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
     mJournal = new UfsJournal(location, mUfs);
   }
 

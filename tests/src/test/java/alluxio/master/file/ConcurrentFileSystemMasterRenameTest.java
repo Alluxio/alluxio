@@ -16,6 +16,7 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -24,7 +25,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.AlluxioException;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
@@ -57,7 +58,7 @@ import java.util.concurrent.CyclicBarrier;
  * The tests also validate that operations are concurrent by injecting a short sleep in the
  * critical code path. Tests will timeout if the critical section is performed serially.
  */
-public class ConcurrentFileSystemMasterRenameTest {
+public class ConcurrentFileSystemMasterRenameTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
@@ -95,12 +96,12 @@ public class ConcurrentFileSystemMasterRenameTest {
     SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
     sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
     options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
-    UnderFileSystemRegistry.register(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
-    UnderFileSystemRegistry.unregister(sSleepingUfsFactory);
+    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
   }
 
   @Before

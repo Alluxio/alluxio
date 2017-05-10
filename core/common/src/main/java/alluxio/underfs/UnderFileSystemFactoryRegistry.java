@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -67,15 +66,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </p>
  */
 @NotThreadSafe
-public final class UnderFileSystemRegistry {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemRegistry.class);
+public final class UnderFileSystemFactoryRegistry {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
 
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
 
   private static boolean sInit = false;
 
   // prevent instantiation
-  private UnderFileSystemRegistry() {}
+  private UnderFileSystemFactoryRegistry() {}
 
   static {
     // Call the actual initializer which is a synchronized method for thread safety purposes
@@ -89,47 +88,6 @@ public final class UnderFileSystemRegistry {
    */
   public static List<UnderFileSystemFactory> available() {
     return Collections.unmodifiableList(FACTORIES);
-  }
-
-  /**
-   * Creates a client for operations involved with the under file system. An
-   * {@link IllegalArgumentException} is thrown if there is no under file system for the given path
-   * or if no under file system could successfully be created.
-   *
-   * @param path path
-   * @param ufsConf optional configuration object for the UFS, may be null
-   * @return client for the under file system
-   */
-  public static UnderFileSystem create(String path, Map<String, String> ufsConf) {
-    // Try to obtain the appropriate factory
-    List<UnderFileSystemFactory> factories = findAll(path);
-    if (factories.isEmpty()) {
-      throw new IllegalArgumentException("No Under File System Factory found for: " + path);
-    }
-
-    List<Throwable> errors = new ArrayList<>();
-    for (UnderFileSystemFactory factory : factories) {
-      try {
-        // Use the factory to create the actual client for the Under File System
-        return new UnderFileSystemWithLogging(
-            factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
-      } catch (Exception e) {
-        errors.add(e);
-        LOG.warn("Failed to create ufs", e);
-      }
-    }
-
-    // If we reach here no factories were able to successfully create for this path likely due to
-    // missing configuration since if we reached here at least some factories claimed to support the
-    // path
-    // Need to collate the errors
-    StringBuilder errorStr = new StringBuilder();
-    errorStr.append("All eligible Under File Systems were unable to create an instance for the "
-        + "given path: ").append(path).append('\n');
-    for (Throwable e : errors) {
-      errorStr.append(e).append('\n');
-    }
-    throw new IllegalArgumentException(errorStr.toString());
   }
 
   /**
