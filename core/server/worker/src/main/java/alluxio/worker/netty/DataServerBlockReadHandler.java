@@ -11,13 +11,24 @@
 
 package alluxio.worker.netty;
 
+import static alluxio.worker.netty.FileTransferType.TRANSFER;
+
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.TimeoutRetry;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -35,13 +46,16 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This handler handles block read request. Check more information in {@link DataServerReadHandler}.
+ * This handler handles block read request. Check more information in
+ * {@link DataServerReadHandler}.
  */
 @NotThreadSafe
 final class DataServerBlockReadHandler extends DataServerReadHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerBlockReadHandler.class);
+  private static final long UFS_BLOCK_OPEN_TIMEOUT_MS = Configuration.getMs(
+      PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
-  /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
+  /** The Block Worker. */
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
@@ -50,7 +64,9 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
    * The block read request internal representation.
    */
   private final class BlockReadRequestInternal extends ReadRequestInternal {
-    final BlockReader mBlockReader;
+    BlockReader mBlockReader;
+    final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
+    final boolean mNoCache;
 
     /**
      * Creates an instance of {@link BlockReadRequestInternal}.
@@ -60,33 +76,30 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
       super(request.getSessionId(), request.getId(), request.getOffset(),
           request.getOffset() + request.getLength(), request.getPacketSize());
-      long lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
-      try {
-        mBlockReader =
-            mWorker.readBlockRemote(request.getSessionId(), request.getId(), request.getLockId());
-      } catch (Exception e) {
-        mWorker.unlockBlock(lockId);
-        throw e;
-      }
-      mWorker.accessBlock(request.getSessionId(), mId);
 
-      ((FileChannel) mBlockReader.getChannel()).position(mStart);
+      mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
+      mNoCache = request.getNoCache();
+      // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 
     @Override
     public void close() {
-      if (mBlockReader != null) {
+      if (mBlockReader != null)  {
         try {
           mBlockReader.close();
-        } catch (Exception e) {
+       } catch (Exception e) {
           LOG.warn("Failed to close block reader for block {} with error {}.", mId, e.getMessage());
         }
+      }
 
-        try {
+      try {
+        if (mBlockReader instanceof UnderFileSystemBlockReader) {
+          mWorker.closeUfsBlock(mRequest.mSessionId, mRequest.mId);
+        } else {
           mWorker.unlockBlock(mRequest.mSessionId, mRequest.mId);
-        } catch (Exception e) {
-          LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());
         }
+      } catch (Exception e) {
+        LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());
       }
     }
   }
@@ -98,20 +111,11 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
    * @param blockWorker the block worker
    * @param fileTransferType the file transfer type
    */
-  DataServerBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
+  public DataServerBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
       FileTransferType fileTransferType) {
     super(executorService);
     mWorker = blockWorker;
     mTransferType = fileTransferType;
-  }
-
-  @Override
-  protected boolean acceptMessage(Object object) {
-    if (!super.acceptMessage(object)) {
-      return false;
-    }
-    Protocol.ReadRequest request = ((RPCProtoMessage) object).getMessage().asReadRequest();
-    return request.getType() == Protocol.RequestType.ALLUXIO_BLOCK;
   }
 
   @Override
@@ -121,39 +125,97 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
 
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
-    LocalFileBlockReader blockReader =
-        (LocalFileBlockReader) ((BlockReadRequestInternal) mRequest).mBlockReader;
-    Preconditions.checkArgument(blockReader.getChannel() instanceof FileChannel,
-        "Only FileChannel is supported!");
-    switch (mTransferType) {
-      case MAPPED:
-        ByteBuf buf = channel.alloc().buffer(len, len);
+    openBlock(channel);
+    BlockReader blockReader = ((BlockReadRequestInternal) mRequest).mBlockReader;
+
+    if (mTransferType == TRANSFER && !(blockReader instanceof UnderFileSystemBlockReader)) {
+      return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
+          offset, len);
+    } else {
+      ByteBuf buf = channel.alloc().buffer(len, len);
+      try {
+        FileChannel fileChannel = (FileChannel) blockReader.getChannel();
+        Preconditions.checkState(fileChannel.position() == offset);
+        while (buf.writableBytes() > 0 && buf.writeBytes(fileChannel, buf.writableBytes()) != -1) {
+        }
+        return new DataNettyBufferV2(buf);
+      } catch (Throwable e) {
+        buf.release();
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * Opens the UFS block if it is not open.
+   *
+   * @param channel the netty channel
+   * @throws Exception if it fails to open the UFS block
+   */
+  private void openBlock(Channel channel) throws Exception {
+    BlockReadRequestInternal request = (BlockReadRequestInternal) mRequest;
+    if (request.mBlockReader != null) {
+      return;
+    }
+
+    int retryInterval = Constants.SECOND_MS;
+    RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
+
+    do {
+      long lockId;
+      if (request.mOpenUfsBlockOptions != null) {
+        lockId = mWorker.lockBlockNoException(request.mSessionId, request.mId);
+      } else {
+        lockId = mWorker.lockBlock(request.mSessionId, request.mId);
+      }
+      if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
-          FileChannel fileChannel = (FileChannel) blockReader.getChannel();
-          Preconditions.checkState(fileChannel.position() == offset);
-          while (buf.writableBytes() > 0
-              && buf.writeBytes(fileChannel, buf.writableBytes()) != -1) {
-          }
-          return new DataNettyBufferV2(buf);
-        } catch (Throwable e) {
-          buf.release();
+          request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
+          mWorker.accessBlock(request.mSessionId, request.mId);
+          ((FileChannel) request.mBlockReader.getChannel()).position(request.mStart);
+          return;
+        } catch (Exception e) {
+          mWorker.unlockBlock(lockId);
           throw e;
         }
-      case TRANSFER: // intend to fall through as TRANSFER is the default type.
-      default:
-        return new DataFileChannel(new File(blockReader.getFilePath()), offset, len);
-    }
+      }
+
+      // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
+      if (mWorker.openUfsBlock(request.mSessionId, request.mId, request.mOpenUfsBlockOptions)) {
+        try {
+          request.mBlockReader = mWorker
+              .readUfsBlock(request.mSessionId, request.mId, request.mStart, request.mNoCache);
+          return;
+        } catch (Exception e) {
+          mWorker.closeUfsBlock(request.mSessionId, request.mId);
+          throw e;
+        }
+      }
+
+      // Sends an empty buffer to the client to make sure that the client does not timeout when
+      // the server is waiting for the UFS block access.
+      channel.writeAndFlush(
+          RPCProtoMessage.createOkResponse(new DataNettyBufferV2(channel.alloc().buffer(0, 0))));
+    } while (retryPolicy.attemptRetry());
+    throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
+        .getMessage(request.mId, request.mOpenUfsBlockOptions.getUfsPath()));
   }
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    Metrics.BYTES_READ_REMOTE.inc(bytesRead);
+    if (((BlockReadRequestInternal) mRequest).mBlockReader instanceof
+        UnderFileSystemBlockReader) {
+      Metrics.BYTES_READ_UFS.inc(bytesRead);
+    } else {
+      Metrics.BYTES_READ_REMOTE.inc(bytesRead);
+    }
   }
 
   /**
    * Class that contains metrics for BlockDataServerHandler.
    */
   private static final class Metrics {
+    private static final Counter BYTES_READ_UFS = MetricsSystem.workerCounter("BytesReadUFS");
     private static final Counter BYTES_READ_REMOTE = MetricsSystem.workerCounter("BytesReadRemote");
 
     private Metrics() {
