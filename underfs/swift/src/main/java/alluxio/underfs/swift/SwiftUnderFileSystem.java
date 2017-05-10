@@ -259,21 +259,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Returns the account owner.
+  // No group in Swift ACL, returns the account owner for group.
   @Override
-  protected String getBucketOwner() {
-    return mAccountOwner;
-  }
-
-  // No group in Swift ACL, returns the account owner.
-  @Override
-  protected String getBucketGroup() {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the Swift container.
-  @Override
-  protected short getBucketMode() {
-    return mAccountMode;
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mAccountMode);
   }
 
   @Override

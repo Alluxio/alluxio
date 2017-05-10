@@ -155,20 +155,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   // No ACL integration currently, returns default empty value
   @Override
-  protected String getBucketOwner() {
-    return "";
-  }
-
-  // No ACL integration currently, returns default empty value
-  @Override
-  protected String getBucketGroup() {
-    return "";
-  }
-
-  // No ACL integration currently, returns default value
-  @Override
-  protected short getBucketMode() {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions("", "", Constants.DEFAULT_FILE_SYSTEM_MODE);
   }
 
   @Override

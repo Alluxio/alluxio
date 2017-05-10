@@ -152,6 +152,33 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectListingChunk getNextChunk() throws IOException;
   }
 
+  /**
+   * Permissions in object UFS.
+   */
+  protected class ObjectPermissions {
+    final String mOwner;
+    final String mGroup;
+    final short mMode;
+
+    public ObjectPermissions(String owner, String group, short mode) {
+      mOwner = owner;
+      mGroup = group;
+      mMode = mode;
+    }
+
+    public String getOwner() {
+      return mOwner;
+    }
+
+    public String getGroup() {
+      return mGroup;
+    }
+
+    public short getMode() {
+      return mMode;
+    }
+  }
+
   @Override
   public void close() throws IOException {
   }
@@ -332,7 +359,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
     ObjectStatus details = getObjectStatus(keyAsFolder);
     if (details != null) {
-      return new UfsDirectoryStatus(path, getBucketOwner(), getBucketGroup(), getBucketMode());
+      ObjectPermissions permissions = getPermissions();
+      return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     } else {
       LOG.error("Error fetching file size, assuming file does not exist");
       throw new FileNotFoundException(path);
@@ -364,8 +393,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   public UfsFileStatus getFileStatus(String path) throws IOException {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
+      ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
-          getBucketOwner(), getBucketGroup(), getBucketMode());
+          permissions.getOwner(), permissions.getGroup(), permissions.getMode());
     } else {
       LOG.error("Error fetching file size, assuming file does not exist");
       throw new FileNotFoundException(path);
@@ -563,25 +593,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Owner of the mounted bucket.
+   * Permissions for the mounted bucket.
    *
-   * @return owner for the file
+   * @return permissions
    */
-  protected abstract String getBucketOwner();
-
-  /**
-   * Group of the mounted bucket.
-   *
-   * @return group for the file
-   */
-  protected abstract String getBucketGroup();
-
-  /**
-   * Mode of the mounted bucket.
-   *
-   * @return owner for the file
-   */
-  protected abstract short getBucketMode();
+  protected abstract ObjectPermissions getPermissions();
 
   /**
    * Maximum number of items in a single listing chunk supported by the under store.
@@ -744,15 +760,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         // Prune the special folder suffix
         boolean isDir = child.endsWith(getFolderSuffix());
         child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
-        // Only add if the path is not empty (removes results equal to the path)
         if (!child.isEmpty()) {
+          // Only add if the path is not empty (removes results equal to the path)
+          ObjectPermissions permissions = getPermissions();
           if (isDir) {
-            children.put(child,
-                new UfsDirectoryStatus(child, getBucketOwner(), getBucketGroup(), getBucketMode()));
+            children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
+                permissions.getGroup(), permissions.getMode()));
           } else {
             children.put(child,
                 new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
-                    getBucketOwner(), getBucketGroup(), getBucketMode()));
+                    permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
           }
         }
       }
@@ -787,8 +804,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             mkdirsInternal(commonPrefix);
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
-            children.put(child,
-                new UfsDirectoryStatus(child, getBucketOwner(), getBucketGroup(), getBucketMode()));
+            ObjectPermissions permissions = getPermissions();
+            children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
+                permissions.getGroup(), permissions.getMode()));
           }
         }
       }

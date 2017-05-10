@@ -332,21 +332,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Returns the account owner.
+  // No group in S3 ACL, returns the account owner for group.
   @Override
-  protected String getBucketOwner() {
-    return mAccountOwner;
-  }
-
-  // No group in S3 ACL, returns the account owner.
-  @Override
-  protected String getBucketGroup() {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the S3 bucket.
-  @Override
-  protected short getBucketMode() {
-    return mBucketMode;
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
   }
 
   @Override

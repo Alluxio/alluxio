@@ -200,22 +200,11 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return true;
   }
 
-  // Returns the account owner.
+  // Returns the account permissions.
+  // No group in GCS ACL, returns the account owner for group.
   @Override
-  protected String getBucketOwner() {
-    return mAccountOwner;
-  }
-
-  // No group in GCS ACL, returns the account owner.
-  @Override
-  protected String getBucketGroup() {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the GCS bucket.
-  @Override
-  protected short getBucketMode() {
-    return mBucketMode;
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
   }
 
   @Override
