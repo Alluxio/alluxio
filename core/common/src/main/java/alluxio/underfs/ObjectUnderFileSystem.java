@@ -757,20 +757,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       for (ObjectStatus status : chunk.getObjectStatuses()) {
         // Remove parent portion of the key
         String child = getChildName(status.getName(), keyPrefix);
-        // Prune the special folder suffix
-        boolean isDir = child.endsWith(getFolderSuffix());
-        child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
-        if (!child.isEmpty()) {
-          // Only add if the path is not empty (removes results equal to the path)
-          ObjectPermissions permissions = getPermissions();
-          if (isDir) {
-            children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
-                permissions.getGroup(), permissions.getMode()));
-          } else {
-            children.put(child,
-                new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
-                    permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
-          }
+        if (child.isEmpty() || child.equals(getFolderSuffix())) {
+          // Removes results equal to the path
+          continue;
+        }
+        ObjectPermissions permissions = getPermissions();
+        if (child.endsWith(getFolderSuffix())) {
+          // Child is a directory
+          child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
+          children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
+              permissions.getGroup(), permissions.getMode()));
+        } else {
+          // Child is a file
+          children.put(child,
+              new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
+                  permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
         }
       }
       // Handle case (2)

@@ -71,45 +71,46 @@ public final class UfsSyncChecker {
    */
   public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    Preconditions.checkArgument(inode.isPersisted());
+    if (mUnchecked) {
+      return;
+    }
 
-    boolean synced = true;
-    if (!mUnchecked) {
-      UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
-      if (ufsChildren == null) {
-        // Empty directories are not persisted
-        synced = true;
-      } else {
-        // Sort-merge compare
-        Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
-          @Override
-          public int compare(UfsStatus a, UfsStatus b) {
-            return a.getName().compareTo(b.getName());
-          }
-        });
-        int numInodeChildren = inode.getChildren().size();
-        Inode[] inodeChildren = new Inode[numInodeChildren];
-        inodeChildren = inode.getChildren().toArray(inodeChildren);
-        Arrays.sort(inodeChildren, new Comparator<Inode>() {
-          @Override
-          public int compare(Inode a, Inode b) {
-            return a.getName().compareTo(b.getName());
-          }
-        });
-        int ufsPos = 0;
-        int inodePos = 0;
-        while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
-          String ufsName = ufsChildren[ufsPos].getName();
-          if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
-            ufsName = ufsName.substring(0, ufsName.length() - 1);
-          }
-          if (ufsName.equals(inodeChildren[inodePos].getName())) {
-            ufsPos++;
-          }
-          inodePos++;
+    Preconditions.checkArgument(inode.isPersisted());
+    boolean synced;
+    UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
+    if (ufsChildren == null) {
+      // Empty directories are not persisted
+      synced = true;
+    } else {
+      // Sort-merge compare
+      Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
+        @Override
+        public int compare(UfsStatus a, UfsStatus b) {
+          return a.getName().compareTo(b.getName());
         }
-        synced = (ufsPos == ufsChildren.length);
+      });
+      int numInodeChildren = inode.getChildren().size();
+      Inode[] inodeChildren = new Inode[numInodeChildren];
+      inodeChildren = inode.getChildren().toArray(inodeChildren);
+      Arrays.sort(inodeChildren, new Comparator<Inode>() {
+                               @Override
+                               public int compare(Inode a, Inode b) {
+                                                       return a.getName().compareTo(b.getName());
+                                                                                                 }
+                                                                                                 });
+      int ufsPos = 0;
+      int inodePos = 0;
+      while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
+        String ufsName = ufsChildren[ufsPos].getName();
+        if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
+          ufsName = ufsName.substring(0, ufsName.length() - 1);
+        }
+        if (ufsName.equals(inodeChildren[inodePos].getName())) {
+          ufsPos++;
+        }
+        inodePos++;
       }
+      synced = (ufsPos == ufsChildren.length);
     }
 
     if (synced) {
@@ -134,6 +135,9 @@ public final class UfsSyncChecker {
    * @return true, if in sync; false, otherwise
    */
   public boolean isDirectoryInSync(AlluxioURI alluxioUri) {
+    if (mUnchecked) {
+      return true;
+    }
     return mSyncedDirectories.containsKey(alluxioUri);
   }
 

@@ -285,7 +285,7 @@ public interface UnderFileSystem extends Closeable {
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file status. Note: Do not use this method for a directory.
+   * Gets the file status.
    *
    * @param path the file name
    * @return the file status
