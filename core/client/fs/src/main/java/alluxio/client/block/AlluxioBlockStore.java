@@ -22,6 +22,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -186,7 +187,7 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
+      throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
           FormatUtils.getSizeFromBytes(blockSize)));
     }
     // Location is local.

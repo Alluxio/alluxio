@@ -52,7 +52,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createShortCircuitBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) 
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
           throws IOException {
     Closer closer = Closer.create();
     try {
@@ -61,7 +61,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
           .createLocalPacketOutStream(client, blockId, blockSize, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
-    } catch (RuntimeException e) {
+    } catch (IOException | RuntimeException e) {
       try {
         throw closer.rethrow(e);
       } finally {
@@ -81,7 +81,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createNettyBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) 
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
           throws IOException {
     Closer closer = Closer.create();
     try {
