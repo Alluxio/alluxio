@@ -17,13 +17,11 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Removes the file specified by argv.
@@ -50,7 +48,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION).addOption(REMOVE_UNCHECKED_OPTION);
+    return new Options().addOption(RECURSIVE_OPTION).addOption(DELETE_ALLUXIO_ONLY);
   }
 
   @Override
@@ -65,21 +63,25 @@ public final class RmCommand extends WithWildCardPathCommand {
           path.getPath() + " is a directory, to remove it, please use \"rm -R <path>\"");
     }
 
-    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-    if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
-      options.setUnchecked(true);
-    }
+    boolean isAlluxioOnly = cl.hasOption("alluxioOnly");
+    //System.out.println("isAlluxioOnly: " + isAlluxioOnly);
+    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive).setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
-    System.out.println(path + " has been removed");
+    if (!isAlluxioOnly) {
+      System.out.println(path + " has been removed in Alluxion space and Ufs space");
+    }else {
+      System.out.println(path + " just been removed in Alluxio Space, but Ufs space still exists");
+    }
   }
 
   @Override
   public String getUsage() {
-    return "rm [-R] <path>";
+    return "rm [-R] [-alluxioOnly] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Removes the specified file. Specify -R to remove file or directory recursively.";
+    return "Removes the specified file. Specify -R to remove file or directory recursively." +
+        "Specify -alluxioOnly just remove block data and metadata in Alluxio space";
   }
 }

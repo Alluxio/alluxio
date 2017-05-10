@@ -12,13 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.client.file.FileSystem;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -66,14 +60,13 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("print human-readable format sizes")
           .build();
+  protected static final Option DELETE_ALLUXIO_ONLY =
+      Option.builder("alluxioOnly")
+          .required(false)
+          .hasArg(false)
+          .desc("delete alluxio space only")
+          .build();
 
-  protected static final String REMOVE_UNCHECKED_OPTION_CHAR = "U";
-  protected static final Option REMOVE_UNCHECKED_OPTION =
-      Option.builder(REMOVE_UNCHECKED_OPTION_CHAR)
-            .required(false)
-            .hasArg(false)
-            .desc("remove directories without checking UFS contents are in sync")
-            .build();
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
