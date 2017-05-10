@@ -72,7 +72,6 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    *
    * @param context the file system context
    * @param address the netty data server address
-   * @param sessionId the session ID
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
    * @param type the request type (either block write or UFS file write)
@@ -80,12 +79,13 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      WorkerNetAddress address, long sessionId, long id, long length,
-      Protocol.RequestType type, OutStreamOptions options) {
+      WorkerNetAddress address, long id, long length, Protocol.RequestType type,
+      OutStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
-    PacketWriter packetWriter = new NettyPacketWriter(
-        context, address, id, length, sessionId, options.getWriteTier(), type, packetSize);
+    PacketWriter packetWriter =
+        new NettyPacketWriter(context, address, id, length, options.getWriteTier(), type,
+            packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 

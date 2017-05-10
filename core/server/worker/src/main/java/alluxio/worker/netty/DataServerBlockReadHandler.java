@@ -48,7 +48,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   private final FileTransferType mTransferType;
 
   /**
-   * The block read request internal representation.
+   * The block read request internal representation. When this request is closed, it will clean
+   * up any temporary state it may have accumulated.
    */
   private final class BlockReadRequestInternal extends ReadRequestInternal {
     final BlockReader mBlockReader;
@@ -60,10 +61,9 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      */
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
       super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
-          request.getPacketSize());
-      mBlockReader = mWorker
-          .readBlockRemote(request.getSessionId(), request.getId(), request.getLockId());
-      mWorker.accessBlock(request.getSessionId(), mId);
+          request.getPacketSize(), request.getSessionId());
+      mBlockReader = mWorker.readBlockRemote(mSessionId, mId, request.getLockId());
+      mWorker.accessBlock(mSessionId, mId);
 
       ((FileChannel) mBlockReader.getChannel()).position(mStart);
     }
@@ -73,6 +73,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       if (mBlockReader != null) {
         mBlockReader.close();
       }
+      mWorker.cleanupSession(mSessionId);
     }
   }
 

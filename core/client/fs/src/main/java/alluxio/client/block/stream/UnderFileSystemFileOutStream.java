@@ -52,7 +52,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   public UnderFileSystemFileOutStream(FileSystemContext context, WorkerNetAddress address,
       OutStreamOptions options) {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
-        Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
+        Protocol.WriteRequest.newBuilder().setTier(TIER_UNUSED)
             .setType(Protocol.RequestType.UFS_FILE).setMountId(options.getMountId())
             .setUfsPath(options.getUfsPath()).setOwner(options.getOwner())
             .setGroup(options.getGroup()).setMode(options.getMode().toShort()).buildPartial(),

@@ -54,9 +54,8 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
      */
     UfsBlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
       super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
-          request.getPacketSize());
-      mBlockReader =
-          mWorker.readUfsBlock(request.getSessionId(), mId, mStart, request.getNoCache());
+          request.getPacketSize(), request.getSessionId());
+      mBlockReader = mWorker.readUfsBlock(mSessionId, mId, mStart, request.getNoCache());
       // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 
@@ -69,6 +68,8 @@ final class DataServerUfsBlockReadHandler extends DataServerReadHandler {
           LOG.warn("Failed to close block reader for block {}.", mId);
         }
       }
+      // Add this back when the commit block logic is moved to Netty
+      // mWorker.cleanupSession(mSessionId);
     }
   }
 
