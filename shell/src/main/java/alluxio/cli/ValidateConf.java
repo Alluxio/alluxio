@@ -26,7 +26,7 @@ public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(ValidateConf.class);
 
   /**
-   * Console program that validates the configuration.
+   * Validates that Alluxio is configured properly.
    *
    * @param args there are no arguments needed
    */
