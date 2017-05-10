@@ -205,16 +205,16 @@ public final class NettyPacketReader implements PacketReader {
         return;
       }
       try {
-        if (!CANCEL_ENABLED) {
-          mChannel.close().sync();
-          return;
-        }
         if (remaining() > 0) {
-          Protocol.ReadRequest cancelRequest =
-              Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
-                  .build();
-          mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest))
-              .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+          if (!CANCEL_ENABLED) {
+            mChannel.close().sync();
+          } else {
+            Protocol.ReadRequest cancelRequest =
+                Protocol.ReadRequest.newBuilder().setId(mId).setCancel(true).setType(mRequestType)
+                    .build();
+            mChannel.writeAndFlush(new RPCProtoMessage(cancelRequest))
+                .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+          }
         }
       } catch (InterruptedException e) {
         mChannel.close();
