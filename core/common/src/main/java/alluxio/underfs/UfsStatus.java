@@ -62,6 +62,13 @@ public abstract class UfsStatus {
   }
 
   /**
+   * Create a clone of {@link UfsStatus}.
+   *
+   * @return new instance as a copy.
+   */
+  public abstract UfsStatus clone();
+
+  /**
    * Converts an array of UFS file status to a listing result where each element in the array is
    * a file or directory name.
    *

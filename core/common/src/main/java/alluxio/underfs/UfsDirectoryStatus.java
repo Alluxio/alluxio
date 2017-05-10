@@ -40,4 +40,9 @@ public class UfsDirectoryStatus extends UfsStatus {
   public UfsDirectoryStatus(UfsDirectoryStatus status) {
     super(status);
   }
+
+  @Override
+  public UfsDirectoryStatus clone() {
+    return new UfsDirectoryStatus(this);
+  }
 }

@@ -68,6 +68,7 @@ public class SleepingUnderFileSystemOptionsTest {
     long sleepDeleteFileMs = random.nextLong();
     long sleepGetBlockSizeByteMs = random.nextLong();
     long sleepGetConfMs = random.nextLong();
+    long sleepGetDirectoryStatusMs = random.nextLong();
     long sleepGetFileLocationsMs = random.nextLong();
     long sleepGetFileStatusMs = random.nextLong();
     long sleepGetSpaceMs = random.nextLong();
@@ -94,6 +95,7 @@ public class SleepingUnderFileSystemOptionsTest {
         .setDeleteFileMs(sleepDeleteFileMs)
         .setGetBlockSizeByteMs(sleepGetBlockSizeByteMs)
         .setGetConfMs(sleepGetConfMs)
+        .setGetDirectoryStatusMs(sleepGetDirectoryStatusMs)
         .setGetFileLocationsMs(sleepGetFileLocationsMs)
         .setGetFileStatusMs(sleepGetFileStatusMs)
         .setGetSpaceMs(sleepGetSpaceMs)

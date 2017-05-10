@@ -12,6 +12,8 @@
 package alluxio.underfs.sleepfs;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -94,6 +96,12 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    sleepIfNecessary(mOptions.getGetFileStatusMs());
+    return super.getDirectoryStatus(cleanPath(path));
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFileLocationsMs());
     return super.getFileLocations(cleanPath(path));
@@ -107,7 +115,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFileStatusMs());
     return super.getFileStatus(cleanPath(path));
   }

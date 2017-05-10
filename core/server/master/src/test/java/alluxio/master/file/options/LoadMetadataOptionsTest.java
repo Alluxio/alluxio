@@ -12,7 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
-import alluxio.underfs.UfsStatus;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,15 +35,12 @@ public final class LoadMetadataOptionsTest {
     Random random = new Random();
     boolean isCreateAncestors = random.nextBoolean();
     boolean isLoadDirectChildren = random.nextBoolean();
-    boolean isDirectory = random.nextBoolean();
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
     options.setCreateAncestors(isCreateAncestors);
     options.setLoadDirectChildren(isLoadDirectChildren);
-    options.setUnderFileStatus(
-        new UfsStatus("dummy", 0L, isDirectory, 0L, "owner", "group", (short) 077));
+    options.setUnderFileStatus(null);
     Assert.assertEquals(isCreateAncestors, options.isCreateAncestors());
     Assert.assertEquals(isLoadDirectChildren, options.isLoadDirectChildren());
-    Assert.assertEquals(isDirectory, options.getUnderFileStatus().isDirectory());
   }
 
   @Test

@@ -25,6 +25,7 @@ public class SleepingUnderFileSystemOptions {
   private long mDeleteFileMs = -1;
   private long mGetBlockSizeByteMs = -1;
   private long mGetConfMs = -1;
+  private long mGetDirectoryStatusMs = -1;
   private long mGetFileLocationsMs = -1;
   private long mGetFileStatusMs = -1;
   private long mGetSpaceMs = -1;
@@ -167,6 +168,22 @@ public class SleepingUnderFileSystemOptions {
    */
   public SleepingUnderFileSystemOptions setGetConfMs(long getConfMs) {
     mGetConfMs = getConfMs;
+    return this;
+  }
+
+  /**
+   * @return milliseconds to sleep before executing a get directory status call
+   */
+  public long getGetDirectoryStatusMs() {
+    return mGetDirectoryStatusMs;
+  }
+
+  /**
+   * @param getDirectoryStatusMs milliseconds to sleep before executing a get directory status call
+   * @return the updated object
+   */
+  public SleepingUnderFileSystemOptions setGetDirectoryStatusMs(long getDirectoryStatusMs) {
+    mGetFileStatusMs = getDirectoryStatusMs;
     return this;
   }
 

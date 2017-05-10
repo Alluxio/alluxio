@@ -49,6 +49,11 @@ public class UfsFileStatus extends UfsStatus {
     mLastModifiedTimeMs = status.mLastModifiedTimeMs;
   }
 
+  @Override
+  public UfsFileStatus clone() {
+    return new UfsFileStatus(this);
+  }
+
   /**
    * Get the content size in bytes.
    *

@@ -92,6 +92,7 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.MasterUfsManager;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -2087,7 +2088,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    UfsStatus ufsStatus = options.getUnderFileStatus();
+    UfsFileStatus ufsStatus = (UfsFileStatus) options.getUnderFileStatus();
     if (ufsStatus == null) {
       ufsStatus = ufs.getFileStatus(ufsUri.toString());
     }
