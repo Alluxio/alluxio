@@ -36,7 +36,7 @@ public final class ValidateConf {
       Configuration.validate();
       LOG.info("Configuration is valid.");
     } catch (IllegalStateException e) {
-      LOG.warn("Configuration is invalid: {}", e.getMessage());
+      LOG.error("Configuration is invalid: {}", e.getMessage());
       System.exit(-1);
     }
     System.exit(0);

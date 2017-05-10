@@ -494,7 +494,7 @@ public final class Configuration {
   }
 
   /**
-   * Validates user file buffer size configuration.
+   * Validates the user file buffer size is a non-negative number.
    *
    * @throws IllegalStateException if invalid user file buffer size configuration is encountered
    */
