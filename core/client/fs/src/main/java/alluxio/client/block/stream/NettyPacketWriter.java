@@ -111,15 +111,14 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param address the data server address
    * @param id the block ID or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
-   * @param sessionId the session ID
    * @param tier the target tier
    * @param type the request type (block or UFS file)
    * @param packetSize the packet size
    */
   public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long id,
-      long length, long sessionId, int tier, Protocol.RequestType type, long packetSize) {
-    this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id)
-        .setSessionId(sessionId).setTier(tier).setType(type).buildPartial(), packetSize);
+      long length, int tier, Protocol.RequestType type, long packetSize) {
+    this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id).setTier(tier)
+        .setType(type).buildPartial(), packetSize);
   }
 
   /**
