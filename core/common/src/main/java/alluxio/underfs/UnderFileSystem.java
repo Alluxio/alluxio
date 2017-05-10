@@ -97,7 +97,7 @@ public interface UnderFileSystem extends Closeable {
               factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
         } catch (Exception e) {
           errors.add(e);
-          LOG.warn("Failed to create ufs", e);
+          LOG.warn("Failed to create UnderFileSystemFactory {}", factory, e);
         }
       }
 
