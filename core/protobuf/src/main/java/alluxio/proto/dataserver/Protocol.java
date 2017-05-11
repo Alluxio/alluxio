@@ -95,101 +95,6 @@ public final class Protocol {
     // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.RequestType)
   }
 
-  /**
-   * Protobuf enum {@code alluxio.proto.dataserver.ReadType}
-   *
-   * <pre>
-   * The read type.
-   * </pre>
-   */
-  public enum ReadType
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>NO_CACHE = 0;</code>
-     */
-    NO_CACHE(0, 0),
-    /**
-     * <code>CACHE = 1;</code>
-     */
-    CACHE(1, 1),
-    /**
-     * <code>CACHE_PROMOTE = 2;</code>
-     */
-    CACHE_PROMOTE(2, 2),
-    ;
-
-    /**
-     * <code>NO_CACHE = 0;</code>
-     */
-    public static final int NO_CACHE_VALUE = 0;
-    /**
-     * <code>CACHE = 1;</code>
-     */
-    public static final int CACHE_VALUE = 1;
-    /**
-     * <code>CACHE_PROMOTE = 2;</code>
-     */
-    public static final int CACHE_PROMOTE_VALUE = 2;
-
-
-    public final int getNumber() { return value; }
-
-    public static ReadType valueOf(int value) {
-      switch (value) {
-        case 0: return NO_CACHE;
-        case 1: return CACHE;
-        case 2: return CACHE_PROMOTE;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<ReadType>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static com.google.protobuf.Internal.EnumLiteMap<ReadType>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<ReadType>() {
-            public ReadType findValueByNumber(int number) {
-              return ReadType.valueOf(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return alluxio.proto.dataserver.Protocol.getDescriptor().getEnumTypes().get(1);
-    }
-
-    private static final ReadType[] VALUES = values();
-
-    public static ReadType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int index;
-    private final int value;
-
-    private ReadType(int index, int value) {
-      this.index = index;
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.ReadType)
-  }
-
   public interface ReadRequestOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -241,23 +146,23 @@ public final class Protocol {
      */
     boolean getCancel();
 
-    // optional .alluxio.proto.dataserver.ReadType read_type = 7;
+    // optional bool promote = 7;
     /**
-     * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+     * <code>optional bool promote = 7;</code>
      *
      * <pre>
-     * The read type associated with this request
+     * Whether the block should be promoted before reading
      * </pre>
      */
-    boolean hasReadType();
+    boolean hasPromote();
     /**
-     * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+     * <code>optional bool promote = 7;</code>
      *
      * <pre>
-     * The read type associated with this request
+     * Whether the block should be promoted before reading
      * </pre>
      */
-    alluxio.proto.dataserver.Protocol.ReadType getReadType();
+    boolean getPromote();
 
     // optional int64 packet_size = 5;
     /**
@@ -398,14 +303,8 @@ public final class Protocol {
               break;
             }
             case 56: {
-              int rawValue = input.readEnum();
-              alluxio.proto.dataserver.Protocol.ReadType value = alluxio.proto.dataserver.Protocol.ReadType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(7, rawValue);
-              } else {
-                bitField0_ |= 0x00000010;
-                readType_ = value;
-              }
+              bitField0_ |= 0x00000010;
+              promote_ = input.readBool();
               break;
             }
           }
@@ -520,28 +419,28 @@ public final class Protocol {
       return cancel_;
     }
 
-    // optional .alluxio.proto.dataserver.ReadType read_type = 7;
-    public static final int READ_TYPE_FIELD_NUMBER = 7;
-    private alluxio.proto.dataserver.Protocol.ReadType readType_;
+    // optional bool promote = 7;
+    public static final int PROMOTE_FIELD_NUMBER = 7;
+    private boolean promote_;
     /**
-     * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+     * <code>optional bool promote = 7;</code>
      *
      * <pre>
-     * The read type associated with this request
+     * Whether the block should be promoted before reading
      * </pre>
      */
-    public boolean hasReadType() {
+    public boolean hasPromote() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+     * <code>optional bool promote = 7;</code>
      *
      * <pre>
-     * The read type associated with this request
+     * Whether the block should be promoted before reading
      * </pre>
      */
-    public alluxio.proto.dataserver.Protocol.ReadType getReadType() {
-      return readType_;
+    public boolean getPromote() {
+      return promote_;
     }
 
     // optional int64 packet_size = 5;
@@ -607,7 +506,7 @@ public final class Protocol {
       offset_ = 0L;
       length_ = 0L;
       cancel_ = false;
-      readType_ = alluxio.proto.dataserver.Protocol.ReadType.NO_CACHE;
+      promote_ = false;
       packetSize_ = 0L;
       openUfsBlockOptions_ = alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance();
     }
@@ -642,7 +541,7 @@ public final class Protocol {
         output.writeMessage(6, openUfsBlockOptions_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeEnum(7, readType_.getNumber());
+        output.writeBool(7, promote_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -679,7 +578,7 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(7, readType_.getNumber());
+          .computeBoolSize(7, promote_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -811,7 +710,7 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000004);
         cancel_ = false;
         bitField0_ = (bitField0_ & ~0x00000008);
-        readType_ = alluxio.proto.dataserver.Protocol.ReadType.NO_CACHE;
+        promote_ = false;
         bitField0_ = (bitField0_ & ~0x00000010);
         packetSize_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -868,7 +767,7 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
-        result.readType_ = readType_;
+        result.promote_ = promote_;
         if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000020;
         }
@@ -909,8 +808,8 @@ public final class Protocol {
         if (other.hasCancel()) {
           setCancel(other.getCancel());
         }
-        if (other.hasReadType()) {
-          setReadType(other.getReadType());
+        if (other.hasPromote()) {
+          setPromote(other.getPromote());
         }
         if (other.hasPacketSize()) {
           setPacketSize(other.getPacketSize());
@@ -1093,54 +992,51 @@ public final class Protocol {
         return this;
       }
 
-      // optional .alluxio.proto.dataserver.ReadType read_type = 7;
-      private alluxio.proto.dataserver.Protocol.ReadType readType_ = alluxio.proto.dataserver.Protocol.ReadType.NO_CACHE;
+      // optional bool promote = 7;
+      private boolean promote_ ;
       /**
-       * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+       * <code>optional bool promote = 7;</code>
        *
        * <pre>
-       * The read type associated with this request
+       * Whether the block should be promoted before reading
        * </pre>
        */
-      public boolean hasReadType() {
+      public boolean hasPromote() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
-       * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+       * <code>optional bool promote = 7;</code>
        *
        * <pre>
-       * The read type associated with this request
+       * Whether the block should be promoted before reading
        * </pre>
        */
-      public alluxio.proto.dataserver.Protocol.ReadType getReadType() {
-        return readType_;
+      public boolean getPromote() {
+        return promote_;
       }
       /**
-       * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+       * <code>optional bool promote = 7;</code>
        *
        * <pre>
-       * The read type associated with this request
+       * Whether the block should be promoted before reading
        * </pre>
        */
-      public Builder setReadType(alluxio.proto.dataserver.Protocol.ReadType value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
+      public Builder setPromote(boolean value) {
         bitField0_ |= 0x00000010;
-        readType_ = value;
+        promote_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.dataserver.ReadType read_type = 7;</code>
+       * <code>optional bool promote = 7;</code>
        *
        * <pre>
-       * The read type associated with this request
+       * Whether the block should be promoted before reading
        * </pre>
        */
-      public Builder clearReadType() {
+      public Builder clearPromote() {
         bitField0_ = (bitField0_ & ~0x00000010);
-        readType_ = alluxio.proto.dataserver.Protocol.ReadType.NO_CACHE;
+        promote_ = false;
         onChanged();
         return this;
       }
@@ -8288,38 +8184,36 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocol.proto\022\030alluxio.proto.dataserv" +
-      "er\032\014status.proto\"\352\001\n\013ReadRequest\022\020\n\010bloc" +
+      "er\032\014status.proto\"\304\001\n\013ReadRequest\022\020\n\010bloc" +
       "k_id\030\001 \001(\003\022\016\n\006offset\030\002 \001(\003\022\016\n\006length\030\003 \001" +
-      "(\003\022\016\n\006cancel\030\004 \001(\010\0225\n\tread_type\030\007 \001(\0162\"." +
-      "alluxio.proto.dataserver.ReadType\022\023\n\013pac" +
-      "ket_size\030\005 \001(\003\022M\n\026open_ufs_block_options" +
-      "\030\006 \001(\0132-.alluxio.proto.dataserver.OpenUf" +
-      "sBlockOptions\"\224\001\n\023OpenUfsBlockOptions\022\017\n" +
-      "\007ufsPath\030\001 \001(\t\022\026\n\016offset_in_file\030\002 \001(\003\022\022" +
-      "\n\nblock_size\030\003 \001(\003\022\035\n\025maxUfsReadConcurre",
-      "ncy\030\004 \001(\005\022\017\n\007mountId\030\005 \001(\003\022\020\n\010no_cache\030\006" +
-      " \001(\010\"\332\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.al" +
-      "luxio.proto.dataserver.RequestType\022\n\n\002id" +
-      "\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013\n\003" +
-      "eof\030\005 \001(\010\022\016\n\006cancel\030\006 \001(\010\022\020\n\010ufs_path\030\007 " +
-      "\001(\t\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mod" +
-      "e\030\n \001(\005\022\020\n\010mount_id\030\013 \001(\003\"J\n\010Response\022-\n" +
-      "\006status\030\001 \001(\0162\035.alluxio.proto.status.PSt" +
-      "atus\022\017\n\007message\030\002 \001(\t\"i\n\014ReadResponse\0229\n" +
-      "\004type\030\001 \001(\0162+.alluxio.proto.dataserver.R",
-      "eadResponse.Type\"\036\n\004Type\022\026\n\022UFS_READ_HEA" +
-      "RTBEAT\020\001\"\013\n\tHeartbeat\")\n\025LocalBlockOpenR" +
-      "equest\022\020\n\010block_id\030\001 \001(\003\"&\n\026LocalBlockOp" +
-      "enResponse\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlockCl" +
-      "oseRequest\022\020\n\010block_id\030\001 \001(\003\"o\n\027LocalBlo" +
-      "ckCreateRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n\004tie" +
-      "r\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022onl" +
-      "y_reserve_space\030\005 \001(\010\"(\n\030LocalBlockCreat" +
-      "eResponse\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBlockCom" +
-      "pleteRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006cancel",
-      "\030\003 \001(\010*.\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020\000" +
-      "\022\014\n\010UFS_FILE\020\001*6\n\010ReadType\022\014\n\010NO_CACHE\020\000" +
-      "\022\t\n\005CACHE\020\001\022\021\n\rCACHE_PROMOTE\020\002"
+      "(\003\022\016\n\006cancel\030\004 \001(\010\022\017\n\007promote\030\007 \001(\010\022\023\n\013p" +
+      "acket_size\030\005 \001(\003\022M\n\026open_ufs_block_optio" +
+      "ns\030\006 \001(\0132-.alluxio.proto.dataserver.Open" +
+      "UfsBlockOptions\"\224\001\n\023OpenUfsBlockOptions\022" +
+      "\017\n\007ufsPath\030\001 \001(\t\022\026\n\016offset_in_file\030\002 \001(\003" +
+      "\022\022\n\nblock_size\030\003 \001(\003\022\035\n\025maxUfsReadConcur" +
+      "rency\030\004 \001(\005\022\017\n\007mountId\030\005 \001(\003\022\020\n\010no_cache",
+      "\030\006 \001(\010\"\332\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%." +
+      "alluxio.proto.dataserver.RequestType\022\n\n\002" +
+      "id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013" +
+      "\n\003eof\030\005 \001(\010\022\016\n\006cancel\030\006 \001(\010\022\020\n\010ufs_path\030" +
+      "\007 \001(\t\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004m" +
+      "ode\030\n \001(\005\022\020\n\010mount_id\030\013 \001(\003\"J\n\010Response\022" +
+      "-\n\006status\030\001 \001(\0162\035.alluxio.proto.status.P" +
+      "Status\022\017\n\007message\030\002 \001(\t\"i\n\014ReadResponse\022" +
+      "9\n\004type\030\001 \001(\0162+.alluxio.proto.dataserver" +
+      ".ReadResponse.Type\"\036\n\004Type\022\026\n\022UFS_READ_H",
+      "EARTBEAT\020\001\"\013\n\tHeartbeat\")\n\025LocalBlockOpe" +
+      "nRequest\022\020\n\010block_id\030\001 \001(\003\"&\n\026LocalBlock" +
+      "OpenResponse\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlock" +
+      "CloseRequest\022\020\n\010block_id\030\001 \001(\003\"o\n\027LocalB" +
+      "lockCreateRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n\004t" +
+      "ier\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022o" +
+      "nly_reserve_space\030\005 \001(\010\"(\n\030LocalBlockCre" +
+      "ateResponse\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBlockC" +
+      "ompleteRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006canc" +
+      "el\030\003 \001(\010*.\n\013RequestType\022\021\n\rALLUXIO_BLOCK",
+      "\020\000\022\014\n\010UFS_FILE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -8331,7 +8225,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
-              new java.lang.String[] { "BlockId", "Offset", "Length", "Cancel", "ReadType", "PacketSize", "OpenUfsBlockOptions", });
+              new java.lang.String[] { "BlockId", "Offset", "Length", "Cancel", "Promote", "PacketSize", "OpenUfsBlockOptions", });
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable = new
