@@ -1207,7 +1207,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               unmountInternal(alluxioUriToDel);
             } else if (!deleteOptions.isAlluxioOnly()) {
               // Attempt to delete node if all children were deleted successfully
-              failedToDelete = ufsDeleter.delete(alluxioUriToDel, delInode);
+              failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
             }
           } catch (InvalidPathException e) {
             LOG.warn(e.getMessage());
