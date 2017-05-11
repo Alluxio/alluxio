@@ -67,12 +67,10 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createLocalPacketInStream(FileSystemContext context,
-      WorkerNetAddress address, long blockId, long length,
-      InStreamOptions options) {
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
-    return new PacketInStream(
-        new LocalFilePacketReader.Factory(context, address, blockId, packetSize),
-        blockId, length);
+    return new PacketInStream(new LocalFilePacketReader.Factory(context, address, blockId,
+        packetSize, options.getAlluxioStorageType().isPromote()), blockId, length);
   }
 
   /**
