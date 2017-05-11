@@ -411,21 +411,6 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that we promote blocks when they are read.
-   */
-  @Test
-  public void testPromote() throws IOException {
-    Mockito.verify(mBlockStore, Mockito.times(0)).promote(0);
-    mTestStream.read();
-    Mockito.verify(mBlockStore).promote(0);
-    mTestStream.read();
-    Mockito.verify(mBlockStore).promote(0);
-    Mockito.verify(mBlockStore, Mockito.times(0)).promote(1);
-    mTestStream.read(new byte[(int) BLOCK_LENGTH]);
-    Mockito.verify(mBlockStore).promote(1);
-  }
-
-  /**
    * Tests that {@link IOException}s thrown by the {@link AlluxioBlockStore} are properly
    * propagated.
    */
