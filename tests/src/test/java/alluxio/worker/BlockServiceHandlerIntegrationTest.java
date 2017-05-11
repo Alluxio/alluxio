@@ -12,17 +12,15 @@
 package alluxio.worker;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -30,7 +28,6 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -47,7 +44,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
@@ -141,59 +137,6 @@ public class BlockServiceHandlerIntegrationTest extends BaseIntegrationTest {
     // The master should not have recorded any used space after the block is cancelled
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
-  }
-
-  // Tests that lock block returns the correct path
-  @Test
-  public void lockBlock() throws Exception {
-    final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
-
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
-            .setWriteType(WriteType.MUST_CACHE);
-    FileOutStream out = mFileSystem.createFile(new AlluxioURI("/testFile"), options);
-    URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
-
-    final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
-
-    out.write(BufferUtils.getIncreasingByteArray(blockSize));
-    out.close();
-
-    String localPath =
-        mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID, new LockBlockTOptions())
-            .getBlockPath();
-
-    // The local path should exist
-    Assert.assertNotNull(localPath);
-
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(localPath);
-    byte[] data = new byte[blockSize];
-    InputStream in = ufs.open(localPath);
-    int bytesRead = in.read(data);
-
-    // The data in the local file should equal the data we wrote earlier
-    Assert.assertEquals(blockSize, bytesRead);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(bytesRead, data));
-
-    mBlockWorkerServiceHandler.unlockBlock(blockId, SESSION_ID);
-  }
-
-  // Tests that lock block returns error on failure
-  @Test
-  public void lockBlockFailure() throws Exception {
-    mFileSystem.createFile(new AlluxioURI("/testFile")).close();
-    URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
-    final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
-
-    Exception exception = null;
-    try {
-      mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID, new LockBlockTOptions());
-    } catch (AlluxioTException e) {
-      exception = e;
-    }
-
-    // A file does not exist exception should have been thrown
-    Assert.assertNotNull(exception);
   }
 
   // Tests that files are evicted when there is not enough space in the worker.

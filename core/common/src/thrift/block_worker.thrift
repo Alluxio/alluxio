@@ -58,18 +58,6 @@ service BlockWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Locks the file in Alluxio's space while the session is reading it. If lock succeeds, the path of
-   * the block's file along with the internal lock id of locked block will be returned. If the block's file
-   * is not found, FileDoesNotExistException will be thrown.
-   */
-  LockBlockResult lockBlock(
-    /** the id of the block being accessed */ 1: i64 blockId,
-    /** the id of the current session */ 2: i64 sessionId,
-    /** the lock block options */ 3: LockBlockTOptions options,
-    )
-    throws (1: exception.AlluxioTException e)
-
-  /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
    * storage layers in Alluxio's space. return true if the block is successfully promoted, false
    * otherwise.
@@ -120,17 +108,6 @@ service BlockWorkerClientService extends common.AlluxioService {
   void sessionHeartbeat(
     /** the id of the current session */ 1: i64 sessionId,
     /** deprecated since 1.3.0 and will be removed in 2.0 */ 2: list<i64> metrics,
-    )
-    throws (1: exception.AlluxioTException e)
-
-  /**
-   * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
-   * block file. return true if successfully unlock the block, return false if the block is not
-   * found or failed to delete the block.
-   */
-  bool unlockBlock(
-    /** the id of the block being accessed */ 1: i64 blockId,
-    /** the id of the current session */ 2: i64 sessionId,
     )
     throws (1: exception.AlluxioTException e)
 }

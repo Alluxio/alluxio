@@ -11,8 +11,8 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
@@ -22,6 +22,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -117,19 +118,32 @@ public final class AlluxioBlockStore {
    * Gets a stream to read the data of a block. The stream is backed by Alluxio storage.
    *
    * @param blockId the block to read from
+   * @param openUfsBlockOptions the options to open UFS block, set to null if the block is not in
+   *        UFS
    * @param options the options
    * @return an {@link InputStream} which can be used to read the data in a streaming fashion
    */
-  public BlockInStream getInStream(long blockId, InStreamOptions options) {
+  public BlockInStream getInStream(long blockId, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
+      InStreamOptions options) {
     BlockInfo blockInfo;
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
     }
 
-    if (blockInfo.getLocations().isEmpty()) {
+    if (blockInfo.getLocations().isEmpty() && openUfsBlockOptions == null) {
       throw new NotFoundException("Block " + blockId + " is not available in Alluxio");
     }
+    WorkerNetAddress address = null;
+    if (blockInfo.getLocations().isEmpty()) {
+      BlockLocationPolicy blockLocationPolicy = Preconditions
+          .checkNotNull(options.getUfsReadLocationPolicy(),
+              PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+      address = blockLocationPolicy.getWorker(
+          GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList()).setBlockId(blockId)
+              .setBlockSize(blockInfo.getLength()));
+    }
+
     // TODO(calvin): Get location via a policy.
     // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
     // But when there is no local worker or there are no local blocks, we prefer the first
@@ -137,29 +151,21 @@ public final class AlluxioBlockStore {
     // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
-    if (Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
-      for (BlockLocation location : blockInfo.getLocations()) {
-        WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-        if (workerNetAddress.getHost().equals(mLocalHostName)) {
-          // There is a local worker and the block is local.
-          try {
-            return StreamFactory.createLocalBlockInStream(mContext, blockId, blockInfo.getLength(),
-                workerNetAddress, options);
-          } catch (Exception e) {
-            LOG.warn("Failed to open local stream for block {}: {}", blockId, e.getMessage());
-            // Getting a local stream failed, do not try again
-            break;
-          }
-        }
+    for (BlockLocation location : blockInfo.getLocations()) {
+      WorkerNetAddress workerNetAddress = location.getWorkerAddress();
+      if (workerNetAddress.getHost().equals(mLocalHostName)) {
+        address = workerNetAddress;
+        break;
       }
     }
-    // No local worker/block, choose a random location. In the future we could change this to
-    // only randomize among locations in the highest tier, or have the master randomize the order.
-    List<BlockLocation> locations = blockInfo.getLocations();
-    WorkerNetAddress workerNetAddress =
-        locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
+    if (address == null) {
+      // No local worker/block, choose a random location. In the future we could change this to
+      // only randomize among locations in the highest tier, or have the master randomize the order.
+      List<BlockLocation> locations = blockInfo.getLocations();
+      address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
+    }
     return StreamFactory
-        .createRemoteBlockInStream(mContext, blockId, blockInfo.getLength(), workerNetAddress,
+        .createBlockInStream(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions,
             options);
   }
 
@@ -188,15 +194,7 @@ public final class AlluxioBlockStore {
       throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
           FormatUtils.getSizeFromBytes(blockSize)));
     }
-    // Location is local.
-    if (mLocalHostName.equals(address.getHost()) && Configuration
-        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
-      return StreamFactory
-          .createLocalBlockOutStream(mContext, blockId, blockSize, address, options);
-    }
-    // Location is specified and it is remote.
-    return StreamFactory
-        .createRemoteBlockOutStream(mContext, blockId, blockSize, address, options);
+    return StreamFactory.createBlockOutStream(mContext, blockId, blockSize, address, options);
   }
 
   /**

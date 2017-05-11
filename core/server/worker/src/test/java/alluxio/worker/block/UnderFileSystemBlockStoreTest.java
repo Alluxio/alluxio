@@ -11,9 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.thrift.LockBlockTOptions;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,7 +26,7 @@ public final class UnderFileSystemBlockStoreTest {
   private static final long BLOCK_ID = 2;
 
   private BlockStore mAlluxioBlockStore;
-  private OpenUfsBlockOptions mOpenUfsBlockOptions;
+  private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private UfsManager mUfsManager;
 
   @Rule
@@ -37,12 +36,9 @@ public final class UnderFileSystemBlockStoreTest {
   public void before() throws Exception {
     mAlluxioBlockStore = Mockito.mock(BlockStore.class);
     mUfsManager = Mockito.mock(UfsManager.class);
-    LockBlockTOptions options = new LockBlockTOptions();
-    options.setMaxUfsReadConcurrency(5);
-    options.setBlockSize(TEST_BLOCK_SIZE);
-    options.setOffset(TEST_BLOCK_SIZE);
-    options.setUfsPath(mFolder.newFile().getAbsolutePath());
-    mOpenUfsBlockOptions = new OpenUfsBlockOptions(options);
+    mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(5)
+        .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE)
+        .setUfsPath(mFolder.newFile().getAbsolutePath()).build();
   }
 
   @Test

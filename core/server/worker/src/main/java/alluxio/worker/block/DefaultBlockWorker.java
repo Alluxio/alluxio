@@ -24,6 +24,7 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -38,7 +39,6 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
@@ -402,9 +402,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+  public BlockReader readUfsBlock(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException {
-    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, noCache);
+    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset);
   }
 
   @Override
@@ -446,7 +446,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+  public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }

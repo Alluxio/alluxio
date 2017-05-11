@@ -14,13 +14,13 @@ package alluxio.worker.block;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -96,7 +96,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @return whether an access token is acquired
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    */
-  public boolean acquireAccess(long sessionId, long blockId, OpenUfsBlockOptions options)
+  public boolean acquireAccess(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
     try (LockResource lr = new LockResource(mLock)) {
@@ -210,13 +210,12 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param sessionId the client session ID that requested this read
    * @param blockId the ID of the block to read
    * @param offset the read offset within the block (NOT the file)
-   * @param noCache if set, do not try to cache the block in the Alluxio worker
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
-      boolean noCache) throws BlockDoesNotExistException, IOException {
+  public BlockReader getBlockReader(final long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException {
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = getBlockInfo(sessionId, blockId);
@@ -226,7 +225,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       }
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore,
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, mLocalBlockStore,
             mUfsManager);
     blockInfo.setBlockReader(reader);
     return reader;

@@ -340,11 +340,9 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128);
+      create(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 256);
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128);
-  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128);
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128);
 
@@ -424,6 +422,8 @@ public class PropertyKey {
       create(Name.WORKER_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey WORKER_WEB_HOSTNAME = create(Name.WORKER_WEB_HOSTNAME, null);
   public static final PropertyKey WORKER_WEB_PORT = create(Name.WORKER_WEB_PORT, 30000);
+  public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+      create(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000);
 
   //
   // Proxy related properties
@@ -553,8 +553,6 @@ public class PropertyKey {
       create(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 1);
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       create(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX, Integer.MAX_VALUE);
-  public static final PropertyKey USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-      create(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000);
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       create(Name.USER_SHORT_CIRCUIT_ENABLED, true);
 
@@ -904,8 +902,6 @@ public class PropertyKey {
         "alluxio.worker.network.netty.block.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
         "alluxio.worker.network.netty.block.writer.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
         "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
@@ -926,6 +922,8 @@ public class PropertyKey {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
+    public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+        "alluxio.worker.ufs.block.open.timeout.ms";
 
     //
     // Proxy related properties
@@ -1035,8 +1033,6 @@ public class PropertyKey {
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
-    public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-        "alluxio.user.ufs.block.open.timeout.ms";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
 
     //

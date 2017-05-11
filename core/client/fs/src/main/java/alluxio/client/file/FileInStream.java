@@ -21,9 +21,7 @@ import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.StreamFactory;
 import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
@@ -34,6 +32,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.master.block.BlockId;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -385,25 +384,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Creates and returns a {@link InputStream} for the UFS.
-   *
-   * @param blockId the block ID
-   * @param blockStart the offset to start the block from
-   * @param length the length of the block
-   * @param path the UFS path
-   * @return the {@link InputStream} for the UFS
-   */
-  protected BlockInStream createUnderStoreBlockInStream(long blockId, long blockStart, long length,
-      String path) {
-    WorkerNetAddress address =
-        mUfsReadLocationPolicy.getWorker(GetWorkerOptions.defaults()
-            .setBlockWorkerInfos(mBlockStore.getWorkerInfoList()).setBlockId(blockId)
-            .setBlockSize(length));
-    return StreamFactory.createUfsBlockInStream(mContext, path, blockId, length, blockStart,
-        address, mStatus.getMountId(), mInStreamOptions);
-  }
-
-  /**
    * If we are not in the last block or if the last block is equal to the normal block size,
    * return the normal block size. Otherwise return the block size of the last block.
    *
@@ -623,34 +603,25 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the block in stream
    */
   private BlockInStream getBlockInStream(long blockId) {
-    try {
-      if (mAlluxioStorageType.isPromote()) {
-        try {
-          mBlockStore.promote(blockId);
-        } catch (Exception e) {
-          // Failed to promote.
-          LOG.warn("Promotion of block with ID {} failed.", blockId, e);
-        }
-      }
-      return mBlockStore.getInStream(blockId, mInStreamOptions);
-    } catch (Exception e) {
-      LOG.error("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
-          e);
-      if (!mStatus.isPersisted()) {
-        LOG.error("Could not obtain data for block with ID {} from Alluxio."
-            + " The block is also not available in the under storage.", blockId);
-        throw e;
-      }
-      long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
+    if (mAlluxioStorageType.isPromote()) {
       try {
-        return createUnderStoreBlockInStream(blockId, blockStart, getBlockSize(blockStart),
-            mStatus.getUfsPath());
-      } catch (Exception e2) {
-        LOG.debug("Failed to read from UFS after failing to read from Alluxio", e2);
-        // UFS read failed; throw the original exception
-        throw e;
+        mBlockStore.promote(blockId);
+      } catch (Exception e) {
+        // Failed to promote.
+        LOG.warn("Promotion of block with ID {} failed with error {}.", blockId, e.getMessage());
       }
     }
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions = null;
+    if (mStatus.isPersisted()) {
+      long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
+      openUfsBlockOptions =
+          Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
+              .setOffsetInFile(blockStart).setBlockSize(getBlockSize(blockStart))
+              .setMaxUfsReadConcurrency(mInStreamOptions.getMaxUfsReadConcurrency())
+              .setNoCache(!mInStreamOptions.getAlluxioStorageType().isStore())
+              .setMountId(mStatus.getMountId()).build();
+    }
+    return mBlockStore.getInStream(blockId, openUfsBlockOptions, mInStreamOptions);
   }
 
   /**

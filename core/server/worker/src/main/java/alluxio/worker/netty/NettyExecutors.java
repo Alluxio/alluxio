@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class NettyExecutors {
-  private static final long THREAD_STOP_MS = Constants.MINUTE_MS;
+  private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
@@ -42,12 +42,6 @@ final class NettyExecutors {
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
           ThreadFactoryUtils.build("BlockPacketWriterExecutor-%d", true));
-
-  public static final ExecutorService UFS_BLOCK_READER_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
-          ThreadFactoryUtils.build("FilePacketReaderExecutor-%d", true));
 
   public static final ExecutorService FILE_WRITER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,

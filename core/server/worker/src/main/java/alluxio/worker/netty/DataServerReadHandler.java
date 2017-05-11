@@ -21,6 +21,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.util.IdUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -148,12 +149,12 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     final long mPacketSize;
     final long mSessionId;
 
-    ReadRequestInternal(long id, long start, long end, long packetSize, long sessionId) {
+    ReadRequestInternal(long id, long start, long end, long packetSize) {
       mId = id;
       mStart = start;
       mEnd = end;
       mPacketSize = packetSize;
-      mSessionId = sessionId;
+      mSessionId = IdUtils.getRandomNonNegativeLong();
     }
   }
 
@@ -224,9 +225,9 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @param request the block read request
    */
   private void validateReadRequest(Protocol.ReadRequest request) {
-    if (request.getId() < 0) {
+    if (request.getBlockId() < 0) {
       throw new InvalidArgumentException(
-          String.format("Invalid blockId (%d) in read request.", request.getId()));
+          String.format("Invalid blockId (%d) in read request.", request.getBlockId()));
     }
     if (!request.getCancel() && (request.getOffset() < 0 || request.getLength() <= 0)) {
       throw new InvalidArgumentException(
@@ -330,7 +331,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @return a {@link DataBuffer} representing the data
    */
   protected abstract DataBuffer getDataBuffer(Channel channel, long offset, int len)
-      throws IOException;
+      throws Exception;
 
   /**
    * @param bytesRead bytes read
