@@ -16,6 +16,8 @@ import static alluxio.worker.netty.FileTransferType.TRANSFER;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
@@ -59,6 +61,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
+  /** An object storing the mapping of tier aliases to ordinals. */
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
    * The block read request internal representation. When this request is closed, it will clean
@@ -67,6 +71,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   private final class BlockReadRequestInternal extends ReadRequestInternal {
     BlockReader mBlockReader;
     final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
+    final Protocol.ReadType mReadType;
 
     /**
      * Creates an instance of {@link BlockReadRequestInternal}.
@@ -82,6 +87,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       } else {
         mOpenUfsBlockOptions = null;
       }
+      mReadType = request.getReadType();
       // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 
@@ -90,6 +96,13 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      */
     boolean isPersisted() {
       return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
+    }
+
+    /**
+     * @return true if the block should be promoted before reading
+     */
+    boolean isPromote() {
+      return mReadType == Protocol.ReadType.CACHE_PROMOTE;
     }
 
     @Override
@@ -177,6 +190,9 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       }
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
+          if (request.isPromote()) {
+            mWorker.moveBlock(request.mSessionId, request.mId, mStorageTierAssoc.getAlias(0));
+          }
           request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
           mWorker.accessBlock(request.mSessionId, request.mId);
           ((FileChannel) request.mBlockReader.getChannel()).position(request.mStart);
