@@ -228,11 +228,4 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       mMasters.get(k).stop();
     }
   }
-
-  @Override
-  public void killMasters() throws Exception {
-    for (int k = 0; k < mNumOfMasters; k++) {
-      mMasters.get(k).kill();
-    }
-  }
 }

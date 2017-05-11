@@ -325,10 +325,10 @@ public class PropertyKey {
       create(Name.WORKER_NETWORK_NETTY_CHANNEL, null);
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       create(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "MAPPED");
-  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
-      create(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 2);
-  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
-      create(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 15);
+  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD_MS =
+      create(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD_MS, 2000);
+  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT_MS =
+      create(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT_MS, 15000);
   public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_HIGH =
       create(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "32KB");
   public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_LOW =
@@ -886,10 +886,10 @@ public class PropertyKey {
         "alluxio.worker.network.netty.channel";
     public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
         "alluxio.worker.network.netty.file.transfer";
-    public static final String WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
-        "alluxio.worker.network.netty.shutdown.quiet.period";
-    public static final String WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
-        "alluxio.worker.network.netty.shutdown.timeout";
+    public static final String WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD_MS =
+        "alluxio.worker.network.netty.shutdown.quiet.period.ms";
+    public static final String WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT_MS =
+        "alluxio.worker.network.netty.shutdown.timeout.ms";
     public static final String WORKER_NETWORK_NETTY_WATERMARK_HIGH =
         "alluxio.worker.network.netty.watermark.high";
     public static final String WORKER_NETWORK_NETTY_WATERMARK_LOW =

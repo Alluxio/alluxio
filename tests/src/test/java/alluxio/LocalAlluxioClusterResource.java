@@ -164,7 +164,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
         try {
           statement.evaluate();
         } finally {
-          mLocalAlluxioCluster.kill();
+          mLocalAlluxioCluster.stop();
         }
       }
     };

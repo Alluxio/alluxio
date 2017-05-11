@@ -47,6 +47,10 @@ public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
   private final SocketAddress mSocketAddress;
+  private final long mQuietPeriodMs =
+      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD_MS);
+  private final long mTimeoutMs =
+      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT_MS);
 
   /**
    * Creates a new instance of {@link NettyDataServer}.
@@ -66,10 +70,6 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    int quietPeriodSecs =
-        Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
-    int timeoutSecs = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
-
     // The following steps are needed to shut down the data server:
     //
     // 1) its channel needs to be closed
@@ -82,19 +82,19 @@ public final class NettyDataServer implements DataServer {
 
     boolean completed;
     completed =
-        mChannelFuture.channel().close().awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
     if (!completed) {
       LOG.warn("Closing the channel timed out.");
     }
     completed =
-        mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
-            .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+        mBootstrap.group().shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+            .awaitUninterruptibly(mTimeoutMs);
     if (!completed) {
       LOG.warn("Forced group shutdown because graceful shutdown timed out.");
     }
-    completed =
-        mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
-            .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+    completed = mBootstrap.childGroup()
+        .shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+        .awaitUninterruptibly(mTimeoutMs);
     if (!completed) {
       LOG.warn("Forced child group shutdown because graceful shutdown timed out.");
     }

@@ -661,7 +661,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       }
 
       // Stop Alluxio.
-      mLocalAlluxioClusterResource.get().kill();
+      mLocalAlluxioClusterResource.get().stopMasters();
       // Create the master using the existing journal.
       createFileSystemMasterFromJournal();
     } finally {

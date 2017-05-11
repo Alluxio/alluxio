@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
@@ -124,10 +126,5 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   @Override
   public void stopMasters() throws Exception {
     mMaster.stop();
-  }
-
-  @Override
-  public void killMasters() throws Exception {
-    mMaster.kill();
   }
 }

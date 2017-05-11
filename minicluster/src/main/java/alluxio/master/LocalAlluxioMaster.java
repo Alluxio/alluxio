@@ -149,17 +149,6 @@ public final class LocalAlluxioMaster {
    */
   public void stop() throws Exception {
     mMasterProcess.stop();
-    mSecondaryMaster.stop();
-    kill();
-    clearClients();
-    System.clearProperty("alluxio.web.resources");
-    System.clearProperty("alluxio.master.min.worker.threads");
-  }
-
-  /**
-   * Kills the master processes, no cleanup is performed.
-   */
-  public void kill() throws Exception {
     if (mMasterThread != null) {
       while (mMasterThread.isAlive()) {
         LOG.info("Stopping thread {}.", mMasterThread.getName());
@@ -168,6 +157,7 @@ public final class LocalAlluxioMaster {
       }
       mMasterThread = null;
     }
+    mSecondaryMaster.stop();
     if (mSecondaryMasterThread != null) {
       while (mSecondaryMasterThread.isAlive()) {
         LOG.info("Stopping thread {}.", mSecondaryMasterThread.getName());
@@ -176,6 +166,9 @@ public final class LocalAlluxioMaster {
       }
       mSecondaryMasterThread = null;
     }
+    clearClients();
+    System.clearProperty("alluxio.web.resources");
+    System.clearProperty("alluxio.master.min.worker.threads");
   }
 
   /**

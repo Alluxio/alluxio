@@ -82,8 +82,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     runCreateFileThread(cluster.getClient());
     // Shutdown the cluster
-    cluster.kill();
-    CommonUtils.sleepMs(TEST_TIME_MS);
+    cluster.stopMasters();
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
   }
@@ -97,7 +96,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.waitForNewMaster(120 * Constants.SECOND_MS);
       Assert.assertTrue(cluster.stopLeader());
     }
-    cluster.kill();
+    cluster.stopMasters();
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
   }
@@ -172,7 +171,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   private void runCreateFileThread(FileSystem fs) {
     mCreateFileThread = new ClientThread(0, fs);
     mExecutorsForClient.submit(mCreateFileThread);
-    CommonUtils.sleepMs(TEST_TIME_MS);
     while (mCreateFileThread.getSuccessNum() == 0) {
       CommonUtils.sleepMs(TEST_TIME_MS);
     }

@@ -224,7 +224,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountAfterMasterRestart() throws Exception {
-    mLocalAlluxioCluster.kill();
+    mLocalAlluxioCluster.stopMasters();
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     Map<String, MountPointInfo> mountTable = fsMaster.getMountTable();

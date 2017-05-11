@@ -34,6 +34,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
 
 import com.google.common.base.Joiner;
+import org.omg.CORBA.CODESET_INCOMPATIBLE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,15 +79,6 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Kills the server processes, no cleanup is performed.
-   */
-  public void kill() throws Exception {
-    killProxy();
-    killWorkers();
-    killMasters();
-  }
-
-  /**
    * Starts both master and a worker using the configurations in test conf respectively.
    */
   public void start() throws Exception {
@@ -116,7 +108,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   private void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
-    Runnable runMaster = new Runnable() {
+    Runnable runProxy = new Runnable() {
       @Override
       public void run() {
         try {
@@ -131,7 +123,7 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     };
 
-    mProxyThread = new Thread(runMaster);
+    mProxyThread = new Thread(runProxy);
     mProxyThread.setName("ProxyThread-" + System.identityHashCode(mProxyThread));
     mProxyThread.start();
     mProxyProcess.waitForReady();
@@ -257,22 +249,10 @@ public abstract class AbstractLocalAlluxioCluster {
   protected abstract void stopMasters() throws Exception;
 
   /**
-   * Kills the master processes, no cleanup is performed.
-   */
-  protected abstract void killMasters() throws Exception;
-
-  /**
    * Stops the proxy.
    */
   protected void stopProxy() throws Exception {
     mProxyProcess.stop();
-    killProxy();
-  }
-
-  /**
-   * Kills the proxy process, no cleanup is performed.
-   */
-  protected void killProxy() throws Exception {
     if (mProxyThread != null) {
       while (mProxyThread.isAlive()) {
         LOG.info("Stopping thread {}.", mProxyThread.getName());
@@ -290,13 +270,6 @@ public abstract class AbstractLocalAlluxioCluster {
     for (WorkerProcess worker : mWorkers) {
       worker.stop();
     }
-    killWorkers();
-  }
-
-  /**
-   * Kills the worker processes, no cleanup is performed.
-   */
-  protected void killWorkers() throws Exception {
     for (Thread thread : mWorkerThreads) {
       while (thread.isAlive()) {
         LOG.info("Stopping thread {}.", thread.getName());
@@ -327,7 +300,10 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0);
+
+    // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 50);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 10);
 
     Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
@@ -361,21 +337,19 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
     Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
 
+    // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD_MS, 50);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT_MS, 200);
+
     Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_WEB_BIND_HOST, mHostname);
 
-    // Performs an immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
-
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
-    Configuration.set(
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    Configuration.set(
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
-        ramdiskPath);
+    Configuration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
+    Configuration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdiskPath);
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
