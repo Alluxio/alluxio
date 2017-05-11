@@ -118,7 +118,8 @@ public final class AlluxioBlockStore {
    * Gets a stream to read the data of a block. The stream is backed by Alluxio storage.
    *
    * @param blockId the block to read from
-   * @param openUfsBlockOptions the options to open UFS block
+   * @param openUfsBlockOptions the options to open UFS block, set to null if the block is not in
+   *        UFS
    * @param options the options
    * @return an {@link InputStream} which can be used to read the data in a streaming fashion
    */
@@ -130,7 +131,7 @@ public final class AlluxioBlockStore {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
     }
 
-    if (blockInfo.getLocations().isEmpty() && !openUfsBlockOptions.hasUfsPath()) {
+    if (blockInfo.getLocations().isEmpty() && openUfsBlockOptions == null) {
       throw new NotFoundException("Block " + blockId + " is not available in Alluxio");
     }
     WorkerNetAddress address = null;
