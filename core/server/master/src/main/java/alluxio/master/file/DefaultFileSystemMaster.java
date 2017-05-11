@@ -1790,6 +1790,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           throw new IOException(
               ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
         }
+        // The destination was persisted in ufs.
+        mUfsAbsentPathCache.removeAbsentPath(dstPath);
       }
     } catch (Exception e) {
       // On failure, revert changes and throw exception.
