@@ -5196,12 +5196,22 @@ public final class Protocol {
      * <code>optional int64 block_id = 1;</code>
      */
     long getBlockId();
+
+    // optional int64 promote = 3;
+    /**
+     * <code>optional int64 promote = 3;</code>
+     */
+    boolean hasPromote();
+    /**
+     * <code>optional int64 promote = 3;</code>
+     */
+    long getPromote();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenRequest}
    *
    * <pre>
-   * next available id: 3
+   * next available id: 4
    * </pre>
    */
   public static final class LocalBlockOpenRequest extends
@@ -5255,6 +5265,11 @@ public final class Protocol {
             case 8: {
               bitField0_ |= 0x00000001;
               blockId_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000002;
+              promote_ = input.readInt64();
               break;
             }
           }
@@ -5313,8 +5328,25 @@ public final class Protocol {
       return blockId_;
     }
 
+    // optional int64 promote = 3;
+    public static final int PROMOTE_FIELD_NUMBER = 3;
+    private long promote_;
+    /**
+     * <code>optional int64 promote = 3;</code>
+     */
+    public boolean hasPromote() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 promote = 3;</code>
+     */
+    public long getPromote() {
+      return promote_;
+    }
+
     private void initFields() {
       blockId_ = 0L;
+      promote_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -5331,6 +5363,9 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, blockId_);
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(3, promote_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -5343,6 +5378,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, promote_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5426,7 +5465,7 @@ public final class Protocol {
      * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenRequest}
      *
      * <pre>
-     * next available id: 3
+     * next available id: 4
      * </pre>
      */
     public static final class Builder extends
@@ -5466,6 +5505,8 @@ public final class Protocol {
         super.clear();
         blockId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
+        promote_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -5498,6 +5539,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000001;
         }
         result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.promote_ = promote_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -5516,6 +5561,9 @@ public final class Protocol {
         if (other == alluxio.proto.dataserver.Protocol.LocalBlockOpenRequest.getDefaultInstance()) return this;
         if (other.hasBlockId()) {
           setBlockId(other.getBlockId());
+        }
+        if (other.hasPromote()) {
+          setPromote(other.getPromote());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5573,6 +5621,39 @@ public final class Protocol {
       public Builder clearBlockId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         blockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 promote = 3;
+      private long promote_ ;
+      /**
+       * <code>optional int64 promote = 3;</code>
+       */
+      public boolean hasPromote() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 promote = 3;</code>
+       */
+      public long getPromote() {
+        return promote_;
+      }
+      /**
+       * <code>optional int64 promote = 3;</code>
+       */
+      public Builder setPromote(long value) {
+        bitField0_ |= 0x00000002;
+        promote_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 promote = 3;</code>
+       */
+      public Builder clearPromote() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        promote_ = 0L;
         onChanged();
         return this;
       }
@@ -8203,17 +8284,17 @@ public final class Protocol {
       "Status\022\017\n\007message\030\002 \001(\t\"i\n\014ReadResponse\022" +
       "9\n\004type\030\001 \001(\0162+.alluxio.proto.dataserver" +
       ".ReadResponse.Type\"\036\n\004Type\022\026\n\022UFS_READ_H",
-      "EARTBEAT\020\001\"\013\n\tHeartbeat\")\n\025LocalBlockOpe" +
-      "nRequest\022\020\n\010block_id\030\001 \001(\003\"&\n\026LocalBlock" +
-      "OpenResponse\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlock" +
-      "CloseRequest\022\020\n\010block_id\030\001 \001(\003\"o\n\027LocalB" +
-      "lockCreateRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n\004t" +
-      "ier\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022o" +
-      "nly_reserve_space\030\005 \001(\010\"(\n\030LocalBlockCre" +
-      "ateResponse\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBlockC" +
-      "ompleteRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006canc" +
-      "el\030\003 \001(\010*.\n\013RequestType\022\021\n\rALLUXIO_BLOCK",
-      "\020\000\022\014\n\010UFS_FILE\020\001"
+      "EARTBEAT\020\001\"\013\n\tHeartbeat\":\n\025LocalBlockOpe" +
+      "nRequest\022\020\n\010block_id\030\001 \001(\003\022\017\n\007promote\030\003 " +
+      "\001(\003\"&\n\026LocalBlockOpenResponse\022\014\n\004path\030\001 " +
+      "\001(\t\"*\n\026LocalBlockCloseRequest\022\020\n\010block_i" +
+      "d\030\001 \001(\003\"o\n\027LocalBlockCreateRequest\022\020\n\010bl" +
+      "ock_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020space_to_r" +
+      "eserve\030\004 \001(\003\022\032\n\022only_reserve_space\030\005 \001(\010" +
+      "\"(\n\030LocalBlockCreateResponse\022\014\n\004path\030\001 \001" +
+      "(\t\"=\n\031LocalBlockCompleteRequest\022\020\n\010block" +
+      "_id\030\001 \001(\003\022\016\n\006cancel\030\003 \001(\010*.\n\013RequestType",
+      "\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -8261,7 +8342,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor,
-              new java.lang.String[] { "BlockId", });
+              new java.lang.String[] { "BlockId", "Promote", });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor =
             getDescriptor().getMessageTypes().get(7);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_fieldAccessorTable = new
