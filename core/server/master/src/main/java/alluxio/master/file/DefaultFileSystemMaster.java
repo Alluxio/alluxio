@@ -1168,28 +1168,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
-    UfsDeleter ufsDeleter = new UfsDeleter(inodePath.getUri(), deleteOptions);
+    List<Pair<AlluxioURI, Inode>> delInodes = new LinkedList<>();
 
-    Pair<AlluxioURI, Inode<?>> inodePair =
-        new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
+    Pair<AlluxioURI, Inode> inodePair = new Pair<AlluxioURI, Inode>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
-    if (!replayed) {
-      ufsDeleter.planDelete(inodePath.getUri(), inodePath.getInode());
-    }
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
       for (Inode descendant : lockList.getInodes()) {
         AlluxioURI descendantPath = mInodeTree.getPath(descendant);
-        Pair<AlluxioURI, Inode<?>> descendantPair =
-            new Pair<AlluxioURI, Inode<?>>(descendantPath, descendant);
+        Pair<AlluxioURI, Inode> descendantPair = new Pair<>(descendantPath, descendant);
         delInodes.add(descendantPair);
-        if (!replayed) {
-          ufsDeleter.planDelete(descendantPath, descendant);
-        }
       }
-
+      // Prepare to delete persisted inodes
+      UfsDeleter ufsDeleter = new UfsDeleter(delInodes, deleteOptions);
       // Inodes to delete from tree after attempting to delete from UFS
       List<Inode> inodesToDelete = new LinkedList<>();
       // Inodes that are not safe for recursive deletes
@@ -1201,26 +1193,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = delInodes.size() - 1; i >= 0; i--) {
-        Pair<AlluxioURI, Inode<?>> delInodePair = delInodes.get(i);
+        Pair<AlluxioURI, Inode> delInodePair = delInodes.get(i);
         AlluxioURI alluxioUriToDel = delInodePair.getFirst();
         Inode delInode = delInodePair.getSecond();
         tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
-        boolean failedToDelete = true;
-        if (!unsafeInodes.contains(delInode.getId())) {
-          if (!replayed && inode.isPersisted()) {
-            try {
-              // If this is a mount point, we have deleted all the children and can unmount it
-              // TODO(calvin): Add tests (ALLUXIO-1831)
-              if (mMountTable.isMountPoint(alluxioUriToDel)) {
-                unmountInternal(alluxioUriToDel);
-              } else if (!deleteOptions.isAlluxioOnly()) {
-                // Attempt to delete node if all children were deleted successfully
-                failedToDelete = ufsDeleter.delete(alluxioUriToDel, delInode);
-              }
-            } catch (InvalidPathException e) {
-              LOG.warn(e.getMessage());
+        boolean failedToDelete = unsafeInodes.contains(delInode.getId());
+        if (!failedToDelete && !replayed && inode.isPersisted()) {
+          try {
+            // If this is a mount point, we have deleted all the children and can unmount it
+            // TODO(calvin): Add tests (ALLUXIO-1831)
+            if (mMountTable.isMountPoint(alluxioUriToDel)) {
+              unmountInternal(alluxioUriToDel);
+            } else if (!deleteOptions.isAlluxioOnly()) {
+              // Attempt to delete node if all children were deleted successfully
+              failedToDelete = ufsDeleter.delete(alluxioUriToDel, delInode);
             }
+          } catch (InvalidPathException e) {
+            LOG.warn(e.getMessage());
           }
         }
         if (!failedToDelete) {
@@ -1256,7 +1246,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * Helper class for deleting from the UFS.
+   * Helper class for deleting persisted entries from the UFS.
    */
   protected class UfsDeleter {
     private AlluxioURI mRootPath;
@@ -1265,37 +1255,28 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     /**
      * Create a new instance of {@link UfsDeleter}.
      *
-     * @param rootPath root of the sub-tree being deleted
+     * @param inodes sub-tree being deleted (any node should appear before descendants)
      * @param deleteOptions delete options
      */
-    public UfsDeleter(AlluxioURI rootPath, DeleteOptions deleteOptions) {
-      mRootPath = rootPath;
+    public UfsDeleter(List<Pair<AlluxioURI, Inode>> inodes, DeleteOptions deleteOptions)
+        throws IOException, FileDoesNotExistException, InvalidPathException {
+      // Root of sub-tree occurs before any of its descendants
+      mRootPath = inodes.get(0).getFirst();
       if (!deleteOptions.isUnchecked() && !deleteOptions.isAlluxioOnly()) {
         mUfsSyncChecker = new UfsSyncChecker(mMountTable);
+        for (Pair<AlluxioURI, Inode> inodePair : inodes) {
+          AlluxioURI alluxioUri = inodePair.getFirst();
+          Inode inode = inodePair.getSecond();
+          // Mount points are not deleted recursively as we need to preserve the directory itself
+          if (inode.isPersisted() && inode.isDirectory() && !mMountTable.isMountPoint(alluxioUri)) {
+            mUfsSyncChecker.checkDirectory((InodeDirectory) inode, alluxioUri);
+          }
+        }
       }
     }
 
     /**
-     * Plan delete for path by traversing the sub-tree to determine which nodes can be deleted
-     * recursively. This method should be called for each node before any descendants.
-     *
-     * @param alluxioUri Alluxio path to delete
-     * @param inode to delete
-     */
-    public void planDelete(AlluxioURI alluxioUri, Inode inode)
-        throws IOException, FileDoesNotExistException, InvalidPathException {
-      if (mUfsSyncChecker == null) {
-        // We do not need to check the UFS contents
-        return;
-      }
-      // Mount points are not deleted recursively as we need to preserve the directory itself
-      if (inode.isPersisted() && inode.isDirectory() && !mMountTable.isMountPoint(alluxioUri)) {
-        mUfsSyncChecker.checkDirectory((InodeDirectory) inode, alluxioUri);
-      }
-    }
-
-    /**
-     * Attempt to delete path if not covered by a recursive delete.
+     * Delete path if not covered by a recursive delete.
      *
      * @param alluxioUri Alluxio path to delete
      * @param inode to delete
@@ -1338,6 +1319,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     /**
+     * Check if recursively deleting from the UFS is "safe".
      *
      * @param alluxioUri Alluxio path to delete
      * @return true, if path can be deleted recursively from UFS; false, otherwise
