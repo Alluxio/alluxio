@@ -63,9 +63,6 @@ public class FileSystemMasterClientService {
     /**
      * Creates a directory.
      * 
-     * If the directory already exists, an exception with status code
-     * TStatus.ALREADY_EXISTS will be thrown.
-     * 
      * @param path the path of the directory
      * 
      * @param options the method options
@@ -75,9 +72,6 @@ public class FileSystemMasterClientService {
     /**
      * Creates a file.
      * 
-     * If the file already exists, an exception with status code
-     * TStatus.ALREADY_EXISTS will be thrown.
-     * 
      * @param path the path of the file
      * 
      * @param options the options for creating the file
@@ -86,9 +80,6 @@ public class FileSystemMasterClientService {
 
     /**
      * Frees the given file or directory from Alluxio.
-     * 
-     * If the path does not exist, an exception with status code
-     * TStatus.NOT_FOUND will be thrown.
      * 
      * @param path the path of the file or directory
      * 
@@ -109,9 +100,6 @@ public class FileSystemMasterClientService {
 
     /**
      * Returns the status of the file or directory.
-     * 
-     * If the path does not exist, an exception with status code
-     * TStatus.NOT_FOUND will be thrown.
      * 
      * @param path the path of the file or directory
      */
@@ -145,9 +133,6 @@ public class FileSystemMasterClientService {
      * If the path points to a directory, the method returns a list with file information for the
      * directory contents.
      * 
-     * If the path does not exist, an exception with status code
-     * TStatus.NOT_FOUND will be thrown.
-     * 
      * @param path the path of the file or directory
      * 
      * @param options listStatus options
@@ -156,9 +141,6 @@ public class FileSystemMasterClientService {
 
     /**
      * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-     * 
-     * If the path does not exist, an exception with status code
-     * TStatus.NOT_FOUND will be thrown.
      * 
      * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
      * 
@@ -184,11 +166,6 @@ public class FileSystemMasterClientService {
      * Deletes a file or a directory and returns whether the remove operation succeeded.
      * NOTE: Unfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
      * 
-     * If the directory is not empty and the recursive argument is set to false,
-     * an exception with status code TStatus.FAILED_PRECONDITION will be thrown.
-     * If the directory does not exist, an exception with status code
-     * TStatus.NOT_FOUND will be thrown.
-     * 
      * @param path the path of the file or directory
      * 
      * @param recursive whether to remove recursively
@@ -200,9 +177,6 @@ public class FileSystemMasterClientService {
     /**
      * Renames a file or a directory.
      * 
-     * If the path does not exist, an exception with status code
-     * TStatus.NOT_FOUND will be thrown.
-     * 
      * @param path the path of the file or directory
      * 
      * @param dstPath the desinationpath of the file
@@ -211,9 +185,6 @@ public class FileSystemMasterClientService {
 
     /**
      * Sets file or directory attributes.
-     * 
-     * If the path does not exist, an exception with status code
-     * TStatus.NOT_FOUND will be thrown.
      * 
      * @param path the path of the file or directory
      * 

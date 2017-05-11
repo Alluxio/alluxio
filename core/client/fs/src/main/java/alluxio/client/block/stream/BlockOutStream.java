@@ -17,7 +17,6 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.io.Closer;
@@ -140,9 +139,12 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
       return;
     }
 
-    CommonUtils.closeQuietly(mCloser);
     mClosed = true;
-    throw exception;
+    try {
+      throw mCloser.rethrow(exception);
+    } finally {
+      mCloser.close();
+    }
   }
 
   @Override

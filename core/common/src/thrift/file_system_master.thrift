@@ -154,9 +154,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Creates a directory.
-   *
-   * If the directory already exists, an exception with status code
-   * TStatus.ALREADY_EXISTS will be thrown.
    */
   void createDirectory(
     /** the path of the directory */ 1: string path,
@@ -166,9 +163,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Creates a file.
-   *
-   * If the file already exists, an exception with status code
-   * TStatus.ALREADY_EXISTS will be thrown.
    */
   void createFile(
     /** the path of the file */ 1: string path,
@@ -178,9 +172,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Frees the given file or directory from Alluxio.
-   *
-   * If the path does not exist, an exception with status code
-   * TStatus.NOT_FOUND will be thrown.
    */
   void free(
     /** the path of the file or directory */ 1: string path,
@@ -202,9 +193,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the status of the file or directory.
-   *
-   * If the path does not exist, an exception with status code
-   * TStatus.NOT_FOUND will be thrown.
    */
   FileInfo getStatus(
     /** the path of the file or directory */ 1: string path,
@@ -240,9 +228,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * If the path points to a file, the method returns a singleton with its file information.
    * If the path points to a directory, the method returns a list with file information for the
    * directory contents.
-   *
-   * If the path does not exist, an exception with status code
-   * TStatus.NOT_FOUND will be thrown.
    */
   list<FileInfo> listStatus(
     /** the path of the file or directory */ 1: string path,
@@ -252,9 +237,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-   *
-   * If the path does not exist, an exception with status code
-   * TStatus.NOT_FOUND will be thrown.
    *
    * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
@@ -278,11 +260,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
   /**
    * Deletes a file or a directory and returns whether the remove operation succeeded.
    * NOTE: Unfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
-   *
-   * If the directory is not empty and the recursive argument is set to false,
-   * an exception with status code TStatus.FAILED_PRECONDITION will be thrown.
-   * If the directory does not exist, an exception with status code
-   * TStatus.NOT_FOUND will be thrown.
    */
   void remove(
     /** the path of the file or directory */ 1: string path,
@@ -294,9 +271,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Renames a file or a directory.
-   *
-   * If the path does not exist, an exception with status code
-   * TStatus.NOT_FOUND will be thrown.
    */
   void rename(
     /** the path of the file or directory */ 1: string path,
@@ -306,9 +280,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Sets file or directory attributes.
-   *
-   * If the path does not exist, an exception with status code
-   * TStatus.NOT_FOUND will be thrown.
    */
   void setAttribute(
     /** the path of the file or directory */ 1: string path,

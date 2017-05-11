@@ -17,7 +17,6 @@ import alluxio.util.ShellUtils.ExitCodeException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
-import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -371,19 +370,6 @@ public final class CommonUtils {
       e = e.getCause();
     }
     return e;
-  }
-
-  /**
-   * Closes a closer and ignores any thrown exceptions.
-   *
-   * @param closer the closer
-   */
-  public static void closeQuietly(Closer closer) {
-    try {
-      closer.close();
-    } catch (IOException e) {
-      // Ignore.
-    }
   }
 
   /**
