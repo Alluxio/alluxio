@@ -58,7 +58,6 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
     mOutStream = (PacketOutStream) out;
   }
 
-
   // Explicitly overriding some write methods which are not efficiently implemented in
   // FilterOutStream.
 
