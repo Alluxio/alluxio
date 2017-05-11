@@ -96,7 +96,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     }
     os.close();
     URIStatus status = mFileSystem.getStatus(uri);
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     addBlockTestUtil(status);
   }
 
@@ -115,6 +115,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(status.getBlockIds(), fsMasterInfo.getBlockIds());
     Assert.assertEquals(status.getBlockSizeBytes(), fsMasterInfo.getBlockSizeBytes());
     Assert.assertEquals(status.getLength(), fsMasterInfo.getLength());
+    registry.stop();
   }
 
   /**
@@ -125,7 +126,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       confParams = {PropertyKey.Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0"})
   public void multipleFlush() throws Exception {
     String journalFolder = mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder();
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stop();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
 
@@ -157,7 +158,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     ufs.create(ufsRoot + "/xyz").close();
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     loadMetadataTestUtil(status);
     deleteFsMasterJournalLogs();
     loadMetadataTestUtil(status);
@@ -174,6 +175,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/xyz")) != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/xyz")));
     Assert.assertEquals(status, new URIStatus(fsMasterInfo.setMountId(status.getMountId())));
+    registry.stop();
   }
 
   /**
@@ -185,7 +187,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       mFileSystem.createFile(new AlluxioURI("/a" + i),
           CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64)).close();
     }
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
 
     String journalFolder = PathUtils
         .concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
@@ -222,7 +224,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         mFileSystem.delete(new AlluxioURI(dirPath), recDelete);
       }
     }
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     deleteTestUtil();
     deleteFsMasterJournalLogs();
     deleteTestUtil();
@@ -241,18 +243,20 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
             fsMaster.getFileId(new AlluxioURI("/i" + i + "/j" + j)) != IdUtils.INVALID_FILE_ID);
       }
     }
+    registry.stop();
   }
 
   @Test
   public void emptyImage() throws Exception {
     Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(0, fsMaster.listStatus(mRootUri,
         ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    registry.stop();
   }
 
   /**
@@ -267,7 +271,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         mFileSystem.createFile(new AlluxioURI("/i" + i + "/j" + j), option).close();
       }
     }
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     fileDirectoryTestUtil();
     deleteFsMasterJournalLogs();
     fileDirectoryTestUtil();
@@ -286,6 +290,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
             fsMaster.getFileId(new AlluxioURI("/i" + i + "/j" + j)) != IdUtils.INVALID_FILE_ID);
       }
     }
+    registry.stop();
   }
 
   /**
@@ -297,7 +302,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/xyz");
     mFileSystem.createFile(filePath, option).close();
     URIStatus status = mFileSystem.getStatus(filePath);
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     fileTestUtil(status);
     deleteFsMasterJournalLogs();
     fileTestUtil(status);
@@ -314,6 +319,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(
         status, new URIStatus(fsMaster.getFileInfo(fileId).setMountId(status.getMountId())));
+    registry.stop();
   }
 
   /**
@@ -339,7 +345,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     URIStatus file0Status = mFileSystem.getStatus(file0Path);
     URIStatus file1Status = mFileSystem.getStatus(file1Path);
 
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
 
     pinTestUtil(directoryStatus, file0Status, file1Status);
     deleteFsMasterJournalLogs();
@@ -361,6 +367,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     info = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/myFolder/file1")));
     Assert.assertEquals(file1, new URIStatus(info.setMountId(file1.getMountId())));
     Assert.assertTrue(info.isPinned());
+
+    registry.stop();
   }
 
   /**
@@ -371,7 +379,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);
     URIStatus status = mFileSystem.getStatus(directoryPath);
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     directoryTestUtil(status);
     deleteFsMasterJournalLogs();
     directoryTestUtil(status);
@@ -388,6 +396,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(
         status, new URIStatus(fsMaster.getFileInfo(fileId).setMountId(status.getMountId())));
+    registry.stop();
   }
 
   @Test
@@ -412,7 +421,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     for (String directory : directories) {
       directoryStatuses.put(directory, mFileSystem.getStatus(new AlluxioURI(directory)));
     }
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     persistDirectoryLaterTestUtil(directoryStatuses);
     deleteFsMasterJournalLogs();
     persistDirectoryLaterTestUtil(directoryStatuses);
@@ -428,6 +437,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
           new URIStatus(fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI(directoryStatus
               .getKey()))).setMountId(directoryStatus.getValue().getMountId())));
     }
+    registry.stop();
   }
 
   /**
@@ -439,7 +449,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + 1) * 64);
       mFileSystem.createFile(new AlluxioURI("/a" + i), option).close();
     }
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     manyFileTestUtil();
     deleteFsMasterJournalLogs();
     manyFileTestUtil();
@@ -455,6 +465,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     for (int k = 0; k < 10; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
+    registry.stop();
   }
 
   /**
@@ -467,7 +478,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
     // Create a mount point, which will journal a mount entry.
     mFileSystem.mount(mountUri, ufsUri);
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
 
     // Start a leader master with a mount entry.
     MasterTestUtils.createLeaderFileSystemMasterFromJournal().stop();
@@ -475,17 +486,21 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     // Start a standby master, which will replay the mount entry from the journal.
     MasterRegistry registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
     final FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-    CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          fsMaster.listStatus(mountUri, ListStatusOptions.defaults());
-          return true;
-        } catch (Exception e) {
-          return false;
+    try {
+      CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
+        @Override
+        public Boolean apply(Void input) {
+          try {
+            fsMaster.listStatus(mountUri, ListStatusOptions.defaults());
+            return true;
+          } catch (Exception e) {
+            return false;
+          }
         }
-      }
-    }, WaitForOptions.defaults().setTimeout(60 * Constants.SECOND_MS));
+      }, WaitForOptions.defaults().setTimeout(60 * Constants.SECOND_MS));
+    } finally {
+      registry.stop();
+    }
   }
 
   /**
@@ -497,7 +512,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
       mFileSystem.createFile(new AlluxioURI("/a" + i), op).close();
     }
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     multiEditLogTestUtil();
     deleteFsMasterJournalLogs();
     multiEditLogTestUtil();
@@ -513,6 +528,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     for (int k = 0; k < 124; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
+    registry.stop();
   }
 
   /**
@@ -530,7 +546,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       }
       mFileSystem.rename(new AlluxioURI("/i" + i), new AlluxioURI("/ii" + i));
     }
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
     renameTestUtil();
     deleteFsMasterJournalLogs();
     renameTestUtil();
@@ -549,6 +565,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
             fsMaster.getFileId(new AlluxioURI("/ii" + i + "/jj" + j)) != IdUtils.INVALID_FILE_ID);
       }
     }
+    registry.stop();
   }
 
   @Test
@@ -570,7 +587,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
     URIStatus status = mFileSystem.getStatus(filePath);
 
-    mLocalAlluxioCluster.stopMasters();
+    mLocalAlluxioCluster.stopFS();
 
     aclTestUtil(status, user);
     deleteFsMasterJournalLogs();
@@ -583,6 +600,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     AuthenticatedClientUser.set(user);
     FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"));
     Assert.assertEquals(status, new URIStatus(info.setMountId(status.getMountId())));
+    registry.stop();
   }
 
   private MasterRegistry createFsMasterFromJournal() throws Exception {
@@ -603,7 +621,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
    */
   public static class FakeUserGroupsMapping implements GroupMappingService {
-    // The fully qualified class name of this group mapping service. This is needed to configure
+    // The fullly qualified class name of this group mapping service. This is needed to configure
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
         "alluxio.master.journal.ufs.UfsJournalIntegrationTest$FakeUserGroupsMapping";
