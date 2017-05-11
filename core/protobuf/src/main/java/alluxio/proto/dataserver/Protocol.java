@@ -5197,15 +5197,15 @@ public final class Protocol {
      */
     long getBlockId();
 
-    // optional int64 promote = 3;
+    // optional bool promote = 3;
     /**
-     * <code>optional int64 promote = 3;</code>
+     * <code>optional bool promote = 3;</code>
      */
     boolean hasPromote();
     /**
-     * <code>optional int64 promote = 3;</code>
+     * <code>optional bool promote = 3;</code>
      */
-    long getPromote();
+    boolean getPromote();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenRequest}
@@ -5269,7 +5269,7 @@ public final class Protocol {
             }
             case 24: {
               bitField0_ |= 0x00000002;
-              promote_ = input.readInt64();
+              promote_ = input.readBool();
               break;
             }
           }
@@ -5328,25 +5328,25 @@ public final class Protocol {
       return blockId_;
     }
 
-    // optional int64 promote = 3;
+    // optional bool promote = 3;
     public static final int PROMOTE_FIELD_NUMBER = 3;
-    private long promote_;
+    private boolean promote_;
     /**
-     * <code>optional int64 promote = 3;</code>
+     * <code>optional bool promote = 3;</code>
      */
     public boolean hasPromote() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 promote = 3;</code>
+     * <code>optional bool promote = 3;</code>
      */
-    public long getPromote() {
+    public boolean getPromote() {
       return promote_;
     }
 
     private void initFields() {
       blockId_ = 0L;
-      promote_ = 0L;
+      promote_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -5364,7 +5364,7 @@ public final class Protocol {
         output.writeInt64(1, blockId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt64(3, promote_);
+        output.writeBool(3, promote_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -5381,7 +5381,7 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, promote_);
+          .computeBoolSize(3, promote_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5505,7 +5505,7 @@ public final class Protocol {
         super.clear();
         blockId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
-        promote_ = 0L;
+        promote_ = false;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
@@ -5625,35 +5625,35 @@ public final class Protocol {
         return this;
       }
 
-      // optional int64 promote = 3;
-      private long promote_ ;
+      // optional bool promote = 3;
+      private boolean promote_ ;
       /**
-       * <code>optional int64 promote = 3;</code>
+       * <code>optional bool promote = 3;</code>
        */
       public boolean hasPromote() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 promote = 3;</code>
+       * <code>optional bool promote = 3;</code>
        */
-      public long getPromote() {
+      public boolean getPromote() {
         return promote_;
       }
       /**
-       * <code>optional int64 promote = 3;</code>
+       * <code>optional bool promote = 3;</code>
        */
-      public Builder setPromote(long value) {
+      public Builder setPromote(boolean value) {
         bitField0_ |= 0x00000002;
         promote_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 promote = 3;</code>
+       * <code>optional bool promote = 3;</code>
        */
       public Builder clearPromote() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        promote_ = 0L;
+        promote_ = false;
         onChanged();
         return this;
       }
@@ -8286,7 +8286,7 @@ public final class Protocol {
       ".ReadResponse.Type\"\036\n\004Type\022\026\n\022UFS_READ_H",
       "EARTBEAT\020\001\"\013\n\tHeartbeat\":\n\025LocalBlockOpe" +
       "nRequest\022\020\n\010block_id\030\001 \001(\003\022\017\n\007promote\030\003 " +
-      "\001(\003\"&\n\026LocalBlockOpenResponse\022\014\n\004path\030\001 " +
+      "\001(\010\"&\n\026LocalBlockOpenResponse\022\014\n\004path\030\001 " +
       "\001(\t\"*\n\026LocalBlockCloseRequest\022\020\n\010block_i" +
       "d\030\001 \001(\003\"o\n\027LocalBlockCreateRequest\022\020\n\010bl" +
       "ock_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020space_to_r" +
