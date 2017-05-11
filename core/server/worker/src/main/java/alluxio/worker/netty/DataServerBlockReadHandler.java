@@ -33,7 +33,6 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.codahale.metrics.Counter;
-import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -87,10 +86,10 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
 
     @Override
     public void close() {
-      if (mBlockReader != null)  {
+      if (mBlockReader != null) {
         try {
           mBlockReader.close();
-       } catch (Exception e) {
+        } catch (Exception e) {
           LOG.warn("Failed to close block reader for block {} with error {}.", mId, e.getMessage());
         }
       }
@@ -138,9 +137,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     } else {
       ByteBuf buf = channel.alloc().buffer(len, len);
       try {
-        FileChannel fileChannel = (FileChannel) blockReader.getChannel();
-        Preconditions.checkState(fileChannel.position() == offset);
-        while (buf.writableBytes() > 0 && buf.writeBytes(fileChannel, buf.writableBytes()) != -1) {
+        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
         }
         return new DataNettyBufferV2(buf);
       } catch (Throwable e) {
@@ -207,8 +204,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    if (((BlockReadRequestInternal) mRequest).mBlockReader instanceof
-        UnderFileSystemBlockReader) {
+    if (((BlockReadRequestInternal) mRequest).mBlockReader instanceof UnderFileSystemBlockReader) {
       Metrics.BYTES_READ_UFS.inc(bytesRead);
     } else {
       Metrics.BYTES_READ_REMOTE.inc(bytesRead);

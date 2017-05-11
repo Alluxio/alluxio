@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.network.NettyUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.InputStream;
@@ -88,6 +87,8 @@ public final class StreamFactory {
    * @param blockId the block ID
    * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
+   * @param openUfsBlockOptions the options to open a UFS block, set to null if this is block is
+   *        not persisted in UFS
    * @param options the in stream options
    * @return the {@link InputStream} object
    */

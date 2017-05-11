@@ -12,21 +12,23 @@ enum RequestType {
 }
 
 // The read request.
-// next available id: 9
+// next available id: 7
 message ReadRequest {
-  optional int64 block_id = 2;
-  optional int64 offset = 3;
-  optional int64 length = 4;
+  optional int64 block_id = 1;
+  optional int64 offset = 2;
+  optional int64 length = 3;
   // If set, this request is to cancel the reading request for the id.
-  optional bool cancel = 5;
+  optional bool cancel = 4;
 
   // If set, the server should send packets in the specified packet size.
-  optional int64 packet_size = 9;
+  optional int64 packet_size = 5;
 
   // This is only set for UFS block read.
-  optional OpenUfsBlockOptions open_ufs_block_options = 10;
+  optional OpenUfsBlockOptions open_ufs_block_options = 6;
 }
 
+// Options to open a UFS block.
+// next available id: 7
 message OpenUfsBlockOptions {
   optional string ufsPath = 1;
   // The offset of the block in within the file.
@@ -40,7 +42,7 @@ message OpenUfsBlockOptions {
 }
 
 // The write request.
-// next available id: 13
+// next available id: 12
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -48,17 +50,17 @@ message WriteRequest {
   optional int64 offset = 3;
 
   // This is only applicable for block write.
-  optional int32 tier = 5;
+  optional int32 tier = 4;
 
-  optional bool eof = 6;
-  optional bool cancel = 7;
+  optional bool eof = 5;
+  optional bool cancel = 6;
 
   // The following are only applicable for ufs writes.
-  optional string ufs_path = 8;
-  optional string owner = 9;
-  optional string group = 10;
-  optional int32 mode = 11;
-  optional int64 mount_id = 12;
+  optional string ufs_path = 7;
+  optional string owner = 8;
+  optional string group = 9;
+  optional int32 mode = 10;
+  optional int64 mount_id = 11;
 }
 
 // The response.

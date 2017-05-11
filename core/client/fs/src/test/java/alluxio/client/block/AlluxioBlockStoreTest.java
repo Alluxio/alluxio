@@ -23,7 +23,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoMessage;
-import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
@@ -56,17 +55,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;
-  private static final long LOCK_ID = 44L;
   private static final String WORKER_HOSTNAME_LOCAL = NetworkAddressUtils.getLocalHostName();
   private static final String WORKER_HOSTNAME_REMOTE = "remote";
   private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress()
       .setHost(WORKER_HOSTNAME_LOCAL);
   private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress()
       .setHost(WORKER_HOSTNAME_REMOTE);
-  private static final BlockLocation BLOCK_LOCATION_LOCAL = new BlockLocation()
-      .setWorkerAddress(WORKER_NET_ADDRESS_LOCAL);
-  private static final BlockLocation BLOCK_LOCATION_REMOTE = new BlockLocation()
-      .setWorkerAddress(WORKER_NET_ADDRESS_REMOTE);
 
   /**
    * A mock class used to return controlled result when selecting workers.

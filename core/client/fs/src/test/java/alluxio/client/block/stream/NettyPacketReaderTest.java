@@ -119,7 +119,7 @@ public final class NettyPacketReaderTest {
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, offset, length, false, PACKET_SIZE);
-    validateReadRequestSent(mChannel, 0, 0, true, 0);
+    validateReadRequestSent(mChannel, offset, length, true, PACKET_SIZE);
   }
 
   /**
@@ -139,7 +139,7 @@ public final class NettyPacketReaderTest {
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, false, PACKET_SIZE);
-    validateReadRequestSent(mChannel, 0, 0, true, 0);
+    validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, true, PACKET_SIZE);
   }
 
   /**
