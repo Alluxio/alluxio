@@ -608,7 +608,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         mBlockStore.promote(blockId);
       } catch (Exception e) {
         // Failed to promote.
-        LOG.warn("Promotion of block with ID {} failed.", blockId, e);
+        LOG.warn("Promotion of block with ID {} failed with error {}.", blockId, e.getMessage());
       }
     }
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = null;
