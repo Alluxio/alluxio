@@ -11,12 +11,17 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.exception.status.NotFoundException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.InputStream;
@@ -33,7 +38,7 @@ public final class StreamFactory {
   private StreamFactory() {} // prevent instantiation
 
   /**
-   * Creates an {@link BlockOutStream} that writes to a block on local worker.
+   * Creates an {@link BlockOutStream}.
    *
    * @param context the file system context
    * @param blockId the block ID
@@ -42,42 +47,17 @@ public final class StreamFactory {
    * @param options the out stream options
    * @return the {@link OutputStream} object
    */
-  public static BlockOutStream createShortCircuitBlockOutStream(FileSystemContext context,
+  public static BlockOutStream createBlockOutStream(FileSystemContext context,
       long blockId, long blockSize, WorkerNetAddress address, OutStreamOptions options) {
-    return BlockOutStream
-        .createShortCircuitBlockOutStream(blockId, blockSize, address, context, options);
-  }
-
-  /**
-   * Creates an {@link BlockOutStream} that writes to a worker via netty.
-   *
-   * @param context the file system context
-   * @param blockId the block ID
-   * @param blockSize the block size in bytes
-   * @param address the Alluxio worker address
-   * @param options the out stream options
-   * @return the {@link OutputStream} object
-   */
-  public static BlockOutStream createNettyBlockOutStream(FileSystemContext context, long blockId,
-      long blockSize, WorkerNetAddress address, OutStreamOptions options) {
-    return BlockOutStream
-        .createNettyBlockOutStream(blockId, blockSize, address, context, options);
-  }
-
-  /**
-   * Creates an {@link BlockInStream} that reads from a local block.
-   *
-   * @param context the file system context
-   * @param blockId the block ID
-   * @param blockSize the block size in bytes
-   * @param address the Alluxio worker address
-   * @param options the in stream options
-   * @return the {@link InputStream} object
-   */
-  public static BlockInStream createShortCircuitBlockInStream(FileSystemContext context,
-      long blockId, long blockSize, WorkerNetAddress address, InStreamOptions options) {
-    return BlockInStream
-        .createShortCircuitBlockInStream(blockId, blockSize, address, context, options);
+    if (address.equals(NetworkAddressUtils.getClientHostName()) && Configuration
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
+        .isDomainSocketSupported(address)) {
+      return BlockOutStream
+          .createShortCircuitBlockOutStream(blockId, blockSize, address, context, options);
+    } else {
+      return BlockOutStream
+          .createNettyBlockOutStream(blockId, blockSize, address, context, options);
+    }
   }
 
   /**
@@ -92,9 +72,19 @@ public final class StreamFactory {
    * @param options the in stream options
    * @return the {@link InputStream} object
    */
-  public static BlockInStream createNettyBlockInStream(FileSystemContext context, long blockId,
-      long blockSize, WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
-      InStreamOptions options) {
+  public static BlockInStream createBlockInStream(FileSystemContext context,
+      long blockId, long blockSize, WorkerNetAddress address,
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options) {
+    if (address.equals(NetworkAddressUtils.getClientHostName()) && Configuration
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
+        .isDomainSocketSupported(address)) {
+      try {
+        return BlockInStream
+            .createShortCircuitBlockInStream(blockId, blockSize, address, context, options);
+      } catch (NotFoundException e) {
+        // Ignore.
+      }
+    }
     return BlockInStream
         .createNettyBlockInStream(blockId, blockSize, address, context, openUfsBlockOptions,
             options);

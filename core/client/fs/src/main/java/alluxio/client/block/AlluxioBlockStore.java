@@ -11,8 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -27,7 +25,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
-import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -136,20 +133,16 @@ public final class AlluxioBlockStore {
     if (blockInfo.getLocations().isEmpty() && !openUfsBlockOptions.hasUfsPath()) {
       throw new NotFoundException("Block " + blockId + " is not available in Alluxio");
     }
+    WorkerNetAddress address = null;
     if (blockInfo.getLocations().isEmpty()) {
       BlockLocationPolicy blockLocationPolicy = Preconditions
           .checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-      WorkerNetAddress address = blockLocationPolicy.getWorker(
+      address = blockLocationPolicy.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList()).setBlockId(blockId)
               .setBlockSize(blockInfo.getLength()));
-      return StreamFactory
-          .createNettyBlockInStream(mContext, blockId, blockInfo.getLength(), address,
-              openUfsBlockOptions, options);
     }
 
-    WorkerNetAddress address = null;
-    boolean isLocal = false;
     // TODO(calvin): Get location via a policy.
     // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
     // But when there is no local worker or there are no local blocks, we prefer the first
@@ -161,7 +154,6 @@ public final class AlluxioBlockStore {
       WorkerNetAddress workerNetAddress = location.getWorkerAddress();
       if (workerNetAddress.getHost().equals(mLocalHostName)) {
         address = workerNetAddress;
-        isLocal = true;
         break;
       }
     }
@@ -171,16 +163,9 @@ public final class AlluxioBlockStore {
       List<BlockLocation> locations = blockInfo.getLocations();
       address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
     }
-    if (isLocal && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-        .isDomainSocketSupported(address)) {
-      return StreamFactory
-          .createShortCircuitBlockInStream(mContext, blockId, blockInfo.getLength(), address,
-              options);
-    } else {
-      return StreamFactory
-          .createNettyBlockInStream(mContext, blockId, blockInfo.getLength(), address,
-              openUfsBlockOptions, options);
-    }
+    return StreamFactory
+        .createBlockInStream(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions,
+            options);
   }
 
   /**
@@ -208,15 +193,7 @@ public final class AlluxioBlockStore {
       throw new RuntimeException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
           FormatUtils.getSizeFromBytes(blockSize)));
     }
-    // Location is local.
-    if (mLocalHostName.equals(address.getHost()) && Configuration
-        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-        .isDomainSocketSupported(address)) {
-      return StreamFactory
-          .createShortCircuitBlockOutStream(mContext, blockId, blockSize, address, options);
-    }
-    // Location is specified and it is remote.
-    return StreamFactory.createNettyBlockOutStream(mContext, blockId, blockSize, address, options);
+    return StreamFactory.createBlockOutStream(mContext, blockId, blockSize, address, options);
   }
 
   /**

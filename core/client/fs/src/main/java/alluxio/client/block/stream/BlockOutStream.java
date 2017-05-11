@@ -92,6 +92,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     }
     mClosed = true;
     mOutStream.cancel();
+    mOutStream.close();
   }
 
   @Override

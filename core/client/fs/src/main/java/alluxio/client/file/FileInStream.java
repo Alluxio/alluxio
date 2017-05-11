@@ -605,7 +605,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   private BlockInStream getBlockInStream(long blockId) {
     if (mAlluxioStorageType.isPromote()) {
       try {
-        mBlockStore.promote(blockId);
+        // mBlockStore.promote(blockId);
       } catch (Exception e) {
         // Failed to promote.
         LOG.warn("Promotion of block with ID {} failed.", blockId, e);
