@@ -174,6 +174,15 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
+    // TODO(calvin): Update the locking logic so this can be done better
+    if (request.mPromote) {
+      try {
+        mWorker.moveBlock(request.mSessionId, request.mId, mStorageTierAssoc.getAlias(0));
+      } catch (Exception e) {
+        LOG.warn("Failed to promote block {}: {}", request.mId, e.getMessage());
+      }
+    }
+
     do {
       long lockId;
       if (request.isPersisted()) {
@@ -183,9 +192,6 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       }
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
-          if (request.mPromote) {
-            mWorker.moveBlock(request.mSessionId, request.mId, mStorageTierAssoc.getAlias(0));
-          }
           request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
           mWorker.accessBlock(request.mSessionId, request.mId);
           ((FileChannel) request.mBlockReader.getChannel()).position(request.mStart);
