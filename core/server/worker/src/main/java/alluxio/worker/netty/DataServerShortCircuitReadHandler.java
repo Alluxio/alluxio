@@ -99,7 +99,10 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
     ctx.fireChannelUnregistered();
   }
 
-  class BlockOpenRequestHandler implements Runnable {
+  /**
+   * Runnable for handling the expensive open block call logic.
+   */
+  final class BlockOpenRequestHandler implements Runnable {
     Protocol.LocalBlockOpenRequest mRequest;
     ChannelHandlerContext mContext;
 
