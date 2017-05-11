@@ -32,10 +32,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class UfsAbsentPathAsyncCache extends UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathAsyncCache.class);
-  /** Number of threads for the async pool.  */
-  private static final int UFS_ABSENT_PATH_CACHE_THREADS = 50;
+  /** Number of threads for the async pool. */
+  private static final int NUM_THREADS = 50;
+  /** Number of seconds to keep threads alive. */
+  private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
 
-  /** A set of paths currently being processed. This is used to prevent duplicate processing.  */
+  /** A set of paths currently being processed. This is used to prevent duplicate processing. */
   private final ConcurrentHashSet<String> mCurrentPaths;
 
   /** A thread pool for the async tasks. */
@@ -50,8 +52,8 @@ public final class UfsAbsentPathAsyncCache extends UfsAbsentPathCache {
     super(mountTable);
     mCurrentPaths = new ConcurrentHashSet<>(8, 0.95f, 8);
 
-    mPool = new ThreadPoolExecutor(UFS_ABSENT_PATH_CACHE_THREADS, UFS_ABSENT_PATH_CACHE_THREADS, 1,
-        TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(),
+    mPool = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, THREAD_KEEP_ALIVE_SECONDS,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
   }
 
