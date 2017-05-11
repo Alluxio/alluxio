@@ -1249,11 +1249,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Helper class for deleting persisted entries from the UFS.
    */
   protected class UfsDeleter {
-    private AlluxioURI mRootPath;
+    private final AlluxioURI mRootPath;
     private UfsSyncChecker mUfsSyncChecker;
 
     /**
-     * Create a new instance of {@link UfsDeleter}.
+     * Creates a new instance of {@link UfsDeleter}.
      *
      * @param inodes sub-tree being deleted (any node should appear before descendants)
      * @param deleteOptions delete options
@@ -1276,7 +1276,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     /**
-     * Delete path if not covered by a recursive delete.
+     * Deletes a path if not covered by a recursive delete.
      *
      * @param alluxioUri Alluxio path to delete
      * @param inode to delete
