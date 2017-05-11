@@ -173,13 +173,6 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
     for (PacketWriter packetWriter : mPacketWriters) {
       packetWriter.flush();
     }
-
-    // Release the channel used in the packet writer early. This is required to avoid holding the
-    // netty channel unnecessarily because the block out streams are closed after all the blocks
-    // are written.
-    if (remaining() == 0) {
-      close();
-    }
   }
 
   @Override

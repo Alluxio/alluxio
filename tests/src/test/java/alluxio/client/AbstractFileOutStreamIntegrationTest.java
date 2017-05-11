@@ -40,11 +40,13 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected static final int MAX_LEN = 255;
   protected static final int DELTA = 32;
   protected static final int BUFFER_BYTES = 100;
+  protected static final int BLOCK_SIZE_BYTES = 1000;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .build();
 
   protected FileSystem mFileSystem = null;
