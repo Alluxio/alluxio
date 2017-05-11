@@ -820,7 +820,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return ufs.isDirectory(ufsPath);
     } else {
       InodeFile file = (InodeFile) inode;
-      return ufs.isFile(ufsPath) && ufs.getFileSize(ufsPath) == file.getLength();
+      return ufs.isFile(ufsPath)
+          && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
     }
   }
 
@@ -1168,19 +1169,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     List<Pair<AlluxioURI, Inode<?>>> delInodes = new LinkedList<>();
-    // Persisted directories which can safely be deleted recursively from the UFS
-    // Mount points are not deleted recursively as we need to preserve the directory itself
-    Map<AlluxioURI, Inode<?>> safeRecursiveUFSDeletes = new HashMap<>();
 
     Pair<AlluxioURI, Inode<?>> inodePair =
         new Pair<AlluxioURI, Inode<?>>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
-    UfsSyncChecker ufsChecker = new UfsSyncChecker(mMountTable);
+    UfsSyncChecker ufsSyncChecker = new UfsSyncChecker(mMountTable, deleteOptions.isUnchecked());
+    // Mount points are not deleted recursively as we need to preserve the directory itself
     if (inode.isPersisted() && !replayed && inode.isDirectory()
-        && !mMountTable.isMountPoint(inodePath.getUri())
-        && (deleteOptions.isUnchecked() || ufsChecker
-            .isUFSDeleteSafe((InodeDirectory) inodePath.getInode(), inodePath.getUri()))) {
-      safeRecursiveUFSDeletes.put(inodePath.getUri(), inode);
+        && !mMountTable.isMountPoint(inodePath.getUri())) {
+      ufsSyncChecker.checkDirectory((InodeDirectory) inodePath.getInode(), inodePath.getUri());
     }
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
@@ -1192,19 +1189,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         delInodes.add(descendantPair);
         if (descendant.isPersisted() && !replayed && descendant.isDirectory()
             && !mMountTable.isMountPoint(descendantPath)) {
-          if (deleteOptions.isUnchecked()
-              || ufsChecker.isUFSDeleteSafe((InodeDirectory) descendant, descendantPath)) {
-            // Directory is a candidate for recursive deletes
-            safeRecursiveUFSDeletes.put(descendantPath, descendant);
-          } else {
-            // Invalidate ancestor directories if not a mount point
-            AlluxioURI currentPath = descendantPath;
-            while (currentPath.getParent() != null && !mMountTable.isMountPoint(currentPath)
-                && safeRecursiveUFSDeletes.containsKey(currentPath.getParent())) {
-              safeRecursiveUFSDeletes.remove(currentPath.getParent());
-              currentPath = currentPath.getParent();
-            }
-          }
+          ufsSyncChecker.checkDirectory((InodeDirectory) descendant, descendantPath);
         }
       }
 
@@ -1240,7 +1225,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
               AlluxioURI parentUri = alluxioUriToDel.getParent();
-              if (!safeRecursiveUFSDeletes.containsKey(parentUri)) {
+              if (!ufsSyncChecker.isDirectoryInSync(parentUri)) {
                 // Parent will not recursively delete, so delete this inode individually
                 if (delInode.isFile()) {
                   if (!ufs.deleteFile(ufsUri)) {
@@ -1250,7 +1235,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                     }
                   }
                 } else {
-                  if (safeRecursiveUFSDeletes.containsKey(alluxioUriToDel)) {
+                  if (ufsSyncChecker.isDirectoryInSync(alluxioUriToDel)) {
                     if (!ufs.deleteDirectory(ufsUri,
                         alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
                       // TODO(adit): handle partial failures of recursive deletes
@@ -2056,16 +2041,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
         if (options.isLoadDirectChildren()) {
           UnderFileStatus[] files = ufs.listStatus(ufsUri.toString());
-          for (UnderFileStatus file : files) {
-            if (PathUtils.isTemporaryFileName(file.getName())
-                || inode.getChild(file.getName()) != null) {
+          for (UnderFileStatus status : files) {
+            if (PathUtils.isTemporaryFileName(status.getName())
+                || inode.getChild(status.getName()) != null) {
               continue;
             }
             TempInodePathForChild tempInodePath =
-                new TempInodePathForChild(inodePath, file.getName());
+                new TempInodePathForChild(inodePath, status.getName());
             LoadMetadataOptions loadMetadataOptions =
                 LoadMetadataOptions.defaults().setLoadDirectChildren(false)
-                    .setCreateAncestors(false).setUnderFileStatus(file);
+                    .setCreateAncestors(false).setUnderFileStatus(status);
             loadMetadataAndJournal(tempInodePath, loadMetadataOptions, journalContext);
           }
           inode.setDirectChildrenLoaded(true);
@@ -2102,14 +2087,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem ufs = resolution.getUfs();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-    long ufsLength = ufs.getFileSize(ufsUri.toString());
+    UnderFileStatus ufsStatus = options.getUnderFileStatus();
+    if (ufsStatus == null) {
+      ufsStatus = ufs.getFileStatus(ufsUri.toString());
+    }
+    long ufsLength = ufsStatus.getContentLength();
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
-    String ufsOwner = ufs.getOwner(ufsUri.toString());
-    String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsMode = ufs.getMode(ufsUri.toString());
+    String ufsOwner = ufsStatus.getOwner();
+    String ufsGroup = ufsStatus.getGroup();
+    short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
@@ -2152,11 +2141,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         .setMountPoint(mMountTable.isMountPoint(inodePath.getUri())).setPersisted(true)
         .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setAllowExists(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
-    String ufsOwner = ufs.getOwner(ufsUri.toString());
-    String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsMode = ufs.getMode(ufsUri.toString());
+    UnderFileStatus ufsStatus = options.getUnderFileStatus();
+    if (ufsStatus == null) {
+      AlluxioURI ufsUri = resolution.getUri();
+      UnderFileSystem ufs = resolution.getUfs();
+      ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
+    }
+    String ufsOwner = ufsStatus.getOwner();
+    String ufsGroup = ufsStatus.getGroup();
+    short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));

@@ -221,6 +221,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public UnderFileStatus getDirectoryStatus(final String path) throws IOException {
+    return call(new UfsCallable<UnderFileStatus>() {
+      @Override
+      public UnderFileStatus call() throws IOException {
+        return mUnderFileSystem.getDirectoryStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetDirectoryStatus: path=%s", path);
+      }
+    });
+  }
+
+  @Override
   public List<String> getFileLocations(final String path) throws IOException {
     return call(new UfsCallable<List<String>>() {
       @Override
@@ -252,76 +267,16 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public long getFileSize(final String path) throws IOException {
-    return call(new UfsCallable<Long>() {
+  public UnderFileStatus getFileStatus(final String path) throws IOException {
+    return call(new UfsCallable<UnderFileStatus>() {
       @Override
-      public Long call() throws IOException {
-        return mUnderFileSystem.getFileSize(path);
+      public UnderFileStatus call() throws IOException {
+        return mUnderFileSystem.getFileStatus(path);
       }
 
       @Override
       public String toString() {
-        return String.format("GetFileSize: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public String getGroup(final String path) throws IOException {
-    return call(new UfsCallable<String>() {
-      @Override
-      public String call() throws IOException {
-        return mUnderFileSystem.getGroup(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetGroup: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public short getMode(final String path) throws IOException {
-    return call(new UfsCallable<Short>() {
-      @Override
-      public Short call() throws IOException {
-        return mUnderFileSystem.getMode(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetMode: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public long getModificationTimeMs(final String path) throws IOException {
-    return call(new UfsCallable<Long>() {
-      @Override
-      public Long call() throws IOException {
-        return mUnderFileSystem.getModificationTimeMs(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetModificationTimeMs: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public String getOwner(final String path) throws IOException {
-    return call(new UfsCallable<String>() {
-      @Override
-      public String call() throws IOException {
-        return mUnderFileSystem.getOwner(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetOwner: path=%s", path);
+        return String.format("GetFileStatus: path=%s", path);
       }
     });
   }

@@ -197,24 +197,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // Returns the account owner.
-  @Override
-  public String getOwner(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // No group in Swift ACL, returns the account owner.
-  @Override
-  public String getGroup(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the Swift container.
-  @Override
-  public short getMode(String path) throws IOException {
-    return mAccountMode;
-  }
-
   @Override
   protected boolean copyObject(String source, String destination) {
     LOG.debug("copy from {} to {}", source, destination);
@@ -276,6 +258,24 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     return false;
   }
 
+  // Returns the account owner.
+  @Override
+  protected String getBucketOwner() {
+    return mAccountOwner;
+  }
+
+  // No group in Swift ACL, returns the account owner.
+  @Override
+  protected String getBucketGroup() {
+    return mAccountOwner;
+  }
+
+  // Returns the account owner's permission mode to the Swift container.
+  @Override
+  protected short getBucketMode() {
+    return mAccountMode;
+  }
+
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -310,7 +310,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public String[] getObjectNames() {
+    public ObjectStatus[] getObjectStatuses() {
       ArrayDeque<DirectoryOrObject> objects = new ArrayDeque<>();
       Container container = mAccount.getContainer(mContainerName);
       if (!mRecursive) {
@@ -320,9 +320,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
         objects.addAll(container.list(mPaginationMap, mPage));
       }
       int i = 0;
-      String[] res = new String[objects.size()];
+      ObjectStatus[] res = new ObjectStatus[objects.size()];
       for (DirectoryOrObject object : objects) {
-        res[i++] = object.getName();
+        res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getContentLength(),
+            object.getAsObject().getLastModifiedAsDate().getTime());
       }
       return res;
     }
@@ -349,7 +350,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     Container container = mAccount.getContainer(mContainerName);
     StoredObject meta = container.getObject(key);
     if (meta != null && meta.exists()) {
-      return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedAsDate().getTime());
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModifiedAsDate().getTime());
     }
     return null;
   }

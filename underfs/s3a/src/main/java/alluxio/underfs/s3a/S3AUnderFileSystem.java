@@ -251,24 +251,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // Returns the account owner.
-  @Override
-  public String getOwner(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // No group in S3 ACL, returns the account owner.
-  @Override
-  public String getGroup(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the S3 bucket.
-  @Override
-  public short getMode(String path) throws IOException {
-    return mBucketMode;
-  }
-
   @Override
   protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
@@ -349,6 +331,24 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
+  // Returns the account owner.
+  @Override
+  protected String getBucketOwner() {
+    return mAccountOwner;
+  }
+
+  // No group in S3 ACL, returns the account owner.
+  @Override
+  protected String getBucketGroup() {
+    return mAccountOwner;
+  }
+
+  // Returns the account owner's permission mode to the S3 bucket.
+  @Override
+  protected short getBucketMode() {
+    return mBucketMode;
+  }
+
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -403,12 +403,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public String[] getObjectNames() {
+    public ObjectStatus[] getObjectStatuses() {
       List<S3ObjectSummary> objects = mResult.getObjectSummaries();
-      String[] ret = new String[objects.size()];
+      ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i++] = obj.getKey();
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -438,7 +438,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(meta.getContentLength(), meta.getLastModified().getTime());
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
     } catch (AmazonClientException e) {
       return null;
     }

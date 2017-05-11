@@ -90,28 +90,27 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     // Each element is a pair of (full path, UnderFileStatus)
     Queue<Pair<String, UnderFileStatus>> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
-    UnderFileStatus[] subpaths = listStatus(path);
-    if (subpaths == null) {
+    UnderFileStatus[] statuses = listStatus(path);
+    if (statuses == null) {
       return null;
     } else {
-      for (UnderFileStatus subp : subpaths) {
-        pathsToProcess.add(new Pair<>(PathUtils.concatPath(path, subp.getName()), subp));
+      for (UnderFileStatus status : statuses) {
+        pathsToProcess.add(new Pair<>(PathUtils.concatPath(path, status.getName()), status));
       }
     }
     while (!pathsToProcess.isEmpty()) {
       final Pair<String, UnderFileStatus> pathToProcessPair = pathsToProcess.remove();
       final String pathToProcess = pathToProcessPair.getFirst();
-      final UnderFileStatus pathStatus = pathToProcessPair.getSecond();
-      returnPaths.add(new UnderFileStatus(pathToProcess.substring(path.length() + 1),
-          pathStatus.isDirectory()));
+      UnderFileStatus pathStatus = pathToProcessPair.getSecond();
+      returnPaths.add(pathStatus.setName(pathToProcess.substring(path.length() + 1)));
 
       if (pathStatus.isDirectory()) {
         // Add all of its subpaths
-        subpaths = listStatus(pathToProcess);
-        if (subpaths != null) {
-          for (UnderFileStatus subp : subpaths) {
-            pathsToProcess
-                .add(new Pair<>(PathUtils.concatPath(pathToProcess, subp.getName()), subp));
+        UnderFileStatus[] subStatuses = listStatus(pathToProcess);
+        if (subStatuses != null) {
+          for (UnderFileStatus subStatus : subStatuses) {
+            pathsToProcess.add(
+                new Pair<>(PathUtils.concatPath(pathToProcess, subStatus.getName()), subStatus));
           }
         }
       }
