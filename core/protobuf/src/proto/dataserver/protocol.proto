@@ -11,14 +11,23 @@ enum RequestType {
   UFS_FILE = 1;
 }
 
+// The read type.
+enum ReadType {
+  NO_CACHE = 0;
+  CACHE = 1;
+  CACHE_PROMOTE = 2;
+}
+
 // The read request.
-// next available id: 7
+// next available id: 8
 message ReadRequest {
   optional int64 block_id = 1;
   optional int64 offset = 2;
   optional int64 length = 3;
   // If set, this request is to cancel the reading request for the id.
   optional bool cancel = 4;
+  // The read type associated with this request
+  optional ReadType read_type = 7;
 
   // If set, the server should send packets in the specified packet size.
   optional int64 packet_size = 5;
