@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -41,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
-public final class FreeAndDeleteIntegrationTest {
+public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
   @ClassRule

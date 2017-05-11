@@ -12,7 +12,9 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.master.MockMaster;
 import alluxio.master.journal.JournalCheckpointThread;
 import alluxio.master.journal.JournalWriter;
@@ -39,7 +41,7 @@ import java.util.Iterator;
 /**
  * Unit tests for {@link alluxio.master.journal.JournalCheckpointThread}.
  */
-public final class JournalCheckpointThreadTest {
+public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -56,7 +58,7 @@ public final class JournalCheckpointThreadTest {
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

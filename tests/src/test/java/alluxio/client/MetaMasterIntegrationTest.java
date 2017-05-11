@@ -14,6 +14,7 @@ package alluxio.client;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
@@ -26,7 +27,7 @@ import java.util.HashSet;
 /**
  * Integration tests for the meta master.
  */
-public final class MetaMasterIntegrationTest {
+public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder().build();
 

@@ -17,6 +17,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -48,7 +49,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-public final class UnderStorageSystemInterfaceIntegrationTest {
+public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   @Rule

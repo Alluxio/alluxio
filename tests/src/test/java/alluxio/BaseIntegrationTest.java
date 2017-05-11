@@ -11,20 +11,13 @@
 
 package alluxio;
 
+import org.junit.Rule;
+import org.junit.rules.Timeout;
+
 /**
- * Utility methods for the configuration tests.
+ * Base class used for specifying the maximum time a test should run for.
  */
-public final class ConfigurationTestUtils {
-
-  /**
-   * Resets the configuration to its initial state.
-   *
-   * This method should only be used as a cleanup mechanism between tests. It should not be used
-   * while any object may be using the {@link Configuration}.
-   */
-  public static void resetConfiguration() {
-    Configuration.init();
-  }
-
-  private ConfigurationTestUtils() {} // prevent instantiation
+public abstract class BaseIntegrationTest {
+  @Rule
+  public Timeout mGlobalTimeout = Timeout.seconds(600);
 }

@@ -88,6 +88,8 @@ public abstract class AbstractLocalAlluxioCluster {
 
     setupTest();
     startMasters();
+    // Reset the file system context to make sure the correct master RPC port is used.
+    FileSystemContext.INSTANCE.reset();
     startWorkers();
     startProxy();
 

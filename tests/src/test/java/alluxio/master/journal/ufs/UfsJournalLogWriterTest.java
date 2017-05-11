@@ -12,7 +12,9 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal;
@@ -32,7 +34,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournalLogWriter}.
  */
-public final class UfsJournalLogWriterTest {
+public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -49,7 +51,7 @@ public final class UfsJournalLogWriterTest {
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

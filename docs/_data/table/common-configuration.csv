@@ -7,6 +7,7 @@ alluxio.keyvalue.enabled,false
 alluxio.keyvalue.partition.size.bytes.max,512MB
 alluxio.metrics.conf.file,${alluxio.conf.dir}/metrics.properties
 alluxio.network.host.resolution.&#8203;timeout.ms,5000
+alluxio.network.netty.heartbeat.&#8203;timeout.ms,30000
 alluxio.network.thrift.frame.&#8203;size.bytes.max,16MB
 alluxio.site.conf.dir,"${user.home}/.alluxio/,/etc/alluxio/"
 alluxio.test.mode,false
@@ -19,6 +20,7 @@ alluxio.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
 alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///,maprfs:///"
 alluxio.underfs.hdfs.remote,false
 alluxio.underfs.listing.length,1000
+alluxio.underfs.object.store.service.threads,20
 alluxio.underfs.object.store.mount.shared.publicly,false
 alluxio.underfs.s3.owner.id.to.username.mapping,No default
 alluxio.underfs.s3.endpoint,No default

@@ -12,8 +12,10 @@
 package alluxio.hadoop;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,13 +28,17 @@ public final class HadoopConfigurationUtilsTest {
   private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
   private static final String TEST_ALLUXIO_VALUE = "alluxio.unsupported.value";
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   /**
    * Test for the {@link HadoopConfigurationUtils#mergeHadoopConfiguration} method for an empty
    * configuration.
    */
   @Test
   public void mergeEmptyHadoopConfiguration() {
-    Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
 
     long beforeSize = Configuration.toMap().size();
@@ -46,7 +52,6 @@ public final class HadoopConfigurationUtilsTest {
    */
   @Test
   public void mergeHadoopConfiguration() {
-    Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     hadoopConfig.set(PropertyKey.S3N_ACCESS_KEY.toString(), TEST_S3_ACCCES_KEY);
     hadoopConfig.set(PropertyKey.S3N_SECRET_KEY.toString(), TEST_S3_SECRET_KEY);

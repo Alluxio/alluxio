@@ -35,6 +35,8 @@ import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -43,6 +45,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
+import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +54,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -322,6 +326,27 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
+    try {
+      List<DeleteObjectsRequest.KeyVersion> keysToDelete = new LinkedList<>();
+      for (String key : keys) {
+        keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
+      }
+      DeleteObjectsResult deletedObjectsResult =
+          mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
+      List<String> deletedObjects = new LinkedList<>();
+      for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
+          .getDeletedObjects()) {
+        deletedObjects.add(deletedObject.getKey());
+      }
+      return deletedObjects;
+    } catch (AmazonClientException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override

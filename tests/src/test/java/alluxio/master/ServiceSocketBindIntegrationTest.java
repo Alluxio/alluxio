@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
@@ -34,7 +35,7 @@ import java.nio.channels.SocketChannel;
 /**
  * Simple integration tests for the bind configuration options.
  */
-public class ServiceSocketBindIntegrationTest {
+public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setStartCluster(false).build();

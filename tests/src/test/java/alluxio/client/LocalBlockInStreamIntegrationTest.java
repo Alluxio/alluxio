@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * Integration tests for {@link alluxio.client.block.LocalBlockInStream}.
  */
-public final class LocalBlockInStreamIntegrationTest {
+public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;

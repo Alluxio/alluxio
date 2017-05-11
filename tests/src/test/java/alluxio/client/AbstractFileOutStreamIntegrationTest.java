@@ -14,6 +14,7 @@ package alluxio.client;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -34,7 +35,7 @@ import java.io.InputStream;
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
  */
-public abstract class AbstractFileOutStreamIntegrationTest {
+public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrationTest {
   protected static final int MIN_LEN = 0;
   protected static final int MAX_LEN = 255;
   protected static final int DELTA = 32;
