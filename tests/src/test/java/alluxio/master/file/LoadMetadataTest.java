@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -26,6 +27,7 @@ import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Function;
@@ -45,7 +47,7 @@ import java.io.FileWriter;
 /**
  * Tests the loading of metadata and the available options.
  */
-public class LoadMetadataTest {
+public class LoadMetadataTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
   private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
 
@@ -244,7 +246,7 @@ public class LoadMetadataTest {
               }
               return false;
             }
-          });
+          }, WaitForOptions.defaults().setTimeout(60000));
     }
   }
 }

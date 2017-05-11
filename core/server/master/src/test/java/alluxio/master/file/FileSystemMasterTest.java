@@ -666,12 +666,11 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.listStatus(uri,
           ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
-      Assert.fail("listStatus() with load metadata NEVER should throw exception.");
+      Assert.fail("Exception expected");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
 
-    // 3 directories exist. No additional directories.
     Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
   }
 
