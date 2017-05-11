@@ -71,6 +71,8 @@ public final class NettyPacketReader implements PacketReader {
 
   /** Special packet that indicates an exception is caught. */
   private static final ByteBuf THROWABLE = Unpooled.buffer(0);
+  /** Special packet that indicates this is a UFS read heartbeat sent by the server. */
+  private static final ByteBuf UFS_READ_HEARTBEAT = Unpooled.buffer(0);
   /** Special packet that indicates the EOF is reached or the stream is cancelled. */
   private static final ByteBuf EOF_OR_CANCELLED = Unpooled.buffer(0);
 
@@ -134,35 +136,28 @@ public final class NettyPacketReader implements PacketReader {
   @Override
   public DataBuffer readPacket() {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
-    ByteBuf buf;
-
     // TODO(peis): Have a better criteria to resume so that we can have fewer state changes.
     if (!tooManyPacketsPending()) {
       NettyUtils.enableAutoRead(mChannel);
     }
-    while (true) {
-      try {
-        buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+    ByteBuf buf;
+    try {
+      while ((buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) == UFS_READ_HEARTBEAT) {
       }
-      if (buf == null) {
-        throw new DeadlineExceededException(String
-            .format("Timeout to read %d from %s.", mReadRequest.getBlockId(), mChannel.toString()));
-      }
-      if (buf == THROWABLE) {
-        Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
-        throw CommonUtils.propagate(mPacketReaderException);
-      }
-      if (buf == EOF_OR_CANCELLED) {
-        mDone = true;
-        return null;
-      }
-      if (buf.readableBytes() > 0) {
-        // Something useful is read. An empty packet can be read while the server is polling
-        // on acquiring access to a UFS block.
-        break;
-      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    if (buf == null) {
+      throw new DeadlineExceededException(String
+          .format("Timeout to read %d from %s.", mReadRequest.getBlockId(), mChannel.toString()));
+    }
+    if (buf == THROWABLE) {
+      Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
+      throw CommonUtils.propagate(mPacketReaderException);
+    }
+    if (buf == EOF_OR_CANCELLED) {
+      mDone = true;
+      return null;
     }
     mPosToRead += buf.readableBytes();
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
@@ -248,25 +243,35 @@ public final class NettyPacketReader implements PacketReader {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
       // Precondition check is not used here to avoid calling msg.getClass().getCanonicalName()
       // all the time.
-      if (!acceptMessage(msg)) {
+      if (!(msg instanceof RPCProtoMessage)) {
         throw new IllegalStateException(String
             .format("Incorrect response type %s, %s.", msg.getClass().getCanonicalName(), msg));
       }
 
-      RPCProtoMessage response = (RPCProtoMessage) msg;
-      // Canceled is considered a valid status and handled in the reader. We avoid creating a
-      // CanceledException as an optimization.
-      if (response.getMessage().asResponse().getStatus() != PStatus.CANCELED) {
-        CommonUtils.unwrapResponse(response.getMessage().asResponse());
-      }
-
-      DataBuffer dataBuffer = response.getPayloadDataBuffer();
       ByteBuf buf;
-      if (dataBuffer == null) {
-        buf = EOF_OR_CANCELLED;
+      RPCProtoMessage response = (RPCProtoMessage) msg;
+      ProtoMessage message = response.getMessage();
+      if (message.isReadResponse()) {
+        Preconditions.checkState(message.asReadResponse().getType() == Protocol.ReadResponse
+          .Type.UFS_READ_HEARTBEAT);
+        buf = UFS_READ_HEARTBEAT;
+      } else if (message.isResponse()) {
+        // Canceled is considered a valid status and handled in the reader. We avoid creating a
+        // CanceledException as an optimization.
+        if (message.asResponse().getStatus() != PStatus.CANCELED) {
+          CommonUtils.unwrapResponse(response.getMessage().asResponse());
+        }
+
+        DataBuffer dataBuffer = response.getPayloadDataBuffer();
+        if (dataBuffer == null) {
+          buf = EOF_OR_CANCELLED;
+        } else {
+          Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf);
+          buf = (ByteBuf) dataBuffer.getNettyOutput();
+        }
       } else {
-        Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf);
-        buf = (ByteBuf) dataBuffer.getNettyOutput();
+        throw new IllegalStateException(
+            String.format("Incorrect response type %s.", message.toString()));
       }
 
       if (tooManyPacketsPending()) {
@@ -304,17 +309,6 @@ public final class NettyPacketReader implements PacketReader {
         mPackets.offer(THROWABLE);
       }
       ctx.fireChannelUnregistered();
-    }
-
-    /**
-     * @param msg the message received
-     * @return true if this message should be processed
-     */
-    private boolean acceptMessage(Object msg) {
-      if (msg instanceof RPCProtoMessage) {
-        return ((RPCProtoMessage) msg).getMessage().isResponse();
-      }
-      return false;
     }
   }
 

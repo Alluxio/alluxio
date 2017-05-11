@@ -21,6 +21,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
@@ -234,6 +235,13 @@ public final class NettyPacketReaderTest {
    */
   private Future<Long> sendReadResponses(final EmbeddedChannel channel, final long length,
       final long start, final long end) {
+    ProtoMessage heartbeat = new ProtoMessage(
+        Protocol.ReadResponse.newBuilder().setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT)
+            .build());
+    // Send some heartbeats first.
+    for (int i = 0; i < 3; ++i) {
+      channel.writeInbound(new RPCProtoMessage(heartbeat));
+    }
     return EXECUTOR.submit(new Callable<Long>() {
       @Override
       public Long call() {

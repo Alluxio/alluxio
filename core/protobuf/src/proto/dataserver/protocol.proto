@@ -70,6 +70,17 @@ message Response {
   optional string message = 2;
 }
 
+// The read response.
+// next available id: 3
+message ReadResponse {
+  enum Type {
+    // A heatbeat message indicates that the server is still actively acquiring access to a UFS file.
+    // This is to avoid timing out in the client.
+    UFS_READ_HEARTBEAT = 1;
+  }
+  optional Type type = 1;
+}
+
 // A heartbeat
 message Heartbeat {
   // Empty message

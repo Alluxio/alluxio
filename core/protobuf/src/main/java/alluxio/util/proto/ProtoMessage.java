@@ -50,9 +50,16 @@ public final class ProtoMessage {
   }
 
   /**
-   * @param response  the response
+   * @param response the response
    */
   public ProtoMessage(Protocol.Response response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param response the read response
+   */
+  public ProtoMessage(Protocol.ReadResponse response) {
     mMessage = response;
   }
 
@@ -157,6 +164,24 @@ public final class ProtoMessage {
    */
   public boolean isResponse() {
     return mMessage instanceof Protocol.Response;
+  }
+
+  /**
+   * Gets the read response or throws runtime exception if mMessage is not of type
+   * {@link Protocol.ReadResponse}.
+   *
+   * @return the read response
+   */
+  public Protocol.ReadResponse asReadResponse() {
+    Preconditions.checkState(mMessage instanceof Protocol.ReadResponse);
+    return (Protocol.ReadResponse) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.ReadResponse}
+   */
+  public boolean isReadResponse() {
+    return mMessage instanceof Protocol.ReadResponse;
   }
 
   /**
@@ -286,5 +311,10 @@ public final class ProtoMessage {
     } catch (InvalidProtocolBufferException e) {
       throw new IllegalArgumentException(e);
     }
+  }
+
+  @Override
+  public String toString() {
+    return mMessage.toString();
   }
 }

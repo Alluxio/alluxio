@@ -26,6 +26,7 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
@@ -198,10 +199,12 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
         }
       }
 
+      ProtoMessage heartbeat = new ProtoMessage(
+          Protocol.ReadResponse.newBuilder().setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT)
+              .build());
       // Sends an empty buffer to the client to make sure that the client does not timeout when
       // the server is waiting for the UFS block access.
-      channel.writeAndFlush(
-          RPCProtoMessage.createOkResponse(new DataNettyBufferV2(channel.alloc().buffer(0, 0))));
+      channel.writeAndFlush(new RPCProtoMessage(heartbeat));
     } while (retryPolicy.attemptRetry());
     throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
         .getMessage(request.mId, request.mOpenUfsBlockOptions.getUfsPath()));

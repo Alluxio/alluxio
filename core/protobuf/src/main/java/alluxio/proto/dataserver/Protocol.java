@@ -4256,6 +4256,504 @@ public final class Protocol {
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.Response)
   }
 
+  public interface ReadResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;
+    /**
+     * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+     */
+    boolean hasType();
+    /**
+     * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+     */
+    alluxio.proto.dataserver.Protocol.ReadResponse.Type getType();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.ReadResponse}
+   *
+   * <pre>
+   * The read response.
+   * next available id: 3
+   * </pre>
+   */
+  public static final class ReadResponse extends
+      com.google.protobuf.GeneratedMessage
+      implements ReadResponseOrBuilder {
+    // Use ReadResponse.newBuilder() to construct.
+    private ReadResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private ReadResponse(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final ReadResponse defaultInstance;
+    public static ReadResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public ReadResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ReadResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+              alluxio.proto.dataserver.Protocol.ReadResponse.Type value = alluxio.proto.dataserver.Protocol.ReadResponse.Type.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(1, rawValue);
+              } else {
+                bitField0_ |= 0x00000001;
+                type_ = value;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_ReadResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_ReadResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.ReadResponse.class, alluxio.proto.dataserver.Protocol.ReadResponse.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<ReadResponse> PARSER =
+        new com.google.protobuf.AbstractParser<ReadResponse>() {
+      public ReadResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new ReadResponse(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ReadResponse> getParserForType() {
+      return PARSER;
+    }
+
+    /**
+     * Protobuf enum {@code alluxio.proto.dataserver.ReadResponse.Type}
+     */
+    public enum Type
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>UFS_READ_HEARTBEAT = 1;</code>
+       *
+       * <pre>
+       * A heatbeat message indicates that the server is still actively acquiring access to a UFS file.
+       * This is to avoid timing out in the client.
+       * </pre>
+       */
+      UFS_READ_HEARTBEAT(0, 1),
+      ;
+
+      /**
+       * <code>UFS_READ_HEARTBEAT = 1;</code>
+       *
+       * <pre>
+       * A heatbeat message indicates that the server is still actively acquiring access to a UFS file.
+       * This is to avoid timing out in the client.
+       * </pre>
+       */
+      public static final int UFS_READ_HEARTBEAT_VALUE = 1;
+
+
+      public final int getNumber() { return value; }
+
+      public static Type valueOf(int value) {
+        switch (value) {
+          case 1: return UFS_READ_HEARTBEAT;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<Type>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<Type>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<Type>() {
+              public Type findValueByNumber(int number) {
+                return Type.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.ReadResponse.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final Type[] VALUES = values();
+
+      public static Type valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private Type(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:alluxio.proto.dataserver.ReadResponse.Type)
+    }
+
+    private int bitField0_;
+    // optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;
+    public static final int TYPE_FIELD_NUMBER = 1;
+    private alluxio.proto.dataserver.Protocol.ReadResponse.Type type_;
+    /**
+     * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+     */
+    public boolean hasType() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+     */
+    public alluxio.proto.dataserver.Protocol.ReadResponse.Type getType() {
+      return type_;
+    }
+
+    private void initFields() {
+      type_ = alluxio.proto.dataserver.Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeEnum(1, type_.getNumber());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, type_.getNumber());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.ReadResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.ReadResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.ReadResponse}
+     *
+     * <pre>
+     * The read response.
+     * next available id: 3
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.ReadResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_ReadResponse_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_ReadResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.ReadResponse.class, alluxio.proto.dataserver.Protocol.ReadResponse.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.ReadResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        type_ = alluxio.proto.dataserver.Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_ReadResponse_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.ReadResponse getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.ReadResponse.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.ReadResponse build() {
+        alluxio.proto.dataserver.Protocol.ReadResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.ReadResponse buildPartial() {
+        alluxio.proto.dataserver.Protocol.ReadResponse result = new alluxio.proto.dataserver.Protocol.ReadResponse(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.type_ = type_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.ReadResponse) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.ReadResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.ReadResponse other) {
+        if (other == alluxio.proto.dataserver.Protocol.ReadResponse.getDefaultInstance()) return this;
+        if (other.hasType()) {
+          setType(other.getType());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.ReadResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.ReadResponse) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;
+      private alluxio.proto.dataserver.Protocol.ReadResponse.Type type_ = alluxio.proto.dataserver.Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT;
+      /**
+       * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+       */
+      public boolean hasType() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+       */
+      public alluxio.proto.dataserver.Protocol.ReadResponse.Type getType() {
+        return type_;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+       */
+      public Builder setType(alluxio.proto.dataserver.Protocol.ReadResponse.Type value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000001;
+        type_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.ReadResponse.Type type = 1;</code>
+       */
+      public Builder clearType() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        type_ = alluxio.proto.dataserver.Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.ReadResponse)
+    }
+
+    static {
+      defaultInstance = new ReadResponse(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.ReadResponse)
+  }
+
   public interface HeartbeatOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
   }
@@ -7524,6 +8022,11 @@ public final class Protocol {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_ReadResponse_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_ReadResponse_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_Heartbeat_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -7584,17 +8087,19 @@ public final class Protocol {
       "\001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\020\n\010moun" +
       "t_id\030\013 \001(\003\"J\n\010Response\022-\n\006status\030\001 \001(\0162\035" +
       ".alluxio.proto.status.PStatus\022\017\n\007message" +
-      "\030\002 \001(\t\"\013\n\tHeartbeat\")\n\025LocalBlockOpenReq" +
-      "uest\022\020\n\010block_id\030\001 \001(\003\"&\n\026LocalBlockOpen" +
-      "Response\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlockClos",
-      "eRequest\022\020\n\010block_id\030\001 \001(\003\"o\n\027LocalBlock" +
-      "CreateRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n\004tier\030" +
-      "\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022only_" +
-      "reserve_space\030\005 \001(\010\"(\n\030LocalBlockCreateR" +
-      "esponse\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBlockCompl" +
-      "eteRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006cancel\030\003" +
-      " \001(\010*.\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020\000\022\014" +
-      "\n\010UFS_FILE\020\001"
+      "\030\002 \001(\t\"i\n\014ReadResponse\0229\n\004type\030\001 \001(\0162+.a" +
+      "lluxio.proto.dataserver.ReadResponse.Typ" +
+      "e\"\036\n\004Type\022\026\n\022UFS_READ_HEARTBEAT\020\001\"\013\n\tHea",
+      "rtbeat\")\n\025LocalBlockOpenRequest\022\020\n\010block" +
+      "_id\030\001 \001(\003\"&\n\026LocalBlockOpenResponse\022\014\n\004p" +
+      "ath\030\001 \001(\t\"*\n\026LocalBlockCloseRequest\022\020\n\010b" +
+      "lock_id\030\001 \001(\003\"o\n\027LocalBlockCreateRequest" +
+      "\022\020\n\010block_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020spac" +
+      "e_to_reserve\030\004 \001(\003\022\032\n\022only_reserve_space" +
+      "\030\005 \001(\010\"(\n\030LocalBlockCreateResponse\022\014\n\004pa" +
+      "th\030\001 \001(\t\"=\n\031LocalBlockCompleteRequest\022\020\n" +
+      "\010block_id\030\001 \001(\003\022\016\n\006cancel\030\003 \001(\010*.\n\013Reque" +
+      "stType\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7625,44 +8130,50 @@ public final class Protocol {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Response_descriptor,
               new java.lang.String[] { "Status", "Message", });
-          internal_static_alluxio_proto_dataserver_Heartbeat_descriptor =
+          internal_static_alluxio_proto_dataserver_ReadResponse_descriptor =
             getDescriptor().getMessageTypes().get(4);
+          internal_static_alluxio_proto_dataserver_ReadResponse_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_ReadResponse_descriptor,
+              new java.lang.String[] { "Type", });
+          internal_static_alluxio_proto_dataserver_Heartbeat_descriptor =
+            getDescriptor().getMessageTypes().get(5);
           internal_static_alluxio_proto_dataserver_Heartbeat_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Heartbeat_descriptor,
               new java.lang.String[] { });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor =
-            getDescriptor().getMessageTypes().get(5);
+            getDescriptor().getMessageTypes().get(6);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor,
               new java.lang.String[] { "BlockId", });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor =
-            getDescriptor().getMessageTypes().get(6);
+            getDescriptor().getMessageTypes().get(7);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor,
               new java.lang.String[] { "Path", });
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor =
-            getDescriptor().getMessageTypes().get(7);
+            getDescriptor().getMessageTypes().get(8);
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor,
               new java.lang.String[] { "BlockId", });
           internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor =
-            getDescriptor().getMessageTypes().get(8);
+            getDescriptor().getMessageTypes().get(9);
           internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor,
               new java.lang.String[] { "BlockId", "Tier", "SpaceToReserve", "OnlyReserveSpace", });
           internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor =
-            getDescriptor().getMessageTypes().get(9);
+            getDescriptor().getMessageTypes().get(10);
           internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor,
               new java.lang.String[] { "Path", });
           internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor =
-            getDescriptor().getMessageTypes().get(10);
+            getDescriptor().getMessageTypes().get(11);
           internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor,
