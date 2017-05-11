@@ -52,19 +52,14 @@ public final class UfsSyncChecker {
   /** Directories in sync with the UFS. */
   private Map<AlluxioURI, Inode<?>> mSyncedDirectories = new HashMap<>();
 
-  /** Whether to skip sync check. */
-  private final boolean mUnchecked;
-
   /**
    * Create a new instance of {@link UfsSyncChecker}.
    *
    * @param mountTable to resolve path in under storage
-   * @param unchecked whether to skip sync check
    */
-  public UfsSyncChecker(MountTable mountTable, boolean unchecked) {
+  public UfsSyncChecker(MountTable mountTable) {
     mListedDirectories = new HashMap<>();
     mMountTable = mountTable;
-    mUnchecked = unchecked;
   }
   /**
    * Check if immediate children of directory are in sync with UFS.
@@ -74,10 +69,6 @@ public final class UfsSyncChecker {
    */
   public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    if (mUnchecked) {
-      return;
-    }
-
     Preconditions.checkArgument(inode.isPersisted());
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
     Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
@@ -130,9 +121,6 @@ public final class UfsSyncChecker {
    * @return true, if in sync; false, otherwise
    */
   public boolean isDirectoryInSync(AlluxioURI alluxioUri) {
-    if (mUnchecked) {
-      return true;
-    }
     return mSyncedDirectories.containsKey(alluxioUri);
   }
 
