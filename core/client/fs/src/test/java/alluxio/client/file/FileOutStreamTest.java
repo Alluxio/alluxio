@@ -416,6 +416,13 @@ public class FileOutStreamTest {
         mUnderStorageOutputStream.toByteArray());
   }
 
+  /**
+   * Creates a {@link FileOutStream} for test.
+   *
+   * @param path the file path
+   * @param options the set of options specific to this operation
+   * @return a {@link FileOutStream}
+   */
   private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
     return new FileOutStream(path, options, mFileSystemContext);
