@@ -139,6 +139,9 @@ public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
     }
   }
 
+  /**
+   * Removes concurrent tasks by field.
+   */
   private class ConcurrentRemoveByField extends ConcurrentTask {
     public ConcurrentRemoveByField(CyclicBarrier barrier) {
       super(barrier);
@@ -151,6 +154,9 @@ public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
     }
   }
 
+  /**
+   * Removes concurrent tasks by iterator.
+   */
   private class ConcurrentRemoveByIterator extends ConcurrentTask {
     public ConcurrentRemoveByIterator(CyclicBarrier barrier) {
       super(barrier);
@@ -169,6 +175,9 @@ public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
     }
   }
 
+  /**
+   * Clears out concurrent tasks.
+   */
   private class ConcurrentClear extends ConcurrentTask {
     public ConcurrentClear(CyclicBarrier barrier) {
       super(barrier);
