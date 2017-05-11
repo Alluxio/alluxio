@@ -108,7 +108,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param packetSize the packet size
    */
   private LocalFilePacketWriter(
-      BlockWorkerClient blockWorkerClient, long blockId, int tier, long packetSize) 
+      BlockWorkerClient blockWorkerClient, long blockId, int tier, long packetSize)
           throws IOException {
     String blockPath =
         blockWorkerClient.requestBlockLocation(blockId, FILE_BUFFER_BYTES, tier);

@@ -18,7 +18,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
 /**
  * Interface for an Alluxio block worker client.

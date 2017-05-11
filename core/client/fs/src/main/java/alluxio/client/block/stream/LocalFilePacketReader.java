@@ -15,8 +15,9 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
-import java.io.IOException;
 import com.google.common.base.Preconditions;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
