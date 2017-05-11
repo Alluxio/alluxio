@@ -110,6 +110,7 @@ public final class LocalAlluxioMaster {
       }
     };
     mMasterThread = new Thread(runMaster);
+    mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
     mMasterProcess.waitForReady();
 
@@ -130,6 +131,8 @@ public final class LocalAlluxioMaster {
       }
     };
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
+    mMasterThread
+        .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
     mSecondaryMasterThread.start();
     mSecondaryMaster.waitForReady();
   }
@@ -158,11 +161,19 @@ public final class LocalAlluxioMaster {
    */
   public void kill() throws Exception {
     if (mMasterThread != null) {
-      mMasterThread.interrupt();
+      while (mMasterThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mMasterThread.getName());
+        mMasterThread.interrupt();
+        mMasterThread.join(1000);
+      }
       mMasterThread = null;
     }
     if (mSecondaryMasterThread != null) {
-      mSecondaryMasterThread.interrupt();
+      while (mSecondaryMasterThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mSecondaryMasterThread.getName());
+        mSecondaryMasterThread.interrupt();
+        mSecondaryMasterThread.join(1000);
+      }
       mSecondaryMasterThread = null;
     }
   }

@@ -132,6 +132,7 @@ public abstract class AbstractLocalAlluxioCluster {
     };
 
     mProxyThread = new Thread(runMaster);
+    mProxyThread.setName("ProxyThread-" + System.identityHashCode(mProxyThread));
     mProxyThread.start();
     mProxyProcess.waitForReady();
   }
@@ -162,6 +163,7 @@ public abstract class AbstractLocalAlluxioCluster {
         }
       };
       Thread thread = new Thread(runWorker);
+      thread.setName("WorkerThread-" + System.identityHashCode(thread));
       mWorkerThreads.add(thread);
       thread.start();
     }
@@ -272,7 +274,11 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void killProxy() throws Exception {
     if (mProxyThread != null) {
-      mProxyThread.interrupt();
+      while (mProxyThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mProxyThread.getName());
+        mProxyThread.interrupt();
+        mProxyThread.join(1000);
+      }
       mProxyThread = null;
     }
   }
@@ -292,7 +298,11 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void killWorkers() throws Exception {
     for (Thread thread : mWorkerThreads) {
-      thread.interrupt();
+      while (thread.isAlive()) {
+        LOG.info("Stopping thread {}.", thread.getName());
+        thread.interrupt();
+        thread.join(1000);
+      }
     }
     mWorkerThreads.clear();
   }
