@@ -86,10 +86,6 @@ public final class UfsAbsentPathAsyncCache extends UfsAbsentPathCache {
         return;
       }
       try {
-        if (isAbsent(mPath)) {
-          // this path his already considered absent, so no need to add it again.
-          return;
-        }
         UfsAbsentPathAsyncCache.super.addAbsentPath(mPath);
       } catch (InvalidPathException e) {
         // Ignore the exception
