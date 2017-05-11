@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Cache for recording information about paths that are not present in UFS.
  */
 @ThreadSafe
-public class UfsAbsentPathSyncCache {
+public class UfsAbsentPathSyncCache implements UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathSyncCache.class);
 
   /** The mount table. */
@@ -66,6 +66,7 @@ public class UfsAbsentPathSyncCache {
    * @param path the absent path to add to the cache
    * @throws InvalidPathException if the path is invalid
    */
+  @Override
   public void addAbsentPath(AlluxioURI path) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
     UnderFileSystem ufs = resolution.getUfs();

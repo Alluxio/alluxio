@@ -53,7 +53,7 @@ import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathAsyncCache;
-import alluxio.master.file.meta.UfsAbsentPathSyncCache;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -277,7 +277,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private final UfsManager mUfsManager;
 
   /** This caches absent paths in the UFS. */
-  private final UfsAbsentPathSyncCache mUfsAbsentPathCache;
+  private final UfsAbsentPathCache mUfsAbsentPathCache;
 
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
