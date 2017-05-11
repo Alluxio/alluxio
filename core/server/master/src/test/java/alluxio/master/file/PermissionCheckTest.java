@@ -441,6 +441,13 @@ public final class PermissionCheckTest {
     verifyRename(TEST_USER_1, TEST_DIR_FILE_URI, "/fileRenamed");
   }
 
+  /**
+   * verifyRename
+   * @param user
+   * @param srcPath
+   * @param dstPath
+   * @throws Exception
+     */
   private void verifyRename(TestUser user, String srcPath, String dstPath) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       String fileOwner =
