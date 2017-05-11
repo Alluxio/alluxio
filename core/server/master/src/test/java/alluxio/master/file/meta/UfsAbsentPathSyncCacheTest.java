@@ -26,10 +26,10 @@ import java.io.File;
 import java.util.Collections;
 
 /**
- * Unit tests for {@link UfsAbsentPathCache}.
+ * Unit tests for {@link UfsAbsentPathSyncCache}.
  */
-public class UfsAbsentPathCacheTest {
-  private UfsAbsentPathCache mUfsAbsentPathCache;
+public class UfsAbsentPathSyncCacheTest {
+  private UfsAbsentPathSyncCache mUfsAbsentPathSyncCache;
   private MountTable mMountTable;
 
   private long mMountId;
@@ -37,14 +37,14 @@ public class UfsAbsentPathCacheTest {
   private String mLocalUfsPath;
 
   /**
-   * Sets up a new {@link UfsAbsentPathCache} before a test runs.
+   * Sets up a new {@link UfsAbsentPathSyncCache} before a test runs.
    */
   @Before
   public void before() throws Exception {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
-    mUfsAbsentPathCache = new UfsAbsentPathCache(mMountTable);
+    mUfsAbsentPathSyncCache = new UfsAbsentPathSyncCache(mMountTable);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     mUfsManager.addMount(mMountId, mLocalUfsPath, Collections.<String, String>emptyMap());
@@ -55,19 +55,19 @@ public class UfsAbsentPathCacheTest {
   @Test
   public void isAbsentRoot() throws Exception {
     // /mnt/a will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI("/mnt/a/b"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI("/mnt/a/b"));
     checkAbsentPaths(new AlluxioURI("/mnt/a"));
 
     // /mnt/a will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI("/mnt/a/b/c"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI("/mnt/a/b/c"));
     checkAbsentPaths(new AlluxioURI("/mnt/a"));
 
     // /mnt/1 will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI("/mnt/1/2"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI("/mnt/1/2"));
     checkAbsentPaths(new AlluxioURI("/mnt/1"));
 
     // /mnt/1 will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI("/mnt/1/3"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI("/mnt/1/3"));
     checkAbsentPaths(new AlluxioURI("/mnt/1"));
   }
 
@@ -79,19 +79,19 @@ public class UfsAbsentPathCacheTest {
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase)).mkdirs());
 
     // 'base + /c' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // 'base + /c' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // '/a/1' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI("/mnt/a/1/2"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI("/mnt/a/1/2"));
     checkAbsentPaths(new AlluxioURI("/mnt/a/1"));
 
     // '/1' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI("/mnt/1/2"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI("/mnt/1/2"));
     checkAbsentPaths(new AlluxioURI("/mnt/1"));
   }
 
@@ -103,14 +103,14 @@ public class UfsAbsentPathCacheTest {
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase)).mkdirs());
 
     // 'base + /c' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // Create a sub-directory in ufs
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase + "/c")).mkdirs());
 
     // Now, 'base + /c/d' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c/d"));
   }
 
@@ -122,14 +122,14 @@ public class UfsAbsentPathCacheTest {
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase)).mkdirs());
 
     // 'base + /c' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // delete '/a/b' from ufs
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase)).delete());
 
     // Now, '/a/b' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d/e"));
     checkAbsentPaths(new AlluxioURI(alluxioBase));
   }
 
@@ -141,11 +141,11 @@ public class UfsAbsentPathCacheTest {
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase)).mkdirs());
 
     // 'base + /c' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // Unmount
-    mUfsAbsentPathCache.removeMountPoint(mMountId);
+    mUfsAbsentPathSyncCache.removeMountPoint(mMountId);
     Assert.assertTrue(mMountTable.delete(new AlluxioURI("/mnt")));
 
     // Re-mount the same ufs
@@ -155,11 +155,11 @@ public class UfsAbsentPathCacheTest {
         MountOptions.defaults());
 
     // The cache should not contain any paths now.
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a/b/c")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a/b")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/")));
   }
 
   @Test
@@ -170,16 +170,16 @@ public class UfsAbsentPathCacheTest {
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase)).mkdirs());
 
     // 'base + /c' will be the first absent path
-    mUfsAbsentPathCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
+    mUfsAbsentPathSyncCache.addAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
-    mUfsAbsentPathCache.removeAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
+    mUfsAbsentPathSyncCache.removeAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
 
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a")));
-    Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a/b/c")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a/b")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/a")));
+    Assert.assertFalse(mUfsAbsentPathSyncCache.isAbsent(new AlluxioURI("/mnt/")));
   }
 
   /**
@@ -193,14 +193,14 @@ public class UfsAbsentPathCacheTest {
       AlluxioURI levelUri = firstAbsent.join("level" + level);
       for (int dir = 1; dir <= 2; dir++) {
         AlluxioURI uri = levelUri.join("dir" + dir);
-        Assert.assertTrue(uri.toString(), mUfsAbsentPathCache.isAbsent(uri));
+        Assert.assertTrue(uri.toString(), mUfsAbsentPathSyncCache.isAbsent(uri));
       }
     }
 
     // Check all ancestors
     AlluxioURI existing = firstAbsent.getParent();
     while (existing != null) {
-      Assert.assertFalse(existing.toString(), mUfsAbsentPathCache.isAbsent(existing));
+      Assert.assertFalse(existing.toString(), mUfsAbsentPathSyncCache.isAbsent(existing));
       existing = existing.getParent();
     }
   }

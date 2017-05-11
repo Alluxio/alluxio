@@ -32,8 +32,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Cache for recording information about paths that are not present in UFS.
  */
 @ThreadSafe
-public class UfsAbsentPathCache {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathCache.class);
+public class UfsAbsentPathSyncCache {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathSyncCache.class);
 
   /** The mount table. */
   protected final MountTable mMountTable;
@@ -41,11 +41,11 @@ public class UfsAbsentPathCache {
   protected final ConcurrentHashMapV8<Long, ConcurrentSkipListSet<String>> mCaches;
 
   /**
-   * Creates a new instance of {@link UfsAbsentPathCache}.
+   * Creates a new instance of {@link UfsAbsentPathSyncCache}.
    *
    * @param mountTable the mount table
    */
-  public UfsAbsentPathCache(MountTable mountTable) {
+  public UfsAbsentPathSyncCache(MountTable mountTable) {
     mMountTable = mountTable;
     mCaches = new ConcurrentHashMapV8<>(8, 0.95f, 8);
   }

@@ -22,7 +22,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.master.file.meta.UfsAbsentPathSyncCache;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
@@ -230,7 +230,7 @@ public class LoadMetadataTest extends BaseIntegrationTest {
     if (!expectExists && expectLoadFromUfs) {
       // The metadata is loaded from Ufs, but the path does not exist, so it will be added to the
       // absent cache. Wait until the path shows up in the absent cache.
-      final UfsAbsentPathCache cache = Whitebox.getInternalState(
+      final UfsAbsentPathSyncCache cache = Whitebox.getInternalState(
           mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
               .getMaster(FileSystemMaster.class), "mUfsAbsentPathCache");
       CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
