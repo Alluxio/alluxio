@@ -157,14 +157,12 @@ public final class AlluxioBlockStore {
     // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
     // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
     // for hasLocalWorker is fixed.
-    if (Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)) {
-      for (BlockLocation location : blockInfo.getLocations()) {
-        WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-        if (workerNetAddress.getHost().equals(mLocalHostName)) {
-          address = workerNetAddress;
-          isLocal = true;
-          break;
-        }
+    for (BlockLocation location : blockInfo.getLocations()) {
+      WorkerNetAddress workerNetAddress = location.getWorkerAddress();
+      if (workerNetAddress.getHost().equals(mLocalHostName)) {
+        address = workerNetAddress;
+        isLocal = true;
+        break;
       }
     }
     if (address == null) {
@@ -173,7 +171,8 @@ public final class AlluxioBlockStore {
       List<BlockLocation> locations = blockInfo.getLocations();
       address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
     }
-    if (isLocal) {
+    if (isLocal && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
+        .isDomainSocketSupported(address)) {
       return StreamFactory
           .createShortCircuitBlockInStream(mContext, blockId, blockInfo.getLength(), address,
               options);
@@ -211,7 +210,7 @@ public final class AlluxioBlockStore {
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost()) && Configuration
-        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && NettyUtils
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
         .isDomainSocketSupported(address)) {
       return StreamFactory
           .createShortCircuitBlockOutStream(mContext, blockId, blockSize, address, options);
