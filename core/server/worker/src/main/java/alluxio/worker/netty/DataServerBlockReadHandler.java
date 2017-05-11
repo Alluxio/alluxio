@@ -84,6 +84,13 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 
+    /**
+     * @return true if the block is persisted in UFS
+     */
+    boolean isPersisted() {
+      return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
+    }
+
     @Override
     public void close() {
       if (mBlockReader != null) {
@@ -95,10 +102,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       }
 
       try {
-        if (mBlockReader instanceof UnderFileSystemBlockReader) {
+        if (!mWorker.unlockBlock(mRequest.mSessionId, mRequest.mId)) {
           mWorker.closeUfsBlock(mRequest.mSessionId, mRequest.mId);
-        } else {
-          mWorker.unlockBlock(mRequest.mSessionId, mRequest.mId);
         }
       } catch (Exception e) {
         LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());
@@ -164,7 +169,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
 
     do {
       long lockId;
-      if (request.mOpenUfsBlockOptions != null) {
+      if (request.isPersisted()) {
         lockId = mWorker.lockBlockNoException(request.mSessionId, request.mId);
       } else {
         lockId = mWorker.lockBlock(request.mSessionId, request.mId);

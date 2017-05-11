@@ -92,7 +92,7 @@ public final class UnderFileSystemBlockMeta {
   /**
    * @return true if mNoCache is set
    */
-  public boolean getNoCache() {
+  public boolean isNoCache() {
     return mNoCache;
   }
 }

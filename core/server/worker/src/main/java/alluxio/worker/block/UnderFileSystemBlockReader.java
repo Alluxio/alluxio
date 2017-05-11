@@ -310,7 +310,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       throw AlluxioStatusException.from(e);
     }
     try {
-      if (mBlockWriter == null && offset == 0 && !mBlockMeta.getNoCache()) {
+      if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         String blockPath = mLocalBlockStore
             .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc,
