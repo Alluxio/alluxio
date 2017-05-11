@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -67,21 +68,20 @@ public class UfsAbsentPathCache {
    */
   public void addAbsentPath(AlluxioURI path) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
-    AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     ConcurrentSkipListSet<String> cache = getCache(resolution.getMountId());
+    String[] components = PathUtils.getPathComponents(resolution.getUri().getPath());
 
-    String[] components = PathUtils.getPathComponents(ufsUri.getPath());
-    if (components.length == 0) {
+    MountInfo mountInfo = mMountTable.getMountInfo(resolution.getMountId());
+    if (mountInfo == null) {
       return;
     }
-
     // create a ufs uri of the root of the mount point.
-    AlluxioURI uri = mMountTable.getMountInfo(resolution.getMountId()).getUfsUri();
+    AlluxioURI uri = mountInfo.getUfsUri();
     int mountPointBase = uri.getDepth();
 
-    // Traverse through the ufs path components, starting from the root, to find the first
-    // non-existing ufs path.
+    // Traverse through the ufs path components, starting from the mount point base, to find the
+    // first non-existing ufs path.
     for (int i = 0; i < components.length; i++) {
       if (i > 0 && i <= mountPointBase) {
         // Do not process components before the base of the mount point.
@@ -133,17 +133,25 @@ public class UfsAbsentPathCache {
    */
   public void removeAbsentPath(AlluxioURI path) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
-    AlluxioURI ufsUri = resolution.getUri();
     ConcurrentSkipListSet<String> cache = getCache(resolution.getMountId());
+    String[] components = PathUtils.getPathComponents(resolution.getUri().getPath());
 
-    String[] components = PathUtils.getPathComponents(ufsUri.getPath());
+    MountInfo mountInfo = mMountTable.getMountInfo(resolution.getMountId());
+    if (mountInfo == null) {
+      return;
+    }
+    // create a ufs uri of the root of the mount point.
+    AlluxioURI uri = mountInfo.getUfsUri();
+    int mountPointBase = uri.getDepth();
 
-    // create a ufs uri of the root.
-    AlluxioURI uri =
-        new AlluxioURI(ufsUri.getScheme(), ufsUri.getAuthority(), "/", ufsUri.getQueryMap());
-
-    // Traverse through the ufs path components, staring from the root.
-    for (String component : components) {
+    // Traverse through the ufs path components, starting from the mount point base.
+    for (int i = 0; i < components.length; i++) {
+      if (i > 0 && i <= mountPointBase) {
+        // Do not process components before the base of the mount point.
+        // However, process the first component, since that will be the actual mount point base.
+        continue;
+      }
+      String component = components[i];
       uri = uri.join(component);
       String uriPath = uri.getPath();
       // This ufs path exists. Remove the cache entry.
@@ -164,7 +172,14 @@ public class UfsAbsentPathCache {
     AlluxioURI ufsUri = resolution.getUri();
     ConcurrentSkipListSet<String> cache = getCache(resolution.getMountId());
 
-    while (ufsUri != null) {
+    MountInfo mountInfo = mMountTable.getMountInfo(resolution.getMountId());
+    if (mountInfo == null) {
+      return false;
+    }
+    // create a ufs uri of the root of the mount point.
+    AlluxioURI mountBaseUri = mountInfo.getUfsUri();
+
+    while (ufsUri != null && !ufsUri.equals(mountBaseUri)) {
       if (cache.contains(ufsUri.getPath())) {
         return true;
       }
