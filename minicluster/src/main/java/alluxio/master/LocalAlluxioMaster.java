@@ -109,9 +109,7 @@ public final class LocalAlluxioMaster {
         }
       }
     };
-
     mMasterThread = new Thread(runMaster);
-    mMasterThread.setName("MasterThread-" + System.identityHashCode(this));
     mMasterThread.start();
     mMasterProcess.waitForReady();
 
@@ -131,7 +129,6 @@ public final class LocalAlluxioMaster {
         }
       }
     };
-
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
     mSecondaryMasterThread.start();
     mSecondaryMaster.waitForReady();
@@ -145,18 +142,20 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * Stops the master and cleans up client connections.
+   * Stops the master processes and cleans up client connections.
    */
   public void stop() throws Exception {
     mMasterProcess.stop();
     mSecondaryMaster.stop();
     kill();
-
     clearClients();
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
   }
 
+  /**
+   * Kills the master processes, no cleanup is performed.
+   */
   public void kill() throws Exception {
     if (mMasterThread != null) {
       mMasterThread.interrupt();

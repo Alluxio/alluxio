@@ -77,6 +77,9 @@ public abstract class AbstractLocalAlluxioCluster {
     mWorkerThreads = new ArrayList<>();
   }
 
+  /**
+   * Kills the server processes, no cleanup is performed.
+   */
   public void kill() throws Exception {
     killProxy();
     killWorkers();
@@ -251,6 +254,9 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected abstract void stopMasters() throws Exception;
 
+  /**
+   * Kills the master processes, no cleanup is performed.
+   */
   protected abstract void killMasters() throws Exception;
 
   /**
@@ -261,6 +267,9 @@ public abstract class AbstractLocalAlluxioCluster {
     killProxy();
   }
 
+  /**
+   * Kills the proxy process, no cleanup is performed.
+   */
   protected void killProxy() throws Exception {
     if (mProxyThread != null) {
       mProxyThread.interrupt();
@@ -278,6 +287,9 @@ public abstract class AbstractLocalAlluxioCluster {
     killWorkers();
   }
 
+  /**
+   * Kills the worker processes, no cleanup is performed.
+   */
   protected void killWorkers() throws Exception {
     for (Thread thread : mWorkerThreads) {
       thread.interrupt();
