@@ -380,16 +380,6 @@ public interface UnderFileSystem extends Closeable {
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
-   * Creates the directory named by this abstract pathname, with specified
-   * {@link MkdirsOptions}. If the folder already exists, the method returns false.
-   *
-   * @param path the folder to create
-   * @param options the options for mkdirs
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   */
-  boolean mkdirs(String path, MkdirsOptions options) throws IOException;
-
-  /**
    * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
    *
    * @param path the file name

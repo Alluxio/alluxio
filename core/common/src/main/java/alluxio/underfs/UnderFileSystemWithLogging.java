@@ -368,21 +368,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(final String path, final MkdirsOptions options) throws IOException {
-    return call(new UfsCallable<Boolean>() {
-      @Override
-      public Boolean call() throws IOException {
-        return mUnderFileSystem.mkdirs(path, options);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("Mkdirs: path=%s, options=%s", path, options);
-      }
-    });
-  }
-
-  @Override
   public InputStream open(final String path) throws IOException {
     return call(new UfsCallable<InputStream>() {
       @Override

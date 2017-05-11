@@ -11,7 +11,6 @@
 
 package alluxio.underfs.local;
 
-import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -35,7 +34,7 @@ import java.util.List;
  */
 public class LocalUnderFileSystemTest {
   private String mLocalUfsRoot;
-  private DirectoryUnderFileSystem mLocalUfs;
+  private LocalUnderFileSystem mLocalUfs;
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
@@ -43,7 +42,7 @@ public class LocalUnderFileSystemTest {
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs = (DirectoryUnderFileSystem) UnderFileSystem.Factory.create(mLocalUfsRoot);
+    mLocalUfs = (LocalUnderFileSystem) UnderFileSystem.Factory.create(mLocalUfsRoot);
   }
 
   @Test

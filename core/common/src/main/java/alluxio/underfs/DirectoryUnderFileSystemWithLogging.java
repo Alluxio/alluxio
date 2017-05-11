@@ -13,9 +13,6 @@ package alluxio.underfs;
 
 import alluxio.underfs.options.MkdirsOptions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 
 /**
@@ -23,8 +20,6 @@ import java.io.IOException;
  */
 public class DirectoryUnderFileSystemWithLogging extends UnderFileSystemWithLogging
     implements DirectoryUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemWithLogging.class);
-
   private final DirectoryUnderFileSystem mUnderFileSystem;
   /**
    * Creates a new {@link DirectoryUnderFileSystemWithLogging} which forwards all calls to the

@@ -24,10 +24,12 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -187,14 +189,14 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   public void notAFile() throws Exception {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile);
-    if (ufs instanceof DirectoryUnderFileSystem) {
-      DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
-      directoryUfs.deleteFile(ufsFile);
-      directoryUfs.mkdirs(ufsFile);
-      List<AlluxioURI> expected = Lists.newArrayList(FILE);
-      Assert.assertEquals(expected, mFileSystemMaster
-          .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
-    }
+    // Do not run test for an object store
+    Assume.assumeFalse(UnderFileSystemUtils.isObjectStorage(ufs));
+    DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+    directoryUfs.deleteFile(ufsFile);
+    directoryUfs.mkdirs(ufsFile);
+    List<AlluxioURI> expected = Lists.newArrayList(FILE);
+    Assert.assertEquals(expected, mFileSystemMaster
+        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
   }
 
   /**

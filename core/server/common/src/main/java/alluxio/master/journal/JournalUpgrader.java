@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.master.MasterFactory;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.URIUtils;
@@ -72,7 +73,7 @@ public final class JournalUpgrader {
     private final alluxio.master.journalv0.MutableJournal mJournalV0;
     private final Journal mJournalV1;
 
-    private final UnderFileSystem mUfs;
+    private final DirectoryUnderFileSystem mUfs;
 
     private final URI mCheckpointV0;
     private final URI mCompletedLogsV0;
@@ -87,7 +88,8 @@ public final class JournalUpgrader {
       mJournalV1 = (new Journal.Factory(
           getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))).create(master);
 
-      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0);
+      // TODO(adit): limit to directory ufs?
+      mUfs = (DirectoryUnderFileSystem) UnderFileSystem.Factory.create(sJournalDirectoryV0);
 
       mCheckpointV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "checkpoint.data");
       mCompletedLogsV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "completed");
