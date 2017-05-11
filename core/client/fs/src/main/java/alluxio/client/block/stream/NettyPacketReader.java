@@ -252,8 +252,8 @@ public final class NettyPacketReader implements PacketReader {
       RPCProtoMessage response = (RPCProtoMessage) msg;
       ProtoMessage message = response.getMessage();
       if (message.isReadResponse()) {
-        Preconditions.checkState(message.asReadResponse().getType() == Protocol.ReadResponse
-          .Type.UFS_READ_HEARTBEAT);
+        Preconditions.checkState(
+            message.asReadResponse().getType() == Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
         buf = UFS_READ_HEARTBEAT;
       } else if (message.isResponse()) {
         // Canceled is considered a valid status and handled in the reader. We avoid creating a
