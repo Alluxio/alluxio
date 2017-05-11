@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class caches paths in the UFS which do not exist.
+ * Cache for recording information about paths that are not present in UFS.
  */
 @ThreadSafe
 public class UfsAbsentPathCache {
@@ -80,7 +80,7 @@ public class UfsAbsentPathCache {
     AlluxioURI uri = mMountTable.getMountInfo(resolution.getMountId()).getUfsUri();
     int mountPointBase = uri.getDepth();
 
-    // Traverse through the ufs path components, staring from the root, to find the first
+    // Traverse through the ufs path components, starting from the root, to find the first
     // non-existing ufs path.
     for (int i = 0; i < components.length; i++) {
       if (i > 0 && i <= mountPointBase) {
@@ -100,7 +100,8 @@ public class UfsAbsentPathCache {
           cache.add(uriPath);
 
           // Remove cache entries which has this non-existing directory as a prefix. This is not for
-          // correctness, but to "compress" information.
+          // correctness, but to "compress" information. Iterate (in order) starting from this
+          // absent directory.
           String dirPath = uriPath + "/";
           Iterator<String> it = cache.tailSet(dirPath).iterator();
           while (it.hasNext()) {
@@ -109,6 +110,10 @@ public class UfsAbsentPathCache {
               // An existing cache entry has the non-existing path as a prefix. Remove the entry,
               // since the non-existing path ancestor implies the descendant does not exist.
               it.remove();
+            } else {
+              // Stop the iteration when it reaches the first entry which does not have this
+              // absent directory as the prefix.
+              break;
             }
           }
           // The first non-existing path was found, so further traversal is unnecessary.
