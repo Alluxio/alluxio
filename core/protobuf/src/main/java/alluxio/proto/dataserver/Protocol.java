@@ -4274,7 +4274,7 @@ public final class Protocol {
    *
    * <pre>
    * The read response.
-   * next available id: 3
+   * next available id: 2
    * </pre>
    */
   public static final class ReadResponse extends
@@ -4589,7 +4589,7 @@ public final class Protocol {
      *
      * <pre>
      * The read response.
-     * next available id: 3
+     * next available id: 2
      * </pre>
      */
     public static final class Builder extends

@@ -71,7 +71,7 @@ message Response {
 }
 
 // The read response.
-// next available id: 3
+// next available id: 2
 message ReadResponse {
   enum Type {
     // A heatbeat message indicates that the server is still actively acquiring access to a UFS file.
