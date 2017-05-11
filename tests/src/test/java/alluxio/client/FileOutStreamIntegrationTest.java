@@ -182,11 +182,11 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   }
 
   /**
-   * Tests canceling after multiple blocks have been written correctly leaves cleans up temporary
-   * worker resources.
+   * Tests canceling after multiple blocks have been written correctly cleans up temporary worker
+   * resources.
    */
   @Test
-  public void abortWrite() throws Exception {
+  public void cancelWrite() throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     try (FileOutStream os =
         mFileSystem.createFile(path, CreateFileOptions.defaults().setWriteType(mWriteType))) {
