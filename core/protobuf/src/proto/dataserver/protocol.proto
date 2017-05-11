@@ -4,6 +4,13 @@ package alluxio.proto.dataserver;
 
 import "status.proto";
 
+// The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+// next available id: 2
+enum RequestType {
+  ALLUXIO_BLOCK = 0;
+  UFS_FILE = 1;
+}
+
 // The read request.
 // next available id: 9
 message ReadRequest {
@@ -35,7 +42,9 @@ message OpenUfsBlockOptions {
 // The write request.
 // next available id: 13
 message WriteRequest {
-  optional int64 block_id = 2;
+  optional RequestType type = 1;
+  // The block ID or UFS file ID.
+  optional int64 id = 2;
   optional int64 offset = 3;
 
   // This is only applicable for block write.
@@ -69,7 +78,6 @@ message Heartbeat {
 // next available id: 3
 message LocalBlockOpenRequest {
   optional int64 block_id = 1;
-  optional int64 session_id = 2;
 }
 
 // next available id: 2
@@ -80,13 +88,11 @@ message LocalBlockOpenResponse {
 // next available id: 3
 message LocalBlockCloseRequest {
   optional int64 block_id = 1;
-  optional int64 session_id = 2;
 }
 
 // next available id: 6
 message LocalBlockCreateRequest {
   optional int64 block_id = 1;
-  optional int64 session_id = 2;
   optional int32 tier = 3;
   optional int64 space_to_reserve = 4;
   // If set, only reserve space for the block.
@@ -101,6 +107,5 @@ message LocalBlockCreateResponse {
 // next available id: 4
 message LocalBlockCompleteRequest {
   optional int64 block_id = 1;
-  optional int64 session_id = 2;
   optional bool cancel = 3;
 }

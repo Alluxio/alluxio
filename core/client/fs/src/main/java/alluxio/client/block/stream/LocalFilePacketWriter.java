@@ -51,7 +51,6 @@ public final class LocalFilePacketWriter implements PacketWriter {
   private final Channel mChannel;
   private final LocalFileBlockWriter mWriter;
   private final long mBlockId;
-  private final long mSessionId;
   private final long mPacketSize;
   private final ProtoMessage mCreateRequest;
   private final NettyRPCContext mNettyRPCContext;
@@ -69,15 +68,14 @@ public final class LocalFilePacketWriter implements PacketWriter {
    *
    * @param context the file system context
    * @param address the worker network address
-   * @param sessionId the session ID
    * @param blockId the block ID
    * @param tier the target tier
    * @param packetSize the packet size
    * @return the {@link LocalFilePacketWriter} created
    */
   public static LocalFilePacketWriter create(FileSystemContext context, WorkerNetAddress address,
-      long sessionId, long blockId, int tier, long packetSize) {
-    return new LocalFilePacketWriter(context, address, sessionId, blockId, tier, packetSize);
+      long blockId, int tier, long packetSize) {
+    return new LocalFilePacketWriter(context, address, blockId, tier, packetSize);
   }
 
   @Override
@@ -116,8 +114,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
       @Override
       public void close() throws IOException {
         NettyRPC.call(mNettyRPCContext, new ProtoMessage(
-            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId)
-                .setSessionId(mSessionId).setCancel(true).build()));
+            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).setCancel(true)
+                .build()));
       }
     });
     CommonUtils.close(mCloser);
@@ -137,8 +135,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       @Override
       public void close() throws IOException {
         NettyRPC.call(mNettyRPCContext, new ProtoMessage(
-            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId)
-                .setSessionId(mSessionId).build()));
+            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).build()));
       }
     });
     CommonUtils.close(mCloser);
@@ -149,13 +146,12 @@ public final class LocalFilePacketWriter implements PacketWriter {
    *
    * @param context the file system context
    * @param address the worker network address
-   * @param sessionId the session ID
    * @param blockId the block ID
    * @param tier the target tier
    * @param packetSize the packet size
    */
   private LocalFilePacketWriter(final FileSystemContext context, WorkerNetAddress address,
-      long sessionId, long blockId, int tier, long packetSize) {
+      long blockId, int tier, long packetSize) {
     mContext = context;
     mAddress = address;
     mChannel = context.acquireNettyChannel(address);
@@ -167,8 +163,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
     });
     try {
       mCreateRequest = new ProtoMessage(
-          Protocol.LocalBlockCreateRequest.newBuilder().setBlockId(blockId).setSessionId(sessionId)
-              .setTier(tier).setSpaceToReserve(FILE_BUFFER_BYTES).build());
+          Protocol.LocalBlockCreateRequest.newBuilder().setBlockId(blockId).setTier(tier)
+          .setSpaceToReserve(FILE_BUFFER_BYTES).build());
       mNettyRPCContext =
           NettyRPCContext.defaults().setChannel(mChannel).setTimeout(WRITE_TIMEOUT_MS);
 
@@ -183,7 +179,6 @@ public final class LocalFilePacketWriter implements PacketWriter {
 
     mPosReserved += FILE_BUFFER_BYTES;
     mBlockId = blockId;
-    mSessionId = sessionId;
     mPacketSize = packetSize;
   }
 

@@ -17,6 +17,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.IdUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockWorker;
 
@@ -39,6 +40,8 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
   private final BlockWorker mBlockWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
+
+  private long mSessionId;
 
   /**
    * Creates an instance of {@link DataServerShortCircuitWriteHandler}.
@@ -74,6 +77,13 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
     ctx.close();
   }
 
+  @Override
+  public void channelUnregistered(ChannelHandlerContext ctx) {
+    if (mSessionId > 0) {
+      mBlockWorker.cleanupSession(mSessionId);
+    }
+  }
+
   /**
    * Handles {@link Protocol.LocalBlockCreateRequest} to create block. No exceptions should be
    * thrown.
@@ -88,11 +98,12 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (request.getOnlyReserveSpace()) {
-          mBlockWorker.requestSpace(request.getSessionId(), request.getBlockId(),
+          mBlockWorker.requestSpace(mSessionId, request.getBlockId(),
               request.getSpaceToReserve());
           ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         } else {
-          String path = mBlockWorker.createBlock(request.getSessionId(), request.getBlockId(),
+          mSessionId = IdUtils.getRandomNonNegativeLong();
+          String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
               mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
           Protocol.LocalBlockCreateResponse response =
               Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
@@ -130,9 +141,9 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (request.getCancel()) {
-          mBlockWorker.abortBlock(request.getSessionId(), request.getBlockId());
+          mBlockWorker.abortBlock(mSessionId, request.getBlockId());
         } else {
-          mBlockWorker.commitBlock(request.getSessionId(), request.getBlockId());
+          mBlockWorker.commitBlock(mSessionId, request.getBlockId());
         }
         ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         return null;

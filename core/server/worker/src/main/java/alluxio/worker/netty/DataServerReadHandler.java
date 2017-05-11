@@ -225,9 +225,9 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @param request the block read request
    */
   private void validateReadRequest(Protocol.ReadRequest request) {
-    if (request.getId() < 0) {
+    if (request.getBlockId() < 0) {
       throw new InvalidArgumentException(
-          String.format("Invalid blockId (%d) in read request.", request.getId()));
+          String.format("Invalid blockId (%d) in read request.", request.getBlockId()));
     }
     if (!request.getCancel() && (request.getOffset() < 0 || request.getLength() <= 0)) {
       throw new InvalidArgumentException(

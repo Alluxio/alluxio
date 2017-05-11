@@ -18,6 +18,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.IdUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
@@ -41,6 +42,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
   private final BlockWorker mBlockWorker;
   /** The lock Id of the block being read. */
   private long mLockId;
+  private long mSessionId;
 
   /**
    * Creates an instance of {@link DataServerShortCircuitReadHandler}.
@@ -85,6 +87,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
       } catch (BlockDoesNotExistException e) {
         LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
       }
+      mBlockWorker.cleanupSession(mSessionId);
     }
   }
 
@@ -102,8 +105,9 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
       public Void call() throws Exception {
         // It is a no-op to lock the same block multiple times within the same channel.
         if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
-          mLockId = mBlockWorker.lockBlock(request.getSessionId(), request.getBlockId());
-          mBlockWorker.accessBlock(request.getSessionId(), request.getBlockId());
+          mSessionId = IdUtils.getRandomNonNegativeLong();
+          mLockId = mBlockWorker.lockBlock(mSessionId, request.getBlockId());
+          mBlockWorker.accessBlock(mSessionId, request.getBlockId());
         } else {
           LOG.warn("Lock block {} without releasing previous block lock {}.", request.getBlockId(),
               mLockId);
@@ -111,7 +115,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
               ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
         }
         Protocol.LocalBlockOpenResponse response = Protocol.LocalBlockOpenResponse.newBuilder()
-            .setPath(mBlockWorker.readBlock(request.getSessionId(), request.getBlockId(), mLockId))
+            .setPath(mBlockWorker.readBlock(mSessionId, request.getBlockId(), mLockId))
             .build();
         ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
 

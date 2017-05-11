@@ -12,23 +12,18 @@
 package alluxio.client.block;
 
 import alluxio.client.WriteType;
-import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.netty.NettyRPC;
 import alluxio.client.netty.NettyRPCContext;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoMessage;
-import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
-import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
@@ -48,9 +43,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -138,47 +131,6 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mChannel.pipeline()).thenReturn(mPipeline);
     Mockito.when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
     Mockito.when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
-  }
-
-  /**
-   * Tests {@link AlluxioBlockStore#getInStream(long, InStreamOptions)} when a local block
-   * exists, making sure that the local block is preferred.
-   */
-  @Test
-  public void getInStreamLocal() throws Exception {
-    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
-        .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL)));
-
-    File mTestFile = mTestFolder.newFile("testFile");
-    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
-        new LockBlockResource(mBlockWorkerClient,
-            new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()),
-            BLOCK_ID));
-
-    InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
-    Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
-  }
-
-  /**
-   * Tests {@link AlluxioBlockStore#getInStream(long, InStreamOptions)} when no local block
-   * exists, making sure that the first {@link BlockLocation} in the {@link BlockInfo} list is
-   * chosen.
-   */
-  @Test
-  public void getInStreamRemote() throws Exception {
-    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
-        .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE)));
-
-    File mTestFile = mTestFolder.newFile("testFile");
-    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID, LockBlockOptions.defaults())).thenReturn(
-        new LockBlockResource(mBlockWorkerClient,
-            new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()),
-            BLOCK_ID));
-
-    InputStream stream = mBlockStore.getInStream(BLOCK_ID, InStreamOptions.defaults());
-    Assert.assertEquals(alluxio.client.block.stream.BlockInStream.class, stream.getClass());
   }
 
   @Test

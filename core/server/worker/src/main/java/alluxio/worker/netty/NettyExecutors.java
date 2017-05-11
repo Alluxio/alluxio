@@ -43,12 +43,6 @@ final class NettyExecutors {
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
           ThreadFactoryUtils.build("BlockPacketWriterExecutor-%d", true));
 
-  public static final ExecutorService UFS_BLOCK_READER_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
-          ThreadFactoryUtils.build("FilePacketReaderExecutor-%d", true));
-
   public static final ExecutorService FILE_WRITER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX),

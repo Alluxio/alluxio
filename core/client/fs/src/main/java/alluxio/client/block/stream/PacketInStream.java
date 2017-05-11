@@ -62,17 +62,16 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @param context the file system context
    * @param address the network address of the netty data server
    * @param blockId the block ID
-   * @param sessionId the session ID
    * @param length the block length
    * @param options the in stream options
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createLocalPacketInStream(FileSystemContext context,
-      WorkerNetAddress address, long blockId, long sessionId, long length,
+      WorkerNetAddress address, long blockId, long length,
       InStreamOptions options) {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
     return new PacketInStream(
-        new LocalFilePacketReader.Factory(context, address, blockId, sessionId, packetSize),
+        new LocalFilePacketReader.Factory(context, address, blockId, packetSize),
         blockId, length);
   }
 
@@ -93,7 +92,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(
         context, address, readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial());
-    return new PacketInStream(factory, readRequestPartial.getId(), blockSize);
+    return new PacketInStream(factory, readRequestPartial.getBlockId(), blockSize);
   }
 
   /**

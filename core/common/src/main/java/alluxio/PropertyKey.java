@@ -340,11 +340,9 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128);
+      create(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 256);
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128);
-  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128);
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128);
 
@@ -904,8 +902,6 @@ public class PropertyKey {
         "alluxio.worker.network.netty.block.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
         "alluxio.worker.network.netty.block.writer.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
         "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";

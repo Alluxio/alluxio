@@ -97,7 +97,6 @@ public final class LocalFilePacketReader implements PacketReader {
     private final WorkerNetAddress mAddress;
     private final Channel mChannel;
     private final long mBlockId;
-    private final long mSessionId;
     private final String mPath;
     private final long mPacketSize;
     private boolean mClosed;
@@ -108,22 +107,20 @@ public final class LocalFilePacketReader implements PacketReader {
      * @param context the file system context
      * @param address the worker address
      * @param blockId the block ID
-     * @param sessionId the session ID
      * @param packetSize the packet size
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
-        long sessionId, long packetSize) {
+        long packetSize) {
       mContext = context;
       mAddress = address;
       mBlockId = blockId;
-      mSessionId = sessionId;
       mPacketSize = packetSize;
 
       mChannel = context.acquireNettyChannel(address);
       ProtoMessage message = NettyRPC
           .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-              new ProtoMessage(Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
-                  .setSessionId(mSessionId).build()));
+              new ProtoMessage(
+                  Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId).build()));
       Preconditions.checkState(message.isLocalBlockOpenResponse());
       mPath = message.asLocalBlockOpenResponse().getPath();
     }

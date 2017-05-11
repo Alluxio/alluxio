@@ -12,8 +12,6 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.block.BlockWorkerClient;
-import alluxio.client.block.options.LockBlockOptions;
-import alluxio.client.resource.LockBlockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
@@ -44,16 +42,6 @@ public class TestBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public LockBlockResource lockBlock(long blockId, LockBlockOptions options) {
-    return null;
-  }
-
-  @Override
-  public LockBlockResource lockUfsBlock(long blockId, LockBlockOptions options) {
-    return null;
-  }
-
-  @Override
   public boolean promoteBlock(long blockId) {
     return false;
   }
@@ -68,11 +56,6 @@ public class TestBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public boolean requestSpace(long blockId, long requestBytes) {
-    return false;
-  }
-
-  @Override
-  public boolean unlockBlock(long blockId) {
     return false;
   }
 

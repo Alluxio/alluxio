@@ -24,10 +24,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
-import alluxio.thrift.LockBlockResult;
-import alluxio.thrift.LockBlockStatus;
-import alluxio.thrift.LockBlockTOptions;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -53,17 +53,16 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    *
    * @param context the file system context
    * @param address the worker network address
-   * @param sessionId the session ID
    * @param id the ID
    * @param length the block or file length
    * @param options the out stream options
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createLocalPacketOutStream(FileSystemContext context,
-      WorkerNetAddress address, long sessionId, long id, long length, OutStreamOptions options) {
+      WorkerNetAddress address, long id, long length, OutStreamOptions options) {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
     PacketWriter packetWriter = LocalFilePacketWriter
-        .create(context, address, sessionId, id, options.getWriteTier(), packetSize);
+        .create(context, address, id, options.getWriteTier(), packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 

@@ -74,10 +74,14 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      * @param request the block read request
      */
     BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
-      super(request.getId(), request.getOffset(), request.getOffset() + request.getLength(),
+      super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
           request.getPacketSize());
 
-      mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
+      if (request.hasOpenUfsBlockOptions()) {
+        mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
+      } else {
+        mOpenUfsBlockOptions = null;
+      }
       // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 
