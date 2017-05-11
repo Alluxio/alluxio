@@ -47,6 +47,7 @@ public enum ExceptionMessage {
       "no lock is found for blockId {0,number,#} for sessionId {1,number,#}"),
   LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
   LOCK_NOT_RELEASED("lockId {0,number,#} is not released."),
+  SESSION_NOT_CLOSED("session {0,number,#} is not closed."),
 
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),

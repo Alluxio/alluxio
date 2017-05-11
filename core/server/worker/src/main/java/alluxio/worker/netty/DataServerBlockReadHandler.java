@@ -103,8 +103,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       }
 
       try {
-        if (!mWorker.unlockBlock(mRequest.mSessionId, mRequest.mId)) {
-          mWorker.closeUfsBlock(mRequest.mSessionId, mRequest.mId);
+        if (!mWorker.unlockBlock(mSessionId, mId)) {
+          mWorker.closeUfsBlock(mSessionId, mId);
         }
       } catch (Exception e) {
         LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());

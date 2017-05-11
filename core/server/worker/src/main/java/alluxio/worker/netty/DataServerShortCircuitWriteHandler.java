@@ -14,6 +14,8 @@ package alluxio.worker.netty;
 import alluxio.RpcUtils;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
@@ -36,12 +38,14 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG =
       LoggerFactory.getLogger(DataServerShortCircuitWriteHandler.class);
 
+  private static long INVALID_SESSION_ID = -1;
+
   /** The block worker. */
   private final BlockWorker mBlockWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
-  private long mSessionId;
+  private long mSessionId = INVALID_SESSION_ID;
 
   /**
    * Creates an instance of {@link DataServerShortCircuitWriteHandler}.
@@ -79,9 +83,10 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    if (mSessionId > 0) {
+    if (mSessionId != INVALID_SESSION_ID) {
       mBlockWorker.cleanupSession(mSessionId);
     }
+    ctx.fireChannelUnregistered();
   }
 
   /**
@@ -102,12 +107,19 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
               request.getSpaceToReserve());
           ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         } else {
-          mSessionId = IdUtils.getRandomNonNegativeLong();
-          String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
-              mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
-          Protocol.LocalBlockCreateResponse response =
-              Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
-          ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
+          if (mSessionId == INVALID_SESSION_ID) {
+            mSessionId = IdUtils.getRandomNonNegativeLong();
+            String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
+                mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
+            Protocol.LocalBlockCreateResponse response =
+                Protocol.LocalBlockCreateResponse.newBuilder().setPath(path).build();
+            ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
+          } else {
+            LOG.warn("Create block {} without closing the previous session {}.",
+                request.getBlockId(), mSessionId);
+            throw new InvalidWorkerStateException(
+                ExceptionMessage.SESSION_NOT_CLOSED.getMessage(mSessionId));
+          }
         }
         return null;
       }
@@ -145,6 +157,7 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
         } else {
           mBlockWorker.commitBlock(mSessionId, request.getBlockId());
         }
+        mSessionId = INVALID_SESSION_ID;
         ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         return null;
       }
@@ -152,6 +165,7 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public void exceptionCaught(Throwable throwable) {
         ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(throwable)));
+        mSessionId = INVALID_SESSION_ID;
       }
 
       @Override

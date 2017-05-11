@@ -89,6 +89,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
       }
       mBlockWorker.cleanupSession(mSessionId);
     }
+    ctx.fireChannelUnregistered();
   }
 
   /**
