@@ -71,7 +71,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   private final class BlockReadRequestInternal extends ReadRequestInternal {
     BlockReader mBlockReader;
     final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
-    final Protocol.ReadType mReadType;
+    final boolean mPromote;
 
     /**
      * Creates an instance of {@link BlockReadRequestInternal}.
@@ -87,7 +87,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       } else {
         mOpenUfsBlockOptions = null;
       }
-      mReadType = request.getReadType();
+      mPromote = request.getPromote();
       // Note that we do not need to seek to offset since the block worker is created at the offset.
     }
 
@@ -96,13 +96,6 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
      */
     boolean isPersisted() {
       return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
-    }
-
-    /**
-     * @return true if the block should be promoted before reading
-     */
-    boolean isPromote() {
-      return mReadType == Protocol.ReadType.CACHE_PROMOTE;
     }
 
     @Override
@@ -190,7 +183,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       }
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
-          if (request.isPromote()) {
+          if (request.mPromote) {
             mWorker.moveBlock(request.mSessionId, request.mId, mStorageTierAssoc.getAlias(0));
           }
           request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
