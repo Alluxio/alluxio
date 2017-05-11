@@ -178,8 +178,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      masterClient.getStatus(path,
-          GetStatusOptions.defaults().setLoadMetadataType(options.getLoadMetadataType()));
+      masterClient.getStatus(path, options.toGetStatusOptions());
       return true;
     } catch (NotFoundException e) {
       return false;

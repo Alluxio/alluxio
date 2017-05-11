@@ -33,4 +33,11 @@ public class ExistsOptionsTest {
   public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(ExistsOptions.class);
   }
+
+  @Test
+  public void toGetStatusOptions() {
+    ExistsOptions options = ExistsOptions.defaults();
+    GetStatusOptions getStatusOptions = options.toGetStatusOptions();
+    Assert.assertEquals(LoadMetadataType.Once, getStatusOptions.getLoadMetadataType());
+  }
 }

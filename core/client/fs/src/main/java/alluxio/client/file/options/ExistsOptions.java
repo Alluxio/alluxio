@@ -82,4 +82,11 @@ public final class ExistsOptions {
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
+
+  /**
+   * @return the {@link GetStatusOptions} representation of these options
+   */
+  public GetStatusOptions toGetStatusOptions() {
+    return GetStatusOptions.defaults().setLoadMetadataType(mLoadMetadataType);
+  }
 }
