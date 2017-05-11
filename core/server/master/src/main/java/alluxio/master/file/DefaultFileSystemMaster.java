@@ -1207,7 +1207,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               unmountInternal(alluxioUriToDel);
             } else if (!deleteOptions.isAlluxioOnly()) {
               // Attempt to delete node if all children were deleted successfully
-              failedToDelete = ufsDeleter.delete(alluxioUriToDel, delInode);
+              failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
             }
           } catch (InvalidPathException e) {
             LOG.warn(e.getMessage());
@@ -1249,11 +1249,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Helper class for deleting persisted entries from the UFS.
    */
   protected class UfsDeleter {
-    private AlluxioURI mRootPath;
+    private final AlluxioURI mRootPath;
     private UfsSyncChecker mUfsSyncChecker;
 
     /**
-     * Create a new instance of {@link UfsDeleter}.
+     * Creates a new instance of {@link UfsDeleter}.
      *
      * @param inodes sub-tree being deleted (any node should appear before descendants)
      * @param deleteOptions delete options
@@ -1276,7 +1276,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     /**
-     * Delete path if not covered by a recursive delete.
+     * Deletes a path if not covered by a recursive delete.
      *
      * @param alluxioUri Alluxio path to delete
      * @param inode to delete
@@ -1289,7 +1289,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
       AlluxioURI parentUri = alluxioUri.getParent();
-      if (alluxioUri.equals(mRootPath) || !isRecursiveDeleteSafe(parentUri)) {
+      if (!isRecursiveDeleteSafe(parentUri)) {
         // Parent will not recursively delete, so delete this inode individually
         if (inode.isFile()) {
           if (!ufs.deleteFile(ufsUri)) {
@@ -1325,6 +1325,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
      * @return true, if path can be deleted recursively from UFS; false, otherwise
      */
     private boolean isRecursiveDeleteSafe(AlluxioURI alluxioUri) {
+      if (alluxioUri == null || !alluxioUri.toString().startsWith(mRootPath.toString())) {
+        // Path is not part of sub-tree being deleted
+        return false;
+      }
       if (mUfsSyncChecker == null) {
         // Delete is unchecked
         return true;
