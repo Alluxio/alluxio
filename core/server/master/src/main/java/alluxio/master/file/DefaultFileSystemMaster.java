@@ -1264,7 +1264,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     /**
      * Create a new instance of {@link UfsDeleter}.
-     * 
+     *
      * @param rootPath root of the sub-tree being deleted
      * @param deleteOptions delete options
      */
@@ -1276,7 +1276,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     /**
-     * Plan delete for path. This method should be called for each Inode before any descendants.
+     * Plan delete for path by traversing the sub-tree to determine which nodes can be deleted
+     * recursively. This method should be called for each node before any descendants.
      *
      * @param alluxioUri Alluxio path to delete
      * @param inode to delete
@@ -1300,7 +1301,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
      * @param inode to delete
      * @return true, if succeeded; false. if failed to delete
      */
-    public boolean delete(AlluxioURI alluxioUri, Inode inode) throws IOException, InvalidPathException {
+    public boolean delete(AlluxioURI alluxioUri, Inode inode)
+        throws IOException, InvalidPathException {
       boolean failedToDelete = false;
       MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
       String ufsUri = resolution.getUri().toString();

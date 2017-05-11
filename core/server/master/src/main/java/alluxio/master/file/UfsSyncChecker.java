@@ -56,7 +56,6 @@ public final class UfsSyncChecker {
    * Create a new instance of {@link UfsSyncChecker}.
    *
    * @param mountTable to resolve path in under storage
-   * @param unchecked whether to skip sync check
    */
   public UfsSyncChecker(MountTable mountTable) {
     mListedDirectories = new HashMap<>();
