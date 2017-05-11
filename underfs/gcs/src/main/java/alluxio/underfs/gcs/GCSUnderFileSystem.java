@@ -147,24 +147,6 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // Returns the account owner.
-  @Override
-  public String getOwner(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // No group in GCS ACL, returns the account owner.
-  @Override
-  public String getGroup(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the GCS bucket.
-  @Override
-  public short getMode(String path) throws IOException {
-    return mBucketMode;
-  }
-
   @Override
   protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
@@ -218,6 +200,24 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return true;
   }
 
+  // Returns the account owner.
+  @Override
+  protected String getBucketOwner() {
+    return mAccountOwner;
+  }
+
+  // No group in GCS ACL, returns the account owner.
+  @Override
+  protected String getBucketGroup() {
+    return mAccountOwner;
+  }
+
+  // Returns the account owner's permission mode to the GCS bucket.
+  @Override
+  protected short getBucketMode() {
+    return mBucketMode;
+  }
+
   @Override
   protected String getFolderSuffix() {
     return FOLDER_SUFFIX;
@@ -266,11 +266,12 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public String[] getObjectNames() {
+    public ObjectStatus[] getObjectStatuses() {
       StorageObject[] objects = mChunk.getObjects();
-      String[] ret = new String[objects.length];
+      ObjectStatus[] ret = new ObjectStatus[objects.length];
       for (int i = 0; i < ret.length; ++i) {
-        ret[i] = objects[i].getKey();
+        ret[i] = new ObjectStatus(objects[i].getKey(), objects[i].getContentLength(),
+            objects[i].getLastModifiedDate().getTime());
       }
       return ret;
     }
@@ -300,7 +301,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedDate().getTime());
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModifiedDate().getTime());
     } catch (ServiceException e) {
       return null;
     }

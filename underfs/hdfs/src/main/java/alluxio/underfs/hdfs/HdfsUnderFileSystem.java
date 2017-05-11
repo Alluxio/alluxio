@@ -17,7 +17,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
-import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.DefaultUnderFileSystem;
 import alluxio.underfs.UnderFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -57,7 +57,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * HDFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class HdfsUnderFileSystem extends BaseUnderFileSystem
+public class HdfsUnderFileSystem extends DefaultUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
   private static final int MAX_TRY = 5;
@@ -204,6 +204,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public UnderFileStatus getDirectoryStatus(String path) throws IOException {
+    return getFileStatus(path);
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     return getFileLocations(path, FileLocationOptions.defaults());
   }
@@ -232,29 +237,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
+  public UnderFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        FileStatus fs = mFileSystem.getFileStatus(tPath);
-        return fs.getLen();
-      } catch (IOException e) {
-        LOG.warn("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage());
-      }
-    }
-    return -1;
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    Path tPath = new Path(path);
-    if (!mFileSystem.exists(tPath)) {
-      throw new FileNotFoundException(path);
-    }
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return fs.getModificationTime();
+    return new UnderFileStatus(path, fs.getLen(), fs.isDirectory(),
+        fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
 
   @Override
@@ -302,7 +289,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     int i = 0;
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
-      rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
+      rtn[i++] = new UnderFileStatus(status.getPath().getName(), status.getLen(), status.isDir(),
+          status.getModificationTime(), status.getOwner(), status.getGroup(),
+          status.getPermission().toShort());
     }
     return rtn;
   }
@@ -453,36 +442,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
       LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getOwner();
-    } catch (IOException e) {
-      LOG.warn("Fail to get owner for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getGroup();
-    } catch (IOException e) {
-      LOG.warn("Fail to get group for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
-    } catch (IOException e) {
-      LOG.warn("Fail to get permission for {} : {}", path, e.getMessage());
       throw e;
     }
   }

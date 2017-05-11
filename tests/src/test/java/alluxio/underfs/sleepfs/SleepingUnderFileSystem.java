@@ -107,33 +107,9 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetFileSizeMs());
-    return super.getFileSize(cleanPath(path));
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetGroupMs());
-    return super.getGroup(cleanPath(path));
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetModeMs());
-    return super.getMode(cleanPath(path));
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetModificationTimeMs());
-    return super.getModificationTimeMs(cleanPath(path));
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetOwnerMs());
-    return super.getOwner(cleanPath(path));
+  public UnderFileStatus getFileStatus(String path) throws IOException {
+    sleepIfNecessary(mOptions.getGetFileStatusMs());
+    return super.getFileStatus(cleanPath(path));
   }
 
   @Override
