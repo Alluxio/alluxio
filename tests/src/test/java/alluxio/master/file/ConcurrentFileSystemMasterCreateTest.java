@@ -92,6 +92,10 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     mFileSystem = FileSystem.Factory.get();
   }
 
+  /**
+   * Tests concurrent create of files. Files are created under one shared directory but different
+   * sub-directories.
+   */
   @Test
   public void concurrentCreate() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
@@ -109,6 +113,10 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
+  /**
+   * Test concurrent create of existing directory. Existing directory is created as CACHE_THROUGH
+   * then files are created under that directory.
+   */
   @Test
   public void concurrentCreateExistingDir() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
@@ -116,7 +124,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
-    // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
+    // Create the existing path with CACHE_THROUGH that it will be persisted.
     mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
         CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH));
 
@@ -130,6 +138,10 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
   }
 
+  /**
+   * Test concurrent create of non-persisted directory. Directory is created as MUST_CACHE then
+   * files are created under that directory.
+   */
   @Test
   public void concurrentCreateNonPersistedDir() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;

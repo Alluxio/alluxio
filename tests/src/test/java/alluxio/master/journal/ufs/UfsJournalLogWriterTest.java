@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
 import alluxio.master.journal.JournalWriter;
@@ -50,7 +51,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

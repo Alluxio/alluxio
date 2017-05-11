@@ -34,6 +34,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 
+/**
+ * Integration tests for the pin operation.
+ */
 public final class PinIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -58,6 +61,9 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
     mFSMasterClient.close();
   }
 
+  /**
+   * Tests that pinning/unpinning a folder should recursively take effect on its subfolders.
+   */
   @Test
   public void recursivePinness() throws Exception {
     AlluxioURI folderURI = new AlluxioURI("/myFolder");
@@ -100,10 +106,11 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
         Sets.newHashSet(status.getFileId()));
   }
 
+  /**
+   * Tests that children should inherit the isPinned attribute from their parent on creation.
+   */
   @Test
   public void newFilesInheritPinness() throws Exception {
-    // Children should inherit the isPinned value of their parents on creation.
-
     // Pin root
     mFileSystem.setAttribute(new AlluxioURI("/"), mSetPinned);
 
