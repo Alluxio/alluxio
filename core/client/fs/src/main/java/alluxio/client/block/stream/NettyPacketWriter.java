@@ -217,7 +217,8 @@ public final class NettyPacketWriter implements PacketWriter {
         }
       }
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
+      throw new CanceledException(e);
     }
   }
 
@@ -248,7 +249,7 @@ public final class NettyPacketWriter implements PacketWriter {
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new RuntimeException(e);
+          throw new CanceledException(e);
         }
       }
     } finally {

@@ -122,9 +122,6 @@ public final class RetryHandlingBlockWorkerClient
       mHeartbeat = HEARTBEAT_POOL.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-              if (Thread.interrupted()) {
-                throw new RuntimeException("block worker client heartbeat thread interrupted");
-              }
               try {
                 sessionHeartbeat(new CountingRetry(0));
               } catch (IOException e) {

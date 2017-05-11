@@ -61,9 +61,9 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
           .createLocalPacketOutStream(client, blockId, blockSize, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
-    } catch (IOException | RuntimeException e) {
+    } catch (Throwable t) {
       try {
-        throw closer.rethrow(e);
+        throw closer.rethrow(t);
       } finally {
         closer.close();
       }
@@ -91,9 +91,9 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
               blockSize, Protocol.RequestType.ALLUXIO_BLOCK, options);
       closer.register(outStream);
       return new BlockOutStream(outStream, blockId, blockSize, client, options);
-    } catch (RuntimeException e) {
+    } catch (Throwable t) {
       try {
-        throw closer.rethrow(e);
+        throw closer.rethrow(t);
       } finally {
         closer.close();
       }

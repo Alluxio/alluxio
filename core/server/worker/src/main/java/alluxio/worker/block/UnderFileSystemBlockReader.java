@@ -299,10 +299,10 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       // This can only happen when the session is expired.
       LOG.warn("Block {} does not exist when being aborted. The session may have expired.",
           mBlockMeta.getBlockId());
-    } catch (BlockAlreadyExistsException | InvalidWorkerStateException e) {
+    } catch (BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
       // We cannot skip the exception here because we need to make sure that the user of this
       // reader does not commit the block if it fails to abort the block.
-      throw AlluxioStatusException.fromAlluxioException(e);
+      throw AlluxioStatusException.fromCheckedException(e);
     }
     try {
       if (mBlockWriter == null && offset == 0 && !mNoCache) {

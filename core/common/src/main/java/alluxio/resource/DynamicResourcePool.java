@@ -280,7 +280,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * Acquire a resource of type {code T} from the pool.
    *
    * @return the acquired resource
-   * @throws InterruptedException if this thread is interrupted
    */
   @Override
   public T acquire() throws IOException {

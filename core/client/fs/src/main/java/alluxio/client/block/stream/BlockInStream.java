@@ -24,7 +24,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -72,7 +71,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createShortCircuitBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) 
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
           throws IOException {
     Closer closer = Closer.create();
     try {
@@ -85,9 +84,9 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (IOException e) {
+    } catch (Throwable t) {
       try {
-        throw closer.rethrow(e);
+        throw closer.rethrow(t);
       } finally {
         closer.close();
       }
@@ -106,7 +105,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) 
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
           throws IOException {
     Closer closer = Closer.create();
     try {
@@ -120,9 +119,9 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (IOException e) {
+    } catch (Throwable t) {
       try {
-        throw closer.rethrow(e);
+        throw closer.rethrow(t);
       } finally {
         closer.close();
       }
@@ -190,9 +189,9 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
                 options));
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (IOException e) {
+    } catch (Throwable t) {
       try {
-        throw closer.rethrow(e);
+        throw closer.rethrow(t);
       } finally {
         closer.close();
       }

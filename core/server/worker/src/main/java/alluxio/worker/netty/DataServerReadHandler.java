@@ -205,13 +205,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
-    AlluxioStatusException e;
-    if (cause instanceof RuntimeException || cause instanceof java.lang.Error) {
-      e = new InternalException(cause);
-    } else {
-      e = AlluxioStatusException.fromCheckedException(cause);
-    }
-    setError(ctx.channel(), new Error(e, true));
+    setError(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
   }
 
   /**

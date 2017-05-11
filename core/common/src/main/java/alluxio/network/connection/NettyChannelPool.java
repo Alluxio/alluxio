@@ -12,6 +12,7 @@
 package alluxio.network.connection;
 
 import alluxio.Configuration;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
@@ -97,7 +98,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new IOException(e);
+      throw new CanceledException(e);
     }
   }
 
