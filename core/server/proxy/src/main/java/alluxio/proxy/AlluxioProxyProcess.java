@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
@@ -117,7 +118,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
           return false;
         }
       }
-    });
+    }, WaitForOptions.defaults().setTimeout(10000));
   }
 
   @Override

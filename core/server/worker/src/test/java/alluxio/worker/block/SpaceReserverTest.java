@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -56,7 +57,7 @@ public class SpaceReserverTest {
   public void before() {
     mExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("space-reserver-test", true));
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @After

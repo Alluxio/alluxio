@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -80,7 +81,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test

@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
 import alluxio.BaseIntegrationTest;
+import alluxio.ConfigurationTestUtils;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalReaderOptions;
@@ -52,7 +52,7 @@ public final class UfsJournalReaderTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
