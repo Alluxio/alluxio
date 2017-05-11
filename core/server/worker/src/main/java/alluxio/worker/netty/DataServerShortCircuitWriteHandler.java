@@ -38,7 +38,7 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG =
       LoggerFactory.getLogger(DataServerShortCircuitWriteHandler.class);
 
-  private static long INVALID_SESSION_ID = -1;
+  private static final long INVALID_SESSION_ID = -1;
 
   /** The block worker. */
   private final BlockWorker mBlockWorker;
