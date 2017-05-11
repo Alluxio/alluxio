@@ -409,7 +409,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegr
   @Test
   public void listStatusEmpty() throws IOException {
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
-    mUfs.mkdirs(testDir);
+    UnderFileSystemUtils.mkdirIfNotExists(mUfs, testDir);
     UfsStatus[] res = mUfs.listStatus(testDir);
     Assert.assertEquals(0, res.length);
   }
@@ -461,7 +461,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegr
   public void listStatusRecursive() throws IOException {
     String root = mUnderfsAddress;
     // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
-    mUfs.mkdirs(root);
+    UnderFileSystemUtils.mkdirIfNotExists(mUfs, root);
     // Empty lsr should be empty
     Assert.assertEquals(0, mUfs.listStatus(root).length);
 
@@ -516,7 +516,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegr
     String dirName = "loadMetaDataRoot";
 
     String rootDir = PathUtils.concatPath(mUnderfsAddress, dirName);
-    mUfs.mkdirs(rootDir);
+    UnderFileSystemUtils.mkdirIfNotExists(mUfs, rootDir);
 
     String rootFile1 = PathUtils.concatPath(rootDir, "file1");
     createEmptyFile(rootFile1);
@@ -563,23 +563,28 @@ public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegr
    */
   @Test
   public void mkdirs() throws IOException {
+    if (!(mUfs instanceof DirectoryUnderFileSystem)) {
+      return;
+    }
+
+    DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) mUfs;
     // make sure the underfs address dir exists already
-    mUfs.mkdirs(mUnderfsAddress);
+    directoryUfs.mkdirs(mUnderfsAddress);
     // empty lsr should be empty
-    Assert.assertEquals(0, mUfs.listStatus(mUnderfsAddress).length);
+    Assert.assertEquals(0, directoryUfs.listStatus(mUnderfsAddress).length);
 
     String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");
     String testDir1 = PathUtils.concatPath(mUnderfsAddress, "1");
     String testDir2 = PathUtils.concatPath(testDir1, "2");
     String testDir3 = PathUtils.concatPath(testDir2, "3");
     String testDirDeep = PathUtils.concatPath(testDir3, "testDirDeep");
-    mUfs.mkdirs(testDirTop, MkdirsOptions.defaults().setCreateParent(false));
-    Assert.assertTrue(mUfs.isDirectory(testDirTop));
-    mUfs.mkdirs(testDirDeep, MkdirsOptions.defaults().setCreateParent(true));
-    Assert.assertTrue(mUfs.isDirectory(testDir1));
-    Assert.assertTrue(mUfs.isDirectory(testDir2));
-    Assert.assertTrue(mUfs.isDirectory(testDir3));
-    Assert.assertTrue(mUfs.isDirectory(testDirDeep));
+    directoryUfs.mkdirs(testDirTop, MkdirsOptions.defaults().setCreateParent(false));
+    Assert.assertTrue(directoryUfs.isDirectory(testDirTop));
+    directoryUfs.mkdirs(testDirDeep, MkdirsOptions.defaults().setCreateParent(true));
+    Assert.assertTrue(directoryUfs.isDirectory(testDir1));
+    Assert.assertTrue(directoryUfs.isDirectory(testDir2));
+    Assert.assertTrue(directoryUfs.isDirectory(testDir3));
+    Assert.assertTrue(directoryUfs.isDirectory(testDirDeep));
   }
 
   /**

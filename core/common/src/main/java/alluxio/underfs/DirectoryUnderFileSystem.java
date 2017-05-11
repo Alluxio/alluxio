@@ -11,11 +11,11 @@
 
 package alluxio.underfs;
 
+import alluxio.underfs.options.MkdirsOptions;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import alluxio.underfs.options.MkdirsOptions;
 
 /**
  * Extend {@link UnderFileSystem} with directory operations.

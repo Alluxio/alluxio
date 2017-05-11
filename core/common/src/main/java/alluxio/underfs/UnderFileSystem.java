@@ -93,8 +93,12 @@ public interface UnderFileSystem extends Closeable {
       for (UnderFileSystemFactory factory : factories) {
         try {
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(
-              factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
+          UnderFileSystem ufs = factory.create(path, new UnderFileSystemConfiguration(ufsConf));
+          if (ufs instanceof DirectoryUnderFileSystem) {
+            return new DirectoryUnderFileSystemWithLogging((DirectoryUnderFileSystem) ufs);
+          } else {
+            return new UnderFileSystemWithLogging(ufs);
+          }
         } catch (Exception e) {
           errors.add(e);
           LOG.warn("Failed to create ufs", e);
@@ -374,15 +378,6 @@ public interface UnderFileSystem extends Closeable {
    *         {@code null} if this abstract pathname does not denote a directory.
    */
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
-
-  /**
-   * Creates the directory named by this abstract pathname. If the folder already exists, the method
-   * returns false. The method creates any necessary but nonexistent parent directories.
-   *
-   * @param path the folder to create
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   */
-  boolean mkdirs(String path) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname, with specified

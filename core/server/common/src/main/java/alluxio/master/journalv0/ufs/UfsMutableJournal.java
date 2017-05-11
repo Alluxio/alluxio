@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.master.journalv0.JournalWriter;
 import alluxio.master.journalv0.MutableJournal;
 import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -47,9 +46,8 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
   @Override
   public void format() throws IOException {
     LOG.info("Formatting {}", mLocation);
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation);
-    if (ufs.isDirectory(mLocation.toString())) {
-      for (UfsStatus p : ufs.listStatus(mLocation.toString())) {
+    if (mUfs.isDirectory(mLocation.toString())) {
+      for (UfsStatus p : mUfs.listStatus(mLocation.toString())) {
         URI childPath;
         try {
           childPath = URIUtils.appendPath(mLocation, p.getName());
@@ -58,22 +56,22 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
         }
         boolean failedToDelete;
         if (p.isDirectory()) {
-          failedToDelete = !ufs.deleteDirectory(childPath.toString(),
+          failedToDelete = !mUfs.deleteDirectory(childPath.toString(),
               DeleteOptions.defaults().setRecursive(true));
         } else {
-          failedToDelete = !ufs.deleteFile(childPath.toString());
+          failedToDelete = !mUfs.deleteFile(childPath.toString());
         }
         if (failedToDelete) {
           throw new IOException(String.format("Failed to delete %s", childPath));
         }
       }
-    } else if (!ufs.mkdirs(mLocation.toString())) {
+    } else if (!mUfs.mkdirs(mLocation.toString())) {
       throw new IOException(String.format("Failed to create %s", mLocation));
     }
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     try {
-      UnderFileSystemUtils.touch(ufs, URIUtils.appendPath(mLocation,
+      UnderFileSystemUtils.touch(mUfs, URIUtils.appendPath(mLocation,
           Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
           .toString());
     } catch (URISyntaxException e) {

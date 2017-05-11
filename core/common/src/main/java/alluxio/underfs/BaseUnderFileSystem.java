@@ -39,7 +39,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * A base abstract {@link UnderFileSystem}.
  */
 @ThreadSafe
-public abstract class BaseUnderFileSystem implements UnderFileSystem {
+// TODO(adit): Base should not implement DirectoryUnderFileSystem
+public abstract class BaseUnderFileSystem implements DirectoryUnderFileSystem {
   /** The UFS {@link AlluxioURI} used to create this {@link BaseUnderFileSystem}. */
   protected final AlluxioURI mUri;
 

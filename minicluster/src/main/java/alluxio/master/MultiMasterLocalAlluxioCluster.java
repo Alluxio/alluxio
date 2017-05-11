@@ -17,8 +17,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
@@ -184,12 +184,9 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     // sets UNDERFS_ADDRESS.
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
     String path = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
-    }
-    if (!ufs.mkdirs(path)) {
-      throw new IOException("Failed to make folder: " + path);
-    }
+
+    UnderFileSystemUtils.deleteDirIfExists(ufs, path);
+    UnderFileSystemUtils.mkdirIfNotExists(ufs, path);
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");

@@ -21,6 +21,7 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -186,11 +187,14 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   public void notAFile() throws Exception {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile);
-    ufs.deleteFile(ufsFile);
-    ufs.mkdirs(ufsFile);
-    List<AlluxioURI> expected = Lists.newArrayList(FILE);
-    Assert.assertEquals(expected, mFileSystemMaster
-        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+    if (ufs instanceof DirectoryUnderFileSystem) {
+      DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+      directoryUfs.deleteFile(ufsFile);
+      directoryUfs.mkdirs(ufsFile);
+      List<AlluxioURI> expected = Lists.newArrayList(FILE);
+      Assert.assertEquals(expected, mFileSystemMaster
+          .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+    }
   }
 
   /**
