@@ -64,15 +64,14 @@ public final class WorkerUfsManager extends AbstractUfsManager {
       try {
         info = mMasterClient.getUfsInfo(mountId);
       } catch (IOException e) {
-        LOG.error("Failed to get UFS info for mount point with id %d", mountId);
+        LOG.error("Failed to get UFS info for mount point with id {}", mountId);
         return null;
       }
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
       try {
         ufs = super.addMount(mountId, info.getUri(), info.getProperties());
       } catch (IOException e) {
-        LOG.error(String.format("Failed to add mount point %s with id %d", info.getUri(), mountId),
-            e);
+        LOG.error("Failed to add mount point {} with id {}", info.getUri(), mountId, e);
         return null;
       }
     }
