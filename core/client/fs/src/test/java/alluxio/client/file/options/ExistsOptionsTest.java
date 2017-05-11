@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,6 +26,7 @@ public class ExistsOptionsTest {
     ExistsOptions options = ExistsOptions.defaults();
 
     Assert.assertNotNull(options);
+    Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
   @Test
