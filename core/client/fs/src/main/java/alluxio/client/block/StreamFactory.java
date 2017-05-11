@@ -47,9 +47,9 @@ public final class StreamFactory {
    * @param options the out stream options
    * @return the {@link OutputStream} object
    */
-  public static BlockOutStream createBlockOutStream(FileSystemContext context,
-      long blockId, long blockSize, WorkerNetAddress address, OutStreamOptions options) {
-    if (address.equals(NetworkAddressUtils.getClientHostName()) && Configuration
+  public static BlockOutStream createBlockOutStream(FileSystemContext context, long blockId,
+      long blockSize, WorkerNetAddress address, OutStreamOptions options) {
+    if (address.getHost().equals(NetworkAddressUtils.getClientHostName()) && Configuration
         .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
         .isDomainSocketSupported(address)) {
       return BlockOutStream
@@ -72,10 +72,10 @@ public final class StreamFactory {
    * @param options the in stream options
    * @return the {@link InputStream} object
    */
-  public static BlockInStream createBlockInStream(FileSystemContext context,
-      long blockId, long blockSize, WorkerNetAddress address,
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options) {
-    if (address.equals(NetworkAddressUtils.getClientHostName()) && Configuration
+  public static BlockInStream createBlockInStream(FileSystemContext context, long blockId,
+      long blockSize, WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
+      InStreamOptions options) {
+    if (address.getHost().equals(NetworkAddressUtils.getClientHostName()) && Configuration
         .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
         .isDomainSocketSupported(address)) {
       try {
