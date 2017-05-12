@@ -73,7 +73,7 @@ case "${WHAT}" in
     stop_worker
     ALLUXIO_MASTER_SECONDARY=true
     stop_master
-    unset ALLUXIO_MASTER_SECONDARY
+    ALLUXIO_MASTER_SECONDARY=false
     stop_master
     ;;
   master)

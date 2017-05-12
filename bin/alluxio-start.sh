@@ -311,7 +311,7 @@ main() {
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
       start_master "${FORMAT}"
-      unset ALLUXIO_MASTER_SECONDARY
+      ALLUXIO_MASTER_SECONDARY=false
       sleep 2
       start_worker "${MOPT}"
       start_proxy

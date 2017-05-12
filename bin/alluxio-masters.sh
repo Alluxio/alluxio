@@ -36,20 +36,18 @@ ALLUXIO_TASK_LOG="${ALLUXIO_LOG_DIR}/task.log"
 
 echo "Executing the following command on all master nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
-ZOOKEEPER_ENABLED=$(${BIN}/alluxio getConf alluxio.zookeeper.enabled)
 N=0
+ZOOKEEPER_ENABLED=$(${BIN}/alluxio getConf alluxio.zookeeper.enabled)
 for master in $(echo ${HOSTLIST}); do
   echo "[${master}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   if [[ ${ZOOKEEPER_ENABLED} == "true" || ${N} -eq 0 ]]; then
     nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
-      $"${@// /\\ }" 2>&1 | \
-      while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
+      $"${@// /\\ }" 2>&1 | while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   else
     nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
-      $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | \
-      while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
+      $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   fi
-  ((N++))
+  N=$((N+1))
 done
 
 echo "Waiting for tasks to finish..."
