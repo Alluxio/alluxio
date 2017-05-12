@@ -46,7 +46,7 @@ for master in $(echo ${HOSTLIST}); do
       while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   else
     nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
-      $"export ALLUXIO_MASTER_SECONDARY; ${@// /\\ }" 2>&1 | \
+      $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | \
       while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   fi
   ((N++))

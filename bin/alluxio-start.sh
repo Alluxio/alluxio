@@ -133,7 +133,7 @@ do_mount() {
 }
 
 stop() {
-  ${BIN}/alluxio-stop.sh all
+  ${BIN}/alluxio-stop.sh $1
 }
 
 start_master() {
@@ -141,16 +141,7 @@ start_master() {
     ${LAUNCHER} ${BIN}/alluxio format
   fi
 
-  if [[ ${ALLUXIO_MASTER_SECONDARY} != "true" ]]; then
-    if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
-      ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-    fi
-
-    echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup "${JAVA}" -cp ${CLASSPATH} \
-     ${ALLUXIO_MASTER_JAVA_OPTS} \
-     alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
-  else
+  if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
     if [[ -z ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} ]]; then
       ALLUXIO_SECONDARY_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
     fi
@@ -159,6 +150,15 @@ start_master() {
     (nohup "${JAVA}" -cp ${CLASSPATH} \
      ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} \
      alluxio.master.AlluxioSecondaryMaster > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
+  else
+    if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
+      ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+    fi
+
+    echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+    (nohup "${JAVA}" -cp ${CLASSPATH} \
+     ${ALLUXIO_MASTER_JAVA_OPTS} \
+     alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
   fi
 }
 
@@ -295,7 +295,7 @@ main() {
   case "${ACTION}" in
     all)
       if [[ "${killonstart}" != "no" ]]; then
-        stop
+        stop all
         sleep 1
       fi
       start_masters "${FORMAT}"
@@ -305,12 +305,13 @@ main() {
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
-        stop
+        stop local
         sleep 1
       fi
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
       start_master "${FORMAT}"
+      unset ALLUXIO_MASTER_SECONDARY
       sleep 2
       start_worker "${MOPT}"
       start_proxy

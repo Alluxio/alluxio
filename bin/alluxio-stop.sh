@@ -31,10 +31,10 @@ Where component is one of:
 -h  display this help."
 
 stop_master() {
-  if [[ ${ALLUXIO_MASTER_SECONDARY} != "true" ]]; then    
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioMaster"
-  else
+  if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
     ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioSecondaryMaster"
+  else
+    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioMaster"
   fi
 }
 
