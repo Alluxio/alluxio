@@ -14,7 +14,6 @@ package alluxio.client;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.UfsIntegrationTestUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
