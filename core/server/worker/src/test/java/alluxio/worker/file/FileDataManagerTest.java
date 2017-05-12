@@ -22,8 +22,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -59,7 +59,7 @@ import java.util.List;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class, FileSystem.class})
 public final class FileDataManagerTest {
-  private UnderFileSystem mUfs;
+  private DirectoryUnderFileSystem mUfs;
   private UfsManager mUfsManager;
   private BlockWorker mBlockWorker;
   private MockRateLimiter mMockRateLimiter;
@@ -68,7 +68,7 @@ public final class FileDataManagerTest {
 
   @Before
   public void before() throws Exception {
-    mUfs = Mockito.mock(UnderFileSystem.class);
+    mUfs = Mockito.mock(DirectoryUnderFileSystem.class);
     mUfsManager = Mockito.mock(UfsManager.class);
     mBlockWorker = Mockito.mock(BlockWorker.class);
     mMockRateLimiter =

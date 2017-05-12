@@ -320,14 +320,6 @@ public interface UnderFileSystem extends Closeable {
   String getUnderFSType();
 
   /**
-   * Checks if a directory exists in under file system.
-   *
-   * @param path the absolute directory path
-   * @return true if the path exists and is a directory, false otherwise
-   */
-  boolean isDirectory(String path) throws IOException;
-
-  /**
    * Checks if a file exists in under file system.
    *
    * @param path the absolute file path

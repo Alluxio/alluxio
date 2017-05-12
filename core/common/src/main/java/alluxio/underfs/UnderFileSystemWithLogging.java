@@ -306,21 +306,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean isDirectory(final String path) throws IOException {
-    return call(new UfsCallable<Boolean>() {
-      @Override
-      public Boolean call() throws IOException {
-        return mUnderFileSystem.isDirectory(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("IsDirectory: path=%s", path);
-      }
-    });
-  }
-
-  @Override
   public boolean isFile(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override

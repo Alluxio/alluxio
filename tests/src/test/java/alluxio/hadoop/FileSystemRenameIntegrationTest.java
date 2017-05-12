@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
+import alluxio.UfsIntegrationTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -109,12 +110,13 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(sTFS.exists(dirA));
     Assert.assertTrue(sTFS.exists(finalDst));
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "fileA")));
-    Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"), true);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirA", "fileA")));
 
     cleanup(sTFS);
 
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"),
+        false);
   }
 
   @Test
@@ -133,12 +135,12 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(sTFS.exists(dirA));
     Assert.assertTrue(sTFS.exists(finalDst));
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "fileA")));
-    Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"), true);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirA", "fileA")));
 
     cleanup(sTFS);
 
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"), false);
   }
 
   @Test
@@ -197,16 +199,16 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(sTFS.exists(fileA));
     Assert.assertTrue(sTFS.exists(dirB));
     Assert.assertTrue(sTFS.exists(finalDst));
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"), false);
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirA", "fileA")));
-    Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirB")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), true);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirB", "fileA")));
 
     cleanup(sTFS);
 
     Assert.assertFalse(sTFS.exists(dirB));
     Assert.assertFalse(sTFS.exists(finalDst));
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirB")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), false);
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirB", "fileA")));
   }
 
@@ -260,13 +262,13 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
 
     Assert.assertFalse(sTFS.exists(finalDst));
     Assert.assertTrue(sTFS.exists(dirA));
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA", "dirB")));
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirB")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA", "dirB"), false);
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), false);
 
     cleanup(sTFS);
 
     Assert.assertFalse(sTFS.exists(dirA));
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirB")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), false);
   }
 
   @Test
@@ -309,7 +311,7 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(sTFS.exists(dirA));
     Assert.assertTrue(sTFS.exists(finalDst));
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "fileA")));
-    Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"), true);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirA", "fileA")));
 
     cleanup(sTFS);
@@ -318,7 +320,8 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(sTFS.exists(dirA));
     Assert.assertFalse(sTFS.exists(finalDst));
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "fileA")));
-    Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"),
+        false);
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirA", "fileA")));
   }
 
