@@ -34,6 +34,7 @@
 
   <dependencies>
     <!-- External dependencies -->
+    <!-- Hadoop dependencies are included in individual profiles -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -61,6 +62,7 @@
   </dependencies>
 
   <profiles>
+    <!-- Profile to build this UFS module connecting to hdfs 1 -->
     <profile>
       <id>hadoop-1</id>
       <dependencies>
@@ -274,9 +276,9 @@
           </plugin>
         </plugins>
       </build>
-
     </profile>
 
+    <!-- Profile to build this UFS module connecting to hdfs 2.2, this is the default profile -->
     <profile>
       <id>hadoop-2.2</id>
       <activation>
@@ -561,9 +563,9 @@
           </plugin>
         </plugins>
       </build>
-
     </profile>
 
+    <!-- Profile to build this UFS module connecting to hdfs 2.4 -->
     <profile>
       <id>hadoop-2.4</id>
       <dependencies>
@@ -843,6 +845,7 @@
       </build>
     </profile>
 
+    <!-- Profile to build this UFS module connecting to hdfs 2.6 -->
     <profile>
       <id>hadoop-2.6</id>
       <dependencies>
@@ -1197,6 +1200,7 @@
       </build>
     </profile>
 
+    <!-- Profile to build this UFS module connecting to hdfs 2.7 -->
     <profile>
       <id>hadoop-2.7</id>
       <dependencies>
