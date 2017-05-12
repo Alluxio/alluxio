@@ -1309,7 +1309,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             if (!ufs.deleteDirectory(ufsUri,
                 alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
               // TODO(adit): handle partial failures of recursive deletes
-              failedToDelete = ufs.isDirectory(ufsUri);
+              // TODO(adit): so we need this check?
+              // failedToDelete = ufs.isDirectory(ufsUri);
               if (!failedToDelete) {
                 LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
               }
