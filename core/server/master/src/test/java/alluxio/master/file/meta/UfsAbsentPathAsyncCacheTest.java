@@ -210,8 +210,8 @@ public class UfsAbsentPathAsyncCacheTest {
     final long initialTasks = pool.getCompletedTaskCount();
     mUfsAbsentPathCache.process(path);
     // Wait until the async task is completed.
-    CommonUtils
-        .waitFor("path (" + path + ") to be removed from absent cache", new Function<Void, Boolean>() {
+    CommonUtils.waitFor("path (" + path + ") to be removed from absent cache",
+        new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
             if (pool.getCompletedTaskCount() == initialTasks) {
