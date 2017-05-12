@@ -94,7 +94,6 @@ public final class AlluxioBlockStoreTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   private BlockMasterClient mMasterClient;
-  private BlockWorkerClient mBlockWorkerClient;
   private AlluxioBlockStore mBlockStore;
   private Channel mChannel;
   private ChannelPipeline mPipeline;
@@ -103,20 +102,14 @@ public final class AlluxioBlockStoreTest {
 
   @Before
   public void before() throws Exception {
-    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mChannel = PowerMockito.mock(Channel.class);
     mPipeline = PowerMockito.mock(ChannelPipeline.class);
 
     mContext = PowerMockito.mock(FileSystemContext.class);
-    // Mock block store context to return our mock clients
-    Mockito.when(mContext.createBlockWorkerClient(Mockito.any(WorkerNetAddress.class)))
-        .thenReturn(mBlockWorkerClient);
-
     Mockito.when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
     mLocalAddr = new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName());
-    Mockito.when(mBlockWorkerClient.getWorkerNetAddress()).thenReturn(mLocalAddr);
 
     mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
 
