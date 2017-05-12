@@ -71,16 +71,17 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
 
     @Override
     void cancel() throws IOException {
+      mBlockWriter.close();
       try {
-        mBlockWriter.close();
-        try {
-          mWorker.abortBlock(mSessionId, mId);
-        } catch (Exception e) {
-          throw CommonUtils.castToIOException(e);
-        }
-      } finally {
-        mWorker.cleanupSession(mSessionId);
+        mWorker.abortBlock(mSessionId, mId);
+      } catch (Exception e) {
+        throw CommonUtils.castToIOException(e);
       }
+    }
+
+    @Override
+    void cleanup() throws IOException {
+      mWorker.cleanupSession(mSessionId);
     }
   }
 

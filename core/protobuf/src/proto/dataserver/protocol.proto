@@ -42,7 +42,7 @@ message OpenUfsBlockOptions {
 }
 
 // The write request.
-// next available id: 12
+// next available id: 8
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -55,12 +55,18 @@ message WriteRequest {
   optional bool eof = 5;
   optional bool cancel = 6;
 
-  // The following are only applicable for ufs writes.
-  optional string ufs_path = 7;
-  optional string owner = 8;
-  optional string group = 9;
-  optional int32 mode = 10;
-  optional int64 mount_id = 11;
+  // This is only applicable for ufs writes.
+  optional CreateUfsFileOptions create_ufs_file_options = 7;
+}
+
+// Options to create a UFS file.
+// next available: 6
+message CreateUfsFileOptions {
+  optional string ufs_path = 1;
+  optional string owner = 2;
+  optional string group = 3;
+  optional int32 mode = 4;
+  optional int64 mount_id = 5;
 }
 
 // The response.
