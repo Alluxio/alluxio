@@ -131,12 +131,25 @@ public final class StorageDirTest {
     }
   }
 
+  /**
+   * Assert meta data is empty.
+   *
+   * @param dir storage dir
+   * @param capacity capacity bytes
+   */
   private void assertMetadataEmpty(StorageDir dir, long capacity) {
     Assert.assertEquals(capacity, dir.getCapacityBytes());
     Assert.assertEquals(capacity, dir.getAvailableBytes());
     Assert.assertTrue(dir.getBlockIds().isEmpty());
   }
 
+  /**
+   * Assert storage dir is empty.
+   *
+   * @param dirPath directory path
+   * @param dir storage directory
+   * @param capacity capacity bytes
+   */
   private void assertStorageDirEmpty(File dirPath, StorageDir dir, long capacity) {
     assertMetadataEmpty(dir, capacity);
     File[] files = dirPath.listFiles();
