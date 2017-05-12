@@ -225,7 +225,6 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   @Override
   public void stopMasters() throws Exception {
     for (int k = 0; k < mNumOfMasters; k++) {
-      // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
       mMasters.get(k).stop();
     }
   }

@@ -95,7 +95,7 @@ public final class BufferUtils {
    * The new bytebuffer will have the same content, but the type of the bytebuffer may not be the
    * same.
    *
-   * @param buf The ByteBuffer to clone
+   * @param buf The ByteBuffer to copy
    * @return The new ByteBuffer
    */
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
@@ -113,7 +113,7 @@ public final class BufferUtils {
   /**
    * Clones a list of {@link ByteBuffer}s.
    *
-   * @param source the list of ByteBuffers to clone
+   * @param source the list of ByteBuffers to copy
    * @return the new list of ByteBuffers
    */
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {

@@ -12,7 +12,9 @@
 package alluxio.underfs.sleepfs;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -94,6 +96,12 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    sleepIfNecessary(mOptions.getGetFileStatusMs());
+    return super.getDirectoryStatus(cleanPath(path));
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetFileLocationsMs());
     return super.getFileLocations(cleanPath(path));
@@ -107,33 +115,9 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetFileSizeMs());
-    return super.getFileSize(cleanPath(path));
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetGroupMs());
-    return super.getGroup(cleanPath(path));
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetModeMs());
-    return super.getMode(cleanPath(path));
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetModificationTimeMs());
-    return super.getModificationTimeMs(cleanPath(path));
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetOwnerMs());
-    return super.getOwner(cleanPath(path));
+  public UfsFileStatus getFileStatus(String path) throws IOException {
+    sleepIfNecessary(mOptions.getGetFileStatusMs());
+    return super.getFileStatus(cleanPath(path));
   }
 
   @Override
@@ -161,7 +145,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     sleepIfNecessary(mOptions.getListStatusMs());
     return super.listStatus(cleanPath(path));
   }
