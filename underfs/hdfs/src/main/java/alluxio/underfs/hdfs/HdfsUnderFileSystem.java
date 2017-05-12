@@ -58,7 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * HDFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public final class HdfsUnderFileSystem extends BaseUnderFileSystem
+public class HdfsUnderFileSystem extends BaseUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
   private static final int MAX_TRY = 5;
@@ -86,7 +86,7 @@ public final class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
    */
-  private HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
+  public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
     super(ufsUri);
     mUfsConf = conf;
