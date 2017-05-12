@@ -150,7 +150,6 @@ public class UfsAbsentPathAsyncCacheTest {
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // Unmount
-    mUfsAbsentPathCache.removeMountPoint(mMountId);
     Assert.assertTrue(mMountTable.delete(new AlluxioURI("/mnt")));
 
     // Re-mount the same ufs
@@ -178,6 +177,8 @@ public class UfsAbsentPathAsyncCacheTest {
     addAbsent(new AlluxioURI(alluxioBase + "/c/d"));
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
+    // Create additional ufs directories
+    Assert.assertTrue((new File(mLocalUfsPath + ufsBase + "/c/d")).mkdirs());
     mUfsAbsentPathCache.removeAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
 
     Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));

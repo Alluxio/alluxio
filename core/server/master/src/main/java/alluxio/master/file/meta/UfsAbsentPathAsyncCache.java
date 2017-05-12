@@ -12,24 +12,28 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.ConcurrentHashSet;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,14 +48,15 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
   private static final int NUM_THREADS = 50;
   /** Number of seconds to keep threads alive. */
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
+  /** Number of paths to cache. */
+  private static final int MAX_PATHS = 100000;
 
   /** The mount table. */
   private final MountTable mMountTable;
-  /** Stores a cache for each mount point (the key is mount id). */
-  private final ConcurrentHashMapV8<Long, ConcurrentSkipListSet<String>> mCaches;
-  /** A set of paths currently being processed. This is used to prevent duplicate processing. */
-  private final ConcurrentHashSet<String> mCurrentPaths;
-
+  /** Paths currently being processed. This is used to prevent duplicate processing. */
+  private final ConcurrentHashMapV8<String, ReadWriteLock> mCurrentPaths;
+  /** Cache of paths which are absent in the ufs. */
+  private final Cache<String, Long> mCache;
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
 
@@ -62,8 +67,8 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
    */
   public UfsAbsentPathAsyncCache(MountTable mountTable) {
     mMountTable = mountTable;
-    mCaches = new ConcurrentHashMapV8<>(8, 0.95f, 8);
-    mCurrentPaths = new ConcurrentHashSet<>(8, 0.95f, 8);
+    mCurrentPaths = new ConcurrentHashMapV8<>(8, 0.95f, 8);
+    mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
 
     mPool = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, THREAD_KEEP_ALIVE_SECONDS,
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
@@ -71,154 +76,144 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void removeMountPoint(long mountId) {
-    mCaches.remove(mountId);
-  }
-
-  @Override
   public void addAbsentPath(AlluxioURI path) {
-    if (mCurrentPaths.contains(path.toString())) {
-      // already being processed by another thread.
-      return;
-    }
     mPool.submit(new ProcessPathTask(path));
   }
 
   @Override
-  public void removeAbsentPath(AlluxioURI path) throws InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(path);
-    ConcurrentSkipListSet<String> cache = getCache(resolution.getMountId());
-    String[] components = PathUtils.getPathComponents(resolution.getUri().getPath());
-
-    MountInfo mountInfo = mMountTable.getMountInfo(resolution.getMountId());
+  public void removeAbsentPath(AlluxioURI path) {
+    // TODO(gpang): make this async
+    MountInfo mountInfo = getMountInfo(path);
     if (mountInfo == null) {
       return;
     }
-    // create a ufs uri of the root of the mount point.
-    AlluxioURI uri = mountInfo.getUfsUri();
-    int mountPointBase = uri.getDepth();
 
-    // Traverse through the ufs path components, starting from the mount point base.
-    for (int i = 0; i < components.length; i++) {
-      if (i > 0 && i <= mountPointBase) {
-        // Do not process components before the base of the mount point.
-        // However, process the first component, since that will be the actual mount point base.
-        continue;
+    for (AlluxioURI alluxioUri : getNestedPaths(path, mountInfo)) {
+      if (!checkPath(alluxioUri, mountInfo)) {
+        break;
       }
-      String component = components[i];
-      uri = uri.join(component);
-      String uriPath = uri.getPath();
-      // This ufs path exists. Remove the cache entry.
-      cache.remove(uriPath);
     }
   }
 
   @Override
-  public boolean isAbsent(AlluxioURI path) throws InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(path);
-    AlluxioURI ufsUri = resolution.getUri();
-    ConcurrentSkipListSet<String> cache = getCache(resolution.getMountId());
-
-    MountInfo mountInfo = mMountTable.getMountInfo(resolution.getMountId());
+  public boolean isAbsent(AlluxioURI path) {
+    MountInfo mountInfo = getMountInfo(path);
     if (mountInfo == null) {
       return false;
     }
-    // create a ufs uri of the root of the mount point.
-    AlluxioURI mountBaseUri = mountInfo.getUfsUri();
+    AlluxioURI mountBaseUri = mountInfo.getAlluxioUri();
 
-    while (ufsUri != null && !ufsUri.equals(mountBaseUri)) {
-      if (cache.contains(ufsUri.getPath())) {
+    while (path != null && !path.equals(mountBaseUri)) {
+      Long cached = mCache.getIfPresent(path.getPath());
+      if (cached != null && cached == mountInfo.getMountId()) {
         return true;
       }
-      ufsUri = ufsUri.getParent();
+      path = path.getParent();
     }
     // Reached the root, without finding anything in the cache.
     return false;
   }
 
   /**
-   * Returns the set representing the cache for the given mount id.
+   * Checks the existence of the corresponding ufs path for the given Alluxio path.
    *
-   * @param mountId the mount id to get the cache for
-   * @return the cache for the mount id
+   * @param alluxioUri the Alluxio path to check
+   * @param mountInfo the associated {@link MountInfo} for the Alluxio path
+   * @return if true, further traversal of the descendant paths should continue
    */
-  private ConcurrentSkipListSet<String> getCache(long mountId) {
-    ConcurrentSkipListSet<String> set = mCaches.get(mountId);
-    if (set != null) {
-      return set;
-    }
+  private boolean checkPath(AlluxioURI alluxioUri, MountInfo mountInfo) {
+    ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    Lock writeLock = rwLock.writeLock();
+    Lock readLock = null;
+    try {
+      // Write lock this path, to only enable a single task per path
+      writeLock.lock();
+      ReadWriteLock existingLock = mCurrentPaths.putIfAbsent(alluxioUri.getPath(), rwLock);
+      if (existingLock != null) {
+        // Another thread already locked this path and is processing it. Wait for the other
+        // thread to finish, by locking the existing read lock.
+        writeLock.unlock();
+        writeLock = null;
+        readLock = existingLock.readLock();
+        readLock.lock();
+      } else {
+        // This thread has the exclusive lock for this path.
 
-    set = new ConcurrentSkipListSet<>();
-    ConcurrentSkipListSet<String> existing = mCaches.putIfAbsent(mountId, set);
-    if (existing != null) {
-      return existing;
+        // Resolve this Alluxio uri. It should match the original mount id.
+        MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+        UnderFileSystem ufs = resolution.getUfs();
+        if (resolution.getMountId() != mountInfo.getMountId()) {
+          // This mount point has changed. Further traversal is unnecessary.
+          return false;
+        }
+
+        if (ufs.exists(resolution.getUri().toString())) {
+          // This ufs path exists. Remove the cache entry.
+          mCache.invalidate(alluxioUri.getPath());
+        } else {
+          // This is the first ufs path which does not exist. Add it to the cache. Further
+          // traversal is unnecessary.
+          mCache.put(alluxioUri.getPath(), mountInfo.getMountId());
+          return false;
+        }
+      }
+    } catch (InvalidPathException | IOException e) {
+      LOG.warn("Processing path failed: " + alluxioUri, e);
+      return false;
+    } finally {
+      // Unlock the path
+      if (readLock != null) {
+        readLock.unlock();
+      }
+      if (writeLock != null) {
+        writeLock.unlock();
+        mCurrentPaths.remove(alluxioUri.getPath(), rwLock);
+      }
     }
-    return set;
+    return true;
   }
 
   /**
-   * Adds the given absent path into the cache synchronously. This will sequentially walk down
-   * the path to find the first component which does not exist in the ufs.
-   *
-   * @param path the absent path to add to the cache
-   * @throws InvalidPathException if the path is invalid
+   * @param alluxioUri the Alluxio path to get the mount info for
+   * @return the {@link MountInfo} of the given Alluxio path, or null if it doesn't exist
    */
-  private void syncAddAbsentPath(AlluxioURI path) throws InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(path);
-    UnderFileSystem ufs = resolution.getUfs();
-    ConcurrentSkipListSet<String> cache = getCache(resolution.getMountId());
-    String[] components = PathUtils.getPathComponents(resolution.getUri().getPath());
-
-    MountInfo mountInfo = mMountTable.getMountInfo(resolution.getMountId());
-    if (mountInfo == null) {
-      return;
+  private MountInfo getMountInfo(AlluxioURI alluxioUri) {
+    try {
+      MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+      return mMountTable.getMountInfo(resolution.getMountId());
+    } catch (InvalidPathException e) {
+      return null;
     }
-    // create a ufs uri of the root of the mount point.
-    AlluxioURI uri = mountInfo.getUfsUri();
-    int mountPointBase = uri.getDepth();
+  }
 
-    // Traverse through the ufs path components, starting from the mount point base, to find the
-    // first non-existing ufs path.
-    for (int i = 0; i < components.length; i++) {
-      if (i > 0 && i <= mountPointBase) {
-        // Do not process components before the base of the mount point.
-        // However, process the first component, since that will be the actual mount point base.
-        continue;
-      }
-      String component = components[i];
-      uri = uri.join(component);
-      String uriPath = uri.getPath();
-      try {
-        if (ufs.exists(uri.toString())) {
-          // This ufs path exists. Remove the cache entry.
-          cache.remove(uriPath);
-        } else {
-          // This is the first ufs path which does not exist. Add it to the cache.
-          cache.add(uriPath);
+  /**
+   * Returns a sequence of Alluxio paths for a specified path, starting from the base of the
+   * mount point, to the specified path.
+   *
+   * @param alluxioUri the Alluxio path to get the nested paths for
+   * @param mountInfo the mount info for this Alluxio path
+   * @return a list of nested paths from the mount base to the given path
+   */
+  private List<AlluxioURI> getNestedPaths(AlluxioURI alluxioUri, MountInfo mountInfo) {
+    try {
+      String[] fullComponents = PathUtils.getPathComponents(alluxioUri.getPath());
+      // create a uri of the base of the mount point.
+      AlluxioURI mountBaseUri = mountInfo.getAlluxioUri();
+      int mountBaseDepth = mountBaseUri.getDepth();
 
-          // Remove cache entries which has this non-existing directory as a prefix. This is not for
-          // correctness, but to "compress" information. Iterate (in order) starting from this
-          // absent directory.
-          String dirPath = uriPath + "/";
-          Iterator<String> it = cache.tailSet(dirPath).iterator();
-          while (it.hasNext()) {
-            String existingPath = it.next();
-            if (existingPath.startsWith(dirPath)) {
-              // An existing cache entry has the non-existing path as a prefix. Remove the entry,
-              // since the non-existing path ancestor implies the descendant does not exist.
-              it.remove();
-            } else {
-              // Stop the iteration when it reaches the first entry which does not have this
-              // absent directory as the prefix.
-              break;
-            }
-          }
-          // The first non-existing path was found, so further traversal is unnecessary.
-          break;
+      List<AlluxioURI> components = new ArrayList<>(fullComponents.length - mountBaseDepth);
+      for (int i = 0; i < fullComponents.length; i++) {
+        if (i > 0 && i <= mountBaseDepth) {
+          // Do not include components before the base of the mount point.
+          // However, include the first component, since that will be the actual mount point base.
+          continue;
         }
-      } catch (IOException e) {
-        throw new InvalidPathException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path), e);
+        mountBaseUri = mountBaseUri.join(fullComponents[i]);
+        components.add(mountBaseUri);
       }
+      return components;
+    } catch (InvalidPathException e) {
+      return Collections.emptyList();
     }
   }
 
@@ -237,17 +232,14 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
 
     @Override
     public void run() {
-      if (!mCurrentPaths.addIfAbsent(mPath.toString())) {
-        // already being processed by another thread.
+      MountInfo mountInfo = getMountInfo(mPath);
+      if (mountInfo == null) {
         return;
       }
-      try {
-        syncAddAbsentPath(mPath);
-      } catch (InvalidPathException e) {
-        // Ignore the exception
-        LOG.warn("Adding absent path failed: " + mPath, e);
-      } finally {
-        mCurrentPaths.remove(mPath.toString());
+      for (AlluxioURI alluxioUri : getNestedPaths(mPath, mountInfo)) {
+        if (!checkPath(alluxioUri, mountInfo)) {
+          break;
+        }
       }
     }
   }
