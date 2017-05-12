@@ -815,7 +815,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return true;
     }
     if (!inode.isPersisted()) {
-      return !ufs.exists(ufsPath);
+      boolean exists;
+      if (ufs instanceof DirectoryUnderFileSystem) {
+        DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+        exists = directoryUfs.exists(ufsPath);
+      } else {
+        exists = ufs.isFile(ufsPath);
+      }
+      return !exists;
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
@@ -2076,11 +2083,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
-        // uri does not exist in ufs
-        InodeDirectory inode = (InodeDirectory) inodePath.getInode();
-        inode.setDirectChildrenLoaded(true);
-        return;
+      if (options.getUfsStatus() == null) {
+        boolean exists;
+        // TODO(adit): create convenience method
+        if (ufs instanceof DirectoryUnderFileSystem) {
+          DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs; 
+          exists = directoryUfs.exists(ufsUri.toString());
+        } else {
+          exists = ufs.isFile(ufsUri.toString());
+        }
+        if (!exists) {
+          // uri does not exist in ufs
+          InodeDirectory inode = (InodeDirectory) inodePath.getInode();
+          inode.setDirectChildrenLoaded(true);
+          return;
+        }
       }
       boolean isFile;
       if (options.getUfsStatus() != null) {

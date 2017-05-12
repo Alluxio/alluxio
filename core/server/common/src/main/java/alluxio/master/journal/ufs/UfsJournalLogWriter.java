@@ -18,7 +18,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.base.Preconditions;
@@ -50,7 +50,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalLogWriter.class);
 
   private final UfsJournal mJournal;
-  private final UnderFileSystem mUfs;
+  private final DirectoryUnderFileSystem mUfs;
 
   /** The maximum size in bytes of a log file. */
   private final long mMaxLogSize;
@@ -142,7 +142,8 @@ final class UfsJournalLogWriter implements JournalWriter {
    */
   UfsJournalLogWriter(UfsJournal journal, JournalWriterOptions options) throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
-    mUfs = mJournal.getUfs();
+    // TODO(adit): do better
+    mUfs = (DirectoryUnderFileSystem) mJournal.getUfs();
     mNextSequenceNumber = options.getNextSequenceNumber();
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
 

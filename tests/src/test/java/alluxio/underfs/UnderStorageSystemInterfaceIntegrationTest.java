@@ -123,7 +123,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegr
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testDir/testFile");
     OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(true));
     o.close();
-    Assert.assertTrue(mUfs.exists(testFile));
+    Assert.assertTrue(mUfs.isFile(testFile));
   }
 
   /**

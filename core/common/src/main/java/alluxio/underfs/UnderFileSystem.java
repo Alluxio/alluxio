@@ -247,14 +247,6 @@ public interface UnderFileSystem extends Closeable {
   boolean deleteFile(String path) throws IOException;
 
   /**
-   * Checks if a file or directory exists in under file system.
-   *
-   * @param path the absolute path
-   * @return true if the path exists, false otherwise
-   */
-  boolean exists(String path) throws IOException;
-
-  /**
    * Gets the block size of a file in under file system, in bytes.
    *
    * @param path the file name

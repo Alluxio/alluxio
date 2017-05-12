@@ -14,6 +14,7 @@ package alluxio.client;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.UfsIntegrationTestUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
@@ -74,8 +75,8 @@ public final class PersistMultipleMountsIntegrationTest
     URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
-    Assert.assertTrue(mUfs.exists(PathUtils.concatPath(mUfsRoot, path)));
-    Assert.assertFalse(mMountedUfs.exists(PathUtils.concatPath(mMountedUfsRoot, path)));
+    Assert.assertTrue(mUfs.isFile(PathUtils.concatPath(mUfsRoot, path)));
+    Assert.assertFalse(mMountedUfs.isFile(PathUtils.concatPath(mMountedUfsRoot, path)));
   }
 
   @Test
@@ -95,7 +96,7 @@ public final class PersistMultipleMountsIntegrationTest
     URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
-    Assert.assertFalse(mUfs.exists(PathUtils.concatPath(mUfsRoot, path)));
-    Assert.assertTrue(mMountedUfs.exists(PathUtils.concatPath(mMountedUfsRoot, path)));
+    Assert.assertFalse(mUfs.isFile(PathUtils.concatPath(mUfsRoot, path)));
+    Assert.assertTrue(mMountedUfs.isFile(PathUtils.concatPath(mMountedUfsRoot, path)));
   }
 }

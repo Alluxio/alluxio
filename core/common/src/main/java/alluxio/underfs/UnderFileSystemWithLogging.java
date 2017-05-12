@@ -190,21 +190,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean exists(final String path) throws IOException {
-    return call(new UfsCallable<Boolean>() {
-      @Override
-      public Boolean call() throws IOException {
-        return mUnderFileSystem.exists(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("Exists: path=%s", path);
-      }
-    });
-  }
-
-  @Override
   public long getBlockSizeByte(final String path) throws IOException {
     return call(new UfsCallable<Long>() {
       @Override
