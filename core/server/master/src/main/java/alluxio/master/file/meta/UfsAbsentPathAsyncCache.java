@@ -76,12 +76,7 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void addAbsent(AlluxioURI path) {
-    mPool.submit(new ProcessPathTask(path));
-  }
-
-  @Override
-  public void removeAbsent(AlluxioURI path) {
+  public void process(AlluxioURI path) {
     mPool.submit(new ProcessPathTask(path));
   }
 

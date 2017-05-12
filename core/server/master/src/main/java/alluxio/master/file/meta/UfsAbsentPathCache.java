@@ -18,19 +18,12 @@ import alluxio.AlluxioURI;
  */
 public interface UfsAbsentPathCache {
   /**
-   * Adds the given absent path into the cache. This will sequentially walk down the path to find
-   * the first component which does not exist in the ufs.
+   * Processes the given path for the cache. This will sequentially walk down the path to find
+   * components which do and do not exist in the UFS, and updates the cache accordingly.
    *
-   * @param path the absent path to add to the cache
+   * @param path the path to process for the cache
    */
-  void addAbsent(AlluxioURI path);
-
-  /**
-   * Removes an absent path from the cache.
-   *
-   * @param path the path to remove from the cache
-   */
-  void removeAbsent(AlluxioURI path);
+  void process(AlluxioURI path);
 
   /**
    * Returns true if the given path is absent, according to this cache. A path is absent if one of

@@ -684,7 +684,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         exists = true;
       } finally {
         if (!exists) {
-          mUfsAbsentPathCache.addAbsent(path);
+          mUfsAbsentPathCache.process(path);
         }
       }
       return getFileInfoInternal(inodePath);
@@ -762,7 +762,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         exists = true;
       } finally {
         if (!exists) {
-          mUfsAbsentPathCache.addAbsent(path);
+          mUfsAbsentPathCache.process(path);
         }
       }
 
@@ -1053,7 +1053,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (options.isPersisted()) {
       // The path exists in UFS, so it is no longer absent.
-      mUfsAbsentPathCache.removeAbsent(inodePath.getUri());
+      mUfsAbsentPathCache.process(inodePath.getUri());
     }
 
     Metrics.FILES_CREATED.inc();
@@ -1589,7 +1589,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       if (options.isPersisted()) {
         // The path exists in UFS, so it is no longer absent.
-        mUfsAbsentPathCache.removeAbsent(inodePath.getUri());
+        mUfsAbsentPathCache.process(inodePath.getUri());
       }
 
       return createResult;
@@ -1791,7 +1791,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
         }
         // The destination was persisted in ufs.
-        mUfsAbsentPathCache.removeAbsent(dstPath);
+        mUfsAbsentPathCache.process(dstPath);
       }
     } catch (Exception e) {
       // On failure, revert changes and throw exception.
