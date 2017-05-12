@@ -78,7 +78,7 @@
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
-            <id>shade-hdfs</id>
+            <id>shade-gluster</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -159,7 +159,7 @@
                 <!-- communication protocol between HDFS client and namenode. This must go before the next rule. -->
                 <relocation>
                   <pattern>(org/apache/hadoop/hdfs/protocol/ClientProtocol)</pattern>
-                  <shadedPattern>alluxio/underfs/hdfs/$1</shadedPattern>
+                  <shadedPattern>alluxio/underfs/gluster/$1</shadedPattern>
                   <rawString>true</rawString>
                 </relocation>
                 <relocation>
