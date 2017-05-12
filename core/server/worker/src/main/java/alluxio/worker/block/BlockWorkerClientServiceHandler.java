@@ -34,26 +34,20 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is a Thrift handler for block worker RPCs invoked by an Alluxio client.
+ * This class is a Thrift handler for block worker RPCs invoked by an Alluxio client. These RPCs are
+ * no longer supported as of 1.5.0. All methods will throw {@link UnsupportedOperationException}.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
-
-  /** Block Worker handle that carries out most of the operations. */
-  private final BlockWorker mWorker;
-  /** Association between storage tier aliases and ordinals ond this worker. */
-  private final StorageTierAssoc mStorageTierAssoc;
+  private static final String UNSUPPORTED_MESSAGE = "Unsupported as of v1.5.0";
 
   /**
    * Creates a new instance of {@link BlockWorkerClientServiceHandler}.
    *
    * @param worker block worker handler
    */
-  public BlockWorkerClientServiceHandler(BlockWorker worker) {
-    mWorker = worker;
-    mStorageTierAssoc = new WorkerStorageTierAssoc();
-  }
+  public BlockWorkerClientServiceHandler(BlockWorker worker) {}
 
   @Override
   public long getServiceVersion() {
@@ -65,22 +59,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * components that may care about the access times of the blocks (for example, Evictor, UI).
    *
    * @param blockId the id of the block to access
-   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws UnsupportedOperationException always
    */
   @Override
   public void accessBlock(final long blockId) throws AlluxioTException {
-    RpcUtils.callAndLog(LOG, new RpcCallable<Void>() {
-      @Override
-      public Void call() throws AlluxioException {
-        mWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return String.format("AccessBlock: blockId=%s", blockId);
-      }
-    });
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   /**
@@ -90,23 +73,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the commit
    * @param blockId the id of the block to commit
-   * @throws AlluxioTException if an error occurs
+   * @throws UnsupportedOperationException always
    */
   @Override
-  public void cacheBlock(final long sessionId, final long blockId)
-      throws AlluxioTException {
-    RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
-      @Override
-      public Void call() throws AlluxioException, IOException {
-        mWorker.commitBlock(sessionId, blockId);
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return String.format("CacheBlock: sessionId=%s, blockId=%s", sessionId, blockId);
-      }
-    });
+  public void cacheBlock(final long sessionId, final long blockId) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   /**
@@ -115,23 +86,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client requesting the abort
    * @param blockId the id of the block to be aborted
-   * @throws AlluxioTException if an error occurs
+   * @throws UnsupportedOperationException always
    */
   @Override
-  public void cancelBlock(final long sessionId, final long blockId)
-      throws AlluxioTException {
-    RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
-      @Override
-      public Void call() throws AlluxioException, IOException {
-        mWorker.abortBlock(sessionId, blockId);
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return String.format("CancelBlock: sessionId=%s, blockId=%s", sessionId, blockId);
-      }
-    });
+  public void cancelBlock(final long sessionId, final long blockId) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   /**
@@ -141,24 +100,12 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param blockId the id of the block to move to the top layer
    * @return true if the block is successfully promoted, otherwise false
-   * @throws AlluxioTException if an error occurs
+   * @throws UnsupportedOperationException always
    */
   // TODO(calvin): This may be better as void.
   @Override
   public boolean promoteBlock(final long blockId) throws AlluxioTException {
-    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Boolean>() {
-      @Override
-      public Boolean call() throws AlluxioException, IOException {
-        // TODO(calvin): Make the top level configurable.
-        mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
-        return true;
-      }
-
-      @Override
-      public String toString() {
-        return String.format("PromoteBlock: blockId=%s", blockId);
-      }
-    });
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   /**
@@ -166,22 +113,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * reclaim space allocated to the block.
    *
    * @param blockId the id of the block to be removed
-   * @throws AlluxioTException if an error occurs
+   * @throws UnsupportedOperationException always
    */
   @Override
   public void removeBlock(final long blockId) throws AlluxioTException {
-    RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<Void>() {
-      @Override
-      public Void call() throws AlluxioException, IOException {
-        mWorker.removeBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId);
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return String.format("RemoveBlock: blockId=%s", blockId);
-      }
-    });
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   /**
@@ -196,24 +132,12 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param initialBytes the initial number of bytes to allocate for this block
    * @param writeTier policy used to choose tier for this block
    * @return the temporary file path of the block file
-   * @throws AlluxioTException if an error occurs
+   * @throws UnsupportedOperationException always
    */
   @Override
   public String requestBlockLocation(final long sessionId, final long blockId,
       final long initialBytes, final int writeTier) throws AlluxioTException {
-    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<String>() {
-      @Override
-      public String call() throws AlluxioException, IOException {
-        return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(writeTier),
-            initialBytes);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("RequestBlockLocation: sessionId=%s, blockId=%s, initialBytes=%s, "
-            + "writeTier=%s", sessionId, blockId, initialBytes, writeTier);
-      }
-    });
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   /**
@@ -224,38 +148,12 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param requestBytes the amount of bytes to add to the block
    * @return true if the worker successfully allocates space for the block on block’s location,
    *         false if there is not enough space
-   * @throws AlluxioTException if an error occurs
+   * @throws UnsupportedOperationException always
    */
   @Override
   public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
       throws AlluxioTException {
-    return RpcUtils.callAndLog(LOG, new RpcCallable<Boolean>() {
-      @Override
-      public Boolean call() throws AlluxioException {
-        try {
-          mWorker.requestSpace(sessionId, blockId, requestBytes);
-          return true;
-        } catch (WorkerOutOfSpaceException e) {
-          LOG.warn("Worker is out of space, failed to serve request for {} bytes for block {}",
-              requestBytes, blockId);
-          return false;
-        } catch (IOException e) {
-          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
-          // We must wrap IOException in an AlluxioException here for backwards compatibility with
-          // previous versions of our API.
-          throw new UnexpectedAlluxioException(e);
-        } catch (BlockDoesNotExistException e) {
-          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
-          throw e;
-        }
-      }
-
-      @Override
-      public String toString() {
-        return String.format("RequestSpace: sessionId=%s, blockId=%s, requestBytes=%s", sessionId,
-            blockId, requestBytes);
-      }
-    });
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   /**
@@ -263,16 +161,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    *
    * @param sessionId the id of the client heartbeating
    * @param metrics deprecated
+   * @throws UnsupportedOperationException always
    */
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
       throws AlluxioTException {
-    RpcUtils.call(LOG, new RpcCallable<Void>() {
-      @Override
-      public Void call() throws AlluxioException {
-        mWorker.sessionHeartbeat(sessionId);
-        return null;
-      }
-    });
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 }
