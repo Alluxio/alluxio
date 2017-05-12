@@ -12,13 +12,15 @@ enum RequestType {
 }
 
 // The read request.
-// next available id: 7
+// next available id: 8
 message ReadRequest {
   optional int64 block_id = 1;
   optional int64 offset = 2;
   optional int64 length = 3;
   // If set, this request is to cancel the reading request for the id.
   optional bool cancel = 4;
+  // Whether the block should be promoted before reading
+  optional bool promote = 7;
 
   // If set, the server should send packets in the specified packet size.
   optional int64 packet_size = 5;
@@ -97,6 +99,7 @@ message Heartbeat {
 // next available id: 3
 message LocalBlockOpenRequest {
   optional int64 block_id = 1;
+  optional bool promote = 2;
 }
 
 // next available id: 2
@@ -104,7 +107,7 @@ message LocalBlockOpenResponse {
   optional string path = 1;
 }
 
-// next available id: 3
+// next available id: 2
 message LocalBlockCloseRequest {
   optional int64 block_id = 1;
 }
@@ -123,8 +126,8 @@ message LocalBlockCreateResponse {
   optional string path = 1;
 }
 
-// next available id: 4
+// next available id: 3
 message LocalBlockCompleteRequest {
   optional int64 block_id = 1;
-  optional bool cancel = 3;
+  optional bool cancel = 2;
 }

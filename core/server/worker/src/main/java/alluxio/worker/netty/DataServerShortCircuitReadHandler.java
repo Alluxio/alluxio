@@ -12,6 +12,8 @@
 package alluxio.worker.netty;
 
 import alluxio.RpcUtils;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -29,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Netty handler that handles short circuit read requests.
@@ -38,8 +41,11 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG =
       LoggerFactory.getLogger(DataServerShortCircuitReadHandler.class);
 
+  /** Executor service for block opens. */
+  private final ExecutorService mBlockOpenExecutor;
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** The block worker. */
-  private final BlockWorker mBlockWorker;
+  private final BlockWorker mWorker;
   /** The lock Id of the block being read. */
   private long mLockId;
   private long mSessionId;
@@ -49,8 +55,9 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
    *
    * @param blockWorker the block worker
    */
-  DataServerShortCircuitReadHandler(BlockWorker blockWorker) {
-    mBlockWorker = blockWorker;
+  DataServerShortCircuitReadHandler(ExecutorService service, BlockWorker blockWorker) {
+    mBlockOpenExecutor = service;
+    mWorker = blockWorker;
     mLockId = BlockLockManager.INVALID_LOCK_ID;
   }
 
@@ -83,64 +90,91 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
   public void channelUnregistered(ChannelHandlerContext ctx) {
     if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
       try {
-        mBlockWorker.unlockBlock(mLockId);
+        mWorker.unlockBlock(mLockId);
       } catch (BlockDoesNotExistException e) {
         LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
       }
-      mBlockWorker.cleanupSession(mSessionId);
+      mWorker.cleanupSession(mSessionId);
     }
     ctx.fireChannelUnregistered();
   }
 
   /**
-   * Handles {@link Protocol.LocalBlockOpenRequest}. No exceptions should be thrown.
+   * Runnable for handling the expensive open block call logic.
+   */
+  final class BlockOpenRequestHandler implements Runnable {
+    Protocol.LocalBlockOpenRequest mRequest;
+    ChannelHandlerContext mContext;
+
+    private BlockOpenRequestHandler(ChannelHandlerContext ctx, Protocol.LocalBlockOpenRequest req) {
+      mContext = ctx;
+      mRequest = req;
+    }
+
+    @Override
+    public void run() {
+      RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRPCCallable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          // It is a no-op to lock the same block multiple times within the same channel.
+          if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
+            mSessionId = IdUtils.getRandomNonNegativeLong();
+            // TODO(calvin): Update the locking logic so this can be done better
+            if (mRequest.getPromote()) {
+              try {
+                mWorker.moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
+              } catch (Exception e) {
+                LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
+              }
+            }
+            mLockId = mWorker.lockBlock(mSessionId, mRequest.getBlockId());
+            mWorker.accessBlock(mSessionId, mRequest.getBlockId());
+          } else {
+            LOG.warn("Lock block {} without releasing previous block lock {}.",
+                mRequest.getBlockId(), mLockId);
+            throw new InvalidWorkerStateException(
+                ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
+          }
+          Protocol.LocalBlockOpenResponse response = Protocol.LocalBlockOpenResponse.newBuilder()
+              .setPath(mWorker.readBlock(mSessionId, mRequest.getBlockId(), mLockId))
+              .build();
+          mContext.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
+
+          return null;
+        }
+
+        @Override
+        public void exceptionCaught(Throwable e) {
+          if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
+            try {
+              mWorker.unlockBlock(mLockId);
+            } catch (BlockDoesNotExistException ee) {
+              LOG.error("Failed to unlock block {}.", mRequest.getBlockId(), e);
+            }
+            mLockId = BlockLockManager.INVALID_LOCK_ID;
+          }
+          mContext.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(e)));
+        }
+
+        @Override
+        public String toString() {
+          return String.format("Open block: %s", mRequest.toString());
+        }
+      });
+    }
+  }
+
+  /**
+   * Handles {@link Protocol.LocalBlockOpenRequest}. Since the open can be expensive, the work is
+   * delegated to a threadpool. No exceptions should be thrown.
    *
    * @param ctx the channel handler context
    * @param request the local block open request
    */
   private void handleBlockOpenRequest(final ChannelHandlerContext ctx,
       final Protocol.LocalBlockOpenRequest request) {
-    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRPCCallable<Void>() {
-
-      @Override
-      public Void call() throws Exception {
-        // It is a no-op to lock the same block multiple times within the same channel.
-        if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
-          mSessionId = IdUtils.getRandomNonNegativeLong();
-          mLockId = mBlockWorker.lockBlock(mSessionId, request.getBlockId());
-          mBlockWorker.accessBlock(mSessionId, request.getBlockId());
-        } else {
-          LOG.warn("Lock block {} without releasing previous block lock {}.", request.getBlockId(),
-              mLockId);
-          throw new InvalidWorkerStateException(
-              ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
-        }
-        Protocol.LocalBlockOpenResponse response = Protocol.LocalBlockOpenResponse.newBuilder()
-            .setPath(mBlockWorker.readBlock(mSessionId, request.getBlockId(), mLockId))
-            .build();
-        ctx.writeAndFlush(new RPCProtoMessage(new ProtoMessage(response)));
-
-        return null;
-      }
-
-      @Override
-      public void exceptionCaught(Throwable e) {
-        if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
-          try {
-            mBlockWorker.unlockBlock(mLockId);
-          } catch (BlockDoesNotExistException ee) {
-            LOG.error("Failed to unlock block {}.", request.getBlockId(), e);
-          }
-          mLockId = BlockLockManager.INVALID_LOCK_ID;
-        }
-        ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(e)));
-      }
-
-      @Override
-      public String toString() {
-        return String.format("Open block: %s", request.toString());
-      }
-    });
+    BlockOpenRequestHandler handler = new BlockOpenRequestHandler(ctx, request);
+    mBlockOpenExecutor.submit(handler);
   }
 
   /**
@@ -156,7 +190,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
       @Override
       public Void call() throws Exception {
         if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
-          mBlockWorker.unlockBlock(mLockId);
+          mWorker.unlockBlock(mLockId);
           mLockId = BlockLockManager.INVALID_LOCK_ID;
         } else {
           LOG.warn("Close a closed block {}.", request.getBlockId());

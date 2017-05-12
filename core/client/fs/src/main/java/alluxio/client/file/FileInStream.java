@@ -603,14 +603,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the block in stream
    */
   private BlockInStream getBlockInStream(long blockId) {
-    if (mAlluxioStorageType.isPromote()) {
-      try {
-        mBlockStore.promote(blockId);
-      } catch (Exception e) {
-        // Failed to promote.
-        LOG.warn("Promotion of block with ID {} failed with error {}.", blockId, e.getMessage());
-      }
-    }
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = null;
     if (mStatus.isPersisted()) {
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;

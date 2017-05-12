@@ -82,7 +82,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options) {
-    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId);
+    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
+        .setPromote(options.getAlluxioStorageType().isPromote());
     if (openUfsBlockOptions != null) {
       builder.setOpenUfsBlockOptions(openUfsBlockOptions);
     }

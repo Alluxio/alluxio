@@ -108,19 +108,21 @@ public final class LocalFilePacketReader implements PacketReader {
      * @param address the worker address
      * @param blockId the block ID
      * @param packetSize the packet size
+     * @param promote whether or not to promote the block
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
-        long packetSize) {
+        long packetSize, boolean promote) {
       mContext = context;
       mAddress = address;
       mBlockId = blockId;
       mPacketSize = packetSize;
 
       mChannel = context.acquireNettyChannel(address);
-      ProtoMessage message = NettyRPC
-          .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-              new ProtoMessage(
-                  Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId).build()));
+      ProtoMessage message =
+          NettyRPC.call(
+              NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
+              new ProtoMessage(Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
+                  .setPromote(promote).build()));
       Preconditions.checkState(message.isLocalBlockOpenResponse());
       mPath = message.asLocalBlockOpenResponse().getPath();
     }

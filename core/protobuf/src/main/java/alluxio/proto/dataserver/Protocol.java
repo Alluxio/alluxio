@@ -146,6 +146,24 @@ public final class Protocol {
      */
     boolean getCancel();
 
+    // optional bool promote = 7;
+    /**
+     * <code>optional bool promote = 7;</code>
+     *
+     * <pre>
+     * Whether the block should be promoted before reading
+     * </pre>
+     */
+    boolean hasPromote();
+    /**
+     * <code>optional bool promote = 7;</code>
+     *
+     * <pre>
+     * Whether the block should be promoted before reading
+     * </pre>
+     */
+    boolean getPromote();
+
     // optional int64 packet_size = 5;
     /**
      * <code>optional int64 packet_size = 5;</code>
@@ -195,7 +213,7 @@ public final class Protocol {
    *
    * <pre>
    * The read request.
-   * next available id: 7
+   * next available id: 8
    * </pre>
    */
   public static final class ReadRequest extends
@@ -267,13 +285,13 @@ public final class Protocol {
               break;
             }
             case 40: {
-              bitField0_ |= 0x00000010;
+              bitField0_ |= 0x00000020;
               packetSize_ = input.readInt64();
               break;
             }
             case 50: {
               alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000020) == 0x00000020)) {
+              if (((bitField0_ & 0x00000040) == 0x00000040)) {
                 subBuilder = openUfsBlockOptions_.toBuilder();
               }
               openUfsBlockOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.PARSER, extensionRegistry);
@@ -281,7 +299,12 @@ public final class Protocol {
                 subBuilder.mergeFrom(openUfsBlockOptions_);
                 openUfsBlockOptions_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000020;
+              bitField0_ |= 0x00000040;
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000010;
+              promote_ = input.readBool();
               break;
             }
           }
@@ -396,6 +419,30 @@ public final class Protocol {
       return cancel_;
     }
 
+    // optional bool promote = 7;
+    public static final int PROMOTE_FIELD_NUMBER = 7;
+    private boolean promote_;
+    /**
+     * <code>optional bool promote = 7;</code>
+     *
+     * <pre>
+     * Whether the block should be promoted before reading
+     * </pre>
+     */
+    public boolean hasPromote() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool promote = 7;</code>
+     *
+     * <pre>
+     * Whether the block should be promoted before reading
+     * </pre>
+     */
+    public boolean getPromote() {
+      return promote_;
+    }
+
     // optional int64 packet_size = 5;
     public static final int PACKET_SIZE_FIELD_NUMBER = 5;
     private long packetSize_;
@@ -407,7 +454,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasPacketSize() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
      * <code>optional int64 packet_size = 5;</code>
@@ -431,7 +478,7 @@ public final class Protocol {
      * </pre>
      */
     public boolean hasOpenUfsBlockOptions() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
      * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
@@ -459,6 +506,7 @@ public final class Protocol {
       offset_ = 0L;
       length_ = 0L;
       cancel_ = false;
+      promote_ = false;
       packetSize_ = 0L;
       openUfsBlockOptions_ = alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance();
     }
@@ -486,11 +534,14 @@ public final class Protocol {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeBool(4, cancel_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
         output.writeInt64(5, packetSize_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeMessage(6, openUfsBlockOptions_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(7, promote_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -517,13 +568,17 @@ public final class Protocol {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(4, cancel_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(5, packetSize_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, openUfsBlockOptions_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(7, promote_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -608,7 +663,7 @@ public final class Protocol {
      *
      * <pre>
      * The read request.
-     * next available id: 7
+     * next available id: 8
      * </pre>
      */
     public static final class Builder extends
@@ -655,14 +710,16 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000004);
         cancel_ = false;
         bitField0_ = (bitField0_ & ~0x00000008);
-        packetSize_ = 0L;
+        promote_ = false;
         bitField0_ = (bitField0_ & ~0x00000010);
+        packetSize_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000020);
         if (openUfsBlockOptionsBuilder_ == null) {
           openUfsBlockOptions_ = alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance();
         } else {
           openUfsBlockOptionsBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
 
@@ -710,9 +767,13 @@ public final class Protocol {
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
-        result.packetSize_ = packetSize_;
+        result.promote_ = promote_;
         if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000020;
+        }
+        result.packetSize_ = packetSize_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000040;
         }
         if (openUfsBlockOptionsBuilder_ == null) {
           result.openUfsBlockOptions_ = openUfsBlockOptions_;
@@ -746,6 +807,9 @@ public final class Protocol {
         }
         if (other.hasCancel()) {
           setCancel(other.getCancel());
+        }
+        if (other.hasPromote()) {
+          setPromote(other.getPromote());
         }
         if (other.hasPacketSize()) {
           setPacketSize(other.getPacketSize());
@@ -928,6 +992,55 @@ public final class Protocol {
         return this;
       }
 
+      // optional bool promote = 7;
+      private boolean promote_ ;
+      /**
+       * <code>optional bool promote = 7;</code>
+       *
+       * <pre>
+       * Whether the block should be promoted before reading
+       * </pre>
+       */
+      public boolean hasPromote() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool promote = 7;</code>
+       *
+       * <pre>
+       * Whether the block should be promoted before reading
+       * </pre>
+       */
+      public boolean getPromote() {
+        return promote_;
+      }
+      /**
+       * <code>optional bool promote = 7;</code>
+       *
+       * <pre>
+       * Whether the block should be promoted before reading
+       * </pre>
+       */
+      public Builder setPromote(boolean value) {
+        bitField0_ |= 0x00000010;
+        promote_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool promote = 7;</code>
+       *
+       * <pre>
+       * Whether the block should be promoted before reading
+       * </pre>
+       */
+      public Builder clearPromote() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        promote_ = false;
+        onChanged();
+        return this;
+      }
+
       // optional int64 packet_size = 5;
       private long packetSize_ ;
       /**
@@ -938,7 +1051,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasPacketSize() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
        * <code>optional int64 packet_size = 5;</code>
@@ -958,7 +1071,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder setPacketSize(long value) {
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000020;
         packetSize_ = value;
         onChanged();
         return this;
@@ -971,7 +1084,7 @@ public final class Protocol {
        * </pre>
        */
       public Builder clearPacketSize() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000020);
         packetSize_ = 0L;
         onChanged();
         return this;
@@ -989,7 +1102,7 @@ public final class Protocol {
        * </pre>
        */
       public boolean hasOpenUfsBlockOptions() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       /**
        * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
@@ -1022,7 +1135,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         return this;
       }
       /**
@@ -1040,7 +1153,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         return this;
       }
       /**
@@ -1052,7 +1165,7 @@ public final class Protocol {
        */
       public Builder mergeOpenUfsBlockOptions(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions value) {
         if (openUfsBlockOptionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+          if (((bitField0_ & 0x00000040) == 0x00000040) &&
               openUfsBlockOptions_ != alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance()) {
             openUfsBlockOptions_ =
               alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.newBuilder(openUfsBlockOptions_).mergeFrom(value).buildPartial();
@@ -1063,7 +1176,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         return this;
       }
       /**
@@ -1080,7 +1193,7 @@ public final class Protocol {
         } else {
           openUfsBlockOptionsBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
       /**
@@ -1091,7 +1204,7 @@ public final class Protocol {
        * </pre>
        */
       public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder getOpenUfsBlockOptionsBuilder() {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         onChanged();
         return getOpenUfsBlockOptionsFieldBuilder().getBuilder();
       }
@@ -5612,6 +5725,16 @@ public final class Protocol {
      * <code>optional int64 block_id = 1;</code>
      */
     long getBlockId();
+
+    // optional bool promote = 2;
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    boolean hasPromote();
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    boolean getPromote();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockOpenRequest}
@@ -5673,6 +5796,11 @@ public final class Protocol {
               blockId_ = input.readInt64();
               break;
             }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              promote_ = input.readBool();
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -5729,8 +5857,25 @@ public final class Protocol {
       return blockId_;
     }
 
+    // optional bool promote = 2;
+    public static final int PROMOTE_FIELD_NUMBER = 2;
+    private boolean promote_;
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    public boolean hasPromote() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    public boolean getPromote() {
+      return promote_;
+    }
+
     private void initFields() {
       blockId_ = 0L;
+      promote_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -5747,6 +5892,9 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, blockId_);
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(2, promote_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -5759,6 +5907,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, promote_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5882,6 +6034,8 @@ public final class Protocol {
         super.clear();
         blockId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
+        promote_ = false;
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -5914,6 +6068,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000001;
         }
         result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.promote_ = promote_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -5932,6 +6090,9 @@ public final class Protocol {
         if (other == alluxio.proto.dataserver.Protocol.LocalBlockOpenRequest.getDefaultInstance()) return this;
         if (other.hasBlockId()) {
           setBlockId(other.getBlockId());
+        }
+        if (other.hasPromote()) {
+          setPromote(other.getPromote());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5989,6 +6150,39 @@ public final class Protocol {
       public Builder clearBlockId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         blockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bool promote = 2;
+      private boolean promote_ ;
+      /**
+       * <code>optional bool promote = 2;</code>
+       */
+      public boolean hasPromote() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bool promote = 2;</code>
+       */
+      public boolean getPromote() {
+        return promote_;
+      }
+      /**
+       * <code>optional bool promote = 2;</code>
+       */
+      public Builder setPromote(boolean value) {
+        bitField0_ |= 0x00000002;
+        promote_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool promote = 2;</code>
+       */
+      public Builder clearPromote() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        promote_ = false;
         onChanged();
         return this;
       }
@@ -6500,7 +6694,7 @@ public final class Protocol {
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCloseRequest}
    *
    * <pre>
-   * next available id: 3
+   * next available id: 2
    * </pre>
    */
   public static final class LocalBlockCloseRequest extends
@@ -6725,7 +6919,7 @@ public final class Protocol {
      * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCloseRequest}
      *
      * <pre>
-     * next available id: 3
+     * next available id: 2
      * </pre>
      */
     public static final class Builder extends
@@ -8058,13 +8252,13 @@ public final class Protocol {
      */
     long getBlockId();
 
-    // optional bool cancel = 3;
+    // optional bool cancel = 2;
     /**
-     * <code>optional bool cancel = 3;</code>
+     * <code>optional bool cancel = 2;</code>
      */
     boolean hasCancel();
     /**
-     * <code>optional bool cancel = 3;</code>
+     * <code>optional bool cancel = 2;</code>
      */
     boolean getCancel();
   }
@@ -8072,7 +8266,7 @@ public final class Protocol {
    * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCompleteRequest}
    *
    * <pre>
-   * next available id: 4
+   * next available id: 3
    * </pre>
    */
   public static final class LocalBlockCompleteRequest extends
@@ -8128,7 +8322,7 @@ public final class Protocol {
               blockId_ = input.readInt64();
               break;
             }
-            case 24: {
+            case 16: {
               bitField0_ |= 0x00000002;
               cancel_ = input.readBool();
               break;
@@ -8189,17 +8383,17 @@ public final class Protocol {
       return blockId_;
     }
 
-    // optional bool cancel = 3;
-    public static final int CANCEL_FIELD_NUMBER = 3;
+    // optional bool cancel = 2;
+    public static final int CANCEL_FIELD_NUMBER = 2;
     private boolean cancel_;
     /**
-     * <code>optional bool cancel = 3;</code>
+     * <code>optional bool cancel = 2;</code>
      */
     public boolean hasCancel() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional bool cancel = 3;</code>
+     * <code>optional bool cancel = 2;</code>
      */
     public boolean getCancel() {
       return cancel_;
@@ -8225,7 +8419,7 @@ public final class Protocol {
         output.writeInt64(1, blockId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBool(3, cancel_);
+        output.writeBool(2, cancel_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -8242,7 +8436,7 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(3, cancel_);
+          .computeBoolSize(2, cancel_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -8326,7 +8520,7 @@ public final class Protocol {
      * Protobuf type {@code alluxio.proto.dataserver.LocalBlockCompleteRequest}
      *
      * <pre>
-     * next available id: 4
+     * next available id: 3
      * </pre>
      */
     public static final class Builder extends
@@ -8486,22 +8680,22 @@ public final class Protocol {
         return this;
       }
 
-      // optional bool cancel = 3;
+      // optional bool cancel = 2;
       private boolean cancel_ ;
       /**
-       * <code>optional bool cancel = 3;</code>
+       * <code>optional bool cancel = 2;</code>
        */
       public boolean hasCancel() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional bool cancel = 3;</code>
+       * <code>optional bool cancel = 2;</code>
        */
       public boolean getCancel() {
         return cancel_;
       }
       /**
-       * <code>optional bool cancel = 3;</code>
+       * <code>optional bool cancel = 2;</code>
        */
       public Builder setCancel(boolean value) {
         bitField0_ |= 0x00000002;
@@ -8510,7 +8704,7 @@ public final class Protocol {
         return this;
       }
       /**
-       * <code>optional bool cancel = 3;</code>
+       * <code>optional bool cancel = 2;</code>
        */
       public Builder clearCancel() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -8605,38 +8799,39 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocol.proto\022\030alluxio.proto.dataserv" +
-      "er\032\014status.proto\"\263\001\n\013ReadRequest\022\020\n\010bloc" +
+      "er\032\014status.proto\"\304\001\n\013ReadRequest\022\020\n\010bloc" +
       "k_id\030\001 \001(\003\022\016\n\006offset\030\002 \001(\003\022\016\n\006length\030\003 \001" +
-      "(\003\022\016\n\006cancel\030\004 \001(\010\022\023\n\013packet_size\030\005 \001(\003\022" +
-      "M\n\026open_ufs_block_options\030\006 \001(\0132-.alluxi" +
-      "o.proto.dataserver.OpenUfsBlockOptions\"\224" +
-      "\001\n\023OpenUfsBlockOptions\022\017\n\007ufsPath\030\001 \001(\t\022" +
-      "\026\n\016offset_in_file\030\002 \001(\003\022\022\n\nblock_size\030\003 " +
-      "\001(\003\022\035\n\025maxUfsReadConcurrency\030\004 \001(\005\022\017\n\007mo" +
-      "untId\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\"\333\001\n\014WriteR",
-      "equest\0223\n\004type\030\001 \001(\0162%.alluxio.proto.dat" +
-      "aserver.RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offse" +
-      "t\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013\n\003eof\030\005 \001(\010\022\016\n\006ca" +
-      "ncel\030\006 \001(\010\022O\n\027create_ufs_file_options\030\007 " +
-      "\001(\0132..alluxio.proto.dataserver.CreateUfs" +
-      "FileOptions\"f\n\024CreateUfsFileOptions\022\020\n\010u" +
-      "fs_path\030\001 \001(\t\022\r\n\005owner\030\002 \001(\t\022\r\n\005group\030\003 " +
-      "\001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mount_id\030\005 \001(\003\"J\n\010R" +
-      "esponse\022-\n\006status\030\001 \001(\0162\035.alluxio.proto." +
-      "status.PStatus\022\017\n\007message\030\002 \001(\t\"i\n\014ReadR",
-      "esponse\0229\n\004type\030\001 \001(\0162+.alluxio.proto.da" +
-      "taserver.ReadResponse.Type\"\036\n\004Type\022\026\n\022UF" +
-      "S_READ_HEARTBEAT\020\001\"\013\n\tHeartbeat\")\n\025Local" +
-      "BlockOpenRequest\022\020\n\010block_id\030\001 \001(\003\"&\n\026Lo" +
-      "calBlockOpenResponse\022\014\n\004path\030\001 \001(\t\"*\n\026Lo" +
-      "calBlockCloseRequest\022\020\n\010block_id\030\001 \001(\003\"o" +
-      "\n\027LocalBlockCreateRequest\022\020\n\010block_id\030\001 " +
-      "\001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 " +
-      "\001(\003\022\032\n\022only_reserve_space\030\005 \001(\010\"(\n\030Local" +
-      "BlockCreateResponse\022\014\n\004path\030\001 \001(\t\"=\n\031Loc",
-      "alBlockCompleteRequest\022\020\n\010block_id\030\001 \001(\003" +
-      "\022\016\n\006cancel\030\003 \001(\010*.\n\013RequestType\022\021\n\rALLUX" +
-      "IO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001"
+      "(\003\022\016\n\006cancel\030\004 \001(\010\022\017\n\007promote\030\007 \001(\010\022\023\n\013p" +
+      "acket_size\030\005 \001(\003\022M\n\026open_ufs_block_optio" +
+      "ns\030\006 \001(\0132-.alluxio.proto.dataserver.Open" +
+      "UfsBlockOptions\"\224\001\n\023OpenUfsBlockOptions\022" +
+      "\017\n\007ufsPath\030\001 \001(\t\022\026\n\016offset_in_file\030\002 \001(\003" +
+      "\022\022\n\nblock_size\030\003 \001(\003\022\035\n\025maxUfsReadConcur" +
+      "rency\030\004 \001(\005\022\017\n\007mountId\030\005 \001(\003\022\020\n\010no_cache",
+      "\030\006 \001(\010\"\333\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%." +
+      "alluxio.proto.dataserver.RequestType\022\n\n\002" +
+      "id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013" +
+      "\n\003eof\030\005 \001(\010\022\016\n\006cancel\030\006 \001(\010\022O\n\027create_uf" +
+      "s_file_options\030\007 \001(\0132..alluxio.proto.dat" +
+      "aserver.CreateUfsFileOptions\"f\n\024CreateUf" +
+      "sFileOptions\022\020\n\010ufs_path\030\001 \001(\t\022\r\n\005owner\030" +
+      "\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mo" +
+      "unt_id\030\005 \001(\003\"J\n\010Response\022-\n\006status\030\001 \001(\016" +
+      "2\035.alluxio.proto.status.PStatus\022\017\n\007messa",
+      "ge\030\002 \001(\t\"i\n\014ReadResponse\0229\n\004type\030\001 \001(\0162+" +
+      ".alluxio.proto.dataserver.ReadResponse.T" +
+      "ype\"\036\n\004Type\022\026\n\022UFS_READ_HEARTBEAT\020\001\"\013\n\tH" +
+      "eartbeat\":\n\025LocalBlockOpenRequest\022\020\n\010blo" +
+      "ck_id\030\001 \001(\003\022\017\n\007promote\030\002 \001(\010\"&\n\026LocalBlo" +
+      "ckOpenResponse\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlo" +
+      "ckCloseRequest\022\020\n\010block_id\030\001 \001(\003\"o\n\027Loca" +
+      "lBlockCreateRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n" +
+      "\004tier\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n" +
+      "\022only_reserve_space\030\005 \001(\010\"(\n\030LocalBlockC",
+      "reateResponse\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBloc" +
+      "kCompleteRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006ca" +
+      "ncel\030\002 \001(\010*.\n\013RequestType\022\021\n\rALLUXIO_BLO" +
+      "CK\020\000\022\014\n\010UFS_FILE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -8648,7 +8843,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
-              new java.lang.String[] { "BlockId", "Offset", "Length", "Cancel", "PacketSize", "OpenUfsBlockOptions", });
+              new java.lang.String[] { "BlockId", "Offset", "Length", "Cancel", "Promote", "PacketSize", "OpenUfsBlockOptions", });
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable = new
@@ -8690,7 +8885,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor,
-              new java.lang.String[] { "BlockId", });
+              new java.lang.String[] { "BlockId", "Promote", });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor =
             getDescriptor().getMessageTypes().get(8);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_fieldAccessorTable = new
