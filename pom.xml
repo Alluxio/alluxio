@@ -583,6 +583,11 @@
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.glassfish</groupId>
+        <artifactId>javax.servlet</artifactId>
+        <version>3.1</version>
+      </dependency>
+      <dependency>
         <groupId>org.gluster</groupId>
         <artifactId>glusterfs-hadoop</artifactId>
         <version>${glusterfs-hadoop.version}</version>
