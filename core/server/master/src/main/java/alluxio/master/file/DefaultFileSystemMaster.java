@@ -2087,7 +2087,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         boolean exists;
         // TODO(adit): create convenience method
         if (ufs instanceof DirectoryUnderFileSystem) {
-          DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs; 
+          DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
           exists = directoryUfs.exists(ufsUri.toString());
         } else {
           exists = ufs.isFile(ufsUri.toString());
