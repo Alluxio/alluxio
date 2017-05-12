@@ -55,6 +55,11 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
     </dependency>
@@ -72,6 +77,12 @@
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-hdfs</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -81,12 +92,6 @@
       <artifactId>alluxio-core-client-hdfs</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-fs</artifactId>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -215,12 +220,6 @@
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
-        <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
-          <scope>test</scope>
-        </dependency>
       </dependencies>
       <build>
         <plugins>
@@ -293,12 +292,6 @@
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-oss</artifactId>
           <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpcore</artifactId>
-          <version>4.4</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
