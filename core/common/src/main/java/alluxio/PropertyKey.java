@@ -441,24 +441,10 @@ public class PropertyKey {
       create(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10);
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       create(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB");
-  // Deprecated. It will be removed in 2.0.0.
-  public static final PropertyKey USER_BLOCK_REMOTE_READER_CLASS =
-      create(Name.USER_BLOCK_REMOTE_READER_CLASS, "alluxio.client.netty.NettyRemoteBlockReader");
-  // Deprecated. It will be removed in 2.0.0.
-  public static final PropertyKey USER_BLOCK_REMOTE_WRITER_CLASS =
-      create(Name.USER_BLOCK_REMOTE_WRITER_CLASS, "alluxio.client.netty.NettyRemoteBlockWriter");
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       create(Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "512MB");
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_THREADS =
-      create(Name.USER_BLOCK_WORKER_CLIENT_THREADS, 10);
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
-      create(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX, 128);
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-      create(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS);
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
       create(Name.USER_DATE_FORMAT_PATTERN, "MM-dd-yyyy HH:mm:ss:SSS");
-  public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
-      create(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
       create(Name.USER_FILE_BUFFER_BYTES, "1MB");
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
@@ -475,12 +461,6 @@ public class PropertyKey {
       create(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, "1MB");
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       create(Name.USER_FILE_WAITCOMPLETED_POLL_MS, 1000);
-  public static final PropertyKey USER_FILE_WORKER_CLIENT_THREADS =
-      create(Name.USER_FILE_WORKER_CLIENT_THREADS, 10);
-  public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
-      create(Name.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX, 128);
-  public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-      create(Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS);
   public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
       create(Name.USER_FILE_WRITE_LOCATION_POLICY, "alluxio.client.file.policy.LocalFirstPolicy");
   public static final PropertyKey USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
@@ -519,33 +499,14 @@ public class PropertyKey {
       create(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS, 300000);
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
-  public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
-      create(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true);
   public static final PropertyKey USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
       create(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB");
-
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       create(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50);
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       create(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000);
-  // Deprecated
-  public static final PropertyKey USER_UFS_DELEGATION_ENABLED =
-      create(Name.USER_UFS_DELEGATION_ENABLED, true);
-  // Deprecated
-  public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
-      create(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, "8MB");
-  public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
-      create(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, "2MB");
-  // Deprecated. It will be removed in 2.0.0.
-  public static final PropertyKey USER_UFS_FILE_READER_CLASS =
-      create(Name.USER_UFS_FILE_READER_CLASS,
-          "alluxio.client.netty.NettyUnderFileSystemFileReader");
-  // Deprecated. It will be removed in 2.0.0.
-  public static final PropertyKey USER_UFS_FILE_WRITER_CLASS =
-      create(Name.USER_UFS_FILE_WRITER_CLASS,
-          "alluxio.client.netty.NettyUnderFileSystemFileWriter");
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       create(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
           "alluxio.client.file.policy.LocalFirstPolicy");
@@ -555,6 +516,40 @@ public class PropertyKey {
       create(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX, Integer.MAX_VALUE);
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       create(Name.USER_SHORT_CIRCUIT_ENABLED, true);
+
+  // Deprecated client configurations. They will be removed in 2.0.0.
+  public static final PropertyKey USER_BLOCK_REMOTE_READER_CLASS =
+      create(Name.USER_BLOCK_REMOTE_READER_CLASS, "alluxio.client.netty.NettyRemoteBlockReader");
+  public static final PropertyKey USER_BLOCK_REMOTE_WRITER_CLASS =
+      create(Name.USER_BLOCK_REMOTE_WRITER_CLASS, "alluxio.client.netty.NettyRemoteBlockWriter");
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_THREADS =
+      create(Name.USER_BLOCK_WORKER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
+      create(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX, 128);
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+      create(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS);
+  public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
+      create(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
+  public static final PropertyKey USER_FILE_WORKER_CLIENT_THREADS =
+      create(Name.USER_FILE_WORKER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
+      create(Name.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX, 128);
+  public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+      create(Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 300 * Constants.SECOND_MS);
+  public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
+      create(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true);
+  public static final PropertyKey USER_UFS_DELEGATION_ENABLED =
+      create(Name.USER_UFS_DELEGATION_ENABLED, true);
+  public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
+      create(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, "8MB");
+  public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
+      create(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, "2MB");
+  public static final PropertyKey USER_UFS_FILE_READER_CLASS =
+      create(Name.USER_UFS_FILE_READER_CLASS,
+          "alluxio.client.netty.NettyUnderFileSystemFileReader");
+  public static final PropertyKey USER_UFS_FILE_WRITER_CLASS =
+      create(Name.USER_UFS_FILE_WRITER_CLASS,
+          "alluxio.client.netty.NettyUnderFileSystemFileWriter");
 
   //
   // FUSE integration related properties
@@ -939,23 +934,11 @@ public class PropertyKey {
     //
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
-    public static final String USER_BLOCK_REMOTE_READER_CLASS =
-        "alluxio.user.block.remote.reader.class";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
-    public static final String USER_BLOCK_REMOTE_WRITER_CLASS =
-        "alluxio.user.block.remote.writer.class";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
-    public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
-        "alluxio.user.block.worker.client.threads";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
-        "alluxio.user.block.worker.client.pool.size.max";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.block.worker.client.pool.gc.threshold.ms";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
-    public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
-        "alluxio.user.failed.space.request.limits";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
@@ -970,12 +953,6 @@ public class PropertyKey {
         "alluxio.user.file.seek.buffer.size.bytes";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll.ms";
-    public static final String USER_FILE_WORKER_CLIENT_THREADS =
-        "alluxio.user.file.worker.client.threads";
-    public static final String USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
-        "alluxio.user.file.worker.client.pool.size.max";
-    public static final String USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.file.worker.client.pool.gc.threshold.ms";
     public static final String USER_FILE_WRITE_LOCATION_POLICY =
         "alluxio.user.file.write.location.policy.class";
     public static final String USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
@@ -1011,8 +988,6 @@ public class PropertyKey {
         "alluxio.user.network.netty.writer.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.reader.buffer.size.packets";
-    public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
-        "alluxio.user.network.netty.reader.cancel.enabled";
     public static final String USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
         "alluxio.user.network.netty.reader.packet.size.bytes";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
@@ -1020,13 +995,6 @@ public class PropertyKey {
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
         "alluxio.user.rpc.retry.max.num.retry";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep.ms";
-    public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
-    public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.read.buffer.size.bytes";
-    public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.write.buffer.size.bytes";
-    public static final String USER_UFS_FILE_READER_CLASS = "alluxio.user.ufs.file.reader.class";
-    public static final String USER_UFS_FILE_WRITER_CLASS = "alluxio.user.ufs.file.writer.class";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
@@ -1034,6 +1002,35 @@ public class PropertyKey {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
+
+    // Deprecated client configurations. They will be removed in 2.0.0.
+    public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
+        "alluxio.user.block.worker.client.threads";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.block.worker.client.pool.size.max";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.worker.client.pool.gc.threshold.ms";
+    public static final String USER_FILE_WORKER_CLIENT_THREADS =
+        "alluxio.user.file.worker.client.threads";
+    public static final String USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.file.worker.client.pool.size.max";
+    public static final String USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.file.worker.client.pool.gc.threshold.ms";
+    public static final String USER_BLOCK_REMOTE_READER_CLASS =
+        "alluxio.user.block.remote.reader.class";
+    public static final String USER_BLOCK_REMOTE_WRITER_CLASS =
+        "alluxio.user.block.remote.writer.class";
+    public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
+        "alluxio.user.failed.space.request.limits";
+    public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
+        "alluxio.user.network.netty.reader.cancel.enabled";
+    public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
+    public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
+        "alluxio.user.ufs.delegation.read.buffer.size.bytes";
+    public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
+        "alluxio.user.ufs.delegation.write.buffer.size.bytes";
+    public static final String USER_UFS_FILE_READER_CLASS = "alluxio.user.ufs.file.reader.class";
+    public static final String USER_UFS_FILE_WRITER_CLASS = "alluxio.user.ufs.file.writer.class";
 
     //
     // FUSE integration related properties

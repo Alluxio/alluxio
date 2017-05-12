@@ -241,34 +241,6 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * Attempts to promote a block in Alluxio space. If the block is not present, this method will
-   * return without an error. If the block is present in multiple workers, only one worker will
-   * receive the promotion request.
-   *
-   * @param blockId the id of the block to promote
-   */
-  public void promote(long blockId) {
-    BlockInfo info;
-    try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-        mContext.acquireBlockMasterClientResource()) {
-      info = blockMasterClientResource.get().getBlockInfo(blockId);
-    }
-    if (info.getLocations().isEmpty()) {
-      // Nothing to promote
-      return;
-    }
-    // Get the first worker address for now, as this will likely be the location being read from
-    // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-    BlockWorkerClient blockWorkerClient = mContext.createBlockWorkerClient(
-        info.getLocations().get(0).getWorkerAddress(), null  /* no session */);
-    try {
-      blockWorkerClient.promoteBlock(blockId);
-    } finally {
-      blockWorkerClient.close();
-    }
-  }
-
-  /**
    * Sets the local host name. This is only used in the test.
    *
    * @param localHostName the local host name
