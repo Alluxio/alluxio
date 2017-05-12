@@ -150,6 +150,11 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
      * Cancels the request.
      */
     abstract void cancel() throws IOException;
+
+    /**
+     * Cleans up the state.
+     */
+    abstract void cleanup() throws IOException;
   }
 
   /**
@@ -336,10 +341,9 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
       if (abort) {
         try {
-          cancel();
-        } catch (IOException e) {
-          LOG.warn("Failed to abort, cancel or complete the write request with error {}.",
-              e.getMessage());
+          cleanup();
+        } catch (Exception e) {
+          LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
         }
         replyError();
       } else if (cancel || eof) {
@@ -358,7 +362,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Completes this write.
+     * Completes this write. This is called when the write completes.
      */
     private void complete() throws IOException {
       if (mRequest != null) {
@@ -369,11 +373,23 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Cancels this write.
+     * Cancels this write. This is called when the client issues a cancel request.
      */
     private void cancel() throws IOException {
       if (mRequest != null) {
         mRequest.cancel();
+        mRequest = null;
+      }
+      mPosToWrite = 0;
+    }
+
+    /**
+     * Cleans up this write. This is called when the write request is aborted due to any exception
+     * or session timeout.
+     */
+    private void cleanup() throws IOException {
+      if (mRequest != null) {
+        mRequest.cleanup();
         mRequest = null;
       }
       mPosToWrite = 0;
