@@ -41,6 +41,12 @@ public class LineageFileOutStream extends FileOutStream {
     super(path, updateOutStreamOptions(options), context);
   }
 
+  /**
+   * Sets the {@link WriteType} to {@link WriteType#ASYNC_THROUGH} for the options.
+   *
+   * @param options the set of options
+   * @return the updated options
+   */
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
     return options.setWriteType(WriteType.ASYNC_THROUGH);
   }
