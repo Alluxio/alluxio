@@ -96,10 +96,10 @@ message Heartbeat {
 
 // Netty RPCs. Every RPC needs to define a request type and optionally a response type (default to Response).
 
-// next available id: 4
+// next available id: 3
 message LocalBlockOpenRequest {
   optional int64 block_id = 1;
-  optional bool promote = 3;
+  optional bool promote = 2;
 }
 
 // next available id: 2
@@ -107,7 +107,7 @@ message LocalBlockOpenResponse {
   optional string path = 1;
 }
 
-// next available id: 3
+// next available id: 2
 message LocalBlockCloseRequest {
   optional int64 block_id = 1;
 }
@@ -126,8 +126,8 @@ message LocalBlockCreateResponse {
   optional string path = 1;
 }
 
-// next available id: 4
+// next available id: 3
 message LocalBlockCompleteRequest {
   optional int64 block_id = 1;
-  optional bool cancel = 3;
+  optional bool cancel = 2;
 }

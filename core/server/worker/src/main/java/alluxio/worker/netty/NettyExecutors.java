@@ -53,7 +53,7 @@ final class NettyExecutors {
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
-          ThreadFactoryUtils.build("BlockPromoteExecutor-%d", true));
+          ThreadFactoryUtils.build("BlockOpenExecutor-%d", true));
 
   /**
    * Private constructor.
