@@ -412,7 +412,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (getObjectStatus(keyAsFolder) != null) {
       return true;
     }
-    return getObjectListingChunkAndCreateNonEmpty(path, true) != null;
+    return getObjectListingChunkForPath(path, true) != null;
   }
 
   @Override
@@ -688,14 +688,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       throws IOException;
 
   /**
-   * Gets a (partial) object listing and attempt to create non-empty directory breadcrumb.
+   * Gets a (partial) object listing for the given path.
    *
    * @param path of pseudo-directory
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing, or null if the path does not exist as a pseudo-directory
    */
-  protected ObjectListingChunk getObjectListingChunkAndCreateNonEmpty(String path,
-      boolean recursive) throws IOException {
+  protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive)
+      throws IOException {
     // Check if anything begins with <folder_path>/
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
@@ -723,7 +723,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return an array of the file and folder names in this directory
    */
   protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
-    ObjectListingChunk chunk = getObjectListingChunkAndCreateNonEmpty(path, options.isRecursive());
+    ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
     if (chunk == null) {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
       if (getObjectStatus(keyAsFolder) != null) {
