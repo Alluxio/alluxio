@@ -106,11 +106,13 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   private void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
-    Runnable runMaster = new Runnable() {
+    Runnable runProxy = new Runnable() {
       @Override
       public void run() {
         try {
           mProxyProcess.start();
+        } catch (InterruptedException e) {
+          // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start proxy error", e);
@@ -119,7 +121,8 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     };
 
-    mProxyThread = new Thread(runMaster);
+    mProxyThread = new Thread(runProxy);
+    mProxyThread.setName("ProxyThread-" + System.identityHashCode(mProxyThread));
     mProxyThread.start();
     mProxyProcess.waitForReady();
   }
@@ -139,7 +142,8 @@ public abstract class AbstractLocalAlluxioCluster {
         public void run() {
           try {
             worker.start();
-
+          } catch (InterruptedException e) {
+            // this is expected
           } catch (Exception e) {
             // Log the exception as the RuntimeException will be caught and handled silently by
             // JUnit
@@ -149,6 +153,7 @@ public abstract class AbstractLocalAlluxioCluster {
         }
       };
       Thread thread = new Thread(runWorker);
+      thread.setName("WorkerThread-" + System.identityHashCode(thread));
       mWorkerThreads.add(thread);
       thread.start();
     }
@@ -246,6 +251,14 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void stopProxy() throws Exception {
     mProxyProcess.stop();
+    if (mProxyThread != null) {
+      while (mProxyThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mProxyThread.getName());
+        mProxyThread.interrupt();
+        mProxyThread.join(1000);
+      }
+      mProxyThread = null;
+    }
   }
 
   /**
@@ -256,7 +269,11 @@ public abstract class AbstractLocalAlluxioCluster {
       worker.stop();
     }
     for (Thread thread : mWorkerThreads) {
-      thread.interrupt();
+      while (thread.isAlive()) {
+        LOG.info("Stopping thread {}.", thread.getName());
+        thread.interrupt();
+        thread.join(1000);
+      }
     }
     mWorkerThreads.clear();
   }
@@ -268,67 +285,68 @@ public abstract class AbstractLocalAlluxioCluster {
     setAlluxioWorkDirectory();
     setHostname();
 
-    Configuration.set(PropertyKey.TEST_MODE, "true");
+    Configuration.set(PropertyKey.TEST_MODE, true);
     Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT,
-        Integer.toString(DEFAULT_BLOCK_SIZE_BYTES));
-    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, DEFAULT_BLOCK_SIZE_BYTES);
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, 64);
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
-    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
-    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, 1);
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, 100);
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
+
+    // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 50);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 10);
 
     Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "3");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 3);
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
+    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 250);
 
-    Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
-    Configuration.set(PropertyKey.WEB_THREADS, "1");
+    Configuration.set(PropertyKey.WEB_THREADS, 1);
     Configuration.set(PropertyKey.WEB_RESOURCES, PathUtils
         .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
 
-    Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(DEFAULT_WORKER_MEMORY_BYTES));
-    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, DEFAULT_WORKER_MEMORY_BYTES);
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15);
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, 1);
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, 2048);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, 2);
+
+    // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 0);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 0);
 
     Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_WEB_BIND_HOST, mHostname);
 
-    // Performs an immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
-
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
-    Configuration.set(
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    Configuration.set(
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
-        ramdiskPath);
+    Configuration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
+    Configuration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdiskPath);
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {

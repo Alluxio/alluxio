@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.journalv0.JournalWriter;
 import alluxio.master.journalv0.MutableJournal;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
@@ -49,7 +49,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
     LOG.info("Formatting {}", mLocation);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation);
     if (ufs.isDirectory(mLocation.toString())) {
-      for (UnderFileStatus p : ufs.listStatus(mLocation.toString())) {
+      for (UfsStatus p : ufs.listStatus(mLocation.toString())) {
         URI childPath;
         try {
           childPath = URIUtils.appendPath(mLocation, p.getName());

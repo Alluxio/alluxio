@@ -81,42 +81,41 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException {
+  public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
     if (!options.isRecursive()) {
       return listStatus(path);
     }
     path = validatePath(path);
-    List<UnderFileStatus> returnPaths = new ArrayList<>();
-    // Each element is a pair of (full path, UnderFileStatus)
-    Queue<Pair<String, UnderFileStatus>> pathsToProcess = new ArrayDeque<>();
+    List<UfsStatus> returnPaths = new ArrayList<>();
+    // Each element is a pair of (full path, UfsStatus)
+    Queue<Pair<String, UfsStatus>> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
-    UnderFileStatus[] subpaths = listStatus(path);
-    if (subpaths == null) {
+    UfsStatus[] statuses = listStatus(path);
+    if (statuses == null) {
       return null;
     } else {
-      for (UnderFileStatus subp : subpaths) {
-        pathsToProcess.add(new Pair<>(PathUtils.concatPath(path, subp.getName()), subp));
+      for (UfsStatus status : statuses) {
+        pathsToProcess.add(new Pair<>(PathUtils.concatPath(path, status.getName()), status));
       }
     }
     while (!pathsToProcess.isEmpty()) {
-      final Pair<String, UnderFileStatus> pathToProcessPair = pathsToProcess.remove();
+      final Pair<String, UfsStatus> pathToProcessPair = pathsToProcess.remove();
       final String pathToProcess = pathToProcessPair.getFirst();
-      final UnderFileStatus pathStatus = pathToProcessPair.getSecond();
-      returnPaths.add(new UnderFileStatus(pathToProcess.substring(path.length() + 1),
-          pathStatus.isDirectory()));
+      UfsStatus pathStatus = pathToProcessPair.getSecond();
+      returnPaths.add(pathStatus.setName(pathToProcess.substring(path.length() + 1)));
 
       if (pathStatus.isDirectory()) {
         // Add all of its subpaths
-        subpaths = listStatus(pathToProcess);
-        if (subpaths != null) {
-          for (UnderFileStatus subp : subpaths) {
-            pathsToProcess
-                .add(new Pair<>(PathUtils.concatPath(pathToProcess, subp.getName()), subp));
+        UfsStatus[] children = listStatus(pathToProcess);
+        if (children != null) {
+          for (UfsStatus child : children) {
+            pathsToProcess.add(
+                new Pair<>(PathUtils.concatPath(pathToProcess, child.getName()), child));
           }
         }
       }
     }
-    return returnPaths.toArray(new UnderFileStatus[returnPaths.size()]);
+    return returnPaths.toArray(new UfsStatus[returnPaths.size()]);
   }
 
   @Override

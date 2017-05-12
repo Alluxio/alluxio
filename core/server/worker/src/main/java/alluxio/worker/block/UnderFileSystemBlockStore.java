@@ -250,6 +250,9 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     return blockInfo;
   }
 
+  /**
+   * This class is to wrap session ID amd block ID.
+   */
   private static class Key {
     private final long mSessionId;
     private final long mBlockId;

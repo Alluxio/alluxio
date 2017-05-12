@@ -81,11 +81,26 @@ public final class StorageDirTest {
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
   }
 
+  /**
+   * Create a storage directory with given testDir file identifier.
+   *
+   * @param testDir test directory file identifier
+   * @return
+   * @throws Exception
+   */
   private StorageDir newStorageDir(File testDir) throws Exception {
     return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
         testDir.getAbsolutePath());
   }
 
+  /**
+   * Create a block file.
+   *
+   * @param dir test directory file identifier
+   * @param name block file name
+   * @param lenBytes bytes length of the block file
+   * @throws IOException
+   */
   private void newBlockFile(File dir, String name, int lenBytes) throws IOException {
     File block = new File(dir, name);
     block.createNewFile();
