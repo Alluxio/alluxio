@@ -95,7 +95,8 @@ public interface UnderFileSystem extends Closeable {
           // Use the factory to create the actual client for the Under File System
           return new UnderFileSystemWithLogging(
               factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
-        } catch (Exception e) {
+        } catch (Throwable e) {
+          // This needs to be Throwable rather than Error to catch service loading errors
           errors.add(e);
           LOG.warn("Failed to create UnderFileSystemFactory {}", factory, e);
         }
