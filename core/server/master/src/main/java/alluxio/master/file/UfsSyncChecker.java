@@ -17,7 +17,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
@@ -40,11 +40,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsSyncChecker {
 
+  /** Empty array for a directory with no children. */
+  private static final UfsStatus[] EMPTY_CHILDREN = new UfsStatus[0];
+
   /** UFS directories for which list was called. */
-  private Map<String, UnderFileStatus[]> mListedDirectories;
+  private Map<String, UfsStatus[]> mListedDirectories;
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
+
+  /** Directories in sync with the UFS. */
+  private Map<AlluxioURI, Inode<?>> mSyncedDirectories = new HashMap<>();
 
   /**
    * Create a new instance of {@link UfsSyncChecker}.
@@ -60,27 +66,19 @@ public final class UfsSyncChecker {
    *
    * @param inode read-locked directory to check
    * @param alluxioUri path of directory to to check
-   * @return true is contents of directory match
    */
-  public boolean isUFSDeleteSafe(InodeDirectory inode, AlluxioURI alluxioUri)
+  public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
-
-    UnderFileStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
-    // Empty directories are not persisted
-    if (ufsChildren == null) {
-      return true;
-    }
-    // Sort-merge compare
-    Arrays.sort(ufsChildren, new Comparator<UnderFileStatus>() {
+    UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
+    Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
       @Override
-      public int compare(UnderFileStatus a, UnderFileStatus b) {
+      public int compare(UfsStatus a, UfsStatus b) {
         return a.getName().compareTo(b.getName());
       }
     });
     int numInodeChildren = inode.getChildren().size();
-    Inode[] inodeChildren = new Inode[numInodeChildren];
-    inodeChildren = inode.getChildren().toArray(inodeChildren);
+    Inode[] inodeChildren = inode.getChildren().toArray(new Inode[numInodeChildren]);
     Arrays.sort(inodeChildren, new Comparator<Inode>() {
       @Override
       public int compare(Inode a, Inode b) {
@@ -99,7 +97,31 @@ public final class UfsSyncChecker {
       }
       inodePos++;
     }
-    return ufsPos == ufsChildren.length;
+
+    if (ufsPos == ufsChildren.length) {
+      // Directory is in sync
+      mSyncedDirectories.put(alluxioUri, inode);
+    } else {
+      // Invalidate ancestor directories if not a mount point
+      AlluxioURI currentPath = alluxioUri;
+      while (currentPath.getParent() != null && !mMountTable.isMountPoint(currentPath)
+          && mSyncedDirectories.containsKey(currentPath.getParent())) {
+        mSyncedDirectories.remove(currentPath.getParent());
+        currentPath = currentPath.getParent();
+      }
+    }
+  }
+
+  /**
+   * Based on directories for which
+   * {@link UfsSyncChecker#checkDirectory(InodeDirectory, AlluxioURI)} was called, this method
+   * returns whether any un-synced entries were found.
+   *
+   * @param alluxioUri path of directory to check
+   * @return true, if in sync; false, otherwise
+   */
+  public boolean isDirectoryInSync(AlluxioURI alluxioUri) {
+    return mSyncedDirectories.containsKey(alluxioUri);
   }
 
   /**
@@ -110,7 +132,7 @@ public final class UfsSyncChecker {
    * @throws InvalidPathException if aluxioUri is invalid
    * @throws IOException if a non-alluxio error occurs
    */
-  private UnderFileStatus[] getChildrenInUFS(AlluxioURI alluxioUri)
+  private UfsStatus[] getChildrenInUFS(AlluxioURI alluxioUri)
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
@@ -119,25 +141,27 @@ public final class UfsSyncChecker {
     AlluxioURI curUri = ufsUri;
     while (curUri != null) {
       if (mListedDirectories.containsKey(curUri.toString())) {
-        List<UnderFileStatus> childrenList = new LinkedList<>();
-        for (UnderFileStatus child : mListedDirectories.get(curUri.toString())) {
-          String childPath = PathUtils.concatPath(curUri, child.getName());
+        List<UfsStatus> childrenList = new LinkedList<>();
+        for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
+          String childPath = PathUtils.concatPath(curUri, childStatus.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
           if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-            childrenList.add(new UnderFileStatus(childPath.substring(prefix.length()),
-                child.isDirectory()));
+            UfsStatus newStatus = childStatus.copy();
+            newStatus.setName(childPath.substring(prefix.length()));
+            childrenList.add(newStatus);
           }
         }
-        return trimIndirect(childrenList.toArray(new UnderFileStatus[childrenList.size()]));
+        return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
       }
       curUri = curUri.getParent();
     }
-    UnderFileStatus[] children =
+    UfsStatus[] children =
         ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
     // Assumption: multiple mounted UFSs cannot have the same ufsUri
-    if (children != null) {
-      mListedDirectories.put(ufsUri.toString(), children);
+    if (children == null) {
+      return EMPTY_CHILDREN;
     }
+    mListedDirectories.put(ufsUri.toString(), children);
     return trimIndirect(children);
   }
 
@@ -147,17 +171,14 @@ public final class UfsSyncChecker {
    * @param children list from recursive listing
    * @return trimmed list, null if input is null
    */
-  private UnderFileStatus[] trimIndirect(UnderFileStatus[] children) {
-    if (children == null) {
-      return null;
-    }
-    List<UnderFileStatus> childrenList = new LinkedList<>();
-    for (UnderFileStatus child : children) {
+  private UfsStatus[] trimIndirect(UfsStatus[] children) {
+    List<UfsStatus> childrenList = new LinkedList<>();
+    for (UfsStatus child : children) {
       int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
       if (index < 0 || index == child.getName().length()) {
         childrenList.add(child);
       }
     }
-    return childrenList.toArray(new UnderFileStatus[childrenList.size()]);
+    return childrenList.toArray(new UfsStatus[childrenList.size()]);
   }
 }

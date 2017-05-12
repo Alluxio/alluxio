@@ -260,6 +260,14 @@ public interface UnderFileSystem extends Closeable {
   long getBlockSizeByte(String path) throws IOException;
 
   /**
+   * Gets the directory status.
+   *
+   * @param path the file name
+   * @return the directory status
+   */
+  UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
+
+  /**
    * Gets the list of locations of the indicated path.
    *
    * @param path the file name
@@ -277,45 +285,12 @@ public interface UnderFileSystem extends Closeable {
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file size in bytes.
+   * Gets the file status.
    *
    * @param path the file name
-   * @return the file size in bytes
+   * @return the file status
    */
-  long getFileSize(String path) throws IOException;
-
-  /**
-   * Gets the group of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the group of the file
-   */
-  String getGroup(String path) throws IOException;
-
-  /**
-   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
-   * be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the mode of the file
-   */
-  short getMode(String path) throws IOException;
-
-  /**
-   * Gets the UTC time of when the indicated path was modified recently in ms.
-   *
-   * @param path the file name
-   * @return modification time in milliseconds
-   */
-  long getModificationTimeMs(String path) throws IOException;
-
-  /**
-   * Gets the owner of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   */
-  String getOwner(String path) throws IOException;
+  UfsFileStatus getFileStatus(String path) throws IOException;
 
   /**
    * @return the property map for this {@link UnderFileSystem}
@@ -376,7 +351,7 @@ public interface UnderFileSystem extends Closeable {
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
-  UnderFileStatus[] listStatus(String path) throws IOException;
+  UfsStatus[] listStatus(String path) throws IOException;
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
@@ -398,7 +373,7 @@ public interface UnderFileSystem extends Closeable {
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
-  UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException;
+  UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method

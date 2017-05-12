@@ -89,10 +89,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected class ObjectStatus {
     final long mContentLength;
     final long mLastModifiedTimeMs;
+    final String mName;
 
-    public ObjectStatus(long contentLength, long lastModifiedTimeMs) {
+    public ObjectStatus(String name, long contentLength, long lastModifiedTimeMs) {
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
+      mName = name;
     }
 
     /**
@@ -112,6 +114,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     public long getLastModifiedTimeMs() {
       return mLastModifiedTimeMs;
     }
+
+    /**
+     * Gets the name of the object.
+     *
+     * @return object name
+     */
+    public String getName() {
+      return mName;
+    }
   }
 
   /**
@@ -121,9 +132,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Objects in a pseudo-directory which may be a file or a directory.
      *
-     * @return a list of object names
+     * @return a list of object statuses
      */
-    String[] getObjectNames();
+    ObjectStatus[] getObjectStatuses();
 
     /**
      * Use common prefixes to infer pseudo-directories in object store.
@@ -139,6 +150,33 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * {@link ObjectListingChunk} for the next chunk
      */
     ObjectListingChunk getNextChunk() throws IOException;
+  }
+
+  /**
+   * Permissions in object UFS.
+   */
+  protected class ObjectPermissions {
+    final String mOwner;
+    final String mGroup;
+    final short mMode;
+
+    public ObjectPermissions(String owner, String group, short mode) {
+      mOwner = owner;
+      mGroup = group;
+      mMode = mode;
+    }
+
+    public String getOwner() {
+      return mOwner;
+    }
+
+    public String getGroup() {
+      return mGroup;
+    }
+
+    public short getMode() {
+      return mMode;
+    }
   }
 
   @Override
@@ -169,7 +207,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     if (!options.isRecursive()) {
-      UnderFileStatus[] children = listInternal(path, ListOptions.defaults());
+      UfsStatus[] children = listInternal(path, ListOptions.defaults());
       if (children == null) {
         LOG.error("Unable to delete path because {} is not a directory ", path);
         return false;
@@ -185,12 +223,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
     // Delete children
     DeleteBuffer deleteBuffer = new DeleteBuffer();
-    UnderFileStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
+    UfsStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
     if (pathsToDelete == null) {
       LOG.warn("Unable to delete {} because listInternal returns null", path);
       return false;
     }
-    for (UnderFileStatus pathToDelete : pathsToDelete) {
+    for (UfsStatus pathToDelete : pathsToDelete) {
       String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
       if (pathToDelete.isDirectory()) {
         deleteBuffer.add(convertToFolderName(pathKey));
@@ -316,6 +354,20 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
+  @Override
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+    ObjectStatus details = getObjectStatus(keyAsFolder);
+    if (details != null) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
+    } else {
+      LOG.error("Error fetching directory status, assuming directory does not exist");
+      throw new FileNotFoundException(path);
+    }
+  }
+
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
@@ -338,22 +390,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path) throws IOException {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
-      return details.getContentLength();
+      ObjectPermissions permissions = getPermissions();
+      return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
+          permissions.getOwner(), permissions.getGroup(), permissions.getMode());
     } else {
-      LOG.error("Error fetching file size, assuming file does not exist");
-      throw new FileNotFoundException(path);
-    }
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
-    if (details != null) {
-      return details.getLastModifiedTimeMs();
-    } else {
+      LOG.error("Error fetching file status, assuming file does not exist");
       throw new FileNotFoundException(path);
     }
   }
@@ -378,12 +422,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     return listInternal(path, ListOptions.defaults());
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path, ListOptions options)
+  public UfsStatus[] listStatus(String path, ListOptions options)
       throws IOException {
     return listInternal(path, options);
   }
@@ -427,7 +471,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    UnderFileStatus[] children = listInternal(src, ListOptions.defaults());
+    UfsStatus[] children = listInternal(src, ListOptions.defaults());
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
@@ -443,7 +487,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return false;
     }
     // Rename each child in the src folder to destination/child
-    for (UnderFileStatus child : children) {
+    for (UfsStatus child : children) {
       String childSrcPath = PathUtils.concatPath(src, child);
       String childDstPath = PathUtils.concatPath(dst, child);
       boolean success;
@@ -549,6 +593,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Permissions for the mounted bucket.
+   *
+   * @return permissions
+   */
+  protected abstract ObjectPermissions getPermissions();
+
+  /**
    * Maximum number of items in a single listing chunk supported by the under store.
    *
    * @return the maximum length for a single listing query
@@ -649,7 +700,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && ((objs.getObjectNames() != null && objs.getObjectNames().length > 0)
+    if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // If the breadcrumb exists, this is a no-op
       mkdirsInternal(dir);
@@ -673,19 +724,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param options for listing
    * @return an array of the file and folder names in this directory
    */
-  protected UnderFileStatus[] listInternal(String path, ListOptions options) throws IOException {
+  protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
     ObjectListingChunk chunk = getObjectListingChunkAndCreateNonEmpty(path, options.isRecursive());
     if (chunk == null) {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
       if (getObjectStatus(keyAsFolder) != null) {
         // Path is an empty directory
-        return new UnderFileStatus[0];
+        return new UfsStatus[0];
       }
       return null;
     }
     String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
     keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
-    Map<String, Boolean> children = new HashMap<>();
+    Map<String, UfsStatus> children = new HashMap<>();
     while (chunk != null) {
       // Directories in UFS can be possibly encoded in two different ways:
       // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
@@ -703,15 +754,24 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       // - commonPrefix = ufs/dir2/, child = dir2
 
       // Handle case (1)
-      for (String obj : chunk.getObjectNames()) {
+      for (ObjectStatus status : chunk.getObjectStatuses()) {
         // Remove parent portion of the key
-        String child = getChildName(obj, keyPrefix);
-        // Prune the special folder suffix
-        boolean isDir = child.endsWith(getFolderSuffix());
-        child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
-        // Only add if the path is not empty (removes results equal to the path)
-        if (!child.isEmpty()) {
-          children.put(child, isDir);
+        String child = getChildName(status.getName(), keyPrefix);
+        if (child.isEmpty() || child.equals(getFolderSuffix())) {
+          // Removes results equal to the path
+          continue;
+        }
+        ObjectPermissions permissions = getPermissions();
+        if (child.endsWith(getFolderSuffix())) {
+          // Child is a directory
+          child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
+          children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
+              permissions.getGroup(), permissions.getMode()));
+        } else {
+          // Child is a file
+          children.put(child,
+              new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
+                  permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
         }
       }
       // Handle case (2)
@@ -720,7 +780,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         // In case of a recursive listing infer pseudo-directories as the commonPrefixes returned
         // from the object store is empty for an empty delimiter.
         HashSet<String> prefixes = new HashSet<>();
-        for (String objectName : chunk.getObjectNames()) {
+        for (ObjectStatus objectStatus : chunk.getObjectStatuses()) {
+          String objectName = objectStatus.getName();
           while (objectName.startsWith(keyPrefix)) {
             objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
             if (!objectName.isEmpty()) {
@@ -744,16 +805,18 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             mkdirsInternal(commonPrefix);
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
-            children.put(child, true);
+            ObjectPermissions permissions = getPermissions();
+            children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
+                permissions.getGroup(), permissions.getMode()));
           }
         }
       }
       chunk = chunk.getNextChunk();
     }
-    UnderFileStatus[] ret = new UnderFileStatus[children.size()];
+    UfsStatus[] ret = new UfsStatus[children.size()];
     int pos = 0;
-    for (Map.Entry<String, Boolean> entry : children.entrySet()) {
-      ret[pos++] = new UnderFileStatus(entry.getKey(), entry.getValue());
+    for (UfsStatus status : children.values()) {
+      ret[pos++] = status;
     }
     return ret;
   }

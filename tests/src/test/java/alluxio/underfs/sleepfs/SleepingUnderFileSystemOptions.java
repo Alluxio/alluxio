@@ -25,12 +25,9 @@ public class SleepingUnderFileSystemOptions {
   private long mDeleteFileMs = -1;
   private long mGetBlockSizeByteMs = -1;
   private long mGetConfMs = -1;
+  private long mGetDirectoryStatusMs = -1;
   private long mGetFileLocationsMs = -1;
-  private long mGetFileSizeMs = -1;
-  private long mGetGroupMs = -1;
-  private long mGetModeMs = -1;
-  private long mGetModificationTimeMs = -1;
-  private long mGetOwnerMs = -1;
+  private long mGetFileStatusMs = -1;
   private long mGetSpaceMs = -1;
   private long mGetUnderFSTypeMs = -1;
   private long mIsDirectoryMs = -1;
@@ -175,6 +172,22 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
+   * @return milliseconds to sleep before executing a get directory status call
+   */
+  public long getGetDirectoryStatusMs() {
+    return mGetDirectoryStatusMs;
+  }
+
+  /**
+   * @param getDirectoryStatusMs milliseconds to sleep before executing a get directory status call
+   * @return the updated object
+   */
+  public SleepingUnderFileSystemOptions setGetDirectoryStatusMs(long getDirectoryStatusMs) {
+    mGetFileStatusMs = getDirectoryStatusMs;
+    return this;
+  }
+
+  /**
    * @return milliseconds to sleep before executing a get file location call
    */
   public long getGetFileLocationsMs() {
@@ -191,82 +204,18 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get file size call
+   * @return milliseconds to sleep before executing a get file status call
    */
-  public long getGetFileSizeMs() {
-    return mGetFileSizeMs;
+  public long getGetFileStatusMs() {
+    return mGetFileStatusMs;
   }
 
   /**
-   * @param getFileSizeMs milliseconds to sleep before executing a get file size call
+   * @param getFileStatusMs milliseconds to sleep before executing a get file status call
    * @return the updated object
    */
-  public SleepingUnderFileSystemOptions setGetFileSizeMs(long getFileSizeMs) {
-    mGetFileSizeMs = getFileSizeMs;
-    return this;
-  }
-
-  /**
-   * @return milliseconds to sleep before executing a get group call
-   */
-  public long getGetGroupMs() {
-    return mGetGroupMs;
-  }
-
-  /**
-   * @param getGroupMs milliseconds to sleep before executing a get group call
-   * @return the updated object
-   */
-  public SleepingUnderFileSystemOptions setGetGroupMs(long getGroupMs) {
-    mGetGroupMs = getGroupMs;
-    return this;
-  }
-
-  /**
-   * @return milliseconds to sleep before executing a get mode call
-   */
-  public long getGetModeMs() {
-    return mGetModeMs;
-  }
-
-  /**
-   * @param getModeMs milliseconds to sleep before executing a get mode call
-   * @return the updated object
-   */
-  public SleepingUnderFileSystemOptions setGetModeMs(long getModeMs) {
-    mGetModeMs = getModeMs;
-    return this;
-  }
-
-  /**
-   * @return milliseconds to sleep before executing a get mod time call
-   */
-  public long getGetModificationTimeMs() {
-    return mGetModificationTimeMs;
-  }
-
-  /**
-   * @param getModificationTimeMs milliseconds to sleep before executing a get mod time call
-   * @return the updated object
-   */
-  public SleepingUnderFileSystemOptions setGetModificationTimeMs(long getModificationTimeMs) {
-    mGetModificationTimeMs = getModificationTimeMs;
-    return this;
-  }
-
-  /**
-   * @return milliseconds to sleep before executing a get owner call
-   */
-  public long getGetOwnerMs() {
-    return mGetOwnerMs;
-  }
-
-  /**
-   * @param getOwnerMs milliseconds to sleep before executing a get owner call
-   * @return the updated object
-   */
-  public SleepingUnderFileSystemOptions setGetOwnerMs(long getOwnerMs) {
-    mGetOwnerMs = getOwnerMs;
+  public SleepingUnderFileSystemOptions setGetFileStatusMs(long getFileStatusMs) {
+    mGetFileStatusMs = getFileStatusMs;
     return this;
   }
 

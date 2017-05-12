@@ -35,7 +35,7 @@ import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -130,7 +130,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
 
-    UnderFileStatus[] paths = UnderFileSystem.Factory.create(journalFolder)
+    UfsStatus[] paths = UnderFileSystem.Factory.create(journalFolder)
         .listStatus(journal.getLogDir().toString());
     int expectedSize = paths == null ? 0 : paths.length;
 
