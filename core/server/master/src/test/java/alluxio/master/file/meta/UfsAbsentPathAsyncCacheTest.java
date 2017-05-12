@@ -179,7 +179,7 @@ public class UfsAbsentPathAsyncCacheTest {
 
     // Create additional ufs directories
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase + "/c/d")).mkdirs());
-    mUfsAbsentPathCache.removeAbsent(new AlluxioURI(alluxioBase + "/c/d"));
+    removeAbsent(new AlluxioURI(alluxioBase + "/c/d"));
 
     Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));
     Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c")));
@@ -189,12 +189,29 @@ public class UfsAbsentPathAsyncCacheTest {
   }
 
   private void addAbsent(AlluxioURI path) throws Exception {
-    mUfsAbsentPathCache.addAbsent(path);
-    // Wait until the async task is completed.
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();
+    mUfsAbsentPathCache.addAbsent(path);
+    // Wait until the async task is completed.
     CommonUtils
         .waitFor("path (" + path + ") to be added to absent cache", new Function<Void, Boolean>() {
+          @Override
+          public Boolean apply(Void input) {
+            if (pool.getCompletedTaskCount() == initialTasks) {
+              return false;
+            }
+            return true;
+          }
+        }, WaitForOptions.defaults().setTimeout(10000));
+  }
+
+  private void removeAbsent(AlluxioURI path) throws Exception {
+    final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
+    final long initialTasks = pool.getCompletedTaskCount();
+    mUfsAbsentPathCache.removeAbsent(path);
+    // Wait until the async task is completed.
+    CommonUtils
+        .waitFor("path (" + path + ") to be removed from absent cache", new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
             if (pool.getCompletedTaskCount() == initialTasks) {

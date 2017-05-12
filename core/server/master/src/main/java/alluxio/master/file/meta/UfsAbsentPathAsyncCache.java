@@ -38,8 +38,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This is a {@link UfsAbsentPathCache} which implements an asynchronous add to the cache, since
- * the processing of the path may be slow.
+ * This is a {@link UfsAbsentPathCache} which implements asynchronous addition and removal to the
+ * cache, since the processing of the path may be slow.
  */
 @ThreadSafe
 public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
@@ -82,17 +82,7 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
 
   @Override
   public void removeAbsent(AlluxioURI path) {
-    // TODO(gpang): make this async
-    MountInfo mountInfo = getMountInfo(path);
-    if (mountInfo == null) {
-      return;
-    }
-
-    for (AlluxioURI alluxioUri : getNestedPaths(path, mountInfo)) {
-      if (!checkPath(alluxioUri, mountInfo)) {
-        break;
-      }
-    }
+    mPool.submit(new ProcessPathTask(path));
   }
 
   @Override

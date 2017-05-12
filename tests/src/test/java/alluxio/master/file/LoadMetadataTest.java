@@ -237,14 +237,28 @@ public class LoadMetadataTest extends BaseIntegrationTest {
           new Function<Void, Boolean>() {
             @Override
             public Boolean apply(Void input) {
-              try {
-                if (cache.isAbsent(new AlluxioURI(path))) {
-                  return true;
-                }
-              } catch (Exception e) {
-                return false;
+              if (cache.isAbsent(new AlluxioURI(path))) {
+                return true;
               }
               return false;
+            }
+          }, WaitForOptions.defaults().setTimeout(60000));
+    }
+
+    if (expectExists && expectLoadFromUfs) {
+      // The metadata is loaded from Ufs, and the path exists, so it will be removed from the
+      // absent cache. Wait until the path is removed.
+      final UfsAbsentPathCache cache = Whitebox.getInternalState(
+          mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+              .getMaster(FileSystemMaster.class), "mUfsAbsentPathCache");
+      CommonUtils.waitFor("path (" + path + ") to be removed from absent cache",
+          new Function<Void, Boolean>() {
+            @Override
+            public Boolean apply(Void input) {
+              if (cache.isAbsent(new AlluxioURI(path))) {
+                return false;
+              }
+              return true;
             }
           }, WaitForOptions.defaults().setTimeout(60000));
     }
