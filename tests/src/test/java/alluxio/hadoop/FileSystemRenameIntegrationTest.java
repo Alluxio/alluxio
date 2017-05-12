@@ -140,7 +140,8 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
 
     cleanup(sTFS);
 
-    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"), false);
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"),
+        false);
   }
 
   @Test
@@ -199,7 +200,8 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(sTFS.exists(fileA));
     Assert.assertTrue(sTFS.exists(dirB));
     Assert.assertTrue(sTFS.exists(finalDst));
-    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"), false);
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA"),
+        false);
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirA", "fileA")));
     UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), true);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirB", "fileA")));
@@ -208,7 +210,8 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
 
     Assert.assertFalse(sTFS.exists(dirB));
     Assert.assertFalse(sTFS.exists(finalDst));
-    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), false);
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"),
+        false);
     Assert.assertFalse(sUfs.isFile(PathUtils.concatPath(sUfsRoot, "dirB", "fileA")));
   }
 
@@ -262,13 +265,16 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
 
     Assert.assertFalse(sTFS.exists(finalDst));
     Assert.assertTrue(sTFS.exists(dirA));
-    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirA", "dirB"), false);
-    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), false);
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs,
+        PathUtils.concatPath(sUfsRoot, "dirA", "dirB"), false);
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"),
+        false);
 
     cleanup(sTFS);
 
     Assert.assertFalse(sTFS.exists(dirA));
-    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"), false);
+    UfsIntegrationTestUtils.checkDirIfSupported(sUfs, PathUtils.concatPath(sUfsRoot, "dirB"),
+        false);
   }
 
   @Test

@@ -23,7 +23,7 @@ import java.io.IOException;
  * Util methods for writing UFS integration tests.
  */
 public final class UfsIntegrationTestUtils {
-  
+
   public static void mkdirsIfSupported(UnderFileSystem ufs, String path, MkdirsOptions options)
       throws IOException {
     if (ufs instanceof DirectoryUnderFileSystem) {
