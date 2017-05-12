@@ -21,7 +21,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * HDFS implementation for {@link UnderFileInputStream}.
+ * Input stream implementation for {@link HdfsUnderFileSystem}.
  */
 @NotThreadSafe
 public class HdfsUnderFileInputStream extends FilterInputStream implements Seekable {
