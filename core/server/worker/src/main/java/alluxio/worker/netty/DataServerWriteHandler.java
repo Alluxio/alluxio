@@ -362,7 +362,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Completes this write.
+     * Completes this write. This is called when the write completes.
      */
     private void complete() throws IOException {
       if (mRequest != null) {
@@ -373,7 +373,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Cancels this write.
+     * Cancels this write. This is called when the client issues a cancel request.
      */
     private void cancel() throws IOException {
       if (mRequest != null) {
@@ -384,7 +384,8 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Cancels this write.
+     * Cleans up this write. This is called when the write request is aborted due to any exception
+     * or session timeout.
      */
     private void cleanup() throws IOException {
       if (mRequest != null) {
