@@ -18,7 +18,9 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
@@ -186,6 +188,13 @@ public final class GlusterFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    Path tPath = new Path(path);
+    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     return getFileLocations(path, FileLocationOptions.defaults());
   }
@@ -214,29 +223,11 @@ public final class GlusterFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        FileStatus fs = mFileSystem.getFileStatus(tPath);
-        return fs.getLen();
-      } catch (IOException e) {
-        LOG.warn("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage());
-      }
-    }
-    return -1;
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    Path tPath = new Path(path);
-    if (!mFileSystem.exists(tPath)) {
-      throw new FileNotFoundException(path);
-    }
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return fs.getModificationTime();
+    return new UfsFileStatus(path, fs.getLen(), fs.getModificationTime(), fs.getOwner(),
+        fs.getGroup(), fs.getPermission().toShort());
   }
 
   @Override
@@ -275,16 +266,25 @@ public final class GlusterFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     FileStatus[] files = listStatusInternal(path);
     if (files == null) {
       return null;
     }
-    UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+    UfsStatus[] rtn = new UfsStatus[files.length];
     int i = 0;
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
-      rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
+      UfsStatus retStatus;
+      if (status.isDirectory()) {
+        retStatus = new UfsFileStatus(status.getPath().getName(), status.getLen(),
+            status.getModificationTime(), status.getOwner(), status.getGroup(),
+            status.getPermission().toShort());
+      } else {
+        retStatus = new UfsDirectoryStatus(status.getPath().getName(), status.getOwner(),
+            status.getGroup(), status.getPermission().toShort());
+      }
+      rtn[i++] = retStatus;
     }
     return rtn;
   }
@@ -435,36 +435,6 @@ public final class GlusterFSUnderFileSystem extends BaseUnderFileSystem
       mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
       LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getOwner();
-    } catch (IOException e) {
-      LOG.warn("Fail to get owner for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getGroup();
-    } catch (IOException e) {
-      LOG.warn("Fail to get group for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
-    } catch (IOException e) {
-      LOG.warn("Fail to get permission for {} : {}", path, e.getMessage());
       throw e;
     }
   }
