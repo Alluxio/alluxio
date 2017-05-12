@@ -286,17 +286,16 @@ public abstract class AbstractLocalAlluxioCluster {
     setAlluxioWorkDirectory();
     setHostname();
 
-    Configuration.set(PropertyKey.TEST_MODE, "true");
+    Configuration.set(PropertyKey.TEST_MODE, true);
     Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT,
-        Integer.toString(DEFAULT_BLOCK_SIZE_BYTES));
-    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, DEFAULT_BLOCK_SIZE_BYTES);
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, 64);
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
-    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
-    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, 1);
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, 100);
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
 
@@ -309,36 +308,36 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "3");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 3);
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
+    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 250);
 
-    Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
-    Configuration.set(PropertyKey.WEB_THREADS, "1");
+    Configuration.set(PropertyKey.WEB_THREADS, 1);
     Configuration.set(PropertyKey.WEB_RESOURCES, PathUtils
         .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
 
-    Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(DEFAULT_WORKER_MEMORY_BYTES));
-    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, DEFAULT_WORKER_MEMORY_BYTES);
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15);
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, 1);
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, 2048);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, 2);
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD_MS, 50);
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT_MS, 200);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 0);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 0);
 
     Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);

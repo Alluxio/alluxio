@@ -1000,6 +1000,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode<?>> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
+
     mTtlBuckets.insert(inode);
 
     Metrics.FILES_CREATED.inc();

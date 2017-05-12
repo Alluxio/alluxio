@@ -131,7 +131,7 @@ public final class LocalAlluxioMaster {
       }
     };
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
-    mMasterThread
+    mSecondaryMasterThread
         .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
     mSecondaryMasterThread.start();
     mSecondaryMaster.waitForReady();
@@ -148,15 +148,6 @@ public final class LocalAlluxioMaster {
    * Stops the master processes and cleans up client connections.
    */
   public void stop() throws Exception {
-    mMasterProcess.stop();
-    if (mMasterThread != null) {
-      while (mMasterThread.isAlive()) {
-        LOG.info("Stopping thread {}.", mMasterThread.getName());
-        mMasterThread.interrupt();
-        mMasterThread.join(1000);
-      }
-      mMasterThread = null;
-    }
     mSecondaryMaster.stop();
     if (mSecondaryMasterThread != null) {
       while (mSecondaryMasterThread.isAlive()) {
@@ -165,6 +156,15 @@ public final class LocalAlluxioMaster {
         mSecondaryMasterThread.join(1000);
       }
       mSecondaryMasterThread = null;
+    }
+    mMasterProcess.stop();
+    if (mMasterThread != null) {
+      while (mMasterThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mMasterThread.getName());
+        mMasterThread.interrupt();
+        mMasterThread.join(1000);
+      }
+      mMasterThread = null;
     }
     clearClients();
     System.clearProperty("alluxio.web.resources");

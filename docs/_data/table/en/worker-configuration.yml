@@ -62,12 +62,12 @@ alluxio.worker.network.netty.boss.threads:
 alluxio.worker.network.netty.file.transfer:
   When returning files to the user, select how the data is transferred; valid options are
   `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).
-alluxio.worker.network.netty.shutdown.quiet.period.ms:
-  The quiet period (in milliseconds). When the netty server is shutting down, it will ensure that no
+alluxio.worker.network.netty.shutdown.quiet.period:
+  The quiet period (in seconds). When the netty server is shutting down, it will ensure that no
   RPCs occur during the quiet period. If an RPC occurs, then the quiet period will restart before
   shutting down the netty server.
-alluxio.worker.network.netty.shutdown.timeout.ms:
-  Maximum amount of time to wait (in milliseconds) until the netty server is shutdown (regardless of
+alluxio.worker.network.netty.shutdown.timeout:
+  Maximum amount of time to wait (in seconds) until the netty server is shutdown (regardless of
   the quiet period).
 alluxio.worker.network.netty.watermark.high:
   Determines how many bytes can be in the write queue before switching to non-writable.
