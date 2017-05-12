@@ -36,11 +36,7 @@ public class SleepingUnderFileSystemOptionsTest {
     Assert.assertEquals(-1, defaults.getGetBlockSizeByteMs());
     Assert.assertEquals(-1, defaults.getGetConfMs());
     Assert.assertEquals(-1, defaults.getGetFileLocationsMs());
-    Assert.assertEquals(-1, defaults.getGetFileSizeMs());
-    Assert.assertEquals(-1, defaults.getGetGroupMs());
-    Assert.assertEquals(-1, defaults.getGetModeMs());
-    Assert.assertEquals(-1, defaults.getGetModificationTimeMs());
-    Assert.assertEquals(-1, defaults.getGetOwnerMs());
+    Assert.assertEquals(-1, defaults.getGetFileStatusMs());
     Assert.assertEquals(-1, defaults.getGetSpaceMs());
     Assert.assertEquals(-1, defaults.getGetUnderFSTypeMs());
     Assert.assertEquals(-1, defaults.getIsDirectoryMs());
@@ -72,12 +68,9 @@ public class SleepingUnderFileSystemOptionsTest {
     long sleepDeleteFileMs = random.nextLong();
     long sleepGetBlockSizeByteMs = random.nextLong();
     long sleepGetConfMs = random.nextLong();
+    long sleepGetDirectoryStatusMs = random.nextLong();
     long sleepGetFileLocationsMs = random.nextLong();
-    long sleepGetFileSizeMs = random.nextLong();
-    long sleepGetGroupMs = random.nextLong();
-    long sleepGetModeMs = random.nextLong();
-    long sleepGetModificationTimeMs = random.nextLong();
-    long sleepGetOwnerMs = random.nextLong();
+    long sleepGetFileStatusMs = random.nextLong();
     long sleepGetSpaceMs = random.nextLong();
     long sleepGetUnderFSTypeMs = random.nextLong();
     long sleepIsDirectoryMs = random.nextLong();
@@ -102,12 +95,9 @@ public class SleepingUnderFileSystemOptionsTest {
         .setDeleteFileMs(sleepDeleteFileMs)
         .setGetBlockSizeByteMs(sleepGetBlockSizeByteMs)
         .setGetConfMs(sleepGetConfMs)
+        .setGetDirectoryStatusMs(sleepGetDirectoryStatusMs)
         .setGetFileLocationsMs(sleepGetFileLocationsMs)
-        .setGetFileSizeMs(sleepGetFileSizeMs)
-        .setGetGroupMs(sleepGetGroupMs)
-        .setGetModeMs(sleepGetModeMs)
-        .setGetModificationTimeMs(sleepGetModificationTimeMs)
-        .setGetOwnerMs(sleepGetOwnerMs)
+        .setGetFileStatusMs(sleepGetFileStatusMs)
         .setGetSpaceMs(sleepGetSpaceMs)
         .setGetUnderFSTypeMs(sleepGetUnderFSTypeMs)
         .setIsDirectoryMs(sleepIsDirectoryMs)
@@ -132,11 +122,7 @@ public class SleepingUnderFileSystemOptionsTest {
     Assert.assertEquals(sleepGetBlockSizeByteMs, defaults.getGetBlockSizeByteMs());
     Assert.assertEquals(sleepGetConfMs, defaults.getGetConfMs());
     Assert.assertEquals(sleepGetFileLocationsMs, defaults.getGetFileLocationsMs());
-    Assert.assertEquals(sleepGetFileSizeMs, defaults.getGetFileSizeMs());
-    Assert.assertEquals(sleepGetGroupMs, defaults.getGetGroupMs());
-    Assert.assertEquals(sleepGetModeMs, defaults.getGetModeMs());
-    Assert.assertEquals(sleepGetModificationTimeMs, defaults.getGetModificationTimeMs());
-    Assert.assertEquals(sleepGetOwnerMs, defaults.getGetOwnerMs());
+    Assert.assertEquals(sleepGetFileStatusMs, defaults.getGetFileStatusMs());
     Assert.assertEquals(sleepGetSpaceMs, defaults.getGetSpaceMs());
     Assert.assertEquals(sleepGetUnderFSTypeMs, defaults.getGetUnderFSTypeMs());
     Assert.assertEquals(sleepIsDirectoryMs, defaults.getIsDirectoryMs());

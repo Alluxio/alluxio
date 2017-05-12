@@ -14,6 +14,7 @@ package alluxio.security;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
@@ -31,7 +32,7 @@ import org.junit.rules.ExpectedException;
 /**
  * Unit tests for starting a cluster when security is enabled.
  */
-public class ClusterInitializationTest {
+public final class ClusterInitializationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 

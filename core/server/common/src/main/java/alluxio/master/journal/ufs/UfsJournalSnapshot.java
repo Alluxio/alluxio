@@ -11,7 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,9 +85,9 @@ final class UfsJournalSnapshot {
   static UfsJournalSnapshot getSnapshot(UfsJournal journal) throws IOException {
     // Checkpoints.
     List<UfsJournalFile> checkpoints = new ArrayList<>();
-    UnderFileStatus[] statuses = journal.getUfs().listStatus(journal.getCheckpointDir().toString());
+    UfsStatus[] statuses = journal.getUfs().listStatus(journal.getCheckpointDir().toString());
     if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
+      for (UfsStatus status : statuses) {
         UfsJournalFile file = UfsJournalFile.decodeCheckpointFile(journal, status.getName());
         if (file != null) {
           checkpoints.add(file);
@@ -99,7 +99,7 @@ final class UfsJournalSnapshot {
     List<UfsJournalFile> logs = new ArrayList<>();
     statuses = journal.getUfs().listStatus(journal.getLogDir().toString());
     if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
+      for (UfsStatus status : statuses) {
         UfsJournalFile file = UfsJournalFile.decodeLogFile(journal, status.getName());
         if (file != null) {
           logs.add(file);
@@ -111,7 +111,7 @@ final class UfsJournalSnapshot {
     List<UfsJournalFile> tmpCheckpoints = new ArrayList<>();
     statuses = journal.getUfs().listStatus(journal.getTmpDir().toString());
     if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
+      for (UfsStatus status : statuses) {
         tmpCheckpoints.add(UfsJournalFile.decodeTemporaryCheckpointFile(journal, status.getName()));
       }
     }
@@ -126,9 +126,9 @@ final class UfsJournalSnapshot {
    */
   static UfsJournalFile getCurrentLog(UfsJournal journal) throws IOException {
     List<UfsJournalFile> logs = new ArrayList<>();
-    UnderFileStatus[] statuses = journal.getUfs().listStatus(journal.getLogDir().toString());
+    UfsStatus[] statuses = journal.getUfs().listStatus(journal.getLogDir().toString());
     if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
+      for (UfsStatus status : statuses) {
         UfsJournalFile file = UfsJournalFile.decodeLogFile(journal, status.getName());
         if (file != null) {
           logs.add(file);
@@ -151,9 +151,9 @@ final class UfsJournalSnapshot {
    */
   static long getNextLogSequenceNumberToCheckpoint(UfsJournal journal) throws IOException {
     List<UfsJournalFile> checkpoints = new ArrayList<>();
-    UnderFileStatus[] statuses = journal.getUfs().listStatus(journal.getCheckpointDir().toString());
+    UfsStatus[] statuses = journal.getUfs().listStatus(journal.getCheckpointDir().toString());
     if (statuses != null) {
-      for (UnderFileStatus status : statuses) {
+      for (UfsStatus status : statuses) {
         UfsJournalFile file = UfsJournalFile.decodeCheckpointFile(journal, status.getName());
         if (file != null) {
           checkpoints.add(file);

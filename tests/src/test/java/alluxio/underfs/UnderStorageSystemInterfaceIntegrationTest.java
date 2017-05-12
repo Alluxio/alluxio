@@ -17,6 +17,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -48,7 +49,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-public final class UnderStorageSystemInterfaceIntegrationTest {
+public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   @Rule
@@ -333,8 +334,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
     createEmptyFile(testFileEmpty);
     createTestBytesFile(testFileNonEmpty);
-    Assert.assertEquals(mUfs.getFileSize(testFileEmpty), 0);
-    Assert.assertEquals(mUfs.getFileSize(testFileNonEmpty), TEST_BYTES.length);
+    Assert.assertEquals(mUfs.getFileStatus(testFileEmpty).getContentLength(), 0);
+    Assert.assertEquals(mUfs.getFileStatus(testFileNonEmpty).getContentLength(), TEST_BYTES.length);
   }
 
   /**
@@ -347,7 +348,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createTestBytesFile(testFile);
     long end = System.currentTimeMillis();
-    long modTime = mUfs.getModificationTimeMs(testFile);
+    long modTime = mUfs.getFileStatus(testFile).getLastModifiedTime();
     Assert.assertTrue(modTime >= start - slack);
     Assert.assertTrue(modTime <= end + slack);
   }
@@ -386,8 +387,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String [] expectedResTopDir2 = new String[] {"/testDirNonEmpty2", "/testDirNonEmptyF"};
     Arrays.sort(expectedResTopDir);
     Arrays.sort(expectedResTopDir2);
-    UnderFileStatus [] resTopDirStatus = mUfs.listStatus(testDirNonEmpty);
-    String [] resTopDir = UnderFileStatus.convertToNames(resTopDirStatus);
+    UfsStatus[] resTopDirStatus = mUfs.listStatus(testDirNonEmpty);
+    String [] resTopDir = UfsStatus.convertToNames(resTopDirStatus);
     Arrays.sort(resTopDir);
     Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
         || Arrays.equals(expectedResTopDir2, resTopDir));
@@ -409,7 +410,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   public void listStatusEmpty() throws IOException {
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     mUfs.mkdirs(testDir);
-    UnderFileStatus[] res = mUfs.listStatus(testDir);
+    UfsStatus[] res = mUfs.listStatus(testDir);
     Assert.assertEquals(0, res.length);
   }
 
@@ -435,7 +436,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
     // https://cloud.google.com/storage/docs/consistency for more details.
     // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
-    UnderFileStatus[] results = new UnderFileStatus[] {};
+    UfsStatus[] results = new UfsStatus[] {};
     for (int i = 0; i < 20; i++) {
       results = mUfs.listStatus(config.getTopLevelDirectory());
       if (children.length == results.length) {
@@ -445,7 +446,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     }
     Assert.assertEquals(children.length, results.length);
 
-    String[] resultNames = UnderFileStatus.convertToNames(results);
+    String[] resultNames = UfsStatus.convertToNames(results);
     Arrays.sort(resultNames);
     for (int i = 0; i < children.length; ++i) {
       Assert.assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
@@ -484,9 +485,9 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     // lsr from root should return paths relative to the root
     String[] expectedResRoot =
         {"sub1", "sub2", "sub1/sub11", "sub1/sub11/file11", "sub2/file2", "file"};
-    UnderFileStatus[] actualResRootStatus =
+    UfsStatus[] actualResRootStatus =
         mUfs.listStatus(root, ListOptions.defaults().setRecursive(true));
-    String[] actualResRoot = UnderFileStatus.convertToNames(actualResRootStatus);
+    String[] actualResRoot = UfsStatus.convertToNames(actualResRootStatus);
     Arrays.sort(expectedResRoot);
     Arrays.sort(actualResRoot);
     Assert.assertArrayEquals(expectedResRoot, actualResRoot);
@@ -497,7 +498,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     }
     // lsr from sub1 should return paths relative to sub1
     String[] expectedResSub1 = {"sub11", "sub11/file11"};
-    String[] actualResSub1 = UnderFileStatus
+    String[] actualResSub1 = UfsStatus
         .convertToNames(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
     Arrays.sort(expectedResSub1);
     Arrays.sort(actualResSub1);
@@ -615,7 +616,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
-    UnderFileStatus[] results = mUfs.listStatus(baseDirectoryPath);
+    UfsStatus[] results = mUfs.listStatus(baseDirectoryPath);
     Assert.assertEquals(config.getSubDirectoryNames().length + config.getFileNames().length,
         results.length);
     // Check for direct children files
@@ -655,7 +656,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
-    UnderFileStatus[] results =
+    UfsStatus[] results =
         mUfs.listStatus(baseDirectoryPath, ListOptions.defaults().setRecursive(true));
     String[] fileNames = config.getFileNames();
     String[] subDirNames = config.getSubDirectoryNames();

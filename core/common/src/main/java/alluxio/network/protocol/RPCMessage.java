@@ -49,6 +49,7 @@ public abstract class RPCMessage implements EncodedMessage {
     RPC_WRITE_REQUEST(101),
     RPC_RESPONSE(102),
     RPC_UFS_BLOCK_READ_REQUEST(103),
+    RPC_HEARTBEAT(104),
 
     RPC_UNKNOWN(1000),
     ;
@@ -120,6 +121,8 @@ public abstract class RPCMessage implements EncodedMessage {
           return RPC_RESPONSE;
         case 103:
           return RPC_UFS_BLOCK_READ_REQUEST;
+        case 104:
+          return RPC_HEARTBEAT;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
       }
@@ -211,6 +214,9 @@ public abstract class RPCMessage implements EncodedMessage {
         return RPCProtoMessage.decode(in, new ProtoMessage(Protocol.Response.getDefaultInstance()));
       case RPC_UFS_BLOCK_READ_REQUEST:
         return RPCUnderFileSystemBlockReadRequest.decode(in);
+      case RPC_HEARTBEAT:
+        return
+            RPCProtoMessage.decode(in, new ProtoMessage(Protocol.Heartbeat.getDefaultInstance()));
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }

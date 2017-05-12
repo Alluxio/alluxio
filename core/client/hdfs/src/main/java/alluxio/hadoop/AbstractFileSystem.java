@@ -413,11 +413,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
-    // NOTE, we must switch the context classloader to the one provided by Hadoop configuration
-    // first before anything else. This ensures all Alluxio classes are loaded by the same
-    // classloader, given this class is already loaded by the Hadoop configuration classloader.
-    Thread.currentThread().setContextClassLoader(conf.getClassLoader());
-
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
     // configuration property, so the user doesn't need to specify the authority.
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {

@@ -12,6 +12,7 @@
 package alluxio.network.protocol;
 
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -46,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  * the server side. In this case, the server simply stores the message received, and does not reply
  * to the client.
  */
-public class RPCMessageIntegrationTest {
+public class RPCMessageIntegrationTest extends BaseIntegrationTest {
   private static final long SESSION_ID = 10;
   private static final long BLOCK_ID = 11;
   private static final long OFFSET = 22;
