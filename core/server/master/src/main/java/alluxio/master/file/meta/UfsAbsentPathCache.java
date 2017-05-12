@@ -23,14 +23,14 @@ public interface UfsAbsentPathCache {
    *
    * @param path the absent path to add to the cache
    */
-  void addAbsentPath(AlluxioURI path);
+  void addAbsent(AlluxioURI path);
 
   /**
    * Removes an absent path from the cache.
    *
    * @param path the path to remove from the cache
    */
-  void removeAbsentPath(AlluxioURI path);
+  void removeAbsent(AlluxioURI path);
 
   /**
    * Returns true if the given path is absent, according to this cache. A path is absent if one of

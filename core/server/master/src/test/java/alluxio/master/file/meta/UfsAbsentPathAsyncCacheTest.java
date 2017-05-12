@@ -179,7 +179,7 @@ public class UfsAbsentPathAsyncCacheTest {
 
     // Create additional ufs directories
     Assert.assertTrue((new File(mLocalUfsPath + ufsBase + "/c/d")).mkdirs());
-    mUfsAbsentPathCache.removeAbsentPath(new AlluxioURI(alluxioBase + "/c/d"));
+    mUfsAbsentPathCache.removeAbsent(new AlluxioURI(alluxioBase + "/c/d"));
 
     Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));
     Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c")));
@@ -189,7 +189,7 @@ public class UfsAbsentPathAsyncCacheTest {
   }
 
   private void addAbsent(AlluxioURI path) throws Exception {
-    mUfsAbsentPathCache.addAbsentPath(path);
+    mUfsAbsentPathCache.addAbsent(path);
     // Wait until the async task is completed.
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();

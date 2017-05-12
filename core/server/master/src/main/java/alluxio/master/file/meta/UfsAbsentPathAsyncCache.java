@@ -76,12 +76,12 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void addAbsentPath(AlluxioURI path) {
+  public void addAbsent(AlluxioURI path) {
     mPool.submit(new ProcessPathTask(path));
   }
 
   @Override
-  public void removeAbsentPath(AlluxioURI path) {
+  public void removeAbsent(AlluxioURI path) {
     // TODO(gpang): make this async
     MountInfo mountInfo = getMountInfo(path);
     if (mountInfo == null) {
