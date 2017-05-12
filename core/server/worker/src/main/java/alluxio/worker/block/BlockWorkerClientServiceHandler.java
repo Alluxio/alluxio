@@ -12,23 +12,12 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
-import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallable;
-import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
