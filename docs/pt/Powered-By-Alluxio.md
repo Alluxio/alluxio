@@ -8,7 +8,7 @@ Existem várias companhias e organizações que utilizam o Alluxio. Segue abaixo
 usuários Alluxio. Se a sua organização utiliza Alluxio, por favor, fique à vontade para 
 [adicioná-la à lista](https://github.com/alluxio/alluxio/blob/master/docs/en/Powered-By-Alluxio.md)
 ou nos informe por `email` (project.alluxio@gmail.com), ou ainda efetue uma 
-[avaliação](http://alluxio.org/resources/survey-users/).
+[avaliação](https://docs.google.com/forms/d/e/1FAIpQLSfRTSKlysTNq9Zg-_Q87tRvs9CPWc49LjdMkEYUW-DlXSxPig/viewform).
 
 * [Adatao](http://adatao.com/)
 * [Alibaba](http://www.alibaba.com/)

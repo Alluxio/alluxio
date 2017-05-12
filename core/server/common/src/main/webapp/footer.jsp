@@ -15,7 +15,7 @@
   <p style="text-align: center;">
     <a href="http://alluxio.org/">Project Website</a> |
     <a href="https://groups.google.com/forum/#!forum/alluxio-users">User Mailing List</a> |
-    <a href="http://alluxio.org/resources/survey-users">User Survey</a> |
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfRTSKlysTNq9Zg-_Q87tRvs9CPWc49LjdMkEYUW-DlXSxPig/viewform">User Survey</a> |
     <a href="http://alluxio.org/alluxio-resources/">Resources</a>
   </p>
 </footer>
