@@ -65,7 +65,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   protected String mWorkDirectory;
   protected String mHostname;
-  private String mDomainSocketPath;
 
   private int mNumWorkers;
 
@@ -289,7 +288,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
     Configuration.set(PropertyKey.TEST_MODE, true);
     Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS, mDomainSocketPath);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, DEFAULT_BLOCK_SIZE_BYTES);
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, 64);
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
@@ -420,10 +418,8 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Sets Alluxio work directory.
    */
-  protected void setAlluxioWorkDirectory() throws IOException {
+  protected void setAlluxioWorkDirectory() {
     mWorkDirectory =
         AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
-    mDomainSocketPath = mWorkDirectory + "/domain-socket-path";
-    FileUtils.createFile(mDomainSocketPath);
   }
 }
