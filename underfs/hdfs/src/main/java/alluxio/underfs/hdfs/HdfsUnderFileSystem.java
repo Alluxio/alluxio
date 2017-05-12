@@ -112,10 +112,15 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   /**
    * @param className class name to shade
-   * @return the class name after shading
+   * @param conf UFS configuration
+   * @return the class name after shading, or the original class name if in test
    */
-  public static String shadedClassName(String className) {
-    return "alluxio.underfs.hdfs." + className;
+  public static String shadedClassName(String className, UnderFileSystemConfiguration conf) {
+    if (Boolean.valueOf(conf.getValue(PropertyKey.TEST_MODE))) {
+      return className;
+    } else {
+      return "alluxio.underfs.hdfs." + className;
+    }
   }
 
   /**
@@ -144,7 +149,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         "hadoop.ssl.keystores.factory.class",
     };
     for (String key : relocatedConf) {
-      hdfsConf.set(key, shadedClassName(hdfsConf.get(key)));
+      hdfsConf.set(key, shadedClassName(hdfsConf.get(key), conf));
     }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
@@ -153,7 +158,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     // if present propagate it to the Hadoop configuration
     String ufsHdfsImpl = conf.getValue(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
-      hdfsConf.set("fs.hdfs.impl", shadedClassName(ufsHdfsImpl));
+      hdfsConf.set("fs.hdfs.impl", shadedClassName(ufsHdfsImpl, conf));
     }
 
     // Disable HDFS client caching so that input configuration is respected. Configurable from

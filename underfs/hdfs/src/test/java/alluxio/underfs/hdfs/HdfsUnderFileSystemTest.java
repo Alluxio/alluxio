@@ -51,7 +51,8 @@ public final class HdfsUnderFileSystemTest {
     UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(null);
     org.apache.hadoop.conf.Configuration conf = HdfsUnderFileSystem.createConfiguration(ufsConf);
     Assert.assertEquals(
-        HdfsUnderFileSystem.shadedClassName(ufsConf.getValue(PropertyKey.UNDERFS_HDFS_IMPL)),
+        HdfsUnderFileSystem.shadedClassName(ufsConf.getValue(PropertyKey.UNDERFS_HDFS_IMPL),
+            ufsConf),
         conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
   }
