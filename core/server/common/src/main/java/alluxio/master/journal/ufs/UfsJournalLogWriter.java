@@ -23,7 +23,6 @@ import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,13 +205,6 @@ final class UfsJournalLogWriter implements JournalWriter {
     DataOutputStream outputStream = mJournalOutputStream.mOutputStream;
     try {
       outputStream.flush();
-      if (outputStream instanceof FSDataOutputStream) {
-        // The output stream directly created by {@link UnderFileSystem} may be
-        // {@link FSDataOutputStream}, which means the under filesystem is HDFS, but
-        // {@link DataOutputStream#flush} won't flush the data to HDFS, so we need to call
-        // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
-        ((FSDataOutputStream) outputStream).sync();
-      }
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
       throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE
