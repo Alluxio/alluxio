@@ -17,6 +17,7 @@ import alluxio.util.ShellUtils.ExitCodeException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -435,6 +436,35 @@ public final class CommonUtils {
     } catch (InterruptedException e) {
       service.shutdownNow();
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Closes the Closer and re-throws the Throwable. Any exceptions thrown while closing the Closer
+   * will be added as suppressed exceptions to the Throwable. This method always throws the given
+   * Throwable, wrapping it in a RuntimeException if it's a non-IOException checked exception.
+   *
+   * Note: This method will wrap non-IOExceptions in RuntimeException. Do not use this method in
+   * methods which throw non-IOExceptions.
+   *
+   * <pre>
+   * Closer closer = new Closer();
+   * try {
+   *   Closeable c = closer.register(new Closeable());
+   * } catch (Throwable t) {
+   *   throw closeAndRethrow(closer, t);
+   * }
+   * </pre>
+   *
+   * @param closer the Closer to close
+   * @param t the Throwable to re-throw
+   * @return this method never returns
+   */
+  public static RuntimeException closeAndRethrow(Closer closer, Throwable t) throws IOException {
+    try {
+      throw closer.rethrow(t);
+    } finally {
+      closer.close();
     }
   }
 

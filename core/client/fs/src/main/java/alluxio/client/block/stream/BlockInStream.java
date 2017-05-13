@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.resource.LockBlockResource;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LockBlockResult;
@@ -85,11 +86,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (Throwable t) {
-      try {
-        throw closer.rethrow(t);
-      } finally {
-        closer.close();
-      }
+      throw CommonUtils.closeAndRethrow(closer, t);
     }
   }
 
@@ -120,11 +117,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (Throwable t) {
-      try {
-        throw closer.rethrow(t);
-      } finally {
-        closer.close();
-      }
+      throw CommonUtils.closeAndRethrow(closer, t);
     }
   }
 
@@ -190,11 +183,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
     } catch (Throwable t) {
-      try {
-        throw closer.rethrow(t);
-      } finally {
-        closer.close();
-      }
+      throw CommonUtils.closeAndRethrow(closer, t);
     }
   }
 

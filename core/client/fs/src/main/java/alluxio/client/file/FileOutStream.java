@@ -25,6 +25,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -103,11 +104,7 @@ public class FileOutStream extends AbstractOutStream {
         mUnderStorageOutputStream = mCloser
             .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
       } catch (Throwable t) {
-        try {
-          throw mCloser.rethrow(t);
-        } finally {
-          mCloser.close();
-        }
+        throw CommonUtils.closeAndRethrow(mCloser, t);
       }
     }
   }
