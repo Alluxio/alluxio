@@ -320,7 +320,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
       UfsStatus retStatus;
-      if (status.isDirectory()) {
+      if (!status.isDir()) {
         retStatus = new UfsFileStatus(status.getPath().getName(), status.getLen(),
             status.getModificationTime(), status.getOwner(), status.getGroup(),
             status.getPermission().toShort());
