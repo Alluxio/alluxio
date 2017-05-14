@@ -23,6 +23,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public final class IntegrationTestUtils {
    * @param uri the file uri to wait to be persisted
    */
   public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
-      AlluxioURI uri) {
+      AlluxioURI uri) throws IOException {
     waitForPersist(localAlluxioClusterResource, uri, 15 * Constants.SECOND_MS);
   }
 
@@ -51,7 +52,6 @@ public final class IntegrationTestUtils {
    */
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
-
     try (FileSystemMasterClient client = FileSystemMasterClient.Factory
         .create(localAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
@@ -64,6 +64,8 @@ public final class IntegrationTestUtils {
           }
         }
       }, WaitForOptions.defaults().setTimeout(timeoutMs));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

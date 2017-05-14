@@ -403,7 +403,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Resets the client pools to the original state.
    */
-  protected void resetClientPools() {
+  protected void resetClientPools() throws IOException {
     BlockWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }

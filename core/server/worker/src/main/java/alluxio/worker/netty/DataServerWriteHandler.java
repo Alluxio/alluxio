@@ -24,6 +24,7 @@ import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -183,11 +184,11 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       initializeRequest(msg);
     }
 
-    // Validate msg.
+    // Validate the write request.
     try {
-      validateRequest(msg);
-    } catch (Exception e) {
-      pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(e), true));
+      validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
+    } catch (InvalidArgumentException e) {
+      pushAbortPacket(ctx.channel(), new Error(e, true));
       return;
     }
 
@@ -228,7 +229,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Failed to write block.", cause);
-    pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(cause), true));
+    pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
   }
 
   @Override
@@ -246,18 +247,18 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Validates the block write request, throwing an exception if the request is invalid.
+   * Validates a block write request.
    *
    * @param msg the block write request
+   * @throws InvalidArgumentException if the write request is invalid
    */
-  private void validateRequest(RPCProtoMessage msg) {
-    Protocol.WriteRequest request = msg.getMessage().asWriteRequest();
+  private void validateWriteRequest(Protocol.WriteRequest request, DataBuffer payload)
+      throws InvalidArgumentException {
     if (request.getOffset() != mPosToQueue) {
       throw new InvalidArgumentException(String.format(
           "Offsets do not match [received: %d, expected: %d].", request.getOffset(), mPosToQueue));
     }
-    if (msg.getPayloadDataBuffer() != null && msg.getPayloadDataBuffer().getLength() > 0 && (
-        request.getCancel() || request.getEof())) {
+    if (payload != null && payload.getLength() > 0 && (request.getCancel() || request.getEof())) {
       throw new InvalidArgumentException("Found data in a cancel/eof message.");
     }
   }
@@ -326,7 +327,9 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
-          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
+          Throwables.propagateIfPossible(e);
+          pushAbortPacket(mChannel,
+              new Error(AlluxioStatusException.fromCheckedException(e), true));
         } finally {
           release(buf);
         }
@@ -350,7 +353,9 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
             replySuccess();
           }
         } catch (Exception e) {
-          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
+          Throwables.propagateIfPossible(e);
+          pushAbortPacket(mChannel,
+              new Error(AlluxioStatusException.fromCheckedException(e), true));
         }
       }
     }

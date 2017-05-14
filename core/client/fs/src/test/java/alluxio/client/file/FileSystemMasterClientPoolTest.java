@@ -27,17 +27,18 @@ import javax.security.auth.Subject;
 @PrepareForTest(FileSystemMasterClient.Factory.class)
 public class FileSystemMasterClientPoolTest {
   @Test
-  public void create() {
+  public void create() throws Exception {
     FileSystemMasterClient expectedClient = Mockito.mock(FileSystemMasterClient.class);
     PowerMockito.mockStatic(FileSystemMasterClient.Factory.class);
     Mockito.when(FileSystemMasterClient.Factory
         .create(Mockito.any(Subject.class), Mockito.any(InetSocketAddress.class)))
         .thenReturn(expectedClient);
-    FileSystemMasterClientPool pool = new FileSystemMasterClientPool(null, null);
-    FileSystemMasterClient client = pool.acquire();
-    Assert.assertEquals(expectedClient, client);
-    pool.release(client);
-    pool.close();
+    FileSystemMasterClient client;
+    try (FileSystemMasterClientPool pool = new FileSystemMasterClientPool(null, null)) {
+      client = pool.acquire();
+      Assert.assertEquals(expectedClient, client);
+      pool.release(client);
+    }
     Mockito.verify(client).close();
   }
 }

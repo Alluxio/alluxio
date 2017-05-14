@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.exception.status.InternalException;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -92,7 +91,7 @@ public class Registry<T extends Server<U>, U> {
         }, WaitForOptions.defaults().setTimeout(timeoutMs));
     T server = mRegistry.get(clazz);
     if (!(clazz.isInstance(server))) {
-      throw new InternalException("Server is not an instance of " + clazz.getName());
+      throw new RuntimeException("Server is not an instance of " + clazz.getName());
     }
     return clazz.cast(server);
   }
@@ -170,7 +169,7 @@ public class Registry<T extends Server<U>, U> {
           continue;
         }
         if (dep.equals(server)) {
-          throw new InternalException("Dependency cycle encountered");
+          throw new RuntimeException("Dependency cycle encountered");
         }
         if (result.contains(dep)) {
           continue;

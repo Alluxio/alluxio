@@ -11,20 +11,22 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.QuietlyCloseable;
 import alluxio.network.protocol.databuffer.DataBuffer;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * The interface to read packets.
  */
-public interface PacketReader extends QuietlyCloseable {
+public interface PacketReader extends Closeable {
 
   /**
    * Reads a packet. The caller needs to release the packet.
    *
    * @return the data buffer or null if EOF is reached
    */
-  DataBuffer readPacket();
+  DataBuffer readPacket() throws IOException;
 
   /**
    * @return the current stream position
@@ -42,7 +44,7 @@ public interface PacketReader extends QuietlyCloseable {
      * @param len the length of the stream
      * @return the created object
      */
-    PacketReader create(long offset, long len);
+    PacketReader create(long offset, long len) throws IOException;
 
     /**
      * @return whether this factory generates packet readers which perform short-circuit reads

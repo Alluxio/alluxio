@@ -70,7 +70,7 @@ public final class LineageFileSystem extends BaseFileSystem {
     } catch (NotFoundException e) {
       throw new LineageDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -116,7 +116,7 @@ public final class LineageFileSystem extends BaseFileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {

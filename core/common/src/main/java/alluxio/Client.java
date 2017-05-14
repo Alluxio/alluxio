@@ -11,17 +11,19 @@
 
 package alluxio;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
  * Interface for a client in the Alluxio system.
  */
-public interface Client extends QuietlyCloseable {
+public interface Client extends Closeable {
 
   /**
    * Connects with the remote.
    */
-  void connect();
+  void connect() throws IOException;
 
   /**
    * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used

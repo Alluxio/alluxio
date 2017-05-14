@@ -137,7 +137,7 @@ public final class RPCProtoMessage extends RPCMessage {
   /**
    * Throws the exception represented by this {@link RPCProtoMessage} if there is one.
    */
-  public void unwrapException() {
+  public void unwrapException() throws AlluxioStatusException {
     Response response = getMessage().asResponse();
     Status status = Status.fromProto(response.getStatus());
     if (status != Status.OK) {
