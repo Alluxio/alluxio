@@ -92,7 +92,6 @@ public class BasicCheckpoint implements Callable<Boolean> {
    * Usage: {@code java -cp <ALLUXIO-VERSION> alluxio.examples.BasicCheckpoint <FileFolder> <Files>}
    *
    * @param args the folder for the files and the files to use
-   * @throws IOException if the example fails to run
    */
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {

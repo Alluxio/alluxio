@@ -17,10 +17,10 @@ function printUsage {
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
-  echo -e "  fs            \t Command line input for generic filesystem user client."
+  echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
-  echo -e "  runClass      \t Run an Alluxio class with main method."
+  echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
@@ -29,6 +29,7 @@ function printUsage {
   echo -e "  runMesosTest  \t Test the Alluxio integration with Mesos. Try 'alluxio mesosTest -help' for more help."
   echo -e "                \t NOTE: This command requires Mesos to be running and will stop any Alluxio servers that are currently running."
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
+  echo -e "  upgradeJournal\t Upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) to an Alluxio journal version 1 (Alluxio version >= 1.5.0)."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
@@ -156,19 +157,18 @@ function copyDir {
 }
 
 function runJavaClass {
-  CLASS_ARGS=""
+  CLASS_ARGS=()
   for arg in "$@"; do
-      shift
       case "${arg}" in
           -debug)
               ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}" ;;
           -D*)
               ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
           *)
-              CLASS_ARGS+=" ${arg}"
+              CLASS_ARGS+=("${arg}")
       esac
   done
-  "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} ${CLASS_ARGS}
+  "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
 }
 
 function main {
@@ -296,6 +296,11 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
+  "upgradeJournal")
+    CLASS="alluxio.master.journal.JournalUpgrader"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
   "killAll")
     killAll "$@"
   ;;
@@ -314,7 +319,7 @@ function main {
   "protoGen")
     rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=$(dirname ${src_file}) ${src_file}
+      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}
     done
   ;;
   "clearCache")

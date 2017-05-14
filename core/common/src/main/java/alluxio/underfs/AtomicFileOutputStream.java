@@ -45,7 +45,6 @@ public class AtomicFileOutputStream extends OutputStream {
    * @param path path being written to
    * @param ufs the calling {@link UnderFileSystem}
    * @param options create options for destination file
-   * @throws IOException when a non Alluxio error occurs
    */
   public AtomicFileOutputStream(String path, AtomicFileOutputStreamCallback ufs,
       CreateOptions options) throws IOException {

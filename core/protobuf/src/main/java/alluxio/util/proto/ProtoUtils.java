@@ -12,9 +12,12 @@
 package alluxio.util.proto;
 
 import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Protobuf related utils.
@@ -28,9 +31,31 @@ public final class ProtoUtils {
    * @param firstByte first byte in the input stream
    * @param input input stream
    * @return an int value read from the input stream
-   * @throws IOException if the proto message being parsed is invalid
    */
   public static int readRawVarint32(int firstByte, InputStream input) throws IOException {
     return CodedInputStream.readRawVarint32(firstByte, input);
+  }
+
+  /**
+   * Checks whether the exception is an {@link InvalidProtocolBufferException} thrown because of
+   * a truncated message.
+   *
+   * @param e the exception
+   * @return whether the exception is an {@link InvalidProtocolBufferException} thrown because of
+   *         a truncated message.
+   */
+  public static boolean isTruncatedMessageException(IOException e) {
+    if (!(e instanceof InvalidProtocolBufferException)) {
+      return false;
+    }
+    String truncatedMessage;
+    try {
+      Method method = InvalidProtocolBufferException.class.getMethod("truncatedMessage");
+      method.setAccessible(true);
+      truncatedMessage = (String) method.invoke(null);
+    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
+      throw new RuntimeException(ee);
+    }
+    return e.getMessage().equals(truncatedMessage);
   }
 }

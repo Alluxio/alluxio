@@ -11,7 +11,7 @@
 
 package alluxio.web;
 
-import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 
@@ -49,7 +49,6 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -69,15 +68,16 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
    * Populates key, value pairs for UI display.
    *
    * @param request The {@link HttpServletRequest} object
-   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
     Long masterCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(BlockMaster.Metrics.CAPACITY_TOTAL)).getValue();
+        .get(MetricsSystem.getMasterMetricName(DefaultBlockMaster.Metrics.CAPACITY_TOTAL))
+        .getValue();
     Long masterCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getMasterMetricName(BlockMaster.Metrics.CAPACITY_USED)).getValue();
+        .get(MetricsSystem.getMasterMetricName(DefaultBlockMaster.Metrics.CAPACITY_USED))
+        .getValue();
 
     int masterCapacityUsedPercentage =
         (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;

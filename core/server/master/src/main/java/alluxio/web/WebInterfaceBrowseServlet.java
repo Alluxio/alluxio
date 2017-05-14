@@ -24,7 +24,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
@@ -57,15 +57,15 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
 
-  private final transient AlluxioMasterService mMaster;
+  private final transient MasterProcess mMasterProcess;
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseServlet}.
    *
-   * @param master the Alluxio master
+   * @param masterProcess the Alluxio master process
    */
-  public WebInterfaceBrowseServlet(AlluxioMasterService master) {
-    mMaster = master;
+  public WebInterfaceBrowseServlet(MasterProcess masterProcess) {
+    mMasterProcess = masterProcess;
   }
 
   /**
@@ -75,9 +75,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
@@ -111,14 +109,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       fileData = "The requested file is not complete yet.";
     }
     List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
-    for (FileBlockInfo fileBlockInfo : mMaster.getMaster(FileSystemMaster.class)
+    for (FileBlockInfo fileBlockInfo : mMasterProcess.getMaster(FileSystemMaster.class)
         .getFileBlockInfoList(path)) {
       uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
     request.setAttribute("highestTierAlias",
-        mMaster.getMaster(BlockMaster.class).getGlobalStorageTierAssoc().getAlias(0));
+        mMasterProcess.getMaster(BlockMaster.class).getGlobalStorageTierAssoc().getAlias(0));
   }
 
   /**
@@ -129,7 +127,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -141,7 +138,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
+    request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
     request.setAttribute("invalidPathError", "");
     List<FileInfo> filesInfo;
     String requestPath = request.getParameter("path");
@@ -151,7 +148,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     AlluxioURI currentPath = new AlluxioURI(requestPath);
     request.setAttribute("currentPath", currentPath.toString());
     request.setAttribute("viewingOffset", 0);
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
     try {
       long fileId = fileSystemMaster.getFileId(currentPath);
@@ -298,7 +295,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void setPathDirectories(AlluxioURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UIFileInfo[0]);
       return;

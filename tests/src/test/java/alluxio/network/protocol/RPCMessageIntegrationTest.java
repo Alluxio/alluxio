@@ -12,8 +12,8 @@
 package alluxio.network.protocol;
 
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -36,14 +36,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -52,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  * the server side. In this case, the server simply stores the message received, and does not reply
  * to the client.
  */
-public class RPCMessageIntegrationTest {
+public class RPCMessageIntegrationTest extends BaseIntegrationTest {
   private static final long SESSION_ID = 10;
   private static final long BLOCK_ID = 11;
   private static final long OFFSET = 22;
@@ -193,20 +188,9 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getStatus(), actual.getStatus());
   }
 
-  // Returns an input stream for a temporary file filled with test data.
-  private FileInputStream getTempFileInputStream() throws IOException {
-    // Create a temporary file for the FileChannel.
-    File f = mFolder.newFile("temp.txt");
-    String path = f.getAbsolutePath();
-
-    FileOutputStream os = new FileOutputStream(path);
-    os.write(BufferUtils.getIncreasingByteArray((int) (OFFSET + LENGTH)));
-    os.close();
-
-    return new FileInputStream(f);
-  }
-
-  // This encodes and decodes the 'msg' by sending it through the client and server pipelines.
+  /**
+   * Encodes and decodes the 'msg' by sending it through the client and server pipelines.
+   */
   private RPCMessage encodeThenDecode(RPCMessage msg) {
     // Write the message to the outgoing channel.
     mOutgoingChannel.writeAndFlush(msg);
@@ -248,17 +232,6 @@ public class RPCMessageIntegrationTest {
             RPCResponse.Status.FILE_DNE);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
-  }
-
-  @Test
-  public void RPCBlockReadResponseFileChannel() throws IOException {
-    try (FileInputStream inputStream = getTempFileInputStream()) {
-      FileChannel payload = inputStream.getChannel();
-      RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,
-          new DataFileChannel(payload, OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
-      RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
-      assertValid(msg, decoded);
-    }
   }
 
   @Test

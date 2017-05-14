@@ -12,10 +12,12 @@
 package alluxio.master;
 
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
@@ -33,7 +35,7 @@ import java.nio.channels.SocketChannel;
 /**
  * Simple integration tests for the bind configuration options.
  */
-public class ServiceSocketBindIntegrationTest {
+public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setStartCluster(false).build();
@@ -44,6 +46,11 @@ public class ServiceSocketBindIntegrationTest {
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
+  /**
+   * Starts the {@link LocalAlluxioCluster}.
+   *
+   * @param bindHost the local host name to bind
+   */
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
       mLocalAlluxioClusterResource.setProperty(service.getBindHostKey(), bindHost);
@@ -52,6 +59,10 @@ public class ServiceSocketBindIntegrationTest {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
   }
 
+  /**
+   * Connect different services in turn, including Master RPC, Worker RPC, Worker data, Master Web,
+   * and Worker Web service.
+   */
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient = BlockMasterClient.Factory.create(
@@ -70,17 +81,17 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master Web service
     InetSocketAddress masterWebAddr =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB);
-    mMasterWebService =
-        (HttpURLConnection) new URL("http://" + masterWebAddr.getAddress().getHostAddress() + ":"
-            + masterWebAddr.getPort() + "/css/custom.min.css").openConnection();
+    mMasterWebService = (HttpURLConnection) new URL(
+        "http://" + masterWebAddr.getAddress().getHostAddress() + ":" + masterWebAddr.getPort()
+            + "/css/custom.min.css").openConnection();
     mMasterWebService.connect();
 
     // connect Worker Web service
     InetSocketAddress workerWebAddr =
         new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort());
-    mWorkerWebService =
-        (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
-            + workerWebAddr.getPort() + "/css/custom.min.css").openConnection();
+    mWorkerWebService = (HttpURLConnection) new URL(
+        "http://" + workerWebAddr.getAddress().getHostAddress() + ":" + workerWebAddr.getPort()
+            + "/css/custom.min.css").openConnection();
     mWorkerWebService.connect();
   }
 
@@ -151,13 +162,13 @@ public class ServiceSocketBindIntegrationTest {
     startCluster("");
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
-    InetSocketAddress masterRpcAddr =
-        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getMaster().getRpcLocalPort());
+    InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
+        mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
     mBlockMasterClient = BlockMasterClient.Factory.create(masterRpcAddr);
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");
-    } catch (ConnectionFailedException e) {
+    } catch (UnavailableException e) {
       // This is expected, since Master RPC service is NOT listening on loopback.
     }
 
@@ -174,8 +185,8 @@ public class ServiceSocketBindIntegrationTest {
     }
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.
-    InetSocketAddress workerDataAddr =
-        new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getWorker().getDataLocalPort());
+    InetSocketAddress workerDataAddr = new InetSocketAddress("127.0.0.1",
+        mLocalAlluxioCluster.getWorkerProcess().getDataLocalPort());
     try {
       mWorkerDataService = SocketChannel.open(workerDataAddr);
       Assert.assertTrue(mWorkerDataService.isConnected());
@@ -187,7 +198,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master Web service on loopback, while Master is listening on local hostname.
     try {
       mMasterWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + mLocalAlluxioCluster.getMaster().getInternalMaster()
+          "http://127.0.0.1:" + mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
               .getWebAddress().getPort() + "/home").openConnection();
       Assert.assertEquals(200, mMasterWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Master Web service.");
@@ -201,7 +212,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Worker Web service on loopback, while Worker is listening on local hostname.
     try {
       mWorkerWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + mLocalAlluxioCluster.getWorker().getWebLocalPort() + "/home")
+          "http://127.0.0.1:" + mLocalAlluxioCluster.getWorkerProcess().getWebLocalPort() + "/home")
               .openConnection();
       Assert.assertEquals(200, mWorkerWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Worker Web service.");

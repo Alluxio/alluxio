@@ -15,7 +15,7 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 ## Prerequisites
 
 The prerequisite for this part is that you have
-[Java](Java-Setup.html). Alluxio cluster should also be
+[Java](Java-Setup.html). Your Alluxio cluster should also be
 set up in accordance to these guides for either [Local Mode](Running-Alluxio-Locally.html) or
 [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
@@ -56,8 +56,7 @@ We need to make the Alluxio client `jar` file available to HBase, because it con
 
 There are two ways to achieve that:
 
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-  `lib` directory of HBase.
+- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
 - Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 

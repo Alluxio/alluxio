@@ -49,8 +49,8 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+  public Options getOptions() {
+    return new Options().addOption(RECURSIVE_OPTION).addOption(REMOVE_UNCHECKED_OPTION);
   }
 
   @Override
@@ -66,6 +66,9 @@ public final class RmCommand extends WithWildCardPathCommand {
     }
 
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
+    if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
+      options.setUnchecked(true);
+    }
     mFileSystem.delete(path, options);
     System.out.println(path + " has been removed");
   }

@@ -17,10 +17,11 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.FileSystemTestUtils;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
@@ -32,7 +33,7 @@ import org.junit.Test;
 /**
  * Tests a cluster containing multiple workers.
  */
-public final class MultiWorkerIntegrationTest {
+public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_WORKERS = 4;
   private static final int WORKER_MEMORY_SIZE_BYTES = Constants.MB;
   private static final int BLOCK_SIZE_BYTES = WORKER_MEMORY_SIZE_BYTES / 2;

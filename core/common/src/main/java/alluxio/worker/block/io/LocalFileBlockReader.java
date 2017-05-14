@@ -39,13 +39,12 @@ public final class LocalFileBlockReader implements BlockReader {
    * Constructs a Block reader given the file path of the block.
    *
    * @param path file path of the block
-   * @throws IOException if its file can not be open with "r" mode
    */
   public LocalFileBlockReader(String path) throws IOException {
     mFilePath = Preconditions.checkNotNull(path);
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     mFileSize = mLocalFile.length();
+    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
   @Override
@@ -56,6 +55,13 @@ public final class LocalFileBlockReader implements BlockReader {
   @Override
   public long getLength() {
     return mFileSize;
+  }
+
+  /**
+   * @return the file path
+   */
+  public String getFilePath() {
+    return mFilePath;
   }
 
   @Override

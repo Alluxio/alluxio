@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -54,7 +55,7 @@ import java.util.List;
 /**
  * Integration tests for the lineage module.
  */
-public class LineageMasterIntegrationTest {
+public class LineageMasterIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE_BYTES = 128;
   private static final int BUFFER_BYTES = 100;
   private static final String OUT_FILE = "/test";
@@ -218,11 +219,12 @@ public class LineageMasterIntegrationTest {
   }
 
   private LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    return new LineageMasterClient(
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
     return FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
+        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
   }
 }

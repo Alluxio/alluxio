@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public final class Configuration {
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
 
   static {
-    defaultInit();
+    init();
   }
 
   /**
@@ -83,7 +84,7 @@ public final class Configuration {
    * The order of preference is (1) system properties, (2) properties in the specified file, (3)
    * default property values.
    */
-  public static void defaultInit() {
+  static void init() {
     // Load default
     Properties defaultProps = createDefaultProps();
 
@@ -120,8 +121,7 @@ public final class Configuration {
       set(PropertyKey.MASTER_ADDRESS, masterAddress);
     }
 
-    Preconditions.checkState(validate());
-    checkConfigurationValues();
+    validate();
   }
 
   /**
@@ -130,7 +130,7 @@ public final class Configuration {
   private static Properties createDefaultProps() {
     Properties defaultProps = new Properties();
     // Load compile-time default
-    for (PropertyKey key : PropertyKey.values()) {
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
       String value = key.getDefaultValue();
       if (value != null) {
         defaultProps.setProperty(key.toString(), value);
@@ -207,7 +207,7 @@ public final class Configuration {
    * @param key the key to unset
    */
   public static void unset(PropertyKey key) {
-    Preconditions.checkNotNull(key);
+    Preconditions.checkNotNull(key, "key");
     PROPERTIES.remove(key.toString());
   }
 
@@ -374,7 +374,7 @@ public final class Configuration {
   public static long getMs(PropertyKey key) {
     String rawValue = get(key);
     try {
-      return (long) Double.parseDouble(rawValue);
+      return FormatUtils.parseTimeSize(rawValue);
     } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
     }
@@ -398,6 +398,26 @@ public final class Configuration {
       LOG.error("requested class could not be loaded: {}", rawValue, e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Gets a set of properties that share a given common prefix key as a map. E.g., if A.B=V1 and
+   * A.C=V2, calling this method with prefixKey=A returns a map of {B=V1, C=V2}, where B and C are
+   * also valid properties. If no property shares the prefix, an empty map is returned.
+   *
+   * @param prefixKey the prefix key
+   * @return a map from nested properties aggregated by the prefix
+   */
+  public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
+    Map<String, String> ret = Maps.newHashMap();
+    for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
+      String key = entry.getKey();
+      if (prefixKey.isNested(key)) {
+        String suffixKey = key.substring(prefixKey.length() + 1);
+        ret.put(suffixKey, entry.getValue());
+      }
+    }
+    return ret;
   }
 
   /**
@@ -452,18 +472,20 @@ public final class Configuration {
   }
 
   /**
-   * Checks that the user hasn't set worker ports when there may be multiple workers per host.
+   * Validates worker port configuration.
+   *
+   * @throws IllegalStateException if invalid worker port configuration is encountered
    */
   private static void checkWorkerPorts() {
     int maxWorkersPerHost = getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     if (maxWorkersPerHost > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
-          + PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX.toString() + "=" + maxWorkersPerHost;
-      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_DATA_PORT.toString()) == null,
+          + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
+      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_DATA_PORT) == null,
           String.format(message, PropertyKey.WORKER_DATA_PORT));
-      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_RPC_PORT.toString()) == null,
+      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
           String.format(message, PropertyKey.WORKER_RPC_PORT));
-      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_WEB_PORT.toString()) == null,
+      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
           String.format(message, PropertyKey.WORKER_WEB_PORT));
       set(PropertyKey.WORKER_DATA_PORT, "0");
       set(PropertyKey.WORKER_RPC_PORT, "0");
@@ -472,58 +494,45 @@ public final class Configuration {
   }
 
   /**
-   * {@link PropertyKey#USER_FILE_BUFFER_BYTES} should not bigger than {@link Integer#MAX_VALUE}
-   * bytes.
+   * Validates the user file buffer size is a non-negative number.
    *
-   * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
+   * @throws IllegalStateException if invalid user file buffer size configuration is encountered
    */
   private static void checkUserFileBufferBytes() {
     if (!containsKey(PropertyKey.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
       return;
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-    Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
-        PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(), usrFileBufferBytes);
+    Preconditions.checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
+        PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(),
+        PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
   }
 
   /**
    * Validates Zookeeper-related configuration and prints warnings for possible sources of error.
+   *
+   * @throws IllegalStateException if invalid Zookeeper configuration is encountered
    */
   private static void checkZkConfiguration() {
-    if (getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      Preconditions.checkState(containsKey(PropertyKey.ZOOKEEPER_ADDRESS),
-          PreconditionMessage.ERR_ZK_ADDRESS_NOT_SET.toString(),
-          PropertyKey.ZOOKEEPER_ADDRESS.toString());
-    } else if (containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
-      LOG.warn("{} is configured, but {} is set to false", PropertyKey.ZOOKEEPER_ADDRESS.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString());
-    }
+    Preconditions.checkState(
+        containsKey(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
+        PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
+        PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
 
   /**
-   * Checks that the configuration values are reasonable.
+   * Validates the configuration.
+   *
+   * @throws IllegalStateException if invalid configuration is encountered
    */
-  private static void checkConfigurationValues() {
+  public static void validate() {
+    for (Map.Entry<String, String> entry : toMap().entrySet()) {
+      String propertyName = entry.getKey();
+      Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
+    }
     checkWorkerPorts();
     checkUserFileBufferBytes();
     checkZkConfiguration();
-  }
-
-  /**
-   * Validates the configurations.
-   *
-   * @return true if the validation succeeds, false otherwise
-   */
-  public static boolean validate() {
-    boolean valid = true;
-    for (Map.Entry<String, String> entry : toMap().entrySet()) {
-      String propertyName = entry.getKey();
-      if (!PropertyKey.isValid(propertyName)) {
-        LOG.warn("Unsupported property {}", propertyName);
-        valid = false;
-      }
-    }
-    return valid;
   }
 
   private Configuration() {} // prevent instantiation

@@ -15,12 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.cli.AlluxioShell;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
@@ -45,7 +46,7 @@ import java.io.PrintStream;
 /**
  * The base class for all the {@link AlluxioShell} test classes.
  */
-public abstract class AbstractAlluxioShellTest {
+public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
   protected static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -86,7 +87,7 @@ public abstract class AbstractAlluxioShellTest {
    *
    * @param bytes file size
    */
-  protected void copyToLocalWithBytes(int bytes) throws IOException {
+  protected void copyToLocalWithBytes(int bytes) throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
@@ -116,7 +117,6 @@ public abstract class AbstractAlluxioShellTest {
    * @param path the file path
    * @param toWrite the file content
    * @return the created file instance
-   * @throws IOException if error happens during writing to file
    * @throws FileNotFoundException if file not found
    */
   protected File generateFileContent(String path, byte[] toWrite) throws IOException,
@@ -135,7 +135,6 @@ public abstract class AbstractAlluxioShellTest {
    * @param path the file path
    * @param toWrite the file content
    * @return the created file instance
-   * @throws IOException if error happens during writing to file
    * @throws FileNotFoundException if file not found
    */
   protected File generateRelativeFileContent(String path, byte[] toWrite) throws IOException,
@@ -204,10 +203,18 @@ public abstract class AbstractAlluxioShellTest {
     return null;
   }
 
+  /**
+   * Resets the singleton {@link alluxio.security.LoginUser} to null.
+   */
   protected void clearLoginUser() {
     LoginUserTestUtils.resetLoginUser();
   }
 
+  /**
+   * Clears the {@link alluxio.security.LoginUser} and logs in with new user.
+   *
+   * @param user the new user
+   */
   protected void clearAndLogin(String user) throws IOException {
     LoginUserTestUtils.resetLoginUser(user);
   }
@@ -218,8 +225,6 @@ public abstract class AbstractAlluxioShellTest {
    * @param uri the path of the file to read
    * @param length the length of content to read
    * @return the content that has been read
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an unexpected exception is thrown
    */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
     try (FileInStream tfis = mFileSystem
@@ -230,10 +235,18 @@ public abstract class AbstractAlluxioShellTest {
     }
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file is in memory
+   */
   protected boolean isInMemoryTest(String path) throws IOException, AlluxioException {
     return (mFileSystem.getStatus(new AlluxioURI(path)).getInMemoryPercentage() == 100);
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file exists
+   */
   protected boolean fileExists(AlluxioURI path) {
     try {
       return mFileSystem.exists(path);

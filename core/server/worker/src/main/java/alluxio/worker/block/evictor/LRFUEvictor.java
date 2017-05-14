@@ -54,12 +54,12 @@ public final class LRFUEvictor extends AbstractEvictor {
   private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMapV8<>();
   // Map from block id to the CRF value of the block
   private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMapV8<>();
-  // In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU
+  /** In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU. */
   private final double mStepFactor;
   /** The attenuation factor is in the range of [2, INF]. */
   private final double mAttenuationFactor;
 
-  //logic time count
+  /** Logic time count. */
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
   /**

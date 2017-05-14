@@ -14,11 +14,12 @@ package alluxio.worker.block.meta;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.FileSystemTestUtils;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -34,13 +35,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
  */
-public class TieredStoreIntegrationTest {
+public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
 
   private FileSystem mFileSystem;
@@ -133,7 +133,7 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mFileSystem.getStatus(file).isPinned());
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
-    mThrown.expect(IOException.class);
+    mThrown.expect(Exception.class);
     FileSystemTestUtils.createByteFile(mFileSystem, "/test2", WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
   }

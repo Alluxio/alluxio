@@ -13,8 +13,11 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
+import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
@@ -30,9 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Integration tests for {@link alluxio.client.block.BlockInStream}.
+ * Integration tests for {@link BlockInStream}.
  */
-public final class BufferedBlockInStreamIntegrationTest {
+public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;

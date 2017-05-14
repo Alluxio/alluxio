@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -41,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
-public final class FreeAndDeleteIntegrationTest {
+public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
   @ClassRule
@@ -78,13 +79,14 @@ public final class FreeAndDeleteIntegrationTest {
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     final Long blockId = status.getBlockIds().get(0);
-    BlockMaster bm = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster()
+    BlockMaster bm = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(BlockMaster.class);
     BlockInfo blockInfo = bm.getBlockInfo(blockId);
     Assert.assertEquals(2, blockInfo.getLength());
     Assert.assertFalse(blockInfo.getLocations().isEmpty());
 
-    final BlockWorker bw = mLocalAlluxioClusterResource.get().getWorker().getBlockWorker();
+    final BlockWorker bw =
+        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
     Assert.assertTrue(bw.hasBlockMeta(blockId));
     Assert.assertTrue(bm.getLostBlocks().isEmpty());
 

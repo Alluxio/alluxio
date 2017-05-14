@@ -18,7 +18,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.LockBlockResult;
-import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -69,8 +69,9 @@ public final class BlockWorkerClientRestServiceHandler {
    * @param context context for the servlet
    */
   public BlockWorkerClientRestServiceHandler(@Context ServletContext context) {
-    mBlockWorker = ((AlluxioWorkerService) context
-        .getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY)).getBlockWorker();
+    mBlockWorker =
+        ((WorkerProcess) context.getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY))
+            .getWorker(BlockWorker.class);
     mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
   /**

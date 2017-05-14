@@ -13,8 +13,9 @@ package alluxio.hadoop.fs;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.hadoop.HadoopConfigurationUtils;
+import alluxio.BaseIntegrationTest;
 import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopConfigurationUtils;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
@@ -84,7 +85,7 @@ import java.util.StringTokenizer;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
-public class DFSIOIntegrationTest implements Tool {
+public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   // Constants for DFSIOIntegrationTest
   private static final Logger LOG = LoggerFactory.getLogger(DFSIOIntegrationTest.class);
 
@@ -242,7 +243,6 @@ public class DFSIOIntegrationTest implements Tool {
 
   /**
    * Writes into files, then calculates and collects the write test statistics.
-   * @throws Exception if has error
    */
   public static void writeTest() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =

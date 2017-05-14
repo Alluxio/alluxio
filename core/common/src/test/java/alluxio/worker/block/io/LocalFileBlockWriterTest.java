@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
@@ -21,8 +22,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -80,17 +81,16 @@ public class LocalFileBlockWriterTest {
   }
 
   /**
-   * Tests that a {@link ClosedChannelException} is thrown when trying to append to a channel after
-   * closing it.
+   * Tests that a {@link FailedPreconditionException} is thrown when trying to append to a channel
+   * after closing it.
    */
   @Test
   public void close() throws Exception {
-    mThrown.expect(ClosedChannelException.class);
-
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     mWriter.close();
     // Append after close, expect append to fail and throw ClosedChannelException
+    mThrown.expect(IOException.class);
     mWriter.append(buf);
   }
 }

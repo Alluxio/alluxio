@@ -1,5 +1,7 @@
 namespace java alluxio.thrift
 
+include "exception.thrift"
+
 /**
 * Contains the information of a block in Alluxio. It maintains the worker nodes where the replicas
 * of the blocks are stored.
@@ -46,6 +48,7 @@ struct WorkerNetAddress {
   2: i32 rpcPort
   3: i32 dataPort
   4: i32 webPort
+  5: string domainSocketPath
 }
 
 /**
@@ -62,5 +65,5 @@ service AlluxioService {
    * Returns the version of the master service.
    * NOTE: The version should be updated every time a backwards incompatible API change occurs.
    */
-  i64 getServiceVersion()
+  i64 getServiceVersion() throws (1: exception.AlluxioTException e)
 }

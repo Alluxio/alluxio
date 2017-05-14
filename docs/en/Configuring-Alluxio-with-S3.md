@@ -110,55 +110,19 @@ Here, `<PROXY_HOST>` and `<PROXY_PORT>` should be replaced the host and port for
 `<USE_HTTPS?>` should be set to either `true` or `false`, depending on whether https should be
 used to communicate with the proxy.
 
-These configuration parameters may also need to be set for the Alluxio client if it is running in
-a separate JVM from the Alluxio Master and Workers. See
-[Configuring Distributed Applications](#configuring-distributed-applications)
-
 ## Configuring Application Dependency
 
-When building your application to use Alluxio, your application will have to include the
-`alluxio-core-client` module. If you are using [maven](https://maven.apache.org/), you can add the
-dependency to your application with:
+When building your application to use Alluxio, your application should include a client module, the
+`alluxio-core-client-fs` module to use the [Alluxio file system interface](File-System-API.html) or
+the `alluxio-core-client-hdfs` module to use the
+[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
+are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
 Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting
 credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
 append the path to this site properties file to the classpath.
-
-### Avoiding Conflicting Client Dependencies
-
-The jets3t and aws-sdk s3 clients all have dependencies on common libraries such as HTTP libraries.
-These dependencies are usually not in conflict with other projects, but in cases like using Apache
-MapReduce with the S3A client, conflicting versions may cause issues at runtime. You can resolve
-this conflict enabling ufs delegation, `alluxio.user.ufs.delegation.enabled=true`, which delegates
-client operations to the under storage through Alluxio servers. See
-[Configuration Settings](Configuration-Settings.html) for how to modify the Alluxio configuration.
-Alternatively you can manually resolve the conflicts when generating the MapReduce classpath and/or
-jars, keeping only the highest versions of each dependency.
-
-### Enabling the Hadoop S3 Client (instead of the native S3 client)
-
-Alluxio provides a native client to communicate with S3. By default, the native S3 client is used
-when Alluxio is configured to use S3 as its under storage system.
-
-However, there is also an option to use a different implementation to communicate with S3; the S3
-client provided by Hadoop. In order to disable the Alluxio S3 client (and enable the Hadoop S3
-client), additional modifications to your application must be made. When including the
-`alluxio-core-client` module in your application, the `alluxio-underfs-s3` should be excluded to
-disable the native client, and to use the Hadoop S3 client:
-
-{% include Configuring-Alluxio-with-S3/hadoop-s3-dependency.md %}
-
-However, the Hadoop S3 client needs the `jets3t` package in order to use S3, but it is not included
-as a dependency automatically. Therefore, you must also add the `jets3t` dependency manually. When
-using maven, you can add the following to pull in the `jets3t` dependency:
-
-{% include Configuring-Alluxio-with-S3/jets3t-dependency.md %}
-
-The `jets3t` version `0.9.0` works for Hadoop version `2.3.0`. The `jets3t` version `0.7.1` should
-work for older versions of Hadoop. To find the exact `jets3t` version for your Hadoop version,
-please refer to [MvnRepository](http://mvnrepository.com/).
 
 ### Using a non-Amazon service provider
 
@@ -181,18 +145,6 @@ If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 
 
 Some S3 service providers only support v2 signatures. For these S3 providers, you can enforce using
 the v2 signatures by setting the `alluxio.underfs.s3a.signer.algorithm` to `S3SignerType`.
-
-### Configuring Distributed Applications Runtime
-
-When I/O is delegated to Alluxio workers (i.e., Alluxio configuration
-`alluxio.user.ufs.operation.delegation` is true, which is false by default since Alluxio 1.1), you
-do not have to do any thing special for your applications. Otherwise since you are using an Alluxio
-client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you
-need to make sure that your AWS credentials are provided to the application JVM processes as well.
-The easiest way to do this is to add them as command line options when starting your client JVM
-process. For example:
-
-{% include Configuring-Alluxio-with-S3/java-bash.md %}
 
 ## Running Alluxio Locally with S3
 

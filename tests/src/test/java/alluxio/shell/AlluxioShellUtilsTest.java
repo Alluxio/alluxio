@@ -14,9 +14,9 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -263,8 +262,7 @@ public final class AlluxioShellUtilsTest {
 
   @Test
   public void loadCommands() {
-    Map<String, ShellCommand> map = new HashMap<>();
-    AlluxioShellUtils.loadCommands(mFileSystem, map);
+    Map<String, ShellCommand> map = AlluxioShellUtils.loadCommands(mFileSystem);
 
     String pkgName = ShellCommand.class.getPackage().getName();
     Reflections reflections = new Reflections(pkgName);

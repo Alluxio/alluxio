@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.UnimplementedException;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -145,7 +147,6 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    * Creates a thrift client instance.
    *
    * @return the thrift client created
-   * @throws IOException if it fails to create a thrift client
    */
   @Override
   protected T createNewResource() throws IOException {
@@ -157,7 +158,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     do {
-      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
+      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, mServiceName, mAddress);
       try {
         if (!transport.isOpen()) {
@@ -174,7 +175,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
           String message = "Thrift transport open times out. Please check whether the "
               + "authentication types match between client and server. Note that NOSASL client "
               + "is not able to connect to servers with SIMPLE security mode.";
-          throw new IOException(message, e);
+          throw new UnavailableException(message, e);
         }
         LOG.warn("Failed to connect ({}) to {} @ {}: {}", retryPolicy.getRetryCount(), mServiceName,
             mAddress, e.getMessage());
@@ -184,7 +185,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
 
     LOG.error("Failed after " + retryPolicy.getRetryCount() + " retries.");
     Preconditions.checkNotNull(exception);
-    throw new IOException(exception);
+    throw new UnavailableException(exception);
   }
 
   /**
@@ -208,13 +209,12 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
    * Check the service version to see whether it matches the expected version.
    *
    * @param client the client
-   * @throws IOException if it fails to check version
    */
-  private void checkVersion(T client) throws TTransportException, IOException {
+  private void checkVersion(T client) throws IOException {
     synchronized (this) {
       if (mServerVersionFound != null) {
         if (mServerVersionFound != mServiceVersion) {
-          throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
+          throw new UnimplementedException(ExceptionMessage.INCOMPATIBLE_VERSION
               .getMessage(mServiceName, mServiceVersion, mServerVersionFound));
         }
         return;
@@ -226,7 +226,7 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
       synchronized (this) {
         mServerVersionFound = serviceVersionFound;
         if (mServerVersionFound != mServiceVersion) {
-          throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION
+          throw new UnimplementedException(ExceptionMessage.INCOMPATIBLE_VERSION
               .getMessage(mServiceName, mServiceVersion, mServerVersionFound));
         }
       }
@@ -244,12 +244,12 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
                 + "Please consult %s for common solutions to address this problem.",
             getServiceNameForLogging(), mAddress, e.getMessage(),
             RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
-        throw new IOException(message, e);
+        throw new UnimplementedException(message, e);
       }
-      throw e;
+      throw new UnavailableException(e);
     } catch (TException e) {
       closeResource(client);
-      throw new IOException(e);
+      throw new UnavailableException(e);
     }
   }
 
