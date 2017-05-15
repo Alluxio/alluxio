@@ -162,7 +162,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
    * Opens the block if it is not open.
    *
    * @param channel the netty channel
-   * @throws Exception if it fails to open the UFS block
+   * @throws Exception if it fails to open the block
    */
   private void openBlock(Channel channel) throws Exception {
     BlockReadRequestInternal request = (BlockReadRequestInternal) mRequest;
