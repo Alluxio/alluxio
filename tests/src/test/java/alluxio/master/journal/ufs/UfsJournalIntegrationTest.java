@@ -29,6 +29,7 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
@@ -598,7 +599,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     AuthenticatedClientUser.set(user);
-    FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"));
+    FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"), GetStatusOptions.defaults());
     Assert.assertEquals(status, new URIStatus(info.setMountId(status.getMountId())));
     registry.stop();
   }

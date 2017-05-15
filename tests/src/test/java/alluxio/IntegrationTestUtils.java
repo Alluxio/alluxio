@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.util.CommonUtils;
@@ -58,7 +59,7 @@ public final class IntegrationTestUtils {
         @Override
         public Boolean apply(Void input) {
           try {
-            return client.getStatus(uri).isPersisted();
+            return client.getStatus(uri, GetStatusOptions.defaults()).isPersisted();
           } catch (Exception e) {
             throw Throwables.propagate(e);
           }

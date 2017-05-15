@@ -9,38 +9,43 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.annotation.PublicApi;
+import alluxio.thrift.GetStatusTOptions;
 import alluxio.wire.LoadMetadataType;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for checking the existence of a path.
+ * Method options for getStatus.
  */
-@PublicApi
 @NotThreadSafe
-@JsonInclude(Include.NON_EMPTY)
-public final class ExistsOptions {
+public final class GetStatusOptions {
   private LoadMetadataType mLoadMetadataType;
 
   /**
-   * @return the default {@link ExistsOptions}
+   * @return the default {@link GetStatusOptions}
    */
-  public static ExistsOptions defaults() {
-    return new ExistsOptions();
+  public static GetStatusOptions defaults() {
+    return new GetStatusOptions();
   }
 
-  private ExistsOptions() {
-    mLoadMetadataType =
-        Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
+  private GetStatusOptions() {
+    mLoadMetadataType = LoadMetadataType.Once;
+  }
+
+  /**
+   * Create an instance of {@link GetStatusOptions} from a {@link GetStatusTOptions}.
+   *
+   * @param options the thrift representation of getFileInfo options
+   */
+  public GetStatusOptions(GetStatusTOptions options) {
+    mLoadMetadataType = LoadMetadataType.Once;
+    if (options.isSetLoadMetadataType()) {
+      mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+    }
   }
 
   /**
@@ -51,10 +56,12 @@ public final class ExistsOptions {
   }
 
   /**
-   * @param loadMetadataType the loadMetataType
+   * Sets the {@link GetStatusOptions#mLoadMetadataType}.
+   *
+   * @param loadMetadataType the load metadata type
    * @return the updated options
    */
-  public ExistsOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+  public GetStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
     return this;
   }
@@ -64,10 +71,10 @@ public final class ExistsOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ExistsOptions)) {
+    if (!(o instanceof GetStatusOptions)) {
       return false;
     }
-    ExistsOptions that = (ExistsOptions) o;
+    GetStatusOptions that = (GetStatusOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
@@ -81,12 +88,5 @@ public final class ExistsOptions {
     return Objects.toStringHelper(this)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
-  }
-
-  /**
-   * @return the {@link GetStatusOptions} representation of these options
-   */
-  public GetStatusOptions toGetStatusOptions() {
-    return GetStatusOptions.defaults().setLoadMetadataType(mLoadMetadataType);
   }
 }

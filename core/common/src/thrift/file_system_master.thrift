@@ -57,6 +57,10 @@ struct ListStatusTOptions {
   2: optional LoadMetadataTType loadMetadataType
 }
 
+struct GetStatusTOptions {
+  1: optional LoadMetadataTType loadMetadataType
+}
+
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 * offset in the file, and the under file system locations of the block replicas.
@@ -196,6 +200,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   FileInfo getStatus(
     /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: GetStatusTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
