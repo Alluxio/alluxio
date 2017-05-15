@@ -412,7 +412,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (getObjectStatus(keyAsFolder) != null) {
       return true;
     }
-    return getObjectListingChunkAndCreateNonEmpty(path, true) != null;
+    return getObjectListingChunkForPath(path, true) != null;
   }
 
   @Override
@@ -688,22 +688,20 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       throws IOException;
 
   /**
-   * Gets a (partial) object listing and attempt to create non-empty directory breadcrumb.
+   * Gets a (partial) object listing for the given path.
    *
    * @param path of pseudo-directory
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing, or null if the path does not exist as a pseudo-directory
    */
-  protected ObjectListingChunk getObjectListingChunkAndCreateNonEmpty(String path,
-      boolean recursive) throws IOException {
+  protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive)
+      throws IOException {
     // Check if anything begins with <folder_path>/
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
-      // If the breadcrumb exists, this is a no-op
-      mkdirsInternal(dir);
       return objs;
     }
     return null;
@@ -725,7 +723,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return an array of the file and folder names in this directory
    */
   protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
-    ObjectListingChunk chunk = getObjectListingChunkAndCreateNonEmpty(path, options.isRecursive());
+    ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
     if (chunk == null) {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
       if (getObjectStatus(keyAsFolder) != null) {
@@ -802,7 +800,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
           if (!child.isEmpty() && !children.containsKey(child)) {
             // This directory has not been created through Alluxio.
-            mkdirsInternal(commonPrefix);
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
             ObjectPermissions permissions = getPermissions();
