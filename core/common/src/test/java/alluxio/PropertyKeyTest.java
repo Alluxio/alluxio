@@ -180,4 +180,15 @@ public final class PropertyKeyTest {
       }
     }
   }
+
+  @Test
+  public void isDeprecated() throws Exception {
+    Assert.assertFalse(PropertyKey.isDeprecated("VERSION"));
+    Assert.assertTrue(PropertyKey.isDeprecated("MASTER_ADDRESS"));
+  }
+
+  @Test
+  public void isDeprecatedExceptionThrown() throws Exception {
+    Assert.assertFalse(PropertyKey.isDeprecated("foo"));
+  }
 }

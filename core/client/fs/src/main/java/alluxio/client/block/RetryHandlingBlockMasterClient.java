@@ -21,6 +21,7 @@ import alluxio.wire.WorkerInfo;
 
 import org.apache.thrift.TException;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +80,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @return A list of worker info returned by master
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList() {
+  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
@@ -98,7 +99,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
    */
-  public synchronized BlockInfo getBlockInfo(final long blockId) {
+  public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
     return retryRPC(new RpcCallable<BlockInfo>() {
       @Override
       public BlockInfo call() throws TException {
@@ -112,7 +113,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @return total capacity in bytes
    */
-  public synchronized long getCapacityBytes() {
+  public synchronized long getCapacityBytes() throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -126,7 +127,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @return amount of used space in bytes
    */
-  public synchronized long getUsedBytes() {
+  public synchronized long getUsedBytes() throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {

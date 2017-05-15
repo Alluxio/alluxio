@@ -13,6 +13,7 @@ package alluxio.resource;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -140,7 +141,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
    * should clean up all their resources here.
    */
   @Override
-  public abstract void close();
+  public abstract void close() throws IOException;
 
   /**
    * Releases an object of type T, this must be called after the thread is done using a resource

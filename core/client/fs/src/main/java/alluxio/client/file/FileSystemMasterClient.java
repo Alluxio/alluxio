@@ -23,7 +23,10 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.exception.status.AlreadyExistsException;
+import alluxio.exception.status.NotFoundException;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -71,23 +74,26 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param options method options
    * @return a list of inconsistent files and directories
    */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options);
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+      throws IOException;
 
   /**
    * Creates a new directory.
    *
    * @param path the directory path
    * @param options method options
+   * @throws AlreadyExistsException if the directory already exists
    */
-  void createDirectory(AlluxioURI path, CreateDirectoryOptions options);
+  void createDirectory(AlluxioURI path, CreateDirectoryOptions options) throws IOException;
 
   /**
    * Creates a new file.
    *
    * @param path the file path
    * @param options method options
+   * @throws AlreadyExistsException if the file already exists
    */
-  void createFile(AlluxioURI path, CreateFileOptions options);
+  void createFile(AlluxioURI path, CreateFileOptions options) throws IOException;
 
   /**
    * Marks a file as completed.
@@ -95,7 +101,7 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param path the file path
    * @param options the method options
    */
-  void completeFile(AlluxioURI path, CompleteFileOptions options);
+  void completeFile(AlluxioURI path, CompleteFileOptions options) throws IOException;
 
   /**
    * Deletes a file or a directory.
@@ -103,34 +109,37 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param path the path to delete
    * @param options method options
    */
-  void delete(AlluxioURI path, DeleteOptions options);
+  void delete(AlluxioURI path, DeleteOptions options) throws IOException;
 
   /**
    * Frees a file.
    *
    * @param path the path to free
    * @param options method options
+   * @throws NotFoundException if the path does not exist
    */
-  void free(AlluxioURI path, FreeOptions options);
+  void free(AlluxioURI path, FreeOptions options) throws IOException;
 
   /**
    * @param path the file path
    * @return the file info for the given file id
+   * @throws NotFoundException if the path does not exist
    */
-  URIStatus getStatus(AlluxioURI path);
+  URIStatus getStatus(AlluxioURI path) throws IOException;
 
   /**
    * @param path the file path
    * @return the next blockId for the file
    */
-  long getNewBlockIdForFile(AlluxioURI path);
+  long getNewBlockIdForFile(AlluxioURI path) throws IOException;
 
   /**
    * @param path the path to list
    * @param options the listStatus options
    * @return the list of file information for the given path
+   * @throws NotFoundException if the path does not exist
    */
-  List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options);
+  List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options) throws IOException;
 
   /**
    * Loads the metadata of a file from the under file system.
@@ -138,9 +147,10 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param path the path of the file to load metadata for
    * @param options method options
    * @deprecated since version 1.1 and will be removed in version 2.0
+   * @throws NotFoundException if the path does not exist
    */
   @Deprecated
-  void loadMetadata(AlluxioURI path, LoadMetadataOptions options);
+  void loadMetadata(AlluxioURI path, LoadMetadataOptions options) throws IOException;
 
   /**
    * Mounts the given UFS path under the given Alluxio path.
@@ -149,35 +159,37 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param ufsPath the UFS path
    * @param options mount options
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options);
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options) throws IOException;
 
   /**
    * Renames a file or a directory.
    *
    * @param src the path to rename
    * @param dst new file path
+   * @throws NotFoundException if the path does not exist
    */
-  void rename(AlluxioURI src, AlluxioURI dst);
+  void rename(AlluxioURI src, AlluxioURI dst) throws IOException;
 
   /**
    * Sets the file or directory attributes.
    *
    * @param path the file or directory path
    * @param options the file or directory attribute options to be set
+   * @throws NotFoundException if the path does not exist
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options);
+  void setAttribute(AlluxioURI path, SetAttributeOptions options) throws IOException;
 
   /**
    * Schedules the async persistence of the given file.
    *
    * @param path the file path
    */
-  void scheduleAsyncPersist(AlluxioURI path);
+  void scheduleAsyncPersist(AlluxioURI path) throws IOException;
 
   /**
    * Unmounts the given Alluxio path.
    *
    * @param alluxioPath the Alluxio path
    */
-  void unmount(AlluxioURI alluxioPath);
+  void unmount(AlluxioURI alluxioPath) throws IOException;
 }

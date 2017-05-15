@@ -22,6 +22,7 @@ import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -484,7 +485,8 @@ public final class StorageDirTest {
       Assert.fail("Should throw an Exception when newSize is smaller than oldSize");
     } catch (Exception e) {
       Assert.assertTrue(e instanceof InvalidWorkerStateException);
-      Assert.assertTrue(e.getMessage().equals("Shrinking block, not supported!"));
+      Assert.assertThat(e.getMessage(),
+          CoreMatchers.equalTo("Shrinking block, not supported!"));
       Assert.assertEquals(TEST_TEMP_BLOCK_SIZE, mTempBlockMeta.getBlockSize());
     }
   }

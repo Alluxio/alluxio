@@ -67,10 +67,12 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createLocalPacketInStream(FileSystemContext context,
-      WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options)
+      throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
-    return new PacketInStream(new LocalFilePacketReader.Factory(context, address, blockId,
-        packetSize, options.getAlluxioStorageType().isPromote()), blockId, length);
+    return new PacketInStream(
+        new LocalFilePacketReader.Factory(context, address, blockId, packetSize,
+            options.getAlluxioStorageType().isPromote()), blockId, length);
   }
 
   /**
@@ -107,7 +109,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public int read() {
+  public int read() throws IOException {
     int bytesRead = read(mSingleByte);
     if (bytesRead == -1) {
       return -1;
@@ -117,12 +119,12 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public int read(byte[] b) {
+  public int read(byte[] b) throws IOException {
     return read(b, 0, b.length);
   }
 
   @Override
-  public int read(byte[] b, int off, int len) {
+  public int read(byte[] b, int off, int len) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
@@ -146,7 +148,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     if (len == 0) {
       return 0;
     }
@@ -189,7 +191,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public void seek(long pos) {
+  public void seek(long pos) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions
@@ -207,7 +209,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   }
 
   @Override
-  public long skip(long n) {
+  public long skip(long n) throws IOException {
     checkIfClosed();
     if (n <= 0) {
       return 0;
@@ -240,7 +242,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   /**
    * Reads a new packet from the channel if all of the current packet is read.
    */
-  private void readPacket() {
+  private void readPacket() throws IOException {
     if (mPacketReader == null) {
       mPacketReader = mPacketReaderFactory.create(mPos, mLength - mPos);
     }
@@ -257,7 +259,7 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   /**
    * Close the current packet reader.
    */
-  private void closePacketReader() {
+  private void closePacketReader() throws IOException {
     if (mCurrentPacket != null) {
       mCurrentPacket.release();
       mCurrentPacket = null;

@@ -24,6 +24,7 @@ import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -48,7 +49,7 @@ public final class StreamFactory {
    * @return the {@link OutputStream} object
    */
   public static BlockOutStream createBlockOutStream(FileSystemContext context, long blockId,
-      long blockSize, WorkerNetAddress address, OutStreamOptions options) {
+      long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
     if (address.getHost().equals(NetworkAddressUtils.getClientHostName()) && Configuration
         .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
         .isDomainSocketSupported(address)) {
@@ -74,7 +75,7 @@ public final class StreamFactory {
    */
   public static BlockInStream createBlockInStream(FileSystemContext context, long blockId,
       long blockSize, WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
-      InStreamOptions options) {
+      InStreamOptions options) throws IOException {
     if (address.getHost().equals(NetworkAddressUtils.getClientHostName()) && Configuration
         .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
         .isDomainSocketSupported(address)) {

@@ -53,7 +53,8 @@ public final class LocalFilePacketReader implements PacketReader {
    * @param len the length to read
    * @param packetSize the packet size
    */
-  private LocalFilePacketReader(String path, long offset, long len, long packetSize) {
+  private LocalFilePacketReader(String path, long offset, long len, long packetSize)
+      throws IOException {
     mReader = new LocalFileBlockReader(path);
     Preconditions.checkArgument(packetSize > 0);
     mPos = offset;
@@ -62,7 +63,7 @@ public final class LocalFilePacketReader implements PacketReader {
   }
 
   @Override
-  public DataBuffer readPacket() {
+  public DataBuffer readPacket() throws IOException {
     if (mPos >= mEnd) {
       return null;
     }
@@ -78,7 +79,7 @@ public final class LocalFilePacketReader implements PacketReader {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -111,24 +112,28 @@ public final class LocalFilePacketReader implements PacketReader {
      * @param promote whether or not to promote the block
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
-        long packetSize, boolean promote) {
+        long packetSize, boolean promote) throws IOException {
       mContext = context;
       mAddress = address;
       mBlockId = blockId;
       mPacketSize = packetSize;
 
       mChannel = context.acquireNettyChannel(address);
-      ProtoMessage message =
-          NettyRPC.call(
-              NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-              new ProtoMessage(Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
-                  .setPromote(promote).build()));
-      Preconditions.checkState(message.isLocalBlockOpenResponse());
-      mPath = message.asLocalBlockOpenResponse().getPath();
+      try {
+        ProtoMessage message = NettyRPC
+            .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
+                new ProtoMessage(Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
+                    .setPromote(promote).build()));
+        Preconditions.checkState(message.isLocalBlockOpenResponse());
+        mPath = message.asLocalBlockOpenResponse().getPath();
+      } catch (Exception e) {
+        context.releaseNettyChannel(address, mChannel);
+        throw e;
+      }
     }
 
     @Override
-    public PacketReader create(long offset, long len) {
+    public PacketReader create(long offset, long len) throws IOException {
       return new LocalFilePacketReader(mPath, offset, len, mPacketSize);
     }
 
