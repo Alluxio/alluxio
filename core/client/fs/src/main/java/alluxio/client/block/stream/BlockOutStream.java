@@ -20,7 +20,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.FilterOutputStream;

@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.StreamFactory;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockInStream;
@@ -51,7 +50,7 @@ import java.util.List;
  * Tests for the {@link FileInStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, StreamFactory.class})
+@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class})
 public class FileInStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
@@ -86,8 +85,6 @@ public class FileInStreamTest {
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
     PowerMockito.when(mBlockStore.getWorkerInfoList()).thenReturn(new ArrayList<BlockWorkerInfo>());
-    Mockito.mock(StreamFactory.class);
-    PowerMockito.mockStatic(StreamFactory.class);
 
     // Set up BufferedBlockInStreams and caching streams
     mCacheStreams = new ArrayList<>();
