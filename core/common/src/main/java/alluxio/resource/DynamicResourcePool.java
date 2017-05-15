@@ -16,11 +16,11 @@ import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -280,15 +280,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * Acquire a resource of type {code T} from the pool.
    *
    * @return the acquired resource
-   * @throws InterruptedException if this thread is interrupted
    */
   @Override
-  public T acquire() throws InterruptedException {
+  public T acquire() throws IOException {
     try {
       return acquire(100  /* no timeout */, TimeUnit.DAYS);
     } catch (TimeoutException e) {
       // Never should timeout in acquire().
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -302,10 +301,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param unit the unit to use for time
    * @return a resource taken from the pool
    * @throws TimeoutException if it fails to acquire because of time out
-   * @throws InterruptedException if this thread is interrupted
    */
   @Override
-  public T acquire(long time, TimeUnit unit) throws TimeoutException, InterruptedException {
+  public T acquire(long time, TimeUnit unit) throws TimeoutException, IOException {
     long endTimeMs = mClock.millis() + unit.toMillis(time);
 
     // Try to take a resource without blocking
@@ -334,9 +332,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
           break;
         }
         long currTimeMs = mClock.millis();
-        if (currTimeMs >= endTimeMs || !mNotEmpty
-            .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
-          throw new TimeoutException("Acquire resource times out.");
+        try {
+          if (currTimeMs >= endTimeMs || !mNotEmpty
+              .await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
+            throw new TimeoutException("Acquire resource times out.");
+          }
+        } catch (InterruptedException e) {
+          // Restore the interrupt flag so that it can be handled later.
+          Thread.currentThread().interrupt();
         }
       }
     } finally {
@@ -461,10 +464,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @param endTimeMs the end time to wait till
    * @return the resource
    * @throws TimeoutException if it times out to wait for a resource
-   * @throws InterruptedException if this thread is interrupted
    */
-  private T checkHealthyAndRetry(T resource, long endTimeMs)
-      throws TimeoutException, InterruptedException {
+  private T checkHealthyAndRetry(T resource, long endTimeMs) throws TimeoutException, IOException {
     if (isHealthy(resource)) {
       return resource;
     } else {
@@ -512,5 +513,5 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    *
    * @return the newly created resource
    */
-  protected abstract T createNewResource();
+  protected abstract T createNewResource() throws IOException;
 }

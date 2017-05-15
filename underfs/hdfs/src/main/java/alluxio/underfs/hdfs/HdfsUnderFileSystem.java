@@ -170,8 +170,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     while (retryPolicy.attemptRetry()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return FileSystem.create(mFileSystem, new Path(path),
-            new FsPermission(options.getMode().toShort()));
+        return new HdfsUnderFileOutputStream(FileSystem.create(mFileSystem, new Path(path),
+            new FsPermission(options.getMode().toShort())));
       } catch (IOException e) {
         LOG.warn("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage());
         te = e;
@@ -294,7 +294,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
       UfsStatus retStatus;
-      if (status.isDir()) {
+      if (!status.isDir()) {
         retStatus = new UfsFileStatus(status.getPath().getName(), status.getLen(),
             status.getModificationTime(), status.getOwner(), status.getGroup(),
             status.getPermission().toShort());

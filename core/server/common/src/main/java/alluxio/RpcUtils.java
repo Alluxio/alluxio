@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.InternalException;
 import alluxio.thrift.AlluxioTException;
 
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public final class RpcUtils {
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (RuntimeException e) {
       logger.error("{}", callable, e);
-      throw AlluxioStatusException.fromRuntimeException(e).toThrift();
+      throw new InternalException(e).toThrift();
     }
   }
 
@@ -66,7 +67,7 @@ public final class RpcUtils {
       throw AlluxioStatusException.fromIOException(e).toThrift();
     } catch (RuntimeException e) {
       logger.error("{}", callable, e);
-      throw AlluxioStatusException.fromRuntimeException(e).toThrift();
+      throw new InternalException(e).toThrift();
     }
   }
 

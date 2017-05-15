@@ -30,8 +30,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.concurrent.ExecutorService;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Netty handler that handles short circuit read requests.
@@ -153,7 +154,8 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
             }
             mLockId = BlockLockManager.INVALID_LOCK_ID;
           }
-          mContext.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(e)));
+          mContext.writeAndFlush(
+              RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(e)));
         }
 
         @Override
@@ -201,7 +203,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
 
       @Override
       public void exceptionCaught(Throwable e) {
-        ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(e)));
+        ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(e)));
         mLockId = BlockLockManager.INVALID_LOCK_ID;
       }
 

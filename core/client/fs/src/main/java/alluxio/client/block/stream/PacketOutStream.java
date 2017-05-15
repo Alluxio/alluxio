@@ -14,13 +14,11 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
-import alluxio.client.QuietlyCancelable;
+import alluxio.client.Cancelable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -28,6 +26,7 @@ import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * streams data packet by packet.
  */
 @NotThreadSafe
-public class PacketOutStream extends OutputStream implements BoundedStream, QuietlyCancelable {
+public class PacketOutStream extends OutputStream implements BoundedStream, Cancelable {
   private final Closer mCloser;
   /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
   private final long mLength;
@@ -59,7 +58,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createLocalPacketOutStream(FileSystemContext context,
-      WorkerNetAddress address, long id, long length, OutStreamOptions options) {
+      WorkerNetAddress address, long id, long length, OutStreamOptions options) throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
     PacketWriter packetWriter = LocalFilePacketWriter
         .create(context, address, id, options.getWriteTier(), packetSize);
@@ -79,7 +78,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
       WorkerNetAddress address, long id, long length, Protocol.RequestType type,
-      OutStreamOptions options) {
+      OutStreamOptions options) throws IOException {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
     PacketWriter packetWriter =
@@ -100,7 +99,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
       WorkerNetAddress address, long length, Protocol.WriteRequest partialRequest,
-      OutStreamOptions options) {
+      OutStreamOptions options) throws IOException {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
     PacketWriter packetWriter =
@@ -136,19 +135,19 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   }
 
   @Override
-  public void write(int b) {
+  public void write(int b) throws IOException {
     Preconditions.checkState(remaining() > 0, PreconditionMessage.ERR_END_OF_BLOCK);
     updateCurrentPacket(false);
     mCurrentPacket.writeByte(b);
   }
 
   @Override
-  public void write(byte[] b) {
+  public void write(byte[] b) throws IOException {
     write(b, 0, b.length);
   }
 
   @Override
-  public void write(byte[] b, int off, int len) {
+  public void write(byte[] b, int off, int len) throws IOException {
     if (len == 0) {
       return;
     }
@@ -164,7 +163,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   }
 
   @Override
-  public void flush() {
+  public void flush() throws IOException {
     if (mClosed) {
       return;
     }
@@ -175,22 +174,24 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   }
 
   @Override
-  public void cancel() {
+  public void cancel() throws IOException {
     if (mClosed) {
       return;
     }
     releaseCurrentPacket();
 
-    Exception exception = null;
+    IOException exception = null;
     for (PacketWriter packetWriter : mPacketWriters) {
       try {
         packetWriter.cancel();
-      } catch (Exception e) {
-        exception = e;
+      } catch (IOException e) {
+        if (exception != null) {
+          exception.addSuppressed(e);
+        }
       }
     }
     if (exception != null) {
-      throw AlluxioStatusException.from(exception);
+      throw exception;
     }
 
     // NOTE: PacketOutStream#cancel doesn't imply PacketOutStream#close. PacketOutStream#close
@@ -198,12 +199,14 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     try {
       updateCurrentPacket(true);
+    } catch (Throwable t) {
+      mCloser.rethrow(t);
     } finally {
       mClosed = true;
-      CommonUtils.close(mCloser);
+      mCloser.close();
     }
   }
 
@@ -212,7 +215,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Quie
    *
    * @param lastPacket if the current packet is the last packet
    */
-  private void updateCurrentPacket(boolean lastPacket) {
+  private void updateCurrentPacket(boolean lastPacket) throws IOException {
     // Early return for the most common case.
     if (mCurrentPacket != null && mCurrentPacket.writableBytes() > 0 && !lastPacket) {
       return;

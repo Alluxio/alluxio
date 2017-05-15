@@ -30,6 +30,7 @@ import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
-      final CheckConsistencyOptions options) {
+      final CheckConsistencyOptions options) throws IOException {
     return retryRPC(new RpcCallable<List<AlluxioURI>>() {
       @Override
       public List<AlluxioURI> call() throws TException {
@@ -102,7 +103,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void createDirectory(final AlluxioURI path,
-      final CreateDirectoryOptions options) {
+      final CreateDirectoryOptions options) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -113,7 +114,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void createFile(final AlluxioURI path, final CreateFileOptions options) {
+  public synchronized void createFile(final AlluxioURI path, final CreateFileOptions options)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -124,7 +126,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options) {
+  public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -135,7 +138,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void delete(final AlluxioURI path, final DeleteOptions options) {
+  public synchronized void delete(final AlluxioURI path, final DeleteOptions options)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -146,7 +150,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void free(final AlluxioURI path, final FreeOptions options) {
+  public synchronized void free(final AlluxioURI path, final FreeOptions options)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -157,7 +162,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized URIStatus getStatus(final AlluxioURI path) {
+  public synchronized URIStatus getStatus(final AlluxioURI path) throws IOException {
     return retryRPC(new RpcCallable<URIStatus>() {
       @Override
       public URIStatus call() throws TException {
@@ -167,7 +172,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized long getNewBlockIdForFile(final AlluxioURI path) {
+  public synchronized long getNewBlockIdForFile(final AlluxioURI path) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -178,7 +183,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<URIStatus> listStatus(final AlluxioURI path,
-      final ListStatusOptions options) {
+      final ListStatusOptions options) throws IOException {
     return retryRPC(new RpcCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws TException {
@@ -194,7 +199,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void loadMetadata(final AlluxioURI path,
-      final LoadMetadataOptions options) {
+      final LoadMetadataOptions options) throws IOException {
     retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -205,7 +210,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
-      final MountOptions options) {
+      final MountOptions options) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -216,7 +221,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) {
+  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -227,7 +232,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options) {
+  public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -238,7 +244,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void scheduleAsyncPersist(final AlluxioURI path) {
+  public synchronized void scheduleAsyncPersist(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -249,7 +255,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void unmount(final AlluxioURI alluxioPath) {
+  public synchronized void unmount(final AlluxioURI alluxioPath) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

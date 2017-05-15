@@ -126,7 +126,8 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
 
       @Override
       public void exceptionCaught(Throwable throwable) {
-        ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(throwable)));
+        ctx.writeAndFlush(
+            RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
       }
 
       @Override
@@ -164,7 +165,8 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
 
       @Override
       public void exceptionCaught(Throwable throwable) {
-        ctx.writeAndFlush(RPCProtoMessage.createResponse(AlluxioStatusException.from(throwable)));
+        ctx.writeAndFlush(
+            RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable)));
         mSessionId = INVALID_SESSION_ID;
       }
 

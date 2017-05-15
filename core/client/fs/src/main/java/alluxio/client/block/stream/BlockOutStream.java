@@ -12,13 +12,14 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.BoundedStream;
-import alluxio.client.QuietlyCancelable;
+import alluxio.client.Cancelable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.FilterOutputStream;
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -28,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link alluxio.client.block.AlluxioBlockStore#getOutStream(long, long, OutStreamOptions)}.
  */
 @NotThreadSafe
-public class BlockOutStream extends FilterOutputStream implements BoundedStream, QuietlyCancelable {
+public class BlockOutStream extends FilterOutputStream implements BoundedStream, Cancelable {
   private final PacketOutStream mOutStream;
   private boolean mClosed;
 
@@ -43,7 +44,8 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createShortCircuitBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
+      throws IOException {
     PacketOutStream outStream = PacketOutStream
         .createLocalPacketOutStream(context, workerNetAddress, blockId, blockSize, options);
     return new BlockOutStream(outStream, options);
@@ -60,7 +62,8 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @return the {@link BlockOutStream} instance created
    */
   public static BlockOutStream createNettyBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options) {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
+      throws IOException {
     PacketOutStream outStream = PacketOutStream
         .createNettyPacketOutStream(context, workerNetAddress, blockId, blockSize,
             Protocol.RequestType.ALLUXIO_BLOCK, options);
@@ -71,12 +74,12 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   // FilterOutStream.
 
   @Override
-  public void write(byte[] b) {
+  public void write(byte[] b) throws IOException {
     mOutStream.write(b);
   }
 
   @Override
-  public void write(byte[] b, int off, int len) {
+  public void write(byte[] b, int off, int len) throws IOException {
     mOutStream.write(b, off, len);
   }
 
@@ -86,7 +89,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   }
 
   @Override
-  public void cancel() {
+  public void cancel() throws IOException {
     if (mClosed) {
       return;
     }
@@ -96,7 +99,7 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }

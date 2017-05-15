@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.netty.NettyRPC;
 import alluxio.client.netty.NettyRPCContext;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
@@ -74,7 +73,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @return the {@link LocalFilePacketWriter} created
    */
   public static LocalFilePacketWriter create(FileSystemContext context, WorkerNetAddress address,
-      long blockId, int tier, long packetSize) {
+      long blockId, int tier, long packetSize) throws IOException {
     return new LocalFilePacketWriter(context, address, blockId, tier, packetSize);
   }
 
@@ -89,22 +88,20 @@ public final class LocalFilePacketWriter implements PacketWriter {
   }
 
   @Override
-  public void writePacket(final ByteBuf buf) {
+  public void writePacket(final ByteBuf buf) throws IOException {
     try {
       Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
       int sz = buf.readableBytes();
       ensureReserved(mPos + sz);
       mPos += sz;
       Preconditions.checkState(buf.readBytes(mWriter.getChannel(), sz) == sz);
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
     } finally {
       buf.release();
     }
   }
 
   @Override
-  public void cancel() {
+  public void cancel() throws IOException {
     if (mClosed) {
       return;
     }
@@ -118,14 +115,14 @@ public final class LocalFilePacketWriter implements PacketWriter {
                 .build()));
       }
     });
-    CommonUtils.close(mCloser);
+    mCloser.close();
   }
 
   @Override
   public void flush() {}
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -138,7 +135,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
             Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).build()));
       }
     });
-    CommonUtils.close(mCloser);
+    mCloser.close();
   }
 
   /**
@@ -151,7 +148,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param packetSize the packet size
    */
   private LocalFilePacketWriter(final FileSystemContext context, WorkerNetAddress address,
-      long blockId, int tier, long packetSize) {
+      long blockId, int tier, long packetSize) throws IOException {
     mContext = context;
     mAddress = address;
     mChannel = context.acquireNettyChannel(address);
@@ -173,8 +170,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       mWriter = mCloser
           .register(new LocalFileBlockWriter(message.asLocalBlockCreateResponse().getPath()));
     } catch (Exception e) {
-      CommonUtils.closeQuietly(mCloser);
-      throw e;
+      throw CommonUtils.closeAndRethrow(mCloser, e);
     }
 
     mPosReserved += FILE_BUFFER_BYTES;
@@ -187,7 +183,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    *
    * @param pos the pos of the file/block to reserve to
    */
-  private void ensureReserved(long pos) {
+  private void ensureReserved(long pos) throws IOException {
     if (pos <= mPosReserved) {
       return;
     }

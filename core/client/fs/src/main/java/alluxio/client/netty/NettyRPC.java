@@ -40,7 +40,8 @@ public final class NettyRPC {
    * @param request the RPC request
    * @return the RPC response
    */
-  public static ProtoMessage call(final NettyRPCContext context, ProtoMessage request) {
+  public static ProtoMessage call(final NettyRPCContext context, ProtoMessage request)
+      throws IOException {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
     Promise<ProtoMessage> promise = channel.eventLoop().newPromise();
     channel.pipeline().addLast(new RPCHandler(promise));
@@ -48,10 +49,8 @@ public final class NettyRPC {
     ProtoMessage message;
     try {
       message = promise.get(context.getTimeoutMs(), TimeUnit.MILLISECONDS);
-    } catch (ExecutionException e) {
-      throw CommonUtils.propagate(e.getCause() == null ? e : e.getCause());
-    } catch (TimeoutException e) {
-      throw CommonUtils.propagate(e);
+    } catch (ExecutionException | TimeoutException e) {
+      throw new IOException(e);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     } finally {

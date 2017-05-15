@@ -61,7 +61,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createShortCircuitBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+      throws IOException {
     PacketInStream inStream = PacketInStream
         .createLocalPacketInStream(context, workerNetAddress, blockId, blockSize, options);
     return new BlockInStream(inStream, workerNetAddress, options);
@@ -81,7 +82,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context,
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options) {
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options) throws IOException {
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
         .setPromote(options.getAlluxioStorageType().isPromote());
     if (openUfsBlockOptions != null) {
@@ -95,7 +96,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     try {
       mInputStream.close();
     } catch (IOException e) {
@@ -109,12 +110,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   }
 
   @Override
-  public void seek(long pos) {
+  public void seek(long pos) throws IOException {
     mInputStream.seek(pos);
   }
 
   @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     return mInputStream.positionedRead(pos, b, off, len);
   }
 

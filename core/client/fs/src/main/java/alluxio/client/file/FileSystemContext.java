@@ -33,6 +33,7 @@ import io.netty.channel.Channel;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -134,7 +135,7 @@ public final class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
-  public void close() {
+  public void close() throws IOException {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
@@ -156,7 +157,7 @@ public final class FileSystemContext implements Closeable {
    * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and
    * tests to reset the default file system context.
    */
-  public synchronized void reset() {
+  public synchronized void reset() throws IOException {
     close();
     init();
   }
@@ -231,7 +232,7 @@ public final class FileSystemContext implements Closeable {
    * @param workerNetAddress the network address of the channel
    * @return the acquired netty channel
    */
-  public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) {
+  public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     if (!mNettyChannelPools.containsKey(address)) {
       Bootstrap bs = NettyClient.createClientBootstrap(address);
@@ -244,11 +245,7 @@ public final class FileSystemContext implements Closeable {
         pool.close();
       }
     }
-    try {
-      return mNettyChannelPools.get(address).acquire();
-    } catch (InterruptedException e) {
-      throw new UnavailableException(e);
-    }
+    return mNettyChannelPools.get(address).acquire();
   }
 
   /**
@@ -266,7 +263,7 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return if there is a local worker running the same machine
    */
-  public synchronized boolean hasLocalWorker() {
+  public synchronized boolean hasLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
@@ -276,14 +273,14 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return a local worker running the same machine, or null if none is found
    */
-  public synchronized WorkerNetAddress getLocalWorker() {
+  public synchronized WorkerNetAddress getLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
     return mLocalWorker;
   }
 
-  private void initializeLocalWorker() {
+  private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
       if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName())) {
@@ -297,7 +294,7 @@ public final class FileSystemContext implements Closeable {
    * @return if there are any local workers, the returned list will ONLY contain the local workers,
    *         otherwise a list of all remote workers will be returned
    */
-  private List<WorkerNetAddress> getWorkerAddresses() {
+  private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
     List<WorkerInfo> infos;
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {

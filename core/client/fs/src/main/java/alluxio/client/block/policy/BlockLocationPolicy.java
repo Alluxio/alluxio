@@ -56,7 +56,7 @@ public interface BlockLocationPolicy {
         } else {
           return CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
         }
-      } catch (Exception e) {
+      } catch (ReflectiveOperationException e) {
         throw new RuntimeException(e);
       }
     }

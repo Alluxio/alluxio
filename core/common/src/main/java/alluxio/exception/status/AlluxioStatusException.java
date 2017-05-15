@@ -40,21 +40,15 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
-import java.util.ConcurrentModificationException;
-import java.util.NoSuchElementException;
-import java.util.concurrent.RejectedExecutionException;
 
 /**
  * An exception thrown by Alluxio. {@link #getStatus()} can be used to determine the represented
  * class of error.
  */
-public class AlluxioStatusException extends RuntimeException {
+public class AlluxioStatusException extends IOException {
   private static final long serialVersionUID = -7422144873058169662L;
 
   private final Status mStatus;
-  // If this status exception was constructed from an IOException, the IOException is stored here
-  // and reused if the status exception is ever converted back to an IOException.
-  private final IOException mIOException;
 
   /**
    * @param status the status code for this exception
@@ -63,7 +57,6 @@ public class AlluxioStatusException extends RuntimeException {
   public AlluxioStatusException(Status status, String message) {
     super(message);
     mStatus = status;
-    mIOException = null;
   }
 
   /**
@@ -73,9 +66,6 @@ public class AlluxioStatusException extends RuntimeException {
   public AlluxioStatusException(Status status, Throwable cause) {
     super(cause.getMessage(), cause);
     mStatus = status;
-    // This AlluxioStatusException doesn't have its own message, so it's essentially just a wrapper
-    // around the cause. We save IOException causes in case we want to unwrap them later.
-    mIOException = cause instanceof IOException ? (IOException) cause : null;
   }
 
   /**
@@ -86,7 +76,6 @@ public class AlluxioStatusException extends RuntimeException {
   public AlluxioStatusException(Status status, String message, Throwable cause) {
     super(message, cause);
     mStatus = status;
-    mIOException = null;
   }
 
   /**
@@ -130,19 +119,6 @@ public class AlluxioStatusException extends RuntimeException {
       default:
         return new AlluxioException(getMessage(), this);
     }
-  }
-
-  /**
-   * Converts this status exception to an IOException. If this exception was constructed by
-   * wrapping an IOException, the original IOException will be returned.
-   *
-   * @return this exception converted to an IOException
-   */
-  public IOException toIOException() {
-    if (mIOException != null) {
-      return mIOException;
-    }
-    return new IOException(getMessage(), this);
   }
 
   /**
@@ -203,25 +179,44 @@ public class AlluxioStatusException extends RuntimeException {
   }
 
   /**
-   * Converts throwables to Alluxio status exceptions.
+   * Converts checked throwables to Alluxio status exceptions. Unchecked throwables should not be
+   * passed to this method. Use Throwables.propagateIfPossible before passing a Throwable to this
+   * method.
    *
    * @param throwable a throwable
    * @return the converted {@link AlluxioStatusException}
    */
-  public static AlluxioStatusException from(Throwable throwable) {
+  public static AlluxioStatusException fromCheckedException(Throwable throwable) {
     try {
       throw throwable;
     } catch (IOException e) {
       return fromIOException(e);
     } catch (AlluxioException e) {
       return fromAlluxioException(e);
+    } catch (InterruptedException e) {
+      return new CanceledException(e);
     } catch (RuntimeException e) {
-      return fromRuntimeException(e);
+      throw new IllegalStateException("Expected a checked exception but got " + e);
     } catch (Exception e) {
       return new UnknownException(e);
     } catch (Throwable t) {
+      throw new IllegalStateException("Expected a checked exception but got " + t);
+    }
+  }
+
+  /**
+   * Converts an arbitrary throwable to an Alluxio status exception. This method should be used with
+   * caution because it could potentially convert an unchecked exception (indicating a bug) to a
+   * checked Alluxio status exception.
+   *
+   * @param t a throwable
+   * @return the converted {@link AlluxioStatusException}
+   */
+  public static AlluxioStatusException fromThrowable(Throwable t) {
+    if (t instanceof Error || t instanceof RuntimeException) {
       return new InternalException(t);
     }
+    return fromCheckedException(t);
   }
 
   /**
@@ -274,36 +269,10 @@ public class AlluxioStatusException extends RuntimeException {
       return new UnauthenticatedException(e);
     } catch (ClosedChannelException e) {
       return new FailedPreconditionException(e);
-    } catch (IOException e) {
-      return new UnavailableException(e);
-    }
-  }
-
-  /**
-   * Converts runtime exceptions to Alluxio status exceptions. Well-known runtime exceptions are
-   * converted intelligently. Unrecognized runtime exceptions are converted to
-   * {@link UnknownException}.
-   *
-   * @param re the runtime exception to convert
-   * @return the converted {@link AlluxioStatusException}
-   */
-  public static AlluxioStatusException fromRuntimeException(RuntimeException re) {
-    try {
-      throw re;
-    } catch (ArithmeticException | ClassCastException | ConcurrentModificationException
-        | IllegalStateException | NoSuchElementException | NullPointerException
-        | UnsupportedOperationException e) {
-      return new InternalException(e);
-    } catch (IllegalArgumentException e) {
-      return new InvalidArgumentException(e);
-    } catch (IndexOutOfBoundsException e) {
-      return new OutOfRangeException(e);
-    } catch (RejectedExecutionException e) {
-      return new ResourceExhaustedException(e);
     } catch (AlluxioStatusException e) {
       return e;
-    } catch (RuntimeException e) {
-      return new UnknownException(e);
+    } catch (IOException e) {
+      return new UnavailableException(e);
     }
   }
 }

@@ -69,7 +69,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param path URI of the key-value store
    * @param info information of this completed partition
    */
-  public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info) {
+  public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -84,7 +85,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the key-value store
    */
-  public synchronized void completeStore(final AlluxioURI path) {
+  public synchronized void completeStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -99,7 +100,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the key-value store
    */
-  public synchronized void createStore(final AlluxioURI path) {
+  public synchronized void createStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -115,7 +116,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param path URI of the key-value store
    * @return a list of partition information
    */
-  public synchronized List<PartitionInfo> getPartitionInfo(final AlluxioURI path) {
+  public synchronized List<PartitionInfo> getPartitionInfo(final AlluxioURI path)
+      throws IOException {
     return retryRPC(new RpcCallable<List<PartitionInfo>>() {
       @Override
       public List<PartitionInfo> call() throws TException {
@@ -129,7 +131,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the store
    */
-  public synchronized void deleteStore(final AlluxioURI path) {
+  public synchronized void deleteStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -145,7 +147,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param oldPath old URI of the store
    * @param newPath new URI of the store
    */
-  public synchronized void renameStore(final AlluxioURI oldPath, final AlluxioURI newPath) {
+  public synchronized void renameStore(final AlluxioURI oldPath, final AlluxioURI newPath)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -161,7 +164,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param fromPath URI of the store to be merged
    * @param toPath URI of the store to be merged to
    */
-  void mergeStore(final AlluxioURI fromPath, final AlluxioURI toPath) {
+  void mergeStore(final AlluxioURI fromPath, final AlluxioURI toPath) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

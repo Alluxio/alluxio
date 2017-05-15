@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.Registry;
 import alluxio.Server;
-import alluxio.exception.status.InternalException;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.thrift.TProcessor;
@@ -127,7 +126,7 @@ public final class RegistryTest {
     registry.add(ServerC.class, new ServerC());
     registry.add(ServerC.class, new ServerD());
 
-    mThrown.expect(InternalException.class);
+    mThrown.expect(RuntimeException.class);
     registry.getServers();
   }
 

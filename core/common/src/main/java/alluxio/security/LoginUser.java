@@ -49,7 +49,7 @@ public final class LoginUser {
    *
    * @return the login user
    */
-  public static User get() {
+  public static User get() throws UnauthenticatedException {
     if (sLoginUser == null) {
       synchronized (LoginUser.class) {
         if (sLoginUser == null) {
@@ -65,7 +65,7 @@ public final class LoginUser {
    *
    * @return the login user
    */
-  private static User login() {
+  private static User login() throws UnauthenticatedException {
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSecurityEnabled(authType);
