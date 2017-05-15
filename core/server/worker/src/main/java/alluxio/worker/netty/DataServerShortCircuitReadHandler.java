@@ -117,7 +117,6 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
       RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRPCCallable<Void>() {
         @Override
         public Void call() throws Exception {
-          // It is a no-op to lock the same block multiple times within the same channel.
           if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
             mSessionId = IdUtils.createSessionId();
             // TODO(calvin): Update the locking logic so this can be done better
