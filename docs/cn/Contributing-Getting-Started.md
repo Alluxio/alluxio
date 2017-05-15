@@ -18,6 +18,8 @@ group: Resources
 
 在向Alluxio贡献源码之前，还需要准备一些软件以及账户。
 
+> 在下面的[视频](#视频)部分观看我们的"Alluxio新贡献者"视频！
+
 ### Java 7或者8
 
 开发Alluxio需要Java 7或者8，如果你不确定你系统上的Java版本，可以运行以下命令确认：
@@ -210,6 +212,10 @@ $ git push origin awesome_feature
 在该pull request中的所有评论和问题都被处理完成后，审查者们会回复一个**LGTM**。在至少有两个**LGTM**后，一个管理员将会将你的pull request合并到Alluxio源码中。
 
 祝贺！你成功地向Alluxio贡献了源码！非常感谢你加入到我们的社区中！！
+
+## 视频
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
 
 ## 挑战更高级的任务
 
