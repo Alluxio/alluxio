@@ -38,6 +38,7 @@ import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.async.AsyncPersistHandler;
+import alluxio.master.file.meta.AsyncUfsAbsentPathCache;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -52,7 +53,6 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.meta.AsyncUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
@@ -678,16 +678,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       loadMetadataIfNotExistAndJournal(inodePath,
           LoadMetadataOptions.defaults().setCreateAncestors(true), journalContext);
-
-      boolean exists = false;
-      try {
-        mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
-        exists = true;
-      } finally {
-        if (!exists) {
-          mUfsAbsentPathCache.process(path);
-        }
-      }
+      ensureFullPathAndUpdateCache(inodePath);
       return getFileInfoInternal(inodePath);
     }
   }
@@ -756,17 +747,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
 
       loadMetadataIfNotExistAndJournal(inodePath, loadMetadataOptions, journalContext);
-
-      boolean exists = false;
-      try {
-        mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
-        exists = true;
-      } finally {
-        if (!exists) {
-          mUfsAbsentPathCache.process(path);
-        }
-      }
-
+      ensureFullPathAndUpdateCache(inodePath);
       inode = inodePath.getInode();
 
       List<FileInfo> ret = new ArrayList<>();
@@ -806,6 +787,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (loadMetadataType == LoadMetadataType.Never || (loadMetadataType == LoadMetadataType.Once
         && mUfsAbsentPathCache.isAbsent(path))) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    }
+  }
+
+  /**
+   * Checks to see if the entire path exists in Alluxio. Updates the absent cache if it does not
+   * exist.
+   *
+   * @param inodePath the path to ensure
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the path does not exist
+   */
+  private void ensureFullPathAndUpdateCache(LockedInodePath inodePath)
+      throws InvalidPathException, FileDoesNotExistException {
+    boolean exists = false;
+    try {
+      mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+      exists = true;
+    } finally {
+      if (!exists) {
+        mUfsAbsentPathCache.process(inodePath.getUri());
+      }
     }
   }
 
