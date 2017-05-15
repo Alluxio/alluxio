@@ -17,6 +17,8 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
@@ -481,6 +483,14 @@ public final class CommonUtils {
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, response.getMessage());
     }
+  }
+
+  /**
+   * @param address the Alluxio worker network address
+   * @return true if the worker is local
+   */
+  public static boolean isLocalHost(WorkerNetAddress address) {
+    return address.getHost().equals(NetworkAddressUtils.getClientHostName());
   }
 
   private CommonUtils() {} // prevent instantiation

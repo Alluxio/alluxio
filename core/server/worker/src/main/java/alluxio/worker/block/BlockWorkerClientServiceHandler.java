@@ -14,6 +14,8 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.thrift.LockBlockResult;
+import alluxio.thrift.LockBlockTOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +81,20 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   @Override
   public void cancelBlock(final long sessionId, final long blockId) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
+  }
+
+  /**
+   * Locks the file in Alluxio's space while the session is reading it.
+   *
+   * @param blockId the id of the block to be locked
+   * @param sessionId the id of the session
+   * @return the path of the block file locked
+   * @throws AlluxioTException if an error occurs
+   */
+  @Override
+  public LockBlockResult lockBlock(long blockId, long sessionId, LockBlockTOptions options)
+      throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
@@ -155,6 +171,21 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
       throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
+  }
+
+  /**
+   * Used to unlock a block after the block is accessed, if the block is to be removed, delete
+   * the block file.
+   *
+   * @param blockId the id of the block to unlock
+   * @param sessionId the id of the client requesting the unlock
+   * @return true if successfully unlock the block, return false if the block is not
+   * found or failed to delete the block
+   * @throws AlluxioTException if an error occurs
+   */
+  @Override
+  public boolean unlockBlock(long blockId, long sessionId) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 }

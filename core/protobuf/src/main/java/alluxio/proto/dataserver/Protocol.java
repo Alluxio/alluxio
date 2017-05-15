@@ -1257,17 +1257,17 @@ public final class Protocol {
   public interface OpenUfsBlockOptionsOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // optional string ufsPath = 1;
+    // optional string ufs_path = 1;
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufs_path = 1;</code>
      */
     boolean hasUfsPath();
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufs_path = 1;</code>
      */
     java.lang.String getUfsPath();
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufs_path = 1;</code>
      */
     com.google.protobuf.ByteString
         getUfsPathBytes();
@@ -1472,17 +1472,17 @@ public final class Protocol {
     }
 
     private int bitField0_;
-    // optional string ufsPath = 1;
-    public static final int UFSPATH_FIELD_NUMBER = 1;
+    // optional string ufs_path = 1;
+    public static final int UFS_PATH_FIELD_NUMBER = 1;
     private java.lang.Object ufsPath_;
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufs_path = 1;</code>
      */
     public boolean hasUfsPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufs_path = 1;</code>
      */
     public java.lang.String getUfsPath() {
       java.lang.Object ref = ufsPath_;
@@ -1499,7 +1499,7 @@ public final class Protocol {
       }
     }
     /**
-     * <code>optional string ufsPath = 1;</code>
+     * <code>optional string ufs_path = 1;</code>
      */
     public com.google.protobuf.ByteString
         getUfsPathBytes() {
@@ -1938,16 +1938,16 @@ public final class Protocol {
       }
       private int bitField0_;
 
-      // optional string ufsPath = 1;
+      // optional string ufs_path = 1;
       private java.lang.Object ufsPath_ = "";
       /**
-       * <code>optional string ufsPath = 1;</code>
+       * <code>optional string ufs_path = 1;</code>
        */
       public boolean hasUfsPath() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional string ufsPath = 1;</code>
+       * <code>optional string ufs_path = 1;</code>
        */
       public java.lang.String getUfsPath() {
         java.lang.Object ref = ufsPath_;
@@ -1961,7 +1961,7 @@ public final class Protocol {
         }
       }
       /**
-       * <code>optional string ufsPath = 1;</code>
+       * <code>optional string ufs_path = 1;</code>
        */
       public com.google.protobuf.ByteString
           getUfsPathBytes() {
@@ -1977,7 +1977,7 @@ public final class Protocol {
         }
       }
       /**
-       * <code>optional string ufsPath = 1;</code>
+       * <code>optional string ufs_path = 1;</code>
        */
       public Builder setUfsPath(
           java.lang.String value) {
@@ -1990,7 +1990,7 @@ public final class Protocol {
         return this;
       }
       /**
-       * <code>optional string ufsPath = 1;</code>
+       * <code>optional string ufs_path = 1;</code>
        */
       public Builder clearUfsPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1999,7 +1999,7 @@ public final class Protocol {
         return this;
       }
       /**
-       * <code>optional string ufsPath = 1;</code>
+       * <code>optional string ufs_path = 1;</code>
        */
       public Builder setUfsPathBytes(
           com.google.protobuf.ByteString value) {
@@ -8804,34 +8804,35 @@ public final class Protocol {
       "et\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\016\n\006cancel\030\004 \001(\010" +
       "\022\017\n\007promote\030\007 \001(\010\022\023\n\013packet_size\030\005 \001(\003\022M" +
       "\n\026open_ufs_block_options\030\006 \001(\0132-.alluxio" +
-      ".proto.dataserver.OpenUfsBlockOptions\"\224\001" +
-      "\n\023OpenUfsBlockOptions\022\017\n\007ufsPath\030\001 \001(\t\022\026" +
-      "\n\016offset_in_file\030\002 \001(\003\022\022\n\nblock_size\030\003 \001" +
-      "(\003\022\035\n\025maxUfsReadConcurrency\030\004 \001(\005\022\017\n\007mou",
-      "ntId\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\"\333\001\n\014WriteRe" +
-      "quest\0223\n\004type\030\001 \001(\0162%.alluxio.proto.data" +
-      "server.RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offset" +
-      "\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013\n\003eof\030\005 \001(\010\022\016\n\006can" +
-      "cel\030\006 \001(\010\022O\n\027create_ufs_file_options\030\007 \001" +
-      "(\0132..alluxio.proto.dataserver.CreateUfsF" +
-      "ileOptions\"f\n\024CreateUfsFileOptions\022\020\n\010uf" +
-      "s_path\030\001 \001(\t\022\r\n\005owner\030\002 \001(\t\022\r\n\005group\030\003 \001" +
-      "(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mount_id\030\005 \001(\003\"J\n\010Re" +
-      "sponse\022-\n\006status\030\001 \001(\0162\035.alluxio.proto.s",
-      "tatus.PStatus\022\017\n\007message\030\002 \001(\t\"i\n\014ReadRe" +
-      "sponse\0229\n\004type\030\001 \001(\0162+.alluxio.proto.dat" +
-      "aserver.ReadResponse.Type\"\036\n\004Type\022\026\n\022UFS" +
-      "_READ_HEARTBEAT\020\001\"\013\n\tHeartbeat\":\n\025LocalB" +
-      "lockOpenRequest\022\020\n\010block_id\030\001 \001(\003\022\017\n\007pro" +
-      "mote\030\002 \001(\010\"&\n\026LocalBlockOpenResponse\022\014\n\004" +
-      "path\030\001 \001(\t\"*\n\026LocalBlockCloseRequest\022\020\n\010" +
-      "block_id\030\001 \001(\003\"o\n\027LocalBlockCreateReques" +
-      "t\022\020\n\010block_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020spa" +
-      "ce_to_reserve\030\004 \001(\003\022\032\n\022only_reserve_spac",
-      "e\030\005 \001(\010\"(\n\030LocalBlockCreateResponse\022\014\n\004p" +
-      "ath\030\001 \001(\t\"=\n\031LocalBlockCompleteRequest\022\020" +
-      "\n\010block_id\030\001 \001(\003\022\016\n\006cancel\030\002 \001(\010*.\n\013Requ" +
-      "estType\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020\001"
+      ".proto.dataserver.OpenUfsBlockOptions\"\225\001" +
+      "\n\023OpenUfsBlockOptions\022\020\n\010ufs_path\030\001 \001(\t\022" +
+      "\026\n\016offset_in_file\030\002 \001(\003\022\022\n\nblock_size\030\003 " +
+      "\001(\003\022\035\n\025maxUfsReadConcurrency\030\004 \001(\005\022\017\n\007mo",
+      "untId\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\"\333\001\n\014WriteR" +
+      "equest\0223\n\004type\030\001 \001(\0162%.alluxio.proto.dat" +
+      "aserver.RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offse" +
+      "t\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013\n\003eof\030\005 \001(\010\022\016\n\006ca" +
+      "ncel\030\006 \001(\010\022O\n\027create_ufs_file_options\030\007 " +
+      "\001(\0132..alluxio.proto.dataserver.CreateUfs" +
+      "FileOptions\"f\n\024CreateUfsFileOptions\022\020\n\010u" +
+      "fs_path\030\001 \001(\t\022\r\n\005owner\030\002 \001(\t\022\r\n\005group\030\003 " +
+      "\001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mount_id\030\005 \001(\003\"J\n\010R" +
+      "esponse\022-\n\006status\030\001 \001(\0162\035.alluxio.proto.",
+      "status.PStatus\022\017\n\007message\030\002 \001(\t\"i\n\014ReadR" +
+      "esponse\0229\n\004type\030\001 \001(\0162+.alluxio.proto.da" +
+      "taserver.ReadResponse.Type\"\036\n\004Type\022\026\n\022UF" +
+      "S_READ_HEARTBEAT\020\001\"\013\n\tHeartbeat\":\n\025Local" +
+      "BlockOpenRequest\022\020\n\010block_id\030\001 \001(\003\022\017\n\007pr" +
+      "omote\030\002 \001(\010\"&\n\026LocalBlockOpenResponse\022\014\n" +
+      "\004path\030\001 \001(\t\"*\n\026LocalBlockCloseRequest\022\020\n" +
+      "\010block_id\030\001 \001(\003\"o\n\027LocalBlockCreateReque" +
+      "st\022\020\n\010block_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020sp" +
+      "ace_to_reserve\030\004 \001(\003\022\032\n\022only_reserve_spa",
+      "ce\030\005 \001(\010\"(\n\030LocalBlockCreateResponse\022\014\n\004" +
+      "path\030\001 \001(\t\"=\n\031LocalBlockCompleteRequest\022" +
+      "\020\n\010block_id\030\001 \001(\003\022\016\n\006cancel\030\002 \001(\010*.\n\013Req" +
+      "uestType\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020" +
+      "\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {

@@ -194,8 +194,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
       throw exception;
     }
 
-    // NOTE: PacketOutStream#cancel doesn't imply PacketOutStream#close. PacketOutStream#close
-    // must be closed for every PacketOutStream instance.
+    close();
   }
 
   @Override

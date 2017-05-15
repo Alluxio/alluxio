@@ -11,6 +11,8 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.Locatable;
@@ -19,7 +21,10 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -50,40 +55,32 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   private final WorkerNetAddress mAddress;
 
   /**
-   * Creates an instance of {@link BlockInStream} that reads from local file directly.
+   * Creates an {@link BlockInStream} that reads from a local block.
    *
-   * @param blockId the block ID
-   * @param blockSize the block size
-   * @param workerNetAddress the worker network address
    * @param context the file system context
-   * @param options the options
-   * @return the {@link BlockInStream} created
-   */
-  // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createShortCircuitBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
-      throws IOException {
-    PacketInStream inStream = PacketInStream
-        .createLocalPacketInStream(context, workerNetAddress, blockId, blockSize, options);
-    return new BlockInStream(inStream, workerNetAddress, options);
-  }
-
-  /**
-   * Creates an instance of remote {@link BlockInStream} that reads from a worker.
-   *
    * @param blockId the block ID
-   * @param blockSize the block size
-   * @param workerNetAddress the worker network address
-   * @param context the file system context
-   * @param openUfsBlockOptions the open UFS block options
-   * @param options the options
-   * @return the {@link BlockInStream} created
+   * @param blockSize the block size in bytes
+   * @param address the Alluxio worker address
+   * @param openUfsBlockOptions the options to open a UFS block, set to null if this is block is
+   *        not persisted in UFS
+   * @param options the in stream options
+   * @return the {@link InputStream} object
    */
-  // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context,
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options)
-      throws IOException {
+  public static BlockInStream createBlockInStream(FileSystemContext context, long blockId,
+      long blockSize, WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
+      InStreamOptions options) throws IOException {
+    if (CommonUtils.isLocalHost(address) && Configuration
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
+        .isDomainSocketSupported(address)) {
+      try {
+        PacketInStream inStream = PacketInStream
+            .createLocalPacketInStream(context, address, blockId, blockSize, options);
+        return new BlockInStream(inStream, address, options);
+      } catch (NotFoundException e) {
+        // Failed to do short circuit read because the block is not available in Alluxio.
+        // We will try to read from UFS via netty. So this exception is ignored.
+      }
+    }
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
         .setPromote(options.getAlluxioStorageType().isPromote());
     if (openUfsBlockOptions != null) {
@@ -91,9 +88,9 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
     }
 
     PacketInStream inStream = PacketInStream
-        .createNettyPacketInStream(context, workerNetAddress, builder.buildPartial(), blockSize,
+        .createNettyPacketInStream(context, address, builder.buildPartial(), blockSize,
             options);
-    return new BlockInStream(inStream, workerNetAddress, options);
+    return new BlockInStream(inStream, address, options);
   }
 
   @Override

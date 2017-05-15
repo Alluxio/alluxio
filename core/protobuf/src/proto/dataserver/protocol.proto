@@ -32,7 +32,7 @@ message ReadRequest {
 // Options to open a UFS block.
 // next available id: 7
 message OpenUfsBlockOptions {
-  optional string ufsPath = 1;
+  optional string ufs_path = 1;
   // The offset of the block in within the file.
   optional int64 offset_in_file = 2;
   // The block size.

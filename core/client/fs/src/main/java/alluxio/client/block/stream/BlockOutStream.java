@@ -11,15 +11,21 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,40 +40,29 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
   private boolean mClosed;
 
   /**
-   * Creates a new block output stream that writes to local file directly.
+   * Creates an {@link BlockOutStream}.
    *
-   * @param blockId the block id
-   * @param blockSize the block size
-   * @param workerNetAddress the worker network address
    * @param context the file system context
-   * @param options the options
-   * @return the {@link BlockOutStream} instance created
+   * @param blockId the block ID
+   * @param blockSize the block size in bytes
+   * @param address the Alluxio worker address
+   * @param options the out stream options
+   * @return the {@link OutputStream} object
    */
-  public static BlockOutStream createShortCircuitBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
-      throws IOException {
-    PacketOutStream outStream = PacketOutStream
-        .createLocalPacketOutStream(context, workerNetAddress, blockId, blockSize, options);
-    return new BlockOutStream(outStream, options);
-  }
-
-  /**
-   * Creates a new netty block output stream.
-   *
-   * @param blockId the block id
-   * @param blockSize the block size
-   * @param workerNetAddress the worker network address
-   * @param context the file system context
-   * @param options the options
-   * @return the {@link BlockOutStream} instance created
-   */
-  public static BlockOutStream createNettyBlockOutStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, OutStreamOptions options)
-      throws IOException {
-    PacketOutStream outStream = PacketOutStream
-        .createNettyPacketOutStream(context, workerNetAddress, blockId, blockSize,
-            Protocol.RequestType.ALLUXIO_BLOCK, options);
-    return new BlockOutStream(outStream, options);
+  public static BlockOutStream createBlockOutStream(FileSystemContext context, long blockId,
+      long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
+    if (CommonUtils.isLocalHost(address) && Configuration
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
+        .isDomainSocketSupported(address)) {
+      PacketOutStream outStream = PacketOutStream
+          .createLocalPacketOutStream(context, address, blockId, blockSize, options);
+      return new BlockOutStream(outStream, options);
+    } else {
+      PacketOutStream outStream = PacketOutStream
+          .createNettyPacketOutStream(context, address, blockId, blockSize,
+              Protocol.RequestType.ALLUXIO_BLOCK, options);
+      return new BlockOutStream(outStream, options);
+    }
   }
 
   // Explicitly overriding some write methods which are not efficiently implemented in
@@ -95,7 +90,6 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
     }
     mClosed = true;
     mOutStream.cancel();
-    mOutStream.close();
   }
 
   @Override
