@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -476,6 +477,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void loadDirMetadataMode() throws Exception {
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(sUfs) || UnderFileSystemUtils.isHdfs(sUfs));
+    DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) sUfs;
 
     List<Integer> permissionValues =
         Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
@@ -485,10 +487,10 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       sTFS.delete(dir, true);
       // Create a directory directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, dir);
-      sUfs.mkdirs(ufsPath,
+      directoryUfs.mkdirs(ufsPath,
           MkdirsOptions.defaults().setCreateParent(false).setOwner("testuser").setGroup("testgroup")
               .setMode(new Mode((short) value)));
-      Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, dir)));
+      Assert.assertTrue(directoryUfs.isDirectory(PathUtils.concatPath(sUfsRoot, dir)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
       Assert.assertEquals(new Mode((short) value).toString(),
           new Mode(sTFS.getFileStatus(dir).getPermission().toShort()).toString());

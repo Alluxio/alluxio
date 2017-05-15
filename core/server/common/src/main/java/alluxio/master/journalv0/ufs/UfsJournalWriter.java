@@ -19,6 +19,7 @@ import alluxio.master.journalv0.JournalFormatter;
 import alluxio.master.journalv0.JournalOutputStream;
 import alluxio.master.journalv0.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.UnderFileSystemUtils;
@@ -51,7 +52,7 @@ public final class UfsJournalWriter implements JournalWriter {
    */
   private final URI mTempCheckpoint;
   /** The UFS where the journal is being written to. */
-  private final UnderFileSystem mUfs;
+  private final DirectoryUnderFileSystem mUfs;
 
   /** The log number to assign to the next complete log. */
   private long mNextCompleteLogNumber = UfsJournal.FIRST_COMPLETED_LOG_NUMBER;
@@ -80,7 +81,8 @@ public final class UfsJournalWriter implements JournalWriter {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation());
+    // TODO(adit): Journal must be placed on DirectoryUnderFileSystem?
+    mUfs = (DirectoryUnderFileSystem) UnderFileSystem.Factory.create(mJournal.getLocation());
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 

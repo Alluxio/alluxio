@@ -91,6 +91,7 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
@@ -814,11 +815,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return true;
     }
     if (!inode.isPersisted()) {
-      return !ufs.exists(ufsPath);
+      boolean exists;
+      if (ufs instanceof DirectoryUnderFileSystem) {
+        DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+        exists = directoryUfs.exists(ufsPath);
+      } else {
+        exists = ufs.isFile(ufsPath);
+      }
+      return !exists;
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
-      return ufs.isDirectory(ufsPath);
+      if (ufs instanceof DirectoryUnderFileSystem) {
+        DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+        return directoryUfs.isDirectory(ufsPath);
+      }
+      // Ufs doesn't store directories
+      return true;
     } else {
       InodeFile file = (InodeFile) inode;
       return ufs.isFile(ufsPath)
@@ -1303,7 +1316,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             if (!ufs.deleteDirectory(ufsUri,
                 alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
               // TODO(adit): handle partial failures of recursive deletes
-              failedToDelete = ufs.isDirectory(ufsUri);
+              // TODO(adit): so we need this check?
+              // failedToDelete = ufs.isDirectory(ufsUri);
               if (!failedToDelete) {
                 LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
               }
@@ -2069,11 +2083,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
-        // uri does not exist in ufs
-        InodeDirectory inode = (InodeDirectory) inodePath.getInode();
-        inode.setDirectChildrenLoaded(true);
-        return;
+      if (options.getUfsStatus() == null) {
+        boolean exists;
+        // TODO(adit): create convenience method
+        if (ufs instanceof DirectoryUnderFileSystem) {
+          DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+          exists = directoryUfs.exists(ufsUri.toString());
+        } else {
+          exists = ufs.isFile(ufsUri.toString());
+        }
+        if (!exists) {
+          // uri does not exist in ufs
+          InodeDirectory inode = (InodeDirectory) inodePath.getInode();
+          inode.setDirectChildrenLoaded(true);
+          return;
+        }
       }
       boolean isFile;
       if (options.getUfsStatus() != null) {
@@ -2351,16 +2375,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mUfsManager.addMount(mountId, ufsPath.toString(), options.getProperties());
     try {
       if (!replayed) {
-        // Check that the ufsPath exists and is a directory
-        if (!ufs.isDirectory(ufsPath.toString())) {
-          throw new IOException(
-              ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+        if (ufs instanceof DirectoryUnderFileSystem) {
+          DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+          // Check that the ufsPath exists and is a directory
+          if (!directoryUfs.isDirectory(ufsPath.toString())) {
+            throw new IOException(
+                ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+          }
         }
         // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
         String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         UnderFileSystem defaultUfs = UnderFileSystem.Factory.createForRoot();
         String shadowPath = PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath());
-        if (defaultUfs.exists(shadowPath)) {
+        boolean shadowExists;
+        if (defaultUfs instanceof DirectoryUnderFileSystem) {
+          DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) defaultUfs;
+          shadowExists = directoryUfs.exists(shadowPath);
+        } else {
+          shadowExists = defaultUfs.isFile(shadowPath);
+        }
+        if (shadowExists) {
           throw new IOException(
               ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
         }

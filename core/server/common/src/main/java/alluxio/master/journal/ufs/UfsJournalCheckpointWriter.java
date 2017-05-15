@@ -15,7 +15,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.DirectoryUnderFileSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalCheckpointWriter.class);
 
   private final UfsJournal mJournal;
-  private final UnderFileSystem mUfs;
+  private final DirectoryUnderFileSystem mUfs;
 
   /** The checkpoint file to be committed to. */
   private final UfsJournalFile mCheckpointFile;
@@ -67,7 +67,8 @@ final class UfsJournalCheckpointWriter implements JournalWriter {
   UfsJournalCheckpointWriter(UfsJournal journal, JournalWriterOptions options)
       throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
-    mUfs = mJournal.getUfs();
+    // TODO(adit): Journal must be placed on DirectoryUnderFileSystem?
+    mUfs = (DirectoryUnderFileSystem) mJournal.getUfs();
 
     mTmpCheckpointFileLocation = UfsJournalFile.encodeTemporaryCheckpointFileLocation(mJournal);
     mTmpCheckpointStream = mUfs.create(mTmpCheckpointFileLocation.toString());
