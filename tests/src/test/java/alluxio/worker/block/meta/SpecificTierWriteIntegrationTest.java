@@ -133,7 +133,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
         }
         return mBlockMaster.getUsedBytes() == 0;
       }
-    }, WaitForOptions.defaults().setTimeout(10 * Constants.SECOND_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
   }
 
   @Test

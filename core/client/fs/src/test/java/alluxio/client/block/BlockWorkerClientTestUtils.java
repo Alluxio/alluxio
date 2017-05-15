@@ -37,6 +37,6 @@ public class BlockWorkerClientTestUtils {
                 .getInternalState(RetryHandlingBlockWorkerClient.class, "NUM_ACTIVE_SESSIONS");
             return numActiveHeartbeats.intValue() == 0;
           }
-        }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+        }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }
