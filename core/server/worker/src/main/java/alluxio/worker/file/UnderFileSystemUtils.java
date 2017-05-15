@@ -18,6 +18,7 @@ import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 
@@ -42,17 +43,21 @@ public final class UnderFileSystemUtils {
    */
   public static void prepareFilePath(AlluxioURI alluxioPath, String ufsPath, FileSystem fs,
       UnderFileSystem ufs) throws AlluxioException, IOException {
+    if (!(ufs instanceof DirectoryUnderFileSystem)) {
+      return;
+    }
+    DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
     AlluxioURI dstPath = new AlluxioURI(ufsPath);
     String parentPath = dstPath.getParent().getPath();
     // creates the parent folder if it does not exist
-    if (!ufs.isDirectory(parentPath)) {
+    if (!directoryUfs.isDirectory(parentPath)) {
       // Create ancestor directories from top to the bottom. We cannot use recursive create parents
       // here because the permission for the ancestors can be different.
       Stack<Pair<String, MkdirsOptions>> ufsDirsToMakeWithOptions = new Stack<>();
       AlluxioURI curAlluxioPath = alluxioPath.getParent();
       AlluxioURI curUfsPath = dstPath.getParent();
       // Stop at Alluxio mount point because the mapped directory in UFS may not exist.
-      while (curUfsPath != null && !ufs.isDirectory(curUfsPath.toString())
+      while (curUfsPath != null && !directoryUfs.isDirectory(curUfsPath.toString())
           && curAlluxioPath != null) {
         URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
         if (curDirStatus.isMountPoint()) {
@@ -69,8 +74,8 @@ public final class UnderFileSystemUtils {
         Pair<String, MkdirsOptions> ufsDirAndPerm = ufsDirsToMakeWithOptions.pop();
         // UFS mkdirs might fail if the directory is already created. If so, skip the mkdirs
         // and assume the directory is already prepared, regardless of permission matching.
-        if (!ufs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())
-            && !ufs.isDirectory(ufsDirAndPerm.getFirst())) {
+        if (!directoryUfs.mkdirs(ufsDirAndPerm.getFirst(), ufsDirAndPerm.getSecond())
+            && !directoryUfs.isDirectory(ufsDirAndPerm.getFirst())) {
           throw new IOException("Failed to create dir: " + ufsDirAndPerm.getFirst());
         }
       }

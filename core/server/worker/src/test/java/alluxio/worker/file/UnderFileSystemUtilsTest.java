@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.FileInfo;
@@ -39,7 +40,7 @@ import java.io.IOException;
 public final class UnderFileSystemUtilsTest {
 
   private FileSystem mFileSystem;
-  private UnderFileSystem mUnderFileSystem;
+  private DirectoryUnderFileSystem mUnderFileSystem;
 
   // Test paths in Alluxio
   final AlluxioURI mAlluxioRoot = new AlluxioURI("/");
@@ -69,7 +70,7 @@ public final class UnderFileSystemUtilsTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = PowerMockito.mock(FileSystem.class);
-    mUnderFileSystem = PowerMockito.mock(UnderFileSystem.class);
+    mUnderFileSystem = PowerMockito.mock(DirectoryUnderFileSystem.class);
 
     Mockito.when(mUnderFileSystem.mkdirs(Mockito.anyString(), Mockito.any(MkdirsOptions.class)))
         .thenReturn(true);

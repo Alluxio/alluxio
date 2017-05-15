@@ -16,7 +16,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
 import org.slf4j.Logger;
@@ -191,21 +190,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean exists(final String path) throws IOException {
-    return call(new UfsCallable<Boolean>() {
-      @Override
-      public Boolean call() throws IOException {
-        return mUnderFileSystem.exists(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("Exists: path=%s", path);
-      }
-    });
-  }
-
-  @Override
   public long getBlockSizeByte(final String path) throws IOException {
     return call(new UfsCallable<Long>() {
       @Override
@@ -307,21 +291,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean isDirectory(final String path) throws IOException {
-    return call(new UfsCallable<Boolean>() {
-      @Override
-      public Boolean call() throws IOException {
-        return mUnderFileSystem.isDirectory(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("IsDirectory: path=%s", path);
-      }
-    });
-  }
-
-  @Override
   public boolean isFile(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
@@ -363,36 +332,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("ListStatus: path=%s, options=%s", path, options);
-      }
-    });
-  }
-
-  @Override
-  public boolean mkdirs(final String path) throws IOException {
-    return call(new UfsCallable<Boolean>() {
-      @Override
-      public Boolean call() throws IOException {
-        return mUnderFileSystem.mkdirs(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("Mkdirs: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public boolean mkdirs(final String path, final MkdirsOptions options) throws IOException {
-    return call(new UfsCallable<Boolean>() {
-      @Override
-      public Boolean call() throws IOException {
-        return mUnderFileSystem.mkdirs(path, options);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("Mkdirs: path=%s, options=%s", path, options);
       }
     });
   }
@@ -536,7 +475,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    * @param <T> the return type
    * @return the result of the callable
    */
-  private <T> T call(UfsCallable<T> callable) throws IOException {
+  protected  <T> T call(UfsCallable<T> callable) throws IOException {
     LOG.debug("Enter: {}", callable);
     try {
       T ret = callable.call();
