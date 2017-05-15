@@ -103,13 +103,13 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   /**
-   * Checks the existence of the corresponding ufs path for the given Alluxio path.
+   * Processes and checks the existence of the corresponding ufs path for the given Alluxio path.
    *
-   * @param alluxioUri the Alluxio path to check
+   * @param alluxioUri the Alluxio path to process
    * @param mountInfo the associated {@link MountInfo} for the Alluxio path
    * @return if true, further traversal of the descendant paths should continue
    */
-  private boolean checkPath(AlluxioURI alluxioUri, MountInfo mountInfo) {
+  private boolean processSinglePath(AlluxioURI alluxioUri, MountInfo mountInfo) {
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     Lock writeLock = rwLock.writeLock();
     Lock readLock = null;
@@ -124,17 +124,22 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         writeLock = null;
         readLock = existingLock.readLock();
         readLock.lock();
+
+        if (mCache.getIfPresent(alluxioUri.getPath()) != null) {
+          // This path is already in the cache (is absent). Further traversal is unnecessary.
+          return false;
+        }
       } else {
         // This thread has the exclusive lock for this path.
 
         // Resolve this Alluxio uri. It should match the original mount id.
         MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
-        UnderFileSystem ufs = resolution.getUfs();
         if (resolution.getMountId() != mountInfo.getMountId()) {
           // This mount point has changed. Further traversal is unnecessary.
           return false;
         }
 
+        UnderFileSystem ufs = resolution.getUfs();
         if (ufs.exists(resolution.getUri().toString())) {
           // This ufs path exists. Remove the cache entry.
           mCache.invalidate(alluxioUri.getPath());
@@ -225,7 +230,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         return;
       }
       for (AlluxioURI alluxioUri : getNestedPaths(mPath, mountInfo)) {
-        if (!checkPath(alluxioUri, mountInfo)) {
+        if (!processSinglePath(alluxioUri, mountInfo)) {
           break;
         }
       }
