@@ -11,8 +11,6 @@
 
 package alluxio.worker.netty;
 
-import static alluxio.worker.netty.FileTransferType.TRANSFER;
-
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -143,7 +141,8 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
     openBlock(channel);
     BlockReader blockReader = ((BlockReadRequestInternal) mRequest).mBlockReader;
 
-    if (mTransferType == TRANSFER && !(blockReader instanceof UnderFileSystemBlockReader)) {
+    if (mTransferType == FileTransferType.TRANSFER
+        && (blockReader instanceof LocalFileBlockReader)) {
       return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
           offset, len);
     } else {
@@ -160,7 +159,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   }
 
   /**
-   * Opens the UFS block if it is not open.
+   * Opens the block if it is not open.
    *
    * @param channel the netty channel
    * @throws Exception if it fails to open the UFS block
