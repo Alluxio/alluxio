@@ -16,9 +16,6 @@ import alluxio.exception.ExceptionMessage;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-
 /**
  * Tests enum type {@link PropertyKey}.
  */
@@ -192,9 +189,6 @@ public final class PropertyKeyTest {
 
   @Test
   public void isDeprecatedExceptionThrown() throws Exception {
-    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    System.setErr(new PrintStream(outContent));
     Assert.assertFalse(PropertyKey.isDeprecated("foo"));
-    Assert.assertEquals("No Such Field Exception: foo\n", outContent.toString());
   }
 }

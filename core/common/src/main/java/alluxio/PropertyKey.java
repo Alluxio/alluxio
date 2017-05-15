@@ -1321,7 +1321,6 @@ public class PropertyKey {
       }
       return false;
     } catch (NoSuchFieldException e) {
-      System.err.println(String.format("No Such Field Exception: %s", e.getMessage()));
       return false;
     }
   }
