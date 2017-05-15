@@ -42,8 +42,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * cache, since the processing of the path may be slow.
  */
 @ThreadSafe
-public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathAsyncCache.class);
+public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
+  private static final Logger LOG = LoggerFactory.getLogger(AsyncUfsAbsentPathCache.class);
   /** Number of threads for the async pool. */
   private static final int NUM_THREADS = 50;
   /** Number of seconds to keep threads alive. */
@@ -61,11 +61,11 @@ public final class UfsAbsentPathAsyncCache implements UfsAbsentPathCache {
   private final ThreadPoolExecutor mPool;
 
   /**
-   * Creates a new instance of {@link UfsAbsentPathAsyncCache}.
+   * Creates a new instance of {@link AsyncUfsAbsentPathCache}.
    *
    * @param mountTable the mount table
    */
-  public UfsAbsentPathAsyncCache(MountTable mountTable) {
+  public AsyncUfsAbsentPathCache(MountTable mountTable) {
     mMountTable = mountTable;
     mCurrentPaths = new ConcurrentHashMapV8<>(8, 0.95f, 8);
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();

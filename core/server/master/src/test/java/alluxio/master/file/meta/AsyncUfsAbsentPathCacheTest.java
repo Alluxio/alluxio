@@ -31,10 +31,10 @@ import java.util.Collections;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * Unit tests for {@link UfsAbsentPathAsyncCache}.
+ * Unit tests for {@link AsyncUfsAbsentPathCache}.
  */
-public class UfsAbsentPathAsyncCacheTest {
-  private UfsAbsentPathAsyncCache mUfsAbsentPathCache;
+public class AsyncUfsAbsentPathCacheTest {
+  private AsyncUfsAbsentPathCache mUfsAbsentPathCache;
   private MountTable mMountTable;
 
   private long mMountId;
@@ -42,14 +42,14 @@ public class UfsAbsentPathAsyncCacheTest {
   private String mLocalUfsPath;
 
   /**
-   * Sets up a new {@link UfsAbsentPathAsyncCache} before a test runs.
+   * Sets up a new {@link AsyncUfsAbsentPathCache} before a test runs.
    */
   @Before
   public void before() throws Exception {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
-    mUfsAbsentPathCache = new UfsAbsentPathAsyncCache(mMountTable);
+    mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     mUfsManager.addMount(mMountId, mLocalUfsPath, Collections.<String, String>emptyMap());

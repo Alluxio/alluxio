@@ -52,7 +52,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.meta.UfsAbsentPathAsyncCache;
+import alluxio.master.file.meta.AsyncUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
@@ -329,7 +329,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
-    mUfsAbsentPathCache = new UfsAbsentPathAsyncCache(mMountTable);
+    mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable);
 
     Metrics.registerGauges(this, mUfsManager);
   }
