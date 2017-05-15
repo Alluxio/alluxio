@@ -154,7 +154,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
       mStart = start;
       mEnd = end;
       mPacketSize = packetSize;
-      mSessionId = IdUtils.getRandomNonNegativeLong();
+      mSessionId = IdUtils.createSessionId();
     }
   }
 

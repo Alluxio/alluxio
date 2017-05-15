@@ -108,7 +108,7 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
           ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
         } else {
           if (mSessionId == INVALID_SESSION_ID) {
-            mSessionId = IdUtils.getRandomNonNegativeLong();
+            mSessionId = IdUtils.createSessionId();
             String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
                 mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
             Protocol.LocalBlockCreateResponse response =
@@ -133,9 +133,9 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public String toString() {
         if (request.getOnlyReserveSpace()) {
-          return String.format("Create block: %s", request.toString());
-        } else {
           return String.format("Reserve space: %s", request.toString());
+        } else {
+          return String.format("Create block: %s", request.toString());
         }
       }
     });

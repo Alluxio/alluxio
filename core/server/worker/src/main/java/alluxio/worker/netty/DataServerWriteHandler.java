@@ -144,7 +144,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
     WriteRequestInternal(long id) {
       mId = id;
-      mSessionId = IdUtils.getRandomNonNegativeLong();
+      mSessionId = IdUtils.createSessionId();
     }
 
     /**

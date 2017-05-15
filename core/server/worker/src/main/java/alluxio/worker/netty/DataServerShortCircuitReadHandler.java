@@ -119,7 +119,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
         public Void call() throws Exception {
           // It is a no-op to lock the same block multiple times within the same channel.
           if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
-            mSessionId = IdUtils.getRandomNonNegativeLong();
+            mSessionId = IdUtils.createSessionId();
             // TODO(calvin): Update the locking logic so this can be done better
             if (mRequest.getPromote()) {
               try {
