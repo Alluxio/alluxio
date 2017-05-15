@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -72,10 +75,12 @@ public class PropertyKey {
   public static final PropertyKey ZOOKEEPER_LEADER_PATH =
       create(Name.ZOOKEEPER_LEADER_PATH, "/leader");
 
-  //
-  // UFS related properties
-  //
-  // Deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
+  /**
+   * UFS related properties.
+   *
+   * @deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
+   */
+  @Deprecated
   public static final PropertyKey UNDERFS_ADDRESS =
       create(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR));
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
@@ -183,11 +188,12 @@ public class PropertyKey {
       create(Template.MASTER_MOUNT_TABLE_UFS,
           String.format("${%s}", Name.UNDERFS_ADDRESS), "root");
 
-  //
-  // Master related properties
-  //
-  // deprecated since version 1.3 and will be removed in version 2.0
-  // use MASTER_HOSTNAME instead
+  /**
+   * Master related properties.
+   *
+   * @deprecated since version 1.3 and will be removed in version 2.0, use MASTER_HOSTNAME instead.
+   */
+  @Deprecated
   public static final PropertyKey MASTER_ADDRESS = create(Name.MASTER_ADDRESS, null);
   public static final PropertyKey MASTER_BIND_HOST = create(Name.MASTER_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
@@ -206,7 +212,10 @@ public class PropertyKey {
       create(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 300000);
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       create(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR));
-  // Deprecated since 1.5.0 and will be removed in 2.0.
+  /**
+   * @deprecated since 1.5.0 and will be removed in 2.0.
+   */
+  @Deprecated
   public static final PropertyKey MASTER_JOURNAL_FORMATTER_CLASS =
       create(Name.MASTER_JOURNAL_FORMATTER_CLASS,
           "alluxio.master.journalv0.ProtoBufJournalFormatter");
@@ -237,8 +246,11 @@ public class PropertyKey {
       create(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
           String.format("${%s}/recompute.log", Name.LOGS_DIR));
   public static final PropertyKey MASTER_PRINCIPAL = create(Name.MASTER_PRINCIPAL, null);
-  // deprecated since version 1.4 and will be removed in version 2.0
-  // use USER_RPC_RETRY_MAX_NUM_RETRY instead
+  /**
+   * @deprecated since version 1.4 and will be removed in version 2.0,
+   * use USER_RPC_RETRY_MAX_NUM_RETRY instead.
+   */
+  @Deprecated
   public static final PropertyKey MASTER_RETRY =
       create(Name.MASTER_RETRY, String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY));
   public static final PropertyKey MASTER_RPC_PORT = create(Name.MASTER_RPC_PORT, 19998);
@@ -441,10 +453,16 @@ public class PropertyKey {
       create(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10);
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       create(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_BLOCK_REMOTE_READER_CLASS =
       create(Name.USER_BLOCK_REMOTE_READER_CLASS, "alluxio.client.netty.NettyRemoteBlockReader");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_BLOCK_REMOTE_WRITER_CLASS =
       create(Name.USER_BLOCK_REMOTE_WRITER_CLASS, "alluxio.client.netty.NettyRemoteBlockWriter");
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
@@ -530,19 +548,31 @@ public class PropertyKey {
       create(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000);
-  // Deprecated
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_DELEGATION_ENABLED =
       create(Name.USER_UFS_DELEGATION_ENABLED, true);
-  // Deprecated
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
       create(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, "8MB");
   public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
       create(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, "2MB");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_FILE_READER_CLASS =
       create(Name.USER_UFS_FILE_READER_CLASS,
           "alluxio.client.netty.NettyUnderFileSystemFileReader");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_FILE_WRITER_CLASS =
       create(Name.USER_UFS_FILE_WRITER_CLASS,
           "alluxio.client.netty.NettyUnderFileSystemFileWriter");
@@ -692,7 +722,7 @@ public class PropertyKey {
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
 
-   //
+    //
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
@@ -1272,5 +1302,26 @@ public class PropertyKey {
   public String getDefaultValue() {
     Object value = DEFAULT_VALUES.get(this);
     return value != null ? value.toString() : null;
+  }
+
+  /**
+   * @param name the name of a property key
+   * @return if this property key is deprecated
+   */
+  public static boolean isDeprecated(String name) {
+    try {
+      PropertyKey key = new PropertyKey(name);
+      Class c = key.getClass();
+      Field field = c.getDeclaredField(name);
+      Annotation[] annotations = field.getDeclaredAnnotations();
+      for (Annotation anno : annotations) {
+        if (anno instanceof Deprecated) {
+          return true;
+        }
+      }
+      return false;
+    } catch (NoSuchFieldException e) {
+      return false;
+    }
   }
 }
