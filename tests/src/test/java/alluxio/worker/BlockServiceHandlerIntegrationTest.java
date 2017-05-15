@@ -32,6 +32,7 @@ import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.LockBlockTOptions;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockWorker;
@@ -301,7 +302,7 @@ public class BlockServiceHandlerIntegrationTest extends BaseIntegrationTest {
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
     UnderFileSystem ufs = UnderFileSystem.Factory.create(filename);
-    ufs.mkdirs(PathUtils.getParent(filename));
+    UnderFileSystemUtils.mkdirIfNotExists(ufs, PathUtils.getParent(filename));
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);
     out.close();

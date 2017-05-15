@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.master.journalv0.Journal;
 import alluxio.master.journalv0.JournalFormatter;
 import alluxio.master.journalv0.JournalReader;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -51,6 +52,8 @@ public class UfsJournal implements Journal {
   private static final String ENTRY_LOG_FILENAME_BASE = "log";
   /** The location where this journal is stored. */
   protected final URI mLocation;
+  /** The UFS where the journal is being written to. */
+  protected final DirectoryUnderFileSystem mUfs;
   /** The formatter for this journal. */
   private final JournalFormatter mJournalFormatter;
 
@@ -61,6 +64,8 @@ public class UfsJournal implements Journal {
    */
   public UfsJournal(URI location) {
     mLocation = location;
+    // TODO(adit): Journal must be placed on DirectoryUnderFileSystem?
+    mUfs = (DirectoryUnderFileSystem) UnderFileSystem.Factory.create(location);
     mJournalFormatter = JournalFormatter.Factory.create();
   }
 

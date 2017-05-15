@@ -39,6 +39,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
@@ -1003,18 +1004,21 @@ public class InodeTree implements JournalEntryIterable {
           MountTable.Resolution resolution = mMountTable.resolve(uri);
           String ufsUri = resolution.getUri().toString();
           UnderFileSystem ufs = resolution.getUfs();
-          MkdirsOptions mkdirsOptions =
-              MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
-                  .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-          ufs.mkdirs(ufsUri, mkdirsOptions);
-          dir.setPersistenceState(PersistenceState.PERSISTED);
+          if (ufs instanceof DirectoryUnderFileSystem) {
+            DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+            MkdirsOptions mkdirsOptions =
+                MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
+                    .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
+            directoryUfs.mkdirs(ufsUri, mkdirsOptions);
+            dir.setPersistenceState(PersistenceState.PERSISTED);
 
-          // Append the persist entry to the journal.
-          File.PersistDirectoryEntry persistDirectory =
-              File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-          journalContext.append(
-              Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
-          success = true;
+            // Append the persist entry to the journal.
+            File.PersistDirectoryEntry persistDirectory =
+                File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
+            journalContext.append(
+                Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+            success = true;
+          }
         } finally {
           if (!success) {
             // Failed to persist the inode, so set the state back to NOT_PERSISTED.

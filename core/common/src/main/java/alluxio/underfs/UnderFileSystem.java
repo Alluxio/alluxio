@@ -18,7 +18,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
 import org.slf4j.Logger;
@@ -93,8 +92,12 @@ public interface UnderFileSystem extends Closeable {
       for (UnderFileSystemFactory factory : factories) {
         try {
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(
-              factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
+          UnderFileSystem ufs = factory.create(path, new UnderFileSystemConfiguration(ufsConf));
+          if (ufs instanceof DirectoryUnderFileSystem) {
+            return new DirectoryUnderFileSystemWithLogging((DirectoryUnderFileSystem) ufs);
+          } else {
+            return new UnderFileSystemWithLogging(ufs);
+          }
         } catch (Exception e) {
           errors.add(e);
           LOG.warn("Failed to create ufs", e);
@@ -244,14 +247,6 @@ public interface UnderFileSystem extends Closeable {
   boolean deleteFile(String path) throws IOException;
 
   /**
-   * Checks if a file or directory exists in under file system.
-   *
-   * @param path the absolute path
-   * @return true if the path exists, false otherwise
-   */
-  boolean exists(String path) throws IOException;
-
-  /**
    * Gets the block size of a file in under file system, in bytes.
    *
    * @param path the file name
@@ -317,14 +312,6 @@ public interface UnderFileSystem extends Closeable {
   String getUnderFSType();
 
   /**
-   * Checks if a directory exists in under file system.
-   *
-   * @param path the absolute directory path
-   * @return true if the path exists and is a directory, false otherwise
-   */
-  boolean isDirectory(String path) throws IOException;
-
-  /**
    * Checks if a file exists in under file system.
    *
    * @param path the absolute file path
@@ -374,25 +361,6 @@ public interface UnderFileSystem extends Closeable {
    *         {@code null} if this abstract pathname does not denote a directory.
    */
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
-
-  /**
-   * Creates the directory named by this abstract pathname. If the folder already exists, the method
-   * returns false. The method creates any necessary but nonexistent parent directories.
-   *
-   * @param path the folder to create
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   */
-  boolean mkdirs(String path) throws IOException;
-
-  /**
-   * Creates the directory named by this abstract pathname, with specified
-   * {@link MkdirsOptions}. If the folder already exists, the method returns false.
-   *
-   * @param path the folder to create
-   * @param options the options for mkdirs
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   */
-  boolean mkdirs(String path, MkdirsOptions options) throws IOException;
 
   /**
    * Opens an {@link InputStream} for a file in under filesystem at the indicated path.

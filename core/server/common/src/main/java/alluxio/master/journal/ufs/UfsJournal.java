@@ -18,6 +18,7 @@ import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.master.journal.options.JournalWriterOptions;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -73,7 +74,7 @@ public class UfsJournal implements Journal {
   /** The location where this journal is stored. */
   private final URI mLocation;
   /** The UFS where the journal is being written to. */
-  private final UnderFileSystem mUfs;
+  private final DirectoryUnderFileSystem mUfs;
 
   /**
    * Creates a new instance of {@link UfsJournal}.
@@ -92,7 +93,8 @@ public class UfsJournal implements Journal {
    */
   UfsJournal(URI location, UnderFileSystem ufs) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
-    mUfs = ufs;
+    // TODO(adit): Journal must be placed on DirectoryUnderFileSystem?
+    mUfs = (DirectoryUnderFileSystem) ufs;
 
     mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);

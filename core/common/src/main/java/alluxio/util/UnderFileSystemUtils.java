@@ -13,6 +13,7 @@ package alluxio.util;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.underfs.DirectoryUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -38,8 +39,15 @@ public final class UnderFileSystemUtils {
    * @param path path to the directory
    */
   public static void deleteDirIfExists(UnderFileSystem ufs, String path) throws IOException {
-    if (ufs.isDirectory(path)
-        && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
+    boolean failed;
+    if (ufs instanceof DirectoryUnderFileSystem) {
+      DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+      failed = directoryUfs.isDirectory(path)
+          && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
+    } else {
+      failed = !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
+    }
+    if (failed) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
@@ -51,9 +59,12 @@ public final class UnderFileSystemUtils {
    * @param path path to the directory
    */
   public static void mkdirIfNotExists(UnderFileSystem ufs, String path) throws IOException {
-    if (!ufs.isDirectory(path)) {
-      if (!ufs.mkdirs(path)) {
-        throw new IOException("Failed to make folder: " + path);
+    if (ufs instanceof DirectoryUnderFileSystem) {
+      DirectoryUnderFileSystem directoryUfs = (DirectoryUnderFileSystem) ufs;
+      if (!directoryUfs.isDirectory(path)) {
+        if (!directoryUfs.mkdirs(path)) {
+          throw new IOException("Failed to make folder: " + path);
+        }
       }
     }
   }

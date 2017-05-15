@@ -23,8 +23,8 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -55,7 +55,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   private AlluxioURI mMountPoint2 = new AlluxioURI(MOUNT_POINT2);
   private String mUfsUri1;
   private String mUfsUri2;
-  private UnderFileSystem mLocalUfs;
+  private LocalUnderFileSystem mLocalUfs;
   private FileSystem mFileSystem;
   private LocalAlluxioCluster mLocalAlluxioCluster;
 
@@ -75,7 +75,8 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
 
     mUfsUri1 = "ufs1://" + mFolder.newFolder().getAbsoluteFile();
     mUfsUri2 = "ufs2://" + mFolder.newFolder().getAbsoluteFile();
-    mLocalUfs = new LocalUnderFileSystemFactory().create(mFolder.getRoot().getAbsolutePath(), null);
+    mLocalUfs = (LocalUnderFileSystem) new LocalUnderFileSystemFactory()
+        .create(mFolder.getRoot().getAbsolutePath(), null);
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
