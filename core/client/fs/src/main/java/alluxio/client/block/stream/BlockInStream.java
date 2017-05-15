@@ -82,7 +82,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
       WorkerNetAddress workerNetAddress, FileSystemContext context,
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options) throws IOException {
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options)
+      throws IOException {
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
         .setPromote(options.getAlluxioStorageType().isPromote());
     if (openUfsBlockOptions != null) {
