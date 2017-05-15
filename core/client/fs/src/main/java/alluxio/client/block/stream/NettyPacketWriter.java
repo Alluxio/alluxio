@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -23,11 +24,11 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.resource.LockResource;
-import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -117,7 +118,8 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param packetSize the packet size
    */
   public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long id,
-      long length, long sessionId, int tier, Protocol.RequestType type, long packetSize) {
+      long length, long sessionId, int tier, Protocol.RequestType type, long packetSize)
+          throws IOException {
     this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id)
         .setSessionId(sessionId).setTier(tier).setType(type).buildPartial(), packetSize);
   }
@@ -132,7 +134,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param packetSize the packet size
    */
   public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long
-      length, Protocol.WriteRequest partialRequest, long packetSize) {
+      length, Protocol.WriteRequest partialRequest, long packetSize) throws IOException {
     mContext = context;
     mAddress = address;
     mLength = length;
@@ -150,7 +152,7 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void writePacket(final ByteBuf buf) {
+  public void writePacket(final ByteBuf buf) throws IOException {
     final long len;
     final long offset;
     try (LockResource lr = new LockResource(mLock)) {
@@ -158,7 +160,8 @@ public final class NettyPacketWriter implements PacketWriter {
       Preconditions.checkArgument(buf.readableBytes() <= mPacketSize);
       while (true) {
         if (mPacketWriteException != null) {
-          throw CommonUtils.propagate(mPacketWriteException);
+          Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
+          throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
         }
         if (!tooManyPacketsInFlight()) {
           offset = mPosToQueue;
@@ -172,12 +175,13 @@ public final class NettyPacketWriter implements PacketWriter {
                 String.format("Timeout writing to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
-          throw new RuntimeException(e);
+          Thread.currentThread().interrupt();
+          throw new CanceledException(e);
         }
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       buf.release();
-      throw AlluxioStatusException.from(e);
+      throw e;
     }
 
     Protocol.WriteRequest writeRequest = mPartialRequest.toBuilder().setOffset(offset).build();
@@ -195,7 +199,7 @@ public final class NettyPacketWriter implements PacketWriter {
   }
 
   @Override
-  public void flush() {
+  public void flush() throws IOException {
     mChannel.flush();
 
     try (LockResource lr = new LockResource(mLock)) {
@@ -204,7 +208,8 @@ public final class NettyPacketWriter implements PacketWriter {
           return;
         }
         if (mPacketWriteException != null) {
-          throw CommonUtils.propagate(mPacketWriteException);
+          Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
+          throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
         }
         if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new DeadlineExceededException(
@@ -212,12 +217,13 @@ public final class NettyPacketWriter implements PacketWriter {
         }
       }
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
+      throw new CanceledException(e);
     }
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -242,7 +248,8 @@ public final class NettyPacketWriter implements PacketWriter {
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }
         } catch (InterruptedException e) {
-          throw new RuntimeException(e);
+          Thread.currentThread().interrupt();
+          throw new CanceledException(e);
         }
       }
     } finally {
@@ -315,7 +322,7 @@ public final class NettyPacketWriter implements PacketWriter {
     PacketWriteHandler() {}
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
       RPCProtoMessage response = (RPCProtoMessage) msg;
       // Canceled is considered a valid status and handled in the writer. We avoid creating a

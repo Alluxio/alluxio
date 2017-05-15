@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -49,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -187,7 +189,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * started.
    */
   @Override
-  public void start(WorkerNetAddress address) {
+  public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
       mWorkerId.set(mBlockMasterClient.getId(address));
@@ -301,7 +303,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    TempBlockMeta createdBlock;
+    try {
+      createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    } catch (WorkerOutOfSpaceException e) {
+      InetSocketAddress address =
+          InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
+      throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
+    }
     return createdBlock.getPath();
   }
 
@@ -441,7 +451,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) {
+  public FileInfo getFileInfo(long fileId) throws IOException {
     return mFileSystemMasterClient.getFileInfo(fileId);
   }
 

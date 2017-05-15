@@ -77,7 +77,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param length the length of the block being committed
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length) {
+      final String tierAlias, final long blockId, final long length) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -93,7 +93,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param address the net address to get a worker id for
    * @return a worker id
    */
-  public synchronized long getId(final WorkerNetAddress address) {
+  public synchronized long getId(final WorkerNetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -113,7 +113,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) {
+      final Map<String, List<Long>> addedBlocks) throws IOException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
@@ -134,7 +134,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public synchronized void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers) {
+      final Map<String, List<Long>> currentBlocksOnTiers) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

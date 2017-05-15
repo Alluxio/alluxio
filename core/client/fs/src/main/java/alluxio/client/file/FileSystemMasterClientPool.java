@@ -15,6 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.resource.ResourcePool;
 
+import com.google.common.io.Closer;
+
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -60,11 +63,13 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     FileSystemMasterClient client;
+    Closer closer = Closer.create();
     while ((client = mClientList.poll()) != null) {
-      client.close();
+      closer.register(client);
     }
+    closer.close();
   }
 
   @Override

@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
@@ -109,7 +110,7 @@ public class LocalFileBlockReaderTest {
   @Test
   public void close() throws Exception {
     mReader.close();
-    mThrown.expect(FailedPreconditionException.class);
+    mThrown.expect(IOException.class);
     mReader.read(0, TEST_BLOCK_SIZE);
   }
 }

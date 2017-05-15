@@ -11,9 +11,11 @@
 
 package alluxio.client.resource;
 
-import alluxio.QuietlyCloseable;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.wire.LockBlockResult;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -21,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A resource that unlocks the block when it is closed.
  */
 @NotThreadSafe
-public final class LockBlockResource implements QuietlyCloseable {
+public final class LockBlockResource implements Closeable {
   private final BlockWorkerClient mClient;
   private final LockBlockResult mResult;
   private final long mBlockId;
@@ -51,7 +53,7 @@ public final class LockBlockResource implements QuietlyCloseable {
    * Releases the lock.
    */
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }

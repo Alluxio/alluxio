@@ -27,17 +27,18 @@ import javax.security.auth.Subject;
 @PrepareForTest(BlockMasterClient.Factory.class)
 public class BlockMasterClientPoolTest {
   @Test
-  public void create() {
+  public void create() throws Exception {
     BlockMasterClient expectedClient = Mockito.mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
     Mockito.when(BlockMasterClient.Factory
         .create(Mockito.any(Subject.class), Mockito.any(InetSocketAddress.class)))
         .thenReturn(expectedClient);
-    BlockMasterClientPool pool = new BlockMasterClientPool(null, null);
-    BlockMasterClient client = pool.acquire();
-    Assert.assertEquals(expectedClient, client);
-    pool.release(client);
-    pool.close();
+    BlockMasterClient client;
+    try (BlockMasterClientPool pool = new BlockMasterClientPool(null, null)) {
+      client = pool.acquire();
+      Assert.assertEquals(expectedClient, client);
+      pool.release(client);
+    }
     Mockito.verify(client).close();
   }
 }

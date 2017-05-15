@@ -14,19 +14,20 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -127,7 +128,7 @@ public final class NettyPacketReader implements PacketReader {
    */
   private NettyPacketReader(FileSystemContext context, WorkerNetAddress address, long id,
       long offset, long len, long lockId, long sessionId, boolean noCache,
-      Protocol.RequestType type, long packetSize) {
+      Protocol.RequestType type, long packetSize) throws IOException {
     Preconditions.checkArgument(offset >= 0 && len > 0 && packetSize > 0);
 
     mContext = context;
@@ -158,7 +159,7 @@ public final class NettyPacketReader implements PacketReader {
   }
 
   @Override
-  public DataBuffer readPacket() {
+  public DataBuffer readPacket() throws IOException {
     Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
     ByteBuf buf;
 
@@ -169,7 +170,8 @@ public final class NettyPacketReader implements PacketReader {
     try {
       buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
+      throw new CanceledException(e);
     }
     if (buf == null) {
       throw new DeadlineExceededException(
@@ -177,7 +179,8 @@ public final class NettyPacketReader implements PacketReader {
     }
     if (buf == THROWABLE) {
       Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
-      throw CommonUtils.propagate(mPacketReaderException);
+      Throwables.propagateIfPossible(mPacketReaderException, IOException.class);
+      throw AlluxioStatusException.fromCheckedException(mPacketReaderException);
     }
     if (buf == EOF_OR_CANCELLED) {
       mDone = true;
@@ -210,7 +213,7 @@ public final class NettyPacketReader implements PacketReader {
 
       try {
         readAndDiscardAll();
-      } catch (UnavailableException e) {
+      } catch (IOException e) {
         LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}) with exception {}.",
             mId, mAddress, e.getMessage());
         mChannel.close();
@@ -231,7 +234,7 @@ public final class NettyPacketReader implements PacketReader {
   /**
    * Reads and discards everything read from the channel until it reaches end of the stream.
    */
-  private void readAndDiscardAll() {
+  private void readAndDiscardAll() throws IOException {
     DataBuffer buf;
     do {
       buf = readPacket();
@@ -266,7 +269,7 @@ public final class NettyPacketReader implements PacketReader {
     PacketReadHandler() {}
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
       // Precondition check is not used here to avoid calling msg.getClass().getCanonicalName()
       // all the time.
       if (!acceptMessage(msg)) {
@@ -378,7 +381,7 @@ public final class NettyPacketReader implements PacketReader {
     }
 
     @Override
-    public PacketReader create(long offset, long len) {
+    public PacketReader create(long offset, long len) throws IOException {
       return new NettyPacketReader(mContext, mAddress, mId, offset, len, mLockId, mSessionId,
           mNoCache, mRequestType, mPacketSize);
     }
