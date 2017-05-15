@@ -48,8 +48,8 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * @param options the out stream options
    * @return the {@link OutputStream} object
    */
-  public static BlockOutStream createBlockOutStream(FileSystemContext context, long blockId,
-      long blockSize, WorkerNetAddress address, OutStreamOptions options) throws IOException {
+  public static BlockOutStream create(FileSystemContext context, long blockId, long blockSize,
+      WorkerNetAddress address, OutStreamOptions options) throws IOException {
     if (CommonUtils.isLocalHost(address) && Configuration
         .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
         .isDomainSocketSupported(address)) {

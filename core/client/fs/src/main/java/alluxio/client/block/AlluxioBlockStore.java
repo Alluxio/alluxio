@@ -167,8 +167,7 @@ public final class AlluxioBlockStore {
       address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
     }
     return BlockInStream
-        .createBlockInStream(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions,
-            options);
+        .create(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions, options);
   }
 
   /**
@@ -196,7 +195,7 @@ public final class AlluxioBlockStore {
       throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
           FormatUtils.getSizeFromBytes(blockSize)));
     }
-    return BlockOutStream.createBlockOutStream(mContext, blockId, blockSize, address, options);
+    return BlockOutStream.create(mContext, blockId, blockSize, address, options);
   }
 
   /**

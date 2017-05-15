@@ -107,15 +107,15 @@ public final class LocalFilePacketWriter implements PacketWriter {
     }
     mClosed = true;
 
-    mCloser.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        NettyRPC.call(mNettyRPCContext, new ProtoMessage(
-            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).setCancel(true)
-                .build()));
-      }
-    });
-    mCloser.close();
+    try {
+      NettyRPC.call(mNettyRPCContext, new ProtoMessage(
+          Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).setCancel(true)
+              .build()));
+    } catch (IOException e) {
+      mCloser.rethrow(e);
+    } finally {
+      mCloser.close();
+    }
   }
 
   @Override

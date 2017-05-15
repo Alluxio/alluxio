@@ -25,7 +25,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.FilterInputStream;
@@ -66,8 +65,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * @param options the in stream options
    * @return the {@link InputStream} object
    */
-  public static BlockInStream createBlockInStream(FileSystemContext context, long blockId,
-      long blockSize, WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
+  public static BlockInStream create(FileSystemContext context, long blockId, long blockSize,
+      WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
       InStreamOptions options) throws IOException {
     if (CommonUtils.isLocalHost(address) && Configuration
         .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
@@ -146,6 +145,6 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
     super(inputStream);
     mInputStream = inputStream;
     mAddress = workerNetAddress;
-    mLocal = workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
+    mLocal = CommonUtils.isLocalHost(workerNetAddress);
   }
 }
