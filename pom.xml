@@ -384,8 +384,58 @@
             <groupId>org.jboss.netty</groupId>
             <artifactId>netty</artifactId>
           </exclusion>
+          <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
+          <exclusion>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-hdfs</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
+          <exclusion>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-minicluster</artifactId>
@@ -649,6 +699,12 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
+    <!-- Thread-safety annotations. -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+    </dependency>
+    <!-- System logging. -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -805,7 +861,8 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>2.2</version>
+          <!-- Needs to be 2.4.2 or later to prevent MSHADE-148 -->
+          <version>2.4.3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

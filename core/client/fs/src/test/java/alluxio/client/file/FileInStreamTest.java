@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.StreamFactory;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockInStream;
@@ -22,9 +21,9 @@ import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -51,7 +50,7 @@ import java.util.List;
  * Tests for the {@link FileInStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, StreamFactory.class})
+@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class})
 public class FileInStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
@@ -86,19 +85,18 @@ public class FileInStreamTest {
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
     PowerMockito.when(mBlockStore.getWorkerInfoList()).thenReturn(new ArrayList<BlockWorkerInfo>());
-    Mockito.mock(StreamFactory.class);
-    PowerMockito.mockStatic(StreamFactory.class);
 
     // Set up BufferedBlockInStreams and caching streams
     mCacheStreams = new ArrayList<>();
     List<Long> blockIds = new ArrayList<>();
     for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
-      mCacheStreams.add(new TestBlockOutStream(ByteBuffer.allocate(1000), i, getBlockLength(i)));
+      mCacheStreams.add(new TestBlockOutStream(ByteBuffer.allocate(1000), getBlockLength(i)));
       Mockito.when(mBlockStore.getWorkerInfoList())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       Mockito
-          .when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions.class)))
+          .when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(
+              Protocol.OpenUfsBlockOptions.class), Mockito.any(InStreamOptions.class)))
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
             public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
@@ -410,27 +408,14 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that we promote blocks when they are read.
-   */
-  @Test
-  public void testPromote() throws IOException {
-    Mockito.verify(mBlockStore, Mockito.times(0)).promote(0);
-    mTestStream.read();
-    Mockito.verify(mBlockStore).promote(0);
-    mTestStream.read();
-    Mockito.verify(mBlockStore).promote(0);
-    Mockito.verify(mBlockStore, Mockito.times(0)).promote(1);
-    mTestStream.read(new byte[(int) BLOCK_LENGTH]);
-    Mockito.verify(mBlockStore).promote(1);
-  }
-
-  /**
    * Tests that {@link IOException}s thrown by the {@link AlluxioBlockStore} are properly
    * propagated.
    */
   @Test
   public void failGetInStream() throws IOException {
-    Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
+    Mockito.when(mBlockStore
+        .getInStream(Mockito.eq(1L), Mockito.any(Protocol.OpenUfsBlockOptions.class),
+            Mockito.any(InStreamOptions.class)))
         .thenThrow(new UnavailableException("test exception"));
 
     try {
@@ -439,28 +424,6 @@ public class FileInStreamTest {
     } catch (IOException e) {
       Assert.assertEquals("test exception", e.getMessage());
     }
-  }
-
-  /**
-   * Tests the capability to fall back to a ufs stream when getting an alluxio stream fails.
-   */
-  @Test
-  public void failToUnderFs() throws AlluxioException, IOException {
-    mInfo.setPersisted(true).setUfsPath("testUfsPath");
-    mStatus = new URIStatus(mInfo);
-    mTestStream =
-        new FileInStream(mStatus, InStreamOptions.defaults().setCachePartiallyReadBlock(false),
-            mContext);
-
-    Mockito.when(mBlockStore.getInStream(Mockito.eq(1L), Mockito.any(InStreamOptions.class)))
-        .thenThrow(new UnavailableException("test exception"));
-    Mockito.when(
-        StreamFactory.createUfsBlockInStream(Mockito.any(FileSystemContext.class),
-            Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong(),
-            Mockito.any(WorkerNetAddress.class), Mockito.anyLong(),
-            Mockito.any(InStreamOptions.class))).thenReturn(
-        Mockito.mock(BlockInStream.class));
-    mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
   }
 
   /**

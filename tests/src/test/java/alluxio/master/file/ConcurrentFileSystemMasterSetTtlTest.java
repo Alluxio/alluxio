@@ -13,34 +13,33 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
-import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Joiner;
-import com.google.common.io.Files;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CyclicBarrier;
 
 /**
@@ -61,37 +60,23 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS;
   /** Timeout for the concurrent test after which we will mark the test as failed. */
   private static final long LIMIT_MS = SLEEP_MS * CONCURRENCY_FACTOR / 10;
-
-  private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
+  /** The interval of the ttl bucket. */
+  private static final int TTL_INTERVAL_MS = 100;
 
   private FileSystem mFileSystem;
-
-  private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-          "sleep://" + mLocalUfsPath).setProperty(PropertyKey
+      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, 200L).build();
-
-  // Must be done in beforeClass so execution is before rules
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    // Register sleeping ufs with slow rename
-    SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
-    sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
-    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
-  }
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_INTERVAL_MS).build();
 
   @Before
   public void before() {
@@ -103,18 +88,20 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
     final int numThreads = CONCURRENCY_FACTOR;
     AlluxioURI[] files = new AlluxioURI[numThreads];
     long[] ttls = new long[numThreads];
+    Random random = new Random();
 
     for (int i = 0; i < numThreads; i++) {
       files[i] = new AlluxioURI("/file" + i);
       mFileSystem.createFile(files[i],
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)).close();
-      ttls[i] = 1L + (long) (Math.random() * 1000);
+      ttls[i] = random.nextInt(2 * TTL_INTERVAL_MS);
     }
 
     assertErrorsSizeEquals(concurrentSetTtl(files, ttls), 0);
 
     // Wait for all the created files being deleted after the TTLs become expired.
-    CommonUtils.sleepMs(2000L);
+    CommonUtils.sleepMs(4 * TTL_INTERVAL_MS);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
 
     Assert.assertEquals("There're remaining file existing with expired TTLs",
         0, mFileSystem.listStatus(new AlluxioURI("/")).size());

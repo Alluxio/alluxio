@@ -41,7 +41,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
-  private static final long UNUSED_SESSION_ID = -1;
   private final UfsManager mUfsManager;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
@@ -50,12 +49,14 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     private final OutputStream mOutputStream;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
-      super(request.getId(), UNUSED_SESSION_ID);
-      mUfsPath = request.getUfsPath();
-      mUnderFileSystem = mUfsManager.get(request.getMountId());
-      mOutputStream =
-          mUnderFileSystem.create(mUfsPath, CreateOptions.defaults().setOwner(request.getOwner())
-              .setGroup(request.getGroup()).setMode(new Mode((short) request.getMode())));
+      super(request.getId());
+      Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
+      mUfsPath = createUfsFileOptions.getUfsPath();
+      mUnderFileSystem = mUfsManager.get(createUfsFileOptions.getMountId());
+      mOutputStream = mUnderFileSystem.create(mUfsPath,
+          CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
+              .setGroup(createUfsFileOptions.getGroup())
+              .setMode(new Mode((short) createUfsFileOptions.getMode())));
     }
 
     @Override
@@ -68,6 +69,11 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
       // TODO(calvin): Consider adding cancel to the ufs stream api.
       mOutputStream.close();
       mUnderFileSystem.deleteFile(mUfsPath);
+    }
+
+    @Override
+    void cleanup() throws IOException {
+      cancel();
     }
   }
 

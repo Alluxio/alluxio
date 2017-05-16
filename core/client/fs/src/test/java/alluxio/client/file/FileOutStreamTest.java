@@ -129,7 +129,7 @@ public class FileOutStreamTest {
             Long blockId = invocation.getArgumentAt(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBlockOutStream newStream =
-                  new TestBlockOutStream(ByteBuffer.allocate(1000), blockId, BLOCK_LENGTH);
+                  new TestBlockOutStream(ByteBuffer.allocate(1000), BLOCK_LENGTH);
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);

@@ -50,6 +50,8 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
             Mockito.anyLong());
     Mockito.doNothing().when(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
     mFile = mTestFolder.newFile().getPath();
     mBlockWriter = new LocalFileBlockWriter(mFile);
     Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
@@ -78,7 +80,7 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
   @Override
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset).setSessionId(1L)
+        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
             .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
     DataBuffer buffer = null;
     if (len > 0) {
