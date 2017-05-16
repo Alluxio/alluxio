@@ -79,6 +79,13 @@ public final class IdUtils {
   }
 
   /**
+   * @return a session ID
+   */
+  public static long createSessionId() {
+    return getRandomNonNegativeLong();
+  }
+
+  /**
    * @return a random long which is guaranteed to be non negative (zero is allowed)
    */
   public static long createMountId() {

@@ -11,11 +11,9 @@
 
 package alluxio.master;
 
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.BaseIntegrationTest;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.BlockWorkerClient;
-import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
@@ -42,7 +40,6 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
-  private BlockWorkerClient mBlockWorkerClient;
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
@@ -72,7 +69,6 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
     // connect Worker RPC service
     WorkerNetAddress workerAddress = mLocalAlluxioCluster.getWorkerAddress();
-    mBlockWorkerClient = FileSystemContext.INSTANCE.createBlockWorkerClient(workerAddress);
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
@@ -98,7 +94,6 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   private void closeServices() throws Exception {
     mWorkerWebService.disconnect();
     mWorkerDataService.close();
-    mBlockWorkerClient.close();
     mMasterWebService.disconnect();
     mBlockMasterClient.close();
   }
@@ -174,14 +169,10 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
     try {
-      mBlockWorkerClient = FileSystemContext.INSTANCE
-          .createBlockWorkerClient(mLocalAlluxioCluster.getWorkerAddress());
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {
       // This is expected, since Work RPC service is NOT listening on loopback.
-    } finally {
-      mBlockWorkerClient.close();
     }
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.

@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
-import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.PreconditionMessage;
@@ -51,17 +50,18 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
   /**
    * Creates a {@link PacketOutStream} that writes to a local file.
    *
-   * @param client the block worker client
+   * @param context the file system context
+   * @param address the worker network address
    * @param id the ID
    * @param length the block or file length
    * @param options the out stream options
    * @return the {@link PacketOutStream} created
    */
-  public static PacketOutStream createLocalPacketOutStream(BlockWorkerClient client,
-      long id, long length, OutStreamOptions options) throws IOException {
+  public static PacketOutStream createLocalPacketOutStream(FileSystemContext context,
+      WorkerNetAddress address, long id, long length, OutStreamOptions options) throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
-    PacketWriter packetWriter =
-        LocalFilePacketWriter.create(client, id, options.getWriteTier(), packetSize);
+    PacketWriter packetWriter = LocalFilePacketWriter
+        .create(context, address, id, options.getWriteTier(), packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -70,7 +70,6 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
    *
    * @param context the file system context
    * @param address the netty data server address
-   * @param sessionId the session ID
    * @param id the ID (block ID or UFS file ID)
    * @param length the block or file length
    * @param type the request type (either block write or UFS file write)
@@ -78,12 +77,13 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
    * @return the {@link PacketOutStream} created
    */
   public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      WorkerNetAddress address, long sessionId, long id, long length,
-      Protocol.RequestType type, OutStreamOptions options) throws IOException {
+      WorkerNetAddress address, long id, long length, Protocol.RequestType type,
+      OutStreamOptions options) throws IOException {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
-    PacketWriter packetWriter = new NettyPacketWriter(
-        context, address, id, length, sessionId, options.getWriteTier(), type, packetSize);
+    PacketWriter packetWriter =
+        new NettyPacketWriter(context, address, id, length, options.getWriteTier(), type,
+            packetSize);
     return new PacketOutStream(packetWriter, length);
   }
 
@@ -171,13 +171,6 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
     for (PacketWriter packetWriter : mPacketWriters) {
       packetWriter.flush();
     }
-
-    // Release the channel used in the packet writer early. This is required to avoid holding the
-    // netty channel unnecessarily because the block out streams are closed after all the blocks
-    // are written.
-    if (remaining() == 0) {
-      close();
-    }
   }
 
   @Override
@@ -201,8 +194,7 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
       throw exception;
     }
 
-    // NOTE: PacketOutStream#cancel doesn't imply PacketOutStream#close. PacketOutStream#close
-    // must be closed for every PacketOutStream instance.
+    close();
   }
 
   @Override

@@ -17,7 +17,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.Format;
-import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
@@ -404,7 +403,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * Resets the client pools to the original state.
    */
   protected void resetClientPools() throws IOException {
-    BlockWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
 

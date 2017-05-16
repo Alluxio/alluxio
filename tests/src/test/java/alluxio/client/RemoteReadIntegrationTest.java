@@ -12,10 +12,10 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileInStream;
@@ -262,9 +262,9 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       AlluxioBlockStore blockStore = AlluxioBlockStore.create();
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -294,9 +294,9 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -323,9 +323,9 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -566,9 +566,9 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -584,9 +584,9 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       // Try to create an in stream again, and it should fail.
       BlockInStream is2 = null;
       try {
-        is2 =
-            BlockInStream.createNettyBlockInStream(info.getBlockId(), info.getLength(),
-                workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
+        is2 = BlockInStream
+            .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr,
+                null, InStreamOptions.defaults());
       } catch (NotFoundException e) {
         // Expected since the file has been deleted.
       } finally {
