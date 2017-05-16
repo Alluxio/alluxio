@@ -533,6 +533,11 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>3.4.6</version>
+      </dependency>
+      <dependency>
         <groupId>org.codehaus.jackson</groupId>
         <artifactId>jackson-core-asl</artifactId>
         <version>${jackson.version}</version>
@@ -656,6 +661,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-core</artifactId>
+        <version>1.3</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
         <version>1.10.8</version>
@@ -687,10 +698,16 @@
       </dependency>
 
       <!-- Provided scope -->
+      <!--
+         Dependency for FindBugs Plugin. This enables @SuppressFBWarnings.
+         Note that this package can be unnecessary for runtime, and the
+         'provided' scope makes it available for compilation and test,
+         but not be packaged into the jar.
+       -->
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>annotations</artifactId>
-        <version>3.0.1</version>
+        <version>3.0.0</version>
         <scope>provided</scope>
       </dependency>
     </dependencies>
