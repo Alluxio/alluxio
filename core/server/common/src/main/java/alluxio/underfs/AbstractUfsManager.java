@@ -151,6 +151,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       throws IOException {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
+    Preconditions.checkArgument(ufsConf != null, "ufsConf");
     UnderFileSystem ufs = getOrAdd(ufsUri, ufsConf);
     mMountIdToUnderFileSystemMap.put(mountId, ufs);
     return ufs;

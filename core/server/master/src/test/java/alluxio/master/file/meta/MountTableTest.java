@@ -20,6 +20,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 
@@ -37,7 +38,8 @@ import java.util.Map;
 public final class MountTableTest {
   private MountTable mMountTable;
   private final MountOptions mDefaultOptions = MountOptions.defaults();
-  private final UnderFileSystem mTestUfs = new LocalUnderFileSystemFactory().create("/", null);
+  private final UnderFileSystem mTestUfs =
+      new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.defaults());
 
   @Before
   public void before() throws Exception {
