@@ -52,14 +52,16 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   }
 
   @Override
-  public TTransport getClientTransport(InetSocketAddress serverAddress) {
+  public TTransport getClientTransport(InetSocketAddress serverAddress)
+      throws UnauthenticatedException {
     String username = LoginUser.get().getName();
     String password = "noPassword";
     return getClientTransport(username, password, serverAddress);
   }
 
   @Override
-  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress) {
+  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
+      throws UnauthenticatedException {
     String username = null;
     String password = "noPassword";
 
@@ -85,7 +87,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * @return Wrapped transport with PLAIN mechanism
    */
   public TTransport getClientTransport(String username, String password,
-      InetSocketAddress serverAddress) {
+      InetSocketAddress serverAddress) throws UnauthenticatedException {
     TTransport wrappedTransport =
         TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
     try {

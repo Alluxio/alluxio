@@ -72,7 +72,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createShortCircuitBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+          throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -84,9 +85,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+    } catch (Throwable t) {
+      throw CommonUtils.closeAndRethrow(closer, t);
     }
   }
 
@@ -102,7 +102,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    */
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
+      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options)
+          throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -115,9 +116,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
               blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK, options));
       blockWorkerClient.accessBlock(blockId);
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+    } catch (Throwable t) {
+      throw CommonUtils.closeAndRethrow(closer, t);
     }
   }
 
@@ -146,7 +146,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   // TODO(peis): Use options idiom (ALLUXIO-2579).
   public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
       long blockId, long blockSize, long blockStart, long mountId,
-      WorkerNetAddress workerNetAddress, InStreamOptions options) {
+      WorkerNetAddress workerNetAddress, InStreamOptions options) throws IOException {
     Closer closer = Closer.create();
     try {
       BlockWorkerClient blockWorkerClient =
@@ -182,15 +182,14 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
                 options));
       }
       return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
+    } catch (Throwable t) {
+      throw CommonUtils.closeAndRethrow(closer, t);
     }
   }
 
   @Override
-  public void close() {
-    CommonUtils.close(mCloser);
+  public void close() throws IOException {
+    mCloser.close();
   }
 
   @Override
@@ -199,12 +198,12 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   }
 
   @Override
-  public void seek(long pos) {
+  public void seek(long pos) throws IOException {
     mInputStream.seek(pos);
   }
 
   @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     return mInputStream.positionedRead(pos, b, off, len);
   }
 

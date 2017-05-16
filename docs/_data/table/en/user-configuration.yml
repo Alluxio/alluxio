@@ -24,6 +24,11 @@ alluxio.user.file.buffer.bytes:
   The size of the file buffer to use for file system reads/writes.
 alluxio.user.file.master.client.threads:
   The number of threads used by a file master client to talk to the file master.
+alluxio.user.file.metadata.load.type:
+  The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist
+  in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will
+  always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the
+  UFS the "first" time (according to a cache), but not after that. The default value is `Once`.
 alluxio.user.file.readtype.default:
   Default read type when creating Alluxio files.
   Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage,

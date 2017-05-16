@@ -12,6 +12,9 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.thrift.GetStatusTOptions;
+import alluxio.thrift.LoadMetadataTType;
+import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,10 +28,18 @@ public class GetStatusOptionsTest {
     GetStatusOptions options = GetStatusOptions.defaults();
 
     Assert.assertNotNull(options);
+    Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
   @Test
   public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(GetStatusOptions.class);
+  }
+
+  @Test
+  public void toThrift() {
+    GetStatusOptions options = GetStatusOptions.defaults();
+    GetStatusTOptions thriftOptions = options.toThrift();
+    Assert.assertEquals(LoadMetadataTType.Once, thriftOptions.getLoadMetadataType());
   }
 }

@@ -15,6 +15,7 @@ import alluxio.Client;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -61,7 +62,7 @@ public interface BlockMasterClient extends Client {
    *
    * @return A list of worker info returned by master
    */
-  List<WorkerInfo> getWorkerInfoList();
+  List<WorkerInfo> getWorkerInfoList() throws IOException;
 
   /**
    * Returns the {@link BlockInfo} for a block id.
@@ -69,19 +70,19 @@ public interface BlockMasterClient extends Client {
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
    */
-  BlockInfo getBlockInfo(final long blockId);
+  BlockInfo getBlockInfo(final long blockId) throws IOException;
 
   /**
    * Gets the total Alluxio capacity in bytes, on all the tiers of all the workers.
    *
    * @return total capacity in bytes
    */
-  long getCapacityBytes();
+  long getCapacityBytes() throws IOException;
 
   /**
    * Gets the total amount of used space in bytes, on all the tiers of all the workers.
    *
    * @return amount of used space in bytes
    */
-  long getUsedBytes();
+  long getUsedBytes() throws IOException;
 }

@@ -50,7 +50,7 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
     try {
       return new BaseKeyValueStoreReader(uri);
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -62,7 +62,7 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
     try {
       return new BaseKeyValueStoreWriter(uri);
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }

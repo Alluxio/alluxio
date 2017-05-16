@@ -20,6 +20,7 @@ import alluxio.wire.MasterInfo.MasterInfoField;
 
 import org.apache.thrift.TException;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
@@ -69,7 +70,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) {
+  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
     return retryRPC(new RpcCallable<MasterInfo>() {
       @Override
       public MasterInfo call() throws TException {

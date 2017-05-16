@@ -14,7 +14,6 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerClient;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.base.Preconditions;
@@ -53,7 +52,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @return the {@link LocalFilePacketWriter} created
    */
   public static LocalFilePacketWriter create(BlockWorkerClient blockWorkerClient,
-      long blockId, int tier, long packetSize) {
+      long blockId, int tier, long packetSize) throws IOException {
     return new LocalFilePacketWriter(blockWorkerClient, blockId, tier, packetSize);
   }
 
@@ -68,22 +67,20 @@ public final class LocalFilePacketWriter implements PacketWriter {
   }
 
   @Override
-  public void writePacket(final ByteBuf buf) {
+  public void writePacket(final ByteBuf buf) throws IOException {
     try {
       Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
       int sz = buf.readableBytes();
       ensureReserved(mPos + sz);
       mPos += sz;
       Preconditions.checkState(buf.readBytes(mWriter.getChannel(), sz) == sz);
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
     } finally {
       buf.release();
     }
   }
 
   @Override
-  public void cancel() {
+  public void cancel() throws IOException {
     close();
   }
 
@@ -91,7 +88,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
   public void flush() {}
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -111,7 +108,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param packetSize the packet size
    */
   private LocalFilePacketWriter(
-      BlockWorkerClient blockWorkerClient, long blockId, int tier, long packetSize) {
+      BlockWorkerClient blockWorkerClient, long blockId, int tier, long packetSize)
+          throws IOException {
     String blockPath =
         blockWorkerClient.requestBlockLocation(blockId, FILE_BUFFER_BYTES, tier);
     mWriter = new LocalFileBlockWriter(blockPath);
@@ -126,7 +124,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
    *
    * @param pos the pos of the file/block to reserve to
    */
-  private void ensureReserved(long pos) {
+  private void ensureReserved(long pos) throws IOException {
     if (pos <= mPosReserved) {
       return;
     }

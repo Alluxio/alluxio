@@ -25,7 +25,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -150,7 +149,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   @Override
-  public ByteBuffer read(long offset, long length) {
+  public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkState(!mClosed);
     updateUnderFileSystemInputStream(offset);
     updateBlockWriter(offset);
@@ -197,7 +196,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @return the number of bytes read, -1 if it reaches EOF and none was read
    */
   @Override
-  public int transferTo(ByteBuf buf) {
+  public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
     if (mUnderFileSystemInputStream == null) {
       return -1;
@@ -213,13 +212,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
     int bytesToRead =
         (int) Math.min((long) buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
-    int bytesRead;
-    try {
-      bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
-
+    int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
     if (bytesRead <= 0) {
       return bytesRead;
     }
@@ -242,7 +235,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * triggered when the client unlocks the block.
    */
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -258,7 +251,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       if (mUnderFileSystemInputStream != null) {
         closer.register(mUnderFileSystemInputStream);
       }
-      CommonUtils.close(closer);
+      closer.close();
     } finally {
       mClosed = true;
     }
@@ -274,21 +267,17 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param offset the read offset within the block
    */
-  private void updateUnderFileSystemInputStream(long offset) {
+  private void updateUnderFileSystemInputStream(long offset) throws IOException {
     if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
-      CommonUtils.close(mUnderFileSystemInputStream);
+      mUnderFileSystemInputStream.close();
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
-      try {
-        UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId());
-        mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
-            OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
-      } catch (IOException e) {
-        throw AlluxioStatusException.fromIOException(e);
-      }
+      UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId());
+      mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
+          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;
     }
   }
@@ -299,7 +288,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param offset the read offset
    */
-  private void updateBlockWriter(long offset) {
+  private void updateBlockWriter(long offset) throws IOException {
     try {
       if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
         mBlockWriter.close();
@@ -308,11 +297,12 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       }
     } catch (BlockDoesNotExistException e) {
       // This can only happen when the session is expired.
-      LOG.warn("Block {} does not exist when being aborted.", mBlockMeta.getBlockId());
+      LOG.warn("Block {} does not exist when being aborted. The session may have expired.",
+          mBlockMeta.getBlockId());
     } catch (BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
       // We cannot skip the exception here because we need to make sure that the user of this
       // reader does not commit the block if it fails to abort the block.
-      throw AlluxioStatusException.from(e);
+      throw AlluxioStatusException.fromCheckedException(e);
     }
     try {
       if (mBlockWriter == null && offset == 0 && !mNoCache) {

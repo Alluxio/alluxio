@@ -57,7 +57,8 @@ priority: 0
 
 ## 配置应用依赖
 
-当构建应用使用Alluxio时，你的应用必须包含`alluxio-core-client-fs`模块，如果你使用[maven](https://maven.apache.org/)构建应用，在配置文件中添加以下以来：
+当使用Alluxio构建你的应用时，你的应用需要包含一个client模块，如果要使用[Alluxio file system interface](File-System-API.html)，那么需要配置`alluxio-core-client-fs`模块，如果需要使用[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS)，则需要使用`alluxio-core-client-hdfs`模块。
+举例来说，如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 

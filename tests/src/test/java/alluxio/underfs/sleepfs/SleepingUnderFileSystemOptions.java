@@ -23,6 +23,7 @@ public class SleepingUnderFileSystemOptions {
   private long mCreateMs = -1;
   private long mDeleteDirectoryMs = -1;
   private long mDeleteFileMs = -1;
+  private long mExistsMs = -1;
   private long mGetBlockSizeByteMs = -1;
   private long mGetConfMs = -1;
   private long mGetDirectoryStatusMs = -1;
@@ -136,6 +137,22 @@ public class SleepingUnderFileSystemOptions {
    */
   public SleepingUnderFileSystemOptions setDeleteFileMs(long deleteFileMs) {
     mDeleteFileMs = deleteFileMs;
+    return this;
+  }
+
+  /**
+   * @return milliseconds to sleep before executing an exists call
+   */
+  public long getExistsMs() {
+    return mExistsMs;
+  }
+
+  /**
+   * @param existsMs milliseconds to sleep before executing an exists call
+   * @return the updated object
+   */
+  public SleepingUnderFileSystemOptions setExistsMs(long existsMs) {
+    mExistsMs = existsMs;
     return this;
   }
 
