@@ -83,7 +83,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
 
-    return new OSSUnderFileSystem(uri, ossClient, bucketName);
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf);
   }
 
   /**
@@ -92,9 +92,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ossClient Aliyun OSS client
    * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param conf configuration for this UFS
    */
-  protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName) {
-    super(uri);
+  protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName,
+      UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mClient = ossClient;
     mBucketName = bucketName;
   }

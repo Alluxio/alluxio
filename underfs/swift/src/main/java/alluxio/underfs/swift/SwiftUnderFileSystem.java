@@ -94,7 +94,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    */
   public SwiftUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf)
       throws FileDoesNotExistException {
-    super(uri);
+    super(uri, conf);
     String containerName = UnderFileSystemUtils.getBucketName(uri);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();

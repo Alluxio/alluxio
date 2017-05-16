@@ -229,7 +229,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
       short bucketMode, String accountOwner, TransferManager transferManager,
       UnderFileSystemConfiguration conf) {
-    super(uri);
+    super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
     mBucketMode = bucketMode;

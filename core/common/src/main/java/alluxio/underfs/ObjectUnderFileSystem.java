@@ -74,9 +74,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Constructs an {@link ObjectUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
+   * @param ufsConf UFS configuration
    */
-  protected ObjectUnderFileSystem(AlluxioURI uri) {
-    super(uri);
+  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
 
     int numThreads = Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
@@ -654,16 +655,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected boolean isRoot(String path) {
     return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
         PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
-  }
-
-  /**
-   * Check whether the {@link UnderFileSystem} is mounted read-only.
-   *
-   * @return whether the Object UFS is mounted read-only
-   */
-  protected boolean isMountReadOnly() {
-    // TODO(adit): implement me
-    return true;
   }
 
   /**

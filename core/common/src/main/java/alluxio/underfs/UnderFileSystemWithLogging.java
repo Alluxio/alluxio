@@ -67,22 +67,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public void configureProperties() throws IOException {
-    call(new UfsCallable<Void>() {
-      @Override
-      public Void call() throws IOException {
-        mUnderFileSystem.configureProperties();
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return "ConfigureProperties";
-      }
-    });
-  }
-
-  @Override
   public void connectFromMaster(final String hostname) throws IOException {
     call(new UfsCallable<Void>() {
       @Override
@@ -282,11 +266,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public Map<String, String> getProperties() {
-    return mUnderFileSystem.getProperties();
-  }
-
-  @Override
   public long getSpace(final String path, final SpaceType type) throws IOException {
     return call(new UfsCallable<Long>() {
       @Override
@@ -477,11 +456,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("SetOwner: path=%s, owner=%s, group=%s", path, owner, group);
       }
     });
-  }
-
-  @Override
-  public void setProperties(Map<String, String> properties) {
-    mUnderFileSystem.setProperties(properties);
   }
 
   @Override

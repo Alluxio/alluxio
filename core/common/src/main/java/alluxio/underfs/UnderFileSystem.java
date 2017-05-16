@@ -169,15 +169,6 @@ public interface UnderFileSystem extends Closeable {
   void close() throws IOException;
 
   /**
-   * Configures and updates the properties. For instance, this method can add new properties or
-   * modify existing properties specified through {@link #setProperties(Map)}.
-   *
-   * The default implementation is a no-op. This should be overridden if a subclass needs
-   * additional functionality.
-   */
-  void configureProperties() throws IOException;
-
-  /**
    * Takes any necessary actions required to establish a connection to the under file system from
    * the given master host e.g. logging in
    * <p>
@@ -293,11 +284,6 @@ public interface UnderFileSystem extends Closeable {
    * @return the file status
    */
   UfsFileStatus getFileStatus(String path) throws IOException;
-
-  /**
-   * @return the property map for this {@link UnderFileSystem}
-   */
-  Map<String, String> getProperties();
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
@@ -461,13 +447,6 @@ public interface UnderFileSystem extends Closeable {
    * @param group the new group to set, unchanged if null
    */
   void setOwner(String path, String owner, String group) throws IOException;
-
-  /**
-   * Sets the properties for this {@link UnderFileSystem}.
-   *
-   * @param properties a {@link Map} of property names to values
-   */
-  void setProperties(Map<String, String> properties);
 
   /**
    * Whether this type of UFS supports flush.
