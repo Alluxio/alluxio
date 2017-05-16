@@ -39,7 +39,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("UfsInfo");
 
   private static final org.apache.thrift.protocol.TField URI_FIELD_DESC = new org.apache.thrift.protocol.TField("uri", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField PROPERTIES_FIELD_DESC = new org.apache.thrift.protocol.TField("properties", org.apache.thrift.protocol.TType.MAP, (short)2);
+  private static final org.apache.thrift.protocol.TField PROPERTIES_FIELD_DESC = new org.apache.thrift.protocol.TField("properties", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,7 +48,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   }
 
   private String uri; // optional
-  private Map<String,String> properties; // optional
+  private MountTOptions properties; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -119,9 +119,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     tmpMap.put(_Fields.URI, new org.apache.thrift.meta_data.FieldMetaData("uri", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PROPERTIES, new org.apache.thrift.meta_data.FieldMetaData("properties", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MountTOptions.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(UfsInfo.class, metaDataMap);
   }
@@ -137,8 +135,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       this.uri = other.uri;
     }
     if (other.isSetProperties()) {
-      Map<String,String> __this__properties = new HashMap<String,String>(other.properties);
-      this.properties = __this__properties;
+      this.properties = new MountTOptions(other.properties);
     }
   }
 
@@ -176,22 +173,11 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
     }
   }
 
-  public int getPropertiesSize() {
-    return (this.properties == null) ? 0 : this.properties.size();
-  }
-
-  public void putToProperties(String key, String val) {
-    if (this.properties == null) {
-      this.properties = new HashMap<String,String>();
-    }
-    this.properties.put(key, val);
-  }
-
-  public Map<String,String> getProperties() {
+  public MountTOptions getProperties() {
     return this.properties;
   }
 
-  public UfsInfo setProperties(Map<String,String> properties) {
+  public UfsInfo setProperties(MountTOptions properties) {
     this.properties = properties;
     return this;
   }
@@ -225,7 +211,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       if (value == null) {
         unsetProperties();
       } else {
-        setProperties((Map<String,String>)value);
+        setProperties((MountTOptions)value);
       }
       break;
 
@@ -384,6 +370,9 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (properties != null) {
+      properties.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -429,20 +418,9 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
             }
             break;
           case 2: // PROPERTIES
-            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
-              {
-                org.apache.thrift.protocol.TMap _map58 = iprot.readMapBegin();
-                struct.properties = new HashMap<String,String>(2*_map58.size);
-                String _key59;
-                String _val60;
-                for (int _i61 = 0; _i61 < _map58.size; ++_i61)
-                {
-                  _key59 = iprot.readString();
-                  _val60 = iprot.readString();
-                  struct.properties.put(_key59, _val60);
-                }
-                iprot.readMapEnd();
-              }
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.properties = new MountTOptions();
+              struct.properties.read(iprot);
               struct.setPropertiesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -473,15 +451,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       if (struct.properties != null) {
         if (struct.isSetProperties()) {
           oprot.writeFieldBegin(PROPERTIES_FIELD_DESC);
-          {
-            oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.properties.size()));
-            for (Map.Entry<String, String> _iter62 : struct.properties.entrySet())
-            {
-              oprot.writeString(_iter62.getKey());
-              oprot.writeString(_iter62.getValue());
-            }
-            oprot.writeMapEnd();
-          }
+          struct.properties.write(oprot);
           oprot.writeFieldEnd();
         }
       }
@@ -514,14 +484,7 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
         oprot.writeString(struct.uri);
       }
       if (struct.isSetProperties()) {
-        {
-          oprot.writeI32(struct.properties.size());
-          for (Map.Entry<String, String> _iter63 : struct.properties.entrySet())
-          {
-            oprot.writeString(_iter63.getKey());
-            oprot.writeString(_iter63.getValue());
-          }
-        }
+        struct.properties.write(oprot);
       }
     }
 
@@ -534,18 +497,8 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
         struct.setUriIsSet(true);
       }
       if (incoming.get(1)) {
-        {
-          org.apache.thrift.protocol.TMap _map64 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.properties = new HashMap<String,String>(2*_map64.size);
-          String _key65;
-          String _val66;
-          for (int _i67 = 0; _i67 < _map64.size; ++_i67)
-          {
-            _key65 = iprot.readString();
-            _val66 = iprot.readString();
-            struct.properties.put(_key65, _val66);
-          }
-        }
+        struct.properties = new MountTOptions();
+        struct.properties.read(iprot);
         struct.setPropertiesIsSet(true);
       }
     }
