@@ -732,7 +732,7 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
-    <!-- FindBugs amd concurrency annotations. -->
+    <!-- FindBugs and concurrency annotations. -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
