@@ -124,11 +124,9 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   /**
-   * Check whether the {@link UnderFileSystem} is mounted read-only.
-   *
-   * @return whether the Object UFS is mounted read-only
+   * @return whether only read operations are permitted to the {@link UnderFileSystem}
    */
-  protected boolean isMountReadOnly() {
+  protected boolean isReadOnly() {
     return mUfsConf.isReadOnly();
   }
 
