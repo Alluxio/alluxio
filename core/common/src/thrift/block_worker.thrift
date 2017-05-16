@@ -37,7 +37,7 @@ enum LockBlockStatus {
 
 struct PromoteBlockTOptions {}
 struct PromoteBlockTResponse {
-  1: bool promoted,
+  1: bool promoted
 }
 
 struct RemoveBlockTOptions {}
@@ -45,12 +45,12 @@ struct RemoveBlockTResponse {}
 
 struct RequestBlockLocationTOptions {}
 struct RequestBlockLocationTResponse {
-  1: string location,
+  1: string location
 }
 
 struct RequestSpaceTOptions {}
 struct RequestSpaceTResponse {
-  1: bool success,
+  1: bool success
 }
 
 struct SessionHeartbeatTOptions {}
@@ -58,7 +58,7 @@ struct SessionHeartbeatTResponse {}
 
 struct UnlockBlockTOptions {}
 struct UnlockBlockTResponse {
-  1: bool success,
+  1: bool success
 }
 
 service BlockWorkerClientService extends common.AlluxioService {

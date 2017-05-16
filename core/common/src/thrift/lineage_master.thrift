@@ -26,22 +26,22 @@ struct LineageInfo {
 
 struct CreateLineageTOptions {}
 struct CreateLineageTResponse {
-  1: i64 id,
+  1: i64 id
 }
 
 struct DeleteLineageTOptions {}
 struct DeleteLineageTResponse {
-  1: bool success,
+  1: bool success
 }
 
 struct GetLineageInfoListTOptions {}
 struct GetLineageInfoListTResponse {
-  1: list<LineageInfo> lineageInfoList,
+  1: list<LineageInfo> lineageInfoList
 }
 
 struct ReinitializeFileTOptions {}
 struct ReinitializeFileTResponse {
-  1: i64 id,
+  1: i64 id
 }
 
 struct ReportLostFileTOptions {}

@@ -431,15 +431,15 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
           case 2: // PROPERTIES
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map58 = iprot.readMapBegin();
-                struct.properties = new HashMap<String,String>(2*_map58.size);
-                String _key59;
-                String _val60;
-                for (int _i61 = 0; _i61 < _map58.size; ++_i61)
+                org.apache.thrift.protocol.TMap _map74 = iprot.readMapBegin();
+                struct.properties = new HashMap<String,String>(2*_map74.size);
+                String _key75;
+                String _val76;
+                for (int _i77 = 0; _i77 < _map74.size; ++_i77)
                 {
-                  _key59 = iprot.readString();
-                  _val60 = iprot.readString();
-                  struct.properties.put(_key59, _val60);
+                  _key75 = iprot.readString();
+                  _val76 = iprot.readString();
+                  struct.properties.put(_key75, _val76);
                 }
                 iprot.readMapEnd();
               }
@@ -475,10 +475,10 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
           oprot.writeFieldBegin(PROPERTIES_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.properties.size()));
-            for (Map.Entry<String, String> _iter62 : struct.properties.entrySet())
+            for (Map.Entry<String, String> _iter78 : struct.properties.entrySet())
             {
-              oprot.writeString(_iter62.getKey());
-              oprot.writeString(_iter62.getValue());
+              oprot.writeString(_iter78.getKey());
+              oprot.writeString(_iter78.getValue());
             }
             oprot.writeMapEnd();
           }
@@ -516,10 +516,10 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       if (struct.isSetProperties()) {
         {
           oprot.writeI32(struct.properties.size());
-          for (Map.Entry<String, String> _iter63 : struct.properties.entrySet())
+          for (Map.Entry<String, String> _iter79 : struct.properties.entrySet())
           {
-            oprot.writeString(_iter63.getKey());
-            oprot.writeString(_iter63.getValue());
+            oprot.writeString(_iter79.getKey());
+            oprot.writeString(_iter79.getValue());
           }
         }
       }
@@ -535,15 +535,15 @@ public class UfsInfo implements org.apache.thrift.TBase<UfsInfo, UfsInfo._Fields
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TMap _map64 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.properties = new HashMap<String,String>(2*_map64.size);
-          String _key65;
-          String _val66;
-          for (int _i67 = 0; _i67 < _map64.size; ++_i67)
+          org.apache.thrift.protocol.TMap _map80 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.properties = new HashMap<String,String>(2*_map80.size);
+          String _key81;
+          String _val82;
+          for (int _i83 = 0; _i83 < _map80.size; ++_i83)
           {
-            _key65 = iprot.readString();
-            _val66 = iprot.readString();
-            struct.properties.put(_key65, _val66);
+            _key81 = iprot.readString();
+            _val82 = iprot.readString();
+            struct.properties.put(_key81, _val82);
           }
         }
         struct.setPropertiesIsSet(true);

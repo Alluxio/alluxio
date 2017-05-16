@@ -71,7 +71,7 @@ service BlockMasterClientService extends common.AlluxioService {
 
 struct BlockHeartbeatTOptions {}
 struct BlockHeartbeatTResponse {
-  1: common.Command command,
+  1: common.Command command
 }
 
 struct CommitBlockTOptions {}
@@ -79,7 +79,7 @@ struct CommitBlockTResponse {}
 
 struct GetWorkerIdTOptions {}
 struct GetWorkerIdTResponse {
-  1: i64 workerId,
+  1: i64 workerId
 }
 
 struct RegisterWorkerTOptions {}

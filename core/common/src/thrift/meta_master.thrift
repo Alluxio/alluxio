@@ -4,7 +4,7 @@ include "common.thrift"
 include "exception.thrift"
 
 struct GetMasterInfoTOptions {
-  1: set<MasterInfoField> filter,
+  1: set<MasterInfoField> filter
 }
 
 enum MasterInfoField {

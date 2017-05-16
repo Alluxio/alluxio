@@ -17,9 +17,17 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemHeartbeatTOptions;
+import alluxio.thrift.FileSystemHeartbeatTResponse;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.GetFileInfoTOptions;
+import alluxio.thrift.GetFileInfoTResponse;
+import alluxio.thrift.GetPinnedFileIdsTOptions;
+import alluxio.thrift.GetPinnedFileIdsTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
+import alluxio.thrift.GetUfsInfoTOptions;
+import alluxio.thrift.GetUfsInfoTResponse;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -48,7 +56,7 @@ public final class FileSystemMasterWorkerServiceHandler
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  public FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
+  FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }
@@ -59,42 +67,48 @@ public final class FileSystemMasterWorkerServiceHandler
   }
 
   @Override
-  public FileInfo getFileInfo(final long fileId) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<FileInfo>() {
-      @Override
-      public FileInfo call() throws AlluxioException {
-        return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
-      }
-    });
-  }
-
-  @Override
-  public Set<Long> getPinIdList() throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<Set<Long>>() {
-      @Override
-      public Set<Long> call() throws AlluxioException {
-        return mFileSystemMaster.getPinIdList();
-      }
-    });
-  }
-
-  @Override
-  public UfsInfo getUfsInfo(final long mountId) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<UfsInfo>() {
-      @Override
-      public UfsInfo call() throws AlluxioException {
-        return mFileSystemMaster.getUfsInfo(mountId);
-      }
-    });
-  }
-
-  @Override
-  public FileSystemCommand heartbeat(final long workerId, final List<Long> persistedFiles)
+  public FileSystemHeartbeatTResponse fileSystemHeartbeat(final long workerId,
+      final List<Long> persistedFiles, FileSystemHeartbeatTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<FileSystemCommand>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<FileSystemHeartbeatTResponse>() {
       @Override
-      public FileSystemCommand call() throws AlluxioException {
-        return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
+      public FileSystemHeartbeatTResponse call() throws AlluxioException {
+        return new FileSystemHeartbeatTResponse(
+            mFileSystemMaster.workerHeartbeat(workerId, persistedFiles));
+      }
+    });
+  }
+
+  @Override
+  public GetFileInfoTResponse getFileInfo(final long fileId, GetFileInfoTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetFileInfoTResponse>() {
+      @Override
+      public GetFileInfoTResponse call() throws AlluxioException {
+        return new GetFileInfoTResponse(
+            ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId)));
+      }
+    });
+  }
+
+  @Override
+  public GetPinnedFileIdsTResponse getPinnedFileIds(GetPinnedFileIdsTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetPinnedFileIdsTResponse>() {
+      @Override
+      public GetPinnedFileIdsTResponse call() throws AlluxioException {
+        return new GetPinnedFileIdsTResponse(mFileSystemMaster.getPinIdList());
+      }
+    });
+  }
+
+  @Override
+  public GetUfsInfoTResponse getUfsInfo(final long mountId, GetUfsInfoTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetUfsInfoTResponse>() {
+      @Override
+      public GetUfsInfoTResponse call() throws AlluxioException {
+        return new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId));
       }
     });
   }
