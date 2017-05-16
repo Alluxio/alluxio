@@ -657,6 +657,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Check whether the {@link UnderFileSystem} is mounted read-only.
+   *
+   * @return whether the Object UFS is mounted read-only
+   */
+  protected boolean isMountReadOnly() {
+    // TODO(adit): implement me
+    return true;
+  }
+
+  /**
    * Gets the child name based on the parent name.
    *
    * @param child the key of the child
@@ -702,6 +712,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
+      // If the breadcrumb exists, this is a no-op
+      if (!isMountReadOnly()) {
+        mkdirsInternal(dir);
+      }
       return objs;
     }
     return null;
@@ -800,6 +814,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
           if (!child.isEmpty() && !children.containsKey(child)) {
             // This directory has not been created through Alluxio.
+            if (!isMountReadOnly()) {
+              mkdirsInternal(commonPrefix);
+            }
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
             ObjectPermissions permissions = getPermissions();
