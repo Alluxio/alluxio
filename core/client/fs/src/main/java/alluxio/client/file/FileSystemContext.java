@@ -15,15 +15,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
-import alluxio.client.block.BlockWorkerClient;
-import alluxio.client.block.BlockWorkerThriftClientPool;
 import alluxio.client.netty.NettyClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
-import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerInfo;
@@ -69,12 +66,6 @@ public final class FileSystemContext implements Closeable {
   // Master client pools.
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
-
-  // Block worker client pools.
-  private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-      mBlockWorkerClientPools = new ConcurrentHashMapV8<>();
-  private final ConcurrentHashMapV8<InetSocketAddress, BlockWorkerThriftClientPool>
-      mBlockWorkerClientHeartbeatPools = new ConcurrentHashMapV8<>();
 
   // The netty data server channel pools.
   private final ConcurrentHashMapV8<SocketAddress, NettyChannelPool>
@@ -149,16 +140,6 @@ public final class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
     mBlockMasterClientPool = null;
-
-    for (BlockWorkerThriftClientPool pool : mBlockWorkerClientPools.values()) {
-      pool.close();
-    }
-    mBlockWorkerClientPools.clear();
-
-    for (BlockWorkerThriftClientPool pool : mBlockWorkerClientHeartbeatPools.values()) {
-      pool.close();
-    }
-    mBlockWorkerClientHeartbeatPools.clear();
 
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
       pool.close();
@@ -241,51 +222,6 @@ public final class FileSystemContext implements Closeable {
         mBlockMasterClientPool.release(get());
       }
     };
-  }
-
-  /**
-   * Creates a client for a block worker with the given address.
-   *
-   * @param address the address of the worker to get a client to
-   * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   */
-  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address) throws IOException {
-    return createBlockWorkerClient(address, IdUtils.getRandomNonNegativeLong());
-  }
-
-  /**
-   * Creates a client for a block worker with the given address.
-   *
-   * @param address the address of the worker to get a client to
-   * @param sessionId the session ID
-   * @return a {@link BlockWorkerClient} connected to the worker with the given worker RPC address
-   */
-  // TODO(peis): Abstract the logic to operate on the pools.
-  public BlockWorkerClient createBlockWorkerClient(WorkerNetAddress address,
-      Long sessionId) throws IOException {
-    Preconditions.checkNotNull(address, ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    InetSocketAddress rpcAddress = NetworkAddressUtils.getRpcPortSocketAddress(address);
-
-    if (!mBlockWorkerClientPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mBlockWorkerClientPools.putIfAbsent(rpcAddress, pool) != null) {
-        pool.close();
-      }
-    }
-
-    if (!mBlockWorkerClientHeartbeatPools.containsKey(rpcAddress)) {
-      BlockWorkerThriftClientPool pool = new BlockWorkerThriftClientPool(mParentSubject, rpcAddress,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mBlockWorkerClientHeartbeatPools.putIfAbsent(rpcAddress, pool) != null) {
-        pool.close();
-      }
-    }
-
-    return BlockWorkerClient.Factory.create(mBlockWorkerClientPools.get(rpcAddress),
-        mBlockWorkerClientHeartbeatPools.get(rpcAddress), address, sessionId);
   }
 
   /**
@@ -397,31 +333,6 @@ public final class FileSystemContext implements Closeable {
             public Long getValue() {
               long ret = 0;
               for (NettyChannelPool pool : INSTANCE.mNettyChannelPools.values()) {
-                ret += pool.size();
-              }
-              return ret;
-            }
-          });
-      MetricsSystem
-          .registerGaugeIfAbsent(MetricsSystem.getClientMetricName("BlockWorkerClientsOpen"),
-              new Gauge<Long>() {
-                @Override
-                public Long getValue() {
-                  long ret = 0;
-                  for (BlockWorkerThriftClientPool pool : INSTANCE.mBlockWorkerClientPools
-                      .values()) {
-                    ret += pool.size();
-                  }
-                  return ret;
-                }
-              });
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricsSystem.getClientMetricName("BlockWorkerHeartbeatClientsOpen"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              long ret = 0;
-              for (BlockWorkerThriftClientPool pool : INSTANCE.mBlockWorkerClientHeartbeatPools
-                  .values()) {
                 ret += pool.size();
               }
               return ret;

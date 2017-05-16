@@ -13,14 +13,13 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
-import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.master.file.FileSystemMaster;
@@ -65,7 +64,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    BlockWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
 

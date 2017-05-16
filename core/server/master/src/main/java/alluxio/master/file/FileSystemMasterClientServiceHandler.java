@@ -23,6 +23,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -38,6 +39,7 @@ import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FreeTOptions;
+import alluxio.thrift.GetStatusTOptions;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.thrift.MountTOptions;
 import alluxio.thrift.SetAttributeTOptions;
@@ -181,7 +183,7 @@ public final class FileSystemMasterClientServiceHandler implements
    * {@inheritDoc}
    *
    * @deprecated since version 1.1 and will be removed in version 2.0
-   * @see #getStatus(String)
+   * @see #getStatus(String, GetStatusTOptions)
    */
   @Override
   @Deprecated
@@ -220,11 +222,13 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public FileInfo getStatus(final String path) throws AlluxioTException {
+  public FileInfo getStatus(final String path, final GetStatusTOptions options)
+      throws AlluxioTException {
     return RpcUtils.callAndLog(LOG, new RpcCallable<FileInfo>() {
       @Override
       public FileInfo call() throws AlluxioException {
-        return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(new AlluxioURI(path)));
+        return ThriftUtils.toThrift(
+            mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options)));
       }
 
       @Override

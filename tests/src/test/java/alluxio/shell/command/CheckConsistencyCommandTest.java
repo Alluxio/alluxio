@@ -14,9 +14,11 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.options.ExistsOptions;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -82,7 +84,8 @@ public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
     res = mOutput.toString();
     Assert.assertTrue(res.contains("/testRoot" + " has: " + "1 inconsistent files.\n")
         && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB"),
+        ExistsOptions.defaults().setLoadMetadataType(LoadMetadataType.Always)));
     Assert.assertTrue(3 == mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength());
   }

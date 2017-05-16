@@ -20,6 +20,7 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -162,11 +163,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized URIStatus getStatus(final AlluxioURI path) throws IOException {
+  public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusOptions options)
+      throws IOException {
     return retryRPC(new RpcCallable<URIStatus>() {
       @Override
       public URIStatus call() throws TException {
-        return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
+        return new URIStatus(
+            ThriftUtils.fromThrift(mClient.getStatus(path.getPath(), options.toThrift())));
       }
     });
   }

@@ -25,6 +25,7 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -90,7 +91,9 @@ public final class BaseFileSystemTest {
         .createFile(Mockito.any(AlluxioURI.class), Mockito.any(CreateFileOptions.class));
     URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
-    Mockito.when(mFileSystemMasterClient.getStatus(file)).thenReturn(status);
+    GetStatusOptions getStatusOptions = GetStatusOptions.defaults().setLoadMetadataType(
+        LoadMetadataType.Never);
+    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     CreateFileOptions options = CreateFileOptions.defaults();
     FileOutStream out = mFileSystem.createFile(file, options);
     Mockito.verify(mFileSystemMasterClient).createFile(file, options);
@@ -174,10 +177,10 @@ public final class BaseFileSystemTest {
   public void getStatus() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
-    Mockito.when(mFileSystemMasterClient.getStatus(file)).thenReturn(status);
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     Assert.assertSame(status, mFileSystem.getStatus(file, getStatusOptions));
-    Mockito.verify(mFileSystemMasterClient).getStatus(file);
+    Mockito.verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
   }
 
   /**
@@ -186,8 +189,8 @@ public final class BaseFileSystemTest {
   @Test
   public void getStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    Mockito.when(mFileSystemMasterClient.getStatus(file)).thenThrow(EXCEPTION);
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     try {
       mFileSystem.getStatus(file, getStatusOptions);
       Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -326,10 +329,11 @@ public final class BaseFileSystemTest {
   public void openFile() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
-    Mockito.when(mFileSystemMasterClient.getStatus(file)).thenReturn(status);
+    GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     mFileSystem.openFile(file, openOptions);
-    Mockito.verify(mFileSystemMasterClient).getStatus(file);
+    Mockito.verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
   }
 
   /**
@@ -338,7 +342,8 @@ public final class BaseFileSystemTest {
   @Test
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    Mockito.when(mFileSystemMasterClient.getStatus(file)).thenThrow(EXCEPTION);
+    GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     try {
       mFileSystem.openFile(file, openOptions);

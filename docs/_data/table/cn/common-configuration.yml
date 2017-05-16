@@ -14,6 +14,8 @@ alluxio.metrics.conf.file:
   度量系统配置文件路径，默认是`conf`文件夹下的`metrics.properties`文件。
 alluxio.network.host.resolution.&#8203;timeout.ms:
   Alluxio在启动Master和Worker过程中，需要确保它们在监听外部可达且可解析的主机名。如果没有显式指定主机名，Alluxio会自动尝试选择一个合适的主机名。该配置项指定用于判断一个候选主机名在网络上是否可达的最长等待时间。
+alluxio.network.netty.heartbeat.&#8203;timeout.ms:
+  如果没有流量传入，服务器在关闭网络连接之前等待的总时间。
 alluxio.network.thrift.frame.&#8203;size.bytes.max:
   (实验属性) 设置在Thrift RPC通讯过程中,使用的最大容许帧包（Frame）限值.
 alluxio.site.conf.dir:
@@ -38,6 +40,8 @@ alluxio.underfs.hdfs.remote:
   底层存储系统的worker节点对于Alluxio worker节点来说是否是远程的。如果该值为true，那么Alluxio将不会尝试从底层存储系统获取locality相关信息，因为这种情况下不可能存在任何locality，这样做可以提高性能。默认值为false。
 alluxio.underfs.listing.length:
   底层文件系统在一次查询中可以列出的目录条目的最大数量。如果条目数量大于指定长度，则需要多次查询才能列出。
+alluxio.underfs.object.store.service.threads:
+  存储底层文件系统操作的并行对象在执行程序池中的线程数。
 alluxio.underfs.object.store.mount.shared.publicly:
   是否对所有Alluxio用户共享挂载的对象存储系统。
   注意，该配置对HDFS或者本地文件系统没有任何影响。默认值是false。

@@ -59,17 +59,20 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
   /**
    * Creates a {@link PacketInStream} to read from a local file.
    *
-   * @param path the local file path
-   * @param id the ID
-   * @param length the block or file length
+   * @param context the file system context
+   * @param address the network address of the netty data server
+   * @param blockId the block ID
+   * @param length the block length
    * @param options the in stream options
    * @return the {@link PacketInStream} created
    */
-  public static PacketInStream createLocalPacketInStream(
-      String path, long id, long length, InStreamOptions options) {
+  public static PacketInStream createLocalPacketInStream(FileSystemContext context,
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options)
+      throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
-    PacketReader.Factory factory = new LocalFilePacketReader.Factory(path, packetSize);
-    return new PacketInStream(factory, id, length);
+    return new PacketInStream(
+        new LocalFilePacketReader.Factory(context, address, blockId, packetSize,
+            options.getAlluxioStorageType().isPromote()), blockId, length);
   }
 
   /**
@@ -77,23 +80,19 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
    *
    * @param context the file system context
    * @param address the address of the netty data server
-   * @param id the ID
-   * @param lockId the lock ID (set to -1 if not applicable)
-   * @param sessionId the session ID (set to -1 if not applicable)
-   * @param length the block or file length
-   * @param noCache do not cache the block to the Alluxio worker if read from UFS when this is set
-   * @param type the read request type (either block read or UFS file read)
+   * @param blockSize the block size
+   * @param readRequestPartial the partial read request
    * @param options the in stream options
    * @return the {@link PacketInStream} created
    */
   public static PacketInStream createNettyPacketInStream(FileSystemContext context,
-      WorkerNetAddress address, long id, long lockId, long sessionId, long length,
-      boolean noCache, Protocol.RequestType type, InStreamOptions options) {
+      WorkerNetAddress address, Protocol.ReadRequest readRequestPartial, long blockSize,
+      InStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(
-        context, address, id, lockId, sessionId, noCache, type, packetSize);
-    return new PacketInStream(factory, id, length);
+        context, address, readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial());
+    return new PacketInStream(factory, readRequestPartial.getBlockId(), blockSize);
   }
 
   /**
@@ -225,7 +224,11 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
 
   @Override
   public void close() throws IOException {
-    closePacketReader();
+    try {
+      closePacketReader();
+    } finally {
+      mPacketReaderFactory.close();
+    }
     mClosed = true;
   }
 

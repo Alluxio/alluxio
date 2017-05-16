@@ -80,9 +80,11 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
 
   @Override
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
+    Protocol.CreateUfsFileOptions createUfsFileOptions = Protocol.CreateUfsFileOptions.newBuilder()
+        .setUfsPath("/test").setOwner("owner").setGroup("group").setMode(0).build();
     Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset).setUfsPath("/test")
-            .setOwner("owner").setGroup("group").setMode(0).setType(Protocol.RequestType.UFS_FILE)
+        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
+            .setCreateUfsFileOptions(createUfsFileOptions).setType(Protocol.RequestType.UFS_FILE)
             .build();
     DataBuffer buffer = null;
     if (len > 0) {

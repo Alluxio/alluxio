@@ -34,6 +34,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -633,7 +634,9 @@ public final class PermissionCheckTest {
       throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       if (isFile) {
-        Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path)).getPath());
+        Assert.assertEquals(path,
+            mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults())
+                .getPath());
         Assert.assertEquals(1,
             mFileSystemMaster.listStatus(new AlluxioURI(path), ListStatusOptions.defaults())
                 .size());
@@ -692,7 +695,8 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
-      FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path));
+      FileInfo fileInfo =
+          mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
       return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
           .setPersisted(fileInfo.isPersisted());
     }

@@ -90,6 +90,12 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
+  public boolean exists(String path) throws IOException {
+    sleepIfNecessary(mOptions.getExistsMs());
+    return super.exists(cleanPath(path));
+  }
+
+  @Override
   public long getBlockSizeByte(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetBlockSizeByteMs());
     return super.getBlockSizeByte(cleanPath(path));

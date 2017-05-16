@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.status.NotFoundException;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -58,7 +59,8 @@ public final class LineageFileSystemTest {
     FileSystemMasterClient
         fileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(fileSystemContext.acquireMasterClient()).thenReturn(fileSystemMasterClient);
-    Mockito.when(fileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class)))
+    Mockito.when(fileSystemMasterClient
+        .getStatus(Mockito.any(AlluxioURI.class), Mockito.any(GetStatusOptions.class)))
         .thenReturn(new URIStatus(new FileInfo()));
 
     mAlluxioLineageFileSystem = LineageFileSystem.get(fileSystemContext, mLineageContext);
