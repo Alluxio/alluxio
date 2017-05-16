@@ -738,7 +738,7 @@
     <!-- Thread-safety annotations. -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
+      <artifactId>annotations</artifactId>
     </dependency>
     <!-- System logging. -->
     <dependency>
