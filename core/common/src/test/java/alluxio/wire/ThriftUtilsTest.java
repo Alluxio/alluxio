@@ -13,7 +13,6 @@ package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.thrift.LockBlockStatus;
 import alluxio.thrift.TTtlAction;
 
 import org.junit.Test;

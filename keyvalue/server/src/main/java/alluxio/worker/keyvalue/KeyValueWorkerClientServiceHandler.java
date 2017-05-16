@@ -71,7 +71,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   }
 
   @Override
-  public GetTResponse get(final long blockId, final ByteBuffer key, GetTOptions options) throws AlluxioTException {
+  public GetTResponse get(final long blockId, final ByteBuffer key, GetTOptions options)
+      throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetTResponse>() {
       @Override
       public GetTResponse call() throws AlluxioException, IOException {

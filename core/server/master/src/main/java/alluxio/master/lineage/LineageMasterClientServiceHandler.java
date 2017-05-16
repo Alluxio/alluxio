@@ -74,8 +74,9 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   }
 
   @Override
-  public CreateLineageTResponse createLineage(final List<String> inputFiles, final List<String> outputFiles,
-      final CommandLineJobInfo jobInfo, CreateLineageTOptions options) throws AlluxioTException {
+  public CreateLineageTResponse createLineage(final List<String> inputFiles,
+      final List<String> outputFiles, final CommandLineJobInfo jobInfo,
+      CreateLineageTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<CreateLineageTResponse>() {
       @Override
       public CreateLineageTResponse call() throws AlluxioException, IOException {

@@ -40,7 +40,6 @@ import alluxio.thrift.CreateFileTOptions;
 import alluxio.thrift.CreateFileTResponse;
 import alluxio.thrift.DeleteTOptions;
 import alluxio.thrift.DeleteTResponse;
-import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FreeTOptions;
@@ -142,8 +141,8 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public CreateDirectoryTResponse createDirectory(final String path, final CreateDirectoryTOptions options)
-      throws AlluxioTException {
+  public CreateDirectoryTResponse createDirectory(final String path,
+      final CreateDirectoryTOptions options) throws AlluxioTException {
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<CreateDirectoryTResponse>() {
       @Override
       public CreateDirectoryTResponse call() throws AlluxioException, IOException {

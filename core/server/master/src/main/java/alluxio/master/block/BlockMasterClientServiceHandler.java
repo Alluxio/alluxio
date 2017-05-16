@@ -16,7 +16,6 @@ import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.BlockInfo;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.GetBlockInfoTOptions;
 import alluxio.thrift.GetBlockInfoTResponse;

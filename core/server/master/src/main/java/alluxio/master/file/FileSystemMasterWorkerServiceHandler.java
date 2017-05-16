@@ -15,8 +15,6 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.FileInfo;
-import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemHeartbeatTResponse;
 import alluxio.thrift.FileSystemMasterWorkerService;
@@ -28,7 +26,6 @@ import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.GetUfsInfoTOptions;
 import alluxio.thrift.GetUfsInfoTResponse;
-import alluxio.thrift.UfsInfo;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
@@ -36,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

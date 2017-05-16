@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Set;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
@@ -50,7 +49,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
-  public GetMasterInfoTResponse getMasterInfo(final GetMasterInfoTOptions options) throws TException {
+  public GetMasterInfoTResponse getMasterInfo(final GetMasterInfoTOptions options)
+      throws TException {
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterInfoTResponse>() {
       @Override
       public GetMasterInfoTResponse call() throws AlluxioException {
