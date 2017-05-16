@@ -124,13 +124,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   /**
-   * @return whether only read operations are permitted to the {@link UnderFileSystem}
-   */
-  protected boolean isReadOnly() {
-    return mUfsConf.isReadOnly();
-  }
-
-  /**
    * Clean the path by creating a URI and turning it back to a string.
    *
    * @param path the path to validate

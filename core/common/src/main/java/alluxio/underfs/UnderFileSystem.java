@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.file.options.MountOptions;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -121,9 +122,10 @@ public interface UnderFileSystem extends Closeable {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       boolean readOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
       boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
-      Map<String, String> ufsConf = Configuration.getNestedProperties(
-          PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, new UnderFileSystemConfiguration(readOnly, shared, ufsConf));
+      Map<String, String> ufsConf =
+          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      return create(ufsRoot, new UnderFileSystemConfiguration(
+          MountOptions.defaults().setReadOnly(readOnly).setShared(shared).setProperties(ufsConf)));
     }
   }
 
