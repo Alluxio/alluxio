@@ -47,8 +47,8 @@ public class OSSUnderFileSystemTest {
   public void before() throws InterruptedException, ServiceException {
     mClient = Mockito.mock(OSSClient.class);
 
-    mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient,
-        BUCKET_NAME, new UnderFileSystemConfiguration(false, false, null));
+    mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
+        UnderFileSystemConfiguration.defaults());
   }
 
   /**

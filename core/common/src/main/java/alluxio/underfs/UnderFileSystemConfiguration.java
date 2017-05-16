@@ -27,6 +27,8 @@ public final class UnderFileSystemConfiguration {
   private final boolean mShared;
   private final Map<String, String> mUfsConf;
 
+  private static final UnderFileSystemConfiguration DEFAULTS = new UnderFileSystemConfiguration();
+
   /**
    * Constructs a new instance of the configuration for a UFS.
    *
@@ -39,6 +41,22 @@ public final class UnderFileSystemConfiguration {
     mReadOnly = readOnly;
     mShared = shared;
     mUfsConf = ufsConf;
+  }
+
+  /**
+   * Constructs a new instance of {@link UnderFileSystemConfiguration} with defaults.
+   */
+  private UnderFileSystemConfiguration() {
+    mReadOnly = false;
+    mShared = false;
+    mUfsConf = null;
+  }
+
+  /**
+   * @return default UFS configuration
+   */
+  public static UnderFileSystemConfiguration defaults() {
+    return DEFAULTS;
   }
 
   /**
