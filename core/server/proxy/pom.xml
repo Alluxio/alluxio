@@ -80,7 +80,7 @@
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
     </dependency>
-    <!-- Needed at runtime -->
+    <!-- Required at runtime to decode json objects for rest API -->
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
