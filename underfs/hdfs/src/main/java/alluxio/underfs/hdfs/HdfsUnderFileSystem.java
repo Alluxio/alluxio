@@ -149,7 +149,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         "hadoop.ssl.keystores.factory.class",
     };
     for (String key : relocatedConf) {
-      hdfsConf.set(key, shadedClassName(hdfsConf.get(key), conf));
+      String value = hdfsConf.get(key);
+      if (value != null) { // not all conf properties are available across different HDFS versions
+        hdfsConf.set(key, shadedClassName(value, conf));
+      }
     }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
