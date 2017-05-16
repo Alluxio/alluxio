@@ -14,13 +14,20 @@ package alluxio.worker.file;
 import alluxio.Constants;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
+import alluxio.thrift.CancelUfsFileTResponse;
 import alluxio.thrift.CloseUfsFileTOptions;
+import alluxio.thrift.CloseUfsFileTResponse;
 import alluxio.thrift.CompleteUfsFileTOptions;
+import alluxio.thrift.CompleteUfsFileTReponse;
 import alluxio.thrift.CreateUfsFileTOptions;
+import alluxio.thrift.CreateUfsFileTResponse;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.OpenUfsFileTOptions;
+import alluxio.thrift.OpenUfsFileTResponse;
+import alluxio.thrift.SessionFileSystemHeartbeatTOptions;
+import alluxio.thrift.SessionFileSystemHeartbeatTResponse;
 
 import java.util.List;
 
@@ -38,7 +45,7 @@ public final class FileSystemWorkerClientServiceHandler
   /**
    * Creates a new instance of this class.
    */
-  public FileSystemWorkerClientServiceHandler() {}
+  FileSystemWorkerClientServiceHandler() {}
 
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
@@ -46,37 +53,38 @@ public final class FileSystemWorkerClientServiceHandler
   }
 
   @Override
-  public void cancelUfsFile(final long sessionId, final long tempUfsFileId,
+  public CancelUfsFileTResponse cancelUfsFile(final long sessionId, final long tempUfsFileId,
       final CancelUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   @Override
-  public void closeUfsFile(final long sessionId, final long tempUfsFileId,
+  public CloseUfsFileTResponse closeUfsFile(final long sessionId, final long tempUfsFileId,
       final CloseUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   @Override
-  public long completeUfsFile(final long sessionId, final long tempUfsFileId,
+  public CompleteUfsFileTReponse completeUfsFile(final long sessionId, final long tempUfsFileId,
       final CompleteUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   @Override
-  public long createUfsFile(final long sessionId, final String ufsUri,
+  public CreateUfsFileTResponse createUfsFile(final long sessionId, final String ufsUri,
       final CreateUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   @Override
-  public long openUfsFile(final long sessionId, final String ufsUri,
+  public OpenUfsFileTResponse openUfsFile(final long sessionId, final String ufsUri,
       final OpenUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
   @Override
-  public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
+  public SessionFileSystemHeartbeatTResponse sessionFileSystemHeartbeat(final long sessionId,
+      final List<Long> metrics, final SessionFileSystemHeartbeatTOptions options)
       throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }

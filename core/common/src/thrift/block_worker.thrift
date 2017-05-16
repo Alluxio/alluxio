@@ -53,8 +53,8 @@ struct RequestSpaceTResponse {
   1: bool success
 }
 
-struct SessionHeartbeatTOptions {}
-struct SessionHeartbeatTResponse {}
+struct SessionBlockHeartbeatTOptions {}
+struct SessionBlockHeartbeatTResponse {}
 
 struct UnlockBlockTOptions {}
 struct UnlockBlockTResponse {
@@ -159,10 +159,10 @@ service BlockWorkerClientService extends common.AlluxioService {
   /**
    * Local session send heartbeat to local worker to keep its temporary folder.
    */
-  SessionHeartbeatTResponse sessionHeartbeat(
+  SessionBlockHeartbeatTResponse sessionBlockHeartbeat(
     /** the id of the current session */ 1: i64 sessionId,
     /** deprecated since 1.3.0 and will be removed in 2.0 */ 2: list<i64> metrics,
-    /** the method options */ 3: SessionHeartbeatTOptions options,
+    /** the method options */ 3: SessionBlockHeartbeatTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 

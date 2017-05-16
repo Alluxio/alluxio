@@ -150,7 +150,7 @@ public class BlockWorkerClientService {
      * 
      * @param options the method options
      */
-    public SessionHeartbeatTResponse sessionHeartbeat(long sessionId, List<Long> metrics, SessionHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public SessionBlockHeartbeatTResponse sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
@@ -185,7 +185,7 @@ public class BlockWorkerClientService {
 
     public void requestSpace(long sessionId, long blockId, long requestBytes, RequestSpaceTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void sessionHeartbeat(long sessionId, List<Long> metrics, SessionHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -435,32 +435,32 @@ public class BlockWorkerClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpace failed: unknown result");
     }
 
-    public SessionHeartbeatTResponse sessionHeartbeat(long sessionId, List<Long> metrics, SessionHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public SessionBlockHeartbeatTResponse sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_sessionHeartbeat(sessionId, metrics, options);
-      return recv_sessionHeartbeat();
+      send_sessionBlockHeartbeat(sessionId, metrics, options);
+      return recv_sessionBlockHeartbeat();
     }
 
-    public void send_sessionHeartbeat(long sessionId, List<Long> metrics, SessionHeartbeatTOptions options) throws org.apache.thrift.TException
+    public void send_sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options) throws org.apache.thrift.TException
     {
-      sessionHeartbeat_args args = new sessionHeartbeat_args();
+      sessionBlockHeartbeat_args args = new sessionBlockHeartbeat_args();
       args.setSessionId(sessionId);
       args.setMetrics(metrics);
       args.setOptions(options);
-      sendBase("sessionHeartbeat", args);
+      sendBase("sessionBlockHeartbeat", args);
     }
 
-    public SessionHeartbeatTResponse recv_sessionHeartbeat() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public SessionBlockHeartbeatTResponse recv_sessionBlockHeartbeat() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      sessionHeartbeat_result result = new sessionHeartbeat_result();
-      receiveBase(result, "sessionHeartbeat");
+      sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
+      receiveBase(result, "sessionBlockHeartbeat");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "sessionHeartbeat failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "sessionBlockHeartbeat failed: unknown result");
     }
 
     public UnlockBlockTResponse unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
@@ -813,18 +813,18 @@ public class BlockWorkerClientService {
       }
     }
 
-    public void sessionHeartbeat(long sessionId, List<Long> metrics, SessionHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sessionHeartbeat_call method_call = new sessionHeartbeat_call(sessionId, metrics, options, resultHandler, this, ___protocolFactory, ___transport);
+      sessionBlockHeartbeat_call method_call = new sessionBlockHeartbeat_call(sessionId, metrics, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class sessionHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class sessionBlockHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long sessionId;
       private List<Long> metrics;
-      private SessionHeartbeatTOptions options;
-      public sessionHeartbeat_call(long sessionId, List<Long> metrics, SessionHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private SessionBlockHeartbeatTOptions options;
+      public sessionBlockHeartbeat_call(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.sessionId = sessionId;
         this.metrics = metrics;
@@ -832,8 +832,8 @@ public class BlockWorkerClientService {
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sessionHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        sessionHeartbeat_args args = new sessionHeartbeat_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sessionBlockHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        sessionBlockHeartbeat_args args = new sessionBlockHeartbeat_args();
         args.setSessionId(sessionId);
         args.setMetrics(metrics);
         args.setOptions(options);
@@ -841,13 +841,13 @@ public class BlockWorkerClientService {
         prot.writeMessageEnd();
       }
 
-      public SessionHeartbeatTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public SessionBlockHeartbeatTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_sessionHeartbeat();
+        return (new Client(prot)).recv_sessionBlockHeartbeat();
       }
     }
 
@@ -910,7 +910,7 @@ public class BlockWorkerClientService {
       processMap.put("removeBlock", new removeBlock());
       processMap.put("requestBlockLocation", new requestBlockLocation());
       processMap.put("requestSpace", new requestSpace());
-      processMap.put("sessionHeartbeat", new sessionHeartbeat());
+      processMap.put("sessionBlockHeartbeat", new sessionBlockHeartbeat());
       processMap.put("unlockBlock", new unlockBlock());
       return processMap;
     }
@@ -1107,23 +1107,23 @@ public class BlockWorkerClientService {
       }
     }
 
-    public static class sessionHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, sessionHeartbeat_args> {
-      public sessionHeartbeat() {
-        super("sessionHeartbeat");
+    public static class sessionBlockHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, sessionBlockHeartbeat_args> {
+      public sessionBlockHeartbeat() {
+        super("sessionBlockHeartbeat");
       }
 
-      public sessionHeartbeat_args getEmptyArgsInstance() {
-        return new sessionHeartbeat_args();
+      public sessionBlockHeartbeat_args getEmptyArgsInstance() {
+        return new sessionBlockHeartbeat_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public sessionHeartbeat_result getResult(I iface, sessionHeartbeat_args args) throws org.apache.thrift.TException {
-        sessionHeartbeat_result result = new sessionHeartbeat_result();
+      public sessionBlockHeartbeat_result getResult(I iface, sessionBlockHeartbeat_args args) throws org.apache.thrift.TException {
+        sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
         try {
-          result.success = iface.sessionHeartbeat(args.sessionId, args.metrics, args.options);
+          result.success = iface.sessionBlockHeartbeat(args.sessionId, args.metrics, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -1176,7 +1176,7 @@ public class BlockWorkerClientService {
       processMap.put("removeBlock", new removeBlock());
       processMap.put("requestBlockLocation", new requestBlockLocation());
       processMap.put("requestSpace", new requestSpace());
-      processMap.put("sessionHeartbeat", new sessionHeartbeat());
+      processMap.put("sessionBlockHeartbeat", new sessionBlockHeartbeat());
       processMap.put("unlockBlock", new unlockBlock());
       return processMap;
     }
@@ -1637,20 +1637,20 @@ public class BlockWorkerClientService {
       }
     }
 
-    public static class sessionHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sessionHeartbeat_args, SessionHeartbeatTResponse> {
-      public sessionHeartbeat() {
-        super("sessionHeartbeat");
+    public static class sessionBlockHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sessionBlockHeartbeat_args, SessionBlockHeartbeatTResponse> {
+      public sessionBlockHeartbeat() {
+        super("sessionBlockHeartbeat");
       }
 
-      public sessionHeartbeat_args getEmptyArgsInstance() {
-        return new sessionHeartbeat_args();
+      public sessionBlockHeartbeat_args getEmptyArgsInstance() {
+        return new sessionBlockHeartbeat_args();
       }
 
-      public AsyncMethodCallback<SessionHeartbeatTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<SessionBlockHeartbeatTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<SessionHeartbeatTResponse>() { 
-          public void onComplete(SessionHeartbeatTResponse o) {
-            sessionHeartbeat_result result = new sessionHeartbeat_result();
+        return new AsyncMethodCallback<SessionBlockHeartbeatTResponse>() { 
+          public void onComplete(SessionBlockHeartbeatTResponse o) {
+            sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -1663,7 +1663,7 @@ public class BlockWorkerClientService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            sessionHeartbeat_result result = new sessionHeartbeat_result();
+            sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -1689,8 +1689,8 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, sessionHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<SessionHeartbeatTResponse> resultHandler) throws TException {
-        iface.sessionHeartbeat(args.sessionId, args.metrics, args.options,resultHandler);
+      public void start(I iface, sessionBlockHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<SessionBlockHeartbeatTResponse> resultHandler) throws TException {
+        iface.sessionBlockHeartbeat(args.sessionId, args.metrics, args.options,resultHandler);
       }
     }
 
@@ -10297,8 +10297,8 @@ public class BlockWorkerClientService {
 
   }
 
-  public static class sessionHeartbeat_args implements org.apache.thrift.TBase<sessionHeartbeat_args, sessionHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<sessionHeartbeat_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionHeartbeat_args");
+  public static class sessionBlockHeartbeat_args implements org.apache.thrift.TBase<sessionBlockHeartbeat_args, sessionBlockHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<sessionBlockHeartbeat_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionBlockHeartbeat_args");
 
     private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField METRICS_FIELD_DESC = new org.apache.thrift.protocol.TField("metrics", org.apache.thrift.protocol.TType.LIST, (short)2);
@@ -10306,13 +10306,13 @@ public class BlockWorkerClientService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new sessionHeartbeat_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new sessionHeartbeat_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new sessionBlockHeartbeat_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new sessionBlockHeartbeat_argsTupleSchemeFactory());
     }
 
     private long sessionId; // required
     private List<Long> metrics; // required
-    private SessionHeartbeatTOptions options; // required
+    private SessionBlockHeartbeatTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -10399,18 +10399,18 @@ public class BlockWorkerClientService {
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SessionHeartbeatTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SessionBlockHeartbeatTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionHeartbeat_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionBlockHeartbeat_args.class, metaDataMap);
     }
 
-    public sessionHeartbeat_args() {
+    public sessionBlockHeartbeat_args() {
     }
 
-    public sessionHeartbeat_args(
+    public sessionBlockHeartbeat_args(
       long sessionId,
       List<Long> metrics,
-      SessionHeartbeatTOptions options)
+      SessionBlockHeartbeatTOptions options)
     {
       this();
       this.sessionId = sessionId;
@@ -10422,7 +10422,7 @@ public class BlockWorkerClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public sessionHeartbeat_args(sessionHeartbeat_args other) {
+    public sessionBlockHeartbeat_args(sessionBlockHeartbeat_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.sessionId = other.sessionId;
       if (other.isSetMetrics()) {
@@ -10430,12 +10430,12 @@ public class BlockWorkerClientService {
         this.metrics = __this__metrics;
       }
       if (other.isSetOptions()) {
-        this.options = new SessionHeartbeatTOptions(other.options);
+        this.options = new SessionBlockHeartbeatTOptions(other.options);
       }
     }
 
-    public sessionHeartbeat_args deepCopy() {
-      return new sessionHeartbeat_args(this);
+    public sessionBlockHeartbeat_args deepCopy() {
+      return new sessionBlockHeartbeat_args(this);
     }
 
     @Override
@@ -10456,7 +10456,7 @@ public class BlockWorkerClientService {
     /**
      * the id of the current session
      */
-    public sessionHeartbeat_args setSessionId(long sessionId) {
+    public sessionBlockHeartbeat_args setSessionId(long sessionId) {
       this.sessionId = sessionId;
       setSessionIdIsSet(true);
       return this;
@@ -10500,7 +10500,7 @@ public class BlockWorkerClientService {
     /**
      * deprecated since 1.3.0 and will be removed in 2.0
      */
-    public sessionHeartbeat_args setMetrics(List<Long> metrics) {
+    public sessionBlockHeartbeat_args setMetrics(List<Long> metrics) {
       this.metrics = metrics;
       return this;
     }
@@ -10523,14 +10523,14 @@ public class BlockWorkerClientService {
     /**
      * the method options
      */
-    public SessionHeartbeatTOptions getOptions() {
+    public SessionBlockHeartbeatTOptions getOptions() {
       return this.options;
     }
 
     /**
      * the method options
      */
-    public sessionHeartbeat_args setOptions(SessionHeartbeatTOptions options) {
+    public sessionBlockHeartbeat_args setOptions(SessionBlockHeartbeatTOptions options) {
       this.options = options;
       return this;
     }
@@ -10572,7 +10572,7 @@ public class BlockWorkerClientService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((SessionHeartbeatTOptions)value);
+          setOptions((SessionBlockHeartbeatTOptions)value);
         }
         break;
 
@@ -10615,12 +10615,12 @@ public class BlockWorkerClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof sessionHeartbeat_args)
-        return this.equals((sessionHeartbeat_args)that);
+      if (that instanceof sessionBlockHeartbeat_args)
+        return this.equals((sessionBlockHeartbeat_args)that);
       return false;
     }
 
-    public boolean equals(sessionHeartbeat_args that) {
+    public boolean equals(sessionBlockHeartbeat_args that) {
       if (that == null)
         return false;
 
@@ -10677,7 +10677,7 @@ public class BlockWorkerClientService {
     }
 
     @Override
-    public int compareTo(sessionHeartbeat_args other) {
+    public int compareTo(sessionBlockHeartbeat_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -10731,7 +10731,7 @@ public class BlockWorkerClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("sessionHeartbeat_args(");
+      StringBuilder sb = new StringBuilder("sessionBlockHeartbeat_args(");
       boolean first = true;
 
       sb.append("sessionId:");
@@ -10783,15 +10783,15 @@ public class BlockWorkerClientService {
       }
     }
 
-    private static class sessionHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_argsStandardScheme getScheme() {
-        return new sessionHeartbeat_argsStandardScheme();
+    private static class sessionBlockHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_argsStandardScheme getScheme() {
+        return new sessionBlockHeartbeat_argsStandardScheme();
       }
     }
 
-    private static class sessionHeartbeat_argsStandardScheme extends StandardScheme<sessionHeartbeat_args> {
+    private static class sessionBlockHeartbeat_argsStandardScheme extends StandardScheme<sessionBlockHeartbeat_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -10829,7 +10829,7 @@ public class BlockWorkerClientService {
               break;
             case 3: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new SessionHeartbeatTOptions();
+                struct.options = new SessionBlockHeartbeatTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -10847,7 +10847,7 @@ public class BlockWorkerClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -10877,16 +10877,16 @@ public class BlockWorkerClientService {
 
     }
 
-    private static class sessionHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_argsTupleScheme getScheme() {
-        return new sessionHeartbeat_argsTupleScheme();
+    private static class sessionBlockHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_argsTupleScheme getScheme() {
+        return new sessionBlockHeartbeat_argsTupleScheme();
       }
     }
 
-    private static class sessionHeartbeat_argsTupleScheme extends TupleScheme<sessionHeartbeat_args> {
+    private static class sessionBlockHeartbeat_argsTupleScheme extends TupleScheme<sessionBlockHeartbeat_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSessionId()) {
@@ -10917,7 +10917,7 @@ public class BlockWorkerClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
@@ -10938,7 +10938,7 @@ public class BlockWorkerClientService {
           struct.setMetricsIsSet(true);
         }
         if (incoming.get(2)) {
-          struct.options = new SessionHeartbeatTOptions();
+          struct.options = new SessionBlockHeartbeatTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
@@ -10947,19 +10947,19 @@ public class BlockWorkerClientService {
 
   }
 
-  public static class sessionHeartbeat_result implements org.apache.thrift.TBase<sessionHeartbeat_result, sessionHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<sessionHeartbeat_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionHeartbeat_result");
+  public static class sessionBlockHeartbeat_result implements org.apache.thrift.TBase<sessionBlockHeartbeat_result, sessionBlockHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<sessionBlockHeartbeat_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionBlockHeartbeat_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new sessionHeartbeat_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new sessionHeartbeat_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new sessionBlockHeartbeat_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new sessionBlockHeartbeat_resultTupleSchemeFactory());
     }
 
-    private SessionHeartbeatTResponse success; // required
+    private SessionBlockHeartbeatTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -11028,18 +11028,18 @@ public class BlockWorkerClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SessionHeartbeatTResponse.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SessionBlockHeartbeatTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionHeartbeat_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionBlockHeartbeat_result.class, metaDataMap);
     }
 
-    public sessionHeartbeat_result() {
+    public sessionBlockHeartbeat_result() {
     }
 
-    public sessionHeartbeat_result(
-      SessionHeartbeatTResponse success,
+    public sessionBlockHeartbeat_result(
+      SessionBlockHeartbeatTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -11050,17 +11050,17 @@ public class BlockWorkerClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public sessionHeartbeat_result(sessionHeartbeat_result other) {
+    public sessionBlockHeartbeat_result(sessionBlockHeartbeat_result other) {
       if (other.isSetSuccess()) {
-        this.success = new SessionHeartbeatTResponse(other.success);
+        this.success = new SessionBlockHeartbeatTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
-    public sessionHeartbeat_result deepCopy() {
-      return new sessionHeartbeat_result(this);
+    public sessionBlockHeartbeat_result deepCopy() {
+      return new sessionBlockHeartbeat_result(this);
     }
 
     @Override
@@ -11069,11 +11069,11 @@ public class BlockWorkerClientService {
       this.e = null;
     }
 
-    public SessionHeartbeatTResponse getSuccess() {
+    public SessionBlockHeartbeatTResponse getSuccess() {
       return this.success;
     }
 
-    public sessionHeartbeat_result setSuccess(SessionHeartbeatTResponse success) {
+    public sessionBlockHeartbeat_result setSuccess(SessionBlockHeartbeatTResponse success) {
       this.success = success;
       return this;
     }
@@ -11097,7 +11097,7 @@ public class BlockWorkerClientService {
       return this.e;
     }
 
-    public sessionHeartbeat_result setE(alluxio.thrift.AlluxioTException e) {
+    public sessionBlockHeartbeat_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -11123,7 +11123,7 @@ public class BlockWorkerClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((SessionHeartbeatTResponse)value);
+          setSuccess((SessionBlockHeartbeatTResponse)value);
         }
         break;
 
@@ -11169,12 +11169,12 @@ public class BlockWorkerClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof sessionHeartbeat_result)
-        return this.equals((sessionHeartbeat_result)that);
+      if (that instanceof sessionBlockHeartbeat_result)
+        return this.equals((sessionBlockHeartbeat_result)that);
       return false;
     }
 
-    public boolean equals(sessionHeartbeat_result that) {
+    public boolean equals(sessionBlockHeartbeat_result that) {
       if (that == null)
         return false;
 
@@ -11217,7 +11217,7 @@ public class BlockWorkerClientService {
     }
 
     @Override
-    public int compareTo(sessionHeartbeat_result other) {
+    public int compareTo(sessionBlockHeartbeat_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -11261,7 +11261,7 @@ public class BlockWorkerClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("sessionHeartbeat_result(");
+      StringBuilder sb = new StringBuilder("sessionBlockHeartbeat_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -11307,15 +11307,15 @@ public class BlockWorkerClientService {
       }
     }
 
-    private static class sessionHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_resultStandardScheme getScheme() {
-        return new sessionHeartbeat_resultStandardScheme();
+    private static class sessionBlockHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_resultStandardScheme getScheme() {
+        return new sessionBlockHeartbeat_resultStandardScheme();
       }
     }
 
-    private static class sessionHeartbeat_resultStandardScheme extends StandardScheme<sessionHeartbeat_result> {
+    private static class sessionBlockHeartbeat_resultStandardScheme extends StandardScheme<sessionBlockHeartbeat_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -11327,7 +11327,7 @@ public class BlockWorkerClientService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new SessionHeartbeatTResponse();
+                struct.success = new SessionBlockHeartbeatTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -11354,7 +11354,7 @@ public class BlockWorkerClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -11374,16 +11374,16 @@ public class BlockWorkerClientService {
 
     }
 
-    private static class sessionHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_resultTupleScheme getScheme() {
-        return new sessionHeartbeat_resultTupleScheme();
+    private static class sessionBlockHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_resultTupleScheme getScheme() {
+        return new sessionBlockHeartbeat_resultTupleScheme();
       }
     }
 
-    private static class sessionHeartbeat_resultTupleScheme extends TupleScheme<sessionHeartbeat_result> {
+    private static class sessionBlockHeartbeat_resultTupleScheme extends TupleScheme<sessionBlockHeartbeat_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -11402,11 +11402,11 @@ public class BlockWorkerClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new SessionHeartbeatTResponse();
+          struct.success = new SessionBlockHeartbeatTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

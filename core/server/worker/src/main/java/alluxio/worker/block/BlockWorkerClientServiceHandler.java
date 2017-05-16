@@ -32,8 +32,8 @@ import alluxio.thrift.RequestBlockLocationTOptions;
 import alluxio.thrift.RequestBlockLocationTResponse;
 import alluxio.thrift.RequestSpaceTOptions;
 import alluxio.thrift.RequestSpaceTResponse;
-import alluxio.thrift.SessionHeartbeatTOptions;
-import alluxio.thrift.SessionHeartbeatTResponse;
+import alluxio.thrift.SessionBlockHeartbeatTOptions;
+import alluxio.thrift.SessionBlockHeartbeatTResponse;
 import alluxio.thrift.UnlockBlockTOptions;
 import alluxio.thrift.UnlockBlockTResponse;
 
@@ -115,8 +115,8 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   @Override
-  public SessionHeartbeatTResponse sessionHeartbeat(final long sessionId, final List<Long> metrics,
-      SessionHeartbeatTOptions options) throws AlluxioTException {
+  public SessionBlockHeartbeatTResponse sessionBlockHeartbeat(final long sessionId,
+      final List<Long> metrics, SessionBlockHeartbeatTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
