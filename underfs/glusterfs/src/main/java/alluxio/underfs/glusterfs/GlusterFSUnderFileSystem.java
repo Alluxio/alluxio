@@ -115,7 +115,7 @@ public final class GlusterFSUnderFileSystem extends BaseUnderFileSystem
    */
   private GlusterFSUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration glusterFsConf) {
-    super(ufsUri);
+    super(ufsUri, conf);
     mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     try {
