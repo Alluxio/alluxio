@@ -30,7 +30,7 @@ public interface UfsManager extends Closeable {
    * @return the UFS instance
    * @throws IOException if it is failed to create the UFS instance
    */
-  UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf)
+  UnderFileSystem addMount(long mountId, String ufsUri, UnderFileSystemConfiguration ufsConf)
       throws IOException;
 
   /**

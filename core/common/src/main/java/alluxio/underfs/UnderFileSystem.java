@@ -82,7 +82,7 @@ public interface UnderFileSystem extends Closeable {
      * @param ufsConf optional configuration object for the UFS, may be null
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, Map<String, String> ufsConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories = UnderFileSystemFactoryRegistry.findAll(path);
       if (factories.isEmpty()) {
@@ -94,7 +94,7 @@ public interface UnderFileSystem extends Closeable {
         try {
           // Use the factory to create the actual client for the Under File System
           return new UnderFileSystemWithLogging(
-              factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
+              factory.create(path, ufsConf));
         } catch (Exception e) {
           errors.add(e);
           LOG.warn("Failed to create ufs", e);
@@ -119,9 +119,11 @@ public interface UnderFileSystem extends Closeable {
      */
     public static UnderFileSystem createForRoot() {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      boolean readOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+      boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
       Map<String, String> ufsConf = Configuration.getNestedProperties(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, ufsConf);
+      return create(ufsRoot, new UnderFileSystemConfiguration(readOnly, shared, ufsConf));
     }
   }
 

@@ -116,8 +116,8 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    * @throws IOException if it is failed to create the UFS instance
    */
-  private UnderFileSystem getOrAdd(String ufsUri, Map<String, String> ufsConf) throws IOException {
-    Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
+  private UnderFileSystem getOrAdd(String ufsUri, UnderFileSystemConfiguration ufsConf) throws IOException {
+    Key key = new Key(new AlluxioURI(ufsUri), ufsConf.getUfsConfiguration());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       return cachedFs;
@@ -145,7 +145,7 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf)
+  public UnderFileSystem addMount(long mountId, String ufsUri, UnderFileSystemConfiguration ufsConf)
       throws IOException {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
@@ -172,10 +172,13 @@ public abstract class AbstractUfsManager implements UfsManager {
     synchronized (this) {
       if (mRootUfs == null) {
         String rootUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+        boolean rootReadOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+        boolean rootShared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
         Map<String, String> rootConf =
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         try {
-          mRootUfs = addMount(IdUtils.ROOT_MOUNT_ID, rootUri, rootConf);
+          mRootUfs = addMount(IdUtils.ROOT_MOUNT_ID, rootUri,
+              new UnderFileSystemConfiguration(rootReadOnly, rootShared, rootConf));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

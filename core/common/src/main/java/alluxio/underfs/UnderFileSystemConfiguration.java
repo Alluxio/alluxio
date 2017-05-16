@@ -23,14 +23,21 @@ import java.util.Map;
  * {@link RuntimeException} if the key is not found in both configurations..
  */
 public final class UnderFileSystemConfiguration {
+  private final boolean mReadOnly;
+  private final boolean mShared;
   private final Map<String, String> mUfsConf;
 
   /**
    * Constructs a new instance of the configuration for a UFS.
    *
+   * @param readOnly whether only read operations are permitted to UFS
+   * @param shared whether the mount point is shared with all Alluxio users
    * @param ufsConf the user-specified UFS configuration as a map
    */
-  public UnderFileSystemConfiguration(Map<String, String> ufsConf) {
+  public UnderFileSystemConfiguration(boolean readOnly, boolean shared,
+      Map<String, String> ufsConf) {
+    mReadOnly = readOnly;
+    mShared = shared;
     mUfsConf = ufsConf;
   }
 
@@ -41,6 +48,28 @@ public final class UnderFileSystemConfiguration {
   public boolean containsKey(PropertyKey key) {
     return (mUfsConf != null && mUfsConf.containsKey(key.toString())) || Configuration
         .containsKey(key);
+  }
+
+  /**
+   * @return whether only read operations are permitted to UFS
+   */
+  public boolean isReadOnly() {
+    return mReadOnly;
+  }
+
+
+  /**
+   * @return whether the mounted UFS is shared with all Alluxio users
+   */
+  public boolean isShared() {
+    return mShared;
+  }
+
+  /**
+   * @return the properties map
+   */
+  public Map<String, String> getUfsConfiguration() {
+    return Collections.unmodifiableMap(mUfsConf);
   }
 
   /**
