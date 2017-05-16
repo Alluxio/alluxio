@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A class that manages the UFS used by different services.

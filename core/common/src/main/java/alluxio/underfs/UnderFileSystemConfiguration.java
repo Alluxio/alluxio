@@ -57,7 +57,6 @@ public final class UnderFileSystemConfiguration {
     return mReadOnly;
   }
 
-
   /**
    * @return whether the mounted UFS is shared with all Alluxio users
    */
