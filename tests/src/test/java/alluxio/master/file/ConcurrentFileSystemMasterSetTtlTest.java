@@ -94,13 +94,13 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
       files[i] = new AlluxioURI("/file" + i);
       mFileSystem.createFile(files[i],
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)).close();
-      ttls[i] = random.nextInt(TTL_INTERVAL_MS);
+      ttls[i] = random.nextInt(2 * TTL_INTERVAL_MS);
     }
 
     assertErrorsSizeEquals(concurrentSetTtl(files, ttls), 0);
 
     // Wait for all the created files being deleted after the TTLs become expired.
-    CommonUtils.sleepMs(2 * TTL_INTERVAL_MS);
+    CommonUtils.sleepMs(4 * TTL_INTERVAL_MS);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
 
     Assert.assertEquals("There're remaining file existing with expired TTLs",
