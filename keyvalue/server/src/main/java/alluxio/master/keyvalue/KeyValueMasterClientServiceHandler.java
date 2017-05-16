@@ -18,6 +18,8 @@ import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
 
@@ -44,13 +46,13 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
    *
    * @param keyValueMaster handler to the real {@link KeyValueMaster} instance
    */
-  public KeyValueMasterClientServiceHandler(KeyValueMaster keyValueMaster) {
+  KeyValueMasterClientServiceHandler(KeyValueMaster keyValueMaster) {
     mKeyValueMaster = keyValueMaster;
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   @Override

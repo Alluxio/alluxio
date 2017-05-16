@@ -39,6 +39,8 @@ import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FreeTOptions;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.thrift.MountTOptions;
@@ -70,14 +72,14 @@ public final class FileSystemMasterClientServiceHandler implements
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
+  FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   @Override
@@ -402,7 +404,6 @@ public final class FileSystemMasterClientServiceHandler implements
     });
   }
 
-  // TODO(calvin): Do not rely on client side options
   @Override
   public void setAttribute(final String path, final SetAttributeTOptions options)
       throws AlluxioTException {

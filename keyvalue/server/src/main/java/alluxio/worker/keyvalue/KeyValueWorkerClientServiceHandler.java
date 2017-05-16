@@ -22,6 +22,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
@@ -54,23 +56,15 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   /**
    * @param blockWorker the {@link BlockWorker}
    */
-  public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
+  KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.KEY_VALUE_WORKER_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.KEY_VALUE_WORKER_SERVICE_VERSION);
   }
 
-  /**
-   * Gets the value for {@code key} in the given block, or null if key is not found.
-   *
-   * @param blockId block Id
-   * @param key key to fetch
-   * @return value or null if not found
-   * @throws AlluxioTException if an exception occurs
-   */
   @Override
   public ByteBuffer get(final long blockId, final ByteBuffer key) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ByteBuffer>() {

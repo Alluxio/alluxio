@@ -21,6 +21,8 @@ import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CommandLineJobInfo;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.LineageInfo;
 import alluxio.thrift.LineageMasterClientService;
 import alluxio.thrift.TTtlAction;
@@ -51,14 +53,14 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
    *
    * @param lineageMaster the {@link LineageMaster} the handler uses internally
    */
-  public LineageMasterClientServiceHandler(LineageMaster lineageMaster) {
+  LineageMasterClientServiceHandler(LineageMaster lineageMaster) {
     Preconditions.checkNotNull(lineageMaster);
     mLineageMaster = lineageMaster;
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   @Override

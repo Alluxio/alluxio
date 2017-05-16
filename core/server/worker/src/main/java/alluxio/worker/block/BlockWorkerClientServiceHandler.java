@@ -12,10 +12,30 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
+import alluxio.thrift.AccessBlockTOptions;
+import alluxio.thrift.AccessBlockTResponse;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
-import alluxio.thrift.LockBlockResult;
+import alluxio.thrift.CacheBlockTOptions;
+import alluxio.thrift.CacheBlockTResponse;
+import alluxio.thrift.CancelBlockTOptions;
+import alluxio.thrift.CancelBlockTResponse;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.LockBlockTOptions;
+import alluxio.thrift.LockBlockTResponse;
+import alluxio.thrift.PromoteBlockTOptions;
+import alluxio.thrift.PromoteBlockTResponse;
+import alluxio.thrift.RemoveBlockTOptions;
+import alluxio.thrift.RemoveBlockTResponse;
+import alluxio.thrift.RequestBlockLocationTOptions;
+import alluxio.thrift.RequestBlockLocationTResponse;
+import alluxio.thrift.RequestSpaceTOptions;
+import alluxio.thrift.RequestSpaceTResponse;
+import alluxio.thrift.SessionHeartbeatTOptions;
+import alluxio.thrift.SessionHeartbeatTResponse;
+import alluxio.thrift.UnlockBlockTOptions;
+import alluxio.thrift.UnlockBlockTResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
-  private static final String UNSUPPORTED_MESSAGE = "Unsupported as of v1.5.0";
+  private static final String UNSUPPORTED_MESSAGE = "Unsupported as of version 1.5.0";
 
   /**
    * Creates a new instance of {@link BlockWorkerClientServiceHandler}.
@@ -41,151 +61,68 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   public BlockWorkerClientServiceHandler(BlockWorker worker) {}
 
   @Override
-  public long getServiceVersion() {
-    return Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION);
   }
 
-  /**
-   * This should be called whenever a client does a direct read in order to update the worker's
-   * components that may care about the access times of the blocks (for example, Evictor, UI).
-   *
-   * @param blockId the id of the block to access
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public void accessBlock(final long blockId) throws AlluxioTException {
-    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
-  }
-
-  /**
-   * Used to cache a block into Alluxio space, worker will move the temporary block file from
-   * session folder to data folder, and update the space usage information related. then update the
-   * block information to master.
-   *
-   * @param sessionId the id of the client requesting the commit
-   * @param blockId the id of the block to commit
-   * @throws UnsupportedOperationException always
-   */
-  @Override
-  public void cacheBlock(final long sessionId, final long blockId) throws AlluxioTException {
-    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
-  }
-
-  /**
-   * Used to cancel a block which is being written. worker will delete the temporary block file and
-   * the location and space information related, then reclaim space allocated to the block.
-   *
-   * @param sessionId the id of the client requesting the abort
-   * @param blockId the id of the block to be aborted
-   * @throws UnsupportedOperationException always
-   */
-  @Override
-  public void cancelBlock(final long sessionId, final long blockId) throws AlluxioTException {
-    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
-  }
-
-  /**
-   * Locks the file in Alluxio's space while the session is reading it.
-   *
-   * @param blockId the id of the block to be locked
-   * @param sessionId the id of the session
-   * @return the path of the block file locked
-   * @throws AlluxioTException if an error occurs
-   */
-  @Override
-  public LockBlockResult lockBlock(long blockId, long sessionId, LockBlockTOptions options)
+  public AccessBlockTResponse accessBlock(final long blockId, AccessBlockTOptions options)
       throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Used to promote block on under storage layer to top storage layer when there are more than one
-   * storage layers in Alluxio's space.
-   * otherwise.
-   *
-   * @param blockId the id of the block to move to the top layer
-   * @return true if the block is successfully promoted, otherwise false
-   * @throws UnsupportedOperationException always
-   */
-  // TODO(calvin): This may be better as void.
   @Override
-  public boolean promoteBlock(final long blockId) throws AlluxioTException {
+  public CacheBlockTResponse cacheBlock(final long sessionId, final long blockId,
+      CacheBlockTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Used to remove a block in Alluxio storage. Worker will delete the block file and
-   * reclaim space allocated to the block.
-   *
-   * @param blockId the id of the block to be removed
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public void removeBlock(final long blockId) throws AlluxioTException {
+  public CancelBlockTResponse cancelBlock(final long sessionId, final long blockId,
+      CancelBlockTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Used to allocate location and space for a new coming block, worker will choose the appropriate
-   * storage directory which fits the initial block size by some allocation strategy. If there is
-   * not enough space on Alluxio storage {@link alluxio.exception.WorkerOutOfSpaceException} will be
-   * thrown, if the file is already being written by the session,
-   * {@link alluxio.exception.FileAlreadyExistsException} will be thrown.
-   *
-   * @param sessionId the id of the client requesting the create
-   * @param blockId the id of the new block to create
-   * @param initialBytes the initial number of bytes to allocate for this block
-   * @param writeTier policy used to choose tier for this block
-   * @return the temporary file path of the block file
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public String requestBlockLocation(final long sessionId, final long blockId,
-      final long initialBytes, final int writeTier) throws AlluxioTException {
-    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
-  }
-
-  /**
-   * Requests space for a block.
-   *
-   * @param sessionId the id of the client requesting space
-   * @param blockId the id of the block to add the space to, this must be a temporary block
-   * @param requestBytes the amount of bytes to add to the block
-   * @return true if the worker successfully allocates space for the block on block’s location,
-   *         false if there is not enough space
-   * @throws UnsupportedOperationException always
-   */
-  @Override
-  public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
+  public LockBlockTResponse lockBlock(long blockId, long sessionId, LockBlockTOptions options)
       throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Local session send heartbeat to local worker to keep its temporary folder.
-   *
-   * @param sessionId the id of the client heartbeating
-   * @param metrics deprecated
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
+  public PromoteBlockTResponse promoteBlock(final long blockId, PromoteBlockTOptions options)
       throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Used to unlock a block after the block is accessed, if the block is to be removed, delete
-   * the block file.
-   *
-   * @param blockId the id of the block to unlock
-   * @param sessionId the id of the client requesting the unlock
-   * @return true if successfully unlock the block, return false if the block is not
-   * found or failed to delete the block
-   * @throws AlluxioTException if an error occurs
-   */
   @Override
-  public boolean unlockBlock(long blockId, long sessionId) throws AlluxioTException {
+  public RemoveBlockTResponse removeBlock(final long blockId, RemoveBlockTOptions options)
+      throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
+  }
+
+  @Override
+  public RequestBlockLocationTResponse requestBlockLocation(final long sessionId,
+      final long blockId, final long initialBytes, final int writeTier,
+      RequestBlockLocationTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
+  }
+
+  @Override
+  public RequestSpaceTResponse requestSpace(final long sessionId, final long blockId,
+      final long requestBytes, RequestSpaceTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
+  }
+
+  @Override
+  public SessionHeartbeatTResponse sessionHeartbeat(final long sessionId, final List<Long> metrics,
+      SessionHeartbeatTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
+  }
+
+  @Override
+  public UnlockBlockTResponse unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options)
+      throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 }

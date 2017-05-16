@@ -18,6 +18,8 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -52,8 +54,8 @@ public final class FileSystemMasterWorkerServiceHandler
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION);
   }
 
   @Override

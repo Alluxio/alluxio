@@ -142,13 +142,6 @@ public class ThriftUtilsTest {
 
   }
 
-  private alluxio.thrift.LockBlockResult getLockBlockResultThrift() {
-    alluxio.thrift.LockBlockResult r = new alluxio.thrift.LockBlockResult();
-    r.setBlockPath("blockPath");
-    r.setLockBlockStatus(LockBlockStatus.ALLUXIO_BLOCK_LOCKED);
-    return r;
-  }
-
   private WorkerInfo getWorkerInfo() {
     WorkerInfo w = new WorkerInfo();
     w.setUsedBytes(100L);
