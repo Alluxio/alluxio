@@ -36,7 +36,8 @@ public final class UnderFileSystemConfiguration {
    * @param shared whether the mount point is shared with all Alluxio users
    * @param ufsConf the user-specified UFS configuration as a map
    */
-  public UnderFileSystemConfiguration(boolean readOnly, boolean shared, Map<String, String> ufsConf) {
+  public UnderFileSystemConfiguration(boolean readOnly, boolean shared,
+      Map<String, String> ufsConf) {
     mReadOnly = readOnly;
     mShared = shared;
     mUfsConf = ufsConf;
