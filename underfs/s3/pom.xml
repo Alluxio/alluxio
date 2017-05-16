@@ -48,6 +48,13 @@
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- External test dependencies -->
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
