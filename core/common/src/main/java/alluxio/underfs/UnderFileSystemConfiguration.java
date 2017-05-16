@@ -83,7 +83,8 @@ public final class UnderFileSystemConfiguration {
    * @return the value associated with the given key
    */
   public String getValue(PropertyKey key) {
-    if (mOptions != null && mOptions.getProperties().containsKey(key.toString())) {
+    if (mOptions != null && mOptions.getProperties() != null
+        && mOptions.getProperties().containsKey(key.toString())) {
       return mOptions.getProperties().get(key.toString());
     }
     if (Configuration.containsKey(key)) {
