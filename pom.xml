@@ -598,6 +598,11 @@
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-server</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-json-jackson</artifactId>
         <version>${jersey.version}</version>
