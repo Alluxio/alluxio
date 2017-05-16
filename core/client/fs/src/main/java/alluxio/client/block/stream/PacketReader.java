@@ -36,7 +36,7 @@ public interface PacketReader extends Closeable {
   /**
    * The factory interface to create {@link PacketReader}s.
    */
-  interface Factory {
+  interface Factory extends Closeable {
     /**
      * Creates an instance of {@link PacketReader}.
      *

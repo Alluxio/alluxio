@@ -21,6 +21,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
@@ -51,8 +52,6 @@ public final class NettyPacketReaderTest {
 
   private static final Random RANDOM = new Random();
   private static final long BLOCK_ID = 1L;
-  private static final long SESSION_ID = 2L;
-  private static final long LOCK_ID = 3L;
 
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
@@ -63,8 +62,9 @@ public final class NettyPacketReaderTest {
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(WorkerNetAddress.class);
-    mFactory = new NettyPacketReader.Factory(mContext, mAddress, BLOCK_ID, LOCK_ID, SESSION_ID,
-        false, Protocol.RequestType.ALLUXIO_BLOCK, PACKET_SIZE);
+    Protocol.ReadRequest readRequest =
+        Protocol.ReadRequest.newBuilder().setBlockId(BLOCK_ID).setPacketSize(PACKET_SIZE).build();
+    mFactory = new NettyPacketReader.Factory(mContext, mAddress, readRequest);
 
     mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
@@ -120,7 +120,7 @@ public final class NettyPacketReaderTest {
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, offset, length, false, PACKET_SIZE);
-    validateReadRequestSent(mChannel, 0, 0, true, 0);
+    validateReadRequestSent(mChannel, offset, length, true, PACKET_SIZE);
   }
 
   /**
@@ -140,7 +140,7 @@ public final class NettyPacketReaderTest {
       Assert.assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, false, PACKET_SIZE);
-    validateReadRequestSent(mChannel, 0, 0, true, 0);
+    validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, true, PACKET_SIZE);
   }
 
   /**
@@ -217,7 +217,7 @@ public final class NettyPacketReaderTest {
     Assert.assertTrue(request instanceof RPCProtoMessage);
     Assert.assertEquals(null, ((RPCProtoMessage) request).getPayloadDataBuffer());
     Protocol.ReadRequest readRequest = ((RPCProtoMessage) request).getMessage().asReadRequest();
-    Assert.assertEquals(BLOCK_ID, readRequest.getId());
+    Assert.assertEquals(BLOCK_ID, readRequest.getBlockId());
     Assert.assertEquals(offset, readRequest.getOffset());
     Assert.assertEquals(length, readRequest.getLength());
     Assert.assertEquals(cancel, readRequest.getCancel());
@@ -235,6 +235,13 @@ public final class NettyPacketReaderTest {
    */
   private Future<Long> sendReadResponses(final EmbeddedChannel channel, final long length,
       final long start, final long end) {
+    ProtoMessage heartbeat = new ProtoMessage(
+        Protocol.ReadResponse.newBuilder().setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT)
+            .build());
+    // Send some heartbeats first.
+    for (int i = 0; i < 3; ++i) {
+      channel.writeInbound(new RPCProtoMessage(heartbeat));
+    }
     return EXECUTOR.submit(new Callable<Long>() {
       @Override
       public Long call() {

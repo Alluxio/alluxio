@@ -24,6 +24,7 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.resource.LockResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
@@ -112,16 +113,14 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param address the data server address
    * @param id the block ID or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
-   * @param sessionId the session ID
    * @param tier the target tier
    * @param type the request type (block or UFS file)
    * @param packetSize the packet size
    */
   public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long id,
-      long length, long sessionId, int tier, Protocol.RequestType type, long packetSize)
-          throws IOException {
-    this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id)
-        .setSessionId(sessionId).setTier(tier).setType(type).buildPartial(), packetSize);
+      long length, int tier, Protocol.RequestType type, long packetSize) throws IOException {
+    this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id).setTier(tier)
+        .setType(type).buildPartial(), packetSize);
   }
 
   /**
@@ -133,8 +132,8 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param partialRequest details of the write request which are constant for all requests
    * @param packetSize the packet size
    */
-  public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long
-      length, Protocol.WriteRequest partialRequest, long packetSize) throws IOException {
+  public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long length,
+      Protocol.WriteRequest partialRequest, long packetSize) throws IOException {
     mContext = context;
     mAddress = address;
     mLength = length;
@@ -323,12 +322,13 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-      Preconditions.checkState(acceptMessage(msg), "Incorrect response type.");
+      Preconditions.checkState(acceptMessage(msg),
+          String.format("Incorrect response type %s.", msg.toString()));
       RPCProtoMessage response = (RPCProtoMessage) msg;
       // Canceled is considered a valid status and handled in the writer. We avoid creating a
       // CanceledException as an optimization.
       if (response.getMessage().asResponse().getStatus() != PStatus.CANCELED) {
-        response.unwrapException();
+        CommonUtils.unwrapResponse(response.getMessage().asResponse());
       }
 
       try (LockResource lr = new LockResource(mLock)) {

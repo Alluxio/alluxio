@@ -18,6 +18,9 @@ priority: 0
 
 **[奖励]** 如果你有一个[包含access key id和secret accsee key的AWS账户](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html)，你可以完成额外的任务。需要你AWS账户信息的章节都有**[奖励]**的标签。
 
+**注意** 本指南旨在让你快速开始与Alluxio系统进行交互。Alluxio在大数据工作负载的分布式环境中表现最好。这些特性都难以适用于本地环境。如果你有兴趣运行一个更大规模的、能够突出Alluxio性能优势的例子，可以选择这两个白皮书中的任一个，尝试其中的指南：[Accelerating
+on-demand data analytics with Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio)、[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio)。
+
 ## 前期准备
 
 为了接下来的快速上手指南，你需要:
@@ -292,7 +295,7 @@ Alluxio可以部署在很多不同的环境下。
 * [Alluxio独立模式实现容错](Running-Alluxio-Fault-Tolerant.html)
 * [在EC2上运行Alluxio](Running-Alluxio-on-EC2.html)
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
-* [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-EC2-Mesos.html)
+* [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)
 * [在EC2上运行带容错机制的Alluxio](Running-Alluxio-Fault-Tolerant-on-EC2.html)
 * [在EC2上使用YARN运行Alluxio](Running-Alluxio-on-EC2-Yarn.html)
 

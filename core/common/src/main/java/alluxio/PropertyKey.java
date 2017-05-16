@@ -16,14 +16,13 @@ import alluxio.exception.ExceptionMessage;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -438,6 +437,8 @@ public class PropertyKey {
       create(Name.WORKER_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey WORKER_WEB_HOSTNAME = create(Name.WORKER_WEB_HOSTNAME, null);
   public static final PropertyKey WORKER_WEB_PORT = create(Name.WORKER_WEB_PORT, 30000);
+  public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+      create(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000);
 
   //
   // Proxy related properties
@@ -962,6 +963,8 @@ public class PropertyKey {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
+    public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+        "alluxio.worker.ufs.block.open.timeout.ms";
 
     //
     // Proxy related properties

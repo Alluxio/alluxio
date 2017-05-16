@@ -12,8 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.options.InStreamOptions;
-
-import com.google.common.io.Closer;
+import alluxio.wire.WorkerNetAddress;
 
 /**
  * Mock of {@link BlockInStream} to create a BlockInStream on a single block. The
@@ -27,7 +26,7 @@ public class TestBlockInStream extends BlockInStream {
    * @param data data to read
    */
   public TestBlockInStream(long blockId, byte[] data) {
-    super(new TestPacketInStream(data, blockId, data.length, true), new TestBlockWorkerClient(),
-        Closer.create(), InStreamOptions.defaults());
+    super(new TestPacketInStream(data, blockId, data.length, true),
+        new WorkerNetAddress().setHost("local"), InStreamOptions.defaults());
   }
 }
