@@ -80,6 +80,11 @@
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
     </dependency>
+    <!-- Needed at runtime -->
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>

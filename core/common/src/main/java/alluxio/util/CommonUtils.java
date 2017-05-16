@@ -244,7 +244,8 @@ public final class CommonUtils {
     int timeout = options.getTimeout();
     while (!condition.apply(null)) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
-        throw new RuntimeException("Timed out waiting for " + description);
+        throw new RuntimeException(
+            String.format("Timed out waiting for %s after %d ms", description, timeout));
       }
       CommonUtils.sleepMs(interval);
     }
@@ -267,7 +268,8 @@ public final class CommonUtils {
     int timeout = options.getTimeout();
     while ((t = operation.apply(null)) == null) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
-        throw new RuntimeException("Timed out waiting for " + description);
+        throw new RuntimeException(
+            String.format("Timed out waiting for %s after %d ms", description, timeout));
       }
       CommonUtils.sleepMs(interval);
     }
