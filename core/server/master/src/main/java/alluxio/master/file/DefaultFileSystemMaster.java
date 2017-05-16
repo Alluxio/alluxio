@@ -2413,8 +2413,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean replayed, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    UnderFileSystem ufs = mUfsManager.addMount(mountId, ufsPath.toString(),
-        new UnderFileSystemConfiguration(options));
+    UnderFileSystem ufs =
+        mUfsManager.addMount(mountId, ufsPath.toString(), new UnderFileSystemConfiguration(
+            options.isReadOnly(), options.isShared(), options.getProperties()));
     try {
       if (!replayed) {
         // Check that the ufsPath exists and is a directory

@@ -11,7 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.master.file.options.MountOptions;
 import alluxio.thrift.UfsInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -71,7 +70,8 @@ public final class WorkerUfsManager extends AbstractUfsManager {
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
       try {
         ufs = super.addMount(mountId, info.getUri(),
-            new UnderFileSystemConfiguration(new MountOptions(info.getProperties())));
+            new UnderFileSystemConfiguration(info.getProperties().isReadOnly(),
+                info.getProperties().isShared(), info.getProperties().getProperties()));
       } catch (IOException e) {
         LOG.error("Failed to add mount point {} with id {}", info.getUri(), mountId, e);
         return null;

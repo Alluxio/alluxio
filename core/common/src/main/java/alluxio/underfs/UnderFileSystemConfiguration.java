@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.master.file.options.MountOptions;
 
 import java.util.Collections;
 import java.util.Map;
@@ -24,24 +23,32 @@ import java.util.Map;
  * {@link RuntimeException} if the key is not found in both configurations..
  */
 public final class UnderFileSystemConfiguration {
-  private final MountOptions mOptions;
+  private final boolean mReadOnly;
+  private final boolean mShared;
+  private final Map<String, String> mUfsConf;
 
   private static final UnderFileSystemConfiguration DEFAULTS = new UnderFileSystemConfiguration();
 
   /**
    * Constructs a new instance of the configuration for a UFS.
    *
-   * @param options UFS mount configuration
+   * @param readOnly whether only read operations are permitted to UFS
+   * @param shared whether the mount point is shared with all Alluxio users
+   * @param ufsConf the user-specified UFS configuration as a map
    */
-  public UnderFileSystemConfiguration(MountOptions options) {
-    mOptions = options;
+  public UnderFileSystemConfiguration(boolean readOnly, boolean shared, Map<String, String> ufsConf) {
+    mReadOnly = readOnly;
+    mShared = shared;
+    mUfsConf = ufsConf;
   }
 
   /**
    * Constructs a new instance of {@link UnderFileSystemConfiguration} with defaults.
    */
   private UnderFileSystemConfiguration() {
-    mOptions = MountOptions.defaults();
+    mReadOnly = false;
+    mShared = false;
+    mUfsConf = Collections.EMPTY_MAP;
   }
 
   /**
@@ -56,22 +63,8 @@ public final class UnderFileSystemConfiguration {
    * @return true if the key is contained in the given UFS configuration or global configuration
    */
   public boolean containsKey(PropertyKey key) {
-    return (mOptions != null && mOptions.getProperties().containsKey(key.toString()))
+    return (mUfsConf != null && mUfsConf.containsKey(key.toString()))
         || Configuration.containsKey(key);
-  }
-
-  /**
-   * @return mount options
-   */
-  public MountOptions getMountOptions() {
-    return mOptions;
-  }
-
-  /**
-   * @return the properties map
-   */
-  public Map<String, String> getUfsConfiguration() {
-    return Collections.unmodifiableMap(mOptions.getProperties());
   }
 
   /**
@@ -83,9 +76,8 @@ public final class UnderFileSystemConfiguration {
    * @return the value associated with the given key
    */
   public String getValue(PropertyKey key) {
-    if (mOptions != null && mOptions.getProperties() != null
-        && mOptions.getProperties().containsKey(key.toString())) {
-      return mOptions.getProperties().get(key.toString());
+    if (mUfsConf != null && mUfsConf.containsKey(key.toString())) {
+      return mUfsConf.get(key.toString());
     }
     if (Configuration.containsKey(key)) {
       return Configuration.get(key);
@@ -97,9 +89,23 @@ public final class UnderFileSystemConfiguration {
    * @return the map of user-customized configuration
    */
   public Map<String, String> getUserSpecifiedConf() {
-    if (mOptions == null || mOptions.getProperties() == null) {
+    if (mUfsConf == null) {
       return Collections.emptyMap();
     }
-    return Collections.unmodifiableMap(mOptions.getProperties());
+    return Collections.unmodifiableMap(mUfsConf);
+  }
+
+  /**
+   * @return whether only read operations are permitted to the {@link UnderFileSystem}
+   */
+  public boolean isReadOnly() {
+    return mReadOnly;
+  }
+
+  /**
+   * @return whether the mounted UFS is shared with all Alluxio users
+   */
+  public boolean isShared() {
+    return mShared;
   }
 }

@@ -14,7 +14,6 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.master.file.options.MountOptions;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
@@ -119,7 +118,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    */
   private UnderFileSystem getOrAdd(String ufsUri, UnderFileSystemConfiguration ufsConf)
       throws IOException {
-    Key key = new Key(new AlluxioURI(ufsUri), ufsConf.getUfsConfiguration());
+    Key key = new Key(new AlluxioURI(ufsUri), ufsConf.getUserSpecifiedConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       return cachedFs;
@@ -182,8 +181,7 @@ public abstract class AbstractUfsManager implements UfsManager {
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         try {
           mRootUfs = addMount(IdUtils.ROOT_MOUNT_ID, rootUri,
-              new UnderFileSystemConfiguration(MountOptions.defaults().setReadOnly(rootReadOnly)
-                  .setShared(rootShared).setProperties(rootConf)));
+              new UnderFileSystemConfiguration(rootReadOnly, rootShared, rootConf));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
