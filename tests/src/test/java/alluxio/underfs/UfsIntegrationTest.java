@@ -49,7 +49,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-public final class UnderStorageSystemInterfaceIntegrationTest extends BaseIntegrationTest {
+public final class UfsIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   @Rule
