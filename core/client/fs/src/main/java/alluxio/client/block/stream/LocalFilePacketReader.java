@@ -101,7 +101,6 @@ public final class LocalFilePacketReader implements PacketReader {
     private final long mBlockId;
     private final String mPath;
     private final long mPacketSize;
-    private final InStreamOptions mOptions;
     private boolean mClosed;
 
     /**
@@ -119,7 +118,6 @@ public final class LocalFilePacketReader implements PacketReader {
       mAddress = address;
       mBlockId = blockId;
       mPacketSize = packetSize;
-      mOptions = options;
 
       mChannel = context.acquireNettyChannel(address);
       Protocol.LocalBlockOpenRequest request =
