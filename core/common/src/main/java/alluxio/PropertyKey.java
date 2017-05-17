@@ -546,7 +546,8 @@ public class PropertyKey {
       create(Name.USER_NETWORK_NETTY_READER_CANCEL_ENABLED, true);
   public static final PropertyKey USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
       create(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB");
-
+  public static final PropertyKey USER_MUSTCACHELIST =
+      create(Name.USER_MUSTCACHELIST, "");
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       create(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50);
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
@@ -1058,6 +1059,8 @@ public class PropertyKey {
         "alluxio.user.network.netty.reader.cancel.enabled";
     public static final String USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
         "alluxio.user.network.netty.reader.packet.size.bytes";
+    public static final String USER_MUSTCACHELIST =
+        "alluxio.user.mustCacheList";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep.ms";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
