@@ -481,7 +481,7 @@ public class PropertyKey {
   public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
       create(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
-      create(Name.USER_FILE_BUFFER_BYTES, "8MB");
+      create(Name.USER_FILE_BUFFER_BYTES, "1MB");
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       create(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
   public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
