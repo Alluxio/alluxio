@@ -256,7 +256,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   /**
    * Validates a block write request.
    *
-   * @param msg the block write request
+   * @param request the block write request
    * @throws InvalidArgumentException if the write request is invalid
    */
   private void validateWriteRequest(Protocol.WriteRequest request, DataBuffer payload)

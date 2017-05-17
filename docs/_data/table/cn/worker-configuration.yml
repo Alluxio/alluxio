@@ -59,6 +59,14 @@ alluxio.worker.network.netty.watermark.low:
   一旦写队列中的high watermark达到了，该队列在切换到可写状态之前必须刷新到该配置项指定的low watermark。
 alluxio.worker.network.netty.worker.threads:
   "处理请求的线程数目，0表示#cpuCores * 2"
+alluxio.worker.network.netty.block.reader.threads.max:
+  处理读数据块的线程数目。
+alluxio.worker.network.netty.block.writer.threads.max:
+  处理写数据块的线程数目。
+alluxio.worker.network.netty.file.writer.threads.max:
+  处理往底层文件系统写文件的线程数目。
+alluxio.worker.network.netty.rpc.threads.max:
+  处理RPC的线程数目。
 alluxio.worker.port:
   Alluxio worker节点运行端口。
 alluxio.worker.session.timeout.ms:
