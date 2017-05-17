@@ -50,15 +50,6 @@
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!-- Internal test dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <profiles>
@@ -69,7 +60,7 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
-          <version>1.0.4</version>
+          <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
       <build>
@@ -288,11 +279,13 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
 
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
       <build>
@@ -572,11 +565,13 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
 
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
       <build>
@@ -852,11 +847,13 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
 
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
       <build>
@@ -1207,11 +1204,13 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
 
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
       <build>

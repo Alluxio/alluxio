@@ -113,14 +113,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   /**
    * @param className class name to shade
    * @param conf UFS configuration
-   * @return the class name after shading, or the original class name if in test
+   * @return the class name after shading
    */
   public static String shadedClassName(String className, UnderFileSystemConfiguration conf) {
-    if (Boolean.valueOf(conf.getValue(PropertyKey.TEST_MODE))) {
-      return className;
-    } else {
-      return "alluxio.underfs.hdfs." + className;
-    }
+    return "alluxio.underfs.hdfs." + className;
   }
 
   /**
@@ -149,7 +145,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         "hadoop.ssl.keystores.factory.class",
     };
     for (String key : relocatedConf) {
-      hdfsConf.set(key, shadedClassName(hdfsConf.get(key), conf));
+      String value = hdfsConf.get(key);
+      if (value != null) { // not all conf properties are available across different HDFS versions
+        hdfsConf.set(key, shadedClassName(value, conf));
+      }
     }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
@@ -168,7 +167,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     // NOTE, adding S3 credentials in system properties to HDFS conf for backward compatibility.
     // TODO(binfan): remove this as it can be set in mount options through --option
-    HdfsUnderFileSystemUtils.addS3Credentials(hdfsConf);
+    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY.toString();
+    if (System.getProperty(accessKeyConf) != null
+        && !conf.containsKey(PropertyKey.S3N_ACCESS_KEY)) {
+      hdfsConf.set(accessKeyConf, System.getProperty(accessKeyConf));
+    }
+    String secretKeyConf = PropertyKey.S3N_SECRET_KEY.toString();
+    if (System.getProperty(secretKeyConf) != null
+        && !conf.containsKey(PropertyKey.S3N_SECRET_KEY)) {
+      hdfsConf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    }
     // Set all parameters passed through --option
     for (Map.Entry<String, String> entry : conf.getUserSpecifiedConf().entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());

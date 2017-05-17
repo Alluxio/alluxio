@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +29,11 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    mHdfsUnderFileSystem = HdfsUnderFileSystem
-        .createInstance(new AlluxioURI("file:///"), UnderFileSystemConfiguration.defaults());
+    UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(false, false,
+        ImmutableMap.of("hadoop.security.group.mapping",
+            "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
+            PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
+    mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(new AlluxioURI("file:///"), conf);
   }
 
   /**
