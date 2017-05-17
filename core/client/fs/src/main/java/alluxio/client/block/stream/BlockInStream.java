@@ -18,20 +18,14 @@ import alluxio.client.BoundedStream;
 import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerClient;
-import alluxio.client.block.options.LockBlockOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.resource.LockBlockResource;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
-
-import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -55,142 +49,56 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class BlockInStream extends FilterInputStream implements BoundedStream, Seekable,
     PositionedReadable, Locatable {
   /** Helper to manage closeables. */
-  private final Closer mCloser;
-  private final BlockWorkerClient mBlockWorkerClient;
   private final boolean mLocal;
   private final PacketInStream mInputStream;
+  private final WorkerNetAddress mAddress;
 
   /**
-   * Creates an instance of {@link BlockInStream} that reads from local file directly.
-   *
-   * @param blockId the block ID
-   * @param blockSize the block size
-   * @param workerNetAddress the worker network address
-   * @param context the file system context
-   * @param options the options
-   * @return the {@link BlockInStream} created
-   */
-  // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createShortCircuitBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
-    Closer closer = Closer.create();
-    try {
-      BlockWorkerClient blockWorkerClient =
-          closer.register(context.createBlockWorkerClient(workerNetAddress));
-      LockBlockResource lockBlockResource =
-          closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
-      PacketInStream inStream = closer.register(PacketInStream
-          .createLocalPacketInStream(lockBlockResource.getResult().getBlockPath(), blockId,
-              blockSize, options));
-      blockWorkerClient.accessBlock(blockId);
-      return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
-    }
-  }
-
-  /**
-   * Creates an instance of remote {@link BlockInStream} that reads from a remote worker.
-   *
-   * @param blockId the block ID
-   * @param blockSize the block size
-   * @param workerNetAddress the worker network address
-   * @param context the file system context
-   * @param options the options
-   * @return the {@link BlockInStream} created
-   */
-  // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createNettyBlockInStream(long blockId, long blockSize,
-      WorkerNetAddress workerNetAddress, FileSystemContext context, InStreamOptions options) {
-    Closer closer = Closer.create();
-    try {
-      BlockWorkerClient blockWorkerClient =
-          closer.register(context.createBlockWorkerClient(workerNetAddress));
-      LockBlockResource lockBlockResource =
-          closer.register(blockWorkerClient.lockBlock(blockId, LockBlockOptions.defaults()));
-      PacketInStream inStream = closer.register(PacketInStream
-          .createNettyPacketInStream(context, workerNetAddress, blockId,
-              lockBlockResource.getResult().getLockId(), blockWorkerClient.getSessionId(),
-              blockSize, false, Protocol.RequestType.ALLUXIO_BLOCK, options));
-      blockWorkerClient.accessBlock(blockId);
-      return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
-    }
-  }
-
-  /**
-   * Creates an instance of {@link BlockInStream}.
-   *
-   * This method keeps polling the block worker until the block is cached to Alluxio or
-   * it successfully acquires a UFS read token with a timeout.
-   * (1) If the block is cached to Alluxio after polling, it returns {@link BlockInStream}
-   *     to read the block from Alluxio storage.
-   * (2) If a UFS read token is acquired after polling, it returns {@link BlockInStream}
-   *     to read the block from an Alluxio worker that reads the block from UFS.
-   * (3) If the polling times out, an {@link IOException} with cause
-   *     {@link alluxio.exception.UfsBlockAccessTokenUnavailableException} is thrown.
+   * Creates an {@link BlockInStream} that reads from a local block.
    *
    * @param context the file system context
-   * @param ufsPath the UFS path
    * @param blockId the block ID
-   * @param blockSize the block size
-   * @param blockStart the position at which the block starts in the file
-   * @param mountId the id of the UFS which the mount of this file is mapped to
-   * @param workerNetAddress the worker network address
-   * @param options the options
-   * @return the {@link BlockInStream} created
+   * @param blockSize the block size in bytes
+   * @param address the Alluxio worker address
+   * @param openUfsBlockOptions the options to open a UFS block, set to null if this is block is
+   *        not persisted in UFS
+   * @param options the in stream options
+   * @return the {@link InputStream} object
    */
-  // TODO(peis): Use options idiom (ALLUXIO-2579).
-  public static BlockInStream createUfsBlockInStream(FileSystemContext context, String ufsPath,
-      long blockId, long blockSize, long blockStart, long mountId,
-      WorkerNetAddress workerNetAddress, InStreamOptions options) {
-    Closer closer = Closer.create();
-    try {
-      BlockWorkerClient blockWorkerClient =
-          closer.register(context.createBlockWorkerClient(workerNetAddress));
-      LockBlockOptions lockBlockOptions =
-          LockBlockOptions.defaults().setUfsPath(ufsPath).setOffset(blockStart)
-              .setBlockSize(blockSize).setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency())
-              .setMountId(mountId);
-
-      LockBlockResult lockBlockResult =
-          closer.register(blockWorkerClient.lockUfsBlock(blockId, lockBlockOptions)).getResult();
-      PacketInStream inStream;
-      if (lockBlockResult.getLockBlockStatus().blockInAlluxio()) {
-        boolean local = workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
-        if (local && Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)
-            && !NettyUtils.isDomainSocketSupported(workerNetAddress)) {
-          inStream = closer.register(PacketInStream
-              .createLocalPacketInStream(
-                  lockBlockResult.getBlockPath(), blockId, blockSize, options));
-        } else {
-          inStream = closer.register(PacketInStream
-              .createNettyPacketInStream(context, workerNetAddress, blockId,
-                  lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize, false,
-                  Protocol.RequestType.ALLUXIO_BLOCK, options));
-        }
-        blockWorkerClient.accessBlock(blockId);
-      } else {
-        Preconditions.checkState(lockBlockResult.getLockBlockStatus().ufsTokenAcquired());
-        inStream = closer.register(PacketInStream
-            .createNettyPacketInStream(context, workerNetAddress, blockId,
-                lockBlockResult.getLockId(), blockWorkerClient.getSessionId(), blockSize,
-                !options.getAlluxioStorageType().isStore(), Protocol.RequestType.UFS_BLOCK,
-                options));
+  public static BlockInStream create(FileSystemContext context, long blockId, long blockSize,
+      WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
+      InStreamOptions options) throws IOException {
+    if (CommonUtils.isLocalHost(address) && Configuration
+        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
+        .isDomainSocketSupported(address)) {
+      try {
+        PacketInStream inStream = PacketInStream
+            .createLocalPacketInStream(context, address, blockId, blockSize, options);
+        return new BlockInStream(inStream, address, options);
+      } catch (NotFoundException e) {
+        // Failed to do short circuit read because the block is not available in Alluxio.
+        // We will try to read from UFS via netty. So this exception is ignored.
       }
-      return new BlockInStream(inStream, blockWorkerClient, closer, options);
-    } catch (RuntimeException e) {
-      CommonUtils.closeQuietly(closer);
-      throw e;
     }
+    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
+        .setPromote(options.getAlluxioStorageType().isPromote());
+    if (openUfsBlockOptions != null) {
+      builder.setOpenUfsBlockOptions(openUfsBlockOptions);
+    }
+
+    PacketInStream inStream = PacketInStream
+        .createNettyPacketInStream(context, address, builder.buildPartial(), blockSize,
+            options);
+    return new BlockInStream(inStream, address, options);
   }
 
   @Override
-  public void close() {
-    CommonUtils.close(mCloser);
+  public void close() throws IOException {
+    try {
+      mInputStream.close();
+    } catch (IOException e) {
+      throw AlluxioStatusException.fromIOException(e);
+    }
   }
 
   @Override
@@ -199,18 +107,18 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
   }
 
   @Override
-  public void seek(long pos) {
+  public void seek(long pos) throws IOException {
     mInputStream.seek(pos);
   }
 
   @Override
-  public int positionedRead(long pos, byte[] b, int off, int len) {
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
     return mInputStream.positionedRead(pos, b, off, len);
   }
 
   @Override
   public WorkerNetAddress location() {
-    return mBlockWorkerClient.getWorkerNetAddress();
+    return mAddress;
   }
 
   @Override
@@ -229,20 +137,14 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    * Creates an instance of {@link BlockInStream}.
    *
    * @param inputStream the packet inputstream
-   * @param blockWorkerClient the block worker client
-   * @param closer the closer registered with closable resources open so far
+   * @param workerNetAddress the worker network address
    * @param options the options
    */
-  protected BlockInStream(PacketInStream inputStream, BlockWorkerClient blockWorkerClient,
-      Closer closer, InStreamOptions options) {
+  protected BlockInStream(PacketInStream inputStream, WorkerNetAddress workerNetAddress,
+      InStreamOptions options) {
     super(inputStream);
-
     mInputStream = inputStream;
-    mBlockWorkerClient = blockWorkerClient;
-
-    mCloser = closer;
-    mCloser.register(mInputStream);
-    mLocal = blockWorkerClient.getWorkerNetAddress().getHost()
-        .equals(NetworkAddressUtils.getClientHostName());
+    mAddress = workerNetAddress;
+    mLocal = CommonUtils.isLocalHost(workerNetAddress);
   }
 }

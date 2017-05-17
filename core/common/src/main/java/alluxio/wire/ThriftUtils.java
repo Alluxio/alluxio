@@ -96,16 +96,6 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param lockBlockResult the thrift representation of a lock block operation result
-   * @return wire representation of the lock block operation result
-   */
-  public static LockBlockResult fromThrift(alluxio.thrift.LockBlockResult lockBlockResult) {
-    return new LockBlockResult(lockBlockResult);
-  }
-
-  /**
-   * Converts a thrift type to a wire type.
-   *
    * @param workerInfo the thrift representation of a worker information
    * @return wire representation of the worker information
    */
@@ -201,16 +191,6 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.LineageInfo toThrift(LineageInfo lineageInfo) {
     return lineageInfo.toThrift();
-  }
-
-  /**
-   * Converts a wire type to a thrift type.
-   *
-   * @param lockBlockResult the wire representation of a lock block operation result
-   * @return thrift representation of the lock block operation result
-   */
-  public static alluxio.thrift.LockBlockResult toThrift(LockBlockResult lockBlockResult) {
-    return lockBlockResult.toThrift();
   }
 
   /**

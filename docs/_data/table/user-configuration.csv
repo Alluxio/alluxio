@@ -10,6 +10,7 @@ alluxio.user.file.buffer.bytes,1 MB
 alluxio.user.file.cache.partially.read.block,true
 alluxio.user.file.delete.unchecked,false
 alluxio.user.file.master.client.threads,10
+alluxio.user.file.metadata.load.type,Once
 alluxio.user.file.waitcompleted.poll.ms,1000
 alluxio.user.file.worker.client.threads,10
 alluxio.user.file.write.location.policy.class,alluxio.client.file.policy.LocalFirstPolicy

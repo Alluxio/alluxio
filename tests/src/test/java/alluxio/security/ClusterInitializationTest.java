@@ -21,6 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
@@ -82,7 +83,8 @@ public final class ClusterInitializationTest extends BaseIntegrationTest {
 
     AuthenticatedClientUser.set(SUPER_USER);
     Assert.assertEquals(SUPER_USER,
-        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getOwner());
+        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile"), GetStatusOptions.defaults())
+            .getOwner());
     registry.stop();
   }
 

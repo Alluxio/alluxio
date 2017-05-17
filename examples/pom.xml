@@ -46,6 +46,10 @@
       <artifactId>commons-cli</artifactId>
     </dependency>
     <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
     </dependency>
@@ -57,7 +61,7 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

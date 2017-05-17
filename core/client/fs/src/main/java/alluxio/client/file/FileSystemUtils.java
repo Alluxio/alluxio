@@ -132,7 +132,7 @@ public final class FileSystemUtils {
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
    */
-  public static void persistFile(final FileSystem fs, final AlluxioURI uri) {
+  public static void persistFile(final FileSystem fs, final AlluxioURI uri) throws IOException {
     FileSystemContext context = FileSystemContext.INSTANCE;
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
@@ -162,8 +162,8 @@ public final class FileSystemUtils {
    * @param options method options
    * @return a list of inconsistent files and directories
    */
-  public static List<AlluxioURI> checkConsistency(AlluxioURI path,
-      CheckConsistencyOptions options) {
+  public static List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+      throws IOException {
     FileSystemContext context = FileSystemContext.INSTANCE;
     FileSystemMasterClient client = context.acquireMasterClient();
     try {

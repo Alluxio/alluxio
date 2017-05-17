@@ -11,6 +11,8 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.wire.LoadMetadataType;
@@ -38,7 +40,8 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
-    mLoadMetadataType = LoadMetadataType.Once;
+    mLoadMetadataType =
+        Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
   }
 
   /**

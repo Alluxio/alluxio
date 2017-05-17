@@ -76,7 +76,7 @@ public abstract class AbstractLineageClient implements LineageClient {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -98,7 +98,7 @@ public abstract class AbstractLineageClient implements LineageClient {
     } catch (FailedPreconditionException e) {
       throw new LineageDeletionException(e.getMessage());
     } catch (UnavailableException e) {
-      throw e.toIOException();
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -113,8 +113,6 @@ public abstract class AbstractLineageClient implements LineageClient {
     try {
       masterClient = mContext.acquireMasterClient();
       return masterClient.getLineageInfoList();
-    } catch (AlluxioStatusException e) {
-      throw e.toIOException();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

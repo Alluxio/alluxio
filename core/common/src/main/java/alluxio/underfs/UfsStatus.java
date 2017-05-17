@@ -33,9 +33,7 @@ public abstract class UfsStatus {
    * Creates new instance of {@link UfsStatus}.
    *
    * @param name relative path of file or directory
-   * @param contentLength in bytes
    * @param isDirectory whether the path is a directory
-   * @param lastModifiedTimeMs UTC time
    * @param owner of the file
    * @param group of the file
    * @param mode of the file

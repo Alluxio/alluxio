@@ -102,8 +102,10 @@ public class FileSystemMasterClientService {
      * Returns the status of the file or directory.
      * 
      * @param path the path of the file or directory
+     * 
+     * @param options the method options
      */
-    public FileInfo getStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public FileInfo getStatus(String path, GetStatusTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns the status of the file or directory, only used internally by servers.
@@ -224,7 +226,7 @@ public class FileSystemMasterClientService {
 
     public void getFileBlockInfoList(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getStatus(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getStatus(String path, GetStatusTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getStatusInternal(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -420,16 +422,17 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileBlockInfoList failed: unknown result");
     }
 
-    public FileInfo getStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public FileInfo getStatus(String path, GetStatusTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getStatus(path);
+      send_getStatus(path, options);
       return recv_getStatus();
     }
 
-    public void send_getStatus(String path) throws org.apache.thrift.TException
+    public void send_getStatus(String path, GetStatusTOptions options) throws org.apache.thrift.TException
     {
       getStatus_args args = new getStatus_args();
       args.setPath(path);
+      args.setOptions(options);
       sendBase("getStatus", args);
     }
 
@@ -949,24 +952,27 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public void getStatus(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getStatus(String path, GetStatusTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getStatus_call method_call = new getStatus_call(path, resultHandler, this, ___protocolFactory, ___transport);
+      getStatus_call method_call = new getStatus_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class getStatus_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
-      public getStatus_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private GetStatusTOptions options;
+      public getStatus_call(String path, GetStatusTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getStatus", org.apache.thrift.protocol.TMessageType.CALL, 0));
         getStatus_args args = new getStatus_args();
         args.setPath(path);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1548,7 +1554,7 @@ public class FileSystemMasterClientService {
       public getStatus_result getResult(I iface, getStatus_args args) throws org.apache.thrift.TException {
         getStatus_result result = new getStatus_result();
         try {
-          result.success = iface.getStatus(args.path);
+          result.success = iface.getStatus(args.path, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -2247,7 +2253,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, getStatus_args args, org.apache.thrift.async.AsyncMethodCallback<FileInfo> resultHandler) throws TException {
-        iface.getStatus(args.path,resultHandler);
+        iface.getStatus(args.path, args.options,resultHandler);
       }
     }
 
@@ -8298,6 +8304,7 @@ public class FileSystemMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getStatus_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -8306,13 +8313,18 @@ public class FileSystemMasterClientService {
     }
 
     private String path; // required
+    private GetStatusTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the path of the file or directory
        */
-      PATH((short)1, "path");
+      PATH((short)1, "path"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8329,6 +8341,8 @@ public class FileSystemMasterClientService {
         switch(fieldId) {
           case 1: // PATH
             return PATH;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -8374,6 +8388,8 @@ public class FileSystemMasterClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetStatusTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getStatus_args.class, metaDataMap);
     }
@@ -8382,10 +8398,12 @@ public class FileSystemMasterClientService {
     }
 
     public getStatus_args(
-      String path)
+      String path,
+      GetStatusTOptions options)
     {
       this();
       this.path = path;
+      this.options = options;
     }
 
     /**
@@ -8394,6 +8412,9 @@ public class FileSystemMasterClientService {
     public getStatus_args(getStatus_args other) {
       if (other.isSetPath()) {
         this.path = other.path;
+      }
+      if (other.isSetOptions()) {
+        this.options = new GetStatusTOptions(other.options);
       }
     }
 
@@ -8404,6 +8425,7 @@ public class FileSystemMasterClientService {
     @Override
     public void clear() {
       this.path = null;
+      this.options = null;
     }
 
     /**
@@ -8436,6 +8458,36 @@ public class FileSystemMasterClientService {
       }
     }
 
+    /**
+     * the method options
+     */
+    public GetStatusTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public getStatus_args setOptions(GetStatusTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case PATH:
@@ -8446,6 +8498,14 @@ public class FileSystemMasterClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((GetStatusTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -8453,6 +8513,9 @@ public class FileSystemMasterClientService {
       switch (field) {
       case PATH:
         return getPath();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -8467,6 +8530,8 @@ public class FileSystemMasterClientService {
       switch (field) {
       case PATH:
         return isSetPath();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -8493,6 +8558,15 @@ public class FileSystemMasterClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -8504,6 +8578,11 @@ public class FileSystemMasterClientService {
       list.add(present_path);
       if (present_path)
         list.add(path);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -8522,6 +8601,16 @@ public class FileSystemMasterClientService {
       }
       if (isSetPath()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -8553,6 +8642,14 @@ public class FileSystemMasterClientService {
         sb.append(this.path);
       }
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -8560,6 +8657,9 @@ public class FileSystemMasterClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -8604,6 +8704,15 @@ public class FileSystemMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetStatusTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -8622,6 +8731,11 @@ public class FileSystemMasterClientService {
         if (struct.path != null) {
           oprot.writeFieldBegin(PATH_FIELD_DESC);
           oprot.writeString(struct.path);
+          oprot.writeFieldEnd();
+        }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -8645,19 +8759,30 @@ public class FileSystemMasterClientService {
         if (struct.isSetPath()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getStatus_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new GetStatusTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }

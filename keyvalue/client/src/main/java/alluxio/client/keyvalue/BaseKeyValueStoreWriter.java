@@ -63,7 +63,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    *
    * @param uri URI of the store
    */
-  BaseKeyValueStoreWriter(AlluxioURI uri) {
+  BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
     mMasterClient = new KeyValueMasterClient(FileSystemContext.INSTANCE.getMasterAddress());
 

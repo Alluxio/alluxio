@@ -34,6 +34,7 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
@@ -105,8 +106,8 @@ public class FileOutStreamTest {
 
     when(mFileSystemContext.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
-    when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
-        new URIStatus(new FileInfo()));
+    when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class), any(GetStatusOptions.class)))
+        .thenReturn(new URIStatus(new FileInfo()));
 
     // Return sequentially increasing numbers for new block ids
     when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
@@ -128,7 +129,7 @@ public class FileOutStreamTest {
             Long blockId = invocation.getArgumentAt(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBlockOutStream newStream =
-                  new TestBlockOutStream(ByteBuffer.allocate(1000), blockId, BLOCK_LENGTH);
+                  new TestBlockOutStream(ByteBuffer.allocate(1000), BLOCK_LENGTH);
               outStreamMap.put(blockId, newStream);
             }
             return outStreamMap.get(blockId);

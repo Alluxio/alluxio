@@ -131,7 +131,7 @@ public final class TestCommand extends AbstractShellCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     if (cl.getOptions().length > 1) {
-      return 1;
+      return -1;
     }
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
@@ -156,6 +156,8 @@ public final class TestCommand extends AbstractShellCommand {
         if (isZeroLengthFile(status)) {
           testResult = true;
         }
+      } else {
+        return -1;
       }
       return testResult ? 0 : 1;
     } catch (AlluxioException | IOException e) {

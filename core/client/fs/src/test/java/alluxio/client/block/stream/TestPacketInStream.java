@@ -45,5 +45,8 @@ public class TestPacketInStream extends PacketInStream {
     public boolean isShortCircuit() {
       return mShortCircuit;
     }
+
+    @Override
+    public void close() {}
   }
 }

@@ -29,12 +29,10 @@ public class TestBlockOutStream extends BlockOutStream {
    * Constructs a new {@link TestBlockOutStream} to be used in tests.
    *
    * @param data the data to test
-   * @param id the block id
    * @param blockSize the block size
    */
-  public TestBlockOutStream(ByteBuffer data, long id, long blockSize) {
-    super(new TestPacketOutStream(data, blockSize), id, blockSize, new TestBlockWorkerClient(),
-        OutStreamOptions.defaults());
+  public TestBlockOutStream(ByteBuffer data, long blockSize) {
+    super(new TestPacketOutStream(data, blockSize), OutStreamOptions.defaults());
     mData = data;
     mClosed = false;
     mCanceled = false;
@@ -58,13 +56,13 @@ public class TestBlockOutStream extends BlockOutStream {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     super.close();
     mClosed = true;
   }
 
   @Override
-  public void cancel() {
+  public void cancel() throws IOException {
     super.cancel();
     if (mClosed) {
       return;

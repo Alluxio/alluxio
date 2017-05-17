@@ -26,6 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MountInfo {
+  private final AlluxioURI mAlluxioUri;
   private final AlluxioURI mUfsUri;
   private final MountOptions mOptions;
   private final long mMountId;
@@ -33,14 +34,23 @@ public final class MountInfo {
   /**
    * Creates a new instance of {@code MountInfo}.
    *
+   * @param alluxioUri an Alluxio path URI
    * @param ufsUri a UFS path URI
    * @param mountId the id of the mount
    * @param options the mount options
    */
-  public MountInfo(AlluxioURI ufsUri, long mountId, MountOptions options) {
+  public MountInfo(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountOptions options) {
+    mAlluxioUri = Preconditions.checkNotNull(alluxioUri);
     mUfsUri = Preconditions.checkNotNull(ufsUri);
     mMountId = mountId;
     mOptions = options;
+  }
+
+  /**
+   * @return the {@link AlluxioURI} of the Alluxio path
+   */
+  public AlluxioURI getAlluxioUri() {
+    return mAlluxioUri;
   }
 
   /**
@@ -86,12 +96,13 @@ public final class MountInfo {
     }
     MountInfo that = (MountInfo) o;
     return mMountId == that.getMountId()
+        && mAlluxioUri.equals(that.getAlluxioUri())
         && mUfsUri.equals(that.getUfsUri())
         && mOptions.equals(that.getOptions());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mMountId, mUfsUri, mOptions);
+    return Objects.hash(mMountId, mAlluxioUri, mUfsUri, mOptions);
   }
 }

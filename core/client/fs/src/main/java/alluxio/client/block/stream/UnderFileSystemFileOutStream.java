@@ -17,6 +17,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.FilterOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -36,7 +37,7 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @return a new {@link UnderFileSystemFileOutStream}
    */
   public static OutputStream create(FileSystemContext context, WorkerNetAddress address,
-      OutStreamOptions options) {
+      OutStreamOptions options) throws IOException {
     return new UnderFileSystemFileOutStream(context, address, options);
   }
 
@@ -50,13 +51,11 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
    * @param options the out stream options
    */
   public UnderFileSystemFileOutStream(FileSystemContext context, WorkerNetAddress address,
-      OutStreamOptions options) {
+      OutStreamOptions options) throws IOException {
     super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
-        Protocol.WriteRequest.newBuilder().setSessionId(-1).setTier(TIER_UNUSED)
-            .setType(Protocol.RequestType.UFS_FILE).setMountId(options.getMountId())
-            .setUfsPath(options.getUfsPath()).setOwner(options.getOwner())
-            .setGroup(options.getGroup()).setMode(options.getMode().toShort()).buildPartial(),
-        options));
+        Protocol.WriteRequest.newBuilder().setTier(TIER_UNUSED)
+            .setType(Protocol.RequestType.UFS_FILE)
+            .setCreateUfsFileOptions(buildCreateUfsFileOptions(options)).buildPartial(), options));
     mOutStream = (PacketOutStream) out;
   }
 
@@ -64,12 +63,24 @@ public final class UnderFileSystemFileOutStream extends FilterOutputStream {
   // FilterOutStream.
 
   @Override
-  public void write(byte[] b) {
+  public void write(byte[] b) throws IOException {
     mOutStream.write(b);
   }
 
   @Override
-  public void write(byte[] b, int off, int len) {
+  public void write(byte[] b, int off, int len) throws IOException {
     mOutStream.write(b, off, len);
+  }
+
+  /**
+   * Builds {@link Protocol.CreateUfsFileOptions} from an {@link OutStreamOptions}.
+   *
+   * @param options the out stream options
+   * @return the create UFS file options
+   */
+  private static Protocol.CreateUfsFileOptions buildCreateUfsFileOptions(OutStreamOptions options) {
+    return Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
+        .setOwner(options.getOwner()).setGroup(options.getGroup())
+        .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
   }
 }

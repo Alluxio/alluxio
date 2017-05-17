@@ -22,6 +22,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -89,7 +90,7 @@ public class LocalFileBlockWriterTest {
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     mWriter.close();
     // Append after close, expect append to fail and throw ClosedChannelException
-    mThrown.expect(FailedPreconditionException.class);
+    mThrown.expect(IOException.class);
     mWriter.append(buf);
   }
 }
