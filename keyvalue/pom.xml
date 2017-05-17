@@ -26,6 +26,7 @@
     <module>client</module>
     <module>common</module>
     <module>server</module>
+    <module>hadoop</module>
   </modules>
 
   <properties>
