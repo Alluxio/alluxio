@@ -12,18 +12,28 @@
   <artifactId>alluxio-keyvalue-hadoop</artifactId>
 
   <dependencies>
-    <!-- Internal dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-client</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
     <!-- External dependencies -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <version>${hadoop.version}</version>
+    </dependency>
+
+    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-common</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>
