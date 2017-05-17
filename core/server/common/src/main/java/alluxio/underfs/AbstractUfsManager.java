@@ -14,17 +14,22 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.collections.Pair;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Basic implementation of {@link UfsManager}.
@@ -76,21 +81,21 @@ public abstract class AbstractUfsManager implements UfsManager {
     }
   }
 
-  // TODO(binfan): Add refcount to the UFS instance. Once the refcount goes to zero,
-  // we could close this UFS instance.
   /**
-   * Maps from key to {@link UnderFileSystem} instances. This map keeps the entire set of UFS
-   * instances, each keyed by their unique combination of Uri and conf information. This map
-   * helps efficiently identify if a UFS instance in request should be created or can be reused.
+   * Maps from key to {@link UnderFileSystem} and its counter pair instances.
+   * This map keeps the entire set of UFS instances and its counter,
+   * each keyed by their unique combination of Uri and conf information.
+   * This maps helps efficiently identify if a UFS instance in request
+   * should be created or can be reused.
    */
-  private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
+  private final ConcurrentHashMap<Key, Pair<UnderFileSystem, AtomicLong>> mUnderFileSystemMap =
       new ConcurrentHashMap<>();
   /**
-   * Maps from mount id to {@link UnderFileSystem} instances. This map helps efficiently retrieve
-   * an existing UFS instance given its mount id.
+   * Maps from mount id to {@link UnderFileSystem} and its counter pair instances.
+   * This map helps efficiently retrieve an existing UFS instance given its mount id.
    */
-  private final ConcurrentHashMap<Long, UnderFileSystem> mMountIdToUnderFileSystemMap =
-      new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, Pair<UnderFileSystem, AtomicLong>>
+      mMountIdToUnderFileSystemMap = new ConcurrentHashMap<>();
 
   private UnderFileSystem mRootUfs;
   protected final Closer mCloser;
@@ -110,16 +115,18 @@ public abstract class AbstractUfsManager implements UfsManager {
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return this.
-   *
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
-   * @return the UFS instance
+   * @return the UFS instance and its reference counter
    * @throws IOException if it is failed to create the UFS instance
    */
-  private UnderFileSystem getOrAdd(String ufsUri, Map<String, String> ufsConf) throws IOException {
+  private Pair<UnderFileSystem, AtomicLong> getOrAdd(String ufsUri, Map<String, String> ufsConf)
+      throws IOException {
     Key key = new Key(new AlluxioURI(ufsUri), ufsConf);
-    UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
+    Pair<UnderFileSystem, AtomicLong> cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
+      // It is a get operation, increase reference count.
+      cachedFs.getSecond().incrementAndGet();
       return cachedFs;
     }
     UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri, ufsConf);
@@ -129,12 +136,17 @@ public abstract class AbstractUfsManager implements UfsManager {
       fs.close();
       throw e;
     }
-    cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
+    cachedFs = mUnderFileSystemMap.putIfAbsent(key,
+      new Pair<UnderFileSystem, AtomicLong>(fs, new AtomicLong(1)));
     if (cachedFs == null) {
       // above insert is successful
-      mCloser.register(fs);
-      return fs;
+      // For a new created UnderFileSystem, its reference count is 1 already.
+      Pair<UnderFileSystem, AtomicLong> ufsCounter = mUnderFileSystemMap.get(key);
+      mCloser.register(ufsCounter.getFirst());
+      return ufsCounter;
     }
+    // It is a get operation, increase reference count.
+    cachedFs.getSecond().incrementAndGet();
     try {
       fs.close();
     } catch (IOException e) {
@@ -149,22 +161,48 @@ public abstract class AbstractUfsManager implements UfsManager {
       throws IOException {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
-    UnderFileSystem ufs = getOrAdd(ufsUri, ufsConf);
-    mMountIdToUnderFileSystemMap.put(mountId, ufs);
-    return ufs;
+    Pair<UnderFileSystem, AtomicLong> ufsCounter = getOrAdd(ufsUri, ufsConf);
+    mMountIdToUnderFileSystemMap.put(mountId, ufsCounter);
+    return ufsCounter.getFirst();
   }
 
   @Override
   public void removeMount(long mountId) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    // TODO(binfan): check the refcount of this ufs in mUnderFileSystemMap and remove it if this is
-    // no more used. Currently, it is possibly used by out mount too.
+    Pair<UnderFileSystem, AtomicLong> ufsCounter = mMountIdToUnderFileSystemMap.get(mountId);
     mMountIdToUnderFileSystemMap.remove(mountId);
+    // Remove ufs from mMountIdToUnderFileSystemMap if its counter comes to zero.
+    if (ufsCounter.getSecond().decrementAndGet() == 0L) {
+      synchronized (mMountIdToUnderFileSystemMap) {
+        Iterator<Entry<Long, Pair<UnderFileSystem, AtomicLong>>> it =
+            mMountIdToUnderFileSystemMap.entrySet().iterator();
+        while (it.hasNext()) {
+          Entry<Long, Pair<UnderFileSystem, AtomicLong>> entry = it.next();
+          if (ufsCounter.equals(entry.getValue())) {
+            LOG.info("Remove {} and close its ufs.", entry.getKey());
+            UnderFileSystem ufs = entry.getValue().getFirst();
+            try {
+              ufs.close();
+            } catch (IOException e) {
+              LOG.error("Failed to close UFS {}", ufs, e);
+            }
+            it.remove();
+            break;
+          }
+        }
+      }
+    }
   }
 
   @Override
   public UnderFileSystem get(long mountId) {
-    return mMountIdToUnderFileSystemMap.get(mountId);
+    Pair<UnderFileSystem, AtomicLong> counter = mMountIdToUnderFileSystemMap.get(mountId);
+    if (counter == null) {
+      return null;
+    }
+    // Update reference for a get operation.
+    counter.getSecond().incrementAndGet();
+    return counter.getFirst();
   }
 
   @Override
