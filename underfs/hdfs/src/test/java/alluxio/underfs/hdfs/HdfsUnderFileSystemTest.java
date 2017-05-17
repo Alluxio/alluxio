@@ -31,7 +31,7 @@ public final class HdfsUnderFileSystemTest {
   public final void before() throws Exception {
     UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(ImmutableMap.of(
         "hadoop.security.group.mapping",
-        "org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback",
+        "org.apache.hadoop.security.ShellBasedUnixGroupsMapping",
         "fs.hdfs.impl", PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()
     ));
     mHdfsUnderFileSystem = HdfsUnderFileSystem
