@@ -12,10 +12,10 @@
 package alluxio.worker;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
@@ -68,6 +68,7 @@ public class BlockServiceHandlerIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(100))
           .build();
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;

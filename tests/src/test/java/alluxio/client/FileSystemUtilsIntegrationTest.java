@@ -43,6 +43,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
+          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, USER_QUOTA_UNIT_BYTES)
           .build();
   private static CreateFileOptions sWriteBoth;
   private static FileSystem sFileSystem = null;

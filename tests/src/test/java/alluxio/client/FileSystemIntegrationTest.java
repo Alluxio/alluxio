@@ -50,6 +50,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
+          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, USER_QUOTA_UNIT_BYTES)
           .build();
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
