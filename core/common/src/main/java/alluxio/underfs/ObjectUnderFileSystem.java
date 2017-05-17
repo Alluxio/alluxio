@@ -372,7 +372,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     LOG.error("Error fetching directory status, assuming directory does not exist");
     throw new FileNotFoundException(path);
-}
+  }
 
   // Not supported
   @Override
