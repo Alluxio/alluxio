@@ -150,7 +150,7 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
     AccessControlList acl = restS3Service.getBucketAcl(bucketName);
     short bucketMode = S3Utils.translateBucketAcl(acl, accountOwnerId);
 
-    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketMode, accountOwner);
+    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketMode, accountOwner, conf);
   }
 
   /**
@@ -161,10 +161,11 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
+   * @param conf configuration for this S3A ufs
    */
   protected S3UnderFileSystem(AlluxioURI uri, S3Service s3Service, String bucketName,
-      short bucketMode, String accountOwner) {
-    super(uri);
+      short bucketMode, String accountOwner, UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mClient = s3Service;
     mBucketName = bucketName;
     mBucketMode = bucketMode;

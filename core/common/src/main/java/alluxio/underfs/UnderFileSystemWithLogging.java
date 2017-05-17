@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class forwards all calls to the {@link UnderFileSystem} interface to an internal
@@ -62,22 +61,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return "Close";
-      }
-    });
-  }
-
-  @Override
-  public void configureProperties() throws IOException {
-    call(new UfsCallable<Void>() {
-      @Override
-      public Void call() throws IOException {
-        mUnderFileSystem.configureProperties();
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return "ConfigureProperties";
       }
     });
   }
@@ -282,11 +265,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public Map<String, String> getProperties() {
-    return mUnderFileSystem.getProperties();
-  }
-
-  @Override
   public long getSpace(final String path, final SpaceType type) throws IOException {
     return call(new UfsCallable<Long>() {
       @Override
@@ -477,11 +455,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("SetOwner: path=%s, owner=%s, group=%s", path, owner, group);
       }
     });
-  }
-
-  @Override
-  public void setProperties(Map<String, String> properties) {
-    mUnderFileSystem.setProperties(properties);
   }
 
   @Override

@@ -12,6 +12,7 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
 import com.amazonaws.AmazonClientException;
@@ -50,7 +51,7 @@ public class S3AUnderFileSystemTest {
     mClient = Mockito.mock(AmazonS3Client.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        BUCKET_MODE, ACCOUNT_OWNER, mManager, null);
+        BUCKET_MODE, ACCOUNT_OWNER, mManager, UnderFileSystemConfiguration.defaults());
   }
 
   /**

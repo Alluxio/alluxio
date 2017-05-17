@@ -23,15 +23,40 @@ import java.util.Map;
  * {@link RuntimeException} if the key is not found in both configurations..
  */
 public final class UnderFileSystemConfiguration {
+  private final boolean mReadOnly;
+  private final boolean mShared;
   private final Map<String, String> mUfsConf;
+
+  private static final UnderFileSystemConfiguration DEFAULTS = new UnderFileSystemConfiguration();
 
   /**
    * Constructs a new instance of the configuration for a UFS.
    *
+   * @param readOnly whether only read operations are permitted to UFS
+   * @param shared whether the mount point is shared with all Alluxio users
    * @param ufsConf the user-specified UFS configuration as a map
    */
-  public UnderFileSystemConfiguration(Map<String, String> ufsConf) {
+  public UnderFileSystemConfiguration(boolean readOnly, boolean shared,
+      Map<String, String> ufsConf) {
+    mReadOnly = readOnly;
+    mShared = shared;
     mUfsConf = ufsConf;
+  }
+
+  /**
+   * Constructs a new instance of {@link UnderFileSystemConfiguration} with defaults.
+   */
+  private UnderFileSystemConfiguration() {
+    mReadOnly = false;
+    mShared = false;
+    mUfsConf = Collections.EMPTY_MAP;
+  }
+
+  /**
+   * @return default UFS configuration
+   */
+  public static UnderFileSystemConfiguration defaults() {
+    return DEFAULTS;
   }
 
   /**
@@ -39,8 +64,8 @@ public final class UnderFileSystemConfiguration {
    * @return true if the key is contained in the given UFS configuration or global configuration
    */
   public boolean containsKey(PropertyKey key) {
-    return (mUfsConf != null && mUfsConf.containsKey(key.toString())) || Configuration
-        .containsKey(key);
+    return (mUfsConf != null && mUfsConf.containsKey(key.toString()))
+        || Configuration.containsKey(key);
   }
 
   /**
@@ -69,5 +94,19 @@ public final class UnderFileSystemConfiguration {
       return Collections.emptyMap();
     }
     return Collections.unmodifiableMap(mUfsConf);
+  }
+
+  /**
+   * @return whether only read operations are permitted to the {@link UnderFileSystem}
+   */
+  public boolean isReadOnly() {
+    return mReadOnly;
+  }
+
+  /**
+   * @return whether the mounted UFS is shared with all Alluxio users
+   */
+  public boolean isShared() {
+    return mShared;
   }
 }

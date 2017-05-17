@@ -2201,13 +2201,13 @@ public class FileSystemMasterWorkerService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set92 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set92.size);
-                  long _elem93;
-                  for (int _i94 = 0; _i94 < _set92.size; ++_i94)
+                  org.apache.thrift.protocol.TSet _set82 = iprot.readSetBegin();
+                  struct.success = new HashSet<Long>(2*_set82.size);
+                  long _elem83;
+                  for (int _i84 = 0; _i84 < _set82.size; ++_i84)
                   {
-                    _elem93 = iprot.readI64();
-                    struct.success.add(_elem93);
+                    _elem83 = iprot.readI64();
+                    struct.success.add(_elem83);
                   }
                   iprot.readSetEnd();
                 }
@@ -2244,9 +2244,9 @@ public class FileSystemMasterWorkerService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, struct.success.size()));
-            for (long _iter95 : struct.success)
+            for (long _iter85 : struct.success)
             {
-              oprot.writeI64(_iter95);
+              oprot.writeI64(_iter85);
             }
             oprot.writeSetEnd();
           }
@@ -2285,9 +2285,9 @@ public class FileSystemMasterWorkerService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (long _iter96 : struct.success)
+            for (long _iter86 : struct.success)
             {
-              oprot.writeI64(_iter96);
+              oprot.writeI64(_iter86);
             }
           }
         }
@@ -2302,13 +2302,13 @@ public class FileSystemMasterWorkerService {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set97 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set97.size);
-            long _elem98;
-            for (int _i99 = 0; _i99 < _set97.size; ++_i99)
+            org.apache.thrift.protocol.TSet _set87 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.success = new HashSet<Long>(2*_set87.size);
+            long _elem88;
+            for (int _i89 = 0; _i89 < _set87.size; ++_i89)
             {
-              _elem98 = iprot.readI64();
-              struct.success.add(_elem98);
+              _elem88 = iprot.readI64();
+              struct.success.add(_elem88);
             }
           }
           struct.setSuccessIsSet(true);
@@ -2744,13 +2744,13 @@ public class FileSystemMasterWorkerService {
             case 2: // PERSISTED_FILES
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list100 = iprot.readListBegin();
-                  struct.persistedFiles = new ArrayList<Long>(_list100.size);
-                  long _elem101;
-                  for (int _i102 = 0; _i102 < _list100.size; ++_i102)
+                  org.apache.thrift.protocol.TList _list90 = iprot.readListBegin();
+                  struct.persistedFiles = new ArrayList<Long>(_list90.size);
+                  long _elem91;
+                  for (int _i92 = 0; _i92 < _list90.size; ++_i92)
                   {
-                    _elem101 = iprot.readI64();
-                    struct.persistedFiles.add(_elem101);
+                    _elem91 = iprot.readI64();
+                    struct.persistedFiles.add(_elem91);
                   }
                   iprot.readListEnd();
                 }
@@ -2781,9 +2781,9 @@ public class FileSystemMasterWorkerService {
           oprot.writeFieldBegin(PERSISTED_FILES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.persistedFiles.size()));
-            for (long _iter103 : struct.persistedFiles)
+            for (long _iter93 : struct.persistedFiles)
             {
-              oprot.writeI64(_iter103);
+              oprot.writeI64(_iter93);
             }
             oprot.writeListEnd();
           }
@@ -2820,9 +2820,9 @@ public class FileSystemMasterWorkerService {
         if (struct.isSetPersistedFiles()) {
           {
             oprot.writeI32(struct.persistedFiles.size());
-            for (long _iter104 : struct.persistedFiles)
+            for (long _iter94 : struct.persistedFiles)
             {
-              oprot.writeI64(_iter104);
+              oprot.writeI64(_iter94);
             }
           }
         }
@@ -2838,13 +2838,13 @@ public class FileSystemMasterWorkerService {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list105 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.persistedFiles = new ArrayList<Long>(_list105.size);
-            long _elem106;
-            for (int _i107 = 0; _i107 < _list105.size; ++_i107)
+            org.apache.thrift.protocol.TList _list95 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.persistedFiles = new ArrayList<Long>(_list95.size);
+            long _elem96;
+            for (int _i97 = 0; _i97 < _list95.size; ++_i97)
             {
-              _elem106 = iprot.readI64();
-              struct.persistedFiles.add(_elem106);
+              _elem96 = iprot.readI64();
+              struct.persistedFiles.add(_elem96);
             }
           }
           struct.setPersistedFilesIsSet(true);
