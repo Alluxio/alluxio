@@ -25,7 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -168,15 +170,39 @@ public abstract class AbstractUfsManager implements UfsManager {
   public void removeMount(long mountId) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Pair<UnderFileSystem, AtomicLong> ufsCounter = mMountIdToUnderFileSystemMap.get(mountId);
+    mMountIdToUnderFileSystemMap.remove(mountId);
     // Remove ufs from mMountIdToUnderFileSystemMap if its counter comes to zero.
     if (ufsCounter.getSecond().decrementAndGet() == 0L) {
-      mMountIdToUnderFileSystemMap.remove(mountId);
+      synchronized (mMountIdToUnderFileSystemMap) {
+        Iterator<Entry<Long, Pair<UnderFileSystem, AtomicLong>>> it =
+            mMountIdToUnderFileSystemMap.entrySet().iterator();
+        while (it.hasNext()) {
+          Entry<Long, Pair<UnderFileSystem, AtomicLong>> entry = it.next();
+          if (ufsCounter.equals(entry.getValue())) {
+            LOG.info("Remove {} and close its ufs.", entry.getKey());
+            UnderFileSystem ufs = entry.getValue().getFirst();
+            try {
+              ufs.close();
+            } catch (IOException e) {
+              LOG.error("Failed to close UFS {}", ufs, e);
+            }
+            it.remove();
+            break;
+          }
+        }
+      }
     }
   }
 
   @Override
   public UnderFileSystem get(long mountId) {
-    return mMountIdToUnderFileSystemMap.get(mountId).getFirst();
+    Pair<UnderFileSystem, AtomicLong> counter = mMountIdToUnderFileSystemMap.get(mountId);
+    if (counter == null) {
+      return null;
+    }
+    // Update reference for a get operation.
+    counter.getSecond().incrementAndGet();
+    return counter.getFirst();
   }
 
   @Override
