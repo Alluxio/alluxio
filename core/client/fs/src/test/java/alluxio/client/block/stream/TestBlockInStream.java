@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.file.options.InStreamOptions;
 import alluxio.wire.WorkerNetAddress;
 
 /**
@@ -27,6 +26,6 @@ public class TestBlockInStream extends BlockInStream {
    */
   public TestBlockInStream(long blockId, byte[] data) {
     super(new TestPacketInStream(data, blockId, data.length, true),
-        new WorkerNetAddress().setHost("local"), InStreamOptions.defaults());
+        new WorkerNetAddress().setHost("local"));
   }
 }

@@ -55,12 +55,14 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
         .isDomainSocketSupported(address)) {
       PacketOutStream outStream = PacketOutStream
           .createLocalPacketOutStream(context, address, blockId, blockSize, options);
-      return new BlockOutStream(outStream, options);
+      return new BlockOutStream(outStream);
     } else {
+      Protocol.WriteRequest writeRequestPartial = Protocol.WriteRequest.newBuilder()
+          .setId(blockId).setTier(options.getWriteTier()).setType(Protocol.RequestType.ALLUXIO_BLOCK)
+          .buildPartial();
       PacketOutStream outStream = PacketOutStream
-          .createNettyPacketOutStream(context, address, blockId, blockSize,
-              Protocol.RequestType.ALLUXIO_BLOCK, options);
-      return new BlockOutStream(outStream, options);
+          .createNettyPacketOutStream(context, address, blockSize, writeRequestPartial, options);
+      return new BlockOutStream(outStream);
     }
   }
 
@@ -104,10 +106,10 @@ public class BlockOutStream extends FilterOutputStream implements BoundedStream,
    * Creates a new block output stream.
    *
    * @param outStream the {@link PacketOutStream} associated with this {@link BlockOutStream}
-   * @param options the options
    */
-  protected BlockOutStream(PacketOutStream outStream, OutStreamOptions options) {
+  protected BlockOutStream(PacketOutStream outStream) {
     super(outStream);
     mOutStream = outStream;
+    mClosed = false;
   }
 }
