@@ -616,7 +616,7 @@ public final class PermissionCheckTest {
   }
 
   /**
-   * This method verifies the read permission
+   * This method verifies the read permission.
    * @param user the user
    * @param path the path of the file to read
    * @param isFile whether the path is a file
@@ -630,7 +630,7 @@ public final class PermissionCheckTest {
   }
 
   /**
-   * This method verifies the get fileId
+   * This method verifies the get fileId.
    * @param user the user
    * @param path the path of the file to verify
    * @throws Exception if it fails to verify
