@@ -10,6 +10,16 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>alluxio-keyvalue-hadoop</artifactId>
+  <name>Alluxio Key Value - Hadoop Utilities</name>
+  <description>Hadoop utilities in Alluxio Key Value Store modules</description>
+
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+  </properties>
 
   <dependencies>
     <!-- External dependencies -->
