@@ -365,9 +365,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
-    ObjectPermissions permissions = getPermissions();
-    return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
-        permissions.getMode());
+    if (isDirectory(path)) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
+    }
+    LOG.error("Error fetching directory status, assuming directory does not exist");
+    throw new FileNotFoundException(path);
 }
 
   // Not supported
