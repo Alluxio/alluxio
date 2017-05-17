@@ -6,7 +6,7 @@ alluxio.user.block.remote.reader.class,alluxio.client.netty.&#8203;NettyRemoteBl
 alluxio.user.block.remote.writer.class,alluxio.client.netty.&#8203;NettyRemoteBlockWriter
 alluxio.user.block.size.bytes.default,512MB
 alluxio.user.failed.space.request.limits,3
-alluxio.user.file.buffer.bytes,1 MB
+alluxio.user.file.buffer.bytes,8MB
 alluxio.user.file.cache.partially.read.block,true
 alluxio.user.file.delete.unchecked,false
 alluxio.user.file.master.client.threads,10
