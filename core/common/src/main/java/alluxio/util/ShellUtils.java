@@ -20,10 +20,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A base class for running a Unix command.
+ * A utility class for running Unix commands.
  */
 @ThreadSafe
 public final class ShellUtils {
@@ -56,108 +57,66 @@ public final class ShellUtils {
   /** Token separator regex used to parse Shell tool outputs. */
   public static final String TOKEN_SEPARATOR_REGEX = "[ \t\n\r\f]";
 
-  private Process mProcess; // sub process used to execute the command
-  private int mExitCode;
-  private String[] mCommand;
-  private StringBuffer mOutput;
+  @NotThreadSafe
+  private static class Command {
+    private String[] mCommand;
 
-  private ShellUtils(String[] execString) {
-    mCommand = execString.clone();
-  }
+    private Command(String[] execString) {
+      mCommand = execString.clone();
+    }
 
-  /** Checks to see if a command needs to be executed and execute command. */
-  protected void run() throws IOException {
-    mExitCode = 0; // reset for next run
-    runCommand();
-  }
+    /**
+     * Runs a command and returns its stdout on success.
+     *
+     * @return the output
+     * @throws ExitCodeException if the command returns a non-zero exit code
+     */
+    private String run() throws ExitCodeException, IOException {
+      Process mProcess = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
-  /**
-   * Runs a command.
-   */
-  private void runCommand() throws IOException {
-    ProcessBuilder builder = new ProcessBuilder(getExecString());
+      BufferedReader inReader =
+          new BufferedReader(new InputStreamReader(mProcess.getInputStream(),
+              Charset.defaultCharset()));
 
-    mProcess = builder.start();
-
-    BufferedReader inReader =
-        new BufferedReader(new InputStreamReader(mProcess.getInputStream(),
-            Charset.defaultCharset()));
-    final StringBuffer errMsg = new StringBuffer();
-
-    // read input streams as this would free up the buffers
-    try {
-      parseExecResult(inReader); // parse the output
-      // clear the input stream buffer
-      String line = inReader.readLine();
-      while (line != null) {
-        line = inReader.readLine();
-      }
-      // wait for the process to finish and check the exit code
-      mExitCode = mProcess.waitFor();
-      if (mExitCode != 0) {
-        throw new ExitCodeException(mExitCode, errMsg.toString());
-      }
-    } catch (InterruptedException e) {
-      throw new IOException(e);
-    } finally {
-      // close the input stream
+      // read input streams as this would free up the buffers
       try {
-        // JDK 7 tries to automatically drain the input streams for us
-        // when the process exits, but since close is not synchronized,
-        // it creates a race if we close the stream first and the same
-        // fd is recycled. the stream draining thread will attempt to
-        // drain that fd!! it may block, OOM, or cause bizarre behavior
-        // see: https://bugs.openjdk.java.net/browse/JDK-8024521
-        // issue is fixed in build 7u60
-        InputStream stdout = mProcess.getInputStream();
-        synchronized (stdout) {
-          inReader.close();
+        // read from the input stream buffer
+        StringBuilder output = new StringBuilder();
+        String line = inReader.readLine();
+        while (line != null) {
+          output.append(line);
+          output.append("\n");
+          line = inReader.readLine();
         }
-      } catch (IOException e) {
-        LOG.warn("Error while closing the input stream", e);
+        // wait for the process to finish and check the exit code
+        int exitCode = mProcess.waitFor();
+        if (exitCode != 0) {
+          throw new ExitCodeException(exitCode, output.toString());
+        }
+        return output.toString();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IOException(e);
+      } finally {
+        // close the input stream
+        try {
+          // JDK 7 tries to automatically drain the input streams for us
+          // when the process exits, but since close is not synchronized,
+          // it creates a race if we close the stream first and the same
+          // fd is recycled. the stream draining thread will attempt to
+          // drain that fd!! it may block, OOM, or cause bizarre behavior
+          // see: https://bugs.openjdk.java.net/browse/JDK-8024521
+          // issue is fixed in build 7u60
+          InputStream stdout = mProcess.getInputStream();
+          synchronized (stdout) {
+            inReader.close();
+          }
+        } catch (IOException e) {
+          LOG.warn("Error while closing the input stream", e);
+        }
+        mProcess.destroy();
       }
-      mProcess.destroy();
     }
-  }
-
-  /**
-   * @return an array containing the command name & its parameters
-   */
-  protected String[] getExecString() {
-    return mCommand;
-  }
-
-  /** Parse the execution result. */
-  protected void parseExecResult(BufferedReader lines) throws IOException {
-    mOutput = new StringBuffer();
-    char[] buf = new char[512];
-    int nRead;
-    while ((nRead = lines.read(buf, 0, buf.length)) > 0) {
-      mOutput.append(buf, 0, nRead);
-    }
-  }
-
-  /** @return the output of the shell command. */
-  public String getOutput() {
-    return (mOutput == null) ? "" : mOutput.toString();
-  }
-
-  /**
-   * Gets the current sub-process executing the given command.
-   *
-   * @return process executing the command
-   */
-  public Process getProcess() {
-    return mProcess;
-  }
-
-  /**
-   * Gets the exit code.
-   *
-   * @return the exit code of the process
-   */
-  public int getExitCode() {
-    return mExitCode;
   }
 
   /**
@@ -205,9 +164,6 @@ public final class ShellUtils {
    * @return the output of the executed command
    */
   public static String execCommand(String... cmd) throws IOException {
-    ShellUtils exec = new ShellUtils(cmd);
-    exec.run();
-    return exec.getOutput();
+    return new Command(cmd).run();
   }
-
 }
