@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -24,6 +25,7 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -38,7 +40,6 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
@@ -49,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -187,7 +189,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * started.
    */
   @Override
-  public void start(WorkerNetAddress address) {
+  public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
       mWorkerId.set(mBlockMasterClient.getId(address));
@@ -301,7 +303,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    TempBlockMeta createdBlock;
+    try {
+      createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    } catch (WorkerOutOfSpaceException e) {
+      InetSocketAddress address =
+          InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
+      throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
+    }
     return createdBlock.getPath();
   }
 
@@ -402,9 +412,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+  public BlockReader readUfsBlock(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException {
-    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, noCache);
+    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset);
   }
 
   @Override
@@ -441,12 +451,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) {
+  public FileInfo getFileInfo(long fileId) throws IOException {
     return mFileSystemMasterClient.getFileInfo(fileId);
   }
 
   @Override
-  public boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+  public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
@@ -469,6 +479,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
     }
     mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
+  }
+
+  @Override
+  public void cleanupSession(long sessionId) {
+    mBlockStore.cleanupSession(sessionId);
+    mUnderFileSystemBlockStore.cleanupSession(sessionId);
   }
 
   /**

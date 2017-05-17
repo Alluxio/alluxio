@@ -58,7 +58,6 @@ public final class NettyPacketWriterTest {
 
   private static final Random RANDOM = new Random();
   private static final long BLOCK_ID = 1L;
-  private static final long SESSION_ID = 2L;
   private static final int TIER = 0;
 
   private FileSystemContext mContext;
@@ -166,7 +165,7 @@ public final class NettyPacketWriterTest {
    */
   private PacketWriter create(long length) throws Exception {
     PacketWriter writer =
-        new NettyPacketWriter(mContext, mAddress, BLOCK_ID, length, SESSION_ID, TIER,
+        new NettyPacketWriter(mContext, mAddress, BLOCK_ID, length, TIER,
             Protocol.RequestType.ALLUXIO_BLOCK, PACKET_SIZE);
     mChannel.finishChannelCreation();
     return writer;

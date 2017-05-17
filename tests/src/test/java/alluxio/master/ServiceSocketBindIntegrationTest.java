@@ -11,10 +11,9 @@
 
 package alluxio.master;
 
+import alluxio.BaseIntegrationTest;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.BlockWorkerClient;
-import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
@@ -34,14 +33,13 @@ import java.nio.channels.SocketChannel;
 /**
  * Simple integration tests for the bind configuration options.
  */
-public class ServiceSocketBindIntegrationTest {
+public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setStartCluster(false).build();
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
-  private BlockWorkerClient mBlockWorkerClient;
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
@@ -71,7 +69,6 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker RPC service
     WorkerNetAddress workerAddress = mLocalAlluxioCluster.getWorkerAddress();
-    mBlockWorkerClient = FileSystemContext.INSTANCE.createBlockWorkerClient(workerAddress);
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
@@ -97,7 +94,6 @@ public class ServiceSocketBindIntegrationTest {
   private void closeServices() throws Exception {
     mWorkerWebService.disconnect();
     mWorkerDataService.close();
-    mBlockWorkerClient.close();
     mMasterWebService.disconnect();
     mBlockMasterClient.close();
   }
@@ -173,14 +169,10 @@ public class ServiceSocketBindIntegrationTest {
 
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
     try {
-      mBlockWorkerClient = FileSystemContext.INSTANCE
-          .createBlockWorkerClient(mLocalAlluxioCluster.getWorkerAddress());
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {
       // This is expected, since Work RPC service is NOT listening on loopback.
-    } finally {
-      mBlockWorkerClient.close();
     }
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.

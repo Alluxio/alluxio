@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -212,12 +211,10 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void initializeFailToConnect() throws Exception {
-    Mockito.doThrow(UnavailableException.class)
-        .when(mMockFileSystemMasterClient).connect();
+    Mockito.doThrow(new UnavailableException("test")).when(mMockFileSystemMasterClient).connect();
 
     URI uri = URI.create(Constants.HEADER + "randomhost:400/");
-    mExpectedException.expect(IOException.class);
-    mExpectedException.expectCause(IsInstanceOf.any(UnavailableException.class));
+    mExpectedException.expect(UnavailableException.class);
     org.apache.hadoop.fs.FileSystem.get(uri, getConf());
   }
 

@@ -12,9 +12,13 @@
 package alluxio.util;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.Status;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
@@ -22,7 +26,6 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -376,45 +379,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Closes a closer and ignores any thrown exceptions.
-   *
-   * @param closer the closer
-   */
-  public static void closeQuietly(Closer closer) {
-    try {
-      closer.close();
-    } catch (Exception e) {
-      // Ignore.
-    }
-  }
-
-  /**
-   * Closes a closer, converting any IOException to an {@link AlluxioStatusException}.
-   *
-   * @param closer the closer
-   */
-  public static void close(Closer closer) {
-    try {
-      closer.close();
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
-  }
-
-  /**
-   * Closes a Closeable, converting any IOException to an {@link AlluxioStatusException}.
-   *
-   * @param closeable the Closeable
-   */
-  public static void close(Closeable closeable) {
-    try {
-      closeable.close();
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
-  }
-
-  /**
    * Casts a {@link Throwable} to an {@link IOException}.
    *
    * @param e the throwable
@@ -480,23 +444,54 @@ public final class CommonUtils {
     }
   }
 
-  private CommonUtils() {} // prevent instantiation
-
   /**
-   * Propagates a Throwable by either converting to an {@link AlluxioStatusException} or re-throwing
-   * as an Error.
+   * Closes the Closer and re-throws the Throwable. Any exceptions thrown while closing the Closer
+   * will be added as suppressed exceptions to the Throwable. This method always throws the given
+   * Throwable, wrapping it in a RuntimeException if it's a non-IOException checked exception.
    *
-   * @param t the throwable to propagate
-   * @return this method never returns; the return type is for ease of use in
-   *         {@code throw propagate(t);}
+   * Note: This method will wrap non-IOExceptions in RuntimeException. Do not use this method in
+   * methods which throw non-IOExceptions.
+   *
+   * <pre>
+   * Closer closer = new Closer();
+   * try {
+   *   Closeable c = closer.register(new Closeable());
+   * } catch (Throwable t) {
+   *   throw closeAndRethrow(closer, t);
+   * }
+   * </pre>
+   *
+   * @param closer the Closer to close
+   * @param t the Throwable to re-throw
+   * @return this method never returns
    */
-  public static RuntimeException propagate(Throwable t) {
-    if (t instanceof Exception) {
-      throw AlluxioStatusException.from((Exception) t);
-    } else if (t instanceof Error) {
-      throw (Error) t;
-    } else {
-      throw new IllegalStateException("Encountered a non-Error, non-Exception Throwable", t);
+  public static RuntimeException closeAndRethrow(Closer closer, Throwable t) throws IOException {
+    try {
+      throw closer.rethrow(t);
+    } finally {
+      closer.close();
     }
   }
+
+  /**
+   * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response}.
+   *
+   * @param response the response
+   */
+  public static void unwrapResponse(Protocol.Response response) throws AlluxioStatusException {
+    Status status = Status.fromProto(response.getStatus());
+    if (status != Status.OK) {
+      throw AlluxioStatusException.from(status, response.getMessage());
+    }
+  }
+
+  /**
+   * @param address the Alluxio worker network address
+   * @return true if the worker is local
+   */
+  public static boolean isLocalHost(WorkerNetAddress address) {
+    return address.getHost().equals(NetworkAddressUtils.getClientHostName());
+  }
+
+  private CommonUtils() {} // prevent instantiation
 }

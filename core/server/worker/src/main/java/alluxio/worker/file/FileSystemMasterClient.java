@@ -73,7 +73,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
    */
-  public synchronized FileInfo getFileInfo(final long fileId) {
+  public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
     return retryRPC(new RpcCallable<FileInfo>() {
       @Override
       public FileInfo call() throws TException {
@@ -85,7 +85,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * @return the set of pinned file ids
    */
-  public synchronized Set<Long> getPinList() {
+  public synchronized Set<Long> getPinList() throws IOException {
     return retryRPC(new RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws TException {
@@ -116,7 +116,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the command for file system worker
    */
   public synchronized FileSystemCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles) {
+      final List<Long> persistedFiles) throws IOException {
     return retryRPC(new RpcCallable<FileSystemCommand>() {
       @Override
       public FileSystemCommand call() throws AlluxioTException, TException {

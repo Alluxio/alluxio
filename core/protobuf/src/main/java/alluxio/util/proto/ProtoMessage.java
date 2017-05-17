@@ -50,10 +50,59 @@ public final class ProtoMessage {
   }
 
   /**
-   * @param response  the response
+   * @param response the response
    */
   public ProtoMessage(Protocol.Response response) {
     mMessage = response;
+  }
+
+  /**
+   * @param response the read response
+   */
+  public ProtoMessage(Protocol.ReadResponse response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block open request
+   */
+  public ProtoMessage(Protocol.LocalBlockOpenRequest request) {
+    mMessage = request;
+  }
+
+  /**
+   * @param response the local block open response
+   */
+  public ProtoMessage(Protocol.LocalBlockOpenResponse response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block close request
+   */
+  public ProtoMessage(Protocol.LocalBlockCloseRequest request) {
+    mMessage = request;
+  }
+
+  /**
+   * @param request the local block create request
+   */
+  public ProtoMessage(Protocol.LocalBlockCreateRequest request) {
+    mMessage = request;
+  }
+
+  /**
+   * @param response the local block create response
+   */
+  public ProtoMessage(Protocol.LocalBlockCreateResponse response) {
+    mMessage = response;
+  }
+
+  /**
+   * @param request the local block complete request
+   */
+  public ProtoMessage(Protocol.LocalBlockCompleteRequest request) {
+    mMessage = request;
   }
 
   /**
@@ -118,6 +167,123 @@ public final class ProtoMessage {
   }
 
   /**
+   * Gets the read response or throws runtime exception if mMessage is not of type
+   * {@link Protocol.ReadResponse}.
+   *
+   * @return the read response
+   */
+  public Protocol.ReadResponse asReadResponse() {
+    Preconditions.checkState(mMessage instanceof Protocol.ReadResponse);
+    return (Protocol.ReadResponse) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.ReadResponse}
+   */
+  public boolean isReadResponse() {
+    return mMessage instanceof Protocol.ReadResponse;
+  }
+
+  /**
+   * Gets the local block open request or throws runtime exception if mMessage is not of type
+   * {@link Protocol.LocalBlockOpenRequest}.
+   *
+   * @return the Protocol.LocalBlockOpenRequest
+   */
+  public Protocol.LocalBlockOpenRequest asLocalBlockOpenRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockOpenRequest);
+    return (Protocol.LocalBlockOpenRequest) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockOpenRequest}
+   */
+  public boolean isLocalBlockOpenRequest() {
+    return mMessage instanceof Protocol.LocalBlockOpenRequest;
+  }
+
+  /**
+   * Gets the local block open response or throws runtime exception if mMessage is not of type
+   * {@link Protocol.LocalBlockOpenResponse}.
+   *
+   * @return the Protocol.LocalBlockOpenResponse
+   */
+  public Protocol.LocalBlockOpenResponse asLocalBlockOpenResponse() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockOpenResponse);
+    return (Protocol.LocalBlockOpenResponse) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockOpenResponse}
+   */
+  public boolean isLocalBlockOpenResponse() {
+    return mMessage instanceof Protocol.LocalBlockOpenResponse;
+  }
+
+  /**
+   * Gets the local block close request or throws runtime exception if mMessage is not of type
+   * {@link Protocol.LocalBlockCloseRequest}.
+   *
+   * @return the Protocol.LocalBlockCloseRequest
+   */
+  public Protocol.LocalBlockCloseRequest asLocalBlockCloseRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCloseRequest);
+    return (Protocol.LocalBlockCloseRequest) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCloseRequest}
+   */
+  public boolean isLocalBlockCloseRequest() {
+    return mMessage instanceof Protocol.LocalBlockCloseRequest;
+  }
+
+  /**
+   * @return the Protocol.LocalBlockCreateRequest
+   */
+  public Protocol.LocalBlockCreateRequest asLocalBlockCreateRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCreateRequest);
+    return (Protocol.LocalBlockCreateRequest) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCreateRequest}
+   */
+  public boolean isLocalBlockCreateRequest() {
+    return mMessage instanceof Protocol.LocalBlockCreateRequest;
+  }
+
+  /**
+   * @return the Protocol.LocalBlockCreateResponse
+   */
+  public Protocol.LocalBlockCreateResponse asLocalBlockCreateResponse() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCreateResponse);
+    return (Protocol.LocalBlockCreateResponse) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCreateResponse}
+   */
+  public boolean isLocalBlockCreateResponse() {
+    return mMessage instanceof Protocol.LocalBlockCreateResponse;
+  }
+
+  /**
+   * @return the Protocol.LocalBlockCompleteRequest
+   */
+  public Protocol.LocalBlockCompleteRequest asLocalBlockCompleteRequest() {
+    Preconditions.checkState(mMessage instanceof Protocol.LocalBlockCompleteRequest);
+    return (Protocol.LocalBlockCompleteRequest) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.LocalBlockCompleteRequest}
+   */
+  public boolean isLocalBlockCompleteRequest() {
+    return mMessage instanceof Protocol.LocalBlockCompleteRequest;
+  }
+
+  /**
    * @return true if the message is of type {@link Protocol.Heartbeat}
    */
   public boolean isHeartbeat() {
@@ -145,5 +311,10 @@ public final class ProtoMessage {
     } catch (InvalidProtocolBufferException e) {
       throw new IllegalArgumentException(e);
     }
+  }
+
+  @Override
+  public String toString() {
+    return mMessage.toString();
   }
 }

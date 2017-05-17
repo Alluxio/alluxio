@@ -11,19 +11,20 @@
 
 package alluxio.client;
 
-import alluxio.QuietlyCloseable;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Set;
 
 /**
  * Interface for a client to the meta master.
  */
-public interface MetaMasterClient extends QuietlyCloseable {
+public interface MetaMasterClient extends Closeable {
   /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried
    * @return the requested master info
    */
-  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields);
+  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields) throws IOException;
 }

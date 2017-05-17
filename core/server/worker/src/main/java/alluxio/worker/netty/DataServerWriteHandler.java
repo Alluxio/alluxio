@@ -21,9 +21,11 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -137,17 +139,23 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   abstract class WriteRequestInternal implements Closeable {
     /** This ID can either be block ID or temp UFS file ID. */
     final long mId;
+    /** The session id associated with all temporary resources of this request. */
     final long mSessionId;
 
-    WriteRequestInternal(long id, long sessionId) {
+    WriteRequestInternal(long id) {
       mId = id;
-      mSessionId = sessionId;
+      mSessionId = IdUtils.createSessionId();
     }
 
     /**
      * Cancels the request.
      */
     abstract void cancel() throws IOException;
+
+    /**
+     * Cleans up the state.
+     */
+    abstract void cleanup() throws IOException;
   }
 
   /**
@@ -183,11 +191,11 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       initializeRequest(msg);
     }
 
-    // Validate msg.
+    // Validate the write request.
     try {
-      validateRequest(msg);
-    } catch (Exception e) {
-      pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(e), true));
+      validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
+    } catch (InvalidArgumentException e) {
+      pushAbortPacket(ctx.channel(), new Error(e, true));
       return;
     }
 
@@ -228,7 +236,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Failed to write block.", cause);
-    pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.from(cause), true));
+    pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
   }
 
   @Override
@@ -246,18 +254,18 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Validates the block write request, throwing an exception if the request is invalid.
+   * Validates a block write request.
    *
    * @param msg the block write request
+   * @throws InvalidArgumentException if the write request is invalid
    */
-  private void validateRequest(RPCProtoMessage msg) {
-    Protocol.WriteRequest request = msg.getMessage().asWriteRequest();
+  private void validateWriteRequest(Protocol.WriteRequest request, DataBuffer payload)
+      throws InvalidArgumentException {
     if (request.getOffset() != mPosToQueue) {
       throw new InvalidArgumentException(String.format(
           "Offsets do not match [received: %d, expected: %d].", request.getOffset(), mPosToQueue));
     }
-    if (msg.getPayloadDataBuffer() != null && msg.getPayloadDataBuffer().getLength() > 0 && (
-        request.getCancel() || request.getEof())) {
+    if (payload != null && payload.getLength() > 0 && (request.getCancel() || request.getEof())) {
       throw new InvalidArgumentException("Found data in a cancel/eof message.");
     }
   }
@@ -326,7 +334,9 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
           writeBuf(buf, mPosToWrite);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
-          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
+          Throwables.propagateIfPossible(e);
+          pushAbortPacket(mChannel,
+              new Error(AlluxioStatusException.fromCheckedException(e), true));
         } finally {
           release(buf);
         }
@@ -334,10 +344,9 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
       if (abort) {
         try {
-          cancel();
-        } catch (IOException e) {
-          LOG.warn("Failed to abort, cancel or complete the write request with error {}.",
-              e.getMessage());
+          cleanup();
+        } catch (Exception e) {
+          LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
         }
         replyError();
       } else if (cancel || eof) {
@@ -350,13 +359,15 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
             replySuccess();
           }
         } catch (Exception e) {
-          pushAbortPacket(mChannel, new Error(AlluxioStatusException.from(e), true));
+          Throwables.propagateIfPossible(e);
+          pushAbortPacket(mChannel,
+              new Error(AlluxioStatusException.fromCheckedException(e), true));
         }
       }
     }
 
     /**
-     * Completes this write.
+     * Completes this write. This is called when the write completes.
      */
     private void complete() throws IOException {
       if (mRequest != null) {
@@ -367,11 +378,23 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Cancels this write.
+     * Cancels this write. This is called when the client issues a cancel request.
      */
     private void cancel() throws IOException {
       if (mRequest != null) {
         mRequest.cancel();
+        mRequest = null;
+      }
+      mPosToWrite = 0;
+    }
+
+    /**
+     * Cleans up this write. This is called when the write request is aborted due to any exception
+     * or session timeout.
+     */
+    private void cleanup() throws IOException {
+      if (mRequest != null) {
+        mRequest.cleanup();
         mRequest = null;
       }
       mPosToWrite = 0;

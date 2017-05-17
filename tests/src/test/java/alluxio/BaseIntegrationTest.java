@@ -11,13 +11,13 @@
 
 package alluxio;
 
-import java.io.Closeable;
+import org.junit.Rule;
+import org.junit.rules.Timeout;
 
 /**
- * A Closeable which doesn't throw any checked exceptions from its {@link #close()} method.
+ * Base class used for specifying the maximum time a test should run for.
  */
-public interface QuietlyCloseable extends Closeable {
-
-  @Override
-  void close();
+public abstract class BaseIntegrationTest {
+  @Rule
+  public Timeout mGlobalTimeout = Timeout.seconds(600);
 }

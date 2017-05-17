@@ -47,7 +47,7 @@ public class MetaMasterClientService {
      * 
      * @param fields optional filter for what fields to return, defaults to all
      */
-    public MasterInfo getInfo(Set<MasterInfoField> fields) throws org.apache.thrift.TException;
+    public MasterInfo getInfo(Set<MasterInfoField> fields) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
@@ -77,7 +77,7 @@ public class MetaMasterClientService {
       super(iprot, oprot);
     }
 
-    public MasterInfo getInfo(Set<MasterInfoField> fields) throws org.apache.thrift.TException
+    public MasterInfo getInfo(Set<MasterInfoField> fields) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getInfo(fields);
       return recv_getInfo();
@@ -90,12 +90,15 @@ public class MetaMasterClientService {
       sendBase("getInfo", args);
     }
 
-    public MasterInfo recv_getInfo() throws org.apache.thrift.TException
+    public MasterInfo recv_getInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getInfo_result result = new getInfo_result();
       receiveBase(result, "getInfo");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getInfo failed: unknown result");
     }
@@ -140,7 +143,7 @@ public class MetaMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public MasterInfo getResult() throws org.apache.thrift.TException {
+      public MasterInfo getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -182,7 +185,11 @@ public class MetaMasterClientService {
 
       public getInfo_result getResult(I iface, getInfo_args args) throws org.apache.thrift.TException {
         getInfo_result result = new getInfo_result();
-        result.success = iface.getInfo(args.fields);
+        try {
+          result.success = iface.getInfo(args.fields);
+        } catch (alluxio.thrift.AlluxioTException e) {
+          result.e = e;
+        }
         return result;
       }
     }
@@ -231,6 +238,12 @@ public class MetaMasterClientService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getInfo_result result = new getInfo_result();
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -683,6 +696,7 @@ public class MetaMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getInfo_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -691,10 +705,12 @@ public class MetaMasterClientService {
     }
 
     private MasterInfo success; // required
+    private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -711,6 +727,8 @@ public class MetaMasterClientService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -756,6 +774,8 @@ public class MetaMasterClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MasterInfo.class)));
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getInfo_result.class, metaDataMap);
     }
@@ -764,10 +784,12 @@ public class MetaMasterClientService {
     }
 
     public getInfo_result(
-      MasterInfo success)
+      MasterInfo success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
+      this.e = e;
     }
 
     /**
@@ -776,6 +798,9 @@ public class MetaMasterClientService {
     public getInfo_result(getInfo_result other) {
       if (other.isSetSuccess()) {
         this.success = new MasterInfo(other.success);
+      }
+      if (other.isSetE()) {
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
@@ -786,6 +811,7 @@ public class MetaMasterClientService {
     @Override
     public void clear() {
       this.success = null;
+      this.e = null;
     }
 
     public MasterInfo getSuccess() {
@@ -812,6 +838,30 @@ public class MetaMasterClientService {
       }
     }
 
+    public alluxio.thrift.AlluxioTException getE() {
+      return this.e;
+    }
+
+    public getInfo_result setE(alluxio.thrift.AlluxioTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -822,6 +872,14 @@ public class MetaMasterClientService {
         }
         break;
 
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((alluxio.thrift.AlluxioTException)value);
+        }
+        break;
+
       }
     }
 
@@ -829,6 +887,9 @@ public class MetaMasterClientService {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -843,6 +904,8 @@ public class MetaMasterClientService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -869,6 +932,15 @@ public class MetaMasterClientService {
           return false;
       }
 
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
       return true;
     }
 
@@ -880,6 +952,11 @@ public class MetaMasterClientService {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -898,6 +975,16 @@ public class MetaMasterClientService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -927,6 +1014,14 @@ public class MetaMasterClientService {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -984,6 +1079,15 @@ public class MetaMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new alluxio.thrift.AlluxioTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -1002,6 +1106,11 @@ public class MetaMasterClientService {
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1025,20 +1134,31 @@ public class MetaMasterClientService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
+        }
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getInfo_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = new MasterInfo();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.e = new alluxio.thrift.AlluxioTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
