@@ -369,6 +369,8 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <!-- We do not use dependent management for hadoop-common, hadoop-hdfs, as it is unavailable in hadoop-1 -->
+      <!-- We do not use dependent management for hadoop-core, as it is unavailable in hadoop-2.x -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
