@@ -168,20 +168,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <inherited>false</inherited>
-        <configuration>
-          <skipAssembly>false</skipAssembly>
-          <appendAssemblyId>false</appendAssemblyId>
-          <attach>false</attach>
-          <finalName>alluxio-${project.version}</finalName>
-          <descriptors>
-            <descriptor>src/main/assembly/alluxio-dist.xml</descriptor>
-          </descriptors>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 </project>
