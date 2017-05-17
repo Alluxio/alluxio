@@ -35,7 +35,7 @@
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
     </dependency>
-    
+
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
