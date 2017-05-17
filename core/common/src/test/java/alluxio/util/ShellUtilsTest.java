@@ -11,6 +11,10 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertEquals;
+
+import alluxio.Constants;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,7 +29,7 @@ public final class ShellUtilsTest {
    * @throws Throwable when the execution of the command fails
    */
   @Test
-  public void execCommand() throws Throwable {
+  public void execCommand() throws Exception {
     String testString = "alluxio";
     // Execute echo for testing command execution.
     String result = ShellUtils.execCommand("bash", "-c", "echo " + testString);
@@ -38,9 +42,38 @@ public final class ShellUtilsTest {
    * @throws Throwable when the execution of the commands fails
    */
   @Test
-  public void execGetGroupCommand() throws Throwable {
+  public void execGetGroupCommand() throws Exception {
     String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand("root"));
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
     Assert.assertTrue(result.contains("root") || result.contains("admin"));
+  }
+
+  @Test
+  public void parseRamfsMountInfoWithType() throws Exception {
+    UnixMountInfo info =
+        ShellUtils.parseMountInfo("ramfs on /mnt/ramdisk type ramfs (rw,relatime,size=1gb)");
+    assertEquals("ramfs", info.getDeviceSpec());
+    assertEquals("/mnt/ramdisk", info.getMountPoint());
+    assertEquals("ramfs", info.getFsType());
+    assertEquals(Long.valueOf(Constants.GB), info.getOptions().getSize());
+  }
+
+  @Test
+  public void parseMountInfoWithoutType() throws Exception {
+    UnixMountInfo info = ShellUtils.parseMountInfo("devfs on /dev (devfs, local, nobrowse)");
+    assertEquals("devfs", info.getDeviceSpec());
+    assertEquals("/dev", info.getMountPoint());
+    assertEquals(null, info.getFsType());
+    assertEquals(null, info.getOptions().getSize());
+  }
+
+  @Test
+  public void parseTmpfsMountInfo() throws Exception {
+    UnixMountInfo info = ShellUtils
+        .parseMountInfo("shm on /dev/shm type tmpfs (rw,nosuid,nodev,noexec,relatime,size=65536k)");
+    assertEquals("shm", info.getDeviceSpec());
+    assertEquals("/dev/shm", info.getMountPoint());
+    assertEquals("tmpfs", info.getFsType());
+    assertEquals(Long.valueOf(65536 * Constants.KB), info.getOptions().getSize());
   }
 }

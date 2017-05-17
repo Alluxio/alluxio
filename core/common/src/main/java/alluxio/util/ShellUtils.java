@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,6 +37,9 @@ public final class ShellUtils {
 
   /** a Unix command to set permission. */
   public static final String SET_PERMISSION_COMMAND = "chmod";
+
+  /** a Unix command for getting mount information. */
+  public static final String MOUNT_COMMAND = "mount";
 
   /**
    * Gets a Unix command to get a given user's groups list.
@@ -56,6 +64,68 @@ public final class ShellUtils {
 
   /** Token separator regex used to parse Shell tool outputs. */
   public static final String TOKEN_SEPARATOR_REGEX = "[ \t\n\r\f]";
+
+  /**
+   * Gets system mount information. This method should only be attempted on Unix systems.
+   *
+   * @return system mount information.
+   */
+  public static List<UnixMountInfo> getUnixMountInfo() throws IOException {
+    Preconditions.checkState(OSUtils.isLinux() || OSUtils.isMacOS());
+    String output = execCommand(MOUNT_COMMAND);
+    List<UnixMountInfo> mountInfo = new ArrayList<>();
+    for (String line : output.split("\n")) {
+      mountInfo.add(parseMountInfo(line));
+    }
+    return mountInfo;
+  }
+
+  /**
+   * @param line the line to parse
+   * @return the parsed {@link UnixMountInfo}
+   */
+  public static UnixMountInfo parseMountInfo(String line) {
+    // Example mount lines:
+    // ramfs on /mnt/ramdisk type ramfs (rw,relatime,size=1gb)
+    // map -hosts on /net (autofs, nosuid, automounted, nobrowse)
+    UnixMountInfo.Builder builder = new UnixMountInfo.Builder();
+
+    // First get and remove the mount type if it's provided.
+    Matcher matcher = Pattern.compile(".* (type \\w+ ).*").matcher(line);
+    String lineWithoutType;
+    if (matcher.matches()) {
+      String match = matcher.group(1);
+      builder.setFsType(match.replace("type", "").trim());
+      lineWithoutType = line.replace(match, "");
+    } else {
+      lineWithoutType = line;
+    }
+    // Now parse the rest
+    matcher = Pattern.compile("(.*) on (.*) \\((.*)\\)").matcher(lineWithoutType);
+    if (!matcher.matches()) {
+      LOG.debug("Unable to parse output of 'mount': {}", line);
+      return builder.build();
+    }
+    builder.setDeviceSpec(matcher.group(1));
+    builder.setMountPoint(matcher.group(2));
+    builder.setOptions(parseUnixMountOptions(matcher.group(3)));
+    return builder.build();
+  }
+
+  private static UnixMountInfo.Options parseUnixMountOptions(String line) {
+    UnixMountInfo.Options.Builder builder = new UnixMountInfo.Options.Builder();
+    for (String option : line.split(",")) {
+      Matcher matcher = Pattern.compile("(.*)=(.*)").matcher(option.trim());
+      if (matcher.matches() && matcher.group(1).equalsIgnoreCase("size")) {
+        try {
+          builder.setSize(FormatUtils.parseSpaceSize(matcher.group(2)));
+        } catch (IllegalArgumentException e) {
+          LOG.debug("Failed to parse mount point size: {}", e);
+        }
+      }
+    }
+    return builder.build();
+  }
 
   @NotThreadSafe
   private static class Command {
