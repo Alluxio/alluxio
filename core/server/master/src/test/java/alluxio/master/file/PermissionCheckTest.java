@@ -442,7 +442,7 @@ public final class PermissionCheckTest {
   }
 
   /**
-   * verifyRename
+   * verifyRename.
    * @param user
    * @param srcPath
    * @param dstPath
