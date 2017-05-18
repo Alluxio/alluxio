@@ -14,8 +14,12 @@ package alluxio.worker.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
+import alluxio.thrift.CommitBlockTOptions;
+import alluxio.thrift.GetWorkerIdTOptions;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -81,7 +85,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+        mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length,
+            new CommitBlockTOptions());
         return null;
       }
     });
@@ -97,7 +102,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(ThriftUtils.toThrift(address));
+        return mClient.getWorkerId(ThriftUtils.toThrift(address), new GetWorkerIdTOptions())
+            .getWorkerId();
       }
     });
   }
@@ -117,7 +123,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
-        return mClient.heartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
+        return mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
+            new BlockHeartbeatTOptions()).getCommand();
       }
     });
   }
@@ -139,7 +146,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
       @Override
       public Void call() throws TException {
         mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnTiers);
+            currentBlocksOnTiers, new RegisterWorkerTOptions());
         return null;
       }
     });

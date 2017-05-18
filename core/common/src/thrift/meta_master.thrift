@@ -3,12 +3,20 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
-struct MasterInfo {
-  1: i32 webPort
+struct GetMasterInfoTOptions {
+  1: set<MasterInfoField> filter
 }
 
 enum MasterInfoField {
   WEB_PORT
+}
+
+struct GetMasterInfoTResponse {
+  1: MasterInfo masterInfo
+}
+
+struct MasterInfo {
+  1: i32 webPort
 }
 
 /**
@@ -19,9 +27,8 @@ service MetaMasterClientService extends common.AlluxioService {
   /**
    * Returns information about the master.
    */
-  MasterInfo getInfo(
-    /** optional filter for what fields to return, defaults to all */
-    1: set<MasterInfoField> fields,
+  GetMasterInfoTResponse getMasterInfo(
+    /** the method options */ 1: GetMasterInfoTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 }

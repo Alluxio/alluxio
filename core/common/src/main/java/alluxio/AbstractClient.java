@@ -23,6 +23,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetServiceVersionTOptions;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -120,7 +121,7 @@ public abstract class AbstractClient implements Client {
   protected void checkVersion(AlluxioService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
-        mServiceVersion = client.getServiceVersion();
+        mServiceVersion = client.getServiceVersion(new GetServiceVersionTOptions()).getVersion();
       } catch (TException e) {
         throw new IOException(e);
       }

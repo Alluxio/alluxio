@@ -15,8 +15,15 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.CompletePartitionTOptions;
+import alluxio.thrift.CompleteStoreTOptions;
+import alluxio.thrift.CreateStoreTOptions;
+import alluxio.thrift.DeleteStoreTOptions;
+import alluxio.thrift.GetPartitionInfoTOptions;
 import alluxio.thrift.KeyValueMasterClientService;
+import alluxio.thrift.MergeStoreTOptions;
 import alluxio.thrift.PartitionInfo;
+import alluxio.thrift.RenameStoreTOptions;
 
 import org.apache.thrift.TException;
 
@@ -74,7 +81,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.completePartition(path.getPath(), info);
+        mClient.completePartition(path.getPath(), info, new CompletePartitionTOptions());
         return null;
       }
     });
@@ -89,7 +96,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.completeStore(path.getPath());
+        mClient.completeStore(path.getPath(), new CompleteStoreTOptions());
         return null;
       }
     });
@@ -104,7 +111,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.createStore(path.getPath());
+        mClient.createStore(path.getPath(), new CreateStoreTOptions());
         return null;
       }
     });
@@ -121,7 +128,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<List<PartitionInfo>>() {
       @Override
       public List<PartitionInfo> call() throws TException {
-        return mClient.getPartitionInfo(path.getPath());
+        return mClient.getPartitionInfo(path.getPath(), new GetPartitionInfoTOptions())
+            .getPartitionInfo();
       }
     });
   }
@@ -135,7 +143,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.deleteStore(path.getPath());
+        mClient.deleteStore(path.getPath(), new DeleteStoreTOptions());
         return null;
       }
     });
@@ -152,7 +160,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.renameStore(oldPath.getPath(), newPath.getPath());
+        mClient.renameStore(oldPath.getPath(), newPath.getPath(), new RenameStoreTOptions());
         return null;
       }
     });
@@ -168,7 +176,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.mergeStore(fromPath.getPath(), toPath.getPath());
+        mClient.mergeStore(fromPath.getPath(), toPath.getPath(), new MergeStoreTOptions());
         return null;
       }
     });

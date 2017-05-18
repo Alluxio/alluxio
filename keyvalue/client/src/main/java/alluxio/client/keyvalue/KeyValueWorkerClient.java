@@ -16,6 +16,9 @@ import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetNextKeysTOptions;
+import alluxio.thrift.GetSizeTOptions;
+import alluxio.thrift.GetTOptions;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -79,7 +82,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
     return retryRPC(new RpcCallable<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws AlluxioTException, TException {
-        return mClient.get(blockId, key);
+        return mClient.get(blockId, key, new GetTOptions()).bufferForData();
       }
     });
   }
@@ -100,7 +103,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
     return retryRPC(new RpcCallable<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() throws AlluxioTException, TException {
-        return mClient.getNextKeys(blockId, key, numKeys);
+        return mClient.getNextKeys(blockId, key, numKeys, new GetNextKeysTOptions()).getKeys();
       }
     });
   }
@@ -113,7 +116,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
     return retryRPC(new RpcCallable<Integer>() {
       @Override
       public Integer call() throws AlluxioTException, TException {
-        return mClient.getSize(blockId);
+        return mClient.getSize(blockId, new GetSizeTOptions()).getSize();
       }
     });
   }

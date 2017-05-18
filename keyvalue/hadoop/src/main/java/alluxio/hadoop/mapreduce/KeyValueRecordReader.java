@@ -18,6 +18,7 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.base.Preconditions;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -50,12 +51,12 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
   /**
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
    */
-  public KeyValueRecordReader() {
-  }
+  public KeyValueRecordReader() {}
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context)
       throws IOException, InterruptedException {
+    Preconditions.checkArgument(split instanceof KeyValueInputSplit);
     try {
       if (!(split instanceof KeyValueInputSplit)) {
         throw new IOException("Split is required to be KeyValueInputSplit");

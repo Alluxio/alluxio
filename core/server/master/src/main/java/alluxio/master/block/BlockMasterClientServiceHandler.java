@@ -16,8 +16,17 @@ import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.BlockInfo;
 import alluxio.thrift.BlockMasterClientService;
+import alluxio.thrift.GetBlockInfoTOptions;
+import alluxio.thrift.GetBlockInfoTResponse;
+import alluxio.thrift.GetCapacityBytesTOptions;
+import alluxio.thrift.GetCapacityBytesTResponse;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
+import alluxio.thrift.GetUsedBytesTOptions;
+import alluxio.thrift.GetUsedBytesTResponse;
+import alluxio.thrift.GetWorkerInfoListTOptions;
+import alluxio.thrift.GetWorkerInfoListTResponse;
 import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -44,56 +53,59 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
    *
    * @param blockMaster the {@link BlockMaster} the handler uses internally
    */
-  public BlockMasterClientServiceHandler(BlockMaster blockMaster) {
+  BlockMasterClientServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);
     mBlockMaster = blockMaster;
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList() throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<List<WorkerInfo>>() {
+  public GetWorkerInfoListTResponse getWorkerInfoList(GetWorkerInfoListTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallable<GetWorkerInfoListTResponse>() {
       @Override
-      public List<WorkerInfo> call() throws AlluxioException {
+      public GetWorkerInfoListTResponse call() throws AlluxioException {
         List<WorkerInfo> workerInfos = new ArrayList<>();
         for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
           workerInfos.add(ThriftUtils.toThrift(workerInfo));
         }
-        return workerInfos;
+        return new GetWorkerInfoListTResponse(workerInfos);
       }
     });
   }
 
   @Override
-  public long getCapacityBytes() throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<Long>() {
+  public GetCapacityBytesTResponse getCapacityBytes(GetCapacityBytesTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallable<GetCapacityBytesTResponse>() {
       @Override
-      public Long call() throws AlluxioException {
-        return mBlockMaster.getCapacityBytes();
+      public GetCapacityBytesTResponse call() throws AlluxioException {
+        return new GetCapacityBytesTResponse(mBlockMaster.getCapacityBytes());
       }
     });
   }
 
   @Override
-  public long getUsedBytes() throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<Long>() {
+  public GetUsedBytesTResponse getUsedBytes(GetUsedBytesTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallable<GetUsedBytesTResponse>() {
       @Override
-      public Long call() throws AlluxioException {
-        return mBlockMaster.getUsedBytes();
+      public GetUsedBytesTResponse call() throws AlluxioException {
+        return new GetUsedBytesTResponse(mBlockMaster.getUsedBytes());
       }
     });
   }
 
   @Override
-  public BlockInfo getBlockInfo(final long blockId) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<BlockInfo>() {
+  public GetBlockInfoTResponse getBlockInfo(final long blockId, GetBlockInfoTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallable<GetBlockInfoTResponse>() {
       @Override
-      public BlockInfo call() throws AlluxioException {
-        return ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId));
+      public GetBlockInfoTResponse call() throws AlluxioException {
+        return new GetBlockInfoTResponse(ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId)));
       }
     });
   }
