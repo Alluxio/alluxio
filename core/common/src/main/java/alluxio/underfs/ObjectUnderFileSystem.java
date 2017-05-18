@@ -88,13 +88,22 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
-    final long mContentLength;
-    final long mLastModifiedTimeMs;
-    final String mName;
+    private static final long INVALID_CONTENT_LENGTH = -1L;
+    private static final long INVALID_MODIFIED_TIME = -1L;
+
+    private final long mContentLength;
+    private final long mLastModifiedTimeMs;
+    private final String mName;
 
     public ObjectStatus(String name, long contentLength, long lastModifiedTimeMs) {
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
+      mName = name;
+    }
+
+    public ObjectStatus(String name) {
+      mContentLength = INVALID_CONTENT_LENGTH;
+      mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
       mName = name;
     }
 
@@ -357,16 +366,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
-    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
-    ObjectStatus details = getObjectStatus(keyAsFolder);
-    if (details != null) {
+    if (isDirectory(path)) {
       ObjectPermissions permissions = getPermissions();
       return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
           permissions.getMode());
-    } else {
-      LOG.error("Error fetching directory status, assuming directory does not exist");
-      throw new FileNotFoundException(path);
     }
+    LOG.warn("Error fetching directory status, assuming directory {} does not exist", path);
+    throw new FileNotFoundException(path);
   }
 
   // Not supported
@@ -398,7 +404,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
           permissions.getOwner(), permissions.getGroup(), permissions.getMode());
     } else {
-      LOG.error("Error fetching file status, assuming file does not exist");
+      LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
     }
   }
