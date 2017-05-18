@@ -346,7 +346,7 @@ public final class TransportProviderTest {
 
   private void startServerThread() throws Exception {
     // create args and use them to build a Thrift TServer
-    TTransportFactory tTransportFactory = mTransportProvider.getServerTransportFactory();
+    TTransportFactory tTransportFactory = mTransportProvider.getServerTransportFactory("test");
 
     mServer = new TThreadPoolServer(
         new TThreadPoolServer.Args(mServerTSocket).maxWorkerThreads(2).minWorkerThreads(1)

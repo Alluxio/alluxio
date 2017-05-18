@@ -284,7 +284,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Return a TTransportFactory based on the authentication type
     TTransportFactory tTransportFactory;
     try {
-      tTransportFactory = mTransportProvider.getServerTransportFactory();
+      String serverName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC);
+      tTransportFactory = mTransportProvider.getServerTransportFactory(serverName);
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
