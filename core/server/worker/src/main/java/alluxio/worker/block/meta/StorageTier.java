@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
@@ -128,8 +129,17 @@ public final class StorageTier {
       if (mountPoint == null || fsType == null || size == null) {
         continue;
       }
-      if (mountPoint.equals(storageDir.getDirPath())
-          && (fsType.equalsIgnoreCase("tmpfs") || fsType.equalsIgnoreCase("ramfs"))
+      try {
+        // getDirPath gives something like "/mnt/tmpfs/alluxioworker".
+        String rootStoragePath = PathUtils.getParent(storageDir.getDirPath());
+        if (!PathUtils.cleanPath(mountPoint).equals(rootStoragePath)) {
+          continue;
+        }
+      } catch (InvalidPathException e) {
+        continue;
+      }
+
+      if ((fsType.equalsIgnoreCase("tmpfs") || fsType.equalsIgnoreCase("ramfs"))
           && size < storageDir.getCapacityBytes()) {
         throw new IllegalStateException(String.format(
             "tmpfs is smaller than the configured size: tmpfs size: %s, configured size: %s", size,
