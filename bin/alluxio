@@ -197,7 +197,6 @@ function main {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
-  CLASSPATH=${ALLUXIO_SHELL_CLASSPATH}
 
   PARAMETER=""
 
@@ -246,10 +245,12 @@ function main {
   ;;
   "fs")
     CLASS="alluxio.cli.AlluxioShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "getConf")
     CLASS="alluxio.cli.GetConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "loadufs")
@@ -259,47 +260,56 @@ function main {
   ;;
   "runClass")
     CLASS=$1
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case
     shift
     runJavaClass "$@"
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runKVTest")
     CLASS="alluxio.examples.keyvalue.KeyValueStoreOperations"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     PARAMETER="/default_tests_files/KeyValueStoreOperations"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runTests")
     CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runMiniBenchmark")
     CLASS="alluxio.cli.MiniBenchmark"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
     ;;
   "runJournalCrashTest")
     CLASS="alluxio.cli.JournalCrashTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runMesosTest")
     CLASS="alluxio.cli.AlluxioFrameworkIntegrationTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "readJournal")
     CLASS="alluxio.master.journal.JournalTool"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "upgradeJournal")
     CLASS="alluxio.master.journal.JournalUpgrader"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
@@ -329,10 +339,12 @@ function main {
   ;;
   "version")
     CLASS="alluxio.cli.Version"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "validateConf")
     CLASS="alluxio.cli.ValidateConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;

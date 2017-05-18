@@ -39,8 +39,8 @@ for compilar utilizando o `maven`. Por exemplo, se você quer que o Alluxio trab
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
 Se for obtido sucesso, você deve ver o arquivo
-`alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` criado dentro do
-diretório `assembly/target` e este é o arquivo `jar` que você pode utilizar para executar os
+`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` criado dentro do
+diretório `assembly/server/target` e este é o arquivo `jar` que você pode utilizar para executar os
 Alluxio `Master` e `Worker`.
 
 ## Configurando o Alluxio
