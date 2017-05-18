@@ -450,6 +450,9 @@ public final class CommonUtils {
           result.get();
         } catch (ExecutionException e) {
           Throwables.propagateIfPossible(e.getCause());
+          if (!(e instanceof Exception)) {
+            throw new RuntimeException(e);
+          }
           throw (Exception) e.getCause();
         } catch (CancellationException e) {
           throw new TimeoutException("Timed out running callable");
