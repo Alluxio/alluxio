@@ -74,7 +74,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
       try {
         PacketInStream inStream = PacketInStream
             .createLocalPacketInStream(context, address, blockId, blockSize, options);
-        return new BlockInStream(inStream, address, options);
+        return new BlockInStream(inStream, address);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read from UFS via netty. So this exception is ignored.
@@ -89,7 +89,7 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
     PacketInStream inStream = PacketInStream
         .createNettyPacketInStream(context, address, builder.buildPartial(), blockSize,
             options);
-    return new BlockInStream(inStream, address, options);
+    return new BlockInStream(inStream, address);
   }
 
   @Override
@@ -138,10 +138,8 @@ public class BlockInStream extends FilterInputStream implements BoundedStream, S
    *
    * @param inputStream the packet inputstream
    * @param workerNetAddress the worker network address
-   * @param options the options
    */
-  protected BlockInStream(PacketInStream inputStream, WorkerNetAddress workerNetAddress,
-      InStreamOptions options) {
+  protected BlockInStream(PacketInStream inputStream, WorkerNetAddress workerNetAddress) {
     super(inputStream);
     mInputStream = inputStream;
     mAddress = workerNetAddress;

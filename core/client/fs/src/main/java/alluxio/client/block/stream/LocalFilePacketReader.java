@@ -14,6 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.netty.NettyRPC;
 import alluxio.client.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -109,21 +110,23 @@ public final class LocalFilePacketReader implements PacketReader {
      * @param address the worker address
      * @param blockId the block ID
      * @param packetSize the packet size
-     * @param promote whether or not to promote the block
+     * @param options the instream options
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
-        long packetSize, boolean promote) throws IOException {
+        long packetSize, InStreamOptions options) throws IOException {
       mContext = context;
       mAddress = address;
       mBlockId = blockId;
       mPacketSize = packetSize;
 
       mChannel = context.acquireNettyChannel(address);
+      Protocol.LocalBlockOpenRequest request =
+          Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
+              .setPromote(options.getAlluxioStorageType().isPromote()).build();
       try {
         ProtoMessage message = NettyRPC
             .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-                new ProtoMessage(Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
-                    .setPromote(promote).build()));
+                new ProtoMessage(request));
         Preconditions.checkState(message.isLocalBlockOpenResponse());
         mPath = message.asLocalBlockOpenResponse().getPath();
       } catch (Exception e) {
@@ -147,10 +150,11 @@ public final class LocalFilePacketReader implements PacketReader {
       if (mClosed) {
         return;
       }
+      Protocol.LocalBlockCloseRequest request =
+          Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build();
       try {
         NettyRPC.call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-            new ProtoMessage(
-                Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build()));
+            new ProtoMessage(request));
       } finally {
         mClosed = true;
         mContext.releaseNettyChannel(mAddress, mChannel);

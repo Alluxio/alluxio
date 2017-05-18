@@ -49,9 +49,9 @@ final class NettyExecutors {
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
           ThreadFactoryUtils.build("FilePacketWriterExecutor-%d", true));
 
-  public static final ExecutorService BLOCK_OPEN_EXECUTOR =
+  public static final ExecutorService RPC_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX),
+          Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_RPC_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(),
           ThreadFactoryUtils.build("BlockOpenExecutor-%d", true));
 

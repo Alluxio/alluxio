@@ -60,30 +60,8 @@ public class PacketOutStream extends OutputStream implements BoundedStream, Canc
   public static PacketOutStream createLocalPacketOutStream(FileSystemContext context,
       WorkerNetAddress address, long id, long length, OutStreamOptions options) throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
-    PacketWriter packetWriter = LocalFilePacketWriter
-        .create(context, address, id, options.getWriteTier(), packetSize);
-    return new PacketOutStream(packetWriter, length);
-  }
-
-  /**
-   * Creates a {@link PacketOutStream} that writes to a netty data server.
-   *
-   * @param context the file system context
-   * @param address the netty data server address
-   * @param id the ID (block ID or UFS file ID)
-   * @param length the block or file length
-   * @param type the request type (either block write or UFS file write)
-   * @param options the out stream options
-   * @return the {@link PacketOutStream} created
-   */
-  public static PacketOutStream createNettyPacketOutStream(FileSystemContext context,
-      WorkerNetAddress address, long id, long length, Protocol.RequestType type,
-      OutStreamOptions options) throws IOException {
-    long packetSize =
-        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
     PacketWriter packetWriter =
-        new NettyPacketWriter(context, address, id, length, options.getWriteTier(), type,
-            packetSize);
+        LocalFilePacketWriter.create(context, address, id, packetSize, options);
     return new PacketOutStream(packetWriter, length);
   }
 

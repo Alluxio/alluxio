@@ -71,8 +71,8 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
       throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
     return new PacketInStream(
-        new LocalFilePacketReader.Factory(context, address, blockId, packetSize,
-            options.getAlluxioStorageType().isPromote()), blockId, length);
+        new LocalFilePacketReader.Factory(context, address, blockId, packetSize, options), blockId,
+        length);
   }
 
   /**
@@ -90,8 +90,8 @@ public class PacketInStream extends InputStream implements BoundedStream, Seekab
       InStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
-    PacketReader.Factory factory = new NettyPacketReader.Factory(
-        context, address, readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial());
+    PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
+        readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial(), options);
     return new PacketInStream(factory, readRequestPartial.getBlockId(), blockSize);
   }
 
