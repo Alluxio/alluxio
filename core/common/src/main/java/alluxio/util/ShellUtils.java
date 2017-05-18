@@ -128,7 +128,7 @@ public final class ShellUtils {
   }
 
   @NotThreadSafe
-  private final static class Command {
+  private static final class Command {
     private String[] mCommand;
 
     private Command(String[] execString) {

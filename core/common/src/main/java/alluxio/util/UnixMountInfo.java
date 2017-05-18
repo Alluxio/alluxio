@@ -142,7 +142,7 @@ public final class UnixMountInfo {
   }
 
   /** Unix mount info options. */
-  public final static class Options {
+  public static final class Options {
     private final Long mSize;
 
     private Options(Long size) {

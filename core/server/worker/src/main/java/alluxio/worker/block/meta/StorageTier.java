@@ -109,7 +109,7 @@ public final class StorageTier {
    * warning is logged but no exception is thrown.
    *
    * @param storageDir the storage dir to check
-   * @throws IllegalStateException if the tmpfs/ramfs is smaller than the configured memory size.
+   * @throws IllegalStateException if the tmpfs/ramfs is smaller than the configured memory size
    */
   private void checkEnoughMemSpace(StorageDir storageDir) {
     if (!OSUtils.isLinux()) {
