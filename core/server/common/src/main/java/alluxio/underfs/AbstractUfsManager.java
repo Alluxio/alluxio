@@ -172,7 +172,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Pair<UnderFileSystem, AtomicLong> ufsCounter = mMountIdToUnderFileSystemMap.get(mountId);
     mMountIdToUnderFileSystemMap.remove(mountId);
     // Remove ufs from mMountIdToUnderFileSystemMap if its counter comes to zero.
-    if (ufsCounter.getSecond().decrementAndGet() == 0L) {
+    if (ufsCounter != null && ufsCounter.getSecond().decrementAndGet() == 0L) {
       synchronized (mMountIdToUnderFileSystemMap) {
         Iterator<Entry<Long, Pair<UnderFileSystem, AtomicLong>>> it =
             mMountIdToUnderFileSystemMap.entrySet().iterator();
