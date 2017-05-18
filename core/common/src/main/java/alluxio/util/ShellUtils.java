@@ -68,7 +68,7 @@ public final class ShellUtils {
   /**
    * Gets system mount information. This method should only be attempted on Unix systems.
    *
-   * @return system mount information.
+   * @return system mount information
    */
   public static List<UnixMountInfo> getUnixMountInfo() throws IOException {
     Preconditions.checkState(OSUtils.isLinux() || OSUtils.isMacOS());
@@ -128,7 +128,7 @@ public final class ShellUtils {
   }
 
   @NotThreadSafe
-  private static class Command {
+  private final static class Command {
     private String[] mCommand;
 
     private Command(String[] execString) {
@@ -236,4 +236,6 @@ public final class ShellUtils {
   public static String execCommand(String... cmd) throws IOException {
     return new Command(cmd).run();
   }
+
+  private ShellUtils() {} // prevent instantiation
 }

@@ -87,6 +87,7 @@ public final class UnixMountInfo {
         .toString();
   }
 
+  /** Builder for {@link UnixMountInfo}. */
   public static class Builder {
     private String mDeviceSpec;
     private String mMountPoint;
@@ -141,7 +142,7 @@ public final class UnixMountInfo {
   }
 
   /** Unix mount info options. */
-  public static class Options {
+  public final static class Options {
     private final Long mSize;
 
     private Options(Long size) {
