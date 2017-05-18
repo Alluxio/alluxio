@@ -70,7 +70,7 @@ public final class RmCommand extends WithWildCardPathCommand {
         .setRecursive(recursive).setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
-      System.out.println(path + " has been removed in Alluxion space and Ufs space");
+      System.out.println(path + " has been removed");
     } else {
       System.out.println(path + " just been removed in Alluxio Space, but Ufs space still exists");
     }
