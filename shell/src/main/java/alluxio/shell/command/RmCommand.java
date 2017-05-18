@@ -17,6 +17,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -65,11 +66,12 @@ public final class RmCommand extends WithWildCardPathCommand {
 
     boolean isAlluxioOnly = cl.hasOption("alluxioOnly");
     //System.out.println("isAlluxioOnly: " + isAlluxioOnly);
-    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive).setAlluxioOnly(isAlluxioOnly);
+    DeleteOptions options = DeleteOptions.defaults()
+        .setRecursive(recursive).setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
       System.out.println(path + " has been removed in Alluxion space and Ufs space");
-    }else {
+    } else {
       System.out.println(path + " just been removed in Alluxio Space, but Ufs space still exists");
     }
   }
@@ -81,7 +83,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Removes the specified file. Specify -R to remove file or directory recursively." +
-        "Specify -alluxioOnly just remove block data and metadata in Alluxio space";
+    return "Removes the specified file. Specify -R to remove file or directory recursively."
+        + "Specify -alluxioOnly just remove block data and metadata in Alluxio space";
   }
 }
