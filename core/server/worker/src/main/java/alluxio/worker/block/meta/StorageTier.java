@@ -18,6 +18,9 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
+import alluxio.util.OSUtils;
+import alluxio.util.ShellUtils;
+import alluxio.util.UnixMountInfo;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -94,6 +97,45 @@ public final class StorageTier {
       }
     }
     mCapacityBytes = totalCapacity;
+    if (mTierAlias.equals("MEM") && mDirs.size() == 1) {
+      checkEnoughMemSpace(mDirs.get(0));
+    }
+  }
+
+  /**
+   * Checks that a tmpfs backing the storage directory has enough capacity. If the storage directory
+   * is not backed by tmpfs or the size of the tmpfs cannot be determined, a warning is logged but
+   * no exception is thrown.
+   *
+   * @param storageDir the storage dir to check
+   * @throws IllegalStateException if the tmpfs is smaller than the configured memory size.
+   */
+  private void checkEnoughMemSpace(StorageDir storageDir) {
+    if (!OSUtils.isLinux()) {
+      return;
+    }
+    List<UnixMountInfo> info;
+    try {
+      info = ShellUtils.getUnixMountInfo();
+    } catch (IOException e) {
+      LOG.warn("Failed to get mount information: {}", e.getMessage());
+      return;
+    }
+    for (UnixMountInfo mountInfo : info) {
+      String mountPoint = mountInfo.getMountPoint();
+      String fsType = mountInfo.getFsType();
+      Long size = mountInfo.getOptions().getSize();
+      if (mountPoint == null || fsType == null || size == null) {
+        continue;
+      }
+      if (mountPoint.equals(storageDir.getDirPath())
+          && mountInfo.getFsType().equalsIgnoreCase("tmpfs")
+          && size < storageDir.getCapacityBytes()) {
+        throw new IllegalStateException(String.format(
+            "tmpfs is smaller than the configured size: tmpfs size: %s, configured size: %s", size,
+            storageDir.getCapacityBytes()));
+      }
+    }
   }
 
   /**
