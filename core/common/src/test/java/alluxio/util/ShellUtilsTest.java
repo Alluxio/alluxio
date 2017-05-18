@@ -86,10 +86,10 @@ public final class ShellUtilsTest {
 
   @Test
   public void parseMountInfoSpaceInPath() throws Exception {
-    UnixMountInfo info = ShellUtils.parseMountInfo("/dev/disk4s1 on /Volumes/Space Path"
+    UnixMountInfo info = ShellUtils.parseMountInfo("/dev/disk4s1 on /Volumes/Space Path "
         + "(hfs, local, nodev, nosuid, read-only, noowners, quarantine)");
     assertEquals("/dev/disk4s1", info.getDeviceSpec());
-    assertEquals("/Volumes/Amazon Music", info.getMountPoint());
+    assertEquals("/Volumes/Space Path", info.getMountPoint());
     assertEquals(null, info.getFsType());
     assertEquals(null, info.getOptions().getSize());
   }
