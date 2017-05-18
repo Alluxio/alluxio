@@ -103,12 +103,12 @@ public final class StorageTier {
   }
 
   /**
-   * Checks that a tmpfs backing the storage directory has enough capacity. If the storage directory
-   * is not backed by tmpfs or the size of the tmpfs cannot be determined, a warning is logged but
-   * no exception is thrown.
+   * Checks that a tmpfs/ramfs backing the storage directory has enough capacity. If the storage
+   * directory is not backed by tmpfs/ramfs or the size of the tmpfs/ramfs cannot be determined, a
+   * warning is logged but no exception is thrown.
    *
    * @param storageDir the storage dir to check
-   * @throws IllegalStateException if the tmpfs is smaller than the configured memory size.
+   * @throws IllegalStateException if the tmpfs/ramfs is smaller than the configured memory size.
    */
   private void checkEnoughMemSpace(StorageDir storageDir) {
     if (!OSUtils.isLinux()) {
@@ -129,7 +129,7 @@ public final class StorageTier {
         continue;
       }
       if (mountPoint.equals(storageDir.getDirPath())
-          && mountInfo.getFsType().equalsIgnoreCase("tmpfs")
+          && (fsType.equalsIgnoreCase("tmpfs") || fsType.equalsIgnoreCase("ramfs"))
           && size < storageDir.getCapacityBytes()) {
         throw new IllegalStateException(String.format(
             "tmpfs is smaller than the configured size: tmpfs size: %s, configured size: %s", size,
