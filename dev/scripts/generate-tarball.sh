@@ -19,7 +19,7 @@
 # 5. Copy the generated client to the folder client/framework/
 # 6. Tar everything up and put it in dev/scripts/tarballs
 #
-# Example: BUILD_OPTS="-Dhadoop.version=2.7.2"; ./generate-tarball.sh
+# Example: BUILD_OPTS="-Dhadoop.version=2.7.2" ./generate-tarball.sh
 #
 
 set -e
