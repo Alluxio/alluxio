@@ -1842,7 +1842,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(new AlluxioURI("alluxio://"), GET_STATUS_OPTIONS);
     UfsInfo ufsRootInfo = mFileSystemMaster.getUfsInfo(alluxioRootInfo.getMountId());
     Assert.assertEquals(mUnderFS, ufsRootInfo.getUri());
-    Assert.assertTrue(ufsRootInfo.getProperties().isEmpty());
+    Assert.assertTrue(ufsRootInfo.getProperties().getProperties().isEmpty());
   }
 
   @Test

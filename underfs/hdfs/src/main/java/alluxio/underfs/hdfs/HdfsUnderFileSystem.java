@@ -90,7 +90,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    */
   HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
-    super(ufsUri);
+    super(ufsUri, conf);
     mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     try {

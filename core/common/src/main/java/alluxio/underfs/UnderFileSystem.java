@@ -59,7 +59,7 @@ public interface UnderFileSystem extends Closeable {
      * @return instance of the under layer file system
      */
     public static UnderFileSystem create(String path) {
-      return create(path, null);
+      return create(path, UnderFileSystemConfiguration.defaults());
     }
 
     /**
@@ -82,7 +82,7 @@ public interface UnderFileSystem extends Closeable {
      * @param ufsConf optional configuration object for the UFS, may be null
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, Map<String, String> ufsConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories = UnderFileSystemFactoryRegistry.findAll(path);
       if (factories.isEmpty()) {
@@ -93,8 +93,7 @@ public interface UnderFileSystem extends Closeable {
       for (UnderFileSystemFactory factory : factories) {
         try {
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(
-              factory.create(path, new UnderFileSystemConfiguration(ufsConf)));
+          return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
         } catch (Throwable e) {
           // This needs to be Throwable rather than Error to catch service loading errors
           errors.add(e);
@@ -120,9 +119,11 @@ public interface UnderFileSystem extends Closeable {
      */
     public static UnderFileSystem createForRoot() {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      Map<String, String> ufsConf = Configuration.getNestedProperties(
-          PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, ufsConf);
+      boolean readOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+      boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+      Map<String, String> ufsConf =
+          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      return create(ufsRoot, new UnderFileSystemConfiguration(readOnly, shared, ufsConf));
     }
   }
 
@@ -166,15 +167,6 @@ public interface UnderFileSystem extends Closeable {
    * Closes this under file system.
    */
   void close() throws IOException;
-
-  /**
-   * Configures and updates the properties. For instance, this method can add new properties or
-   * modify existing properties specified through {@link #setProperties(Map)}.
-   *
-   * The default implementation is a no-op. This should be overridden if a subclass needs
-   * additional functionality.
-   */
-  void configureProperties() throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -292,11 +284,6 @@ public interface UnderFileSystem extends Closeable {
    * @return the file status
    */
   UfsFileStatus getFileStatus(String path) throws IOException;
-
-  /**
-   * @return the property map for this {@link UnderFileSystem}
-   */
-  Map<String, String> getProperties();
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
@@ -460,13 +447,6 @@ public interface UnderFileSystem extends Closeable {
    * @param group the new group to set, unchanged if null
    */
   void setOwner(String path, String owner, String group) throws IOException;
-
-  /**
-   * Sets the properties for this {@link UnderFileSystem}.
-   *
-   * @param properties a {@link Map} of property names to values
-   */
-  void setProperties(Map<String, String> properties);
 
   /**
    * Whether this type of UFS supports flush.

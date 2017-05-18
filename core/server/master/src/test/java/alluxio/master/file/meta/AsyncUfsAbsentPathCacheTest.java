@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.master.file.options.MountOptions;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.WaitForOptions;
@@ -52,9 +53,10 @@ public class AsyncUfsAbsentPathCacheTest {
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
-    mUfsManager.addMount(mMountId, mLocalUfsPath, Collections.<String, String>emptyMap());
-    mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId,
-        MountOptions.defaults());
+    MountOptions options = MountOptions.defaults();
+    mUfsManager.addMount(mMountId, mLocalUfsPath, new UnderFileSystemConfiguration(
+        options.isReadOnly(), options.isShared(), Collections.<String, String>emptyMap()));
+    mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
   @Test
@@ -154,9 +156,10 @@ public class AsyncUfsAbsentPathCacheTest {
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
-    mUfsManager.addMount(newMountId, mLocalUfsPath, Collections.<String, String>emptyMap());
-    mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), newMountId,
-        MountOptions.defaults());
+    MountOptions options = MountOptions.defaults();
+    mUfsManager.addMount(newMountId, mLocalUfsPath, new UnderFileSystemConfiguration(
+        options.isReadOnly(), options.isShared(), Collections.<String, String>emptyMap()));
+    mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.
     Assert.assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d")));

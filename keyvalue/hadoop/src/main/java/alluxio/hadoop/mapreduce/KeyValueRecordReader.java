@@ -58,6 +58,9 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
       throws IOException, InterruptedException {
     Preconditions.checkArgument(split instanceof KeyValueInputSplit);
     try {
+      if (!(split instanceof KeyValueInputSplit)) {
+        throw new IOException("Split is required to be KeyValueInputSplit");
+      }
       mReader =
           KeyValuePartitionReader.Factory.create(((KeyValueInputSplit) split).getPartitionId());
       mKeyValuePairIterator = mReader.iterator();

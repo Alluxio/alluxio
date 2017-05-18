@@ -28,7 +28,7 @@ USAGE="Usage: alluxio-mount.sh [Mount|SudoMount] [MACHINE]
 function init_env() {
   local libexec_dir=${ALLUXIO_LIBEXEC_DIR:-"${BIN}"/../libexec}
   . ${libexec_dir}/alluxio-config.sh
-
+  CLASSPATH=${ALLUXIO_SHELL_CLASSPATH}
   MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
   TIER_PATH=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)

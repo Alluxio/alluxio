@@ -74,9 +74,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Constructs an {@link ObjectUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
+   * @param ufsConf UFS configuration
    */
-  protected ObjectUnderFileSystem(AlluxioURI uri) {
-    super(uri);
+  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
 
     int numThreads = Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
@@ -702,6 +703,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
+      // If the breadcrumb exists, this is a no-op
+      if (!mUfsConf.isReadOnly()) {
+        mkdirsInternal(dir);
+      }
       return objs;
     }
     return null;
@@ -800,6 +805,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
           if (!child.isEmpty() && !children.containsKey(child)) {
             // This directory has not been created through Alluxio.
+            if (!mUfsConf.isReadOnly()) {
+              mkdirsInternal(commonPrefix);
+            }
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
             ObjectPermissions permissions = getPermissions();

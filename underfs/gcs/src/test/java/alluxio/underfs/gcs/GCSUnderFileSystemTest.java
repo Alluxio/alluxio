@@ -12,6 +12,7 @@
 package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.ServiceException;
@@ -46,8 +47,8 @@ public class GCSUnderFileSystemTest {
   public void before() throws InterruptedException, ServiceException {
     mClient = Mockito.mock(GoogleStorageService.class);
 
-    mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""),
-        mClient, BUCKET_NAME, BUCKET_MODE, ACCOUNT_OWNER);
+    mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
+        BUCKET_MODE, ACCOUNT_OWNER, UnderFileSystemConfiguration.defaults());
   }
 
   /**
