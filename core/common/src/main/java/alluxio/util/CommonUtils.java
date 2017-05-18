@@ -22,6 +22,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
+import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +38,13 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -426,17 +431,29 @@ public final class CommonUtils {
 
   /**
    * Executes the given callables, waiting for them to complete (or time out).
-
+   *
    * @param callables the callables to execute
    * @param <T> the return type of the callables
+   * @throws TimeoutException if one of the callables times out
+   * @throws Exception if one of the callables throws an exception
    */
-  public static <T> void invokeAll(List<Callable<T>> callables) {
+  public static <T> void invokeAll(List<Callable<T>> callables) throws TimeoutException, Exception {
     ExecutorService service = Executors.newCachedThreadPool();
     try {
-      service.invokeAll(callables, 10, TimeUnit.SECONDS);
+      List<Future<T>> results = service.invokeAll(callables, 10, TimeUnit.SECONDS);
       service.shutdown();
       if (!service.awaitTermination(10, TimeUnit.SECONDS)) {
         throw new RuntimeException("Timed out trying to shutdown service.");
+      }
+      for (Future<T> result : results) {
+        try {
+          result.get();
+        } catch (ExecutionException e) {
+          Throwables.propagateIfPossible(e.getCause());
+          throw (Exception) e.getCause();
+        } catch (CancellationException e) {
+          throw new TimeoutException("Timed out running callable");
+        }
       }
     } catch (InterruptedException e) {
       service.shutdownNow();
