@@ -59,11 +59,6 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-glusterfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>

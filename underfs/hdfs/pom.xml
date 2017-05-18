@@ -114,19 +114,6 @@
                     </includes>
                   </artifactSet>
                   <relocations>
-                    <!-- Relocation for non-Alluxio service loading files  -->
-                    <relocation>
-                      <pattern>^META-INF/services/((?!alluxio).*)$</pattern>
-                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-
-                    <!-- Relocation for hadoop-core-->
-                    <relocation>
-                      <pattern>org.apache.hadoop</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.hadoop</shadedPattern>
-                    </relocation>
-
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.jamesmurty.utils</pattern>
@@ -353,29 +340,6 @@
                   </includes>
                   </artifactSet>
                   <relocations>
-                    <!-- Relocation for non-Alluxio service loading files  -->
-                    <relocation>
-                      <pattern>^META-INF/services/((?!alluxio).*)$</pattern>
-                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-
-                    <!-- Relocation for hadoop-common and hadoop-hdfs -->
-                    <!-- Do not transform this class in string literals as it is used as a string constant to denote -->
-                    <!-- the communication protocol between HDFS client and namenode. This must go before the next rule. -->
-                    <relocation>
-                      <pattern>(org/apache/hadoop/hdfs/protocol/ClientProtocol)</pattern>
-                      <shadedPattern>alluxio/underfs/hdfs/$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.apache.hadoop</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.hadoop</shadedPattern>
-                      <excludes>
-                        <exclude>org.apache.hadoop.hdfs.protocol.ClientProtocol</exclude>
-                      </excludes>
-                    </relocation>
-
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.protobuf</pattern>
@@ -639,29 +603,6 @@
                     </includes>
                   </artifactSet>
                   <relocations>
-                    <!-- Relocation for non-Alluxio service loading files  -->
-                    <relocation>
-                      <pattern>^META-INF/services/((?!alluxio).*)$</pattern>
-                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-
-                    <!-- Relocation for hadoop-common and hadoop-hdfs -->
-                    <!-- Do not transform this class in string literals as it is used as a string constant to denote -->
-                    <!-- the communication protocol between HDFS client and namenode. This must go before the next rule. -->
-                    <relocation>
-                      <pattern>(org/apache/hadoop/hdfs/protocol/ClientProtocol)</pattern>
-                      <shadedPattern>alluxio/underfs/hdfs/$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.apache.hadoop</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.hadoop</shadedPattern>
-                      <excludes>
-                        <exclude>org.apache.hadoop.hdfs.protocol.ClientProtocol</exclude>
-                      </excludes>
-                    </relocation>
-
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.protobuf</pattern>
@@ -928,29 +869,6 @@
                     </includes>
                   </artifactSet>
                   <relocations>
-                    <!-- Relocation for non-Alluxio service loading files  -->
-                    <relocation>
-                      <pattern>^META-INF/services/((?!alluxio).*)$</pattern>
-                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-
-                    <!-- Relocation for hadoop-common and hadoop-hdfs -->
-                    <!-- Do not transform this class in string literals as it is used as a string constant to denote -->
-                    <!-- the communication protocol between HDFS client and namenode. This must go before the next rule. -->
-                    <relocation>
-                      <pattern>(org/apache/hadoop/hdfs/protocol/ClientProtocol)</pattern>
-                      <shadedPattern>alluxio/underfs/hdfs/$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.apache.hadoop</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.hadoop</shadedPattern>
-                      <excludes>
-                        <exclude>org.apache.hadoop.hdfs.protocol.ClientProtocol</exclude>
-                      </excludes>
-                    </relocation>
-
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.gson</pattern>
@@ -1283,29 +1201,6 @@
                     </includes>
                   </artifactSet>
                   <relocations>
-                    <!-- Relocation for non-Alluxio service loading files  -->
-                    <relocation>
-                      <pattern>^META-INF/services/((?!alluxio).*)$</pattern>
-                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-
-                    <!-- Relocation for hadoop-common and hadoop-hdfs -->
-                    <!-- Do not transform this class in string literals as it is used as a string constant to denote -->
-                    <!-- the communication protocol between HDFS client and namenode. This must go before the next rule. -->
-                    <relocation>
-                      <pattern>(org/apache/hadoop/hdfs/protocol/ClientProtocol)</pattern>
-                      <shadedPattern>alluxio/underfs/hdfs/$1</shadedPattern>
-                      <rawString>true</rawString>
-                    </relocation>
-                    <relocation>
-                      <pattern>org.apache.hadoop</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.hadoop</shadedPattern>
-                      <excludes>
-                        <exclude>org.apache.hadoop.hdfs.protocol.ClientProtocol</exclude>
-                      </excludes>
-                    </relocation>
-
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.gson</pattern>
