@@ -449,11 +449,12 @@ public final class CommonUtils {
         try {
           result.get();
         } catch (ExecutionException e) {
-          Throwables.propagateIfPossible(e.getCause());
-          if (!(e instanceof Exception)) {
-            throw new RuntimeException(e);
+          Throwable cause = e.getCause();
+          Throwables.propagateIfPossible(cause);
+          if (cause instanceof Exception) {
+            throw (Exception) cause;
           }
-          throw (Exception) e.getCause();
+          throw new RuntimeException(cause);
         } catch (CancellationException e) {
           throw new TimeoutException("Timed out running callable");
         }

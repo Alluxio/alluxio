@@ -97,6 +97,7 @@ public final class ModeParser {
             specBits = specBits.or(Bits.EXECUTE);
             break;
           default:
+            throw new IllegalStateException("Unknown permission character: " + permChar);
             // Should never get here as already checked for invalid targets
         }
       }
@@ -120,6 +121,7 @@ public final class ModeParser {
             break;
           default:
             // Should never get here as already checked for invalid targets
+            throw new IllegalStateException("Unknown target character: " + targetChar);
         }
       }
     }
