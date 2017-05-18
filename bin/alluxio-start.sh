@@ -311,7 +311,7 @@ main() {
       fi
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
-      start_master "${FORMAT}"
+      start_master
       ALLUXIO_MASTER_SECONDARY=false
       sleep 2
       start_worker "${MOPT}"
