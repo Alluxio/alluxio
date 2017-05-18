@@ -142,15 +142,14 @@ public final class ShellUtils {
      * @throws ExitCodeException if the command returns a non-zero exit code
      */
     private String run() throws ExitCodeException, IOException {
-      Process mProcess = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
+      Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
       BufferedReader inReader =
-          new BufferedReader(new InputStreamReader(mProcess.getInputStream(),
+          new BufferedReader(new InputStreamReader(process.getInputStream(),
               Charset.defaultCharset()));
 
-      // read input streams as this would free up the buffers
       try {
-        // read from the input stream buffer
+        // read the output of the command
         StringBuilder output = new StringBuilder();
         String line = inReader.readLine();
         while (line != null) {
@@ -159,7 +158,7 @@ public final class ShellUtils {
           line = inReader.readLine();
         }
         // wait for the process to finish and check the exit code
-        int exitCode = mProcess.waitFor();
+        int exitCode = process.waitFor();
         if (exitCode != 0) {
           throw new ExitCodeException(exitCode, output.toString());
         }
@@ -177,14 +176,14 @@ public final class ShellUtils {
           // drain that fd!! it may block, OOM, or cause bizarre behavior
           // see: https://bugs.openjdk.java.net/browse/JDK-8024521
           // issue is fixed in build 7u60
-          InputStream stdout = mProcess.getInputStream();
+          InputStream stdout = process.getInputStream();
           synchronized (stdout) {
             inReader.close();
           }
         } catch (IOException e) {
           LOG.warn("Error while closing the input stream", e);
         }
-        mProcess.destroy();
+        process.destroy();
       }
     }
   }
