@@ -103,7 +103,8 @@ public class IndexedSetConcurrencyTest {
   }
 
   /**
-   * A class for testing add behaviour of {@link IndexedSet} concurrently and checking if the result is valid.
+   * A class for testing add behaviour of {@link IndexedSet} concurrently and checking if
+   * the result is valid.
    */
   private class ConcurrentAddWithCheck extends ConcurrentTask {
     public ConcurrentAddWithCheck(CyclicBarrier barrier) {
