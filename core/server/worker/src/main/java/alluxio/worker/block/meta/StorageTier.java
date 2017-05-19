@@ -25,6 +25,7 @@ import alluxio.util.UnixMountInfo;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,12 +124,15 @@ public final class StorageTier {
       return;
     }
     for (UnixMountInfo mountInfo : info) {
-      String mountPoint = mountInfo.getMountPoint();
-      String fsType = mountInfo.getFsType();
-      Long size = mountInfo.getOptions().getSize();
-      if (mountPoint == null || fsType == null || size == null) {
+      Optional<String> mountPointOption = mountInfo.getMountPoint();
+      Optional<String> fsTypeOption = mountInfo.getFsType();
+      Optional<Long> sizeOption = mountInfo.getOptions().getSize();
+      if (!mountPointOption.isPresent() || !fsTypeOption.isPresent() || !sizeOption.isPresent()) {
         continue;
       }
+      String mountPoint = mountPointOption.get();
+      String fsType = fsTypeOption.get();
+      long size = sizeOption.get();
       try {
         // getDirPath gives something like "/mnt/tmpfs/alluxioworker".
         String rootStoragePath = PathUtils.getParent(storageDir.getDirPath());

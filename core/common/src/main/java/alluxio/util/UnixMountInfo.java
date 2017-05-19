@@ -12,41 +12,42 @@
 package alluxio.util;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 
 /**
  * Class representing an entry in a Unix /etc/fstab file.
  */
 public final class UnixMountInfo {
-  private final String mDeviceSpec;
-  private final String mMountPoint;
-  private final String mFsType;
-  private final Options mOptions;
+  private final Optional<String> mDeviceSpec;
+  private final Optional<String> mMountPoint;
+  private final Optional<String> mFsType;
+  private final Options mMountOptions;
 
   private UnixMountInfo(String deviceSpec, String mountPoint, String fsType, Options options) {
-    mDeviceSpec = deviceSpec;
-    mMountPoint = mountPoint;
-    mFsType = fsType;
-    mOptions = options;
+    mDeviceSpec = Optional.fromNullable(deviceSpec);
+    mMountPoint = Optional.fromNullable(mountPoint);
+    mFsType = Optional.fromNullable(fsType);
+    mMountOptions = options;
   }
 
   /**
-   * @return the device spec, or null if it couldn't be determined
+   * @return the device spec
    */
-  public String getDeviceSpec() {
+  public Optional<String> getDeviceSpec() {
     return mDeviceSpec;
   }
 
   /**
-   * @return the mount point, or null if it couldn't be determined
+   * @return the mount point
    */
-  public String getMountPoint() {
+  public Optional<String> getMountPoint() {
     return mMountPoint;
   }
 
   /**
-   * @return the filesystem type, or null if it couldn't be determined
+   * @return the filesystem type
    */
-  public String getFsType() {
+  public Optional<String> getFsType() {
     return mFsType;
   }
 
@@ -54,7 +55,7 @@ public final class UnixMountInfo {
    * @return the mount options
    */
   public Options getOptions() {
-    return mOptions;
+    return mMountOptions;
   }
 
   @Override
@@ -69,12 +70,12 @@ public final class UnixMountInfo {
     return Objects.equal(mDeviceSpec, that.mDeviceSpec)
         && Objects.equal(mMountPoint, that.mMountPoint)
         && Objects.equal(mFsType, that.mFsType)
-        && Objects.equal(mOptions, that.mOptions);
+        && Objects.equal(mMountOptions, that.mMountOptions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mDeviceSpec, mMountPoint, mFsType, mOptions);
+    return Objects.hashCode(mDeviceSpec, mMountPoint, mFsType, mMountOptions);
   }
 
   @Override
@@ -83,7 +84,7 @@ public final class UnixMountInfo {
         .add("deviceSpec", mDeviceSpec)
         .add("mountPoint", mMountPoint)
         .add("fsType", mFsType)
-        .add("options", mOptions)
+        .add("options", mMountOptions)
         .toString();
   }
 
@@ -143,16 +144,16 @@ public final class UnixMountInfo {
 
   /** Unix mount info options. */
   public static final class Options {
-    private final Long mSize;
+    private final Optional<Long> mSize;
 
     private Options(Long size) {
-      mSize = size;
+      mSize = Optional.fromNullable(size);
     }
 
     /**
-     * @return the mount point size, or null if it couldn't be determined
+     * @return the mount point size
      */
-    public Long getSize() {
+    public Optional<Long> getSize() {
       return mSize;
     }
 
