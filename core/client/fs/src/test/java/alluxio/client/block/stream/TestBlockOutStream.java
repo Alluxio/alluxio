@@ -30,7 +30,7 @@ public class TestBlockOutStream extends BlockOutStream {
    * @param blockSize the block size
    */
   public TestBlockOutStream(ByteBuffer data, long blockSize) {
-    super(new TestPacketOutStream(data, blockSize));
+    super(new TestPacketWriter(data), blockSize);
     mData = data;
     mClosed = false;
     mCanceled = false;
@@ -61,10 +61,10 @@ public class TestBlockOutStream extends BlockOutStream {
 
   @Override
   public void cancel() throws IOException {
-    super.cancel();
     if (mClosed) {
       return;
     }
+    super.cancel();
     mCanceled = true;
     mClosed = true;
   }
