@@ -71,7 +71,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Launch Alluxio on YARN:
  * </p>
  * {@code
- * $ yarn jar alluxio-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar alluxio.yarn.Client \
+ * $ yarn jar \
+ *     alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.yarn.Client \
  *     -num_workers NumAlluxioWorkers \
  *     -master_address MasterAddress \
  *     -resource_path ResourcePath
@@ -81,7 +82,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Get help and a full list of options:
  * </p>
  * {@code
- * $ yarn jar alluxio-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar alluxio.yarn.Client -help
+ * $ yarn jar \
+ *     alluxio-assembly-server-<ALLUXIO-VERSION>-SNAPSHOT-jar-with-dependencies.jar \
+ *     alluxio.yarn.Client -help
  * }
  */
 @NotThreadSafe

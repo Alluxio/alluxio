@@ -92,19 +92,22 @@ public interface TransportProvider {
    * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
    * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
    *
+   * @param serverName the name for this server
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
    */
-  TTransportFactory getServerTransportFactory() throws SaslException;
+  TTransportFactory getServerTransportFactory(String serverName) throws SaslException;
 
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
    * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
    * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
    *
-   * @param runnable a closure runs after the transport is established
+   * @param runnable a closure to run after the transport is established
+   * @param serverName the name for this server
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
    */
-  TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException;
+  TTransportFactory getServerTransportFactory(Runnable runnable, String serverName)
+      throws SaslException;
 }

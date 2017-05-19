@@ -95,6 +95,9 @@ alluxio.underfs.s3a.consistency.timeout.ms:
   The duration to wait for metadata consistency from the under storage. This is only used by
   internal Alluxio operations which should be successful, but may appear unsuccessful due to
   eventual consistency. The default value is 60000 milliseconds (1 minute).
+alluxio.underfs.s3a.directory.suffix:
+  Directories are represented in S3 as zero-byte objects named with the specified suffix. The
+  default value is "/".
 alluxio.underfs.s3a.request.timeout.ms:
   The timeout for a single request to S3. Infinity if set to 0. Setting this property to a non-zero
   value can improve performance by avoiding the long tail of requests to S3. For very slow

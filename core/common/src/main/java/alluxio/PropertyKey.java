@@ -135,6 +135,8 @@ public class PropertyKey {
       create(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 20);
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       create(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000);
+  public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
+      create(Name.UNDERFS_S3A_DIRECTORY_SUFFIX, "/");
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       create(Name.UNDERFS_S3A_INHERIT_ACL, true);
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
@@ -759,6 +761,8 @@ public class PropertyKey {
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout.ms";
+    public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
+        "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
         "alluxio.underfs.s3a.request.timeout.ms";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =

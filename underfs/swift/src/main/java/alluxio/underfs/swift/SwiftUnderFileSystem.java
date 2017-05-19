@@ -304,8 +304,12 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       int i = 0;
       ObjectStatus[] res = new ObjectStatus[objects.size()];
       for (DirectoryOrObject object : objects) {
-        res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getContentLength(),
-            object.getAsObject().getLastModifiedAsDate().getTime());
+        if (object.isObject()) {
+          res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getContentLength(),
+              object.getAsObject().getLastModifiedAsDate().getTime());
+        } else {
+          res[i++] = new ObjectStatus(object.getName());
+        }
       }
       return res;
     }

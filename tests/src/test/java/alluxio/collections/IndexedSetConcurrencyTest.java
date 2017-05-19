@@ -89,6 +89,9 @@ public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
     }
   }
 
+  /**
+   * A class for testing add behaviour of {@link IndexedSet} concurrently.
+   */
   private class ConcurrentAdd extends ConcurrentTask {
     public ConcurrentAdd(CyclicBarrier barrier) {
       super(barrier);
@@ -100,6 +103,10 @@ public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
     }
   }
 
+  /**
+   * A class for testing add behaviour of {@link IndexedSet} concurrently and checking if
+   * the result is valid.
+   */
   private class ConcurrentAddWithCheck extends ConcurrentTask {
     public ConcurrentAddWithCheck(CyclicBarrier barrier) {
       super(barrier);
@@ -123,6 +130,9 @@ public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
     }
   }
 
+  /**
+   * A class for testing remove behaviour of {@link IndexedSet} concurrently.
+   */
   private class ConcurrentRemove extends ConcurrentTask {
     public ConcurrentRemove(CyclicBarrier barrier) {
       super(barrier);

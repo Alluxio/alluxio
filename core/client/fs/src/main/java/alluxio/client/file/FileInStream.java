@@ -21,7 +21,6 @@ import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
@@ -74,8 +73,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected final long mBlockSize;
   /** The location policy for CACHE type of read into Alluxio. */
   private final FileWriteLocationPolicy mCacheLocationPolicy;
-  /** The location policy to find worker to serve UFS block reads when delegation is on. */
-  private final BlockLocationPolicy mUfsReadLocationPolicy;
   /** Total length of the file in bytes. */
   protected final long mFileLength;
   /** File system context containing the {@link FileSystemMasterClient} pool. */
@@ -146,8 +143,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       Preconditions.checkNotNull(options.getCacheLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
-    mUfsReadLocationPolicy = Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
-        PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
 
     int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), 1);
     mSeekBuffer = new byte[seekBufferSizeBytes];
