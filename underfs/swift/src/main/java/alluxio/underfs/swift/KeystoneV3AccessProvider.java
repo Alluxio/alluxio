@@ -41,8 +41,13 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   private static final String AUTH_METHOD = "password";
   private static final int RESPONSE_OK = 201;
 
-  AccountConfig mAccountConfig;
+  private AccountConfig mAccountConfig;
 
+  /**
+   * Create a new instance of {@link KeystoneV3AccessProvider}.
+   *
+   * @param accountConfig account credentials
+   */
   public KeystoneV3AccessProvider(AccountConfig accountConfig) {
     mAccountConfig = accountConfig;
   }
@@ -131,7 +136,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
 
   /** Classes for creating authentication JSON request. */
   @JsonPropertyOrder({"auth"})
-  public class KeystoneV3Request {
+  private class KeystoneV3Request {
     @JsonProperty("auth")
     public Auth mAuth;
 
@@ -141,7 +146,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonPropertyOrder({"identity", "scope"})
-  public class Auth {
+  private class Auth {
     @JsonProperty("identity")
     public Identity mIdentity;
     @JsonProperty("scope")
@@ -154,7 +159,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonPropertyOrder({"methods", "password"})
-  public class Identity {
+  private class Identity {
     @JsonProperty("methods")
     public List<String> mMethods = null;
     @JsonProperty("password")
@@ -167,7 +172,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonPropertyOrder({"user"})
-  public class Password {
+  private class Password {
     @JsonProperty("user")
     public User mUser;
 
@@ -177,7 +182,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonPropertyOrder({"id"})
-  public class Project {
+  private class Project {
     @JsonProperty("id")
     public String mId;
 
@@ -187,7 +192,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonPropertyOrder({"project"})
-  public class Scope {
+  private class Scope {
     @JsonProperty("project")
     public Project mProject;
 
@@ -197,7 +202,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonPropertyOrder({"id", "password"})
-  public class User {
+  private class User {
     @JsonProperty("id")
     public String mId;
     @JsonProperty("password")
@@ -211,7 +216,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
 
   /** Classes for parsing authentication JSON response. */
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class KeystoneV3Response {
+  private static class KeystoneV3Response {
     public Token mToken;
 
     @JsonCreator
@@ -221,7 +226,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Token {
+  private static class Token {
     public List<Catalog> mCatalog = null;
 
     @JsonCreator
@@ -231,7 +236,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Catalog {
+  private static class Catalog {
     public List<Endpoint> mEndpoints;
     public String mType;
     public String mName;
@@ -246,7 +251,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Endpoint {
+  private static class Endpoint {
     public String mUrl;
     public String mRegion;
     public String mInterface;

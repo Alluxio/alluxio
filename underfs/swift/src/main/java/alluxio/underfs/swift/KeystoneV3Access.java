@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift;
 
-
 import org.javaswift.joss.client.factory.TempUrlHashPrefixSource;
 import org.javaswift.joss.model.Access;
 
@@ -25,6 +24,14 @@ public class KeystoneV3Access implements Access {
   private String mPublicURL;
   private String mToken;
 
+  /**
+   * Construct a new instance of {@link KeystoneV3Access}.
+   *
+   * @param internalURL internal object endpoint URL
+   * @param preferredRegion preferred region for object store
+   * @param publicURL public object endpoint URL
+   * @param token access token
+   */
   public KeystoneV3Access(String internalURL, String preferredRegion, String publicURL,
       String token) {
     mInternalURL = internalURL;
