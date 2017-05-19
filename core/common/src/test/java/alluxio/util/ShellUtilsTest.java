@@ -12,11 +12,13 @@
 package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.Constants;
 
+import com.google.common.base.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -57,20 +59,20 @@ public final class ShellUtilsTest {
     // Linux mount info.
     UnixMountInfo info =
         ShellUtils.parseMountInfo("ramfs on /mnt/ramdisk type ramfs (rw,relatime,size=1gb)");
-    assertEquals("ramfs", info.getDeviceSpec());
-    assertEquals("/mnt/ramdisk", info.getMountPoint());
-    assertEquals("ramfs", info.getFsType());
-    assertEquals(Long.valueOf(Constants.GB), info.getOptions().getSize());
+    assertEquals(Optional.of("ramfs"), info.getDeviceSpec());
+    assertEquals(Optional.of("/mnt/ramdisk"), info.getMountPoint());
+    assertEquals(Optional.of("ramfs"), info.getFsType());
+    assertEquals(Optional.of(Long.valueOf(Constants.GB)), info.getOptions().getSize());
   }
 
   @Test
   public void parseMountInfoWithoutType() throws Exception {
     // OS X mount info.
     UnixMountInfo info = ShellUtils.parseMountInfo("devfs on /dev (devfs, local, nobrowse)");
-    assertEquals("devfs", info.getDeviceSpec());
-    assertEquals("/dev", info.getMountPoint());
-    assertEquals(null, info.getFsType());
-    assertEquals(null, info.getOptions().getSize());
+    assertEquals(Optional.of("devfs"), info.getDeviceSpec());
+    assertEquals(Optional.of("/dev"), info.getMountPoint());
+    assertFalse(info.getFsType().isPresent());
+    assertFalse(info.getOptions().getSize().isPresent());
   }
 
   @Test
@@ -78,20 +80,20 @@ public final class ShellUtilsTest {
     // Docker VM mount info.
     UnixMountInfo info = ShellUtils
         .parseMountInfo("shm on /dev/shm type tmpfs (rw,nosuid,nodev,noexec,relatime,size=65536k)");
-    assertEquals("shm", info.getDeviceSpec());
-    assertEquals("/dev/shm", info.getMountPoint());
-    assertEquals("tmpfs", info.getFsType());
-    assertEquals(Long.valueOf(65536 * Constants.KB), info.getOptions().getSize());
+    assertEquals(Optional.of("shm"), info.getDeviceSpec());
+    assertEquals(Optional.of("/dev/shm"), info.getMountPoint());
+    assertEquals(Optional.of("tmpfs"), info.getFsType());
+    assertEquals(Optional.of(Long.valueOf(65536 * Constants.KB)), info.getOptions().getSize());
   }
 
   @Test
   public void parseMountInfoSpaceInPath() throws Exception {
     UnixMountInfo info = ShellUtils.parseMountInfo("/dev/disk4s1 on /Volumes/Space Path "
         + "(hfs, local, nodev, nosuid, read-only, noowners, quarantine)");
-    assertEquals("/dev/disk4s1", info.getDeviceSpec());
-    assertEquals("/Volumes/Space Path", info.getMountPoint());
-    assertEquals(null, info.getFsType());
-    assertEquals(null, info.getOptions().getSize());
+    assertEquals(Optional.of("/dev/disk4s1"), info.getDeviceSpec());
+    assertEquals(Optional.of("/Volumes/Space Path"), info.getMountPoint());
+    assertFalse(info.getFsType().isPresent());
+    assertFalse(info.getOptions().getSize().isPresent());
   }
 
   @Test
