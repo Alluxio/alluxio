@@ -11,14 +11,14 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
-import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,60 +27,38 @@ import javax.annotation.concurrent.NotThreadSafe;
  * worker's data server.
  */
 @NotThreadSafe
-public final class UnderFileSystemFileOutStream extends FilterOutputStream {
+public class UnderFileSystemFileOutStream extends BlockOutStream {
   private static final int TIER_UNUSED = -1;
 
   /**
-   * @param context the file system context
-   * @param address the address of an Alluxio worker
-   * @param options the options to construct this stream with
-   * @return a new {@link UnderFileSystemFileOutStream}
-   */
-  public static OutputStream create(FileSystemContext context, WorkerNetAddress address,
-      OutStreamOptions options) throws IOException {
-    return new UnderFileSystemFileOutStream(context, address, options);
-  }
-
-  private final PacketOutStream mOutStream;
-
-  /**
-   * Creates an instance of {@link UnderFileSystemFileOutStream}.
+   * Creates an instance of {@link UnderFileSystemFileOutStream} that writes to a UFS file.
    *
    * @param context the file system context
    * @param address the data server address
    * @param options the out stream options
+   * @return the under file system output stream
    */
-  public UnderFileSystemFileOutStream(FileSystemContext context, WorkerNetAddress address,
-      OutStreamOptions options) throws IOException {
-    super(PacketOutStream.createNettyPacketOutStream(context, address, Long.MAX_VALUE,
+  public static UnderFileSystemFileOutStream create(FileSystemContext context,
+      WorkerNetAddress address, OutStreamOptions options) throws IOException {
+    Protocol.CreateUfsFileOptions ufsFileOptions =
+        Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
+            .setOwner(options.getOwner()).setGroup(options.getGroup())
+            .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
+
+    long packetSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
+    return new UnderFileSystemFileOutStream(new NettyPacketWriter(context, address, Long.MAX_VALUE,
         Protocol.WriteRequest.newBuilder().setTier(TIER_UNUSED)
-            .setType(Protocol.RequestType.UFS_FILE)
-            .setCreateUfsFileOptions(buildCreateUfsFileOptions(options)).buildPartial(), options));
-    mOutStream = (PacketOutStream) out;
-  }
-
-  // Explicitly overriding some write methods which are not efficiently implemented in
-  // FilterOutStream.
-
-  @Override
-  public void write(byte[] b) throws IOException {
-    mOutStream.write(b);
-  }
-
-  @Override
-  public void write(byte[] b, int off, int len) throws IOException {
-    mOutStream.write(b, off, len);
+            .setType(Protocol.RequestType.UFS_FILE).setCreateUfsFileOptions(ufsFileOptions)
+            .buildPartial(), packetSize));
   }
 
   /**
-   * Builds {@link Protocol.CreateUfsFileOptions} from an {@link OutStreamOptions}.
+   * Constructs a new {@link BlockOutStream} with only one {@link PacketWriter}.
    *
-   * @param options the out stream options
-   * @return the create UFS file options
+   * @param packetWriter the packet writer
    */
-  private static Protocol.CreateUfsFileOptions buildCreateUfsFileOptions(OutStreamOptions options) {
-    return Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
-        .setOwner(options.getOwner()).setGroup(options.getGroup())
-        .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
+  protected UnderFileSystemFileOutStream(PacketWriter packetWriter) {
+    super(packetWriter, Long.MAX_VALUE);
   }
 }

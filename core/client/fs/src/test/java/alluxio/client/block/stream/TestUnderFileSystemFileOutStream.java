@@ -16,21 +16,20 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * Test class for mocking {@link BlockOutStream} and exposing internal state.
+ * Test class for mocking {@link UnderFileSystemFileOutStream} and exposing internal state.
  */
-public class TestBlockOutStream extends BlockOutStream {
+public class TestUnderFileSystemFileOutStream extends UnderFileSystemFileOutStream {
   private final ByteBuffer mData;
   private boolean mClosed;
   private boolean mCanceled;
 
   /**
-   * Constructs a new {@link TestBlockOutStream} to be used in tests.
+   * Constructs a new {@link TestUnderFileSystemFileOutStream} to be used in tests.
    *
    * @param data the data to test
-   * @param blockSize the block size
    */
-  public TestBlockOutStream(ByteBuffer data, long blockSize) {
-    super(new TestPacketWriter(data), blockSize);
+  public TestUnderFileSystemFileOutStream(ByteBuffer data) {
+    super(new TestPacketWriter(data));
     mData = data;
     mClosed = false;
     mCanceled = false;

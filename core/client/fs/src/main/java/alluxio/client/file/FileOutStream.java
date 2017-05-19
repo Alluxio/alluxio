@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -62,7 +61,7 @@ public class FileOutStream extends AbstractOutStream {
   private final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
   /** Stream to the file in the under storage, null if not writing to the under storage. */
-  private final OutputStream mUnderStorageOutputStream;
+  private final UnderFileSystemFileOutStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
 
   private boolean mCanceled;
@@ -127,8 +126,12 @@ public class FileOutStream extends AbstractOutStream {
 
       CompleteFileOptions options = CompleteFileOptions.defaults();
       if (mUnderStorageType.isSyncPersist()) {
-        mUnderStorageOutputStream.close();
-        options.setUfsLength(mBytesWritten);
+        if (mCanceled) {
+          mUnderStorageOutputStream.cancel();
+        } else {
+          mUnderStorageOutputStream.close();
+          options.setUfsLength(mBytesWritten);
+        }
       }
 
       if (mAlluxioStorageType.isStore()) {
