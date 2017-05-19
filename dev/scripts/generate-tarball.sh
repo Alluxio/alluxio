@@ -29,7 +29,7 @@ cd ${THIS}
 TARBALL_DIR="${THIS}/tarballs"
 WORK_DIR="workdir"
 CLIENT_DIR="client"
-FRAMEWORKS=( "flink" "hadoop" "presto" "spark" )
+FRAMEWORKS=( "flink" "presto" "spark" "hadoop" )
 
 mkdir -p ${TARBALL_DIR}
 mkdir -p ${WORK_DIR}
