@@ -111,15 +111,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   /**
-   * @param className class name to shade
-   * @param conf UFS configuration
-   * @return the class name after shading
-   */
-  public static String shadedClassName(String className, UnderFileSystemConfiguration conf) {
-    return "alluxio.underfs.hdfs." + className;
-  }
-
-  /**
    * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
    * instance that can access the provided path.
    * <p>
@@ -139,25 +130,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     // the path of this file can be passed through --option
     hdfsConf.addResource(new Path(conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
 
-    String[] relocatedConf = {
-        "hadoop.http.filter.initializers",
-        "hadoop.security.group.mapping", // required by UGI initialization
-        "hadoop.ssl.keystores.factory.class",
-    };
-    for (String key : relocatedConf) {
-      String value = hdfsConf.get(key);
-      if (value != null) { // not all conf properties are available across different HDFS versions
-        hdfsConf.set(key, shadedClassName(value, conf));
-      }
-    }
-
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
     String ufsHdfsImpl = conf.getValue(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
-      hdfsConf.set("fs.hdfs.impl", shadedClassName(ufsHdfsImpl, conf));
+      hdfsConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
 
     // Disable HDFS client caching so that input configuration is respected. Configurable from

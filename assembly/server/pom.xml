@@ -60,11 +60,13 @@
       <artifactId>alluxio-underfs-gcs</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- Removed to prevent colliding on core-default.xml
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-glusterfs</artifactId>
       <version>${project.version}</version>
     </dependency>
+    -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>

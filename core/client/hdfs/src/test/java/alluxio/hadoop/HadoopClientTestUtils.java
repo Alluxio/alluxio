@@ -11,14 +11,13 @@
 
 package alluxio.hadoop;
 
+import alluxio.ProjectConstants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.reflect.Whitebox;
 
-import java.io.File;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
@@ -60,15 +59,7 @@ public final class HadoopClientTestUtils {
    * @return the hadoop version
    */
   public static String getHadoopVersion() {
-    try {
-      final URL url = getSourcePath(org.apache.hadoop.fs.FileSystem.class);
-      final File path = new File(url.toURI());
-      final String[] splits = path.getName().split("-");
-      final String last = splits[splits.length - 1];
-      return last.substring(0, last.lastIndexOf("."));
-    } catch (URISyntaxException e) {
-      throw new AssertionError(e);
-    }
+    return ProjectConstants.HADOOP_VERSION;
   }
 
   private static URL getSourcePath(Class<?> clazz) {
