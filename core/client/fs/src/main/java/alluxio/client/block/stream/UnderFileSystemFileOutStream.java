@@ -19,7 +19,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -32,11 +31,12 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
   private static final int TIER_UNUSED = -1;
 
   /**
-   * Creates an instance of {@link OutputStream} that writes to a UFS file.
+   * Creates an instance of {@link UnderFileSystemFileOutStream} that writes to a UFS file.
    *
    * @param context the file system context
    * @param address the data server address
    * @param options the out stream options
+   * @return the under file system output stream
    */
   public static UnderFileSystemFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
