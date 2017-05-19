@@ -114,6 +114,13 @@
                     </includes>
                   </artifactSet>
                   <relocations>
+                    <!-- Relocation for service loading files except alluxio or hadoop -->
+                    <relocation>
+                      <pattern>^META-INF/services/((?!(alluxio|org.apache.hadoop)).*)$</pattern>
+                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
+                      <rawString>true</rawString>
+                    </relocation>
+
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.jamesmurty.utils</pattern>
@@ -341,6 +348,13 @@
                   </includes>
                   </artifactSet>
                   <relocations>
+                    <!-- Relocation for service loading files except alluxio or hadoop -->
+                    <relocation>
+                      <pattern>^META-INF/services/((?!(alluxio|org.apache.hadoop)).*)$</pattern>
+                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
+                      <rawString>true</rawString>
+                    </relocation>
+
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.protobuf</pattern>
@@ -606,6 +620,13 @@
                     </includes>
                   </artifactSet>
                   <relocations>
+                    <!-- Relocation for service loading files except alluxio or hadoop -->
+                    <relocation>
+                      <pattern>^META-INF/services/((?!(alluxio|org.apache.hadoop)).*)$</pattern>
+                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
+                      <rawString>true</rawString>
+                    </relocation>
+
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.protobuf</pattern>
@@ -874,6 +895,13 @@
                     </includes>
                   </artifactSet>
                   <relocations>
+                    <!-- Relocation for service loading files except alluxio or hadoop -->
+                    <relocation>
+                      <pattern>^META-INF/services/((?!(alluxio|org.apache.hadoop)).*)$</pattern>
+                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
+                      <rawString>true</rawString>
+                    </relocation>
+
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.gson</pattern>
@@ -1208,6 +1236,13 @@
                     </includes>
                   </artifactSet>
                   <relocations>
+                    <!-- Relocation for service loading files except alluxio or hadoop -->
+                    <relocation>
+                      <pattern>^META-INF/services/((?!(alluxio|org.apache.hadoop)).*)$</pattern>
+                      <shadedPattern>META-INF/services/${shading.prefix}.$1</shadedPattern>
+                      <rawString>true</rawString>
+                    </relocation>
+
                     <!-- Relocation for transitive dependencies in hadoop-core-->
                     <relocation>
                       <pattern>com.google.gson</pattern>
