@@ -95,9 +95,9 @@ public class KeystoneV3AccessProvider implements AccessProvider {
         bufReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String response = bufReader.readLine();
 
-        Response responseObject;
+        KeystoneV3Response responseObject;
         try {
-          responseObject = new ObjectMapper().readerFor(Response.class).readValue(response);
+          responseObject = new ObjectMapper().readerFor(KeystoneV3Response.class).readValue(response);
         } catch (JsonProcessingException e) {
           e.printStackTrace();
           return null;
@@ -105,14 +105,14 @@ public class KeystoneV3AccessProvider implements AccessProvider {
 
         String internalURL = null;
         String publicURL = null;
-        for (Catalog catalog : responseObject.token.catalog) {
-          if (catalog.name.equals("swift") && catalog.type.equals("object-store")) {
-            for (Endpoint endpoint : catalog.endpoints) {
-              if (endpoint.region.equals(mAccountConfig.getPreferredRegion())) {
-                if (endpoint._interface.equals("public")) {
-                  publicURL = endpoint.url;
-                } else if (endpoint._interface.equals("internal")) {
-                  internalURL = endpoint.url;
+        for (Catalog catalog : responseObject.mToken.mCatalog) {
+          if (catalog.mName.equals("swift") && catalog.mType.equals("object-store")) {
+            for (Endpoint endpoint : catalog.mEndpoints) {
+              if (endpoint.mRegion.equals(mAccountConfig.getPreferredRegion())) {
+                if (endpoint.mInterface.equals("public")) {
+                  publicURL = endpoint.mUrl;
+                } else if (endpoint.mInterface.equals("internal")) {
+                  internalURL = endpoint.mUrl;
                 }
               }
             }
@@ -292,75 +292,54 @@ public class KeystoneV3AccessProvider implements AccessProvider {
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  @JsonPropertyOrder({
-      "token"
-  })
+  // Classes for parsing authentication response
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Response {
-    public Token token;
+  public static class KeystoneV3Response {
+    public Token mToken;
 
     @JsonCreator
-    public Response(@JsonProperty("token") Token token) {
-      this.token = token;
+    public KeystoneV3Response(@JsonProperty("token") Token token) {
+      this.mToken = token;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  @JsonPropertyOrder({"methods", "roles", "expires_at", "project", "catalog", "extras", "user",
-      "audit_ids", "issued_at"})
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Token {
-    public List<String> methods = null;
-    public String expiresAt;
-    public List<Catalog> catalog = null;
-    public String issuedAt;
+    public List<Catalog> mCatalog = null;
 
     @JsonCreator
-    public Token(@JsonProperty("methods") List<String> methods,
-        @JsonProperty("expires_at") String expiresAt,
-        @JsonProperty("catalog") List<Catalog> catalog,
-        @JsonProperty("issued_at") String issuedAt) {
-      this.methods = methods;
-      this.expiresAt = expiresAt;
-      this.catalog = catalog;
-      this.issuedAt = issuedAt;
+    public Token(@JsonProperty("catalog") List<Catalog> catalog) {
+      this.mCatalog = catalog;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  @JsonPropertyOrder({"endpoints", "type", "id", "name"})
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Catalog {
-    public List<Endpoint> endpoints;
-    public String type;
-    public String name;
+    public List<Endpoint> mEndpoints;
+    public String mType;
+    public String mName;
 
     @JsonCreator
-    public Catalog(@JsonProperty("endpoints") List<Endpoint> endpoints, @JsonProperty("type") String type, @JsonProperty("name") String name) {
-      this.endpoints = endpoints;
-      this.type = type;
-      this.name = name;
+    public Catalog(@JsonProperty("endpoints") List<Endpoint> endpoints,
+        @JsonProperty("type") String type, @JsonProperty("name") String name) {
+      this.mEndpoints = endpoints;
+      this.mType = type;
+      this.mName = name;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  @JsonPropertyOrder({"region_id", "url", "region", "interface", "id"})
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Endpoint {
-    public String regionId;
-    public String url;
-    public String region;
-    public String _interface;
-    public String id;
+    public String mUrl;
+    public String mRegion;
+    public String mInterface;
 
     @JsonCreator
-    public Endpoint(@JsonProperty("region_id") String regionId, @JsonProperty("url") String url,  @JsonProperty("region") String region, @JsonProperty("interface") String _interface, @JsonProperty("id") String id) {
-      this.regionId = regionId;
-      this.url = url;
-      this.region = region;
-      this._interface = _interface;
-      this.id = id;
+    public Endpoint(@JsonProperty("url") String url, @JsonProperty("region") String region,
+        @JsonProperty("interface") String inter) {
+      this.mUrl = url;
+      this.mRegion = region;
+      this.mInterface = inter;
     }
   }
 }
