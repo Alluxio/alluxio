@@ -1184,7 +1184,7 @@
         <hadoop.version>2.7.3</hadoop.version>
       </properties>
     </profile>
-    
+
     <!--
         build profile for Apache Spark.
         Empty spark profile to avoid missing profile complaints. Client
