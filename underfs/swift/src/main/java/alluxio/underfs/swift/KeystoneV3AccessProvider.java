@@ -103,8 +103,21 @@ public class KeystoneV3AccessProvider implements AccessProvider {
           return null;
         }
 
-        String internalURL = responseObject.token.expiresAt;
-        String publicURL = response;
+        String internalURL = null;
+        String publicURL = null;
+        for (Catalog catalog : responseObject.token.catalog) {
+          if (catalog.name.equals("swift") && catalog.type.equals("object-store")) {
+            for (Endpoint endpoint : catalog.endpoints) {
+              if (endpoint.region.equals(mAccountConfig.getPreferredRegion())) {
+                if (endpoint._interface.equals("public")) {
+                  publicURL = endpoint.url;
+                } else if (endpoint._interface.equals("internal")) {
+                  internalURL = endpoint.url;
+                }
+              }
+            }
+          }
+        }
         // Construct access object
         KeystoneV3Access access = new KeystoneV3Access(internalURL,
             mAccountConfig.getPreferredRegion(), publicURL, token);
