@@ -191,10 +191,11 @@
                       <pattern>org.apache.commons.httpclient</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.commons.logging</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.commons.logging</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.commons.math</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.math</shadedPattern>
@@ -453,10 +454,11 @@
                       <pattern>org.apache.commons.httpclient</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.commons.logging</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.commons.logging</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.commons.math</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.math</shadedPattern>
@@ -477,10 +479,11 @@
                       <pattern>org.apache.jute</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.log4j</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.log4j</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.zookeeper</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.zookeeper</shadedPattern>
@@ -716,10 +719,11 @@
                       <pattern>org.apache.commons.httpclient</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.commons.logging</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.commons.logging</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.commons.math3</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.math3</shadedPattern>
@@ -736,10 +740,11 @@
                       <pattern>org.apache.jute</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.log4j</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.log4j</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.zookeeper</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.zookeeper</shadedPattern>
@@ -1010,10 +1015,11 @@
                       <pattern>org.apache.commons.httpclient</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.commons.logging</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.commons.logging</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.commons.math3</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.math3</shadedPattern>
@@ -1038,10 +1044,11 @@
                       <pattern>org.apache.jute</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.log4j</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.log4j</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.wml</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.wml</shadedPattern>
@@ -1338,10 +1345,11 @@
                       <pattern>org.apache.commons.httpclient</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.commons.logging</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.commons.logging</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.commons.math3</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.commons.math3</shadedPattern>
@@ -1366,10 +1374,11 @@
                       <pattern>org.apache.jute</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                     </relocation>
-                    <relocation>
-                      <pattern>org.apache.log4j</pattern>
-                      <shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>
-                    </relocation>
+                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
+                    <!--<relocation>-->
+                      <!--<pattern>org.apache.log4j</pattern>-->
+                      <!--<shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>-->
+                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.wml</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.wml</shadedPattern>
