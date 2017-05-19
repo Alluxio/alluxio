@@ -74,7 +74,7 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
               <excludes>
-                <!--By default we skip tests in AlluxioFileSystem.java, unless contractTest profile is used-->
+                <!--In hadoop-1 profile, we skip build AlluxioFileSystem.java which requires hadoop-2 -->
                 <exclude>**/AlluxioFileSystem.java</exclude>
               </excludes>
             </configuration>
