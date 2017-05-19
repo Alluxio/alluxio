@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
-    PositionedReadable, Locatable{
+    PositionedReadable, Locatable {
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
   /** The size in bytes of the block. */
