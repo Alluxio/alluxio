@@ -19,7 +19,7 @@
 # 5. Copy the generated client to the folder client/framework/
 # 6. Tar everything up and put it in dev/scripts/tarballs
 #
-# Example: BUILD_OPTS="-Dhadoop.version=2.7.2" ./generate-tarball.sh
+# Example: BUILD_OPTS="-Phadoop-2.7" ./generate-tarball.sh
 #
 
 set -e
@@ -29,7 +29,7 @@ cd ${THIS}
 TARBALL_DIR="${THIS}/tarballs"
 WORK_DIR="workdir"
 CLIENT_DIR="client"
-FRAMEWORKS=( "flink" "hadoop" "presto" "spark" )
+FRAMEWORKS=( "flink" "presto" "spark" "hadoop" )
 
 mkdir -p ${TARBALL_DIR}
 mkdir -p ${WORK_DIR}
@@ -45,10 +45,7 @@ mkdir -p ${CLIENT_DIR}
 for PROFILE in "${FRAMEWORKS[@]}"; do
   echo "Running build ${PROFILE} and logging to ${BUILD_LOG}"
   mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${PROFILE} ${BUILD_OPTS} | tee ${BUILD_LOG} 2>&1
-  # Temporarily create alluxio-env.sh so that we can call bin/alluxio version
-  touch conf/alluxio-env.sh
   VERSION=$(bin/alluxio version)
-  rm conf/alluxio-env.sh
   mkdir -p ${CLIENT_DIR}/${PROFILE}
   cp core/client/runtime/target/alluxio-core-client-runtime-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar
 done
