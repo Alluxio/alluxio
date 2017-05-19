@@ -1170,7 +1170,7 @@
     <profile>
       <id>contractTest</id>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.6.5</hadoop.version>
       </properties>
     </profile>
 
@@ -1198,21 +1198,28 @@
     <profile>
       <id>hadoop-2.4</id>
       <properties>
-        <hadoop.version>2.4.0</hadoop.version>
+        <hadoop.version>2.4.1</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.5</id>
+      <properties>
+        <hadoop.version>2.5.2</hadoop.version>
       </properties>
     </profile>
 
     <profile>
       <id>hadoop-2.6</id>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.6.5</hadoop.version>
       </properties>
     </profile>
 
     <profile>
       <id>hadoop-2.7</id>
       <properties>
-        <hadoop.version>2.7.0</hadoop.version>
+        <hadoop.version>2.7.3</hadoop.version>
       </properties>
     </profile>
 
