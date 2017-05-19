@@ -415,7 +415,6 @@ public class CommonUtilsTest {
     }
   }
 
-
   /**
    * Tests that when one task throws an exception and other tasks time out, the exception is
    * propagated.

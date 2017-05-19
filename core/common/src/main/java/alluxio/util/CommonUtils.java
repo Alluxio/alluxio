@@ -429,32 +429,31 @@ public final class CommonUtils {
   }
 
   /**
-   * Executes the given callables, waiting for them to complete (or time out).
+   * Executes the given callables, waiting for them to complete (or time out). If a callable throws
+   * an exception, that exception will be re-thrown from this method.
    *
    * @param callables the callables to execute
    * @param timeout the maximum time to wait
    * @param unit the time unit of the timeout argument
    * @param <T> the return type of the callables
-   * @throws TimeoutException if one of the callables times out
-   * @throws Exception if one of the callables throws an exception and none of the callables time
-   *         out
+   * @throws Exception if any of the callables throws an exception
    */
   public static <T> void invokeAll(List<Callable<T>> callables, long timeout, TimeUnit unit)
       throws TimeoutException, Exception {
     ExecutorService service = Executors.newCachedThreadPool();
     try {
       List<Future<T>> results = service.invokeAll(callables, timeout, unit);
-      service.shutdown();
-      // If one of the tasks failed, prefer to throw its Exception instead of TimeoutException.
+      service.shutdownNow();
       propagateExceptions(results);
       for (Future<T> result : results) {
         if (result.isCancelled()) {
           throw new TimeoutException("Timed out invoking task");
         }
       }
-      if (!service.awaitTermination(timeout, unit)) {
-        service.shutdownNow();
-        throw new TimeoutException("Timed out trying to shutdown service.");
+      // All tasks are guaranteed to have finished at this point. If they were still running, their
+      // futures would have been canceled by invokeAll.
+      if (!service.awaitTermination(1, TimeUnit.SECONDS)) {
+        throw new IllegalStateException("Failed to shutdown service");
       }
     } catch (InterruptedException e) {
       service.shutdownNow();
