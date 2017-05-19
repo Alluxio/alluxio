@@ -11,6 +11,8 @@
 
 package alluxio.underfs.swift;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -70,6 +72,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
 
         requestBody = new ObjectMapper().writeValueAsString(request);
       } catch (JsonProcessingException e) {
+        e.printStackTrace();
         return null;
       }
       HttpURLConnection connection = null;
@@ -92,7 +95,15 @@ public class KeystoneV3AccessProvider implements AccessProvider {
         bufReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String response = bufReader.readLine();
 
-        String internalURL = response;
+        Response responseObject;
+        try {
+          responseObject = new ObjectMapper().readerFor(Response.class).readValue(response);
+        } catch (JsonProcessingException e) {
+          e.printStackTrace();
+          return null;
+        }
+
+        String internalURL = responseObject.token.expiresAt;
         String publicURL = response;
         // Construct access object
         KeystoneV3Access access = new KeystoneV3Access(internalURL,
@@ -265,6 +276,78 @@ public class KeystoneV3AccessProvider implements AccessProvider {
     @JsonProperty("password")
     public void setPassword(String password) {
       this.password = password;
+    }
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @JsonPropertyOrder({
+      "token"
+  })
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Response {
+    public Token token;
+
+    @JsonCreator
+    public Response(@JsonProperty("token") Token token) {
+      this.token = token;
+    }
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @JsonPropertyOrder({"methods", "roles", "expires_at", "project", "catalog", "extras", "user",
+      "audit_ids", "issued_at"})
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Token {
+    public List<String> methods = null;
+    public String expiresAt;
+    public List<Catalog> catalog = null;
+    public String issuedAt;
+
+    @JsonCreator
+    public Token(@JsonProperty("methods") List<String> methods,
+        @JsonProperty("expires_at") String expiresAt,
+        @JsonProperty("catalog") List<Catalog> catalog,
+        @JsonProperty("issued_at") String issuedAt) {
+      this.methods = methods;
+      this.expiresAt = expiresAt;
+      this.catalog = catalog;
+      this.issuedAt = issuedAt;
+    }
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @JsonPropertyOrder({"endpoints", "type", "id", "name"})
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Catalog {
+    public List<Endpoint> endpoints;
+    public String type;
+    public String name;
+
+    @JsonCreator
+    public Catalog(@JsonProperty("endpoints") List<Endpoint> endpoints, @JsonProperty("type") String type, @JsonProperty("name") String name) {
+      this.endpoints = endpoints;
+      this.type = type;
+      this.name = name;
+    }
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @JsonPropertyOrder({"region_id", "url", "region", "interface", "id"})
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Endpoint {
+    public String regionId;
+    public String url;
+    public String region;
+    public String _interface;
+    public String id;
+
+    @JsonCreator
+    public Endpoint(@JsonProperty("region_id") String regionId, @JsonProperty("url") String url,  @JsonProperty("region") String region, @JsonProperty("interface") String _interface, @JsonProperty("id") String id) {
+      this.regionId = regionId;
+      this.url = url;
+      this.region = region;
+      this._interface = _interface;
+      this.id = id;
     }
   }
 }
