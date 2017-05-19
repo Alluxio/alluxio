@@ -36,7 +36,7 @@ import java.util.List;
  * Custom {@link AccessProvider} for Keystone V3 authentication.
  */
 public class KeystoneV3AccessProvider implements AccessProvider {
-  private static final Logger LOG = LoggerFactory.getLogger(SwiftUnderFileSystem.class);
+  private static final Logger LOG = LoggerFactory.getLogger(KeystoneV3AccessProvider.class);
 
   private static final String AUTH_METHOD = "password";
   private static final int RESPONSE_OK = 201;

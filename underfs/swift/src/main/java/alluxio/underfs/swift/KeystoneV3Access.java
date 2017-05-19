@@ -13,11 +13,14 @@ package alluxio.underfs.swift;
 
 import org.javaswift.joss.client.factory.TempUrlHashPrefixSource;
 import org.javaswift.joss.model.Access;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Custom {@link Access} for Keystone V3 authentication.
  */
 public class KeystoneV3Access implements Access {
+  private static final Logger LOG = LoggerFactory.getLogger(KeystoneV3Access.class);
 
   private String mInternalURL;
   private String mPrefferedRegion;
@@ -68,5 +71,6 @@ public class KeystoneV3Access implements Access {
   @Override
   public void setPreferredRegion(String region) {
     mPrefferedRegion = region;
+    LOG.debug("Preferred region is set to {}", mPrefferedRegion);
   }
 }
