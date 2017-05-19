@@ -13,7 +13,6 @@ package alluxio.underfs.swift;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AuthenticationMethod.AccessProvider;
 import org.javaswift.joss.model.Access;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,6 +36,7 @@ import java.util.List;
  * Custom {@link AccessProvider} for Keystone V3 authentication.
  */
 public class KeystoneV3AccessProvider implements AccessProvider {
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftUnderFileSystem.class);
 
   private static final String AUTH_METHOD = "password";
   private static final int RESPONSE_OK = 201;
@@ -52,29 +54,18 @@ public class KeystoneV3AccessProvider implements AccessProvider {
       String requestBody;
       try {
         // Construct request body
-        Auth auth = new Auth();
-        Identity identity = new Identity();
-        identity.setMethods(Arrays.asList(AUTH_METHOD));
-        Password password = new Password();
-        User user = new User();
-        user.setId(mAccountConfig.getUsername());
-        user.setPassword(mAccountConfig.getPassword());
-        password.setUser(user);
-        identity.setPassword(password);
-        auth.setIdentity(identity);
-        Scope scope = new Scope();
-        Project project = new Project();
-        project.setId(mAccountConfig.getTenantName());
-        scope.setProject(project);
-        auth.setScope(scope);
-        Request request = new Request();
-        request.setAuth(auth);
-
+        KeystoneV3Request request =
+            new KeystoneV3Request(new Auth(
+                new Identity(Arrays.asList(AUTH_METHOD),
+                    new Password(
+                        new User(mAccountConfig.getUsername(), mAccountConfig.getPassword()))),
+                new Scope(new Project(mAccountConfig.getTenantName()))));
         requestBody = new ObjectMapper().writeValueAsString(request);
       } catch (JsonProcessingException e) {
-        e.printStackTrace();
+        LOG.error("Error processing JSON request: {}", e.getMessage());
         return null;
       }
+
       HttpURLConnection connection = null;
       BufferedReader bufReader = null;
       try {
@@ -92,20 +83,20 @@ public class KeystoneV3AccessProvider implements AccessProvider {
         }
         String token = connection.getHeaderField("X-Subject-Token");
 
+        // Parse response body
         bufReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String response = bufReader.readLine();
-
-        KeystoneV3Response responseObject;
+        String responseBody = bufReader.readLine();
+        KeystoneV3Response response;
         try {
-          responseObject = new ObjectMapper().readerFor(KeystoneV3Response.class).readValue(response);
+          response = new ObjectMapper().readerFor(KeystoneV3Response.class).readValue(responseBody);
         } catch (JsonProcessingException e) {
-          e.printStackTrace();
+          LOG.error("Error processing JSON response: {}", e.getMessage());
           return null;
         }
-
+        // Find endpoints
         String internalURL = null;
         String publicURL = null;
-        for (Catalog catalog : responseObject.mToken.mCatalog) {
+        for (Catalog catalog : response.mToken.mCatalog) {
           if (catalog.mName.equals("swift") && catalog.mType.equals("object-store")) {
             for (Endpoint endpoint : catalog.mEndpoints) {
               if (endpoint.mRegion.equals(mAccountConfig.getPreferredRegion())) {
@@ -133,173 +124,99 @@ public class KeystoneV3AccessProvider implements AccessProvider {
       }
     } catch (IOException e) {
       // Unable to authenticate
+      LOG.error("Exception authenticating using KeystoneV3 {}", e.getMessage());
       return null;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
+  /** Classes for creating authentication JSON request. */
   @JsonPropertyOrder({"auth"})
-  public class Request {
+  public class KeystoneV3Request {
     @JsonProperty("auth")
-    private Auth auth;
+    public Auth mAuth;
 
-    @JsonProperty("auth")
-    public Auth getAuth() {
-      return auth;
-    }
-
-    @JsonProperty("auth")
-    public void setAuth(Auth auth) {
-      this.auth = auth;
+    public KeystoneV3Request(Auth auth) {
+      mAuth = auth;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonPropertyOrder({"identity", "scope"})
   public class Auth {
     @JsonProperty("identity")
-    private Identity identity;
+    public Identity mIdentity;
     @JsonProperty("scope")
-    private Scope scope;
+    public Scope mScope;
 
-    @JsonProperty("identity")
-    public Identity getIdentity() {
-      return identity;
-    }
-
-    @JsonProperty("identity")
-    public void setIdentity(Identity identity) {
-      this.identity = identity;
-    }
-
-    @JsonProperty("scope")
-    public Scope getScope() {
-      return scope;
-    }
-
-    @JsonProperty("scope")
-    public void setScope(Scope scope) {
-      this.scope = scope;
+    public Auth(Identity identity, Scope scope) {
+      mIdentity = identity;
+      mScope = scope;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonPropertyOrder({"methods", "password"})
   public class Identity {
     @JsonProperty("methods")
-    private List<String> methods = null;
+    public List<String> mMethods = null;
     @JsonProperty("password")
-    private Password password;
+    public Password mPassword;
 
-    @JsonProperty("methods")
-    public List<String> getMethods() {
-      return methods;
-    }
-
-    @JsonProperty("methods")
-    public void setMethods(List<String> methods) {
-      this.methods = methods;
-    }
-
-    @JsonProperty("password")
-    public Password getPassword() {
-      return password;
-    }
-
-    @JsonProperty("password")
-    public void setPassword(Password password) {
-      this.password = password;
+    public Identity(List<String> methods, Password password) {
+      mMethods = methods;
+      mPassword = password;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonPropertyOrder({"user"})
   public class Password {
     @JsonProperty("user")
-    private User user;
+    public User mUser;
 
-    @JsonProperty("user")
-    public User getUser() {
-      return user;
-    }
-
-    @JsonProperty("user")
-    public void setUser(User user) {
-      this.user = user;
+    public Password(User user) {
+      mUser = user;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonPropertyOrder({"id"})
   public class Project {
     @JsonProperty("id")
-    private String id;
+    public String mId;
 
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty("id")
-    public void setId(String id) {
-      this.id = id;
+    public Project(String id) {
+      mId = id;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonPropertyOrder({"project"})
   public class Scope {
     @JsonProperty("project")
-    private Project project;
+    public Project mProject;
 
-    @JsonProperty("project")
-    public Project getProject() {
-      return project;
-    }
-
-    @JsonProperty("project")
-    public void setProject(Project project) {
-      this.project = project;
+    public Scope(Project project) {
+      mProject = project;
     }
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonPropertyOrder({"id", "password"})
   public class User {
     @JsonProperty("id")
-    private String id;
+    public String mId;
     @JsonProperty("password")
-    private String password;
+    public String mPassword;
 
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty("id")
-    public void setId(String id) {
-      this.id = id;
-    }
-
-    @JsonProperty("password")
-    public String getPassword() {
-      return password;
-    }
-
-    @JsonProperty("password")
-    public void setPassword(String password) {
-      this.password = password;
+    public User(String id, String password) {
+      mId = id;
+      mPassword = password;
     }
   }
 
-  // Classes for parsing authentication response
+  /** Classes for parsing authentication JSON response. */
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class KeystoneV3Response {
     public Token mToken;
 
     @JsonCreator
     public KeystoneV3Response(@JsonProperty("token") Token token) {
-      this.mToken = token;
+      mToken = token;
     }
   }
 
@@ -309,7 +226,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
 
     @JsonCreator
     public Token(@JsonProperty("catalog") List<Catalog> catalog) {
-      this.mCatalog = catalog;
+      mCatalog = catalog;
     }
   }
 
@@ -322,9 +239,9 @@ public class KeystoneV3AccessProvider implements AccessProvider {
     @JsonCreator
     public Catalog(@JsonProperty("endpoints") List<Endpoint> endpoints,
         @JsonProperty("type") String type, @JsonProperty("name") String name) {
-      this.mEndpoints = endpoints;
-      this.mType = type;
-      this.mName = name;
+      mEndpoints = endpoints;
+      mType = type;
+      mName = name;
     }
   }
 
@@ -337,9 +254,9 @@ public class KeystoneV3AccessProvider implements AccessProvider {
     @JsonCreator
     public Endpoint(@JsonProperty("url") String url, @JsonProperty("region") String region,
         @JsonProperty("interface") String inter) {
-      this.mUrl = url;
-      this.mRegion = region;
-      this.mInterface = inter;
+      mUrl = url;
+      mRegion = region;
+      mInterface = inter;
     }
   }
 }
