@@ -127,6 +127,14 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
               config.setPreferredRegion(conf.getValue(PropertyKey.SWIFT_REGION_KEY));
             }
             break;
+          case Constants.SWIFT_AUTH_KEYSTONE_V3:
+            if (conf.containsKey(PropertyKey.SWIFT_REGION_KEY)) {
+              config.setPreferredRegion(conf.getValue(PropertyKey.SWIFT_REGION_KEY));
+            }
+            config.setAuthenticationMethod(AuthenticationMethod.EXTERNAL);
+            KeystoneV3AccessProvider accessProvider = new KeystoneV3AccessProvider(config);
+            config.setAccessProvider(accessProvider);
+            break;
           case Constants.SWIFT_AUTH_SWIFTAUTH:
             // swiftauth authenticates directly against swift
             // note: this method is supported in swift object storage api v1
