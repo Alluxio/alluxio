@@ -38,7 +38,6 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -433,35 +432,58 @@ public final class CommonUtils {
    * Executes the given callables, waiting for them to complete (or time out).
    *
    * @param callables the callables to execute
+   * @param timeout the maximum time to wait
+   * @param unit the time unit of the timeout argument
    * @param <T> the return type of the callables
    * @throws TimeoutException if one of the callables times out
-   * @throws Exception if one of the callables throws an exception
+   * @throws Exception if one of the callables throws an exception and none of the callables time
+   *         out
    */
-  public static <T> void invokeAll(List<Callable<T>> callables) throws TimeoutException, Exception {
+  public static <T> void invokeAll(List<Callable<T>> callables, long timeout, TimeUnit unit)
+      throws TimeoutException, Exception {
     ExecutorService service = Executors.newCachedThreadPool();
     try {
-      List<Future<T>> results = service.invokeAll(callables, 10, TimeUnit.SECONDS);
+      List<Future<T>> results = service.invokeAll(callables, timeout, unit);
       service.shutdown();
-      if (!service.awaitTermination(10, TimeUnit.SECONDS)) {
-        throw new RuntimeException("Timed out trying to shutdown service.");
-      }
+      // If one of the tasks failed, prefer to throw its Exception instead of TimeoutException.
+      propagateExceptions(results);
       for (Future<T> result : results) {
-        try {
-          result.get();
-        } catch (ExecutionException e) {
-          Throwable cause = e.getCause();
-          Throwables.propagateIfPossible(cause);
-          if (cause instanceof Exception) {
-            throw (Exception) cause;
-          }
-          throw new RuntimeException(cause);
-        } catch (CancellationException e) {
-          throw new TimeoutException("Timed out running callable");
+        if (result.isCancelled()) {
+          throw new TimeoutException("Timed out invoking task");
         }
+      }
+      if (!service.awaitTermination(timeout, unit)) {
+        service.shutdownNow();
+        throw new TimeoutException("Timed out trying to shutdown service.");
       }
     } catch (InterruptedException e) {
       service.shutdownNow();
+      Thread.currentThread().interrupt();
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Checks whether any of the futures have completed with an exception, propagating the exception
+   * if any is found.
+   *
+   * @param futures the futures to check
+   * @throws Exception if one of the futures completed with an exception
+   */
+  private static <T> void propagateExceptions(List<Future<T>> futures) throws Exception {
+    for (Future<?> future : futures) {
+      try {
+        if (future.isDone() && !future.isCancelled()) {
+          future.get();
+        }
+      } catch (ExecutionException e) {
+        Throwable cause = e.getCause();
+        Throwables.propagateIfPossible(cause);
+        if (cause instanceof Exception) {
+          throw (Exception) cause;
+        }
+        throw new RuntimeException(cause);
+      }
     }
   }
 
