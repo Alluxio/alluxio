@@ -56,7 +56,7 @@ rm -rf ${PREFIX}
 mv alluxio ${PREFIX}
 TARGET=${TARBALL_DIR}/${PREFIX}.tar.gz
 
-gtar -czf ${TARGET} ${PREFIX} --exclude-vcs --exclude='*.class'
+gtar -czf ${TARGET} ${PREFIX} --exclude-vcs
 popd > /dev/null
 
 echo "Generated tarball at ${TARGET}"
