@@ -73,16 +73,13 @@ public class KeystoneV3AccessProvider implements AccessProvider {
         return null;
       }
 
-      CloseableHttpClient client = HttpClients.createDefault();
-      try {
+      try (CloseableHttpClient client = HttpClients.createDefault()) {
         // Send request
         HttpPost post = new HttpPost(mAccountConfig.getAuthUrl());
         post.addHeader("Accept", "application/json");
         post.addHeader("Content-Type", "application/json");
         post.setEntity(new ByteArrayEntity(requestBody.toString().getBytes()));
-        CloseableHttpResponse httpResponse = client.execute(post);
-        try {
-
+        try (CloseableHttpResponse httpResponse = client.execute(post)) {
           // Parse response
           int responseCode = httpResponse.getStatusLine().getStatusCode();
           if (responseCode != RESPONSE_OK) {
@@ -92,9 +89,8 @@ public class KeystoneV3AccessProvider implements AccessProvider {
           String token = httpResponse.getFirstHeader("X-Subject-Token").getValue();
 
           // Parse response body
-          BufferedReader bufReader =
-              new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
-          try {
+          try (BufferedReader bufReader =
+              new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()))) {
             String responseBody = bufReader.readLine();
             KeystoneV3Response response;
             try {
@@ -124,15 +120,8 @@ public class KeystoneV3AccessProvider implements AccessProvider {
               LOG.error("Error processing JSON response: {}", e.getMessage());
               return null;
             }
-          } finally {
-            bufReader.close();
           }
-        } finally {
-          httpResponse.close();
         }
-      } finally {
-        // Cleanup
-        client.close();
       }
     } catch (IOException e) {
       // Unable to authenticate
