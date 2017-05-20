@@ -40,7 +40,7 @@ public final class UnderFileSystemConfiguration {
   /**
    * @return empty UFS configuration
    */
-  public static UnderFileSystemConfiguration empty() {
+  public static final UnderFileSystemConfiguration empty() {
     return EMPTY_CONFIG;
   }
 
