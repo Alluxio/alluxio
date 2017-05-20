@@ -22,6 +22,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
+import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +38,12 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -425,22 +429,60 @@ public final class CommonUtils {
   }
 
   /**
-   * Executes the given callables, waiting for them to complete (or time out).
-
+   * Executes the given callables, waiting for them to complete (or time out). If a callable throws
+   * an exception, that exception will be re-thrown from this method.
+   *
    * @param callables the callables to execute
+   * @param timeout the maximum time to wait
+   * @param unit the time unit of the timeout argument
    * @param <T> the return type of the callables
+   * @throws Exception if any of the callables throws an exception
    */
-  public static <T> void invokeAll(List<Callable<T>> callables) {
+  public static <T> void invokeAll(List<Callable<T>> callables, long timeout, TimeUnit unit)
+      throws TimeoutException, Exception {
     ExecutorService service = Executors.newCachedThreadPool();
     try {
-      service.invokeAll(callables, 10, TimeUnit.SECONDS);
-      service.shutdown();
-      if (!service.awaitTermination(10, TimeUnit.SECONDS)) {
-        throw new RuntimeException("Timed out trying to shutdown service.");
+      List<Future<T>> results = service.invokeAll(callables, timeout, unit);
+      service.shutdownNow();
+      propagateExceptions(results);
+      for (Future<T> result : results) {
+        if (result.isCancelled()) {
+          throw new TimeoutException("Timed out invoking task");
+        }
+      }
+      // All tasks are guaranteed to have finished at this point. If they were still running, their
+      // futures would have been canceled by invokeAll.
+      if (!service.awaitTermination(1, TimeUnit.SECONDS)) {
+        throw new IllegalStateException("Failed to shutdown service");
       }
     } catch (InterruptedException e) {
       service.shutdownNow();
+      Thread.currentThread().interrupt();
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Checks whether any of the futures have completed with an exception, propagating the exception
+   * if any is found.
+   *
+   * @param futures the futures to check
+   * @throws Exception if one of the futures completed with an exception
+   */
+  private static <T> void propagateExceptions(List<Future<T>> futures) throws Exception {
+    for (Future<?> future : futures) {
+      try {
+        if (future.isDone() && !future.isCancelled()) {
+          future.get();
+        }
+      } catch (ExecutionException e) {
+        Throwable cause = e.getCause();
+        Throwables.propagateIfPossible(cause);
+        if (cause instanceof Exception) {
+          throw (Exception) cause;
+        }
+        throw new RuntimeException(cause);
+      }
     }
   }
 

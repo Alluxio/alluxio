@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -115,7 +116,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           }
         });
       }
-      CommonUtils.invokeAll(callables);
+      CommonUtils.invokeAll(callables, 10, TimeUnit.SECONDS);
 
       // Setup web server
       mWebServer =

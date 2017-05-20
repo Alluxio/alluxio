@@ -15,12 +15,17 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
+import alluxio.util.OSUtils;
+import alluxio.util.ShellUtils;
+import alluxio.util.UnixMountInfo;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +99,63 @@ public final class StorageTier {
       }
     }
     mCapacityBytes = totalCapacity;
+    if (mTierAlias.equals("MEM") && mDirs.size() == 1) {
+      checkEnoughMemSpace(mDirs.get(0));
+    }
+  }
+
+  /**
+   * Checks that a tmpfs/ramfs backing the storage directory has enough capacity. If the storage
+   * directory is not backed by tmpfs/ramfs or the size of the tmpfs/ramfs cannot be determined, a
+   * warning is logged but no exception is thrown.
+   *
+   * @param storageDir the storage dir to check
+   * @throws IllegalStateException if the tmpfs/ramfs is smaller than the configured memory size
+   */
+  private void checkEnoughMemSpace(StorageDir storageDir) {
+    if (!OSUtils.isLinux()) {
+      return;
+    }
+    List<UnixMountInfo> info;
+    try {
+      info = ShellUtils.getUnixMountInfo();
+    } catch (IOException e) {
+      LOG.warn("Failed to get mount information for verifying memory capacity: {}", e.getMessage());
+      return;
+    }
+    boolean foundMountInfo = false;
+    for (UnixMountInfo mountInfo : info) {
+      Optional<String> mountPointOption = mountInfo.getMountPoint();
+      Optional<String> fsTypeOption = mountInfo.getFsType();
+      Optional<Long> sizeOption = mountInfo.getOptions().getSize();
+      if (!mountPointOption.isPresent() || !fsTypeOption.isPresent() || !sizeOption.isPresent()) {
+        continue;
+      }
+      String mountPoint = mountPointOption.get();
+      String fsType = fsTypeOption.get();
+      long size = sizeOption.get();
+      try {
+        // getDirPath gives something like "/mnt/tmpfs/alluxioworker".
+        String rootStoragePath = PathUtils.getParent(storageDir.getDirPath());
+        if (!PathUtils.cleanPath(mountPoint).equals(rootStoragePath)) {
+          continue;
+        }
+      } catch (InvalidPathException e) {
+        continue;
+      }
+      foundMountInfo = true;
+      if ((fsType.equalsIgnoreCase("tmpfs") || fsType.equalsIgnoreCase("ramfs"))
+          && size < storageDir.getCapacityBytes()) {
+        throw new IllegalStateException(String.format(
+            "%s is smaller than the configured size: %s size: %s, configured size: %s", fsType,
+            fsType, FormatUtils.getSizeFromBytes(size),
+            FormatUtils.getSizeFromBytes(storageDir.getCapacityBytes())));
+      }
+      break;
+    }
+    if (!foundMountInfo) {
+      LOG.warn("Failed to verify memory capacity");
+    }
   }
 
   /**

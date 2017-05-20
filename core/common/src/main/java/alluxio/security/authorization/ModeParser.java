@@ -98,6 +98,7 @@ public final class ModeParser {
             break;
           default:
             // Should never get here as already checked for invalid targets
+            throw new IllegalStateException("Unknown permission character: " + permChar);
         }
       }
 
@@ -120,6 +121,7 @@ public final class ModeParser {
             break;
           default:
             // Should never get here as already checked for invalid targets
+            throw new IllegalStateException("Unknown target character: " + targetChar);
         }
       }
     }
