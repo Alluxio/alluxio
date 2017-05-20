@@ -59,7 +59,7 @@ public interface UnderFileSystem extends Closeable {
      * @return instance of the under layer file system
      */
     public static UnderFileSystem create(String path) {
-      return create(path, UnderFileSystemConfiguration.defaults());
+      return create(path, UnderFileSystemConfiguration.empty());
     }
 
     /**

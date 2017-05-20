@@ -39,7 +39,7 @@ public final class MountTableTest {
   private MountTable mMountTable;
   private final MountOptions mDefaultOptions = MountOptions.defaults();
   private final UnderFileSystem mTestUfs =
-      new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.defaults());
+      new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.empty());
 
   @Before
   public void before() throws Exception {

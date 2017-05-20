@@ -49,7 +49,7 @@ public class S3UnderFileSystemTest {
     mClient = Mockito.mock(S3Service.class);
 
     mS3UnderFileSystem = new S3UnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        BUCKET_MODE, ACCOUNT_OWNER, UnderFileSystemConfiguration.defaults());
+        BUCKET_MODE, ACCOUNT_OWNER, UnderFileSystemConfiguration.empty());
   }
 
   /**
