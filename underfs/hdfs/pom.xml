@@ -1517,6 +1517,10 @@
                       <shadedPattern>${shading.prefix}.com.sun.jersey</shadedPattern>
                     </relocation>
                     <relocation>
+                      <pattern>com.sun.research.ws.wadl</pattern>
+                      <shadedPattern>${shading.prefix}.com.sun.research.ws.wadl</shadedPattern>
+                    </relocation>
+                    <relocation>
                       <pattern>com.sun.xml.bind</pattern>
                       <shadedPattern>${shading.prefix}.com.sun.xml.bind</shadedPattern>
                     </relocation>
@@ -1542,6 +1546,10 @@
                     </relocation>
                     <relocation>
                       <pattern>javax.servlet</pattern>
+                      <shadedPattern>${shading.prefix}.javax.servlet</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>javax.ws.rs</pattern>
                       <shadedPattern>${shading.prefix}.javax.servlet</shadedPattern>
                     </relocation>
                     <relocation>
@@ -1705,6 +1713,10 @@
                     <relocation>
                       <pattern>org.mortbay</pattern>
                       <shadedPattern>${shading.prefix}.org.mortbay</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>org.objectweb.asm</pattern>
+                      <shadedPattern>${shading.prefix}.org.objectweb.asm</shadedPattern>
                     </relocation>
                     <relocation>
                       <pattern>org.tukaani</pattern>
