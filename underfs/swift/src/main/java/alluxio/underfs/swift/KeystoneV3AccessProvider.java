@@ -17,11 +17,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AuthenticationMethod.AccessProvider;
 import org.javaswift.joss.model.Access;
@@ -73,60 +73,66 @@ public class KeystoneV3AccessProvider implements AccessProvider {
         return null;
       }
 
-      BufferedReader bufReader = null;
+      CloseableHttpClient client = HttpClients.createDefault();
       try {
         // Send request
-        HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(mAccountConfig.getAuthUrl());
         post.addHeader("Accept", "application/json");
         post.addHeader("Content-Type", "application/json");
         post.setEntity(new ByteArrayEntity(requestBody.toString().getBytes()));
-        HttpResponse httpResponse = client.execute(post);
-
-        // Parse response
-        int responseCode = httpResponse.getStatusLine().getStatusCode();
-        if (responseCode != RESPONSE_OK) {
-          LOG.error("Error with response code {} ", responseCode);
-          return null;
-        }
-        String token = httpResponse.getFirstHeader("X-Subject-Token").getValue();
-
-        // Parse response body
-        bufReader =
-            new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
-        String responseBody = bufReader.readLine();
-        KeystoneV3Response response;
+        CloseableHttpResponse httpResponse = client.execute(post);
         try {
-          response = new ObjectMapper().readerFor(KeystoneV3Response.class).readValue(responseBody);
-        } catch (JsonProcessingException e) {
-          LOG.error("Error processing JSON response: {}", e.getMessage());
-          return null;
-        }
-        // Find endpoints
-        String internalURL = null;
-        String publicURL = null;
-        for (Catalog catalog : response.mToken.mCatalog) {
-          if (catalog.mName.equals("swift") && catalog.mType.equals("object-store")) {
-            for (Endpoint endpoint : catalog.mEndpoints) {
-              if (endpoint.mRegion.equals(mAccountConfig.getPreferredRegion())) {
-                if (endpoint.mInterface.equals("public")) {
-                  publicURL = endpoint.mUrl;
-                } else if (endpoint.mInterface.equals("internal")) {
-                  internalURL = endpoint.mUrl;
+
+          // Parse response
+          int responseCode = httpResponse.getStatusLine().getStatusCode();
+          if (responseCode != RESPONSE_OK) {
+            LOG.error("Error with response code {} ", responseCode);
+            return null;
+          }
+          String token = httpResponse.getFirstHeader("X-Subject-Token").getValue();
+
+          // Parse response body
+          BufferedReader bufReader =
+              new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+          try {
+            String responseBody = bufReader.readLine();
+            KeystoneV3Response response;
+            try {
+              response =
+                  new ObjectMapper().readerFor(KeystoneV3Response.class).readValue(responseBody);
+              // Find endpoints
+              String internalURL = null;
+              String publicURL = null;
+              for (Catalog catalog : response.mToken.mCatalog) {
+                if (catalog.mName.equals("swift") && catalog.mType.equals("object-store")) {
+                  for (Endpoint endpoint : catalog.mEndpoints) {
+                    if (endpoint.mRegion.equals(mAccountConfig.getPreferredRegion())) {
+                      if (endpoint.mInterface.equals("public")) {
+                        publicURL = endpoint.mUrl;
+                      } else if (endpoint.mInterface.equals("internal")) {
+                        internalURL = endpoint.mUrl;
+                      }
+                    }
+                  }
                 }
               }
+              // Construct access object
+              KeystoneV3Access access = new KeystoneV3Access(internalURL,
+                  mAccountConfig.getPreferredRegion(), publicURL, token);
+              return access;
+            } catch (JsonProcessingException e) {
+              LOG.error("Error processing JSON response: {}", e.getMessage());
+              return null;
             }
+          } finally {
+            bufReader.close();
           }
+        } finally {
+          httpResponse.close();
         }
-        // Construct access object
-        KeystoneV3Access access = new KeystoneV3Access(internalURL,
-            mAccountConfig.getPreferredRegion(), publicURL, token);
-        return access;
       } finally {
         // Cleanup
-        if (bufReader != null) {
-          bufReader.close();
-        }
+        client.close();
       }
     } catch (IOException e) {
       // Unable to authenticate
