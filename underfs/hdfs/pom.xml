@@ -1665,11 +1665,6 @@
                       <pattern>org.apache.jute</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                     </relocation>
-                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
-                    <!--<relocation>-->
-                      <!--<pattern>org.apache.log4j</pattern>-->
-                      <!--<shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>-->
-                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.wml</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.wml</shadedPattern>
@@ -1812,7 +1807,6 @@
                       <include>javax.xml.bind:jaxb-api</include>
                       <include>javax.xml.stream:stax-api</include>
                       <include>jdk.tools:jdk.tools</include>
-                      <include>log4j:log4j</include>
                       <include>net.java.dev.jets3t:jets3t</include>
                       <include>org.apache.avro:avro</include>
                       <include>org.apache.commons:commons-compress</include>
@@ -1871,6 +1865,10 @@
                       <shadedPattern>${shading.prefix}.com.sun.istack</shadedPattern>
                     </relocation>
                     <relocation>
+                      <pattern>com.sun.research.ws.wadl</pattern>
+                      <shadedPattern>${shading.prefix}.com.sun.research.ws.wadl</shadedPattern>
+                    </relocation>
+                    <relocation>
                       <pattern>com.sun.jersey</pattern>
                       <shadedPattern>${shading.prefix}.com.sun.jersey</shadedPattern>
                     </relocation>
@@ -1901,6 +1899,10 @@
                     <relocation>
                       <pattern>javax.servlet</pattern>
                       <shadedPattern>${shading.prefix}.javax.servlet</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>javax.ws.rs</pattern>
+                      <shadedPattern>${shading.prefix}.javax.ws.rs</shadedPattern>
                     </relocation>
                     <relocation>
                       <pattern>javax.xml.XMLConstants</pattern>
@@ -2011,11 +2013,6 @@
                       <pattern>org.apache.jute</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                     </relocation>
-                    <!-- Removed due to a fix in DFSIOIntegrationTest -->
-                    <!--<relocation>-->
-                      <!--<pattern>org.apache.log4j</pattern>-->
-                      <!--<shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>-->
-                    <!--</relocation>-->
                     <relocation>
                       <pattern>org.apache.wml</pattern>
                       <shadedPattern>${shading.prefix}.org.apache.wml</shadedPattern>
@@ -2063,6 +2060,10 @@
                     <relocation>
                       <pattern>org.mortbay</pattern>
                       <shadedPattern>${shading.prefix}.org.mortbay</shadedPattern>
+                    </relocation>
+                    <relocation>
+                      <pattern>org.objectweb.asm</pattern>
+                      <shadedPattern>${shading.prefix}.org.objectweb.asm</shadedPattern>
                     </relocation>
                     <relocation>
                       <pattern>org.tukaani</pattern>
