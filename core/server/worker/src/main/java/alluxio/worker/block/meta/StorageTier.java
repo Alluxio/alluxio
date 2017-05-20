@@ -120,9 +120,10 @@ public final class StorageTier {
     try {
       info = ShellUtils.getUnixMountInfo();
     } catch (IOException e) {
-      LOG.debug("Failed to get mount information: {}", e.getMessage());
+      LOG.warn("Failed to get mount information for verifying memory capacity: {}", e.getMessage());
       return;
     }
+    boolean foundMountInfo = false;
     for (UnixMountInfo mountInfo : info) {
       Optional<String> mountPointOption = mountInfo.getMountPoint();
       Optional<String> fsTypeOption = mountInfo.getFsType();
@@ -142,7 +143,7 @@ public final class StorageTier {
       } catch (InvalidPathException e) {
         continue;
       }
-
+      foundMountInfo = true;
       if ((fsType.equalsIgnoreCase("tmpfs") || fsType.equalsIgnoreCase("ramfs"))
           && size < storageDir.getCapacityBytes()) {
         throw new IllegalStateException(String.format(
@@ -150,6 +151,10 @@ public final class StorageTier {
             fsType, FormatUtils.getSizeFromBytes(size),
             FormatUtils.getSizeFromBytes(storageDir.getCapacityBytes())));
       }
+      break;
+    }
+    if (!foundMountInfo) {
+      LOG.warn("Failed to verify memory capacity");
     }
   }
 
