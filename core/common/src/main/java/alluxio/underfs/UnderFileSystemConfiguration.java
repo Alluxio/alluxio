@@ -114,7 +114,7 @@ public final class UnderFileSystemConfiguration {
   }
 
   /**
-   * @param shared  whether the mounted UFS is shared with all Alluxio users
+   * @param shared whether the mounted UFS is shared with all Alluxio users
    * @return the updated configuration object
    */
   public UnderFileSystemConfiguration setShared(boolean shared) {
