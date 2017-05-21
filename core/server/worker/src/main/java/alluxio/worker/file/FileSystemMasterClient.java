@@ -16,7 +16,11 @@ import alluxio.Constants;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.GetFileInfoTOptions;
+import alluxio.thrift.GetPinnedFileIdsTOptions;
+import alluxio.thrift.GetUfsInfoTOptions;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.ThriftUtils;
@@ -73,11 +77,12 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
    */
-  public synchronized FileInfo getFileInfo(final long fileId) {
+  public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
     return retryRPC(new RpcCallable<FileInfo>() {
       @Override
       public FileInfo call() throws TException {
-        return ThriftUtils.fromThrift(mClient.getFileInfo(fileId));
+        return ThriftUtils
+            .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo());
       }
     });
   }
@@ -85,11 +90,11 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * @return the set of pinned file ids
    */
-  public synchronized Set<Long> getPinList() {
+  public synchronized Set<Long> getPinList() throws IOException {
     return retryRPC(new RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws TException {
-        return mClient.getPinIdList();
+        return mClient.getPinnedFileIds(new GetPinnedFileIdsTOptions()).getPinnedFileIds();
       }
     });
   }
@@ -103,7 +108,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<UfsInfo>() {
       @Override
       public UfsInfo call() throws TException {
-        return mClient.getUfsInfo(mountId);
+        return mClient.getUfsInfo(mountId, new GetUfsInfoTOptions()).getUfsInfo();
       }
     });
   }
@@ -116,11 +121,13 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the command for file system worker
    */
   public synchronized FileSystemCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles) {
+      final List<Long> persistedFiles) throws IOException {
     return retryRPC(new RpcCallable<FileSystemCommand>() {
       @Override
       public FileSystemCommand call() throws AlluxioTException, TException {
-        return mClient.heartbeat(workerId, persistedFiles);
+        return mClient
+            .fileSystemHeartbeat(workerId, persistedFiles, new FileSystemHeartbeatTOptions())
+            .getCommand();
       }
     });
   }

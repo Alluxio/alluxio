@@ -30,7 +30,7 @@ Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/pres
 Presto gets the database and table information by connecting Hive Metastore. At the same time,
 The file system location of table is obtained by the table's metadata. So you need to configure
 [Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html). In order to access hdfs,
-you need to add the hadoop conf files (core-site.xml,hdfs-site.xml), and use `hive.config.resources` in 
+you need to add the hadoop conf files (core-site.xml,hdfs-site.xml), and use `hive.config.resources` in
 file `/<PATH_TO_PRESTO>/etc/catalog/hive.properties` to point to the file's location for every Presto worker.
 
 #### Configure `core-site.xml`
@@ -84,9 +84,9 @@ Presto's hive integration uses the config [`hive.max-split-size`](https://terada
 
 # Distribute the Alluxio Client Jar
 
-Distribute the Alluxio client Jar to all worker nodes in Presto:
-- You must put Alluxio client jar package `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
-(in `/<PATH_TO_ALLUXIO>/core/client/target/` directory) into Presto cluster's worker directory `$PRESTO_HOME/plugin/hive-hadoop2/`
+Distribute the Alluxio client jar to all worker nodes in Presto:
+- You must put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto cluster's worker directory
+`$PRESTO_HOME/plugin/hive-hadoop2/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 
 # Presto cli examples

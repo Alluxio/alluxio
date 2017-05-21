@@ -14,9 +14,11 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
 
@@ -30,7 +32,9 @@ import java.io.IOException;
 /**
  * Tests the internal implementation of alluxio Master via a {@link FileSystemMasterClient}.
  */
-public final class FileSystemMasterClientIntegrationTest {
+public final class FileSystemMasterClientIntegrationTest extends BaseIntegrationTest {
+  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
@@ -45,12 +49,12 @@ public final class FileSystemMasterClientIntegrationTest {
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
     fsMasterClient.createFile(file, CreateFileOptions.defaults());
-    Assert.assertNotNull(fsMasterClient.getStatus(file));
+    Assert.assertNotNull(fsMasterClient.getStatus(file, GET_STATUS_OPTIONS));
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    Assert.assertNotNull(fsMasterClient.getStatus(file));
+    Assert.assertNotNull(fsMasterClient.getStatus(file, GET_STATUS_OPTIONS));
     fsMasterClient.close();
   }
 
@@ -61,7 +65,7 @@ public final class FileSystemMasterClientIntegrationTest {
     // in the cases we don't want to disconnect from master
     FileSystemMasterClient fsMasterClient = FileSystemMasterClient.Factory
         .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
-    fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"));
+    fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"), GET_STATUS_OPTIONS);
     fsMasterClient.close();
   }
 

@@ -24,14 +24,13 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.thrift.LockBlockTOptions;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.junit.After;
@@ -115,10 +114,9 @@ public class BlockWorkerTest {
   @Test
   public void openUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
-    LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
-    lockBlockTOptions.setMaxUfsReadConcurrency(10);
-    lockBlockTOptions.setUfsPath("/a");
-    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(lockBlockTOptions);
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions =
+        Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10).setUfsPath("/a")
+            .build();
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
@@ -130,10 +128,9 @@ public class BlockWorkerTest {
   @Test
   public void closeUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
-    LockBlockTOptions lockBlockTOptions = new LockBlockTOptions();
-    lockBlockTOptions.setMaxUfsReadConcurrency(10);
-    lockBlockTOptions.setUfsPath("/a");
-    OpenUfsBlockOptions openUfsBlockOptions = new OpenUfsBlockOptions(lockBlockTOptions);
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions =
+        Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10).setUfsPath("/a")
+            .build();
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {

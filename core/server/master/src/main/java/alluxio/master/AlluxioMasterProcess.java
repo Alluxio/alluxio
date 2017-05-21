@@ -21,6 +21,7 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -178,7 +179,7 @@ public class AlluxioMasterProcess implements MasterProcess {
         return mThriftServer != null && mThriftServer.isServing()
             && mWebServer != null && mWebServer.getServer().isRunning();
       }
-    });
+    }, WaitForOptions.defaults().setTimeout(10000));
   }
 
   @Override
@@ -286,7 +287,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
     try {
-      transportFactory = mTransportProvider.getServerTransportFactory();
+      String serverName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
+      transportFactory = mTransportProvider.getServerTransportFactory(serverName);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

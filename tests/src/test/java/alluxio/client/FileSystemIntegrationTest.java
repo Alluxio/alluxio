@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -43,7 +44,7 @@ import java.io.IOException;
 /**
  * Integration tests on Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
-public final class FileSystemIntegrationTest {
+public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -61,7 +62,7 @@ public final class FileSystemIntegrationTest {
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    mUfs = UnderFileSystem.Factory.getForRoot();
+    mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   @Test

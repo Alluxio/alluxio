@@ -53,7 +53,7 @@ public class UfsJournalReader implements JournalReader {
    */
   UfsJournalReader(UfsJournal journal) {
     mJournal = Preconditions.checkNotNull(journal, "journal");
-    mUfs = UnderFileSystem.Factory.get(mJournal.getLocation());
+    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation());
     mCheckpoint = mJournal.getCheckpoint();
   }
 
@@ -105,7 +105,7 @@ public class UfsJournalReader implements JournalReader {
     if (!mUfs.isFile(mCheckpoint.toString())) {
       throw new IOException("Checkpoint file " + mCheckpoint + " does not exist.");
     }
-    mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpoint.toString());
+    mCheckpointLastModifiedTime = mUfs.getFileStatus(mCheckpoint.toString()).getLastModifiedTime();
     return mCheckpointLastModifiedTime;
   }
 }

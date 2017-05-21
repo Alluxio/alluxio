@@ -13,13 +13,13 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
-import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.master.file.FileSystemMaster;
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
  * the correct state. Test both the single master (alluxio) and multi masters (alluxio-ft).
  */
-public class JournalShutdownIntegrationTest {
+public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
 
@@ -64,7 +64,6 @@ public class JournalShutdownIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     ConfigurationTestUtils.resetConfiguration();
-    BlockWorkerClientTestUtils.reset();
     FileSystemContext.INSTANCE.reset();
   }
 

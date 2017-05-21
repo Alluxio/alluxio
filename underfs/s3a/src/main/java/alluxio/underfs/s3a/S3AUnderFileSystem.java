@@ -36,6 +36,8 @@ import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -44,6 +46,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
+import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +55,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -63,9 +67,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
-
-  /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
 
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
@@ -226,7 +227,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
       short bucketMode, String accountOwner, TransferManager transferManager,
       UnderFileSystemConfiguration conf) {
-    super(uri);
+    super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
     mBucketMode = bucketMode;
@@ -247,24 +248,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
-
-  // Returns the account owner.
-  @Override
-  public String getOwner(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // No group in S3 ACL, returns the account owner.
-  @Override
-  public String getGroup(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the S3 bucket.
-  @Override
-  public short getMode(String path) throws IOException {
-    return mBucketMode;
-  }
 
   @Override
   protected boolean copyObject(String src, String dst) {
@@ -326,8 +309,29 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
+    try {
+      List<DeleteObjectsRequest.KeyVersion> keysToDelete = new LinkedList<>();
+      for (String key : keys) {
+        keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
+      }
+      DeleteObjectsResult deletedObjectsResult =
+          mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
+      List<String> deletedObjects = new LinkedList<>();
+      for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
+          .getDeletedObjects()) {
+        deletedObjects.add(deletedObject.getKey());
+      }
+      return deletedObjects;
+    } catch (AmazonClientException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
   protected String getFolderSuffix() {
-    return FOLDER_SUFFIX;
+    return mUfsConf.getValue(PropertyKey.UNDERFS_S3A_DIRECTORY_SUFFIX);
   }
 
   @Override
@@ -379,12 +383,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public String[] getObjectNames() {
+    public ObjectStatus[] getObjectStatuses() {
       List<S3ObjectSummary> objects = mResult.getObjectSummaries();
-      String[] ret = new String[objects.size()];
+      ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i++] = obj.getKey();
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -414,10 +418,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(meta.getContentLength(), meta.getLastModified().getTime());
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
     } catch (AmazonClientException e) {
       return null;
     }
+  }
+
+  // No group in S3 ACL, returns the account owner for group.
+  @Override
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
   }
 
   @Override

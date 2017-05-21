@@ -187,6 +187,11 @@
       </dependency>
       <dependency>
         <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-core</artifactId>
+        <version>${aws.amazonaws.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-s3</artifactId>
         <version>${aws.amazonaws.version}</version>
       </dependency>
@@ -194,6 +199,11 @@
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
         <version>1.48</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>2.6.6</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -209,11 +219,6 @@
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
         <version>0.3</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>jsr305</artifactId>
-        <version>3.0.0</version>
       </dependency>
       <dependency>
         <groupId>com.qmino</groupId>
@@ -314,6 +319,16 @@
         <version>2.0.1</version>
       </dependency>
       <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.16</version>
+      </dependency>
+      <dependency>
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
@@ -359,6 +374,8 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <!-- We do not use dependent management for hadoop-common, hadoop-hdfs, as it is unavailable in hadoop-1 -->
+      <!-- We do not use dependent management for hadoop-core, as it is unavailable in hadoop-2.x -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
@@ -378,6 +395,11 @@
           <exclusion>
             <groupId>org.jboss.netty</groupId>
             <artifactId>netty</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -445,8 +467,13 @@
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4</version>
+        <version>4.4.6</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -478,6 +505,11 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>3.4.6</version>
+      </dependency>
+      <dependency>
         <groupId>org.codehaus.jackson</groupId>
         <artifactId>jackson-core-asl</artifactId>
         <version>${jackson.version}</version>
@@ -504,11 +536,6 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-jsp</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-server</artifactId>
         <version>${jetty.version}</version>
       </dependency>
@@ -519,12 +546,22 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-servlet-core</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
@@ -601,6 +638,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-core</artifactId>
+        <version>1.3</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
         <version>1.10.8</version>
@@ -632,6 +675,14 @@
       </dependency>
 
       <!-- Provided scope -->
+      <!--
+         Dependency for FindBugs Plugin annotations.
+         This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
+         This library is a super set of com.google.code.findbugs:jsr305
+         Note that this package can be unnecessary for runtime, and the
+         'provided' scope makes it available for compilation and test,
+         but not be packaged into the jar.
+       -->
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>annotations</artifactId>
@@ -641,8 +692,34 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- Dependencies to add to all projects. These should all be in the test scope. -->
+  <!-- Dependencies to add to all projects. -->
   <dependencies>
+    <!-- Dependencies in the compile scope. -->
+    <!-- FindBugs and concurrency annotations. -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+    <!-- System logging. -->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
+
+    <!-- Dependencies in the test scope. -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -760,9 +837,6 @@
             <compilerArgs>
               <arg>-Xlint:none</arg>
             </compilerArgs>
-            <excludes>
-              <exclude>**/\${alluxio.hadoop2.impl}</exclude>
-            </excludes>
           </configuration>
         </plugin>
         <plugin>
@@ -793,7 +867,8 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>2.2</version>
+          <!-- Needs to be 2.4.2 or later to prevent MSHADE-148 -->
+          <version>2.4.3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -880,27 +955,6 @@
             <goals>
               <goal>jar</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Parse Hadoop major version and resolve the compilation conflict between Hadoop 1.x and 2.x -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>parse-hadoop-major-version</id>
-            <goals>
-              <goal>regex-property</goal>
-            </goals>
-            <configuration>
-              <name>alluxio.hadoop2.impl</name>
-              <value>${hadoop.version}</value>
-              <regex>^1\..*$</regex>
-              <replacement>AlluxioFileSystem.java</replacement>
-              <failIfNoMatch>false</failIfNoMatch>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -1105,7 +1159,7 @@
     <profile>
       <id>contractTest</id>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.6.5</hadoop.version>
       </properties>
     </profile>
 
@@ -1133,21 +1187,35 @@
     <profile>
       <id>hadoop-2.4</id>
       <properties>
-        <hadoop.version>2.4.0</hadoop.version>
+        <hadoop.version>2.4.1</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.5</id>
+      <properties>
+        <hadoop.version>2.5.2</hadoop.version>
       </properties>
     </profile>
 
     <profile>
       <id>hadoop-2.6</id>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.6.5</hadoop.version>
       </properties>
     </profile>
 
     <profile>
       <id>hadoop-2.7</id>
       <properties>
-        <hadoop.version>2.7.0</hadoop.version>
+        <hadoop.version>2.7.3</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.8</id>
+      <properties>
+        <hadoop.version>2.8.0</hadoop.version>
       </properties>
     </profile>
 

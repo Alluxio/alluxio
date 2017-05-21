@@ -18,7 +18,9 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
@@ -38,6 +40,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.security.SecurityUtil;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,12 +88,15 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
    */
-  protected HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
+  HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
-    super(ufsUri);
+    super(ufsUri, conf);
     mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     try {
+      // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
+      // group service.
+      UserGroupInformation.setConfiguration(hdfsConf);
       mFileSystem = path.getFileSystem(hdfsConf);
     } catch (IOException e) {
       LOG.warn("Exception thrown when trying to get FileSystem for {} : {}", ufsUri,
@@ -120,6 +126,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     Preconditions.checkNotNull(conf, "conf");
     Configuration hdfsConf = new Configuration();
 
+    // Load HDFS site properties from the given file and overwrite the default HDFS conf,
+    // the path of this file can be passed through --option
+    hdfsConf.addResource(new Path(conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
+
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
@@ -134,13 +144,18 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     hdfsConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
-    // Load HDFS site properties from the given file and overwrite the default HDFS conf,
-    // the path of this file can be passed through --option
-    hdfsConf.addResource(new Path(conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
-
     // NOTE, adding S3 credentials in system properties to HDFS conf for backward compatibility.
     // TODO(binfan): remove this as it can be set in mount options through --option
-    HdfsUnderFileSystemUtils.addS3Credentials(hdfsConf);
+    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY.toString();
+    if (System.getProperty(accessKeyConf) != null
+        && !conf.containsKey(PropertyKey.S3N_ACCESS_KEY)) {
+      hdfsConf.set(accessKeyConf, System.getProperty(accessKeyConf));
+    }
+    String secretKeyConf = PropertyKey.S3N_SECRET_KEY.toString();
+    if (System.getProperty(secretKeyConf) != null
+        && !conf.containsKey(PropertyKey.S3N_SECRET_KEY)) {
+      hdfsConf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    }
     // Set all parameters passed through --option
     for (Map.Entry<String, String> entry : conf.getUserSpecifiedConf().entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
@@ -168,8 +183,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     while (retryPolicy.attemptRetry()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return FileSystem.create(mFileSystem, new Path(path),
-            new FsPermission(options.getMode().toShort()));
+        return new HdfsUnderFileOutputStream(FileSystem.create(mFileSystem, new Path(path),
+            new FsPermission(options.getMode().toShort())));
       } catch (IOException e) {
         LOG.warn("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage());
         te = e;
@@ -204,6 +219,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    Path tPath = new Path(path);
+    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     return getFileLocations(path, FileLocationOptions.defaults());
   }
@@ -232,29 +254,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
-      try {
-        FileStatus fs = mFileSystem.getFileStatus(tPath);
-        return fs.getLen();
-      } catch (IOException e) {
-        LOG.warn("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
-            e.getMessage());
-      }
-    }
-    return -1;
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    Path tPath = new Path(path);
-    if (!mFileSystem.exists(tPath)) {
-      throw new FileNotFoundException(path);
-    }
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return fs.getModificationTime();
+    return new UfsFileStatus(path, fs.getLen(), fs.getModificationTime(), fs.getOwner(),
+        fs.getGroup(), fs.getPermission().toShort());
   }
 
   @Override
@@ -293,16 +297,25 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     FileStatus[] files = listStatusInternal(path);
     if (files == null) {
       return null;
     }
-    UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+    UfsStatus[] rtn = new UfsStatus[files.length];
     int i = 0;
     for (FileStatus status : files) {
       // only return the relative path, to keep consistent with java.io.File.list()
-      rtn[i++] =  new UnderFileStatus(status.getPath().getName(), status.isDir());
+      UfsStatus retStatus;
+      if (!status.isDir()) {
+        retStatus = new UfsFileStatus(status.getPath().getName(), status.getLen(),
+            status.getModificationTime(), status.getOwner(), status.getGroup(),
+            status.getPermission().toShort());
+      } else {
+        retStatus = new UfsDirectoryStatus(status.getPath().getName(), status.getOwner(),
+            status.getGroup(), status.getPermission().toShort());
+      }
+      rtn[i++] = retStatus;
     }
     return rtn;
   }
@@ -453,36 +466,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
       LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getOwner();
-    } catch (IOException e) {
-      LOG.warn("Fail to get owner for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getGroup();
-    } catch (IOException e) {
-      LOG.warn("Fail to get group for {} : {}", path, e.getMessage());
-      throw e;
-    }
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    try {
-      return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
-    } catch (IOException e) {
-      LOG.warn("Fail to get permission for {} : {}", path, e.getMessage());
       throw e;
     }
   }

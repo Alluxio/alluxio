@@ -14,12 +14,14 @@ package alluxio.security;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
@@ -31,7 +33,7 @@ import org.junit.rules.ExpectedException;
 /**
  * Unit tests for starting a cluster when security is enabled.
  */
-public class ClusterInitializationTest {
+public final class ClusterInitializationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -81,7 +83,8 @@ public class ClusterInitializationTest {
 
     AuthenticatedClientUser.set(SUPER_USER);
     Assert.assertEquals(SUPER_USER,
-        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getOwner());
+        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile"), GetStatusOptions.defaults())
+            .getOwner());
     registry.stop();
   }
 

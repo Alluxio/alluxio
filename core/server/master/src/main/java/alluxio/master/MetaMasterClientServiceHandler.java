@@ -12,6 +12,12 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.RpcUtils;
+import alluxio.exception.AlluxioException;
+import alluxio.thrift.GetMasterInfoTOptions;
+import alluxio.thrift.GetMasterInfoTResponse;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
@@ -21,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
@@ -35,30 +39,34 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   /**
    * @param masterProcess the Alluxio master process
    */
-  public MetaMasterClientServiceHandler(MasterProcess masterProcess) {
+  MetaMasterClientServiceHandler(MasterProcess masterProcess) {
     mMasterProcess = masterProcess;
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.META_MASTER_CLIENT_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   @Override
-  public MasterInfo getInfo(Set<MasterInfoField> fields) throws TException {
-    if (fields == null) {
-      fields = new HashSet<>(Arrays.asList(MasterInfoField.values()));
-    }
-    MasterInfo info = new alluxio.thrift.MasterInfo();
-    for (MasterInfoField field : fields) {
-      switch (field) {
-        case WEB_PORT:
-          info.setWebPort(mMasterProcess.getWebAddress().getPort());
-          break;
-        default:
-          LOG.warn("Unrecognized master info field: " + field);
+  public GetMasterInfoTResponse getMasterInfo(final GetMasterInfoTOptions options)
+      throws TException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterInfoTResponse>() {
+      @Override
+      public GetMasterInfoTResponse call() throws AlluxioException {
+        MasterInfo info = new alluxio.thrift.MasterInfo();
+        for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
+            : Arrays.asList(MasterInfoField.values())) {
+          switch (field) {
+            case WEB_PORT:
+              info.setWebPort(mMasterProcess.getWebAddress().getPort());
+              break;
+            default:
+              LOG.warn("Unrecognized master info field: " + field);
+          }
+        }
+        return new GetMasterInfoTResponse(info);
       }
-    }
-    return info;
+    });
   }
 }

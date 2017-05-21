@@ -121,7 +121,7 @@ final class UfsJournalGarbageCollector implements Closeable {
 
     long lastModifiedTimeMs;
     try {
-      lastModifiedTimeMs = mUfs.getModificationTimeMs(file.getLocation().toString());
+      lastModifiedTimeMs = mUfs.getFileStatus(file.getLocation().toString()).getLastModifiedTime();
     } catch (IOException e) {
       LOG.warn("Failed to get the last modified time for {}.", file.getLocation());
       return;

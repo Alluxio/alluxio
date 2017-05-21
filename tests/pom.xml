@@ -34,23 +34,43 @@
   <dependencies>
     <!-- External test dependencies -->
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava-testlib</artifactId>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -64,6 +84,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <scope>test</scope>
@@ -72,7 +97,45 @@
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -85,9 +148,39 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-protobuf</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-common</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-master</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-master</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-proxy</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-worker</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -159,6 +252,46 @@
   </dependencies>
 
   <profiles>
+    <!-- Profile to build tests module connecting to hdfs 1 -->
+    <!-- In hadoop-1, hadoop-client is a wrapper on hadoop-core but excluding a few dependencies from hadoop-core.
+         Depending on hadoop-client will lead to missing class errors in test.
+         So we need to have the direct dep on hadoop-core. -->
+    <!-- Mark hadoop-core as provided because alluxio-underfs-hdfs will come with a shaded version. -->
+    <profile>
+      <id>hadoop-1</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Profile to build tests module connecting to hdfs 2 -->
+    <!-- Mark hadoop-{common, hdfs} as provided because alluxio-underfs-hdfs will come with a shaded version. -->
+    <profile>
+      <id>hadoop-2</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
     <profile>
       <id>hdfsTest</id>
       <dependencies>
@@ -200,12 +333,6 @@
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-glusterfs</artifactId>
           <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -280,12 +407,6 @@
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-oss</artifactId>
           <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpcore</artifactId>
-          <version>4.4</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

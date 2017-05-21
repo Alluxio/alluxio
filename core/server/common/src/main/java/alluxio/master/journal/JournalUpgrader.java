@@ -45,7 +45,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * any data in case of failures.
  *
  * <pre>
- * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
+ * java -cp \
+ *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalUpgrader -journalDirectoryV0 YourJournalDirectoryV0
  * </pre>
  */
@@ -87,7 +88,7 @@ public final class JournalUpgrader {
       mJournalV1 = (new Journal.Factory(
           getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))).create(master);
 
-      mUfs = UnderFileSystem.Factory.get(sJournalDirectoryV0);
+      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0);
 
       mCheckpointV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "checkpoint.data");
       mCompletedLogsV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "completed");
@@ -210,7 +211,7 @@ public final class JournalUpgrader {
   /**
    * Reads a journal via
    * {@code java -cp \
-   * assembly/target/alluxio-assemblies-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+   * assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
    * alluxio.master.journal.JournalUpgrader -master BlockMaster}.
    *
    * @param args arguments passed to the tool

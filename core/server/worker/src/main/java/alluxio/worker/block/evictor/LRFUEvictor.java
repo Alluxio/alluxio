@@ -59,7 +59,7 @@ public final class LRFUEvictor extends AbstractEvictor {
   /** The attenuation factor is in the range of [2, INF]. */
   private final double mAttenuationFactor;
 
-  //logic time count
+  /** Logic time count. */
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
   /**

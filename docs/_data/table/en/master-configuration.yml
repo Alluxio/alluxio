@@ -47,6 +47,10 @@ alluxio.master.startup.consistency.check.enabled:
   During the time the check is running, Alluxio will be in read only mode. Enabled by default.
 alluxio.master.ttl.checker.interval.ms:
   Time interval (in milliseconds) to periodically delete the files with expired ttl value.
+alluxio.master.ufs.path.cache.capacity:
+  The capacity of the UFS path cache. This cache is used to approximate the `Once` metadata load behavior
+  (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the
+  `Once` behavior.
 alluxio.master.web.bind.host:
   The hostname Alluxio master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
 alluxio.master.web.hostname:

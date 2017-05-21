@@ -21,11 +21,15 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,38 +47,83 @@ public interface UnderFileSystem extends Closeable {
    * The factory for the {@link UnderFileSystem}.
    */
   class Factory {
+    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
+
     private Factory() {} // prevent instantiation
 
     /**
-     * Gets the {@link UnderFileSystem} instance according to its UFS path. This method should only
-     * be used for journal operations and tests.
+     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
+     * only be used for journal operations and tests.
      *
      * @param path the file path storing over the ufs
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem get(String path) {
-      return UnderFileSystemRegistry.create(path, null);
+    public static UnderFileSystem create(String path) {
+      return create(path, UnderFileSystemConfiguration.defaults());
     }
 
     /**
-     * Gets the {@link UnderFileSystem} instance according to its UFS path. This method should only
-     * be used for journal operations and tests.
+     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
+     * only be used for journal operations and tests.
      *
      * @param path journal path in ufs
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem get(URI path) {
-      return get(path.toString());
+    public static UnderFileSystem create(URI path) {
+      return create(path.toString());
+    }
+
+    /**
+     * Creates a client for operations involved with the under file system. An
+     * {@link IllegalArgumentException} is thrown if there is no under file system for the given
+     * path or if no under file system could successfully be created.
+     *
+     * @param path path
+     * @param ufsConf optional configuration object for the UFS, may be null
+     * @return client for the under file system
+     */
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+      // Try to obtain the appropriate factory
+      List<UnderFileSystemFactory> factories = UnderFileSystemFactoryRegistry.findAll(path);
+      if (factories.isEmpty()) {
+        throw new IllegalArgumentException("No Under File System Factory found for: " + path);
+      }
+
+      List<Throwable> errors = new ArrayList<>();
+      for (UnderFileSystemFactory factory : factories) {
+        try {
+          // Use the factory to create the actual client for the Under File System
+          return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
+        } catch (Throwable e) {
+          // This needs to be Throwable rather than Error to catch service loading errors
+          errors.add(e);
+          LOG.warn("Failed to create UnderFileSystemFactory {}", factory, e);
+        }
+      }
+
+      // If we reach here no factories were able to successfully create for this path likely due to
+      // missing configuration since if we reached here at least some factories claimed to support
+      // the path
+      // Need to collate the errors
+      StringBuilder errorStr = new StringBuilder();
+      errorStr.append("All eligible Under File Systems were unable to create an instance for the "
+          + "given path: ").append(path).append('\n');
+      for (Throwable e : errors) {
+        errorStr.append(e).append('\n');
+      }
+      throw new IllegalArgumentException(errorStr.toString());
     }
 
     /**
      * @return the instance of under file system for Alluxio root directory
      */
-    public static UnderFileSystem getForRoot() {
+    public static UnderFileSystem createForRoot() {
       String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      Map<String, String> ufsConf = Configuration.getNestedProperties(
-          PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return UnderFileSystemRegistry.create(ufsRoot, ufsConf);
+      boolean readOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+      boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+      Map<String, String> ufsConf =
+          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      return create(ufsRoot, new UnderFileSystemConfiguration(readOnly, shared, ufsConf));
     }
   }
 
@@ -118,15 +167,6 @@ public interface UnderFileSystem extends Closeable {
    * Closes this under file system.
    */
   void close() throws IOException;
-
-  /**
-   * Configures and updates the properties. For instance, this method can add new properties or
-   * modify existing properties specified through {@link #setProperties(Map)}.
-   *
-   * The default implementation is a no-op. This should be overridden if a subclass needs
-   * additional functionality.
-   */
-  void configureProperties() throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -213,6 +253,14 @@ public interface UnderFileSystem extends Closeable {
   long getBlockSizeByte(String path) throws IOException;
 
   /**
+   * Gets the directory status.
+   *
+   * @param path the file name
+   * @return the directory status
+   */
+  UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
+
+  /**
    * Gets the list of locations of the indicated path.
    *
    * @param path the file name
@@ -230,50 +278,12 @@ public interface UnderFileSystem extends Closeable {
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file size in bytes.
+   * Gets the file status.
    *
    * @param path the file name
-   * @return the file size in bytes
+   * @return the file status
    */
-  long getFileSize(String path) throws IOException;
-
-  /**
-   * Gets the group of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the group of the file
-   */
-  String getGroup(String path) throws IOException;
-
-  /**
-   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
-   * be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the mode of the file
-   */
-  short getMode(String path) throws IOException;
-
-  /**
-   * Gets the UTC time of when the indicated path was modified recently in ms.
-   *
-   * @param path the file name
-   * @return modification time in milliseconds
-   */
-  long getModificationTimeMs(String path) throws IOException;
-
-  /**
-   * Gets the owner of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   */
-  String getOwner(String path) throws IOException;
-
-  /**
-   * @return the property map for this {@link UnderFileSystem}
-   */
-  Map<String, String> getProperties();
+  UfsFileStatus getFileStatus(String path) throws IOException;
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
@@ -329,7 +339,7 @@ public interface UnderFileSystem extends Closeable {
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
-  UnderFileStatus[] listStatus(String path) throws IOException;
+  UfsStatus[] listStatus(String path) throws IOException;
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
@@ -351,7 +361,7 @@ public interface UnderFileSystem extends Closeable {
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
-  UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException;
+  UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
@@ -437,13 +447,6 @@ public interface UnderFileSystem extends Closeable {
    * @param group the new group to set, unchanged if null
    */
   void setOwner(String path, String owner, String group) throws IOException;
-
-  /**
-   * Sets the properties for this {@link UnderFileSystem}.
-   *
-   * @param properties a {@link Map} of property names to values
-   */
-  void setProperties(Map<String, String> properties);
 
   /**
    * Whether this type of UFS supports flush.

@@ -38,8 +38,8 @@ with maven. For example, if you want Alluxio to work with Hadoop HDFS `2.6.0`:
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
 If everything succeeds, you should see
-`alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
-`assembly/target` directory. This is the jar file you can use to run both Alluxio Master and Worker.
+`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
+`assembly/server/target` directory. This is the jar file you can use to run both Alluxio Master and Worker.
 
 ## Configuring Alluxio
 

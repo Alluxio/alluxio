@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A class that manages the UFS used by different services.
@@ -30,7 +29,7 @@ public interface UfsManager extends Closeable {
    * @return the UFS instance
    * @throws IOException if it is failed to create the UFS instance
    */
-  UnderFileSystem addMount(long mountId, String ufsUri, Map<String, String> ufsConf)
+  UnderFileSystem addMount(long mountId, String ufsUri, UnderFileSystemConfiguration ufsConf)
       throws IOException;
 
   /**

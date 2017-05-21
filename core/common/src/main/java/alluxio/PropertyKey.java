@@ -16,6 +16,8 @@ import alluxio.exception.ExceptionMessage;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +51,8 @@ public class PropertyKey {
       create(Name.METRICS_CONF_FILE, String.format("${%s}/metrics.properties", Name.CONF_DIR));
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       create(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "5sec");
+  public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+      create(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, "30sec");
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       create(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB");
   public static final PropertyKey SITE_CONF_DIR =
@@ -70,10 +74,12 @@ public class PropertyKey {
   public static final PropertyKey ZOOKEEPER_LEADER_PATH =
       create(Name.ZOOKEEPER_LEADER_PATH, "/leader");
 
-  //
-  // UFS related properties
-  //
-  // Deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
+  /**
+   * UFS related properties.
+   *
+   * @deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
+   */
+  @Deprecated
   public static final PropertyKey UNDERFS_ADDRESS =
       create(Name.UNDERFS_ADDRESS, String.format("${%s}/underFSStorage", Name.WORK_DIR));
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
@@ -97,6 +103,8 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
       create(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///,maprfs:///");
   public static final PropertyKey UNDERFS_HDFS_REMOTE = create(Name.UNDERFS_HDFS_REMOTE, false);
+  public static final PropertyKey UNDERFS_OBJECT_STORE_SERVICE_THREADS =
+      create(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS, 20);
   public static final PropertyKey UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
       create(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY, false);
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
@@ -127,6 +135,8 @@ public class PropertyKey {
       create(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 20);
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       create(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, "1min");
+  public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
+      create(Name.UNDERFS_S3A_DIRECTORY_SUFFIX, "/");
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       create(Name.UNDERFS_S3A_INHERIT_ACL, true);
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
@@ -168,22 +178,23 @@ public class PropertyKey {
   // Mount table related properties
   //
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_ALLUXIO =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_ALLUXIO, "/", "root");
+      create(Template.MASTER_MOUNT_TABLE_ALLUXIO, "/", "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_OPTION =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_OPTION, null, "root");
+      create(Template.MASTER_MOUNT_TABLE_OPTION, null, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_READONLY, false, "root");
+      create(Template.MASTER_MOUNT_TABLE_READONLY, false, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_SHARED, true, "root");
+      create(Template.MASTER_MOUNT_TABLE_SHARED, true, "root");
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
-      create(Template.MASTER_MOUNT_TABLE_ENTRY_UFS,
+      create(Template.MASTER_MOUNT_TABLE_UFS,
           String.format("${%s}", Name.UNDERFS_ADDRESS), "root");
 
-  //
-  // Master related properties
-  //
-  // deprecated since version 1.3 and will be removed in version 2.0
-  // use MASTER_HOSTNAME instead
+  /**
+   * Master related properties.
+   *
+   * @deprecated since version 1.3 and will be removed in version 2.0, use MASTER_HOSTNAME instead.
+   */
+  @Deprecated
   public static final PropertyKey MASTER_ADDRESS = create(Name.MASTER_ADDRESS, null);
   public static final PropertyKey MASTER_BIND_HOST = create(Name.MASTER_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
@@ -197,12 +208,15 @@ public class PropertyKey {
       create(Name.MASTER_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey MASTER_HOSTNAME = create(Name.MASTER_HOSTNAME, null);
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
-      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "5min");
+      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5);
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       create(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min");
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       create(Name.MASTER_JOURNAL_FOLDER, String.format("${%s}/journal", Name.WORK_DIR));
-  // Deprecated since 1.5.0 and will be removed in 2.0.
+  /**
+   * @deprecated since 1.5.0 and will be removed in 2.0.
+   */
+  @Deprecated
   public static final PropertyKey MASTER_JOURNAL_FORMATTER_CLASS =
       create(Name.MASTER_JOURNAL_FORMATTER_CLASS,
           "alluxio.master.journalv0.ProtoBufJournalFormatter");
@@ -233,8 +247,11 @@ public class PropertyKey {
       create(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
           String.format("${%s}/recompute.log", Name.LOGS_DIR));
   public static final PropertyKey MASTER_PRINCIPAL = create(Name.MASTER_PRINCIPAL, null);
-  // deprecated since version 1.4 and will be removed in version 2.0
-  // use USER_RPC_RETRY_MAX_NUM_RETRY instead
+  /**
+   * @deprecated since version 1.4 and will be removed in version 2.0,
+   * use USER_RPC_RETRY_MAX_NUM_RETRY instead.
+   */
+  @Deprecated
   public static final PropertyKey MASTER_RETRY =
       create(Name.MASTER_RETRY, String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY));
   public static final PropertyKey MASTER_RPC_PORT = create(Name.MASTER_RPC_PORT, 19998);
@@ -250,6 +267,8 @@ public class PropertyKey {
       create(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS, 3);
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       create(Name.MASTER_TTL_CHECKER_INTERVAL_MS, 3600000);
+  public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
+      create(Name.MASTER_UFS_PATH_CACHE_CAPACITY, 100000);
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       create(Name.MASTER_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_WEB_HOSTNAME = create(Name.MASTER_WEB_HOSTNAME, null);
@@ -284,6 +303,8 @@ public class PropertyKey {
   public static final PropertyKey WORKER_DATA_PORT = create(Name.WORKER_DATA_PORT, 29999);
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
       create(Name.WORKER_DATA_SERVER_CLASS, "alluxio.worker.netty.NettyDataServer");
+  public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
+      create(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS, "");
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
       create(Name.WORKER_DATA_TMP_FOLDER, ".tmp_blocks");
   public static final PropertyKey WORKER_DATA_TMP_SUBDIR_MAX =
@@ -341,6 +362,8 @@ public class PropertyKey {
       create(Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128);
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128);
+  public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
+      create(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX, 128);
 
   public static final PropertyKey WORKER_PRINCIPAL = create(Name.WORKER_PRINCIPAL, null);
   public static final PropertyKey WORKER_RPC_PORT = create(Name.WORKER_RPC_PORT, 29998);
@@ -418,6 +441,8 @@ public class PropertyKey {
       create(Name.WORKER_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey WORKER_WEB_HOSTNAME = create(Name.WORKER_WEB_HOSTNAME, null);
   public static final PropertyKey WORKER_WEB_PORT = create(Name.WORKER_WEB_PORT, 30000);
+  public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+      create(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000);
 
   //
   // Proxy related properties
@@ -435,10 +460,16 @@ public class PropertyKey {
       create(Name.USER_BLOCK_MASTER_CLIENT_THREADS, 10);
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       create(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "8MB");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_BLOCK_REMOTE_READER_CLASS =
       create(Name.USER_BLOCK_REMOTE_READER_CLASS, "alluxio.client.netty.NettyRemoteBlockReader");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_BLOCK_REMOTE_WRITER_CLASS =
       create(Name.USER_BLOCK_REMOTE_WRITER_CLASS, "alluxio.client.netty.NettyRemoteBlockWriter");
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
@@ -454,11 +485,15 @@ public class PropertyKey {
   public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
       create(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
-      create(Name.USER_FILE_BUFFER_BYTES, "1MB");
+      create(Name.USER_FILE_BUFFER_BYTES, "8MB");
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       create(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
+  public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
+      create(Name.USER_FILE_DELETE_UNCHECKED, false);
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
       create(Name.USER_FILE_MASTER_CLIENT_THREADS, 10);
+  public static final PropertyKey USER_FILE_METADATA_LOAD_TYPE =
+      create(Name.USER_FILE_METADATA_LOAD_TYPE, "Once");
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       create(Name.USER_FILE_PASSIVE_CACHE_ENABLED, true);
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
@@ -522,19 +557,31 @@ public class PropertyKey {
       create(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000);
-  // Deprecated
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_DELEGATION_ENABLED =
       create(Name.USER_UFS_DELEGATION_ENABLED, true);
-  // Deprecated
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
       create(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, "8MB");
   public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
       create(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, "2MB");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_FILE_READER_CLASS =
       create(Name.USER_UFS_FILE_READER_CLASS,
           "alluxio.client.netty.NettyUnderFileSystemFileReader");
-  // Deprecated. It will be removed in 2.0.0.
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_UFS_FILE_WRITER_CLASS =
       create(Name.USER_UFS_FILE_WRITER_CLASS,
           "alluxio.client.netty.NettyUnderFileSystemFileWriter");
@@ -667,6 +714,8 @@ public class PropertyKey {
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout.ms";
+    public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+        "alluxio.network.netty.heartbeat.timeout.ms";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
@@ -700,6 +749,8 @@ public class PropertyKey {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
+        "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
@@ -710,6 +761,8 @@ public class PropertyKey {
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout.ms";
+    public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
+        "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
         "alluxio.underfs.s3a.request.timeout.ms";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
@@ -810,6 +863,8 @@ public class PropertyKey {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval.ms";
+    public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
+        "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
@@ -841,6 +896,8 @@ public class PropertyKey {
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
+    public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
+        "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
@@ -894,6 +951,8 @@ public class PropertyKey {
         "alluxio.worker.network.netty.file.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
         "alluxio.worker.network.netty.file.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
+        "alluxio.worker.network.netty.rpc.threads.max";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
@@ -912,6 +971,8 @@ public class PropertyKey {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
+    public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
+        "alluxio.worker.ufs.block.open.timeout.ms";
 
     //
     // Proxy related properties
@@ -947,8 +1008,12 @@ public class PropertyKey {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
+    public static final String USER_FILE_DELETE_UNCHECKED =
+        "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
         "alluxio.user.file.master.client.threads";
+    public static final String USER_FILE_METADATA_LOAD_TYPE =
+        "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
@@ -1063,18 +1128,20 @@ public class PropertyKey {
    */
   @ThreadSafe
   public enum Template {
-    MASTER_MOUNT_TABLE_ENTRY_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
+    MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
-    MASTER_MOUNT_TABLE_ENTRY_OPTION("alluxio.master.mount.table.%s.option",
+    MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
-    MASTER_MOUNT_TABLE_ENTRY_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
+    MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option(\\.\\w+)++"),
-    MASTER_MOUNT_TABLE_ENTRY_READONLY("alluxio.master.mount.table.%s.readonly",
+    MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly"),
-    MASTER_MOUNT_TABLE_ENTRY_SHARED("alluxio.master.mount.table.%s.shared",
+    MASTER_MOUNT_TABLE_SHARED("alluxio.master.mount.table.%s.shared",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.shared"),
-    MASTER_MOUNT_TABLE_ENTRY_UFS("alluxio.master.mount.table.%s.ufs",
+    MASTER_MOUNT_TABLE_UFS("alluxio.master.mount.table.%s.ufs",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
+    MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY("alluxio.master.mount.table.root.option.%s",
+        "alluxio\\.master\\.mount\\.table\\.root\\.option(\\.\\w+)++"),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
@@ -1254,5 +1321,26 @@ public class PropertyKey {
   public String getDefaultValue() {
     Object value = DEFAULT_VALUES.get(this);
     return value != null ? value.toString() : null;
+  }
+
+  /**
+   * @param name the name of a property key
+   * @return if this property key is deprecated
+   */
+  public static boolean isDeprecated(String name) {
+    try {
+      PropertyKey key = new PropertyKey(name);
+      Class c = key.getClass();
+      Field field = c.getDeclaredField(name);
+      Annotation[] annotations = field.getDeclaredAnnotations();
+      for (Annotation anno : annotations) {
+        if (anno instanceof Deprecated) {
+          return true;
+        }
+      }
+      return false;
+    } catch (NoSuchFieldException e) {
+      return false;
+    }
   }
 }

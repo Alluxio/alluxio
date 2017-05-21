@@ -35,12 +35,8 @@ priority: 4
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
 
-此处, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别为`Access Key ID`字符串和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://ak-console.aliyun.com/#/accesskey)管理；`fs.oss.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`。
+此处, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别为`Access Key ID`字符串和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://ak-console.aliyun.com)管理；`fs.oss.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`。
 ([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm))。
-
-如果你不太确定如何更改`conf/alluxio-env.sh`，有另外一个方法提供这些配置。可以在`conf/`目录下创建一个`alluxio-site.properties`文件，并在其中添加：
-
-{% include Configuring-Alluxio-with-OSS/properties.md %}
 
 更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#running-alluxio-locally-with-s3)
 

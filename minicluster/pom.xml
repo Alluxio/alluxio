@@ -34,20 +34,23 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
-      <scope>compile</scope>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-reflect</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-test</artifactId>
       <scope>compile</scope>
     </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -79,19 +82,13 @@
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server-master</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
     </dependency>

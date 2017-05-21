@@ -150,7 +150,7 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
     AccessControlList acl = restS3Service.getBucketAcl(bucketName);
     short bucketMode = S3Utils.translateBucketAcl(acl, accountOwnerId);
 
-    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketMode, accountOwner);
+    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketMode, accountOwner, conf);
   }
 
   /**
@@ -161,10 +161,11 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
+   * @param conf configuration for this S3A ufs
    */
   protected S3UnderFileSystem(AlluxioURI uri, S3Service s3Service, String bucketName,
-      short bucketMode, String accountOwner) {
-    super(uri);
+      short bucketMode, String accountOwner, UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mClient = s3Service;
     mBucketName = bucketName;
     mBucketMode = bucketMode;
@@ -183,24 +184,6 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
   // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
-
-  // Returns the account owner.
-  @Override
-  public String getOwner(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // No group in S3 ACL, returns the account owner.
-  @Override
-  public String getGroup(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the S3 bucket.
-  @Override
-  public short getMode(String path) throws IOException {
-    return mBucketMode;
-  }
 
   @Override
   protected boolean copyObject(String src, String dst) {
@@ -302,11 +285,12 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public String[] getObjectNames() {
+    public ObjectStatus[] getObjectStatuses() {
       StorageObject[] objects = mChunk.getObjects();
-      String[] ret = new String[objects.length];
+      ObjectStatus[] ret = new ObjectStatus[objects.length];
       for (int i = 0; i < ret.length; ++i) {
-        ret[i] = objects[i].getKey();
+        ret[i] = new ObjectStatus(objects[i].getKey(), objects[i].getContentLength(),
+            objects[i].getLastModifiedDate().getTime());
       }
       return ret;
     }
@@ -337,10 +321,16 @@ public class S3UnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedDate().getTime());
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModifiedDate().getTime());
     } catch (ServiceException e) {
       return null;
     }
+  }
+
+  // No group in S3 ACL, returns the account owner for group.
+  @Override
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
   }
 
   @Override

@@ -20,7 +20,7 @@ function printUsage {
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
-  echo -e "  runClass      \t Run an Alluxio class with main method."
+  echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
@@ -172,7 +172,6 @@ function runJavaClass {
 }
 
 function main {
-
   LAUNCHER=
   # If debugging is enabled propagate that through to sub-shells
   if [[ $- == *x* ]]; then
@@ -232,6 +231,7 @@ function main {
 
     echo "Formatting Alluxio Master @ $(hostname -f)"
     CLASS="alluxio.cli.Format"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     PARAMETER="master"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
@@ -239,15 +239,18 @@ function main {
   "formatWorker")
     echo "Formatting Alluxio Worker @ $(hostname -f)"
     CLASS="alluxio.cli.Format"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     PARAMETER="worker"
     runJavaClass "$@"
   ;;
   "fs")
     CLASS="alluxio.cli.AlluxioShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "getConf")
     CLASS="alluxio.cli.GetConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "loadufs")
@@ -257,47 +260,56 @@ function main {
   ;;
   "runClass")
     CLASS=$1
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case
     shift
     runJavaClass "$@"
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runKVTest")
     CLASS="alluxio.examples.keyvalue.KeyValueStoreOperations"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     PARAMETER="/default_tests_files/KeyValueStoreOperations"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runTests")
     CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runMiniBenchmark")
     CLASS="alluxio.cli.MiniBenchmark"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
     ;;
   "runJournalCrashTest")
     CLASS="alluxio.cli.JournalCrashTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runMesosTest")
     CLASS="alluxio.cli.AlluxioFrameworkIntegrationTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "readJournal")
     CLASS="alluxio.master.journal.JournalTool"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "upgradeJournal")
     CLASS="alluxio.master.journal.JournalUpgrader"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
@@ -319,7 +331,7 @@ function main {
   "protoGen")
     rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=$(dirname ${src_file}) ${src_file}
+      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}
     done
   ;;
   "clearCache")
@@ -327,10 +339,12 @@ function main {
   ;;
   "version")
     CLASS="alluxio.cli.Version"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "validateConf")
     CLASS="alluxio.cli.ValidateConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;

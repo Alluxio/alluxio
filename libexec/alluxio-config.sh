@@ -33,7 +33,8 @@ this="${config_bin}/${script}"
 if [[ -z "${ALLUXIO_SYSTEM_INSTALLATION}" ]]; then
   VERSION=1.5.0-SNAPSHOT
   ALLUXIO_HOME=$(dirname $(dirname "${this}"))
-  ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
   ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
   ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
 fi
@@ -105,9 +106,5 @@ ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKE
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logger.type=USER_LOGGER"
 
-# A developer option to prepend Alluxio jars before ALLUXIO_CLASSPATH jars
-if [[ -n "${ALLUXIO_PREPEND_ALLUXIO_CLASSES}" ]]; then
-  export CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_JARS}:${ALLUXIO_CLASSPATH}"
-else
-  export CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_JARS}"
-fi
+ALLUXIO_CLIENT_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_CLIENT_JAR}"
+ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_SERVER_JAR}"
