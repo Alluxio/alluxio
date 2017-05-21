@@ -324,6 +324,11 @@
         <version>3.1.0</version>
       </dependency>
       <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.16</version>
+      </dependency>
+      <dependency>
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
@@ -697,8 +702,16 @@
     </dependency>
     <!-- System logging. -->
     <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
     </dependency>
 
     <!-- Dependencies in the test scope. -->
@@ -1165,9 +1178,23 @@
     </profile>
 
     <profile>
+      <id>hadoop-2.3</id>
+      <properties>
+        <hadoop.version>2.3.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
       <id>hadoop-2.4</id>
       <properties>
         <hadoop.version>2.4.1</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.5</id>
+      <properties>
+        <hadoop.version>2.5.2</hadoop.version>
       </properties>
     </profile>
 
@@ -1182,6 +1209,13 @@
       <id>hadoop-2.7</id>
       <properties>
         <hadoop.version>2.7.3</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.8</id>
+      <properties>
+        <hadoop.version>2.8.0</hadoop.version>
       </properties>
     </profile>
 
