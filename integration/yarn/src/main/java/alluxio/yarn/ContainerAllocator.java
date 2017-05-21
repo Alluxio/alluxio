@@ -86,7 +86,12 @@ public final class ContainerAllocator {
     mAllocatedContainerHosts = ConcurrentHashMultiset.create();
     mAllocatedContainers = new ArrayList<>();
   }
-
+  
+  /**
+   * Gets the hosts of workers that could be allocated.
+   *
+   * @return the unused worker hosts
+   */
   private String[] getPotentialWorkerHosts() throws YarnException, IOException {
     List<String> unusedHosts = Lists.newArrayList();
     for (String host : YarnUtils.getNodeHosts(mYarnClient)) {
