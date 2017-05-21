@@ -86,7 +86,7 @@ public final class ContainerAllocator {
     mAllocatedContainerHosts = ConcurrentHashMultiset.create();
     mAllocatedContainers = new ArrayList<>();
   }
-  
+
   /**
    * Gets the hosts of workers that could be allocated.
    *
