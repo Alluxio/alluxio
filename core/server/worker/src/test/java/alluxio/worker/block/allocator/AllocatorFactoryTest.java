@@ -28,7 +28,7 @@ import org.junit.rules.TemporaryFolder;
  * Test {@link Allocator.Factory} by passing different allocate strategy class names with alluxio
  * conf and test if it generates the correct {@link Allocator} instance.
  */
-public class AllocatorFactoryTest {
+final public class AllocatorFactoryTest {
   private BlockMetadataManagerView mManagerView;
 
   /** Rule to create a new temporary folder during each test. */
