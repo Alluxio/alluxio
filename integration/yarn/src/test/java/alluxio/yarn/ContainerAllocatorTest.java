@@ -186,7 +186,10 @@ public final class ContainerAllocatorTest {
       }
     };
   }
-
+  /*
+   * Counts the hosts of containers and check if the number of hosts exceeds the maximum hosts
+   * limit.
+   */
   private void checkMaxHostsLimitNotExceeded(List<Container> containers, int maxContainersPerHost) {
     ConcurrentHashMap<String, Integer> counts = new ConcurrentHashMap<>();
     for (Container container : containers) {
