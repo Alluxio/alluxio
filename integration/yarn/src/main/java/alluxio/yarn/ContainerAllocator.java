@@ -139,6 +139,9 @@ public final class ContainerAllocator {
     mOutstandingContainerRequestsLatch.countDown();
   }
 
+  /**
+   * Requesets for containers.
+   */
   private void requestContainers() throws Exception {
     String[] hosts;
     boolean relaxLocality;
