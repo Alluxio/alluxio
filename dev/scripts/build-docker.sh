@@ -16,22 +16,35 @@
 
 set -e
 
-this=$(cd "$( dirname "$0" )"; pwd)
-cd "${this}"
-docker_dir="${this}/../../integration/docker"
+readonly SCRIPT_DIR=$(cd "$( dirname "$0" )"; pwd)
+readonly DOCKER_DIR="${SCRIPT_DIR}/../../integration/docker"
+readonly GENERATE_TARBALL_SCRIPT="${SCRIPT_DIR}/generate-tarball.sh"
 
-#"${this}/generate-tarball.sh" --skipFrameworks
-tarball=$(ls -tr tarballs | tail -1)
+# Builds a docker image from the specified tarball.
+function build_docker_image {
+  local tarball
+  local tmp_dir
+  tarball=$1
+  tmp_dir="$(mktemp -d)"
+  cp -r "${DOCKER_DIR}" "${tmp_dir}"
+  cp "${tarball}" "${tmp_dir}/docker"
+  cd "${tmp_dir}/docker"
+  # example tarball: /path/to/workdir/alluxio-1.4.0-SNAPSHOT.tar.gz
+  # docker image tags must be lowercase
+  tarball_basename=$(basename ${tarball})
+  tag=$(echo ${tarball_basename%.tar.gz} | tr '[:upper:]' '[:lower:]')
+  echo "Building ${tag} image..."
+  docker build -t "${tag}" --build-arg "ALLUXIO_TARBALL=${tarball_basename}" .
+  rm -rf "${tmp_dir}"
+}
 
-tmpdir="$(mktemp -d)"
-cp -r "${docker_dir}" "${tmpdir}"
-cp "tarballs/${tarball}" "${tmpdir}/docker"
+function main {
+  local tarball
+  cd "${SCRIPT_DIR}"
+  "${GENERATE_TARBALL_SCRIPT}" --skipFrameworks
+  tarball="${PWD}/tarballs/$(ls -tr tarballs | tail -1)"
+  echo ${tarball}
+  build_docker_image "${tarball}"
+}
 
-cd "${tmpdir}/docker"
-# example tarball: alluxio-1.4.0-SNAPSHOT.tar.gz
-# docker image tags must be lowercase
-tag=$(echo "${tarball%.tar.gz}" | tr '[:upper:]' '[:lower:]')
-
-echo "Building ${tag} image..."
-docker build -t "${tag}" --build-arg "ALLUXIO_TARBALL=${tarball}" .
-rm -rf "${tmpdir}"
+main "$@"
