@@ -17,22 +17,21 @@
 set -e
 
 this=$(cd "$( dirname "$0" )"; pwd)
-cd ${this}
-docker_dir=${this}/../../integration/docker
+cd "${this}"
+docker_dir="${this}/../../integration/docker"
 
-${this}/generate-tarball.sh --skipFrameworks
+#"${this}/generate-tarball.sh" --skipFrameworks
 tarball=$(ls -tr tarballs | tail -1)
 
-tmpdir=$(mktemp -d)
-cp -r ${docker_dir} ${tmpdir}
-cp tarballs/${tarball} ${tmpdir}/docker
+tmpdir="$(mktemp -d)"
+cp -r "${docker_dir}" "${tmpdir}"
+cp "tarballs/${tarball}" "${tmpdir}/docker"
 
-cd ${tmpdir}/docker
+cd "${tmpdir}/docker"
 # example tarball: alluxio-1.4.0-SNAPSHOT.tar.gz
-tag=${tarball%.tar.gz}
 # docker image tags must be lowercase
-DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME:-$(echo ${tag} | tr '[:upper:]' '[:lower:]')}
+tag=$(echo "${tarball%.tar.gz}" | tr '[:upper:]' '[:lower:]')
 
-echo "Building ${DOCKER_IMAGE_NAME} image..."
-docker build -t ${DOCKER_IMAGE_NAME} --build-arg ALLUXIO_TARBALL=${tarball}  .
-rm -rf ${tmpdir}
+echo "Building ${tag} image..."
+docker build -t "${tag}" --build-arg "ALLUXIO_TARBALL=${tarball}" .
+rm -rf "${tmpdir}"

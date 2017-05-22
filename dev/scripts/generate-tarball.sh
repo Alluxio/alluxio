@@ -26,51 +26,52 @@
 
 set -e
 
-buildFrameworks=true
+build_frameworks=true
 while [[ "$#" > 0 ]]; do
   case $1 in
-    --skipFrameworks) buildFrameworks=false; shift;;
+    --skipFrameworks) build_frameworks=false; shift;;
     *) echo "Unrecognized option: $1"; exit 1;;
   esac
 done
 
-THIS=$(cd "$( dirname "$0" )"; pwd)
-cd ${THIS}
-TARBALL_DIR="${THIS}/tarballs"
-WORK_DIR="${THIS}/workdir"
-CLIENT_DIR="client"
-FRAMEWORKS=( "flink" "presto" "spark" "hadoop" )
+this=$(cd "$( dirname "$0" )"; pwd)
+cd "${this}"
+tarball_dir="${this}/tarballs"
+work_dir="${this}/workdir"
+client_dir="client"
+frameworks=( "flink" "presto" "spark" "hadoop" )
 
-mkdir -p ${TARBALL_DIR}
-mkdir -p ${WORK_DIR}
-HOME="${THIS}/../.."
-BUILD_LOG="${HOME}/logs/build.log"
-REPO_COPY=${WORK_DIR}/alluxio
-rm -rf ${REPO_COPY}
-rsync -aq --exclude='logs' --exclude='dev' ${HOME} ${REPO_COPY}
+mkdir -p "${tarball_dir}"
+mkdir -p "${work_dir}"
+home="${this}/../.."
+build_log="${home}/logs/build.log"
+repo_copy="${work_dir}/alluxio"
+rm -rf "${repo_copy}"
+rsync -aq --exclude='logs' --exclude='dev' "${home}" "${repo_copy}"
 
-pushd ${REPO_COPY} > /dev/null
+pushd "${repo_copy}" > /dev/null
 git clean -qfdX
-mkdir -p ${CLIENT_DIR}
-if [[ "${buildFrameworks}" == true ]]; then
-  for PROFILE in "${FRAMEWORKS[@]}"; do
-    echo "Running build ${PROFILE} and logging to ${BUILD_LOG}"
-    mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${PROFILE} ${BUILD_OPTS} > ${BUILD_LOG} 2>&1
-    mkdir -p ${CLIENT_DIR}/${PROFILE}
-    cp core/client/runtime/target/alluxio-core-client-runtime-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar
+mkdir -p "${client_dir}"
+if [[ "${build_frameworks}" == true ]]; then
+  for profile in "${frameworks[@]}"; do
+    echo "Running build ${profile} and logging to ${build_log}"
+    mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${profile} ${BUILD_OPTS} > "${build_log}" 2>&1
+    mkdir -p "${client_dir}/${profile}"
+    version=$(bin/alluxio version)
+    cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${client_dir}/${profile}/alluxio-${version}-${profile}-client.jar"
   done
 fi
-echo "Running default build and logging to ${BUILD_LOG}"
-mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPTS} > ${BUILD_LOG} 2>&1
-VERSION=$(bin/alluxio version)
-PREFIX=alluxio-${VERSION}
+echo "Running default build and logging to ${build_log}"
+mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPTS} > "${build_log}" 2>&1
+version="$(bin/alluxio version)"
+prefix="alluxio-${version}"
 
 cd ..
-rm -rf ${PREFIX}
-mv alluxio ${PREFIX}
-TARGET=${TARBALL_DIR}/${PREFIX}.tar.gz
+rm -rf "${prefix}"
+mv alluxio "${prefix}"
+target="${tarball_dir}/${prefix}.tar.gz"
 
-gtar -czf ${TARGET} ${PREFIX} --exclude-vcs
+gtar -czf "${target}" "${prefix}" --exclude-vcs
 popd > /dev/null
 
-echo "Generated tarball at ${TARGET}"
+echo "Generated tarball at ${target}"
