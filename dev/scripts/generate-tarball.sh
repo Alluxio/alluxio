@@ -13,7 +13,7 @@
 #
 # This script generates a tarball of the current Alluxio commit. It does the following:
 # 1. Copy everything except logs/ and dev/ to a work directory
-# 2. Clean out unrevisioned files
+# 2. Clean out ignored files
 # 3. Compile, using the environment variable ${BUILD_OPTS} as options to the Maven build for each compute framework
 # 4. Use `bin/alluxio version` to determine the right directory name, e.g. alluxio-1.2.0
 # 5. Copy the generated client to the folder client/framework/
