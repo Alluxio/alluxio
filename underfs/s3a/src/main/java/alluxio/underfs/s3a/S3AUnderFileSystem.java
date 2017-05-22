@@ -12,7 +12,6 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -128,7 +127,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Socket timeout
     clientConf.setSocketTimeout(
-        (int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+        Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS)));
 
     // HTTP protocol
     if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
