@@ -27,21 +27,11 @@ public final class UnderFileSystemConfiguration {
   private boolean mShared;
   private Map<String, String> mUfsConf;
 
-  private static final UnderFileSystemConfiguration EMPTY_CONFIG =
-      new UnderFileSystemConfiguration();
-
   /**
    * @return default UFS configuration
    */
   public static UnderFileSystemConfiguration defaults() {
     return new UnderFileSystemConfiguration();
-  }
-
-  /**
-   * @return empty UFS configuration
-   */
-  public static final UnderFileSystemConfiguration empty() {
-    return EMPTY_CONFIG;
   }
 
   /**
