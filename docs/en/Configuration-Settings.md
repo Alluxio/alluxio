@@ -8,7 +8,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-This page explains the configuration system of Alluxio and also provides recommendation on how to customize the configuration
+This page explains the configuration settings of Alluxio and also provides recommendation on how to customize the configuration
 for Alluxio in different contexts.
 
 ## Configuration in Alluxio
@@ -17,11 +17,11 @@ Alluxio runtime respects three sources of configuration settings:
 
 1. [Application settings](#application-settings). Setting Alluxio configuration in this way is application-specific,
 and is required each time when running an application instance (e.g., a Spark job).
-2. [Environment variables](#environment-variables). This is an easy and fast way to set the basic properties
+2. [Environment variables](#environment-variables). This is an easy and fast way to set the basic configuration
 to manage Alluxio servers and run Alluxio shell commands.
 Note that, configuration set through environment variables may not be realized by applications.
 3. [Property files](#property-files). This is a general approach to customize any
-[supported Alluxio configuration properties](#appendix). Configuration in those files can be respected by Alluxio servers,
+[supported Alluxio configuration](#appendix). Configuration in those files can be respected by Alluxio servers,
 as well as applications.
 
 The priority to load configuration settings, from the highest to the lowest, is
@@ -47,7 +47,7 @@ Note that, setting Alluxio configuration in this way is application specific and
 > When you want to [start Alluxio server processes](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html) with your specific configuration tuning, it is often fast and easy to set environment variables to customize basic Alluxio configuration. However, these environment variables will not affect application processes like Spark or MapReduce that use Alluxio as a client.
 
 
-Alluxio supports a few basic and very frequently used configuration properties via the environment variables in
+Alluxio supports a few basic and very frequently used configuration settings via the environment variables in
 `conf/alluxio-env.sh`, including:
 
 <table class="table table-striped">
@@ -112,7 +112,7 @@ Alternatively, you can create one from a template we provided in the source code
 
 Using Alluxio supported environment variables has two limitations:
 first it only provides basic Alluxio settings, and second it does not affect non-Alluxio JVMs like Spark or MapReduce.
-To address them, Alluxio uses site property file `alluxio-site.properties` for users to customize all supported configuration properties, regardless of the JVM process.
+To address them, Alluxio uses site property file `alluxio-site.properties` for users to customize all supported configuration settings, regardless of the JVM process.
 On startup, Alluxio runtime checks if the configuration
 property file exists and if so, it uses the content to override the default configuration.
 To be specific, it searches `alluxio-site.properties` in `${HOME}/.alluxio/`, `/etc/alluxio/` (can be customized by changing the default value
@@ -144,7 +144,7 @@ across processes regardless the JVM is an Alluxio server or a job using Alluxio 
 
 ## Appendix
 
-All Alluxio configuration properties fall into one of the six categories:
+All Alluxio configuration settings fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
 [User specific](#user-configuration), [Cluster specific](#cluster-management) (used for running
@@ -231,7 +231,7 @@ When running Alluxio with resource managers like Mesos and YARN, Alluxio has add
 
 ### Security Configuration
 
-The security configuration specifies information regarding the security features, such as authentication and file permission. Properties for authentication take effect for master, worker, and user. Properties for file permission only take effect for master. See [Security](Security.html) for more information about security features.
+The security configuration specifies information regarding the security features, such as authentication and file permission. Settings for authentication take effect for master, worker, and user. Settings for file permission only take effect for master. See [Security](Security.html) for more information about security features.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
@@ -246,4 +246,4 @@ The security configuration specifies information regarding the security features
 
 ### Configure Multihomed Networks
 
-Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Alluxio master to listen on all NICs, you can specify `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node from connecting to any of its NIC. This is also the same case for other properties suffixed with `bind.host`.
+Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Alluxio master to listen on all NICs, you can specify `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node from connecting to any of its NIC. This is also the same case for other settings suffixed with `bind.host`.
