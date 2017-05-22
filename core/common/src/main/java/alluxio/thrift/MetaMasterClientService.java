@@ -45,15 +45,15 @@ public class MetaMasterClientService {
     /**
      * Returns information about the master.
      * 
-     * @param fields optional filter for what fields to return, defaults to all
+     * @param options the method options
      */
-    public MasterInfo getInfo(Set<MasterInfoField> fields) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public GetMasterInfoTResponse getMasterInfo(GetMasterInfoTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void getInfo(Set<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getMasterInfo(GetMasterInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -77,30 +77,30 @@ public class MetaMasterClientService {
       super(iprot, oprot);
     }
 
-    public MasterInfo getInfo(Set<MasterInfoField> fields) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetMasterInfoTResponse getMasterInfo(GetMasterInfoTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getInfo(fields);
-      return recv_getInfo();
+      send_getMasterInfo(options);
+      return recv_getMasterInfo();
     }
 
-    public void send_getInfo(Set<MasterInfoField> fields) throws org.apache.thrift.TException
+    public void send_getMasterInfo(GetMasterInfoTOptions options) throws org.apache.thrift.TException
     {
-      getInfo_args args = new getInfo_args();
-      args.setFields(fields);
-      sendBase("getInfo", args);
+      getMasterInfo_args args = new getMasterInfo_args();
+      args.setOptions(options);
+      sendBase("getMasterInfo", args);
     }
 
-    public MasterInfo recv_getInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetMasterInfoTResponse recv_getMasterInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      getInfo_result result = new getInfo_result();
-      receiveBase(result, "getInfo");
+      getMasterInfo_result result = new getMasterInfo_result();
+      receiveBase(result, "getMasterInfo");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getInfo failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getMasterInfo failed: unknown result");
     }
 
   }
@@ -121,35 +121,35 @@ public class MetaMasterClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void getInfo(Set<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getMasterInfo(GetMasterInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getInfo_call method_call = new getInfo_call(fields, resultHandler, this, ___protocolFactory, ___transport);
+      getMasterInfo_call method_call = new getMasterInfo_call(options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private Set<MasterInfoField> fields;
-      public getInfo_call(Set<MasterInfoField> fields, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getMasterInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private GetMasterInfoTOptions options;
+      public getMasterInfo_call(GetMasterInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.fields = fields;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getInfo", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getInfo_args args = new getInfo_args();
-        args.setFields(fields);
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getMasterInfo", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getMasterInfo_args args = new getMasterInfo_args();
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public MasterInfo getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public GetMasterInfoTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getInfo();
+        return (new Client(prot)).recv_getMasterInfo();
       }
     }
 
@@ -166,27 +166,27 @@ public class MetaMasterClientService {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
-      processMap.put("getInfo", new getInfo());
+      processMap.put("getMasterInfo", new getMasterInfo());
       return processMap;
     }
 
-    public static class getInfo<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getInfo_args> {
-      public getInfo() {
-        super("getInfo");
+    public static class getMasterInfo<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getMasterInfo_args> {
+      public getMasterInfo() {
+        super("getMasterInfo");
       }
 
-      public getInfo_args getEmptyArgsInstance() {
-        return new getInfo_args();
+      public getMasterInfo_args getEmptyArgsInstance() {
+        return new getMasterInfo_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public getInfo_result getResult(I iface, getInfo_args args) throws org.apache.thrift.TException {
-        getInfo_result result = new getInfo_result();
+      public getMasterInfo_result getResult(I iface, getMasterInfo_args args) throws org.apache.thrift.TException {
+        getMasterInfo_result result = new getMasterInfo_result();
         try {
-          result.success = iface.getInfo(args.fields);
+          result.success = iface.getMasterInfo(args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -207,24 +207,24 @@ public class MetaMasterClientService {
     }
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
-      processMap.put("getInfo", new getInfo());
+      processMap.put("getMasterInfo", new getMasterInfo());
       return processMap;
     }
 
-    public static class getInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getInfo_args, MasterInfo> {
-      public getInfo() {
-        super("getInfo");
+    public static class getMasterInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getMasterInfo_args, GetMasterInfoTResponse> {
+      public getMasterInfo() {
+        super("getMasterInfo");
       }
 
-      public getInfo_args getEmptyArgsInstance() {
-        return new getInfo_args();
+      public getMasterInfo_args getEmptyArgsInstance() {
+        return new getMasterInfo_args();
       }
 
-      public AsyncMethodCallback<MasterInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetMasterInfoTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<MasterInfo>() { 
-          public void onComplete(MasterInfo o) {
-            getInfo_result result = new getInfo_result();
+        return new AsyncMethodCallback<GetMasterInfoTResponse>() { 
+          public void onComplete(GetMasterInfoTResponse o) {
+            getMasterInfo_result result = new getMasterInfo_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -237,7 +237,7 @@ public class MetaMasterClientService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            getInfo_result result = new getInfo_result();
+            getMasterInfo_result result = new getMasterInfo_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -263,32 +263,32 @@ public class MetaMasterClientService {
         return false;
       }
 
-      public void start(I iface, getInfo_args args, org.apache.thrift.async.AsyncMethodCallback<MasterInfo> resultHandler) throws TException {
-        iface.getInfo(args.fields,resultHandler);
+      public void start(I iface, getMasterInfo_args args, org.apache.thrift.async.AsyncMethodCallback<GetMasterInfoTResponse> resultHandler) throws TException {
+        iface.getMasterInfo(args.options,resultHandler);
       }
     }
 
   }
 
-  public static class getInfo_args implements org.apache.thrift.TBase<getInfo_args, getInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getInfo_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getInfo_args");
+  public static class getMasterInfo_args implements org.apache.thrift.TBase<getMasterInfo_args, getMasterInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getMasterInfo_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getMasterInfo_args");
 
-    private static final org.apache.thrift.protocol.TField FIELDS_FIELD_DESC = new org.apache.thrift.protocol.TField("fields", org.apache.thrift.protocol.TType.SET, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getInfo_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getInfo_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getMasterInfo_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getMasterInfo_argsTupleSchemeFactory());
     }
 
-    private Set<MasterInfoField> fields; // required
+    private GetMasterInfoTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
-       * optional filter for what fields to return, defaults to all
+       * the method options
        */
-      FIELDS((short)1, "fields");
+      OPTIONS((short)1, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -303,8 +303,8 @@ public class MetaMasterClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // FIELDS
-            return FIELDS;
+          case 1: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -348,97 +348,77 @@ public class MetaMasterClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FIELDS, new org.apache.thrift.meta_data.FieldMetaData("fields", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
-              new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, MasterInfoField.class))));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetMasterInfoTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getInfo_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getMasterInfo_args.class, metaDataMap);
     }
 
-    public getInfo_args() {
+    public getMasterInfo_args() {
     }
 
-    public getInfo_args(
-      Set<MasterInfoField> fields)
+    public getMasterInfo_args(
+      GetMasterInfoTOptions options)
     {
       this();
-      this.fields = fields;
+      this.options = options;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getInfo_args(getInfo_args other) {
-      if (other.isSetFields()) {
-        Set<MasterInfoField> __this__fields = new HashSet<MasterInfoField>(other.fields.size());
-        for (MasterInfoField other_element : other.fields) {
-          __this__fields.add(other_element);
-        }
-        this.fields = __this__fields;
+    public getMasterInfo_args(getMasterInfo_args other) {
+      if (other.isSetOptions()) {
+        this.options = new GetMasterInfoTOptions(other.options);
       }
     }
 
-    public getInfo_args deepCopy() {
-      return new getInfo_args(this);
+    public getMasterInfo_args deepCopy() {
+      return new getMasterInfo_args(this);
     }
 
     @Override
     public void clear() {
-      this.fields = null;
-    }
-
-    public int getFieldsSize() {
-      return (this.fields == null) ? 0 : this.fields.size();
-    }
-
-    public java.util.Iterator<MasterInfoField> getFieldsIterator() {
-      return (this.fields == null) ? null : this.fields.iterator();
-    }
-
-    public void addToFields(MasterInfoField elem) {
-      if (this.fields == null) {
-        this.fields = new HashSet<MasterInfoField>();
-      }
-      this.fields.add(elem);
+      this.options = null;
     }
 
     /**
-     * optional filter for what fields to return, defaults to all
+     * the method options
      */
-    public Set<MasterInfoField> getFields() {
-      return this.fields;
+    public GetMasterInfoTOptions getOptions() {
+      return this.options;
     }
 
     /**
-     * optional filter for what fields to return, defaults to all
+     * the method options
      */
-    public getInfo_args setFields(Set<MasterInfoField> fields) {
-      this.fields = fields;
+    public getMasterInfo_args setOptions(GetMasterInfoTOptions options) {
+      this.options = options;
       return this;
     }
 
-    public void unsetFields() {
-      this.fields = null;
+    public void unsetOptions() {
+      this.options = null;
     }
 
-    /** Returns true if field fields is set (has been assigned a value) and false otherwise */
-    public boolean isSetFields() {
-      return this.fields != null;
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
     }
 
-    public void setFieldsIsSet(boolean value) {
+    public void setOptionsIsSet(boolean value) {
       if (!value) {
-        this.fields = null;
+        this.options = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case FIELDS:
+      case OPTIONS:
         if (value == null) {
-          unsetFields();
+          unsetOptions();
         } else {
-          setFields((Set<MasterInfoField>)value);
+          setOptions((GetMasterInfoTOptions)value);
         }
         break;
 
@@ -447,8 +427,8 @@ public class MetaMasterClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case FIELDS:
-        return getFields();
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -461,8 +441,8 @@ public class MetaMasterClientService {
       }
 
       switch (field) {
-      case FIELDS:
-        return isSetFields();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -471,21 +451,21 @@ public class MetaMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getInfo_args)
-        return this.equals((getInfo_args)that);
+      if (that instanceof getMasterInfo_args)
+        return this.equals((getMasterInfo_args)that);
       return false;
     }
 
-    public boolean equals(getInfo_args that) {
+    public boolean equals(getMasterInfo_args that) {
       if (that == null)
         return false;
 
-      boolean this_present_fields = true && this.isSetFields();
-      boolean that_present_fields = true && that.isSetFields();
-      if (this_present_fields || that_present_fields) {
-        if (!(this_present_fields && that_present_fields))
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
           return false;
-        if (!this.fields.equals(that.fields))
+        if (!this.options.equals(that.options))
           return false;
       }
 
@@ -496,28 +476,28 @@ public class MetaMasterClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_fields = true && (isSetFields());
-      list.add(present_fields);
-      if (present_fields)
-        list.add(fields);
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(getInfo_args other) {
+    public int compareTo(getMasterInfo_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetFields()).compareTo(other.isSetFields());
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFields()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fields, other.fields);
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -539,14 +519,14 @@ public class MetaMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getInfo_args(");
+      StringBuilder sb = new StringBuilder("getMasterInfo_args(");
       boolean first = true;
 
-      sb.append("fields:");
-      if (this.fields == null) {
+      sb.append("options:");
+      if (this.options == null) {
         sb.append("null");
       } else {
-        sb.append(this.fields);
+        sb.append(this.options);
       }
       first = false;
       sb.append(")");
@@ -556,6 +536,9 @@ public class MetaMasterClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -574,15 +557,15 @@ public class MetaMasterClientService {
       }
     }
 
-    private static class getInfo_argsStandardSchemeFactory implements SchemeFactory {
-      public getInfo_argsStandardScheme getScheme() {
-        return new getInfo_argsStandardScheme();
+    private static class getMasterInfo_argsStandardSchemeFactory implements SchemeFactory {
+      public getMasterInfo_argsStandardScheme getScheme() {
+        return new getMasterInfo_argsStandardScheme();
       }
     }
 
-    private static class getInfo_argsStandardScheme extends StandardScheme<getInfo_args> {
+    private static class getMasterInfo_argsStandardScheme extends StandardScheme<getMasterInfo_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getInfo_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getMasterInfo_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -592,20 +575,11 @@ public class MetaMasterClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // FIELDS
-              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
-                {
-                  org.apache.thrift.protocol.TSet _set0 = iprot.readSetBegin();
-                  struct.fields = new HashSet<MasterInfoField>(2*_set0.size);
-                  MasterInfoField _elem1;
-                  for (int _i2 = 0; _i2 < _set0.size; ++_i2)
-                  {
-                    _elem1 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
-                    struct.fields.add(_elem1);
-                  }
-                  iprot.readSetEnd();
-                }
-                struct.setFieldsIsSet(true);
+            case 1: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetMasterInfoTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -621,20 +595,13 @@ public class MetaMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getInfo_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getMasterInfo_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.fields != null) {
-          oprot.writeFieldBegin(FIELDS_FIELD_DESC);
-          {
-            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.fields.size()));
-            for (MasterInfoField _iter3 : struct.fields)
-            {
-              oprot.writeI32(_iter3.getValue());
-            }
-            oprot.writeSetEnd();
-          }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -643,68 +610,54 @@ public class MetaMasterClientService {
 
     }
 
-    private static class getInfo_argsTupleSchemeFactory implements SchemeFactory {
-      public getInfo_argsTupleScheme getScheme() {
-        return new getInfo_argsTupleScheme();
+    private static class getMasterInfo_argsTupleSchemeFactory implements SchemeFactory {
+      public getMasterInfo_argsTupleScheme getScheme() {
+        return new getMasterInfo_argsTupleScheme();
       }
     }
 
-    private static class getInfo_argsTupleScheme extends TupleScheme<getInfo_args> {
+    private static class getMasterInfo_argsTupleScheme extends TupleScheme<getMasterInfo_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getInfo_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getMasterInfo_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetFields()) {
+        if (struct.isSetOptions()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetFields()) {
-          {
-            oprot.writeI32(struct.fields.size());
-            for (MasterInfoField _iter4 : struct.fields)
-            {
-              oprot.writeI32(_iter4.getValue());
-            }
-          }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getInfo_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getMasterInfo_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TSet _set5 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-            struct.fields = new HashSet<MasterInfoField>(2*_set5.size);
-            MasterInfoField _elem6;
-            for (int _i7 = 0; _i7 < _set5.size; ++_i7)
-            {
-              _elem6 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
-              struct.fields.add(_elem6);
-            }
-          }
-          struct.setFieldsIsSet(true);
+          struct.options = new GetMasterInfoTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
 
   }
 
-  public static class getInfo_result implements org.apache.thrift.TBase<getInfo_result, getInfo_result._Fields>, java.io.Serializable, Cloneable, Comparable<getInfo_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getInfo_result");
+  public static class getMasterInfo_result implements org.apache.thrift.TBase<getMasterInfo_result, getMasterInfo_result._Fields>, java.io.Serializable, Cloneable, Comparable<getMasterInfo_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getMasterInfo_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getInfo_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getInfo_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getMasterInfo_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getMasterInfo_resultTupleSchemeFactory());
     }
 
-    private MasterInfo success; // required
+    private GetMasterInfoTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -773,18 +726,18 @@ public class MetaMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MasterInfo.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetMasterInfoTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getInfo_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getMasterInfo_result.class, metaDataMap);
     }
 
-    public getInfo_result() {
+    public getMasterInfo_result() {
     }
 
-    public getInfo_result(
-      MasterInfo success,
+    public getMasterInfo_result(
+      GetMasterInfoTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -795,17 +748,17 @@ public class MetaMasterClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getInfo_result(getInfo_result other) {
+    public getMasterInfo_result(getMasterInfo_result other) {
       if (other.isSetSuccess()) {
-        this.success = new MasterInfo(other.success);
+        this.success = new GetMasterInfoTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
-    public getInfo_result deepCopy() {
-      return new getInfo_result(this);
+    public getMasterInfo_result deepCopy() {
+      return new getMasterInfo_result(this);
     }
 
     @Override
@@ -814,11 +767,11 @@ public class MetaMasterClientService {
       this.e = null;
     }
 
-    public MasterInfo getSuccess() {
+    public GetMasterInfoTResponse getSuccess() {
       return this.success;
     }
 
-    public getInfo_result setSuccess(MasterInfo success) {
+    public getMasterInfo_result setSuccess(GetMasterInfoTResponse success) {
       this.success = success;
       return this;
     }
@@ -842,7 +795,7 @@ public class MetaMasterClientService {
       return this.e;
     }
 
-    public getInfo_result setE(alluxio.thrift.AlluxioTException e) {
+    public getMasterInfo_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -868,7 +821,7 @@ public class MetaMasterClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((MasterInfo)value);
+          setSuccess((GetMasterInfoTResponse)value);
         }
         break;
 
@@ -914,12 +867,12 @@ public class MetaMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getInfo_result)
-        return this.equals((getInfo_result)that);
+      if (that instanceof getMasterInfo_result)
+        return this.equals((getMasterInfo_result)that);
       return false;
     }
 
-    public boolean equals(getInfo_result that) {
+    public boolean equals(getMasterInfo_result that) {
       if (that == null)
         return false;
 
@@ -962,7 +915,7 @@ public class MetaMasterClientService {
     }
 
     @Override
-    public int compareTo(getInfo_result other) {
+    public int compareTo(getMasterInfo_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1006,7 +959,7 @@ public class MetaMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getInfo_result(");
+      StringBuilder sb = new StringBuilder("getMasterInfo_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -1052,15 +1005,15 @@ public class MetaMasterClientService {
       }
     }
 
-    private static class getInfo_resultStandardSchemeFactory implements SchemeFactory {
-      public getInfo_resultStandardScheme getScheme() {
-        return new getInfo_resultStandardScheme();
+    private static class getMasterInfo_resultStandardSchemeFactory implements SchemeFactory {
+      public getMasterInfo_resultStandardScheme getScheme() {
+        return new getMasterInfo_resultStandardScheme();
       }
     }
 
-    private static class getInfo_resultStandardScheme extends StandardScheme<getInfo_result> {
+    private static class getMasterInfo_resultStandardScheme extends StandardScheme<getMasterInfo_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getInfo_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getMasterInfo_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1072,7 +1025,7 @@ public class MetaMasterClientService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new MasterInfo();
+                struct.success = new GetMasterInfoTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -1099,7 +1052,7 @@ public class MetaMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getInfo_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getMasterInfo_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1119,16 +1072,16 @@ public class MetaMasterClientService {
 
     }
 
-    private static class getInfo_resultTupleSchemeFactory implements SchemeFactory {
-      public getInfo_resultTupleScheme getScheme() {
-        return new getInfo_resultTupleScheme();
+    private static class getMasterInfo_resultTupleSchemeFactory implements SchemeFactory {
+      public getMasterInfo_resultTupleScheme getScheme() {
+        return new getMasterInfo_resultTupleScheme();
       }
     }
 
-    private static class getInfo_resultTupleScheme extends TupleScheme<getInfo_result> {
+    private static class getMasterInfo_resultTupleScheme extends TupleScheme<getMasterInfo_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getInfo_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getMasterInfo_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -1147,11 +1100,11 @@ public class MetaMasterClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getInfo_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getMasterInfo_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new MasterInfo();
+          struct.success = new GetMasterInfoTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

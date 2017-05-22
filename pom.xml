@@ -324,6 +324,11 @@
         <version>3.1.0</version>
       </dependency>
       <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.16</version>
+      </dependency>
+      <dependency>
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
@@ -369,6 +374,8 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <!-- We do not use dependent management for hadoop-common, hadoop-hdfs, as it is unavailable in hadoop-1 -->
+      <!-- We do not use dependent management for hadoop-core, as it is unavailable in hadoop-2.x -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
@@ -393,50 +400,6 @@
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-common</artifactId>
-        <version>${hadoop.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-hdfs</artifactId>
-        <version>${hadoop.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with io.netty:netty-all -->
-          <exclusion>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -504,13 +467,13 @@
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpcore</artifactId>
-        <version>4.4</version>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.3</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>4.4</version>
+        <artifactId>httpcore</artifactId>
+        <version>4.4.6</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -739,8 +702,16 @@
     </dependency>
     <!-- System logging. -->
     <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
     </dependency>
 
     <!-- Dependencies in the test scope. -->
@@ -866,9 +837,6 @@
             <compilerArgs>
               <arg>-Xlint:none</arg>
             </compilerArgs>
-            <excludes>
-              <exclude>**/\${alluxio.hadoop2.impl}</exclude>
-            </excludes>
           </configuration>
         </plugin>
         <plugin>
@@ -987,27 +955,6 @@
             <goals>
               <goal>jar</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Parse Hadoop major version and resolve the compilation conflict between Hadoop 1.x and 2.x -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>parse-hadoop-major-version</id>
-            <goals>
-              <goal>regex-property</goal>
-            </goals>
-            <configuration>
-              <name>alluxio.hadoop2.impl</name>
-              <value>${hadoop.version}</value>
-              <regex>^1\..*$</regex>
-              <replacement>AlluxioFileSystem.java</replacement>
-              <failIfNoMatch>false</failIfNoMatch>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -1212,7 +1159,7 @@
     <profile>
       <id>contractTest</id>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.6.5</hadoop.version>
       </properties>
     </profile>
 
@@ -1240,21 +1187,35 @@
     <profile>
       <id>hadoop-2.4</id>
       <properties>
-        <hadoop.version>2.4.0</hadoop.version>
+        <hadoop.version>2.4.1</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.5</id>
+      <properties>
+        <hadoop.version>2.5.2</hadoop.version>
       </properties>
     </profile>
 
     <profile>
       <id>hadoop-2.6</id>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.6.5</hadoop.version>
       </properties>
     </profile>
 
     <profile>
       <id>hadoop-2.7</id>
       <properties>
-        <hadoop.version>2.7.0</hadoop.version>
+        <hadoop.version>2.7.3</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.8</id>
+      <properties>
+        <hadoop.version>2.8.0</hadoop.version>
       </properties>
     </profile>
 

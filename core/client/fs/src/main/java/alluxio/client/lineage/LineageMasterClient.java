@@ -15,7 +15,12 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.job.CommandLineJob;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.CreateLineageTOptions;
+import alluxio.thrift.DeleteLineageTOptions;
+import alluxio.thrift.GetLineageInfoListTOptions;
 import alluxio.thrift.LineageMasterClientService;
+import alluxio.thrift.ReinitializeFileTOptions;
+import alluxio.thrift.ReportLostFileTOptions;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
@@ -82,7 +87,8 @@ public final class LineageMasterClient extends AbstractMasterClient {
       @Override
       public Long call() throws TException {
         return mClient.createLineage(inputFiles, outputFiles,
-            ThriftUtils.toThrift(job.generateCommandLineJobInfo()));
+            ThriftUtils.toThrift(job.generateCommandLineJobInfo()), new CreateLineageTOptions())
+            .getId();
       }
     });
   }
@@ -99,7 +105,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws TException {
-        return mClient.deleteLineage(lineageId, cascade);
+        return mClient.deleteLineage(lineageId, cascade, new DeleteLineageTOptions()).isSuccess();
       }
     });
   }
@@ -118,8 +124,8 @@ public final class LineageMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.reinitializeFile(path, blockSizeBytes, ttl,
-            ThriftUtils.toThrift(ttlAction));
+        return mClient.reinitializeFile(path, blockSizeBytes, ttl, ThriftUtils.toThrift(ttlAction),
+            new ReinitializeFileTOptions()).getId();
       }
     });
   }
@@ -134,7 +140,8 @@ public final class LineageMasterClient extends AbstractMasterClient {
       @Override
       public List<LineageInfo> call() throws TException {
         List<LineageInfo> result = new ArrayList<>();
-        for (alluxio.thrift.LineageInfo lineageInfo : mClient.getLineageInfoList()) {
+        for (alluxio.thrift.LineageInfo lineageInfo : mClient
+            .getLineageInfoList(new GetLineageInfoListTOptions()).getLineageInfoList()) {
           result.add(ThriftUtils.fromThrift(lineageInfo));
         }
         return result;
@@ -151,7 +158,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.reportLostFile(path);
+        mClient.reportLostFile(path, new ReportLostFileTOptions());
         return null;
       }
     });

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +29,11 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    mHdfsUnderFileSystem = HdfsUnderFileSystem
-        .createInstance(new AlluxioURI("file:///"), new UnderFileSystemConfiguration(null));
+    UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults()
+        .setUserSpecifiedConf(ImmutableMap.of("hadoop.security.group.mapping",
+            "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
+            PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
+    mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(new AlluxioURI("file:///"), conf);
   }
 
   /**
@@ -48,12 +52,9 @@ public final class HdfsUnderFileSystemTest {
    */
   @Test
   public void prepareConfiguration() throws Exception {
-    UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(null);
+    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
     org.apache.hadoop.conf.Configuration conf = HdfsUnderFileSystem.createConfiguration(ufsConf);
-    Assert.assertEquals(
-        HdfsUnderFileSystem.shadedClassName(ufsConf.getValue(PropertyKey.UNDERFS_HDFS_IMPL),
-            ufsConf),
-        conf.get("fs.hdfs.impl"));
+    Assert.assertEquals(ufsConf.getValue(PropertyKey.UNDERFS_HDFS_IMPL), conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
   }
 }

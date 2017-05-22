@@ -23,6 +23,7 @@ import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -71,9 +72,10 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
    * Constructs a new {@link LocalUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @param ufsConf UFS configuration
    */
-  public LocalUnderFileSystem(AlluxioURI uri) {
-    super(uri);
+  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
   }
 
   @Override

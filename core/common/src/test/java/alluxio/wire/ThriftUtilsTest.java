@@ -13,7 +13,6 @@ package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.thrift.LockBlockStatus;
 import alluxio.thrift.TTtlAction;
 
 import org.junit.Test;
@@ -140,13 +139,6 @@ public class ThriftUtilsTest {
             new alluxio.thrift.CommandLineJobInfo("command", new alluxio.thrift.JobConfInfo(
                 "outputFile")));
 
-  }
-
-  private alluxio.thrift.LockBlockResult getLockBlockResultThrift() {
-    alluxio.thrift.LockBlockResult r = new alluxio.thrift.LockBlockResult();
-    r.setBlockPath("blockPath");
-    r.setLockBlockStatus(LockBlockStatus.ALLUXIO_BLOCK_LOCKED);
-    return r;
   }
 
   private WorkerInfo getWorkerInfo() {

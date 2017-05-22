@@ -19,7 +19,7 @@
 # 5. Copy the generated client to the folder client/framework/
 # 6. Tar everything up and put it in dev/scripts/tarballs
 #
-# Example: BUILD_OPTS="-Dhadoop.version=2.7.2"; ./generate-tarball.sh
+# Example: BUILD_OPTS="-Phadoop-2.7" ./generate-tarball.sh
 #
 # The --skipFrameworks flag may be used to avoid building per-framework clients.
 #
@@ -39,7 +39,7 @@ cd ${THIS}
 TARBALL_DIR="${THIS}/tarballs"
 WORK_DIR="${THIS}/workdir"
 CLIENT_DIR="client"
-FRAMEWORKS=( "flink" "hadoop" "presto" "spark" )
+FRAMEWORKS=( "flink" "presto" "spark" "hadoop" )
 
 mkdir -p ${TARBALL_DIR}
 mkdir -p ${WORK_DIR}

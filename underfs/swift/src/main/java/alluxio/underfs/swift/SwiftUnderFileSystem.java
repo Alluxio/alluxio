@@ -94,7 +94,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    */
   public SwiftUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf)
       throws FileDoesNotExistException {
-    super(uri);
+    super(uri, conf);
     String containerName = UnderFileSystemUtils.getBucketName(uri);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
@@ -126,6 +126,14 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
             if (conf.containsKey(PropertyKey.SWIFT_REGION_KEY)) {
               config.setPreferredRegion(conf.getValue(PropertyKey.SWIFT_REGION_KEY));
             }
+            break;
+          case Constants.SWIFT_AUTH_KEYSTONE_V3:
+            if (conf.containsKey(PropertyKey.SWIFT_REGION_KEY)) {
+              config.setPreferredRegion(conf.getValue(PropertyKey.SWIFT_REGION_KEY));
+            }
+            config.setAuthenticationMethod(AuthenticationMethod.EXTERNAL);
+            KeystoneV3AccessProvider accessProvider = new KeystoneV3AccessProvider(config);
+            config.setAccessProvider(accessProvider);
             break;
           case Constants.SWIFT_AUTH_SWIFTAUTH:
             // swiftauth authenticates directly against swift
@@ -304,8 +312,12 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       int i = 0;
       ObjectStatus[] res = new ObjectStatus[objects.size()];
       for (DirectoryOrObject object : objects) {
-        res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getContentLength(),
-            object.getAsObject().getLastModifiedAsDate().getTime());
+        if (object.isObject()) {
+          res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getContentLength(),
+              object.getAsObject().getLastModifiedAsDate().getTime());
+        } else {
+          res[i++] = new ObjectStatus(object.getName());
+        }
       }
       return res;
     }

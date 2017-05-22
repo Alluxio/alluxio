@@ -205,8 +205,9 @@ public abstract class AbstractLocalAlluxioCluster {
     // This must happen after UFS is started with UnderFileSystemCluster.get().
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
-      UnderFileSystemUtils.mkdirIfNotExists(ufs, ufsAddress);
       Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsAddress);
+      UnderFileSystem nonLocalUfs = UnderFileSystem.Factory.createForRoot();
+      UnderFileSystemUtils.mkdirIfNotExists(nonLocalUfs, ufsAddress);
     }
   }
 

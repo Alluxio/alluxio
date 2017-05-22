@@ -69,7 +69,10 @@ public final class WorkerUfsManager extends AbstractUfsManager {
       }
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
       try {
-        ufs = super.addMount(mountId, info.getUri(), info.getProperties());
+        ufs = super.addMount(mountId, info.getUri(),
+            UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
+                .setShared(info.getProperties().isShared())
+                .setUserSpecifiedConf(info.getProperties().getProperties()));
       } catch (IOException e) {
         LOG.error("Failed to add mount point {} with id {}", info.getUri(), mountId, e);
         return null;

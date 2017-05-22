@@ -67,9 +67,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
 
-  /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
-
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
 
@@ -229,7 +226,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
       short bucketMode, String accountOwner, TransferManager transferManager,
       UnderFileSystemConfiguration conf) {
-    super(uri);
+    super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
     mBucketMode = bucketMode;
@@ -333,7 +330,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return FOLDER_SUFFIX;
+    return mUfsConf.getValue(PropertyKey.UNDERFS_S3A_DIRECTORY_SUFFIX);
   }
 
   @Override

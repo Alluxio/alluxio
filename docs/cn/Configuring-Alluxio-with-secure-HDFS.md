@@ -27,7 +27,7 @@ priority: 3
 
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
-如果一切正常，在`assembly/target`目录中应当能看到`alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件。使用该jar文件即可运行Alluxio Master和Worker。
+如果一切正常，在`assembly/server/target`目录中应当能看到`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`文件。使用该jar文件即可运行Alluxio Master和Worker。
 
 ## 配置Alluxio
 

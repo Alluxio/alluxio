@@ -64,6 +64,26 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>hadoop-1</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <!--In hadoop-1 profile, we skip build AlluxioFileSystem.java which requires hadoop-2 -->
+                <exclude>**/AlluxioFileSystem.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <!-- Export test classes in a test-jar so that other projects can use them for testing -->

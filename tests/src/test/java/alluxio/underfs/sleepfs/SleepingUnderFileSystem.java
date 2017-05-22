@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -41,9 +42,11 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
    * Creates a new {@link SleepingUnderFileSystem} for the given uri.
    *
    * @param uri path belonging to this under file system
+   * @param ufsConf UFS configuration
    */
-  public SleepingUnderFileSystem(AlluxioURI uri, SleepingUnderFileSystemOptions options) {
-    super(uri);
+  public SleepingUnderFileSystem(AlluxioURI uri, SleepingUnderFileSystemOptions options,
+      UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
     mOptions = options;
   }
 

@@ -58,6 +58,7 @@ get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
 }
 
 # Pass ram folder to check as $1
@@ -310,7 +311,7 @@ main() {
       fi
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
-      start_master "${FORMAT}"
+      start_master
       ALLUXIO_MASTER_SECONDARY=false
       sleep 2
       start_worker "${MOPT}"

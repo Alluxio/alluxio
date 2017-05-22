@@ -110,7 +110,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     GSAccessControlList acl = googleStorageService.getBucketAcl(bucketName);
     short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
 
-    return new GCSUnderFileSystem(uri, googleStorageService, bucketName, bucketMode, accountOwner);
+    return new GCSUnderFileSystem(uri, googleStorageService, bucketName, bucketMode, accountOwner,
+        conf);
   }
 
   /**
@@ -121,13 +122,11 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
+   * @param conf configuration for this UFS
    */
-  protected GCSUnderFileSystem(AlluxioURI uri,
-      GoogleStorageService googleStorageService,
-      String bucketName,
-      short bucketMode,
-      String accountOwner) {
-    super(uri);
+  protected GCSUnderFileSystem(AlluxioURI uri, GoogleStorageService googleStorageService,
+      String bucketName, short bucketMode, String accountOwner, UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mClient = googleStorageService;
     mBucketName = bucketName;
     mBucketMode = bucketMode;

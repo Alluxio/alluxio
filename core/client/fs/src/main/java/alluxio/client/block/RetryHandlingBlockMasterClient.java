@@ -15,6 +15,10 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
+import alluxio.thrift.GetBlockInfoTOptions;
+import alluxio.thrift.GetCapacityBytesTOptions;
+import alluxio.thrift.GetUsedBytesTOptions;
+import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
@@ -85,7 +89,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       @Override
       public List<WorkerInfo> call() throws TException {
         List<WorkerInfo> result = new ArrayList<>();
-        for (alluxio.thrift.WorkerInfo workerInfo : mClient.getWorkerInfoList()) {
+        for (alluxio.thrift.WorkerInfo workerInfo : mClient
+            .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
           result.add(ThriftUtils.fromThrift(workerInfo));
         }
         return result;
@@ -103,7 +108,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(new RpcCallable<BlockInfo>() {
       @Override
       public BlockInfo call() throws TException {
-        return ThriftUtils.fromThrift(mClient.getBlockInfo(blockId));
+        return ThriftUtils
+            .fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo());
       }
     });
   }
@@ -117,7 +123,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getCapacityBytes();
+        return mClient.getCapacityBytes(new GetCapacityBytesTOptions()).getBytes();
       }
     });
   }
@@ -131,7 +137,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getUsedBytes();
+        return mClient.getUsedBytes(new GetUsedBytesTOptions()).getBytes();
       }
     });
   }

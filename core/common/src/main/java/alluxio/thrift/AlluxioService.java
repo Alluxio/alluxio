@@ -42,14 +42,16 @@ public class AlluxioService {
     /**
      * Returns the version of the master service.
      * NOTE: The version should be updated every time a backwards incompatible API change occurs.
+     * 
+     * @param options the method options
      */
-    public long getServiceVersion() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void getServiceVersion(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getServiceVersion(GetServiceVersionTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -73,19 +75,20 @@ public class AlluxioService {
       super(iprot, oprot);
     }
 
-    public long getServiceVersion() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getServiceVersion();
+      send_getServiceVersion(options);
       return recv_getServiceVersion();
     }
 
-    public void send_getServiceVersion() throws org.apache.thrift.TException
+    public void send_getServiceVersion(GetServiceVersionTOptions options) throws org.apache.thrift.TException
     {
       getServiceVersion_args args = new getServiceVersion_args();
+      args.setOptions(options);
       sendBase("getServiceVersion", args);
     }
 
-    public long recv_getServiceVersion() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetServiceVersionTResponse recv_getServiceVersion() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getServiceVersion_result result = new getServiceVersion_result();
       receiveBase(result, "getServiceVersion");
@@ -116,26 +119,29 @@ public class AlluxioService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void getServiceVersion(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getServiceVersion(GetServiceVersionTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getServiceVersion_call method_call = new getServiceVersion_call(resultHandler, this, ___protocolFactory, ___transport);
+      getServiceVersion_call method_call = new getServiceVersion_call(options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class getServiceVersion_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public getServiceVersion_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private GetServiceVersionTOptions options;
+      public getServiceVersion_call(GetServiceVersionTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getServiceVersion", org.apache.thrift.protocol.TMessageType.CALL, 0));
         getServiceVersion_args args = new getServiceVersion_args();
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public GetServiceVersionTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -178,8 +184,7 @@ public class AlluxioService {
       public getServiceVersion_result getResult(I iface, getServiceVersion_args args) throws org.apache.thrift.TException {
         getServiceVersion_result result = new getServiceVersion_result();
         try {
-          result.success = iface.getServiceVersion();
-          result.setSuccessIsSet(true);
+          result.success = iface.getServiceVersion(args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -204,7 +209,7 @@ public class AlluxioService {
       return processMap;
     }
 
-    public static class getServiceVersion<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getServiceVersion_args, Long> {
+    public static class getServiceVersion<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getServiceVersion_args, GetServiceVersionTResponse> {
       public getServiceVersion() {
         super("getServiceVersion");
       }
@@ -213,13 +218,12 @@ public class AlluxioService {
         return new getServiceVersion_args();
       }
 
-      public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetServiceVersionTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Long>() { 
-          public void onComplete(Long o) {
+        return new AsyncMethodCallback<GetServiceVersionTResponse>() { 
+          public void onComplete(GetServiceVersionTResponse o) {
             getServiceVersion_result result = new getServiceVersion_result();
             result.success = o;
-            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -257,8 +261,8 @@ public class AlluxioService {
         return false;
       }
 
-      public void start(I iface, getServiceVersion_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.getServiceVersion(resultHandler);
+      public void start(I iface, getServiceVersion_args args, org.apache.thrift.async.AsyncMethodCallback<GetServiceVersionTResponse> resultHandler) throws TException {
+        iface.getServiceVersion(args.options,resultHandler);
       }
     }
 
@@ -267,6 +271,7 @@ public class AlluxioService {
   public static class getServiceVersion_args implements org.apache.thrift.TBase<getServiceVersion_args, getServiceVersion_args._Fields>, java.io.Serializable, Cloneable, Comparable<getServiceVersion_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getServiceVersion_args");
 
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -274,10 +279,14 @@ public class AlluxioService {
       schemes.put(TupleScheme.class, new getServiceVersion_argsTupleSchemeFactory());
     }
 
+    private GetServiceVersionTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      /**
+       * the method options
+       */
+      OPTIONS((short)1, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -292,6 +301,8 @@ public class AlluxioService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -330,9 +341,13 @@ public class AlluxioService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetServiceVersionTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getServiceVersion_args.class, metaDataMap);
     }
@@ -340,10 +355,20 @@ public class AlluxioService {
     public getServiceVersion_args() {
     }
 
+    public getServiceVersion_args(
+      GetServiceVersionTOptions options)
+    {
+      this();
+      this.options = options;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public getServiceVersion_args(getServiceVersion_args other) {
+      if (other.isSetOptions()) {
+        this.options = new GetServiceVersionTOptions(other.options);
+      }
     }
 
     public getServiceVersion_args deepCopy() {
@@ -352,15 +377,57 @@ public class AlluxioService {
 
     @Override
     public void clear() {
+      this.options = null;
+    }
+
+    /**
+     * the method options
+     */
+    public GetServiceVersionTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public getServiceVersion_args setOptions(GetServiceVersionTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((GetServiceVersionTOptions)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case OPTIONS:
+        return getOptions();
+
       }
       throw new IllegalStateException();
     }
@@ -372,6 +439,8 @@ public class AlluxioService {
       }
 
       switch (field) {
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -389,12 +458,26 @@ public class AlluxioService {
       if (that == null)
         return false;
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
     @Override
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -407,6 +490,16 @@ public class AlluxioService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -427,6 +520,13 @@ public class AlluxioService {
       StringBuilder sb = new StringBuilder("getServiceVersion_args(");
       boolean first = true;
 
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -434,6 +534,9 @@ public class AlluxioService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -470,6 +573,15 @@ public class AlluxioService {
             break;
           }
           switch (schemeField.id) {
+            case 1: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetServiceVersionTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -485,6 +597,11 @@ public class AlluxioService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -502,11 +619,25 @@ public class AlluxioService {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, getServiceVersion_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetOptions()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getServiceVersion_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.options = new GetServiceVersionTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
       }
     }
 
@@ -515,7 +646,7 @@ public class AlluxioService {
   public static class getServiceVersion_result implements org.apache.thrift.TBase<getServiceVersion_result, getServiceVersion_result._Fields>, java.io.Serializable, Cloneable, Comparable<getServiceVersion_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getServiceVersion_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -524,7 +655,7 @@ public class AlluxioService {
       schemes.put(TupleScheme.class, new getServiceVersion_resultTupleSchemeFactory());
     }
 
-    private long success; // required
+    private GetServiceVersionTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -589,13 +720,11 @@ public class AlluxioService {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetServiceVersionTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -606,12 +735,11 @@ public class AlluxioService {
     }
 
     public getServiceVersion_result(
-      long success,
+      GetServiceVersionTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
-      setSuccessIsSet(true);
       this.e = e;
     }
 
@@ -619,8 +747,9 @@ public class AlluxioService {
      * Performs a deep copy on <i>other</i>.
      */
     public getServiceVersion_result(getServiceVersion_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
+      if (other.isSetSuccess()) {
+        this.success = new GetServiceVersionTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
@@ -632,32 +761,32 @@ public class AlluxioService {
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
+      this.success = null;
       this.e = null;
     }
 
-    public long getSuccess() {
+    public GetServiceVersionTResponse getSuccess() {
       return this.success;
     }
 
-    public getServiceVersion_result setSuccess(long success) {
+    public getServiceVersion_result setSuccess(GetServiceVersionTResponse success) {
       this.success = success;
-      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      this.success = null;
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      return this.success != null;
     }
 
     public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -690,7 +819,7 @@ public class AlluxioService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((Long)value);
+          setSuccess((GetServiceVersionTResponse)value);
         }
         break;
 
@@ -745,12 +874,12 @@ public class AlluxioService {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (this.success != that.success)
+        if (!this.success.equals(that.success))
           return false;
       }
 
@@ -770,7 +899,7 @@ public class AlluxioService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true;
+      boolean present_success = true && (isSetSuccess());
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -832,7 +961,11 @@ public class AlluxioService {
       boolean first = true;
 
       sb.append("success:");
-      sb.append(this.success);
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
       first = false;
       if (!first) sb.append(", ");
       sb.append("e:");
@@ -849,6 +982,9 @@ public class AlluxioService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -861,8 +997,6 @@ public class AlluxioService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -888,8 +1022,9 @@ public class AlluxioService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.success = iprot.readI64();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new GetServiceVersionTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -919,9 +1054,9 @@ public class AlluxioService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
+        if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeI64(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
@@ -955,7 +1090,7 @@ public class AlluxioService {
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          oprot.writeI64(struct.success);
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
@@ -967,7 +1102,8 @@ public class AlluxioService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readI64();
+          struct.success = new GetServiceVersionTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {

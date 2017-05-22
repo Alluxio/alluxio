@@ -100,15 +100,16 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   }
 
   @Override
-  public TTransportFactory getServerTransportFactory() throws SaslException {
+  public TTransportFactory getServerTransportFactory(String serverName) throws SaslException {
     return getServerTransportFactory(new Runnable() {
       @Override
       public void run() {}
-    });
+    }, serverName);
   }
 
   @Override
-  public TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException {
+  public TTransportFactory getServerTransportFactory(Runnable runnable, String serverName)
+      throws SaslException {
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();

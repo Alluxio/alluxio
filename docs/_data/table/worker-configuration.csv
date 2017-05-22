@@ -23,6 +23,10 @@ alluxio.worker.network.netty.shutdown.timeout,15
 alluxio.worker.network.netty.watermark.high,32768
 alluxio.worker.network.netty.watermark.low,8192
 alluxio.worker.network.netty.worker.threads,0
+alluxio.worker.network.netty.block.reader.threads.max,128
+alluxio.worker.network.netty.block.writer.threads.max,128
+alluxio.worker.network.netty.file.writer.threads.max,128
+alluxio.worker.network.netty.rpc.threads.max,128
 alluxio.worker.port,29998
 alluxio.worker.session.timeout.ms,60000
 alluxio.worker.tieredstore.block.lock.readers,1000

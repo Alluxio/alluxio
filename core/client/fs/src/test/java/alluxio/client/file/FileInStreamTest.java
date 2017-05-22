@@ -103,7 +103,7 @@ public class FileInStreamTest {
               long i = (Long) invocation.getArguments()[0];
               byte[] input = BufferUtils
                   .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength((int) i));
-              return new TestBlockInStream(i, input);
+              return new TestBlockInStream(input, i, input.length, false);
             }
           });
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),

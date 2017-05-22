@@ -47,7 +47,7 @@ import java.io.PrintStream;
  * The base class for all the {@link AlluxioShell} test classes.
  */
 public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
-  protected static final int SIZE_BYTES = Constants.MB * 10;
+  protected static final int SIZE_BYTES = Constants.MB * 16;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()

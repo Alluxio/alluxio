@@ -14,6 +14,7 @@ package alluxio.client;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
@@ -82,7 +83,8 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
             thriftFields.add(field.toThrift());
           }
         }
-        return MasterInfo.fromThrift(mClient.getInfo(thriftFields));
+        return MasterInfo.fromThrift(
+            mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
       }
     });
   }

@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.Closeable;
+import java.util.Random;
 
 public final class UnderFileSystemConfigurationTest {
 
@@ -26,10 +27,18 @@ public final class UnderFileSystemConfigurationTest {
   public void getValueWhenGlobalConfHasProperty() throws Exception {
     // Set property in global configuration
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar").toResource()) {
-      UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
+      Random random = new Random();
+      boolean readOnly = random.nextBoolean();
+      boolean shared = random.nextBoolean();
+      UnderFileSystemConfiguration conf =
+          UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
+      Assert.assertEquals(readOnly, conf.isReadOnly());
+      Assert.assertEquals(shared, conf.isShared());
       Assert.assertEquals("bar", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
-      conf = new UnderFileSystemConfiguration(
-          ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      conf = UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared)
+          .setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      Assert.assertEquals(readOnly, conf.isReadOnly());
+      Assert.assertEquals(shared, conf.isShared());
       Assert.assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
     }
   }
@@ -38,15 +47,20 @@ public final class UnderFileSystemConfigurationTest {
   public void getValueWhenGlobalConfHasNotProperty() throws Exception {
     // Set property in global configuration
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null).toResource()) {
-      UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
+      Random random = new Random();
+      boolean readOnly = random.nextBoolean();
+      boolean shared = random.nextBoolean();
+      UnderFileSystemConfiguration conf =
+          UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
       try {
         conf.getValue(PropertyKey.S3A_ACCESS_KEY);
         Assert.fail("this key should not exist");
       } catch (Exception e) {
         // expect to pass
       }
-      conf = new UnderFileSystemConfiguration(
-          ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      Assert.assertEquals(readOnly, conf.isReadOnly());
+      Assert.assertEquals(shared, conf.isShared());
       Assert.assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
     }
   }
@@ -55,10 +69,15 @@ public final class UnderFileSystemConfigurationTest {
   public void containsWhenGlobalConfHasProperty() throws Exception {
     // Unset property in global configuration
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar").toResource()) {
-      UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
+      Random random = new Random();
+      boolean readOnly = random.nextBoolean();
+      boolean shared = random.nextBoolean();
+      UnderFileSystemConfiguration conf =
+          UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
       Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
-      conf = new UnderFileSystemConfiguration(
-          ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      Assert.assertEquals(readOnly, conf.isReadOnly());
+      Assert.assertEquals(shared, conf.isShared());
       Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
     }
   }
@@ -67,10 +86,15 @@ public final class UnderFileSystemConfigurationTest {
   public void containsWhenGlobalConfHasNotProperty() throws Exception {
     // Unset property in global configuration
     try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null).toResource()) {
-      UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(null);
+      Random random = new Random();
+      boolean readOnly = random.nextBoolean();
+      boolean shared = random.nextBoolean();
+      UnderFileSystemConfiguration conf =
+          UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
       Assert.assertFalse(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
-      conf = new UnderFileSystemConfiguration(
-          ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+      Assert.assertEquals(readOnly, conf.isReadOnly());
+      Assert.assertEquals(shared, conf.isShared());
       Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
     }
   }

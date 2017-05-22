@@ -76,6 +76,14 @@ alluxio.worker.network.netty.watermark.low:
   before switching back to writable.
 alluxio.worker.network.netty.worker.threads:
   "How many threads to use for processing requests. Zero defaults to #cpuCores * 2."
+alluxio.worker.network.netty.block.reader.threads.max:
+  The maximum number of threads used to read blocks in the netty data server.
+alluxio.worker.network.netty.block.writer.threads.max:
+  The maximum number of threads used to write blocks in the netty data server.
+alluxio.worker.network.netty.file.writer.threads.max:
+  The maximum number of threads used to write files to UFS in the netty data server.
+alluxio.worker.network.netty.rpc.threads.max:
+  The maximum number of threads used to handle worker side RPCs in the netty data server.
 alluxio.worker.port:
   The port Alluxio's worker node runs on.
 alluxio.worker.session.timeout.ms:

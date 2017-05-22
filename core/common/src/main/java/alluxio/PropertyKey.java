@@ -135,6 +135,8 @@ public class PropertyKey {
       create(Name.UNDERFS_S3_UPLOAD_THREADS_MAX, 20);
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       create(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, 60000);
+  public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
+      create(Name.UNDERFS_S3A_DIRECTORY_SUFFIX, "/");
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       create(Name.UNDERFS_S3A_INHERIT_ACL, true);
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
@@ -353,13 +355,15 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 128);
+      create(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX, 2048);
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 128);
+      create(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX, 1024);
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX, 128);
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 128);
+      create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 1024);
+  public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
+      create(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX, 1024);
 
   public static final PropertyKey WORKER_PRINCIPAL = create(Name.WORKER_PRINCIPAL, null);
   public static final PropertyKey WORKER_RPC_PORT = create(Name.WORKER_RPC_PORT, 29998);
@@ -481,7 +485,7 @@ public class PropertyKey {
   public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
       create(Name.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
-      create(Name.USER_FILE_BUFFER_BYTES, "1MB");
+      create(Name.USER_FILE_BUFFER_BYTES, "8MB");
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       create(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
   public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
@@ -757,6 +761,8 @@ public class PropertyKey {
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout.ms";
+    public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
+        "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
         "alluxio.underfs.s3a.request.timeout.ms";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
@@ -945,6 +951,8 @@ public class PropertyKey {
         "alluxio.worker.network.netty.file.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
         "alluxio.worker.network.netty.file.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
+        "alluxio.worker.network.netty.rpc.threads.max";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
