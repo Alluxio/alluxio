@@ -123,7 +123,8 @@ public interface UnderFileSystem extends Closeable {
       boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
       Map<String, String> ufsConf =
           Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, new UnderFileSystemConfiguration(readOnly, shared, ufsConf));
+      return create(ufsRoot, UnderFileSystemConfiguration.defaults().setReadOnly(readOnly)
+          .setShared(shared).setUserSpecifiedConf(ufsConf));
     }
   }
 

@@ -54,8 +54,10 @@ public class AsyncUfsAbsentPathCacheTest {
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     MountOptions options = MountOptions.defaults();
-    mUfsManager.addMount(mMountId, mLocalUfsPath, new UnderFileSystemConfiguration(
-        options.isReadOnly(), options.isShared(), Collections.<String, String>emptyMap()));
+    mUfsManager.addMount(mMountId, mLocalUfsPath,
+        UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
+            .setShared(options.isShared())
+            .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
     mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
@@ -157,8 +159,10 @@ public class AsyncUfsAbsentPathCacheTest {
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
     MountOptions options = MountOptions.defaults();
-    mUfsManager.addMount(newMountId, mLocalUfsPath, new UnderFileSystemConfiguration(
-        options.isReadOnly(), options.isShared(), Collections.<String, String>emptyMap()));
+    mUfsManager.addMount(newMountId, mLocalUfsPath,
+        UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
+            .setShared(options.isShared())
+            .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
     mMountTable.add(new AlluxioURI("/mnt"), new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.
