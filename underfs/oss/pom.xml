@@ -80,7 +80,6 @@
                   <!-- transitive dependencies introduced by aliyun-sdk-oss -->
                   <include>commons-beanutils:commons-beanutils</include>
                   <include>commons-collections:commons-collections</include>
-                  <include>commons-httpclient:commons-httpclient</include>
                   <include>commons-logging:commons-logging</include>
                   <include>net.sf.ezmorph:ezmorp</include>
                   <include>net.sf.json-lib:json-lib</include>
@@ -123,8 +122,8 @@
                   <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.commons.http</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.http</shadedPattern>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.jdom</pattern>
