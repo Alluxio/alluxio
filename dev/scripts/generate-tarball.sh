@@ -21,13 +21,23 @@
 #
 # Example: BUILD_OPTS="-Dhadoop.version=2.7.2"; ./generate-tarball.sh
 #
+# The --skipFrameworks flag may be used to avoid building per-framework clients.
+#
 
 set -e
+
+buildFrameworks=true
+while [[ "$#" > 0 ]]; do
+  case $1 in
+    --skipFrameworks) buildFrameworks=false; shift;;
+    *) echo "Unrecognized option: $1"; exit 1;;
+  esac
+done
 
 THIS=$(cd "$( dirname "$0" )"; pwd)
 cd ${THIS}
 TARBALL_DIR="${THIS}/tarballs"
-WORK_DIR="workdir"
+WORK_DIR="${THIS}/workdir"
 CLIENT_DIR="client"
 FRAMEWORKS=( "flink" "hadoop" "presto" "spark" )
 
@@ -40,18 +50,19 @@ rm -rf ${REPO_COPY}
 rsync -aq --exclude='logs' --exclude='dev' ${HOME} ${REPO_COPY}
 
 pushd ${REPO_COPY} > /dev/null
-git clean -fdX
+git clean -qfdX
 mkdir -p ${CLIENT_DIR}
-for PROFILE in "${FRAMEWORKS[@]}"; do
-  echo "Running build ${PROFILE} and logging to ${BUILD_LOG}"
-  mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${PROFILE} ${BUILD_OPTS} | tee ${BUILD_LOG} 2>&1
-  # Temporarily create alluxio-env.sh so that we can call bin/alluxio version
-  touch conf/alluxio-env.sh
-  VERSION=$(bin/alluxio version)
-  rm conf/alluxio-env.sh
-  mkdir -p ${CLIENT_DIR}/${PROFILE}
-  cp core/client/runtime/target/alluxio-core-client-runtime-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar
-done
+if [[ "${buildFrameworks}" == true ]]; then
+  for PROFILE in "${FRAMEWORKS[@]}"; do
+    echo "Running build ${PROFILE} and logging to ${BUILD_LOG}"
+    mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${PROFILE} ${BUILD_OPTS} > ${BUILD_LOG} 2>&1
+    mkdir -p ${CLIENT_DIR}/${PROFILE}
+    cp core/client/runtime/target/alluxio-core-client-runtime-${VERSION}-jar-with-dependencies.jar ${CLIENT_DIR}/${PROFILE}/alluxio-${VERSION}-${PROFILE}-client.jar
+  done
+fi
+echo "Running default build and logging to ${BUILD_LOG}"
+mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPTS} > ${BUILD_LOG} 2>&1
+VERSION=$(bin/alluxio version)
 PREFIX=alluxio-${VERSION}
 
 cd ..
