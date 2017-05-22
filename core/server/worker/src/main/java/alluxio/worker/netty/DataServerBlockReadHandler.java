@@ -170,7 +170,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       return;
     }
 
-    int retryInterval = Constants.SECOND_MS * 2;
+    int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
     // TODO(calvin): Update the locking logic so this can be done better
