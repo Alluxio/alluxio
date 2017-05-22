@@ -127,6 +127,10 @@
                   <shadedPattern>${shading.prefix}.org.apache.commons.http</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>org.jdom</pattern>
                   <shadedPattern>${shading.prefix}.org.jdom</shadedPattern>
                 </relocation>
