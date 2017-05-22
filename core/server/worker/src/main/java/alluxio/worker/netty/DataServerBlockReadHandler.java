@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
@@ -113,7 +114,6 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       } catch (Exception e) {
         LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());
       }
-      mWorker.cleanupSession(mSessionId);
     }
   }
 
@@ -170,13 +170,15 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       return;
     }
 
-    int retryInterval = Constants.SECOND_MS;
+    int retryInterval = Constants.SECOND_MS * 2;
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
     // TODO(calvin): Update the locking logic so this can be done better
     if (request.mPromote) {
       try {
         mWorker.moveBlock(request.mSessionId, request.mId, mStorageTierAssoc.getAlias(0));
+      } catch (BlockDoesNotExistException e) {
+        LOG.debug("Block promotion skipped for {}: {}", request.mId, e.getMessage());
       } catch (Exception e) {
         LOG.warn("Failed to promote block {}: {}", request.mId, e.getMessage());
       }
