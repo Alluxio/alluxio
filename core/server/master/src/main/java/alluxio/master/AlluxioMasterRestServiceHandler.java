@@ -23,9 +23,11 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.LogInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -67,6 +69,11 @@ public final class AlluxioMasterRestServiceHandler {
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
+
+  // log
+  public static final String LOG_LEVEL = "logLevel";
+  public static final String LOG_ARGUMENT_NAME = "logName";
+  public static final String LOG_ARGUMENT_LEVEL = "level";
 
   // the following endpoints are deprecated
   public static final String GET_RPC_ADDRESS = "rpc_address";
@@ -553,5 +560,24 @@ public final class AlluxioMasterRestServiceHandler {
   private Capacity getUfsCapacityInternal() throws IOException {
     return new Capacity().setTotal(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL))
         .setUsed(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
+  }
+
+  /**
+   * @summary get the Alluxio log information
+   * @param logName the log's name
+   * @param level the log level
+   * @return the response object
+   */
+  @GET
+  @Path(LOG_LEVEL)
+  @ReturnType("alluxio.wire.AlluxioMasterInfo")
+  public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
+      (LOG_ARGUMENT_LEVEL) final String level) {
+    return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
+      @Override
+      public LogInfo call() throws Exception {
+        return LogUtils.setLogLevel(logName, level);
+      }
+    });
   }
 }
