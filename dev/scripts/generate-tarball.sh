@@ -35,12 +35,6 @@ readonly HOME="${SCRIPT_DIR}/../.."
 readonly BUILD_LOG="${HOME}/logs/build.log"
 readonly REPO_COPY="${WORK_DIR}/alluxio"
 
-function clean_repo {
-  cd "${REPO_COPY}"
-  git clean -qfdX
-  rm -rf .git .gitignore
-}
-
 # Cleans out previous builds and creates a clean copy of the repo.
 function prepare_repo {
   cd "${SCRIPT_DIR}"
@@ -48,7 +42,7 @@ function prepare_repo {
   mkdir -p "${WORK_DIR}"
   rm -rf "${REPO_COPY}"
   rsync -aq --exclude='logs' --exclude='dev' "${HOME}" "${REPO_COPY}"
-  clean_repo
+  git clean -qfdX
 }
 
 function build {
@@ -73,7 +67,8 @@ function create_tarball {
   cd "${REPO_COPY}"
   local version="$(bin/alluxio version)"
   local prefix="alluxio-${version}"
-  clean_repo
+  git clean -qfdX
+  rm -rf .git .gitignore
   cd ..
   rm -rf "${prefix}"
   mv "${REPO_COPY}" "${prefix}"
