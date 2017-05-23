@@ -35,6 +35,12 @@ readonly HOME="${SCRIPT_DIR}/../.."
 readonly BUILD_LOG="${HOME}/logs/build.log"
 readonly REPO_COPY="${WORK_DIR}/alluxio"
 
+function clean_repo {
+  cd "${REPO_COPY}"
+  git clean -qfdX
+  rm -rf .git .gitignore
+}
+
 # Cleans out previous builds and creates a clean copy of the repo.
 function prepare_repo {
   cd "${SCRIPT_DIR}"
@@ -42,19 +48,17 @@ function prepare_repo {
   mkdir -p "${WORK_DIR}"
   rm -rf "${REPO_COPY}"
   rsync -aq --exclude='logs' --exclude='dev' "${HOME}" "${REPO_COPY}"
-  cd "${REPO_COPY}"
-  git clean -qfdX
-  rm -rf .git .gitignore
+  clean_repo
 }
 
 function build {
+  cd "${REPO_COPY}" > /dev/null
   local build_all_client_profiles=$1
   local client_profiles_=( )
   if [[ "${build_all_client_profiles}" == true ]]; then
     client_profiles=( ${EXTRA_CLIENT_PROFILES[@]} )
   fi
   client_profiles+=( "default" )
-  cd "${REPO_COPY}" > /dev/null
   mkdir -p "${CLIENT_DIR}"
   for profile in "${client_profiles[@]}"; do
     echo "Running build ${profile} and logging to ${BUILD_LOG}"
@@ -69,6 +73,7 @@ function create_tarball {
   cd "${REPO_COPY}"
   local version="$(bin/alluxio version)"
   local prefix="alluxio-${version}"
+  clean_repo
   cd ..
   rm -rf "${prefix}"
   mv "${REPO_COPY}" "${prefix}"
