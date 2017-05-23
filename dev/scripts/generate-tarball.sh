@@ -11,17 +11,17 @@
 #
 
 #
-# This script generates a tarball of the current Alluxio commit. It does the following:
+# This script generates a tarball of the current Alluxio repo. It does the following:
 # 1. Copy everything except logs/ and dev/ to a work directory
-# 2. Clean out ignored files
-# 3. Compile, using the environment variable ${BUILD_OPTS} as options to the Maven build for each compute framework
+# 2. Clean out ignored files and Git metadata
+# 3. Compile, using the environment variable ${BUILD_OPTS} as options to the Maven build for each client profile
 # 4. Use `bin/alluxio version` to determine the right directory name, e.g. alluxio-1.2.0
-# 5. Copy the generated client to the folder client/framework/
+# 5. Copy the generated client to the folder client/
 # 6. Tar everything up and put it in dev/scripts/tarballs
 #
 # Example: BUILD_OPTS="-Phadoop-2.7" ./generate-tarball.sh
 #
-# The --skipFrameworks flag may be used to avoid building per-framework clients.
+# The --skipExtraClients flag may be used to avoid building per-profile clients.
 #
 
 set -e
@@ -30,7 +30,7 @@ readonly SCRIPT_DIR=$(cd "$( dirname "$0" )"; pwd)
 readonly TARBALL_DIR="${SCRIPT_DIR}/tarballs"
 readonly WORK_DIR="${SCRIPT_DIR}/workdir"
 readonly CLIENT_DIR="client"
-readonly FRAMEWORKS=( "flink" "presto" "spark" "hadoop" )
+readonly EXTRA_CLIENT_PROFILES=( "presto" "spark" )
 readonly HOME="${SCRIPT_DIR}/../.."
 readonly BUILD_LOG="${HOME}/logs/build.log"
 readonly REPO_COPY="${WORK_DIR}/alluxio"
@@ -47,22 +47,22 @@ function prepare_repo {
   rm -rf .git .gitignore
 }
 
-function build_framework_clients {
+function build {
+  local build_all_client_profiles=$1
+  local client_profiles_=( )
+  if [[ "${build_all_client_profiles}" == true ]]; then
+    client_profiles=( ${EXTRA_CLIENT_PROFILES[@]} )
+  fi
+  client_profiles+=( "default" )
   cd "${REPO_COPY}" > /dev/null
   mkdir -p "${CLIENT_DIR}"
-  for profile in "${FRAMEWORKS[@]}"; do
+  for profile in "${client_profiles[@]}"; do
     echo "Running build ${profile} and logging to ${BUILD_LOG}"
     mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${profile} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
     mkdir -p "${CLIENT_DIR}/${profile}"
     local version=$(bin/alluxio version)
     cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
   done
-}
-
-function build_default {
-  cd "${REPO_COPY}"
-  echo "Running default build and logging to ${BUILD_LOG}"
-  mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
 }
 
 function create_tarball {
@@ -78,18 +78,15 @@ function create_tarball {
 }
 
 function main {
-  local build_frameworks=true
+  local build_all_client_profiles=true
   while [[ "$#" > 0 ]]; do
     case $1 in
-      --skipFrameworks) build_frameworks=false; shift ;;
+      --skipExtraClients) build_all_client_profiles=false; shift ;;
       *) echo "Unrecognized option: $1"; exit 1 ;;
     esac
   done
   prepare_repo
-  if [[ "${build_frameworks}" == true ]]; then
-    build_framework_clients
-  fi
-  build_default
+  build ${build_all_client_profiles}
   create_tarball
 }
 

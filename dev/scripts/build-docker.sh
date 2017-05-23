@@ -38,7 +38,7 @@ function build_docker_image {
 
 function main {
   cd "${SCRIPT_DIR}"
-  "${GENERATE_TARBALL_SCRIPT}" --skipFrameworks
+  "${GENERATE_TARBALL_SCRIPT}" --skipExtraClients
   local tarball="${PWD}/tarballs/$(ls -tr tarballs | tail -1)"
   echo ${tarball}
   build_docker_image "${tarball}"
