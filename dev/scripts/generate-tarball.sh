@@ -43,6 +43,7 @@ function prepare_repo {
   rm -rf "${REPO_COPY}"
   rsync -aq --exclude='logs' --exclude='dev' "${HOME}" "${REPO_COPY}"
   git clean -qfdX
+  rm -rf .git .gitignore
 }
 
 function build {
@@ -56,7 +57,11 @@ function build {
   mkdir -p "${CLIENT_DIR}"
   for profile in "${client_profiles[@]}"; do
     echo "Running build ${profile} and logging to ${BUILD_LOG}"
-    mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${profile} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
+    local profiles_arg="-Pmesos"
+    if [[ ${profile} != "default" ]]; then
+      profiles_arg+=" -P{profile}"
+    fi
+    mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true ${profiles_arg} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
     mkdir -p "${CLIENT_DIR}/${profile}"
     local version=$(bin/alluxio version)
     cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
@@ -67,8 +72,8 @@ function create_tarball {
   cd "${REPO_COPY}"
   local version="$(bin/alluxio version)"
   local prefix="alluxio-${version}"
-  git clean -qfdX
-  rm -rf .git .gitignore
+  # Remove any logs generated during the build.
+  rm "logs/*.log"
   cd ..
   rm -rf "${prefix}"
   mv "${REPO_COPY}" "${prefix}"
