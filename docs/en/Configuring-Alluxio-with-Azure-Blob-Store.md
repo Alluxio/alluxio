@@ -89,5 +89,5 @@ AZURE_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
 To stop Alluxio, you can run:
 
 ```
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```

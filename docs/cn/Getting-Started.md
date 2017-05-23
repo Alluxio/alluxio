@@ -276,7 +276,7 @@ sys	0m0.240s
 你完成了本地安装和使用Alluxio，你可以使用如下命令关闭Alluxio：
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## 结论
