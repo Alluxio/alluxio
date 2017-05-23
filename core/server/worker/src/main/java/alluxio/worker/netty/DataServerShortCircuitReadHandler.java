@@ -123,6 +123,9 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
             if (mRequest.getPromote()) {
               try {
                 mWorker.moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
+              } catch (BlockDoesNotExistException e) {
+                LOG.debug("Block {} to promote does not exist in Alluxio: {}",
+                    mRequest.getBlockId(), e.getMessage());
               } catch (Exception e) {
                 LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
               }
