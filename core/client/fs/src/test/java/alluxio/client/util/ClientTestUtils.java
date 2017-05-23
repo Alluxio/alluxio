@@ -29,6 +29,7 @@ public final class ClientTestUtils {
   public static void setSmallBufferSizes() {
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, "4KB");
+    Configuration.set(PropertyKey.WORKER_FILE_BUFFER_SIZE, "4KB");
   }
 
   /**

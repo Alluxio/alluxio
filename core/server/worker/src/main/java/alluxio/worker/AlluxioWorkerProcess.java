@@ -23,7 +23,10 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
@@ -138,8 +141,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
 
       if (isDomainSocketEnabled()) {
-        String domainSocketPath =
-            Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        String domainSocketPath;
+        if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+          domainSocketPath = PathUtils.concatPath(Configuration.get(PropertyKey.WORK_DIR),
+              IdUtils.getRandomNonNegativeLong());
+          FileUtils.createFile(domainSocketPath);
+        } else {
+          domainSocketPath =
+              Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        }
         LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
         mDomainSocketDataServer =
             DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);

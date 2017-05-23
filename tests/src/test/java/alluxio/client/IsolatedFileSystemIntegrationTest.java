@@ -54,6 +54,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 100 * Constants.MB)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
+          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, USER_QUOTA_UNIT_BYTES)
           .build();
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;

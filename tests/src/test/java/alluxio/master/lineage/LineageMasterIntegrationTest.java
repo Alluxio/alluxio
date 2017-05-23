@@ -71,6 +71,7 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
+          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(BUFFER_BYTES))
           .setProperty(PropertyKey.USER_LINEAGE_ENABLED, "true")
           .setProperty(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS,
               Integer.toString(RECOMPUTE_INTERVAL_MS))

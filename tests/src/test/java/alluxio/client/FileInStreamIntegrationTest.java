@@ -322,7 +322,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240",
-          PropertyKey.Name.USER_FILE_BUFFER_BYTES, "128"})
+          PropertyKey.Name.USER_FILE_BUFFER_BYTES, "128",
+          PropertyKey.Name.WORKER_FILE_BUFFER_SIZE, "128"})
   public void concurrentRemoteRead() throws Exception {
     int blockSize = 10240;
     final int bufferSize = 128;
