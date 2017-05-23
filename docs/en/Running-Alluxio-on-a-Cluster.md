@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Alluxio on a Cluster
-nickname: Alluxio on a Cluster
+title: Running Alluxio on a Cluster
+nickname: Alluxio on Cluster
 group: Deploying Alluxio
 priority: 2
 ---

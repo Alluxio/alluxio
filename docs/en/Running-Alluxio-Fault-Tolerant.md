@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Alluxio on a Cluster with High Availability
-nickname: Alluxio on a Cluster with HA
+title: Running Alluxio on a Cluster with High Availability
+nickname: Alluxio on Cluster with High Availability
 group: Deploying Alluxio
 priority: 3
 ---
