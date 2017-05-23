@@ -44,6 +44,7 @@ function prepare_repo {
   rsync -aq --exclude='logs' --exclude='dev' "${HOME}" "${REPO_COPY}"
   cd "${REPO_COPY}"
   git clean -qfdX
+  rm -rf .git .gitignore
 }
 
 function build_framework_clients {
