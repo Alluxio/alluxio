@@ -21,7 +21,8 @@
 #
 # Example: BUILD_OPTS="-Phadoop-2.7" ./generate-tarball.sh
 #
-# The --skipExtraClients flag may be used to avoid building per-profile clients.
+# The --skipExtraClients flag skips building per-profile clients.
+# The --deleteUnrevisioned flag cleans all unrevisioned files.
 #
 
 set -e
@@ -38,11 +39,16 @@ readonly REPO_COPY="${WORK_DIR}/alluxio"
 # Cleans out previous builds and creates a clean copy of the repo.
 function prepare_repo {
   cd "${SCRIPT_DIR}"
+  local delete_unrevisioned=$1
   mkdir -p "${TARBALL_DIR}"
   mkdir -p "${WORK_DIR}"
   rm -rf "${REPO_COPY}"
   rsync -aq --exclude='logs' --exclude='dev' "${HOME}" "${REPO_COPY}"
-  git clean -qfdX
+  if [[ "${delete_unrevisioned}" == true ]]; then
+    git clean -qfdx
+  else
+    git clean -qfdX
+  fi
   rm -rf .git .gitignore
 }
 
@@ -73,7 +79,7 @@ function create_tarball {
   local version="$(bin/alluxio version)"
   local prefix="alluxio-${version}"
   # Remove any logs generated during the build.
-  rm "logs/*.log"
+  rm -rf logs/*.log
   cd ..
   rm -rf "${prefix}"
   mv "${REPO_COPY}" "${prefix}"
@@ -84,13 +90,15 @@ function create_tarball {
 
 function main {
   local build_all_client_profiles=true
+  local delete_unrevisioned=false
   while [[ "$#" > 0 ]]; do
     case $1 in
       --skipExtraClients) build_all_client_profiles=false; shift ;;
+      --deleteUnrevisioned) delete_unrevisioned=true; shift ;;
       *) echo "Unrecognized option: $1"; exit 1 ;;
     esac
   done
-  prepare_repo
+  prepare_repo ${delete_unrevisioned}
   build ${build_all_client_profiles}
   create_tarball
 }
