@@ -19,7 +19,7 @@ YARN_LOG_DIR="$LOG_DIRS"
 
 echo "Formatting Alluxio Master"
 
-"${JAVA}" -cp "${CLASSPATH}" \
+"${JAVA}" -cp "${ALLUXIO_SERVER_CLASSPATH}" \
   ${ALLUXIO_MASTER_JAVA_OPTS} \
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="MASTER_LOGGER" \
@@ -28,7 +28,7 @@ echo "Formatting Alluxio Master"
 
 echo "Starting Alluxio Master"
 
-"${JAVA}" -cp "${CLASSPATH}" \
+"${JAVA}" -cp "${ALLUXIO_SERVER_CLASSPATH}" \
   ${ALLUXIO_MASTER_JAVA_OPTS} \
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="MASTER_LOGGER" \
