@@ -44,6 +44,8 @@ function prepare_repo {
   mkdir -p "${WORK_DIR}"
   rm -rf "${REPO_COPY}"
   rsync -aq --exclude='logs' --exclude='dev' "${HOME}" "${REPO_COPY}"
+
+  cd "${REPO_COPY}"
   if [[ "${delete_unrevisioned}" == true ]]; then
     git clean -qfdx
   else
