@@ -76,7 +76,7 @@ function build {
       profiles_arg+=" -P${profile}"
     fi
     if [[ ${hadoop_profile} != "default" ]]; then
-      profiles_arg+=" -P{hadoop_profile"
+      profiles_arg+=" -P${hadoop_profile}"
     fi
     mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true ${profiles_arg} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
     mkdir -p "${CLIENT_DIR}/${profile}"
@@ -120,7 +120,7 @@ function main {
     case $1 in
       --skipExtraClients) build_all_client_profiles=false; shift ;;
       --deleteUnrevisioned) delete_unrevisioned=true; shift ;;
-      --hadoopProfile) hadoop_profile=true; shift 2 ;;
+      --hadoopProfile) hadoop_profile=$2; shift 2 ;;
       *) echo "Unrecognized option: $1"; exit 1 ;;
     esac
   done

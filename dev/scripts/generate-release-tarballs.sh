@@ -18,7 +18,7 @@ readonly HADOOP_PROFILES=( "default" "hadoop-1" "hadoop-2.2" "hadoop-2.3" "hadoo
 
 function main {
   for hadoop_profile in "${HADOOP_PROFILES[@]}"; do
-    echo "building tarball for ${hadoop_profile}"
+    echo "Building tarball for ${hadoop_profile}"
     "${GENERATE_TARBALL_SCRIPT}" --deleteUnrevisioned --hadoopProfile ${hadoop_profile}
   done
 }
