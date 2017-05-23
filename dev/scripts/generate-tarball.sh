@@ -19,10 +19,12 @@
 # 5. Copy the generated client to the folder client/
 # 6. Tar everything up and put it in dev/scripts/tarballs
 #
-# Example: BUILD_OPTS="-Phadoop-2.7" ./generate-tarball.sh
-#
 # The --skipExtraClients flag skips building per-profile clients.
 # The --deleteUnrevisioned flag cleans all unrevisioned files.
+# The --hadoopProfile flag sets the hadoop profile to use.
+#
+# The generated tarball will be named alluxio-${VERSION}-${HADOOP_PROFILE}-bin.tar.gz. If the hadoop profile
+# is not specified or specified as "default", the tarball will simply be named alluxio-${VERSION}-bin.tar.gz.
 #
 
 set -e
@@ -60,6 +62,7 @@ function prepare_repo {
 function build {
   cd "${REPO_COPY}" > /dev/null
   local build_all_client_profiles=$1
+  local hadoop_profile=$2
   local client_profiles_=( )
   if [[ "${build_all_client_profiles}" == true ]]; then
     client_profiles=( ${EXTRA_ACTIVE_CLIENT_PROFILES[@]} )
@@ -71,6 +74,9 @@ function build {
     local profiles_arg="-Pmesos"
     if [[ ${profile} != "default" ]]; then
       profiles_arg+=" -P${profile}"
+    fi
+    if [[ ${hadoop_profile} != "default" ]]; then
+      profiles_arg+=" -P{hadoop_profile"
     fi
     mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true ${profiles_arg} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
     mkdir -p "${CLIENT_DIR}/${profile}"
@@ -89,8 +95,13 @@ function build {
 
 function create_tarball {
   cd "${REPO_COPY}"
+  local hadoop_profile=$1
   local version="$(bin/alluxio version)"
-  local prefix="alluxio-${version}"
+  if [[ "${hadoop_profile}" == "default" ]]; then
+    local prefix="alluxio-${version}-bin"
+  else
+    local prefix="alluxio-${version}-${hadoop_profile}-bin"
+  fi
   # Remove any logs generated during the build.
   rm -rf logs/*.log
   cd ..
@@ -104,16 +115,18 @@ function create_tarball {
 function main {
   local build_all_client_profiles=true
   local delete_unrevisioned=false
+  local hadoop_profile="default"
   while [[ "$#" > 0 ]]; do
     case $1 in
       --skipExtraClients) build_all_client_profiles=false; shift ;;
       --deleteUnrevisioned) delete_unrevisioned=true; shift ;;
+      --hadoopProfile) hadoop_profile=true; shift 2 ;;
       *) echo "Unrecognized option: $1"; exit 1 ;;
     esac
   done
   prepare_repo ${delete_unrevisioned}
-  build ${build_all_client_profiles}
-  create_tarball
+  build ${build_all_client_profiles} ${hadoop_profile}
+  create_tarball ${hadoop_profile}
 }
 
 main "$@"
