@@ -337,7 +337,7 @@ Once you are done with interacting with your local Alluxio installation, you can
 the following command:
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Conclusion

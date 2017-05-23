@@ -89,5 +89,5 @@ AZURE_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
 若要停止Alluxio，你可以运行以下命令:
 
 ```
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```
