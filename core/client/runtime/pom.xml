@@ -77,6 +77,11 @@
           <scope>provided</scope>
         </dependency>
         <dependency>
+          <groupId>jline</groupId>
+          <artifactId>jline</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-client</artifactId>
           <scope>provided</scope>

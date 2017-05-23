@@ -689,6 +689,11 @@
         <version>3.0.1</version>
         <scope>provided</scope>
       </dependency>
+      <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>0.9.94</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
