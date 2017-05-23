@@ -32,4 +32,4 @@ ALLUXIO_PROXY_LOGGER="Console,PROXY_LOGGER"
 
 . ${SCRIPT_DIR}/../../../libexec/alluxio-config.sh
 
-${JAVA} -cp ${CLASSPATH} ${ALLUXIO_PROXY_JAVA_OPTS} alluxio.proxy.AlluxioProxy
+${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${ALLUXIO_PROXY_JAVA_OPTS} alluxio.proxy.AlluxioProxy
