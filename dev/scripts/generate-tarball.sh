@@ -53,7 +53,7 @@ function build_framework_clients {
     echo "Running build ${profile} and logging to ${BUILD_LOG}"
     mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -P${profile} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
     mkdir -p "${CLIENT_DIR}/${profile}"
-    version=$(bin/alluxio version)
+    local version=$(bin/alluxio version)
     cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
   done
 }
@@ -66,19 +66,18 @@ function build_default {
 
 function create_tarball {
   cd "${REPO_COPY}"
-  version="$(bin/alluxio version)"
-  prefix="alluxio-${version}"
+  local version="$(bin/alluxio version)"
+  local prefix="alluxio-${version}"
   cd ..
   rm -rf "${prefix}"
   mv "${REPO_COPY}" "${prefix}"
-  target="${TARBALL_DIR}/${prefix}.tar.gz"
+  local target="${TARBALL_DIR}/${prefix}.tar.gz"
   gtar -czf "${target}" "${prefix}" --exclude-vcs
   echo "Generated tarball at ${target}"
 }
 
 function main {
-  local build_frameworks
-  build_frameworks=true
+  local build_frameworks=true
   while [[ "$#" > 0 ]]; do
     case $1 in
       --skipFrameworks) build_frameworks=false; shift ;;
