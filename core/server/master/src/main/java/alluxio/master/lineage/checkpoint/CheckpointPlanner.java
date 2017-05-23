@@ -16,7 +16,8 @@ import alluxio.PropertyKey;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.util.CommonUtils;
- 
+
+
 
 /**
  * Generates plans for lineage checkpointing.
@@ -43,7 +44,7 @@ public interface CheckpointPlanner {
             new Class[] {LineageStoreView.class, FileSystemMasterView.class},
             new Object[] {lineageStoreView, fileSystemMasterView});
       } catch (Exception e) {
-            throw new RuntimeException(e);
+        throw new RuntimeException(e);
       }
     }
   }
