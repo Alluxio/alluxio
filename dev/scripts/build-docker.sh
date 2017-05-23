@@ -22,27 +22,24 @@ readonly GENERATE_TARBALL_SCRIPT="${SCRIPT_DIR}/generate-tarball.sh"
 
 # Builds a docker image from the specified tarball.
 function build_docker_image {
-  local tarball
-  local tmp_dir
-  tarball=$1
-  tmp_dir="$(mktemp -d)"
+  local tarball=$1
+  local tmp_dir="$(mktemp -d)"
   cp -r "${DOCKER_DIR}" "${tmp_dir}"
   cp "${tarball}" "${tmp_dir}/docker"
   cd "${tmp_dir}/docker"
   # example tarball: /path/to/workdir/alluxio-1.4.0-SNAPSHOT.tar.gz
   # docker image tags must be lowercase
-  tarball_basename=$(basename ${tarball})
-  tag=$(echo ${tarball_basename%.tar.gz} | tr '[:upper:]' '[:lower:]')
+  local tarball_basename=$(basename ${tarball})
+  local tag=$(echo ${tarball_basename%.tar.gz} | tr '[:upper:]' '[:lower:]')
   echo "Building ${tag} image..."
   docker build -t "${tag}" --build-arg "ALLUXIO_TARBALL=${tarball_basename}" .
   rm -rf "${tmp_dir}"
 }
 
 function main {
-  local tarball
   cd "${SCRIPT_DIR}"
   "${GENERATE_TARBALL_SCRIPT}" --skipFrameworks
-  tarball="${PWD}/tarballs/$(ls -tr tarballs | tail -1)"
+  local tarball="${PWD}/tarballs/$(ls -tr tarballs | tail -1)"
   echo ${tarball}
   build_docker_image "${tarball}"
 }
