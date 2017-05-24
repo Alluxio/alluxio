@@ -11,7 +11,24 @@ priority: 1
 
 ## Where Alluxio Fits
 
-Because of Alluxio's memory centric design and being the central point of access, Alluxio holds a unique place in the big data ecosystem, residing between storage systems such as Amazon S3, Apache HDFS or OpenStack Swift and computation frameworks and applications such as Apache Spark or Hadoop MapReduce. For user applications and computation frameworks, Alluxio is the underlayer that manages data access and fast storage, facilitating data sharing and locality between jobs, regardless of whether they are running with the same computation engine. As a result, Alluxio can bring an order of magnitude speed up for those big data applications while providing a  common interface of data access. For under storage systems, Alluxio connects the gap between big data applications and traditional storage systems, and redefines the set of workloads available to utilize the data. Since Alluxio hides the integration of under storage systems to applications, any under storage can back all the applications and frameworks running on top of Alluxio. Coupled with the potential to mount multiple under storage systems, Alluxio can serve as a unifying layer for any number of varied data sources.
+Because of Alluxio's memory centric design and being the central point 
+of access, Alluxio holds a unique place in the big data ecosystem, 
+residing between storage systems such as Amazon S3, Apache HDFS or 
+OpenStack Swift and computation frameworks and applications such as 
+Apache Spark or Hadoop MapReduce. For user applications and computation 
+frameworks, Alluxio is the underlayer that manages data access and fast 
+storage, facilitating data sharing and locality between jobs, 
+regardless of whether they are running with the same computation 
+engine. As a result, Alluxio can bring an order of magnitude speed up 
+for those big data applications while providing a common interface of 
+data access. For under storage systems, Alluxio connects the gap 
+between big data applications and traditional storage systems, and 
+redefines the set of workloads available to utilize the data. Since 
+Alluxio hides the integration of under storage systems to applications, 
+any under storage can back all the applications and frameworks running 
+on top of Alluxio. Coupled with the potential to mount multiple under 
+storage systems, Alluxio can serve as a unifying layer for any number 
+of varied data sources.
 
 ![Stack]({{site.data.img.stack}})
 
@@ -21,7 +38,13 @@ Alluxio's design uses a single master and multiple workers. At a very high level
 
 ### Master
 
-Alluxio may be deployed in one of two master modes, [single master](Running-Alluxio-Locally.html) or [fault tolerant mode](Running-Alluxio-Fault-Tolerant.html). The master is primarily responsible for managing the global metadata of the system, for example, the file system tree. Clients may interact with the master to read or modify this metadata. In addition, all workers periodically heartbeat to the master to maintain their participation in the cluster. The master does not initiate communication with other components; it only interacts with other components by responding to requests.
+Alluxio has two types of masters, primary master or secondary master. 
+#### Primary Master
+The primary master is primarily responsible for managing the global metadata of the system, for example, the file system tree. Clients may interact with the primary master to read or modify this metadata. In addition, all workers periodically heartbeat to the primary master to maintain their participation in the cluster. The primary master does not initiate communication with other components; it only interacts with other components by responding to requests. There is one and only one primary master in an Alluxio cluster.
+#### Secondary Master
+The secondary master replays journals written by the primary master and periodically writes checkpoints. It does not process any requests from any Alluxo components.
+#### Master Deployment
+Alluxio may be deployed in one of two master modes, [simple mode](Running-Alluxio-Locally.html) or [high availablity mode](Running-Alluxio-Fault-Tolerant.html). There must be one and only one primary master in both of the simple mode and the high availability mode. The simple mode can at most have one secondary master which cannot be promoted to the primary master. The high availability mode can have zero or more secondary masters, one of which can be promoted to the primary master if the primary master fails.
 
 ### Worker
 
