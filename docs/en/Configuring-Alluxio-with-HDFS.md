@@ -69,7 +69,7 @@ alluxio.underfs.address=hdfs://NAMENODE:PORT
 If HDFS namenodes are running in HA mode, both Alluxio servers and clients should be configured
 properly in order to access HDFS.
 
-For Alluxio servers (masters and workers), copy or make symbol-links from `hdfs-site.xml` and `core-site.xml` from your hadoop
+For Alluxio servers (masters and workers), copy or make symbolic links from `hdfs-site.xml` and `core-site.xml` from your hadoop
 installation into `${ALLUXIO_HOME}/conf`. Alternatively, you can set
 `alluxio.underfs.hdfs.configuration` to the hadoop property file `hdfs-site.xml` (or
 `core-site.xml`) in `conf/alluxio-site.properties` (make sure all the relative configurations are
