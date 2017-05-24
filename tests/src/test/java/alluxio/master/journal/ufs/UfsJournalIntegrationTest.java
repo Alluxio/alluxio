@@ -498,7 +498,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
             return false;
           }
         }
-      }, WaitForOptions.defaults().setTimeout(60 * Constants.SECOND_MS));
+      }, WaitForOptions.defaults().setTimeoutMs(60 * Constants.SECOND_MS));
     } finally {
       registry.stop();
     }

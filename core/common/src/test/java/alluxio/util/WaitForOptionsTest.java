@@ -23,7 +23,7 @@ public final class WaitForOptionsTest {
   public void defaults() {
     WaitForOptions options = WaitForOptions.defaults();
     Assert.assertEquals(WaitForOptions.DEFAULT_INTERVAL, options.getInterval());
-    Assert.assertEquals(WaitForOptions.NEVER, options.getTimeout());
+    Assert.assertEquals(WaitForOptions.NEVER, options.getTimeoutMs());
   }
 
   /**
@@ -37,10 +37,10 @@ public final class WaitForOptionsTest {
 
     WaitForOptions options = WaitForOptions.defaults();
     options.setInterval(interval);
-    options.setTimeout(timeout);
+    options.setTimeoutMs(timeout);
 
     Assert.assertEquals(interval, options.getInterval());
-    Assert.assertEquals(timeout, options.getTimeout());
+    Assert.assertEquals(timeout, options.getTimeoutMs());
   }
 
   @Test
