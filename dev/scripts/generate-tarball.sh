@@ -80,7 +80,9 @@ function build {
   if [[ "${build_all_client_profiles}" == true ]]; then
     for profile in "${EXTRA_SYMLINK_CLIENT_PROFILES[@]}"; do
       mkdir -p "${CLIENT_DIR}/${profile}"
-      ln -s "${CLIENT_DIR}/default/alluxio-${version}-${profile}-client.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
+      pushd "${CLIENT_DIR}/${profile}" >> /dev/null
+      ln -s "../default/alluxio-${version}-default-client.jar" "alluxio-${version}-${profile}-client.jar"
+      popd >> /dev/null
     done
   fi
 }
