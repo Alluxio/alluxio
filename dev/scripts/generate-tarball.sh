@@ -78,8 +78,9 @@ function build {
     cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
   done
   if [[ "${build_all_client_profiles}" == true ]]; then
-    for symlink_profile in "${EXTRA_SYMLINK_CLIENT_PROFILES[@]}"; do
-      ln -s "${CLIENT_DIR}/default" "${CLIENT_DIR}/${symlink_profile}"
+    for profile in "${EXTRA_SYMLINK_CLIENT_PROFILES[@]}"; do
+      mkdir -p "${CLIENT_DIR}/${profile}"
+      ln -s "${CLIENT_DIR}/default/alluxio-${version}-${profile}-client.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
     done
   fi
 }
