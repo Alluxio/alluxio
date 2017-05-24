@@ -31,7 +31,10 @@ readonly SCRIPT_DIR=$(cd "$( dirname "$0" )"; pwd)
 readonly TARBALL_DIR="${SCRIPT_DIR}/tarballs"
 readonly WORK_DIR="${SCRIPT_DIR}/workdir"
 readonly CLIENT_DIR="client"
-readonly EXTRA_CLIENT_PROFILES=( "presto" "spark" )
+# These clients need to be recompiled.
+readonly EXTRA_ACTIVE_CLIENT_PROFILES=( "presto" "spark" )
+# These clients can be symlinks to the default client.
+readonly EXTRA_SYMLINK_CLIENT_PROFILES=( "flink" "hadoop" )
 readonly HOME="${SCRIPT_DIR}/../.."
 readonly BUILD_LOG="${HOME}/logs/build.log"
 readonly REPO_COPY="${WORK_DIR}/alluxio"
@@ -59,7 +62,7 @@ function build {
   local build_all_client_profiles=$1
   local client_profiles_=( )
   if [[ "${build_all_client_profiles}" == true ]]; then
-    client_profiles=( ${EXTRA_CLIENT_PROFILES[@]} )
+    client_profiles=( ${EXTRA_ACTIVE_CLIENT_PROFILES[@]} )
   fi
   client_profiles+=( "default" )
   mkdir -p "${CLIENT_DIR}"
@@ -67,13 +70,18 @@ function build {
     echo "Running build ${profile} and logging to ${BUILD_LOG}"
     local profiles_arg="-Pmesos"
     if [[ ${profile} != "default" ]]; then
-      profiles_arg+=" -P{profile}"
+      profiles_arg+=" -P${profile}"
     fi
     mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true ${profiles_arg} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
     mkdir -p "${CLIENT_DIR}/${profile}"
     local version=$(bin/alluxio version)
     cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
   done
+  if [[ "${build_all_client_profiles}" == true ]]; then
+    for symlink_profile in "${EXTRA_SYMLINK_CLIENT_PROFILES[@]}"; do
+      ln -s "${CLIENT_DIR}/default" "${CLIENT_DIR}/${symlink_profile}"
+    done
+  fi
 }
 
 function create_tarball {
