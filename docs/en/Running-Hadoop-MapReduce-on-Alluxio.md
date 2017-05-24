@@ -20,7 +20,7 @@ The prerequisite for this guide includes
 - You have set up an Alluxio cluster in accordance to these guides
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 - In order to run some simple map-reduce examples, we also recommend you download the
-[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1) based on your hadoop version,
+[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples) based on your hadoop version,
 or if you are using Hadoop 1, this [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
 ## Prepare the Alluxio client jar
@@ -79,7 +79,7 @@ URIs with Alluxio scheme.
 
 ## Distributing the Alluxio Client Jar
 
-In order for the MapReduce applicationsto be able to read and write files in Alluxio, the Alluxio client jar
+In order for the MapReduce applications to be able to read and write files in Alluxio, the Alluxio client jar
 must be distributed on the classpath of the application across different nodes. 
 
 This guide on
