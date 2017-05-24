@@ -324,6 +324,11 @@
         <version>3.1.0</version>
       </dependency>
       <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>0.9.94</version>
+      </dependency>
+      <dependency>
         <groupId>log4j</groupId>
         <artifactId>log4j</artifactId>
         <version>1.2.16</version>
