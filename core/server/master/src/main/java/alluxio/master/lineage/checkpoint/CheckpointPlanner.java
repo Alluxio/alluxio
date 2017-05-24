@@ -17,7 +17,6 @@ import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.util.CommonUtils;
 
-
 /**
  * Generates plans for lineage checkpointing.
  */
