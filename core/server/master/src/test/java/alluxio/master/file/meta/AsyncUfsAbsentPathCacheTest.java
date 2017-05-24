@@ -202,7 +202,7 @@ public class AsyncUfsAbsentPathCacheTest {
             }
             return true;
           }
-        }, WaitForOptions.defaults().setTimeout(10000));
+        }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   private void removeAbsent(AlluxioURI path) throws Exception {
@@ -219,7 +219,7 @@ public class AsyncUfsAbsentPathCacheTest {
             }
             return true;
           }
-        }, WaitForOptions.defaults().setTimeout(10000));
+        }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   /**
