@@ -23,6 +23,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.DirectoryNotInSyncException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -1144,7 +1145,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void delete(AlluxioURI path, DeleteOptions options) throws IOException,
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
-      AccessControlException {
+      AccessControlException, DirectoryNotInSyncException {
     Metrics.DELETE_PATHS_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
@@ -1165,10 +1166,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   * @throws DirectoryNotInSyncException if unchecked is false and the UFS directory is not in sync
    */
   private void deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
       JournalContext journalContext) throws InvalidPathException, FileDoesNotExistException,
-      IOException, DirectoryNotEmptyException {
+      IOException, DirectoryNotEmptyException, DirectoryNotInSyncException {
     long opTimeMs = System.currentTimeMillis();
     deleteInternal(inodePath, false, opTimeMs, deleteOptions, journalContext);
   }
@@ -1199,11 +1201,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   * @throws DirectoryNotInSyncException if unchecked is false and the UFS directory is not in sync
    */
   private void deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
-      DeleteOptions deleteOptions, JournalContext journalContext)
-      throws FileDoesNotExistException, IOException, DirectoryNotEmptyException,
-      InvalidPathException {
+      DeleteOptions deleteOptions, JournalContext journalContext) throws FileDoesNotExistException,
+      IOException, DirectoryNotEmptyException, InvalidPathException, DirectoryNotInSyncException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
@@ -1294,8 +1296,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       if (!failedUris.isEmpty()) {
-        throw new IOException(
-            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(failedUris, ',')));
+        throw new DirectoryNotInSyncException(ExceptionMessage.DELETE_FAILED_DIRECTORY_NOT_IN_SYNC
+            .getMessage(StringUtils.join(failedUris, ',')));
       }
     }
 
@@ -2444,8 +2446,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void unmount(AlluxioURI alluxioPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
+  public void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException,
+      InvalidPathException, IOException, AccessControlException, DirectoryNotInSyncException {
     Metrics.UNMOUNT_OPS.inc();
     // Unmount should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
@@ -2466,9 +2468,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @throws InvalidPathException if the given path is not a mount point
    * @throws FileDoesNotExistException if the path to be mounted does not exist
+   * @throws DirectoryNotInSyncException if unchecked is false and the UFS directory is not in sync
    */
   private void unmountAndJournal(LockedInodePath inodePath, JournalContext journalContext)
-      throws InvalidPathException, FileDoesNotExistException, IOException {
+      throws InvalidPathException, FileDoesNotExistException, IOException,
+      DirectoryNotInSyncException {
     if (!unmountInternal(inodePath.getUri())) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
