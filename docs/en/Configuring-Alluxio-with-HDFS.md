@@ -15,17 +15,17 @@ as Alluxio's under storage system.
 
 ## Initial Setup
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio serverbinaries to each of these
+To run an Alluxio cluster on a set of machines, you must deploy Alluxio server binaries to each of these
 machines. You can either
 [download the precompiled binaries directly](http://www.alluxio.org/download)
-with correct Hadoop version (recommended), or 
+with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code](building-Alluxio-Master-Branch.html) (for advanced users).
 
-When building Alluxio from source code, by default, Alluxio server binaries work with Hadoop HDFS version `2.2.0`. To work with Hadoop distributions of other versions, one needs to specify  the correct
+Note that, when building Alluxio from source code, by default Alluxio server binaries is built to work with Apache Hadoop HDFS of version `2.2.0`. To work with Hadoop distributions of other versions, one needs to specify  the correct
 Hadoop profile and run the following in your Alluxio directory:
 
 ```bash
-$ mvn install -P<YOUR_HADOOP_PROFILE>  -DskipTests
+$ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 ```
 
 Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8` for different distributions of Hadoop. If you want to build Alluxio with a specific Hadoop release version, you can also specify the version `<YOUR_HADOOP_VERSION>` in the command. For example,
