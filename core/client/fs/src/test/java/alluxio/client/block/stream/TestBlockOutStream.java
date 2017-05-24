@@ -35,7 +35,10 @@ public class TestBlockOutStream extends BlockOutStream {
     mClosed = false;
     mCanceled = false;
   }
-
+  
+  /**
+   * @return an array of bytes that is written to the outstream
+   */
   public byte[] getWrittenData() {
     try {
       super.flush();
