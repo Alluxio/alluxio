@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -77,7 +78,7 @@ public class RecomputePlanner {
               mFileSystemMaster.getFileSystemMasterView())) {
             toRecompute.add(lineage);
           }
-        } catch (FileDoesNotExistException e) {
+        } catch (FileDoesNotExistException | IOException e) {
           throw new IllegalStateException(e); // should not happen
         }
       }

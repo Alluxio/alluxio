@@ -151,7 +151,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @throws InvalidPathException if the path is invalid
    */
   public synchronized void completePartition(AlluxioURI path, PartitionInfo info)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -193,7 +193,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    */
   public synchronized void completeStore(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -229,7 +229,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    */
   public synchronized void createStore(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
+      throws FileAlreadyExistsException, InvalidPathException, AccessControlException, IOException {
     try {
       // Create this dir
       mFileSystemMaster
@@ -293,7 +293,7 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   private long getFileId(AlluxioURI uri)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     long fileId = mFileSystemMaster.getFileId(uri);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
@@ -390,7 +390,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @throws InvalidPathException if the path is invalid
    */
   public synchronized List<PartitionInfo> getPartitionInfo(AlluxioURI path)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     long fileId = getFileId(path);
     List<PartitionInfo> partitions = mCompleteStoreToPartitions.get(fileId);
     if (partitions == null) {

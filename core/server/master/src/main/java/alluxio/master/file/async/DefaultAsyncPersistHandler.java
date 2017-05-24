@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,7 +63,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
 
   @Override
   public synchronized void scheduleAsyncPersistence(AlluxioURI path)
-      throws AlluxioException {
+      throws AlluxioException, IOException {
     // find the worker
     long workerId = getWorkerStoringFile(path);
 
@@ -87,7 +88,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    */
   // TODO(calvin): Propagate the exceptions in certain cases
   private long getWorkerStoringFile(AlluxioURI path)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, IOException {
     long fileId = mFileSystemMasterView.getFileId(path);
     if (mFileSystemMasterView.getFileInfo(fileId).getLength() == 0) {
       // if file is empty, return any worker
@@ -150,7 +151,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    */
   @Override
   public synchronized List<PersistFile> pollFilesToPersist(long workerId)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     List<PersistFile> filesToPersist = new ArrayList<>();
     List<Long> fileIdsToPersist = new ArrayList<>();
 

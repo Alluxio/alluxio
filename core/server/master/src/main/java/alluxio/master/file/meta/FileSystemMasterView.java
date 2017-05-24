@@ -22,6 +22,7 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -50,7 +51,7 @@ public final class FileSystemMasterView {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public synchronized PersistenceState getFilePersistenceState(long fileId)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, IOException {
     return mFileSystemMaster.getPersistenceState(fileId);
   }
 
@@ -63,7 +64,7 @@ public final class FileSystemMasterView {
    * @throws AccessControlException if permission denied
    */
   public synchronized FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, IOException {
     return mFileSystemMaster.getFileInfo(fileId);
   }
 
@@ -84,7 +85,7 @@ public final class FileSystemMasterView {
    * @throws FileDoesNotExistException if file does not exist
    */
   public synchronized long getFileId(AlluxioURI path)
-      throws AccessControlException, FileDoesNotExistException {
+      throws AccessControlException, FileDoesNotExistException, IOException {
     return mFileSystemMaster.getFileId(path);
   }
 
@@ -96,7 +97,7 @@ public final class FileSystemMasterView {
    * @throws AccessControlException if permission checking fails
    */
   public synchronized List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     return mFileSystemMaster.getFileBlockInfoList(path);
   }
 
@@ -107,7 +108,8 @@ public final class FileSystemMasterView {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist
    */
-  public synchronized AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
+  public synchronized AlluxioURI getPath(long fileId)
+      throws FileDoesNotExistException, IOException {
     return mFileSystemMaster.getPath(fileId);
   }
 

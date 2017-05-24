@@ -1563,8 +1563,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public long createDirectory(AlluxioURI path, CreateDirectoryOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
-      FileDoesNotExistException {
+      throws InvalidPathException, FileAlreadyExistsException, AccessControlException,
+      FileDoesNotExistException, IOException {
     LOG.debug("createDirectory {} ", path);
     Metrics.CREATE_DIRECTORIES_OPS.inc();
 
@@ -2621,7 +2621,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
+  public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, IOException {
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       scheduleAsyncPersistenceAndJournal(inodePath, journalContext);
@@ -2659,7 +2659,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     for (long fileId : persistedFiles) {
       try {
         // Permission checking for each file is performed inside setAttribute
