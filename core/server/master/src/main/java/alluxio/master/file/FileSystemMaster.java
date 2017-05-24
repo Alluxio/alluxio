@@ -16,7 +16,6 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.DirectoryNotInSyncException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -239,11 +238,10 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
-   * @throws DirectoryNotInSyncException if unchecked is false and the UFS directory is not in sync
    */
   void delete(AlluxioURI path, DeleteOptions options)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
-      InvalidPathException, AccessControlException, DirectoryNotInSyncException;
+      InvalidPathException, AccessControlException;
 
   /**
    * Gets the {@link FileBlockInfo} for all blocks of a file. If path is a directory, an exception
@@ -418,10 +416,9 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    * @throws InvalidPathException if the given path is not a mount point
    * @throws AccessControlException if the permission check fails
-   * @throws DirectoryNotInSyncException if unchecked is false and the UFS directory is not in sync
    */
   void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException, InvalidPathException,
-      IOException, AccessControlException, DirectoryNotInSyncException;
+      IOException, AccessControlException;
 
   /**
    * Resets a file. It first free the whole file, and then reinitializes it.

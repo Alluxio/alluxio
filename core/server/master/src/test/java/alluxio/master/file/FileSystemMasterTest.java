@@ -20,7 +20,6 @@ import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.DirectoryNotInSyncException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -333,7 +332,7 @@ public final class FileSystemMasterTest {
     // Add a file to the UFS
     Files.createFile(
         Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
-    mThrown.expect(DirectoryNotInSyncException.class);
+    mThrown.expect(IOException.class);
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
@@ -373,7 +372,7 @@ public final class FileSystemMasterTest {
     // Add a file to the UFS down the tree
     Files.createFile(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(DIR_PREFIX + 0)
         .join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
-    mThrown.expect(DirectoryNotInSyncException.class);
+    mThrown.expect(IOException.class);
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
