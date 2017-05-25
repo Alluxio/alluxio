@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -57,8 +58,8 @@ public final class CheckpointLatestPlanner implements CheckpointPlanner {
             || LineageStateUtils.isInCheckpointing(lineage, fileSystemMasterView)) {
           continue;
         }
-      } catch (FileDoesNotExistException | AccessControlException e) {
-        LOG.error("The lineage file does not exist", e);
+      } catch (FileDoesNotExistException | AccessControlException | IOException e) {
+        LOG.error("Failed to get lineage state", e);
         continue;
       }
       if (lineage.getCreationTime() > latestCreated) {

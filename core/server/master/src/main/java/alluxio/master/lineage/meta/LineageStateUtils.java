@@ -17,6 +17,7 @@ import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.FileInfo;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public final class LineageStateUtils {
    * @throws AccessControlException if permission denied
    */
   public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileSystemMasterView)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, IOException {
     for (long outputFile : lineage.getOutputFiles()) {
       FileInfo fileInfo = fileSystemMasterView.getFileInfo(outputFile);
       if (!fileInfo.isCompleted()) {
@@ -73,7 +74,7 @@ public final class LineageStateUtils {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public static boolean isPersisted(Lineage lineage, FileSystemMasterView fileSystemMasterView)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, IOException {
     for (long outputFile : lineage.getOutputFiles()) {
       if (fileSystemMasterView.getFilePersistenceState(outputFile) != PersistenceState.PERSISTED) {
         return false;
@@ -89,7 +90,7 @@ public final class LineageStateUtils {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public static boolean isInCheckpointing(Lineage lineage,
-      FileSystemMasterView fileSystemMasterView) throws FileDoesNotExistException {
+      FileSystemMasterView fileSystemMasterView) throws FileDoesNotExistException, IOException {
     for (long outputFile : lineage.getOutputFiles()) {
       if (fileSystemMasterView
           .getFilePersistenceState(outputFile) == PersistenceState.TO_BE_PERSISTED) {

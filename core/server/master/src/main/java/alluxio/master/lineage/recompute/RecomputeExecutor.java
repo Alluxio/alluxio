@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.Futures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -107,14 +108,9 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
               mFileSystemMaster.getFileSystemMasterView())) {
             try {
               mFileSystemMaster.resetFile(fileId);
-            } catch (UnexpectedAlluxioException e) {
-              LOG.error("the lost file {} can not be freed", fileId, e);
-            } catch (FileDoesNotExistException e) {
-              LOG.error("the lost file {} does not exist", fileId, e);
-            } catch (InvalidPathException e) {
-              LOG.error("the lost file {} is invalid", fileId, e);
-            } catch (AccessControlException e) {
-              LOG.error("the lost file {} cannot be accessed", fileId, e);
+            } catch (UnexpectedAlluxioException | InvalidPathException | AccessControlException
+                | IOException e) {
+              LOG.error("Failed to reinitialize file {}", fileId, e);
             }
           }
         } catch (FileDoesNotExistException e) {

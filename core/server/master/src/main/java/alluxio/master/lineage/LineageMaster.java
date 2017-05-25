@@ -280,9 +280,8 @@ public final class LineageMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the path does not exist
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
-      TtlAction ttlAction)
-      throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
-      FileDoesNotExistException {
+      TtlAction ttlAction) throws InvalidPathException, LineageDoesNotExistException,
+          AccessControlException, FileDoesNotExistException, IOException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     FileInfo fileInfo;
     try {
@@ -305,7 +304,7 @@ public final class LineageMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if any associated file does not exist
    */
   public synchronized List<LineageInfo> getLineageInfoList()
-      throws LineageDoesNotExistException, FileDoesNotExistException {
+      throws LineageDoesNotExistException, FileDoesNotExistException, IOException {
     List<LineageInfo> lineages = new ArrayList<>();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
@@ -351,7 +350,7 @@ public final class LineageMaster extends AbstractMaster {
       for (long file : lineage.getOutputFiles()) {
         try {
           mFileSystemMaster.scheduleAsyncPersistence(mFileSystemMaster.getPath(file));
-        } catch (AlluxioException e) {
+        } catch (AlluxioException | IOException e) {
           LOG.error("Failed to persist the file {}.", file, e);
         }
       }
@@ -366,8 +365,8 @@ public final class LineageMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
-      AccessControlException, InvalidPathException {
+  public synchronized void reportLostFile(String path)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }
