@@ -25,10 +25,11 @@ To run Hive on Hadoop MapReduce, please also follow the instructions in
 [running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop
 MapReduce can run with Alluxio.
 
-## 1 Use Alluxio as External Table Storage
+## Use Alluxio as External Table Storage
 
-Hive can create external tables stored on Alluxio. The setup is easy and requires no change to
-existing Hive tables..
+Hive can create external tables from files stored on Alluxio. The setup is fairly straightforward
+and isolated from other Hive tables. An example use case is to make frequently used Hive tables in
+Alluxio for high throughput and low latency by serving the files from memory storage.
 
 ### Configure Hive
 
@@ -64,10 +65,11 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-## 2 Use Alluxio as Hive Default Filesystem
+## Use Alluxio as Hive Default Filesystem
 
 Apache Hive also allows you to use Alluxio through a generic file system wrapper to replace the
-Hadoop file system. In this way, the Hive uses Alluxio as the default file system and Hive’s Hadoop jobs will store its intermediate results in Alluxio.
+Hadoop file system. In this way, the Hive uses Alluxio as the default file system and Hive’s
+Hadoop jobs will store its intermediate results in Alluxio.
 
 ### Configure Hive
 
@@ -139,7 +141,8 @@ hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
 OVERWRITE INTO TABLE u_user;
 ```
 
-View Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and file Hive creates:
+View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
+creates:
 
 ![HiveTableInAlluxio]({{site.data.img.screenshot_hive_table_in_alluxio}})
 
