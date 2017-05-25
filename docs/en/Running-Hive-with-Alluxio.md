@@ -47,7 +47,7 @@ Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 
 ```bash
 $ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user /ml-100k
+$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
 ```
 
 Then create an external table:
@@ -61,7 +61,7 @@ occupation STRING,
 zipcode STRING)
 OW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
-LOCATION 'alluxio://localhost:19998/ml-100k';
+LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
 ## 2 Use Alluxio as Hive Default Filesystem
@@ -76,7 +76,7 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 ```xml
 <property>
    <name>fs.defaultFS</name>
-   <value>alluxio://<master_hostname>:19998</value>
+   <value>alluxio://master_hostname:port</value>
 </property>
 ```
 
