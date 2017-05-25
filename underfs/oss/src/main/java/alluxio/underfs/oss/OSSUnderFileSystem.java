@@ -268,8 +268,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private static ClientConfiguration initializeOSSClientConfig() {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf
-        .setConnectionTimeout(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
-    ossClientConf.setSocketTimeout(Configuration.getInt(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
+        .setConnectionTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
+    ossClientConf
+        .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
     ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;

@@ -76,7 +76,7 @@ public final class NettyClient {
     }
 
     // After 10 missed heartbeat attempts and no write activity, the server will close the channel.
-    final long timeoutMs = Configuration.getLong(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
+    final long timeoutMs = Configuration.getMs(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
     final long heartbeatPeriodMs = Math.max(timeoutMs / 10, 1);
 
     boot.handler(new ChannelInitializer<Channel>() {
