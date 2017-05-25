@@ -177,6 +177,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
     }
   }
 
+  /**
+   * Init DFSIOIntegrationTest.
+   */
   public DFSIOIntegrationTest() {
     mConfig = new org.apache.hadoop.conf.Configuration();
   }
