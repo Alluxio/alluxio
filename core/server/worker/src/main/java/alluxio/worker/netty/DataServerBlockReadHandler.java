@@ -178,7 +178,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       try {
         mWorker.moveBlock(request.mSessionId, request.mId, mStorageTierAssoc.getAlias(0));
       } catch (BlockDoesNotExistException e) {
-        LOG.debug("Block promotion skipped for {}: {}", request.mId, e.getMessage());
+        LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.mId, e.getMessage());
       } catch (Exception e) {
         LOG.warn("Failed to promote block {}: {}", request.mId, e.getMessage());
       }

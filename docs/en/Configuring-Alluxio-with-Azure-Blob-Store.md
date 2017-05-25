@@ -35,7 +35,7 @@ Also, in preparation for using Azure blob store with Alluxio, create a new conta
 Alluxio can support the Azure blob store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store over [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
 Download azure storage java library(version 2.2.0) from [here](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) and hadoop azure libraries corresponding to your Hadoop version from [here](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure). Please make sure to use `azure-storage-2.2.0.jar` and not any other higher version due to version conflicts with hadoop-azure libraries.
 
-You need to add the above mentioned libraries in the ALLUXIO_CLASSPATH. You can do this by adding following line in the `conf/alluxio-env.sh`:
+You need to add the above mentioned libraries in the `ALLUXIO_CLASSPATH`. You can do this by adding following line in the `conf/alluxio-env.sh`:
 ```
 export ALLUXIO_CLASSPATH=PATH_TO_HADOOP_AZURE_JAR/hadoop-azure-2.7.3.jar:PATH_TO_AZURE_STORAGE_JAR/azure-storage-2.2.0.jar
 ```
@@ -47,11 +47,11 @@ alluxio.underfs.address=wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.n
 alluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///,wasb://
 ```
 
-Next you need to specify credentials and the implementation class for wasb by adding the following properties in `conf/core-site.xml`:
+Next you need to specify credentials and the implementation class for the `wasb://` scheme by adding the following properties in `conf/core-site.xml`:
 ```
 <configuration>
 <property>
-  <name>fs.AbstractFileSystem.wasb.Impl</name>
+  <name>fs.AbstractFileSystem.wasb.impl</name>
   <value>org.apache.hadoop.fs.azure.Wasb</value>
 </property>
 <property>
@@ -89,5 +89,5 @@ AZURE_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
 To stop Alluxio, you can run:
 
 ```
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```

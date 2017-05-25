@@ -116,6 +116,9 @@ public enum ExceptionMessage {
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
+  DELETE_FAILED_DIRECTORY_NOT_IN_SYNC(
+      "Cannot delete {0} because the UFS has contents not loaded into Alluxio. Sync Alluxio with "
+          + "UFS or run delete with unchecked flag to forcibly delete"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
