@@ -250,7 +250,7 @@ public final class CommonUtils {
       WaitForOptions options) {
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
-    int timeout = options.getTimeout();
+    int timeout = options.getTimeoutMs();
     while (!condition.apply(null)) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
         throw new RuntimeException("Timed out waiting for " + description);
@@ -273,7 +273,7 @@ public final class CommonUtils {
     T t;
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
-    int timeout = options.getTimeout();
+    int timeout = options.getTimeoutMs();
     while ((t = operation.apply(null)) == null) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
         throw new RuntimeException("Timed out waiting for " + description);

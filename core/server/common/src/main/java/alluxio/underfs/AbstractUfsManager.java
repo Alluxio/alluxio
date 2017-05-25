@@ -180,8 +180,9 @@ public abstract class AbstractUfsManager implements UfsManager {
         Map<String, String> rootConf =
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         try {
-          mRootUfs = addMount(IdUtils.ROOT_MOUNT_ID, rootUri,
-              new UnderFileSystemConfiguration(rootReadOnly, rootShared, rootConf));
+          mRootUfs =
+              addMount(IdUtils.ROOT_MOUNT_ID, rootUri, UnderFileSystemConfiguration.defaults()
+                  .setReadOnly(rootReadOnly).setShared(rootShared).setUserSpecifiedConf(rootConf));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

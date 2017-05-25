@@ -150,7 +150,7 @@ public final class FileSystemUtils {
           throw new RuntimeException(e);
         }
       }
-    }, WaitForOptions.defaults().setTimeout(20 * Constants.MINUTE_MS)
+    }, WaitForOptions.defaults().setTimeoutMs(20 * Constants.MINUTE_MS)
         .setInterval(Constants.SECOND_MS));
   }
 

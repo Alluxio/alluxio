@@ -118,7 +118,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
           return false;
         }
       }
-    }, WaitForOptions.defaults().setTimeout(10000));
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   @Override
