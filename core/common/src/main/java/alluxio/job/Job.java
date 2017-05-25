@@ -34,7 +34,7 @@ public abstract class Job implements Serializable {
    * @param jobConf the job configuration
    */
   public Job(JobConf jobConf) {
-    mJobConf = Preconditions.checkNotNull(jobConf);
+    mJobConf = Preconditions.checkNotNull(jobConf, "jobConf");
   }
 
   /**

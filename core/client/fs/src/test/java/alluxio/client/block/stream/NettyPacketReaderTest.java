@@ -213,7 +213,7 @@ public final class NettyPacketReaderTest {
       public Object apply(Void v) {
         return channel.readOutbound();
       }
-    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
 
     Assert.assertTrue(request != null);
     Assert.assertTrue(request instanceof RPCProtoMessage);

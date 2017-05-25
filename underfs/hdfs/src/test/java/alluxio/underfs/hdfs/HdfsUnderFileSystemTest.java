@@ -29,8 +29,8 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    UnderFileSystemConfiguration conf = new UnderFileSystemConfiguration(false, false,
-        ImmutableMap.of("hadoop.security.group.mapping",
+    UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults()
+        .setUserSpecifiedConf(ImmutableMap.of("hadoop.security.group.mapping",
             "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
             PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
     mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(new AlluxioURI("file:///"), conf);

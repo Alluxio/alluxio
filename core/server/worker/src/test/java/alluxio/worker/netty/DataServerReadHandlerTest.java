@@ -261,7 +261,7 @@ public abstract class DataServerReadHandlerTest {
       public Object apply(Void v) {
         return channel.readOutbound();
       }
-    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
   /**

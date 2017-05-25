@@ -87,7 +87,7 @@ public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
         }
         return false;
       }
-    }, WaitForOptions.defaults().setTimeout(20000));
+    }, WaitForOptions.defaults().setTimeoutMs(20000));
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     Assert.assertEquals(1, snapshot.getCheckpoints().size());
     Assert.assertEquals(10, snapshot.getCheckpoints().get(0).getEnd());

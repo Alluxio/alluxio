@@ -34,6 +34,14 @@
   </properties>
 
   <dependencies>
+    <!-- External dependencies -->
+    <!-- Have hadoop-client dependency in provided scope by default -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- Internal dependencies -->
     <!-- This should include all Alluxio client implementations -->
     <dependency>
@@ -117,6 +125,17 @@
           <groupId>com.google.inject</groupId>
           <artifactId>guice</artifactId>
           <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>includeHadoopClient</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <scope>compile</scope>
         </dependency>
       </dependencies>
     </profile>
