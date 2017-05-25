@@ -15,9 +15,9 @@ import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -46,7 +46,7 @@ public final class HeartbeatScheduler {
    * A map from thread name to active timer for that thread. A timer is active when its thread is
    * waiting to be scheduled.
    */
-  private static Map<String, ScheduledTimer> sTimers = new HashMap<>();
+  private static Map<String, ScheduledTimer> sTimers = new ConcurrentHashMap<>();
   private static Lock sLock = new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
 
