@@ -37,8 +37,8 @@ priority: 1
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
 
 `<swift-use-public>`的值为`true`或`false`。
-`<swift-auth-model>`的值为`keystone`、`tempauth`或`swiftauth`。
-当采用`keystone`认证时，下面的参数可以有选择地设置：
+`<swift-auth-model>`的值为`keystonev3`,`keystone`、`tempauth`或`swiftauth`。
+当采用任意一个`keystone`认证时，下面的参数可以有选择地设置：
 
 {% include Configuring-Alluxio-with-Swift/keystone-region-configuration.md %}
 

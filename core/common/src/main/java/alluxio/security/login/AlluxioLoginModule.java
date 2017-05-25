@@ -127,6 +127,14 @@ public final class AlluxioLoginModule implements LoginModule {
     return true;
   }
 
+  /**
+   * Gets a principal user.
+   *
+   * @param className the name of class extending Principal
+   * @return a user extending a specified Principal
+   * @throws LoginException if the specified class can not be found,
+   * or there are are more than one instance of Principal
+   */
   private Principal getPrincipalUser(String className) throws LoginException {
     // load the principal class
     ClassLoader loader = Thread.currentThread().getContextClassLoader();

@@ -25,7 +25,7 @@ import java.util.LinkedList;
 /**
  * Tests for the {@link PathUtils} class.
  */
-public class PathUtilsTest {
+public final class PathUtilsTest {
 
   /**
    * The expected exception thrown during a test.

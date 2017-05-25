@@ -22,6 +22,8 @@ alluxio.user.file.buffer.bytes:
   在文件系统中进行读写操作时使用的缓冲区大小。
 alluxio.user.file.master.client.threads:
   文件master client与文件master通信时使用的线程数目。
+alluxio.user.file.metadata.load.type:
+  从UFS中加载元数据的行为。当访问关于路径的信息，但该路径在Alluxio中不存在时，元数据能够从UFS中加载。合法的选项有`Always`，`Never`，`Once`。`Always`将总是访问UFS来看路径是否存在于UFS中。`Never`表示从来不会访问UFS。`Once`表示在”首次“的时候会访问UFS（根据缓存），但是以后都不会在访问。默认值为`Once`。
 alluxio.user.file.waitcompleted.poll.ms:
   当使用waitCompleted机制时，查询文件完成状态的时间间隔。
 alluxio.user.file.worker.client.threads:

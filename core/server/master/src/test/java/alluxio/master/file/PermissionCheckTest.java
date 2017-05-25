@@ -616,6 +616,13 @@ public final class PermissionCheckTest {
     }
   }
 
+  /**
+   * This method verifies the read permission.
+   * @param user the user
+   * @param path the path of the file to read
+   * @param isFile whether the path is a file
+   * @throws Exception if it fails to verify
+   */
   private void verifyRead(TestUser user, String path, boolean isFile) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       verifyGetFileId(user, path);
@@ -623,6 +630,12 @@ public final class PermissionCheckTest {
     }
   }
 
+  /**
+   * This method verifies the get fileId.
+   * @param user the user
+   * @param path the path of the file to verify
+   * @throws Exception if it fails to verify
+   */
   private void verifyGetFileId(TestUser user, String path) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));

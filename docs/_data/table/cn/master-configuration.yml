@@ -38,6 +38,8 @@ alluxio.master.startup.consistency.check.enabled:
   当Alluxio启动时是否检查与底层存储系统的一致性，在该检查过程中，Alluxio会进入只读模式。该检查默认开启。
 alluxio.master.ttl.checker.interval.ms:
   清除过期ttl值的文件任务的时间间隔（单位：毫秒）。
+alluxio.master.ufs.path.cache.capacity:
+  UFS路径缓存的容量。此缓存用来近似`一次性`元数据加载行为。（查看 `alluxio.user.file.metadata.load.type`)。更大的缓存将耗费更大的内存，但是能够更好地近似`一次性`行为。
 alluxio.master.web.bind.host:
   Alluxio master web UI绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.master.web.hostname:

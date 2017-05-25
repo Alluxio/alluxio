@@ -176,7 +176,7 @@ public interface FileSystemMaster extends Master {
    * @throws BlockInfoException if an invalid block information is encountered
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
-   * option is false
+   *         option is false
    */
   long createFile(AlluxioURI path, CreateFileOptions options)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
