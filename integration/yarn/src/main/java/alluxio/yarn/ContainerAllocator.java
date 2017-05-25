@@ -140,7 +140,7 @@ public final class ContainerAllocator {
   }
 
   /**
-   * Requesets for containers.
+   * Requests for containers.
    */
   private void requestContainers() throws Exception {
     String[] hosts;
