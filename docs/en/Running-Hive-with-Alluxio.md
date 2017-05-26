@@ -25,11 +25,18 @@ To run Hive on Hadoop MapReduce, please also follow the instructions in
 [running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html) to make sure Hadoop
 MapReduce can run with Alluxio.
 
-## Use Alluxio as External Table Storage
+Hive users can either create
+[external tables](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ExternalTables)
+that point to specified locations in Alluxio while keeping the storage of other tables unchanged,
+or use Alluxio as the default filesystem to operate on. In the following, we will introduce these
+two approaches to use Hive with Alluxio.
+
+## Create External Table Loacted in Alluxio
 
 Hive can create external tables from files stored on Alluxio. The setup is fairly straightforward
-and isolated from other Hive tables. An example use case is to make frequently used Hive tables in
-Alluxio for high throughput and low latency by serving the files from memory storage.
+and the change is also isolated from other Hive tables. An example use case is to store frequently
+used Hive tables in Alluxio for high throughput and low latency by serving these files from memory
+storage.
 
 ### Configure Hive
 
@@ -65,11 +72,11 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-## Use Alluxio as Hive Default Filesystem
+## Use Alluxio as Default Filesystem
 
-Apache Hive also allows you to use Alluxio through a generic file system wrapper to replace the
-Hadoop file system. In this way, the Hive uses Alluxio as the default file system and Hive’s
-Hadoop jobs will store its intermediate results in Alluxio.
+Apache Hive also allows to use Alluxio through a generic file system interface to replace the
+Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal
+metadata and intermediate results will be stored in Alluxio by default.
 
 ### Configure Hive
 
