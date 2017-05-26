@@ -49,7 +49,7 @@ the file size exceeds the size of the top tier, the write will also fail.
 
 The user can also specify the tier that the data can be written to via configuration settings.
 
-Reading data with the AlluxioStorageType.CACHE_PROMOTE will also result in the data being written
+Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being written
 into Alluxio. In this case, the data is always written to the top tier.
 
 Finally, data in written into ALluxio via the load command. In this case also, the data is always
@@ -145,10 +145,9 @@ becasue eviction is continually running to free up space for the write. See the
 [configuration section](#enabling-and-configuring-tiered-storage) for how to enable and configure
 the space reserver.
 
-Space reservation can be enforced by configuring high watermark and low watermark per tier. The
-high watermark ensure that no more writes will happen to that tier once the avialale space crosses
-the high watermark. The low watermark ensures that once the high watermark is reached and writes
-stop, they will only start once the available space falls below the low watermark.
+Space reservation can be enforced by configuring high watermark and low watermark per tier. Once the
+high watermark is reached, a background eviction process is started to free up space till the low 
+watermark is reached.
 
 ## Enabling and Configuring Tiered Storage
 
