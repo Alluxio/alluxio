@@ -2413,11 +2413,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean replayed, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    UnderFileSystem ufs = mUfsManager.addMount(mountId, ufsPath.toString(),
-        UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-            .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
+    boolean mountAdded = false;
     try {
       if (!replayed) {
+        UnderFileSystem ufs = mUfsManager.addMount(mountId, ufsPath.toString(),
+            UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
+                .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
+        mountAdded = true;
         // Check that the ufsPath exists and is a directory
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
@@ -2435,10 +2437,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
       // mount and no existing mount is a prefix of this mount.
-
       mMountTable.add(alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
-      mUfsManager.removeMount(mountId);
+      if (mountAdded) {
+        mUfsManager.removeMount(mountId);
+      }
       throw e;
     }
   }

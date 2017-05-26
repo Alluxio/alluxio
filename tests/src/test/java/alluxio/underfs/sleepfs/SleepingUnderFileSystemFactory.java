@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
  */
 public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
   private SleepingUnderFileSystemOptions mOptions;
+  private SleepingUnderFileSystem mUfs;
 
   /**
    * Constructs a new {@link SleepingUnderFileSystemFactory}.
@@ -33,10 +34,24 @@ public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
     mOptions = options;
   }
 
+  /**
+   * Constructs a new {@link SleepingUnderFileSystemFactory} for a given
+   * {@link SleepingUnderFileSystem} instance. This can be useful to inject a spied instance.
+   *
+   * @param ufs the UFS instance to return on creation
+   */
+  public SleepingUnderFileSystemFactory(SleepingUnderFileSystem ufs) {
+    mUfs = ufs;
+  }
+
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
-    return new SleepingUnderFileSystem(new AlluxioURI(path), mOptions, conf);
+    if (mUfs == null) {
+      Preconditions.checkArgument(path != null, "path may not be null");
+      return new SleepingUnderFileSystem(new AlluxioURI(path), mOptions, conf);
+    } else {
+      return mUfs;
+    }
   }
 
   @Override
