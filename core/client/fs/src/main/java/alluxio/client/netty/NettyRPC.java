@@ -60,11 +60,8 @@ public final class NettyRPC {
     try {
       message = promise.get(context.getTimeoutMs(), TimeUnit.MILLISECONDS);
     } catch (ExecutionException | TimeoutException e) {
-      // Better classify the errors so that we do not need to close the channel all the time.
-      channel.close();
       throw new IOException(e);
     } catch (InterruptedException e) {
-      channel.close();
       throw new RuntimeException(e);
     } finally {
       if (channel.isOpen()) {

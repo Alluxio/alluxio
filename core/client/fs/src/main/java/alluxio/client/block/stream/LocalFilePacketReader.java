@@ -130,6 +130,7 @@ public final class LocalFilePacketReader implements PacketReader {
         Preconditions.checkState(message.isLocalBlockOpenResponse());
         mPath = message.asLocalBlockOpenResponse().getPath();
       } catch (Exception e) {
+        mChannel.close();
         context.releaseNettyChannel(address, mChannel);
         throw e;
       }
@@ -155,6 +156,9 @@ public final class LocalFilePacketReader implements PacketReader {
       try {
         NettyRPC.call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
             new ProtoMessage(request));
+      } catch (Exception e) {
+        mChannel.close();
+        throw e;
       } finally {
         mClosed = true;
         mContext.releaseNettyChannel(mAddress, mChannel);

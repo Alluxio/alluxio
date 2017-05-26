@@ -113,7 +113,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
       NettyRPC.call(mNettyRPCContext, new ProtoMessage(
           Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).setCancel(true)
               .build()));
-    } catch (IOException e) {
+    } catch (Exception e) {
+      mChannel.close();
       mCloser.rethrow(e);
     } finally {
       mCloser.close();
@@ -135,7 +136,11 @@ public final class LocalFilePacketWriter implements PacketWriter {
       public void close() throws IOException {
         Protocol.LocalBlockCompleteRequest request =
             Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).build();
-        NettyRPC.call(mNettyRPCContext, new ProtoMessage(request));
+        try {
+          NettyRPC.call(mNettyRPCContext, new ProtoMessage(request));
+        } catch (Exception e) {
+          mChannel.close();
+        }
       }
     });
     mCloser.close();
@@ -176,6 +181,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       mWriter = mCloser
           .register(new LocalFileBlockWriter(message.asLocalBlockCreateResponse().getPath()));
     } catch (Exception e) {
+      mChannel.close();
       throw CommonUtils.closeAndRethrow(mCloser, e);
     }
 
