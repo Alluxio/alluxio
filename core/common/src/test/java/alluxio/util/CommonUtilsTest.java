@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.Constants;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
@@ -29,6 +30,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Tests the {@link CommonUtils} class.
@@ -339,5 +345,106 @@ public class CommonUtilsTest {
     Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "/"));
     Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "v"));
     Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "nonexist"));
+  }
+
+  @Test
+  public void invokeAllSuccess() throws Exception {
+    int numTasks = 5;
+    final CyclicBarrier b = new CyclicBarrier(numTasks);
+    final AtomicInteger completed = new AtomicInteger();
+    List<Callable<Void>> tasks = new ArrayList<>();
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          b.await();
+          completed.incrementAndGet();
+          return null;
+        }
+      });
+    }
+    CommonUtils.invokeAll(tasks, 10, TimeUnit.SECONDS);
+    Assert.assertEquals(numTasks, completed.get());
+  }
+
+  @Test
+  public void invokeAllHang() throws Exception {
+    int numTasks = 5;
+    List<Callable<Void>> tasks = new ArrayList<>();
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          Thread.sleep(10 * Constants.SECOND_MS);
+          return null;
+        }
+      });
+    }
+    try {
+      CommonUtils.invokeAll(tasks, 50, TimeUnit.MILLISECONDS);
+      Assert.fail("Expected a timeout exception");
+    } catch (TimeoutException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void invokeAllPropagatesException() throws Exception {
+    int numTasks = 5;
+    final AtomicInteger id = new AtomicInteger();
+    List<Callable<Void>> tasks = new ArrayList<>();
+    final Exception testException = new Exception("test message");
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          int myId = id.incrementAndGet();
+          // The 3rd task throws an exception
+          if (myId == 3) {
+            throw testException;
+          }
+          return null;
+        }
+      });
+    }
+    try {
+      CommonUtils.invokeAll(tasks, 2, TimeUnit.SECONDS);
+      Assert.fail("Expected an exception to be thrown");
+    } catch (Exception e) {
+      Assert.assertSame(testException, e);
+    }
+  }
+
+  /**
+   * Tests that when one task throws an exception and other tasks time out, the exception is
+   * propagated.
+   */
+  @Test
+  public void invokeAllPropagatesExceptionWithTimeout() throws Exception {
+    int numTasks = 5;
+    final AtomicInteger id = new AtomicInteger();
+    List<Callable<Void>> tasks = new ArrayList<>();
+    final Exception testException = new Exception("test message");
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          int myId = id.incrementAndGet();
+          // The 3rd task throws an exception, other tasks sleep.
+          if (myId == 3) {
+            throw testException;
+          } else {
+            Thread.sleep(10 * Constants.SECOND_MS);
+          }
+          return null;
+        }
+      });
+    }
+    try {
+      CommonUtils.invokeAll(tasks, 50, TimeUnit.MILLISECONDS);
+      Assert.fail("Expected an exception to be thrown");
+    } catch (Exception e) {
+      Assert.assertSame(testException, e);
+    }
   }
 }

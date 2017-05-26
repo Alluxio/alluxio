@@ -46,6 +46,8 @@ public enum ExceptionMessage {
   LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION(
       "no lock is found for blockId {0,number,#} for sessionId {1,number,#}"),
   LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
+  LOCK_NOT_RELEASED("lockId {0,number,#} is not released."),
+  SESSION_NOT_CLOSED("session {0,number,#} is not closed."),
 
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
@@ -114,6 +116,9 @@ public enum ExceptionMessage {
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
+  DELETE_FAILED_DIRECTORY_NOT_IN_SYNC(
+      "Cannot delete {0} because the UFS has contents not loaded into Alluxio. Sync Alluxio with "
+          + "UFS or run delete with unchecked flag to forcibly delete"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
@@ -176,6 +181,7 @@ public enum ExceptionMessage {
 
   // configuration
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
+  INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),

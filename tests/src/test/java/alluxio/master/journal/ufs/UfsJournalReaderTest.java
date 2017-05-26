@@ -11,7 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
+import alluxio.BaseIntegrationTest;
+import alluxio.ConfigurationTestUtils;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalReaderOptions;
@@ -33,7 +34,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournalReader}.
  */
-public final class UfsJournalReaderTest {
+public final class UfsJournalReaderTest extends BaseIntegrationTest {
   private static final long CHECKPOINT_SIZE = 10;
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -45,13 +46,13 @@ public final class UfsJournalReaderTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.get(location.toString()));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
     mJournal = new UfsJournal(location, mUfs);
   }
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -286,6 +287,11 @@ public final class UfsJournalReaderTest {
     }
   }
 
+  /**
+   * Builds checkpoint.
+   *
+   * @param sequenceNumber the sequence number after the checkpoint
+   */
   private void buildCheckpoint(long sequenceNumber) throws Exception {
     JournalWriter writer = mJournal.getWriter(
         JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(sequenceNumber));
@@ -295,6 +301,12 @@ public final class UfsJournalReaderTest {
     writer.close();
   }
 
+  /**
+   * Builds complete log from the sequence number interval.
+   *
+   * @param start start of the sequence number (included)
+   * @param end end of the sequence number (excluded)
+   */
   private void buildCompletedLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     JournalWriter writer = mJournal
@@ -305,6 +317,12 @@ public final class UfsJournalReaderTest {
     writer.close();
   }
 
+  /**
+   * Builds incomplete log.
+   *
+   * @param start start of the sequence number (included)
+   * @param end end of the sequence number (excluded)
+   */
   private void buildIncompleteLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     buildCompletedLog(start, end);

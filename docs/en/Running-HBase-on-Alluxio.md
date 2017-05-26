@@ -56,8 +56,7 @@ We need to make the Alluxio client `jar` file available to HBase, because it con
 
 There are two ways to achieve that:
 
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-  `lib` directory of HBase.
+- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
 - Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 

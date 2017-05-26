@@ -54,7 +54,7 @@ public class DataServerUnsupportedMessageHandlerTest {
     Assert.assertTrue(response instanceof RPCProtoMessage);
     RPCProtoMessage protoResponse = (RPCProtoMessage) response;
     Assert.assertNull(protoResponse.getPayloadDataBuffer());
-    Response r = ((Protocol.Response) protoResponse.getMessage().getMessage());
+    Response r = protoResponse.getMessage().asResponse();
     Assert.assertEquals(PStatus.UNIMPLEMENTED, r.getStatus());
   }
 
@@ -79,6 +79,6 @@ public class DataServerUnsupportedMessageHandlerTest {
           public Object apply(Void v) {
             return channel.readOutbound();
           }
-        }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+        }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }

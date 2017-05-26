@@ -32,7 +32,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * standard out. Example usage below.
  *
  * <pre>
- * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
+ * java -cp \
+ *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalTool < journal/FileSystemMaster/log.out
  * </pre>
  */
@@ -56,7 +57,7 @@ public final class JournalTool {
   /**
    * Reads a journal via
    * {@code java -cp \
-   * assembly/target/alluxio-assemblies-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+   * assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
    * alluxio.master.journal.JournalTool < journal/FileSystemMaster/log.out}.
    *
    * @param args arguments passed to the tool

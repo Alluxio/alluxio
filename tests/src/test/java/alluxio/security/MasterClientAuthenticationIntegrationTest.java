@@ -14,8 +14,10 @@ package alluxio.security;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
@@ -27,6 +29,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.net.URLClassLoader;
+
 import javax.security.sasl.AuthenticationException;
 
 /**
@@ -35,7 +39,7 @@ import javax.security.sasl.AuthenticationException;
  */
 // TODO(bin): add tests for {@link MultiMasterLocalAlluxioCluster} in fault tolerant mode
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
-public final class MasterClientAuthenticationIntegrationTest {
+public final class MasterClientAuthenticationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
@@ -95,6 +99,30 @@ public final class MasterClientAuthenticationIntegrationTest {
     }
   }
 
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+  public void simpleAuthenticationIsolatedClassLoader() throws Exception {
+    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
+        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    Assert.assertFalse(masterClient.isConnected());
+
+    // Get the current context class loader to retrieve the classpath URLs.
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    Assert.assertTrue(contextClassLoader instanceof URLClassLoader);
+
+    // Set the context class loader to an isolated class loader.
+    ClassLoader isolatedClassLoader =
+        new URLClassLoader(((URLClassLoader) contextClassLoader).getURLs(), null);
+    Thread.currentThread().setContextClassLoader(isolatedClassLoader);
+    try {
+      masterClient.connect();
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+    Assert.assertTrue(masterClient.isConnected());
+  }
+
   /**
    * Tests Alluxio client connects or disconnects to the Master. When the client connects
    * successfully to the Master, it can successfully create file or not.
@@ -108,7 +136,8 @@ public final class MasterClientAuthenticationIntegrationTest {
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     masterClient.createFile(new AlluxioURI(filename), CreateFileOptions.defaults());
-    Assert.assertNotNull(masterClient.getStatus(new AlluxioURI(filename)));
+    Assert.assertNotNull(
+        masterClient.getStatus(new AlluxioURI(filename), GetStatusOptions.defaults()));
     masterClient.disconnect();
     masterClient.close();
   }

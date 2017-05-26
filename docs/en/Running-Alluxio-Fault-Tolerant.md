@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Alluxio Standalone with Fault Tolerance
-nickname: Alluxio Standalone with Fault Tolerance
+title: Running Alluxio on a Cluster with High Availability
+nickname: Alluxio on Cluster with High Availability
 group: Deploying Alluxio
 priority: 3
 ---
@@ -9,7 +9,7 @@ priority: 3
 * Table of Contents
 {:toc}
 
-Fault Tolerance in Alluxio is based upon a multi-master approach where multiple master processes
+High availability in Alluxio is based upon a multi-master approach where multiple master processes
 are running. One of these processes is elected the leader and is used by all workers and clients as the
 primary point of contact. The other masters act as standbys using the shared journal to ensure that
 they maintain the same file system metadata as a new leader and can rapidly take over in the event
@@ -21,13 +21,13 @@ experience brief delays or transient errors.
 
 ## Prerequisites
 
-There are two prerequisites for setting up a fault tolerant Alluxio cluster:
+There are two prerequisites for setting up a Alluxio cluster with high availability:
 
 * [ZooKeeper](http://zookeeper.apache.org/)
 * A shared reliable under filesystem on which to place the journal
 
-Alluxio requires ZooKeeper for fault tolerance, for leader selection. This ensures that there is at
-most one leader master for Alluxio at any given time.
+Alluxio requires ZooKeeper for leader selection. This ensures that there is at most one leader
+master for Alluxio at any given time.
 
 Alluxio also requires a shared under filesystem on which to place the journal. This shared
 filesystem must be accessible by all the masters, and possible options include
@@ -38,7 +38,7 @@ up-to-date.
 
 ### ZooKeeper
 
-Alluxio uses ZooKeeper to achieve master fault tolerance. Alluxio masters use ZooKeeper for leader
+Alluxio uses ZooKeeper to achieve master high availability. Alluxio masters use ZooKeeper for leader
 election. Alluxio clients also use ZooKeeper to inquire about the identity and address of the
 current leader.
 
@@ -73,7 +73,7 @@ other nodes will then be unable to reach your node.
 
 ### Configuring Fault Tolerant Alluxio
 
-In order to enable fault tolerance for Alluxio, additional configuration settings must be set for
+In order to configure high availability for Alluxio, additional configuration settings must be set for
 Alluxio masters, workers, and clients. In `conf/alluxio-site.properties`, these java options must be set:
 
 <table class="table">
@@ -113,9 +113,9 @@ Also, specify the correct journal folder by setting `alluxio.master.journal.fold
 
     alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
 
-Once all the Alluxio masters are configured in this way, they can all be started for fault tolerant
-Alluxio. One of the masters will become the leader, and the others will replay the journal and wait
-until the current master dies.
+Once all the Alluxio masters are configured in this way, they can all be started to achieve highly
+available Alluxio. One of the masters will become the leader, and the others will replay the journal
+and wait until the current master dies.
 
 ### Worker Configuration
 
@@ -123,7 +123,7 @@ As long as the config parameters above are correctly set, the worker will be abl
 ZooKeeper, and find the current leader master to connect to. Therefore, `alluxio.master.hostname`
 does not have to be set for the workers.
 
-> Note: When running Alluxio in fault tolerant mode, it is possible that the default worker
+> Note: When running Alluxio in high availability mode, it is possible that the default worker
 > heartbeat timeout value is too short. It is recommended to increase that value to a higher value,
 > in order to handle the situations when a master failover occurs. In order to increase the
 > heartbeat timeout value on the workers, modify the configuration parameter
@@ -132,7 +132,7 @@ does not have to be set for the workers.
 
 ### Client Configuration
 
-No additional configuration parameters are required for fault tolerant mode. As long as both:
+No additional configuration parameters are required for high availability mode. As long as both:
 
 ```properties
 alluxio.zookeeper.enabled=true
@@ -144,7 +144,7 @@ ZooKeeper for the current leader master.
 
 #### HDFS API
 
-When communicating with fault-tolerant Alluxio using the HDFS API, use `alluxio-ft://` for the scheme
+When communicating with Alluxio in HA mode using the HDFS API, use `alluxio-ft://` for the scheme
 instead of `alluxio://`. Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used
 instead for finding the Alluxio leader master.
 

@@ -18,7 +18,7 @@ import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.master.journal.options.JournalWriterOptions;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
@@ -81,7 +81,7 @@ public class UfsJournal implements Journal {
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    this(location, UnderFileSystem.Factory.get(location.toString()));
+    this(location, UnderFileSystem.Factory.create(location));
   }
 
   /**
@@ -125,14 +125,13 @@ public class UfsJournal implements Journal {
 
   @Override
   public boolean isFormatted() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mLocation.toString());
-    UnderFileStatus[] files = ufs.listStatus(mLocation.toString());
+    UfsStatus[] files = mUfs.listStatus(mLocation.toString());
     if (files == null) {
       return false;
     }
     // Search for the format file.
     String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
-    for (UnderFileStatus file : files) {
+    for (UfsStatus file : files) {
       if (file.getName().startsWith(formatFilePrefix)) {
         return true;
       }
@@ -145,7 +144,7 @@ public class UfsJournal implements Journal {
     URI location = getLocation();
     LOG.info("Formatting {}", location);
     if (mUfs.isDirectory(location.toString())) {
-      for (UnderFileStatus status : mUfs.listStatus(location.toString())) {
+      for (UfsStatus status : mUfs.listStatus(location.toString())) {
         String childPath = URIUtils.appendPathOrDie(location, status.getName()).toString();
         if (status.isDirectory()
             && !mUfs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true))
@@ -158,7 +157,7 @@ public class UfsJournal implements Journal {
     }
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
-    UnderFileSystemUtils.touch(URIUtils.appendPathOrDie(location,
+    UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
         Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
   }

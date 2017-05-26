@@ -118,7 +118,7 @@ public final class AlluxioFrameworkIntegrationTest {
                   throw new RuntimeException(e);
                 }
               }
-            }, WaitForOptions.defaults().setTimeout(15 * Constants.MINUTE_MS));
+            }, WaitForOptions.defaults().setTimeoutMs(15 * Constants.MINUTE_MS));
       }
       LOG.info("Worker registered");
       basicAlluxioTests();

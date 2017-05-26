@@ -117,7 +117,16 @@ public final class FileUtils {
   public static short getLocalFileMode(String filePath) throws IOException {
     Set<PosixFilePermission> permission =
         Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class).permissions();
-    // Translate posix file permissions to short mode.
+    return translatePosixPermissionToMode(permission);
+  }
+
+  /**
+   * Translate posix file permissions to short mode.
+   *
+   * @param permission posix file permission
+   * @return mode for file
+   */
+  public static short translatePosixPermissionToMode(Set<PosixFilePermission> permission) {
     int mode = 0;
     for (PosixFilePermission action : PosixFilePermission.values()) {
       mode = mode << 1;
@@ -216,7 +225,7 @@ public final class FileUtils {
   }
 
   /**
-   * Deletes a path recursively.
+   * Deletes a file or a directory, recursively if it is a directory.
    *
    * @param path pathname to be deleted
    */

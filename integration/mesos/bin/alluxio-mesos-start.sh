@@ -60,7 +60,7 @@ if [[ -n "$2" ]]; then
   FRAMEWORK_ARGS+=" --alluxio-master $2"
 fi
 
-"${JAVA}" -cp "${CLASSPATH}" \
+"${JAVA}" -cp "${ALLUXIO_SERVER_CLASSPATH}" \
   ${ALLUXIO_FRAMEWORK_JAVA_OPTS} \
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
   -Dalluxio.home="${ALLUXIO_HOME}" \

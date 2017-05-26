@@ -17,8 +17,8 @@ import alluxio.security.authorization.Mode;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Locale;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -181,15 +181,15 @@ public final class FormatUtils {
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
-    } else if (end.equals("kb")) {
+    } else if (end.equals("kb") || end.equals("k")) {
       return (long) (ret * Constants.KB + alpha);
-    } else if (end.equals("mb")) {
+    } else if (end.equals("mb") || end.equals("m")) {
       return (long) (ret * Constants.MB + alpha);
-    } else if (end.equals("gb")) {
+    } else if (end.equals("gb") || end.equals("g")) {
       return (long) (ret * Constants.GB + alpha);
-    } else if (end.equals("tb")) {
+    } else if (end.equals("tb") || end.equals("t")) {
       return (long) (ret * Constants.TB + alpha);
-    } else if (end.equals("pb")) {
+    } else if (end.equals("pb") || end.equals("p")) {
       // When parsing petabyte values, we can't multiply with doubles and longs, since that will
       // lose presicion with such high numbers. Therefore we use a BigDecimal.
       BigDecimal pBDecimal = new BigDecimal(Constants.PB);

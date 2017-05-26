@@ -42,6 +42,18 @@
       <artifactId>commons-cli</artifactId>
     </dependency>
     <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
@@ -49,7 +61,7 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -68,7 +69,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * For example, (concurrently) creating/deleting/renaming files.
  */
-public class FileSystemMasterIntegrationTest {
+public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;
@@ -117,6 +118,9 @@ public class FileSystemMasterIntegrationTest {
     AuthenticatedClientUser.remove();
   }
 
+  /**
+   * Tests the {@link FileInfo} of a directory.
+   */
   @Test
   public void clientFileInfoDirectory() throws Exception {
     AlluxioURI path = new AlluxioURI("/testFolder");
@@ -135,6 +139,9 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
 
+  /**
+   * Tests the {@link FileInfo} of an empty file.
+   */
   @Test
   public void clientFileInfoEmptyFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
@@ -180,6 +187,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * Tests concurrent create of files.
+   */
   @Test
   public void concurrentCreate() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -237,6 +247,9 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.listStatus(ROOT_PATH2, ListStatusOptions.defaults()).size());
   }
 
+  /**
+   * Tests that creating a file which already exists.
+   */
   @Test
   public void createAlreadyExistFile() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
@@ -244,6 +257,9 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFile"), CreateDirectoryOptions.defaults());
   }
 
+  /**
+   * Tests that creating a directory.
+   */
   @Test
   public void createDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
@@ -490,7 +506,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  public void ls() throws Exception {
+  public void listStatus() throws Exception {
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
 
     for (int i = 0; i < 10; i++) {

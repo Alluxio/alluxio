@@ -12,11 +12,11 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -59,10 +59,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @After
   public void after() {
-    // Reset Configuration in case some properties are set to custom values during the tests,
-    // e.g. getConfiguration(). Since JVM is shared among tests, if this is not reset, the
-    // changed properties will affect other tests.
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
@@ -121,13 +118,13 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getMountPoints() throws Exception {
-    Map<String, MountInfo> mountTable = mFileSystemMaster.getMountTable();
+    Map<String, MountPointInfo> mountTable = mFileSystemMaster.getMountTable();
     Map<String, MountPointInfo> mountPoints = getInfo(NO_PARAMS).getMountPoints();
     Assert.assertEquals(mountTable.size(), mountPoints.size());
-    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
+    for (Map.Entry<String, MountPointInfo> mountPoint : mountTable.entrySet()) {
       Assert.assertTrue(mountPoints.containsKey(mountPoint.getKey()));
       String expectedUri = mountPoints.get(mountPoint.getKey()).getUfsUri();
-      String returnedUri = mountPoint.getValue().getUfsUri().toString();
+      String returnedUri = mountPoint.getValue().getUfsUri();
       Assert.assertEquals(expectedUri, returnedUri);
     }
   }

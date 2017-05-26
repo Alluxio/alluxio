@@ -13,6 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 
@@ -31,7 +32,7 @@ import java.net.URI;
 /**
  * Integration tests for statistics in TFS.
  */
-public class FileSystemStatisticsTest {
+public class FileSystemStatisticsTest extends BaseIntegrationTest {
 
   private static final int BLOCK_SIZE = 128;
   private static final int FILE_LEN = BLOCK_SIZE * 2 + 1;

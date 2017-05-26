@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class encapsulates the different master services that are configured to run.
@@ -81,6 +82,10 @@ final class MasterUtils {
         }
       });
     }
-    CommonUtils.invokeAll(callables);
+    try {
+      CommonUtils.invokeAll(callables, 10, TimeUnit.SECONDS);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to start masters", e);
+    }
   }
 }

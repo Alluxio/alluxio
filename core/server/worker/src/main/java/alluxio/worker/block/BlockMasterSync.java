@@ -92,7 +92,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param masterClient the Alluxio master client
    */
   BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClient masterClient) {
+      WorkerNetAddress workerAddress, BlockMasterClient masterClient) throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
@@ -107,10 +107,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /**
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
    * begins.
-   *
-   * @throws ConnectionFailedException if network connection failed
    */
-  private void registerWithMaster() {
+  private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     mMasterClient.register(mWorkerId.get(),

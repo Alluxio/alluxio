@@ -32,6 +32,7 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
@@ -44,6 +45,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
@@ -90,7 +92,8 @@ public final class InodeTreeTest {
 
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    MountTable mountTable = new MountTable();
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    MountTable mountTable = new MountTable(ufsManager);
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     mRegistry.start(true);

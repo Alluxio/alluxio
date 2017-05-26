@@ -16,9 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.cli.Format;
-import alluxio.client.block.BlockWorkerClientTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
@@ -26,8 +24,10 @@ import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
@@ -87,6 +87,8 @@ public abstract class AbstractLocalAlluxioCluster {
 
     setupTest();
     startMasters();
+    // Reset the file system context to make sure the correct master RPC port is used.
+    FileSystemContext.INSTANCE.reset();
     startWorkers();
     startProxy();
 
@@ -104,11 +106,13 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   private void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
-    Runnable runMaster = new Runnable() {
+    Runnable runProxy = new Runnable() {
       @Override
       public void run() {
         try {
           mProxyProcess.start();
+        } catch (InterruptedException e) {
+          // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start proxy error", e);
@@ -117,7 +121,8 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     };
 
-    mProxyThread = new Thread(runMaster);
+    mProxyThread = new Thread(runProxy);
+    mProxyThread.setName("ProxyThread-" + System.identityHashCode(mProxyThread));
     mProxyThread.start();
     mProxyProcess.waitForReady();
   }
@@ -125,7 +130,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts the worker(s).
    */
-  protected void startWorkers() throws Exception {
+  public void startWorkers() throws Exception {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; i++) {
       mWorkers.add(WorkerProcess.Factory.create());
@@ -137,7 +142,8 @@ public abstract class AbstractLocalAlluxioCluster {
         public void run() {
           try {
             worker.start();
-
+          } catch (InterruptedException e) {
+            // this is expected
           } catch (Exception e) {
             // Log the exception as the RuntimeException will be caught and handled silently by
             // JUnit
@@ -147,6 +153,7 @@ public abstract class AbstractLocalAlluxioCluster {
         }
       };
       Thread thread = new Thread(runWorker);
+      thread.setName("WorkerThread-" + System.identityHashCode(thread));
       mWorkerThreads.add(thread);
       thread.start();
     }
@@ -160,22 +167,23 @@ public abstract class AbstractLocalAlluxioCluster {
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
-    String underfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
+    String underfsAddress = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
-    UnderFileSystemUtils.deleteDirIfExists(underfsAddress);
+    UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
-    UnderFileSystemUtils.mkdirIfNotExists(underfsAddress);
+    UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
 
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
-        UnderFileSystemUtils.mkdirIfNotExists(dirPath);
+        FileUtils.createDir(dirPath);
       }
     }
 
@@ -193,12 +201,13 @@ public abstract class AbstractLocalAlluxioCluster {
     Format.format(Format.Mode.MASTER);
 
     // If we are using anything except LocalFileSystemCluster as UnderFS,
-    // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
+    // we need to update the MASTER_MOUNT_TABLE_ROOT_UFS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
-      UnderFileSystemUtils.mkdirIfNotExists(ufsAddress);
-      Configuration.set(PropertyKey.UNDERFS_ADDRESS, ufsAddress);
+      Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsAddress);
+      UnderFileSystem nonLocalUfs = UnderFileSystem.Factory.createForRoot();
+      UnderFileSystemUtils.mkdirIfNotExists(nonLocalUfs, ufsAddress);
     }
   }
 
@@ -243,6 +252,14 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void stopProxy() throws Exception {
     mProxyProcess.stop();
+    if (mProxyThread != null) {
+      while (mProxyThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mProxyThread.getName());
+        mProxyThread.interrupt();
+        mProxyThread.join(1000);
+      }
+      mProxyThread = null;
+    }
   }
 
   /**
@@ -253,7 +270,11 @@ public abstract class AbstractLocalAlluxioCluster {
       worker.stop();
     }
     for (Thread thread : mWorkerThreads) {
-      thread.interrupt();
+      while (thread.isAlive()) {
+        LOG.info("Stopping thread {}.", thread.getName());
+        thread.interrupt();
+        thread.join(1000);
+      }
     }
     mWorkerThreads.clear();
   }
@@ -265,72 +286,73 @@ public abstract class AbstractLocalAlluxioCluster {
     setAlluxioWorkDirectory();
     setHostname();
 
-    Configuration.set(PropertyKey.TEST_MODE, "true");
+    Configuration.set(PropertyKey.TEST_MODE, true);
     Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT,
-        Integer.toString(DEFAULT_BLOCK_SIZE_BYTES));
-    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, DEFAULT_BLOCK_SIZE_BYTES);
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, 64);
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
-    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
-    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, 1);
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, 100);
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
+
+    // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 50);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 10);
 
     Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "3");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 3);
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
+    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 250);
 
-    Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
-    Configuration.set(PropertyKey.WEB_THREADS, "1");
+    Configuration.set(PropertyKey.WEB_THREADS, 1);
     Configuration.set(PropertyKey.WEB_RESOURCES, PathUtils
         .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
 
-    Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(DEFAULT_WORKER_MEMORY_BYTES));
-    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, DEFAULT_WORKER_MEMORY_BYTES);
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15);
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, 1);
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, 2048);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, 2);
+
+    // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 0);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 0);
 
     Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_WEB_BIND_HOST, mHostname);
 
-    // Performs an immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
-
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
-    Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(0), "MEM");
-    Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
-        ramdiskPath);
+    Configuration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
+    Configuration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdiskPath);
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
@@ -338,7 +360,7 @@ public abstract class AbstractLocalAlluxioCluster {
         newPaths.add(newPath);
       }
       Configuration.set(
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level),
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
           Joiner.on(',').join(newPaths));
     }
 
@@ -381,8 +403,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Resets the client pools to the original state.
    */
-  protected void resetClientPools() {
-    BlockWorkerClientTestUtils.reset();
+  protected void resetClientPools() throws IOException {
     FileSystemContext.INSTANCE.reset();
   }
 

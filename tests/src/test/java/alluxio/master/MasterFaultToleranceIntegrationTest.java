@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
@@ -37,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -44,7 +46,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MasterFaultToleranceIntegrationTest {
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2818")
+public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   // Fail if the cluster doesn't come up after this amount of time.
   private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private static final long WORKER_CAPACITY_BYTES = 10000;
@@ -138,7 +141,7 @@ public class MasterFaultToleranceIntegrationTest {
           return false;
         }
       }
-    }, WaitForOptions.defaults().setTimeout(timeoutMs));
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
   @Test

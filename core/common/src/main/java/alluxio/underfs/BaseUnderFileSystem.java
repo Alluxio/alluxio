@@ -27,10 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -43,21 +40,18 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   /** The UFS {@link AlluxioURI} used to create this {@link BaseUnderFileSystem}. */
   protected final AlluxioURI mUri;
 
-  /** A map of property names to values. */
-  protected HashMap<String, String> mProperties = new HashMap<>();
+  /** UFS Configuration options. */
+  protected final UnderFileSystemConfiguration mUfsConf;
 
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
+   * @param ufsConf UFS configuration
    */
-  protected BaseUnderFileSystem(AlluxioURI uri) {
+  protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     mUri = Preconditions.checkNotNull(uri);
-  }
-
-  @Override
-  public void configureProperties() throws IOException {
-    // Default implementation does not update any properties.
+    mUfsConf = Preconditions.checkNotNull(ufsConf);
   }
 
   @Override
@@ -76,47 +70,41 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public Map<String, String> getProperties() {
-    return Collections.unmodifiableMap(mProperties);
-  }
-
-  @Override
-  public UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException {
+  public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
     if (!options.isRecursive()) {
       return listStatus(path);
     }
     path = validatePath(path);
-    List<UnderFileStatus> returnPaths = new ArrayList<>();
-    // Each element is a pair of (full path, UnderFileStatus)
-    Queue<Pair<String, UnderFileStatus>> pathsToProcess = new ArrayDeque<>();
+    List<UfsStatus> returnPaths = new ArrayList<>();
+    // Each element is a pair of (full path, UfsStatus)
+    Queue<Pair<String, UfsStatus>> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
-    UnderFileStatus[] subpaths = listStatus(path);
-    if (subpaths == null) {
+    UfsStatus[] statuses = listStatus(path);
+    if (statuses == null) {
       return null;
     } else {
-      for (UnderFileStatus subp : subpaths) {
-        pathsToProcess.add(new Pair<>(PathUtils.concatPath(path, subp.getName()), subp));
+      for (UfsStatus status : statuses) {
+        pathsToProcess.add(new Pair<>(PathUtils.concatPath(path, status.getName()), status));
       }
     }
     while (!pathsToProcess.isEmpty()) {
-      final Pair<String, UnderFileStatus> pathToProcessPair = pathsToProcess.remove();
+      final Pair<String, UfsStatus> pathToProcessPair = pathsToProcess.remove();
       final String pathToProcess = pathToProcessPair.getFirst();
-      final UnderFileStatus pathStatus = pathToProcessPair.getSecond();
-      returnPaths.add(new UnderFileStatus(pathToProcess.substring(path.length() + 1),
-          pathStatus.isDirectory()));
+      UfsStatus pathStatus = pathToProcessPair.getSecond();
+      returnPaths.add(pathStatus.setName(pathToProcess.substring(path.length() + 1)));
 
       if (pathStatus.isDirectory()) {
         // Add all of its subpaths
-        subpaths = listStatus(pathToProcess);
-        if (subpaths != null) {
-          for (UnderFileStatus subp : subpaths) {
-            pathsToProcess
-                .add(new Pair<>(PathUtils.concatPath(pathToProcess, subp.getName()), subp));
+        UfsStatus[] children = listStatus(pathToProcess);
+        if (children != null) {
+          for (UfsStatus child : children) {
+            pathsToProcess.add(
+                new Pair<>(PathUtils.concatPath(pathToProcess, child.getName()), child));
           }
         }
       }
     }
-    return returnPaths.toArray(new UnderFileStatus[returnPaths.size()]);
+    return returnPaths.toArray(new UfsStatus[returnPaths.size()]);
   }
 
   @Override
@@ -133,12 +121,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
     return new AlluxioURI(ufsBaseUri.getScheme(), ufsBaseUri.getAuthority(),
         PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath), ufsBaseUri.getQueryMap());
-  }
-
-  @Override
-  public void setProperties(Map<String, String> properties) {
-    mProperties.clear();
-    mProperties.putAll(properties);
   }
 
   /**

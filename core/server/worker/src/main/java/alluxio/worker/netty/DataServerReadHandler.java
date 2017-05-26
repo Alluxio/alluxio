@@ -21,6 +21,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.util.IdUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -63,8 +64,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerReadHandler.class);
 
-  private static final long PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
   private static final long MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
 
@@ -147,11 +146,15 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     final long mId;
     final long mStart;
     final long mEnd;
+    final long mPacketSize;
+    final long mSessionId;
 
-    ReadRequestInternal(long id, long start, long end) {
+    ReadRequestInternal(long id, long start, long end, long packetSize) {
       mId = id;
       mStart = start;
       mEnd = end;
+      mPacketSize = packetSize;
+      mSessionId = IdUtils.createSessionId();
     }
   }
 
@@ -178,7 +181,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
       ctx.fireChannelRead(object);
       return;
     }
-    Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().getMessage();
+    Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().asReadRequest();
     if (msg.getCancel()) {
       setCancel(ctx.channel());
       return;
@@ -187,8 +190,8 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     reset();
     try {
       validateReadRequest(msg);
-    } catch (Exception e) {
-      setError(ctx.channel(), new Error(AlluxioStatusException.from(e), true));
+    } catch (InvalidArgumentException e) {
+      setError(ctx.channel(), new Error(e, true));
       return;
     }
 
@@ -205,7 +208,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
-    setError(ctx.channel(), new Error(AlluxioStatusException.from(cause), true));
+    setError(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
   }
 
   /**
@@ -213,18 +216,19 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    */
   @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
-    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * PACKET_SIZE;
+    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mRequest.mPacketSize;
   }
 
   /**
-   * Validates the read request, throwing an exception if it's invalid.
+   * Validates a read request.
    *
    * @param request the block read request
+   * @throws InvalidArgumentException if the request is invalid
    */
-  private void validateReadRequest(Protocol.ReadRequest request) {
-    if (request.getId() < 0) {
+  private void validateReadRequest(Protocol.ReadRequest request) throws InvalidArgumentException {
+    if (request.getBlockId() < 0) {
       throw new InvalidArgumentException(
-          String.format("Invalid blockId (%d) in read request.", request.getId()));
+          String.format("Invalid blockId (%d) in read request.", request.getBlockId()));
     }
     if (!request.getCancel() && (request.getOffset() < 0 || request.getLength() <= 0)) {
       throw new InvalidArgumentException(
@@ -328,7 +332,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
    * @return a {@link DataBuffer} representing the data
    */
   protected abstract DataBuffer getDataBuffer(Channel channel, long offset, int len)
-      throws IOException;
+      throws Exception;
 
   /**
    * @param bytesRead bytes read
@@ -354,12 +358,13 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     public void operationComplete(ChannelFuture future) {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
-        setError(future.channel(), new Error(AlluxioStatusException.from(future.cause()), true));
+        setError(future.channel(),
+            new Error(AlluxioStatusException.fromThrowable(future.cause()), true));
         return;
       }
 
       try (LockResource lr = new LockResource(mLock)) {
-        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= PACKET_SIZE,
+        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= mRequest.mPacketSize,
             "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
         mPosToWrite = mPosToWriteUncommitted;
@@ -424,7 +429,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
             break;
           }
 
-          packetSize = (int) Math.min(mRequest.mEnd - mPosToQueue, PACKET_SIZE);
+          packetSize = (int) Math.min(mRequest.mEnd - mPosToQueue, mRequest.mPacketSize);
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
@@ -435,7 +440,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
           packet = getDataBuffer(mChannel, start, packetSize);
         } catch (Exception e) {
           LOG.error("Failed to read data.", e);
-          setError(mChannel, new Error(AlluxioStatusException.from(e), true));
+          setError(mChannel, new Error(AlluxioStatusException.fromThrowable(e), true));
           continue;
         }
         if (packet != null) {
@@ -473,7 +478,7 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
           Preconditions.checkNotNull(mRequest);
           mRequest.close();
         } catch (IOException e) {
-          setError(mChannel, new Error(AlluxioStatusException.from(e), true));
+          setError(mChannel, new Error(AlluxioStatusException.fromIOException(e), true));
         }
         if (eof) {
           replyEof();
@@ -486,9 +491,8 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
     /**
      * Writes an error read response to the channel and closes the channel after that.
      */
-    private void replyError(Exception e) {
-      AlluxioStatusException se = AlluxioStatusException.from(e);
-      mChannel.writeAndFlush(RPCProtoMessage.createResponse(se))
+    private void replyError(AlluxioStatusException e) {
+      mChannel.writeAndFlush(RPCProtoMessage.createResponse(e))
           .addListener(ChannelFutureListener.CLOSE);
     }
 

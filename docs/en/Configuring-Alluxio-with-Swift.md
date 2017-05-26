@@ -43,7 +43,7 @@ The following configuration should be provided in the `conf/alluxio-site.propert
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
 
 Possible values of `<swift-use-public>` are `true`, `false`. Possible values of `<swift-auth-model>`
-are `keystone`, `tempauth`, `swiftauth`. When using `keystone` authentication, the following
+are `keystonev3`, `keystone`, `tempauth`, `swiftauth`. When using either keystone authentication, the following
 parameter can optionally be set
 
 {% include Configuring-Alluxio-with-Swift/keystone-region-configuration.md %}

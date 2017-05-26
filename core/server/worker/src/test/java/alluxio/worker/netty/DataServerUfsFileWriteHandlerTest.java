@@ -17,6 +17,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -28,11 +29,7 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -41,8 +38,6 @@ import java.util.Random;
 /**
  * Unit tests for {@link DataServerUfsFileWriteHandler}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(UnderFileSystem.class)
 public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
@@ -53,16 +48,17 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
     mFile = mTestFolder.newFile().getPath();
     mOutputStream = new FileOutputStream(mFile);
     mChecksum = 0;
-    mChannel = new EmbeddedChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
-    mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR));
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    PowerMockito.mockStatic(UnderFileSystem.Factory.class);
-    Mockito.when(UnderFileSystem.Factory.get(Mockito.anyString())).thenReturn(mockUfs);
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(mockUfs);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class))).thenReturn(
         mOutputStream);
+
+    mChannel = new EmbeddedChannel(
+        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
+    mChannelNoException = new EmbeddedNoExceptionChannel(
+        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
   }
 
   @After
@@ -84,9 +80,11 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
 
   @Override
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
+    Protocol.CreateUfsFileOptions createUfsFileOptions = Protocol.CreateUfsFileOptions.newBuilder()
+        .setUfsPath("/test").setOwner("owner").setGroup("group").setMode(0).build();
     Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset).setUfsPath("/test")
-            .setOwner("owner").setGroup("group").setMode(0).setType(Protocol.RequestType.UFS_FILE)
+        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
+            .setCreateUfsFileOptions(createUfsFileOptions).setType(Protocol.RequestType.UFS_FILE)
             .build();
     DataBuffer buffer = null;
     if (len > 0) {

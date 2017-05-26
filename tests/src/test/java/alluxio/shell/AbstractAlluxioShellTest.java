@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.cli.AlluxioShell;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -45,8 +46,8 @@ import java.io.PrintStream;
 /**
  * The base class for all the {@link AlluxioShell} test classes.
  */
-public abstract class AbstractAlluxioShellTest {
-  protected static final int SIZE_BYTES = Constants.MB * 10;
+public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
+  protected static final int SIZE_BYTES = Constants.MB * 16;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()

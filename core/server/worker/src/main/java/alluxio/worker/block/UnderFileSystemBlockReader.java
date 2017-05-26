@@ -22,9 +22,9 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -58,8 +58,6 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private final long mInitialBlockSize;
   /** The block metadata for the UFS block. */
   private final UnderFileSystemBlockMeta mBlockMeta;
-  /** If set, do not cache the block. */
-  private final boolean mNoCache;
   /** The Local block store. It is used to interact with Alluxio. */
   private final BlockStore mLocalBlockStore;
 
@@ -69,6 +67,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private LocalFileBlockWriter mBlockWriter;
   /** If set, the reader is closed and should not be used afterwards. */
   private boolean mClosed;
+  /** The manager for different ufs. */
+  private final UfsManager mUfsManager;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -84,16 +84,16 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param blockMeta the block meta
    * @param offset the position within the block to start the read
-   * @param noCache do not cache the block if set
    * @param localBlockStore the Local block store
+   * @param ufsManager the manager of ufs
    * @return the block reader
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      boolean noCache, BlockStore localBlockStore)
+      BlockStore localBlockStore, UfsManager ufsManager)
       throws BlockDoesNotExistException, IOException {
     UnderFileSystemBlockReader ufsBlockReader =
-        new UnderFileSystemBlockReader(blockMeta, noCache, localBlockStore);
+        new UnderFileSystemBlockReader(blockMeta, localBlockStore, ufsManager);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -102,16 +102,16 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * Creates an instance of {@link UnderFileSystemBlockReader}.
    *
    * @param blockMeta the block meta
-   * @param noCache do not cache the block
    * @param localBlockStore the Local block store
+   * @param ufsManager the manager of ufs
    */
-  private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean noCache,
-      BlockStore localBlockStore) {
+  private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, BlockStore localBlockStore,
+      UfsManager ufsManager) {
     mInitialBlockSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
-    mNoCache = noCache;
     mInStreamPos = -1;
+    mUfsManager = ufsManager;
   }
 
   /**
@@ -121,7 +121,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    */
   private void init(long offset) throws BlockDoesNotExistException, IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mBlockMeta.getUnderFileSystemPath());
+    UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId());
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     if (!ufs.isFile(mBlockMeta.getUnderFileSystemPath())) {
@@ -144,7 +144,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   @Override
-  public ByteBuffer read(long offset, long length) {
+  public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkState(!mClosed);
     updateUnderFileSystemInputStream(offset);
     updateBlockWriter(offset);
@@ -191,7 +191,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @return the number of bytes read, -1 if it reaches EOF and none was read
    */
   @Override
-  public int transferTo(ByteBuf buf) {
+  public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
     if (mUnderFileSystemInputStream == null) {
       return -1;
@@ -207,13 +207,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
     int bytesToRead =
         (int) Math.min((long) buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
-    int bytesRead;
-    try {
-      bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
-    } catch (IOException e) {
-      throw AlluxioStatusException.fromIOException(e);
-    }
-
+    int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
     if (bytesRead <= 0) {
       return bytesRead;
     }
@@ -236,7 +230,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * triggered when the client unlocks the block.
    */
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
@@ -252,7 +246,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       if (mUnderFileSystemInputStream != null) {
         closer.register(mUnderFileSystemInputStream);
       }
-      CommonUtils.close(closer);
+      closer.close();
     } finally {
       mClosed = true;
     }
@@ -268,21 +262,17 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param offset the read offset within the block
    */
-  private void updateUnderFileSystemInputStream(long offset) {
+  private void updateUnderFileSystemInputStream(long offset) throws IOException {
     if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
-      CommonUtils.close(mUnderFileSystemInputStream);
+      mUnderFileSystemInputStream.close();
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
-      UnderFileSystem ufs = UnderFileSystem.Factory.get(mBlockMeta.getUnderFileSystemPath());
-      try {
-        mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
-            OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
-      } catch (IOException e) {
-        throw AlluxioStatusException.fromIOException(e);
-      }
+      UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId());
+      mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
+          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;
     }
   }
@@ -293,7 +283,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    *
    * @param offset the read offset
    */
-  private void updateBlockWriter(long offset) {
+  private void updateBlockWriter(long offset) throws IOException {
     try {
       if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
         mBlockWriter.close();
@@ -302,14 +292,15 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       }
     } catch (BlockDoesNotExistException e) {
       // This can only happen when the session is expired.
-      LOG.warn("Block {} does not exist when being aborted.", mBlockMeta.getBlockId());
+      LOG.warn("Block {} does not exist when being aborted. The session may have expired.",
+          mBlockMeta.getBlockId());
     } catch (BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
       // We cannot skip the exception here because we need to make sure that the user of this
       // reader does not commit the block if it fails to abort the block.
-      throw AlluxioStatusException.from(e);
+      throw AlluxioStatusException.fromCheckedException(e);
     }
     try {
-      if (mBlockWriter == null && offset == 0 && !mNoCache) {
+      if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         String blockPath = mLocalBlockStore
             .createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc,

@@ -36,27 +36,6 @@ public abstract class AbstractShellCommand implements ShellCommand {
             .hasArg(false)
             .desc("recursive")
             .build();
-  protected static final Option READONLY_OPTION =
-      Option.builder("readonly")
-          .required(false)
-          .hasArg(false)
-          .desc("readonly")
-          .build();
-  protected static final Option MOUNT_SHARED_OPTION =
-      Option.builder("shared")
-          .required(false)
-          .hasArg(false)
-          .desc("shared")
-          .build();
-
-  // TODO(gpang): Investigate property=value style of cmdline options. They didn't seem to
-  // support spaces in values.
-  protected static final Option PROPERTY_FILE_OPTION =
-      Option.builder("P")
-          .required(false)
-          .numberOfArgs(1)
-          .desc("properties file name")
-          .build();
   protected static final Option FORCE_OPTION =
       Option.builder("f")
           .required(false)
@@ -87,6 +66,14 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .hasArg(false)
           .desc("print human-readable format sizes")
           .build();
+
+  protected static final String REMOVE_UNCHECKED_OPTION_CHAR = "U";
+  protected static final Option REMOVE_UNCHECKED_OPTION =
+      Option.builder(REMOVE_UNCHECKED_OPTION_CHAR)
+            .required(false)
+            .hasArg(false)
+            .desc("remove directories without checking UFS contents are in sync")
+            .build();
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;

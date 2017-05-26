@@ -90,7 +90,7 @@ Alluxio Web UI的默认端口为 **19999**.
 在浏览器中输入 `http://{MASTER_IP}:{PORT}` 地址访问Web UI。
 
 也可以通过
-[Google Cloud console](https://console.cloud.google.com)监视其状态。
+[Google Cloud console](console.cloud.google.com)监视其状态。
 
 这里是一些当你检查控制台时，可能会遇到的问题:
  - 当集群创建失败，请检查 status/logs实例日志。

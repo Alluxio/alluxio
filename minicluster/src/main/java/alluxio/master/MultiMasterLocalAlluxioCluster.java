@@ -160,27 +160,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       public Boolean apply(Void input) {
         return getLeaderIndex() != -1;
       }
-    }, WaitForOptions.defaults().setTimeout(timeoutMs));
-  }
-
-  private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
-    if (ufs.isDirectory(path)
-        && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
-      throw new IOException("Folder " + path + " already exists but can not be deleted.");
-    }
-  }
-
-  private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
-    if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
-    }
-    if (!ufs.mkdirs(path)) {
-      throw new IOException("Failed to make folder: " + path);
-    }
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
   @Override
@@ -202,7 +182,14 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    mkdir(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
+    String path = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    if (ufs.isDirectory(path)) {
+      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
+    }
+    if (!ufs.mkdirs(path)) {
+      throw new IOException("Failed to make folder: " + path);
+    }
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
@@ -223,7 +210,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorkers() throws Exception {
+  public void startWorkers() throws Exception {
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     super.startWorkers();
   }
@@ -238,7 +225,6 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   @Override
   public void stopMasters() throws Exception {
     for (int k = 0; k < mNumOfMasters; k++) {
-      // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
       mMasters.get(k).stop();
     }
   }

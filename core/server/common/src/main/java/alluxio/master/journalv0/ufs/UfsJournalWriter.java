@@ -24,7 +24,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +80,7 @@ public final class UfsJournalWriter implements JournalWriter {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    mUfs = UnderFileSystem.Factory.get(mJournal.getLocation().toString());
+    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation());
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 
@@ -112,7 +111,7 @@ public final class UfsJournalWriter implements JournalWriter {
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
       LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
           latestSequenceNumber, mNextEntrySequenceNumber);
-      UnderFileSystemUtils.deleteFileIfExists(mTempCheckpoint.toString());
+      UnderFileSystemUtils.deleteFileIfExists(mUfs, mTempCheckpoint.toString());
       mCheckpointOutputStream = new CheckpointOutputStream(
           new DataOutputStream(mUfs.create(mTempCheckpoint.toString())));
     }
@@ -373,13 +372,6 @@ public final class UfsJournalWriter implements JournalWriter {
       }
       try {
         mDataOutputStream.flush();
-        if (mRawOutputStream instanceof FSDataOutputStream) {
-          // The output stream directly created by {@link UnderFileSystem} may be
-          // {@link FSDataOutputStream}, which means the under filesystem is HDFS, but
-          // {@link DataOutputStream#flush} won't flush the data to HDFS, so we need to call
-          // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
-          ((FSDataOutputStream) mRawOutputStream).sync();
-        }
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
         throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE.getMessageWithUrl(

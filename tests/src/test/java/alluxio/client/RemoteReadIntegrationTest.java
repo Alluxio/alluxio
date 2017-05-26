@@ -12,6 +12,7 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -30,6 +31,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -53,7 +55,7 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for reading from a remote worker.
  */
 @RunWith(Parameterized.class)
-public class RemoteReadIntegrationTest {
+public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -76,9 +78,8 @@ public class RemoteReadIntegrationTest {
     List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
-    // TODO(calvin): Reenable this after File Channel Transfer is well supported
-    // list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-    //   IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }
 
@@ -261,9 +262,9 @@ public class RemoteReadIntegrationTest {
       AlluxioBlockStore blockStore = AlluxioBlockStore.create();
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -293,9 +294,9 @@ public class RemoteReadIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -322,9 +323,9 @@ public class RemoteReadIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -356,6 +357,29 @@ public class RemoteReadIntegrationTest {
       is.close();
       Assert.assertFalse(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
     }
+  }
+
+  /**
+   * Tests the read API from a remote location after a delay longer than the netty heartbeat
+   * timeout.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, "1000"})
+  public void heartbeat1() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    int size = 100;
+    AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + size);
+    FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, size);
+
+    FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
+    CommonUtils.sleepMs(2000);
+    byte[] ret = new byte[size];
+    Assert.assertEquals(size, is.read(ret));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, ret));
+    Assert.assertEquals(-1, is.read(ret));
+    is.close();
+    Assert.assertFalse(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
   }
 
   /**
@@ -542,9 +566,9 @@ public class RemoteReadIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-              FileSystemContext.INSTANCE, InStreamOptions.defaults());
+      BlockInStream is = BlockInStream
+          .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr, null,
+              InStreamOptions.defaults());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -560,9 +584,9 @@ public class RemoteReadIntegrationTest {
       // Try to create an in stream again, and it should fail.
       BlockInStream is2 = null;
       try {
-        is2 =
-            BlockInStream.createRemoteBlockInStream(info.getBlockId(), info.getLength(),
-                workerAddr, FileSystemContext.INSTANCE, InStreamOptions.defaults());
+        is2 = BlockInStream
+            .create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(), workerAddr,
+                null, InStreamOptions.defaults());
       } catch (NotFoundException e) {
         // Expected since the file has been deleted.
       } finally {
