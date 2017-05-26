@@ -1,3 +1,11 @@
+alluxio.user.file.write.tier.default:
+  The default tier for choosing a where to write a block. This should be configured on the client
+  application. Valid option is any integer. Non-negative values identify tiers starting from top
+  going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided
+  value is greater than the number of tiers, it identifies the last tier. Negative values identify
+  tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to
+  last tier, and so on). If the absolute value of the provided value is greater than the number of
+  tiers, it identifies the first tier.
 alluxio.worker.tieredstore.levels:
   The maximum number of storage tiers in Alluxio. Currently, Alluxio supports 1, 2, or 3 tiers.
 alluxio.worker.tieredstore.level{x}.alias:
