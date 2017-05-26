@@ -162,7 +162,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
 
         @Override
         public String toString() {
-          return String.format("Session {}: open block: %s", mSessionId, mRequest.toString());
+          return String.format("Session %d: open block: %s", mSessionId, mRequest.toString());
         }
       });
     }
@@ -211,7 +211,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
 
       @Override
       public String toString() {
-        return String.format("Session {}: close block: %s", mSessionId, request.toString());
+        return String.format("Session %d: close block: %s", mSessionId, request.toString());
       }
     });
   }

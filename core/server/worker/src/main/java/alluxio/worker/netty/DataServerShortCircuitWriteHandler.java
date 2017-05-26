@@ -138,9 +138,9 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public String toString() {
         if (request.getOnlyReserveSpace()) {
-          return String.format("Session {}: reserve space: %s", mSessionId, request.toString());
+          return String.format("Session %d: reserve space: %s", mSessionId, request.toString());
         } else {
-          return String.format("Session {}: create block: %s", mSessionId, request.toString());
+          return String.format("Session %d: create block: %s", mSessionId, request.toString());
         }
       }
     });
@@ -178,9 +178,9 @@ class DataServerShortCircuitWriteHandler extends ChannelInboundHandlerAdapter {
       @Override
       public String toString() {
         if (request.getCancel()) {
-          return String.format("Abort block: %s", request.toString());
+          return String.format("Session %d: abort block: %s", mSessionId, request.toString());
         } else {
-          return String.format("Commit block: %s", request.toString());
+          return String.format("Session %d: commit block: %s", mSessionId, request.toString());
         }
       }
     });
