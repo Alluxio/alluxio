@@ -41,16 +41,6 @@ public final class WorkerUfsManager extends AbstractUfsManager {
   }
 
   /**
-   * Establishes the connection to the given UFS from worker.
-   * @param ufs UFS instance
-   * @throws IOException if failed to create the UFS instance
-   */
-  protected void connect(UnderFileSystem ufs) throws IOException {
-    ufs.connectFromWorker(
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-  }
-
-  /**
    * {@inheritDoc}.
    *
    * If this mount id is new to this worker, this method will query master to get the corresponding
@@ -68,13 +58,16 @@ public final class WorkerUfsManager extends AbstractUfsManager {
         return null;
       }
       Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
+      ufs = super.addMount(mountId, info.getUri(),
+          UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
+              .setShared(info.getProperties().isShared())
+              .setUserSpecifiedConf(info.getProperties().getProperties()));
       try {
-        ufs = super.addMount(mountId, info.getUri(),
-            UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
-                .setShared(info.getProperties().isShared())
-                .setUserSpecifiedConf(info.getProperties().getProperties()));
+        ufs.connectFromWorker(
+            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
       } catch (IOException e) {
-        LOG.error("Failed to add mount point {} with id {}", info.getUri(), mountId, e);
+        removeMount(mountId);
+        LOG.error("Failed to connect to UFS {} with id {}", info.getUri(), mountId, e);
         return null;
       }
     }

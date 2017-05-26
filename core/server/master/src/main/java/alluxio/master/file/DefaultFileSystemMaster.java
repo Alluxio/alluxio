@@ -109,6 +109,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -2413,13 +2414,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean replayed, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    boolean mountAdded = false;
+    UnderFileSystem ufs = mUfsManager.addMount(mountId, ufsPath.toString(),
+        UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
+            .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
     try {
       if (!replayed) {
-        UnderFileSystem ufs = mUfsManager.addMount(mountId, ufsPath.toString(),
-            UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-                .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
-        mountAdded = true;
+        ufs.connectFromMaster(
+            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
         // Check that the ufsPath exists and is a directory
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
@@ -2439,9 +2440,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // mount and no existing mount is a prefix of this mount.
       mMountTable.add(alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
-      if (mountAdded) {
-        mUfsManager.removeMount(mountId);
-      }
+      mUfsManager.removeMount(mountId);
       throw e;
     }
   }
