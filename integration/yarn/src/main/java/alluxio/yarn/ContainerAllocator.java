@@ -89,7 +89,7 @@ public final class ContainerAllocator {
 
   /**
    * @return a list of all hosts in the cluster which haven't yet reached
-   * the containers per host limit
+   *          the containers per host limit
    */
   private String[] getPotentialWorkerHosts() throws YarnException, IOException {
     List<String> unusedHosts = Lists.newArrayList();
