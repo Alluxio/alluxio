@@ -148,7 +148,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
 
   /**
    * @param fs Filesystem client
-   * @return the ufs mounted to and then unmounted from fs
+   * @return a spied UFS mounted to and then unmounted from fs
    */
   private UnderFileSystem mountUnmount(FileSystem fs) throws Exception {
     SleepingUnderFileSystem sleepingUfs = Mockito.spy(
