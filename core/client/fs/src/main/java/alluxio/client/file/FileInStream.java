@@ -522,12 +522,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         }
         return;
       }
-
-      List<BlockWorkerInfo> workers = mBlockStore.getWorkerInfoList();
-      WorkerNetAddress address =
-          mCacheLocationPolicy.getWorkerForNextBlock(workers, getBlockSizeAllocation(mPos));
-      mCurrentCacheStream =
-          mBlockStore.getOutStream(blockId, getBlockSize(mPos), address, mOutStreamOptions);
     } catch (IOException e) {
       handleCacheStreamException(e);
     }
