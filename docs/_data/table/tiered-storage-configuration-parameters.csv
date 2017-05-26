@@ -1,4 +1,5 @@
 parameter,defaultValue
+alluxio.user.file.write.tier.default,0
 alluxio.worker.tieredstore.levels,1
 alluxio.worker.tieredstore.level{x}.alias,MEM<div>(for alluxio.worker.tieredstore.</div><div>level0.alias)</div>
 alluxio.worker.tieredstore.level{x}.dirs.path,/mnt/ramdisk<div>(for alluxio.worker.tieredstore.</div><div>level0.dirs.path)</div>
