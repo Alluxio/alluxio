@@ -31,6 +31,8 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -1114,7 +1116,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = mountInfo.toMountPointInfo();
-      UnderFileSystem ufs = mUfsManager.get(mountInfo.getMountId());
+      UnderFileSystem ufs;
+      try {
+        ufs = mUfsManager.get(mountInfo.getMountId());
+      } catch (UnavailableException | NotFoundException e) {
+        // We should never reach here
+        LOG.error(String.format("No UFS cached for %s", info), e);
+        continue;
+      }
       info.setUfsType(ufs.getUnderFSType());
       try {
         info.setUfsCapacityBytes(

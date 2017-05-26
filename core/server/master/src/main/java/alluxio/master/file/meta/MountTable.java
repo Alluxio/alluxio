@@ -16,6 +16,8 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.JournalEntryIterable;
@@ -286,7 +288,16 @@ public final class MountTable implements JournalEntryIterable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        UnderFileSystem ufs = mUfsManager.get(info.getMountId());
+        UnderFileSystem ufs;
+        try {
+          ufs = mUfsManager.get(info.getMountId());
+        } catch (UnavailableException e) {
+          throw new RuntimeException("We should never reach here", e);
+        } catch (NotFoundException e) {
+          throw new InvalidPathException(
+              String.format("No UFS information for %s for mount Id %d, we should never reach here",
+                  info.getMountId(), uri), e);
+        }
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
       }
