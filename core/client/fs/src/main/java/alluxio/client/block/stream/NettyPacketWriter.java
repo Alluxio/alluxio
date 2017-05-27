@@ -236,13 +236,13 @@ public final class NettyPacketWriter implements PacketWriter {
         }
         try {
           if (mPacketWriteException != null) {
-            mChannel.close();
+            CommonUtils.closeChannel(mChannel);
             throw new UnavailableException(mPacketWriteException);
           }
           if (!mDoneOrFailed
               .await(Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS),
                   TimeUnit.MILLISECONDS)) {
-            mChannel.close();
+            CommonUtils.closeChannel(mChannel);
             throw new DeadlineExceededException(String.format(
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }

@@ -20,6 +20,7 @@ import alluxio.client.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
@@ -130,7 +131,7 @@ public final class LocalFilePacketReader implements PacketReader {
         Preconditions.checkState(message.isLocalBlockOpenResponse());
         mPath = message.asLocalBlockOpenResponse().getPath();
       } catch (Exception e) {
-        mChannel.close();
+        CommonUtils.closeChannel(mChannel);
         context.releaseNettyChannel(address, mChannel);
         throw e;
       }
@@ -157,7 +158,7 @@ public final class LocalFilePacketReader implements PacketReader {
         NettyRPC.call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
             new ProtoMessage(request));
       } catch (Exception e) {
-        mChannel.close();
+        CommonUtils.closeChannel(mChannel);
         throw e;
       } finally {
         mClosed = true;
