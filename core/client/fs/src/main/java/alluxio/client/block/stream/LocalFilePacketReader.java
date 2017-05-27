@@ -20,7 +20,6 @@ import alluxio.client.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;

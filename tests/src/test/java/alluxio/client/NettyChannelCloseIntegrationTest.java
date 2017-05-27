@@ -29,7 +29,6 @@ public final class NettyChannelCloseIntegrationTest {
 
   private WorkerNetAddress mWorkerNetAddress;
 
-
   @Before
   public void before() throws Exception {
     mWorkerNetAddress = mClusterResource.get().getWorkerAddress();
