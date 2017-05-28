@@ -288,9 +288,9 @@ public class PropertyKey {
       create(Name.WORKER_ALLOCATOR_CLASS, "alluxio.worker.block.allocator.MaxFreeAllocator");
   public static final PropertyKey WORKER_BIND_HOST = create(Name.WORKER_BIND_HOST, "0.0.0.0");
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
-      create(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 1000);
+      create(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
-      create(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, 60000);
+      create(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "1min");
   public static final PropertyKey WORKER_BLOCK_THREADS_MAX =
       create(Name.WORKER_BLOCK_THREADS_MAX, 2048);
   public static final PropertyKey WORKER_BLOCK_THREADS_MIN =
@@ -324,7 +324,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
       create(Name.WORKER_FILE_BUFFER_SIZE, "1MB");
   public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
-      create(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS, 1000);
+      create(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey WORKER_HOSTNAME = create(Name.WORKER_HOSTNAME, null);
   public static final PropertyKey WORKER_KEYTAB_FILE = create(Name.WORKER_KEYTAB_FILE, null);
   public static final PropertyKey WORKER_MEMORY_SIZE = create(Name.WORKER_MEMORY_SIZE, "1GB");
@@ -368,7 +368,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_PRINCIPAL = create(Name.WORKER_PRINCIPAL, null);
   public static final PropertyKey WORKER_RPC_PORT = create(Name.WORKER_RPC_PORT, 29998);
   public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
-      create(Name.WORKER_SESSION_TIMEOUT_MS, 60000);
+      create(Name.WORKER_SESSION_TIMEOUT_MS, "1min");
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
       create(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS, 1000);
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCKS =
@@ -432,7 +432,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
       create(Name.WORKER_TIERED_STORE_RESERVER_ENABLED, false);
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
-      create(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, 1000);
+      create(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "1sec");
   public static final PropertyKey WORKER_TIERED_STORE_RETRY =
       create(Name.WORKER_TIERED_STORE_RETRY, 3);
   public static final PropertyKey WORKER_TIERED_STORE_FREE_SPACE_RATIO =
@@ -442,13 +442,13 @@ public class PropertyKey {
   public static final PropertyKey WORKER_WEB_HOSTNAME = create(Name.WORKER_WEB_HOSTNAME, null);
   public static final PropertyKey WORKER_WEB_PORT = create(Name.WORKER_WEB_PORT, 30000);
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-      create(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS, 300000);
+      create(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS, "5min");
 
   //
   // Proxy related properties
   //
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
-      create(Name.PROXY_STREAM_CACHE_TIMEOUT_MS, 3600000);
+      create(Name.PROXY_STREAM_CACHE_TIMEOUT_MS, "1hour");
   public static final PropertyKey PROXY_WEB_BIND_HOST = create(Name.PROXY_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey PROXY_WEB_HOSTNAME = create(Name.PROXY_WEB_HOSTNAME, null);
   public static final PropertyKey PROXY_WEB_PORT = create(Name.PROXY_WEB_PORT, 39999);
@@ -501,7 +501,7 @@ public class PropertyKey {
   public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
       create(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, "1MB");
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
-      create(Name.USER_FILE_WAITCOMPLETED_POLL_MS, 1000);
+      create(Name.USER_FILE_WAITCOMPLETED_POLL_MS, "1sec");
   public static final PropertyKey USER_FILE_WORKER_CLIENT_THREADS =
       create(Name.USER_FILE_WORKER_CLIENT_THREADS, 10);
   public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
@@ -517,7 +517,7 @@ public class PropertyKey {
   public static final PropertyKey USER_FILE_WRITE_TIER_DEFAULT =
       create(Name.USER_FILE_WRITE_TIER_DEFAULT, Constants.FIRST_TIER);
   public static final PropertyKey USER_HEARTBEAT_INTERVAL_MS =
-      create(Name.USER_HEARTBEAT_INTERVAL_MS, 1000);
+      create(Name.USER_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey USER_HOSTNAME = create(Name.USER_HOSTNAME, null);
   public static final PropertyKey USER_LINEAGE_ENABLED = create(Name.USER_LINEAGE_ENABLED, false);
   public static final PropertyKey USER_LINEAGE_MASTER_CLIENT_THREADS =
@@ -529,7 +529,7 @@ public class PropertyKey {
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       create(Name.USER_NETWORK_NETTY_CHANNEL, null);
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
-      create(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000);
+      create(Name.USER_NETWORK_NETTY_TIMEOUT_MS, "30sec");
   public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
       create(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0);
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
@@ -543,7 +543,7 @@ public class PropertyKey {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       create(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
-      create(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS, 300000);
+      create(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS, "5min");
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
@@ -556,7 +556,7 @@ public class PropertyKey {
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       create(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
-      create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, 5000);
+      create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, "5min");
   /**
    * @deprecated It will be removed in 2.0.0.
    */
@@ -622,7 +622,7 @@ public class PropertyKey {
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
       create(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS, null);
   public static final PropertyKey SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
-      create(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS, "600000");
+      create(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS, "10min");
   public static final PropertyKey SECURITY_AUTHENTICATION_TYPE =
       create(Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
@@ -632,7 +632,7 @@ public class PropertyKey {
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_UMASK =
       create(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "022");
   public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
-      create(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS, "60000");
+      create(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS, "1min");
   public static final PropertyKey SECURITY_GROUP_MAPPING_CLASS =
       create(Name.SECURITY_GROUP_MAPPING_CLASS,
           "alluxio.security.group.provider.ShellBasedUnixGroupsMapping");

@@ -145,7 +145,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     try (FileOutStream os =
         mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(mWriteType))) {
       os.write((byte) 0);
-      Thread.sleep(Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
+      Thread.sleep((int) Configuration.getMs(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {
