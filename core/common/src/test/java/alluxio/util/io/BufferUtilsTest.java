@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Tests the {@link BufferUtils} class.
  */
-public class BufferUtilsTest {
+public final class BufferUtilsTest {
 
   /**
    * Tests the {@link BufferUtils#cloneByteBuffer(ByteBuffer)} method.
