@@ -1,4 +1,4 @@
-/*
+﻿/*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
  * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
@@ -77,6 +77,11 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
         new AlluxioURI(IN_MEMORY_FILE), null);
   }
 
+  /**
+   * Creates an input stream for reading a file from HDFS.
+   *
+   * @param file read type
+   */
   private void createUfsInStream(ReadType readType) throws Exception {
     String defaultReadType = alluxio.Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
@@ -86,6 +91,11 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }
 
+  /**
+   * Creates an input stream for reading a file without partial cached block from HDFS.
+   *
+   * @param file read type
+   */
   private void createUfsInStreamNoPartialcache(ReadType readType) throws Exception {
     String defaultReadType = alluxio.Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
     String defaultPartialCache =
