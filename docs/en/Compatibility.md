@@ -9,8 +9,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-This document lists features introduced in {{site.ALLUXIO_RELEASED_VERSION}} that are incompatible 
-with the previous Alluxio versions. 
+This document lists features that are not backward compatible. 
 
 # Journal
 Alluxio journal needs to be upgraded manually when upgrading Alluxio cluster to >= 1.5.0 from any 
@@ -18,7 +17,7 @@ Alluxio cluster < 1.5.0 by running the following commands in the home directory 
 
 ```bash
 # Back up the v0 journal to avoid losing data in case of failures while running journal upgrader.
-$ cp -r YourJournalDirectoryV0 YourJournalBackDirectory
+$ cp -r YourJournalDirectoryV0 YourJournalBackupDirectory
 # Upgrade the journal.
 $ ./bin/alluxio upgradeJournal -journalDirectoryV0 YourJournalDirectoryV0 
 ```
