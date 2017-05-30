@@ -24,6 +24,12 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.underfs.sleepfs.SleepingUnderFileSystem;
+import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
+import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 
@@ -33,6 +39,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -102,6 +109,57 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
+  }
+
+  @Test
+  public void singleMasterMountUnmountJournal() throws Exception {
+    LocalAlluxioCluster cluster = setupSingleMasterCluster();
+    UnderFileSystem ufs = mountUnmount(cluster.getClient());
+    // Shutdown the cluster
+    cluster.stopFS();
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    awaitClientTermination();
+    // Reject connection from Alluxio
+    Mockito.doThrow(new IOException()).when(ufs).connectFromMaster(Mockito.anyString());
+    createFsMasterFromJournal();
+    // clean up
+    cluster.stopUFS();
+  }
+
+  @Test
+  public void multiMasterMountUnmountJournal() throws Exception {
+    MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
+    UnderFileSystem ufs = mountUnmount(cluster.getClient());
+    // Kill the leader one by one.
+    for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
+      cluster.waitForNewMaster(120 * Constants.SECOND_MS);
+      Assert.assertTrue(cluster.stopLeader());
+    }
+    // Shutdown the cluster
+    cluster.stopFS();
+    CommonUtils.sleepMs(TEST_TIME_MS);
+    awaitClientTermination();
+    // Reject connection from Alluxio
+    Mockito.doThrow(new IOException()).when(ufs).connectFromMaster(Mockito.anyString());
+    createFsMasterFromJournal();
+    // clean up
+    cluster.stopUFS();
+  }
+
+  /**
+   * @param fs Filesystem client
+   * @return a spied UFS mounted to and then unmounted from fs
+   */
+  private UnderFileSystem mountUnmount(FileSystem fs) throws Exception {
+    SleepingUnderFileSystem sleepingUfs = Mockito.spy(
+        new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
+            new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults()));
+    SleepingUnderFileSystemFactory sleepingUfsFactory =
+        new SleepingUnderFileSystemFactory(sleepingUfs);
+    UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);
+    fs.mount(new AlluxioURI("/mnt"), new AlluxioURI("sleep:///"));
+    fs.unmount(new AlluxioURI("/mnt"));
+    return sleepingUfs;
   }
 
   /**

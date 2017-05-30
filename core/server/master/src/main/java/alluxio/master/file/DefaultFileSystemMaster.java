@@ -32,6 +32,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -110,6 +112,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -1114,7 +1117,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = mountInfo.toMountPointInfo();
-      UnderFileSystem ufs = mUfsManager.get(mountInfo.getMountId());
+      UnderFileSystem ufs;
+      try {
+        ufs = mUfsManager.get(mountInfo.getMountId());
+      } catch (UnavailableException | NotFoundException e) {
+        // We should never reach here
+        LOG.error(String.format("No UFS cached for %s", info), e);
+        continue;
+      }
       info.setUfsType(ufs.getUnderFSType());
       try {
         info.setUfsCapacityBytes(
@@ -2419,6 +2429,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
     try {
       if (!replayed) {
+        ufs.connectFromMaster(
+            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
         // Check that the ufsPath exists and is a directory
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
@@ -2436,7 +2448,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
       // mount and no existing mount is a prefix of this mount.
-
       mMountTable.add(alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
       mUfsManager.removeMount(mountId);
