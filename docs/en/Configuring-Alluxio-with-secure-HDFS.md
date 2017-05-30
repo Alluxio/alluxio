@@ -25,10 +25,10 @@ with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code](building-Alluxio-Master-Branch.html)
 (for advanced users).
 
-Note that, by default, Alluxio binaries are built to work with Hadoop HDFS version `2.2.0`. To use
-another Hadoop version, one needs to recompile Alluxio binaries from source code with the correct
-Hadoop version set by either of following approaches. Assume `${ALLUXIO_HOME}` is the root directory
-of Alluxio source code.
+Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
+work with Apache Hadoop HDFS of version `2.2.0`. To work with Hadoop distributions of other
+versions, one needs to specify  the correct Hadoop profile and run the following in your Alluxio
+directory:
 
 ```bash
 $ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
