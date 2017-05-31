@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Alluxio独立模式实现容错
-nickname: Alluxio独立模式实现容错
+title: 在集群上运行Alluxio实现高可用性
+nickname: Alluxio集群模式实现高可用性
 group: Deploying Alluxio
 priority: 3
 ---
@@ -9,7 +9,7 @@ priority: 3
 * 内容列表
 {:toc}
 
-Alluxio的容错通过多master实现。同一时刻，有多个master进程运行。其中一个被选举为leader，作为所有worker和
+Alluxio的高可用性通过多master实现。同一时刻，有多个master进程运行。其中一个被选举为leader，作为所有worker和
 client的通信首选。其余master进入备用状态，和leader共享日志，以确保和leader维护着同样的文件系统元数据并在
 leader失效时迅速接管leader的工作。
 
@@ -18,12 +18,12 @@ master时，客户端会有短暂的延迟或瞬态错误。
 
 ## 前期准备
 
-搭建一个容错的Alluxio集群需要两方面的准备：
+搭建一个高可用性的Alluxio集群需要两方面的准备：
 
 * [ZooKeeper](http://zookeeper.apache.org/)
 * 用于存放日志的可靠的共享底层文件系统。
 
-Alluxio使用Zookeeper实现容错和leader选举，可以保证在任何时间最多只有一个leader。
+Alluxio使用Zookeeper实现leader选举，可以保证在任何时间最多只有一个leader。
 
 Alluxio使用共享底层文件系统存放日志。共享文件系统必须可以被所有master访问，可以选择
 [HDFS](Configuring-Alluxio-with-HDFS.html), [Amazon S3](Configuring-Alluxio-with-S3.html)或
@@ -32,7 +32,7 @@ Alluxio使用共享底层文件系统存放日志。共享文件系统必须可�
 
 ### ZooKeeper
 
-Alluxio使用Zookeeper实现master的容错。Alluxio master使用Zookeeper选举leader。Alluxio client使用
+Alluxio使用Zookeeper实现master的高可用性。Alluxio master使用Zookeeper选举leader。Alluxio client使用
 Zookeeper查询当前leader的id和地址。
 
 ZooKeeper必须单独安装
@@ -59,7 +59,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### 配置容错的Alluxio
 
-实现Alluxio上的容错，需要为Alluxio master、worker和client添加额外的配置。在`conf/alluxio-site.properties`中，以
+实现Alluxio上的高可用性，需要为Alluxio master、worker和client添加额外的配置。在`conf/alluxio-site.properties`中，以
 下java选项需要设置：
 
 <table class="table">
@@ -95,21 +95,21 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
     -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
 
-所有Alluxio master以这种方式配置后，都可以启动用于Alluxio的容错。其中一个成为leader，其余重播日志直到当
+所有Alluxio master以这种方式配置后，都可以启动用于Alluxio的高可用性。其中一个成为leader，其余重播日志直到当
 前master失效。
 
 ### Worker配置
 
 只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`alluxio.master.hostname`。
 
-> 注意: 当在容错模式下运行Alluxio, worker的默认心跳超时时间可能太短。
+> 注意: 当在高可用性模式下运行Alluxio, worker的默认心跳超时时间可能太短。
 > 为了能在master进行故障转移时正确处理master的状态，建议将worker的默认心跳超时时间设置的长点。
 > 增加worker上的默认超时时间，可以通过修改`conf/alluxio-site.properties`下的配置参数
 > `alluxio.worker.block.heartbeat.timeout.ms` 至一个大些的值（至少几分钟）。
 
 ### Client配置
 
-无需为容错模式配置更多的参数，只要以下两项：
+无需为高可用性模式配置更多的参数，只要以下两项：
 
     -Dalluxio.zookeeper.enabled=true
     -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
@@ -118,7 +118,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 #### HDFS API
 
-如果使用HDFS API与容错模式的Alluxio通信，使用`alluxio-ft://`模式来代替`alluxio://`。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
+如果使用HDFS API与高可用性模式的Alluxio通信，使用`alluxio-ft://`模式来代替`alluxio://`。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
 
 ```bash
 hadoop fs -ls alluxio-ft:///directory
