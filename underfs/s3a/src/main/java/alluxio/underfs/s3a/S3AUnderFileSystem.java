@@ -372,7 +372,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // Advance the request continuation token to the next set of objects
       request.setContinuationToken(result.getNextContinuationToken());
     } catch (AmazonClientException e) {
-      LOG.error("Failed to list path {}", request.getPrefix(), e);
+      LOG.warn(e.getMessage());
       result = null;
     }
     return result;
@@ -402,9 +402,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     S3AObjectListingChunk(ListObjectsV2Request request, ListObjectsV2Result result)
         throws IOException {
-      if (result == null) {
-        throw new IOException("S3A listing result is null");
-      }
+      Preconditions.checkNotNull(result, "result");
       mRequest = request;
       mResult = result;
     }
@@ -447,9 +445,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     S3AObjectListingChunkV1(ListObjectsRequest request, ObjectListing result)
         throws IOException {
-      if (result == null) {
-        throw new IOException("S3A listing result is null");
-      }
+      Preconditions.checkNotNull(result, "result");
       mRequest = request;
       mResult = result;
     }
