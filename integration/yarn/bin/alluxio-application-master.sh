@@ -13,7 +13,6 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 source "${SCRIPT_DIR}/common.sh"
-export CLASSPATH="${ALLUXIO_SERVER_CLASSPATH}:${CLASSPATH}"
 
 echo "Launching Application Master"
 
