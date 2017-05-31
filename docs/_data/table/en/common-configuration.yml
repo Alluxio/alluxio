@@ -98,6 +98,8 @@ alluxio.underfs.s3a.consistency.timeout.ms:
 alluxio.underfs.s3a.directory.suffix:
   Directories are represented in S3 as zero-byte objects named with the specified suffix. The
   default value is "/".
+alluxio.underfs.s3a.list.objects.v1:
+  Whether to use version 1 of GET Bucket (List Objects) API. The default value is "false".
 alluxio.underfs.s3a.request.timeout.ms:
   The timeout for a single request to S3. Infinity if set to 0. Setting this property to a non-zero
   value can improve performance by avoiding the long tail of requests to S3. For very slow
