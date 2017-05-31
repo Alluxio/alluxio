@@ -26,8 +26,6 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -53,6 +51,8 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -72,7 +72,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </p>
  * {@code
  * $ yarn jar \
- *     alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.yarn.Client \
+ *     alluxio-integration-yarn-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.yarn.Client \
  *     -num_workers NumAlluxioWorkers \
  *     -master_address MasterAddress \
  *     -resource_path ResourcePath
@@ -83,13 +83,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </p>
  * {@code
  * $ yarn jar \
- *     alluxio-assembly-server-<ALLUXIO-VERSION>-SNAPSHOT-jar-with-dependencies.jar \
+ *     alluxio-integration-yarn-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
  *     alluxio.yarn.Client -help
  * }
  */
 @NotThreadSafe
 public final class Client {
-  private static final Log LOG = LogFactory.getLog(Client.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
