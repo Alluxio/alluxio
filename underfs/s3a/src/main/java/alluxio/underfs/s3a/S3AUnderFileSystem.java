@@ -388,8 +388,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     final ListObjectsV2Request mRequest;
     final ListObjectsV2Result mResult;
 
-    S3AObjectListingChunk(ListObjectsV2Request request, ListObjectsV2Result result)
-        throws IOException {
+    S3AObjectListingChunk(ListObjectsV2Request request, ListObjectsV2Result result) {
       Preconditions.checkNotNull(result, "result");
       mRequest = request;
       mResult = result;
@@ -431,8 +430,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     final ListObjectsRequest mRequest;
     final ObjectListing mResult;
 
-    S3AObjectListingChunkV1(ListObjectsRequest request, ObjectListing result)
-        throws IOException {
+    S3AObjectListingChunkV1(ListObjectsRequest request, ObjectListing result) {
       Preconditions.checkNotNull(result, "result");
       mRequest = request;
       mResult = result;
