@@ -45,7 +45,7 @@ Modify `conf/alluxio-site.properties` to include:
 
 If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3a.signer.algorithm=S3SignerType`
 to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
-`alluxio.underfs.s3a.list.objects.version=v1`.
+`alluxio.underfs.s3a.list.objects.v1=true`.
 
 ### Option 2: Swift Interface
 Modify `conf/alluxio-site.properties` to include:

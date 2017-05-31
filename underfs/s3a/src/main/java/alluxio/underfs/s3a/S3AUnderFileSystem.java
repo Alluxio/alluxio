@@ -68,8 +68,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
-  private static final String LIST_OBJECTS_V1 = "v1";
-  private static final String LIST_OBJECTS_V2 = "v2";
 
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
@@ -344,8 +342,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    if (mConf.containsKey(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION)
-        && mConf.getValue(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION).equals(LIST_OBJECTS_V1)) {
+    if (mConf.containsKey(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
+        .getValue(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
       ListObjectsRequest request =
           new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
               .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());
@@ -389,7 +387,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // Advance the request continuation token to the next set of objects
       request.setMarker(result.getNextMarker());
     } catch (AmazonClientException e) {
-      LOG.error("Failed to list path {}", request.getPrefix(), e);
+      LOG.warn(e.getMessage());
       result = null;
     }
     return result;
@@ -404,11 +402,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     S3AObjectListingChunk(ListObjectsV2Request request, ListObjectsV2Result result)
         throws IOException {
-      mRequest = request;
-      mResult = result;
-      if (mResult == null) {
+      if (result == null) {
         throw new IOException("S3A listing result is null");
       }
+      mRequest = request;
+      mResult = result;
     }
 
     @Override
@@ -449,11 +447,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     S3AObjectListingChunkV1(ListObjectsRequest request, ObjectListing result)
         throws IOException {
-      mRequest = request;
-      mResult = result;
-      if (mResult == null) {
+      if (result == null) {
         throw new IOException("S3A listing result is null");
       }
+      mRequest = request;
+      mResult = result;
     }
 
     @Override
