@@ -364,20 +364,31 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result
-  private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request) {
-    // Query S3 for the next batch of objects
-    ListObjectsV2Result result = mClient.listObjectsV2(request);
-    // Advance the request continuation token to the next set of objects
-    request.setContinuationToken(result.getNextContinuationToken());
+  private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
+      throws IOException {
+    ListObjectsV2Result result;
+    try {
+      // Query S3 for the next batch of objects
+      result = mClient.listObjectsV2(request);
+      // Advance the request continuation token to the next set of objects
+      request.setContinuationToken(result.getNextContinuationToken());
+    } catch (AmazonClientException e) {
+      throw new IOException(e.getMessage());
+    }
     return result;
   }
 
   // Get next chunk of listing result
-  private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) {
-    // Query S3 for the next batch of objects
-    ObjectListing result = mClient.listObjects(request);
-    // Advance the request continuation token to the next set of objects
-    request.setMarker(result.getNextMarker());
+  private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
+    ObjectListing result;
+    try {
+      // Query S3 for the next batch of objects
+      result = mClient.listObjects(request);
+      // Advance the request continuation token to the next set of objects
+      request.setMarker(result.getNextMarker());
+    } catch (AmazonClientException e) {
+      throw new IOException(e.getMessage());
+    }
     return result;
   }
 
