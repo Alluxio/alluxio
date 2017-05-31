@@ -27,17 +27,23 @@ Alluxio支持分层存储，以便管理内存之外的其它存储类型。目�
 
 ### 写数据
 
-用户写入新数据块时默认写在顶层存储(不想使用默认配置可以使用定制的分配策略)。如果顶层没有足够的空间存放数据块，回收策略会被触发并释放空间给新数据块。
+用户写入新数据块时默认写在顶层存储。如果顶层没有足够的空间存放数据块，回收策略会被触发并释放空间给新数据块。如果顶层没有足够的可释放空间，那么写操作会失败。如果文件大小超出了顶层空间，写操作也会失败。
+
+用户还可以通过[配置项设置](#configuration-parameters-for-tiered-storage)指定写数据默认的层级。
+
+从ReadType.CACHE或ReadType.CACHE_PROMOTE读数据会导致数据被写到Alluxio中。这种情况下，数据被默认写到顶层。
+
+最后，通过load命令可将数据写到Alluxio中。这种情况，数据也会被写到顶层。
 
 ### 读数据
 
-读取分层存储的数据块和标准Alluxio类似。Alluxio从存储位置读取数据块。如果Alluxio配置了多层存储，数据块不一定是从顶层读取，因为可能被透明地移到下层存储中。
+读取分层存储的数据块和标准Alluxio类似。如果数据已经在Alluxio中，Alluxio从存储位置读取数据块。如果Alluxio配置了多层存储，数据块不一定是从顶层读取，因为可能被透明地移到下层存储中。
 
-读取策略为AlluxioStorageType.PROMOTE时，Alluxio会确保数据在读取前先被移动到顶层存储中。通过显式的将热数据移到最高层,该策略也可以用于数据块的管理。
+读取策略为ReadType.CACHE_PROMOTE时，Alluxio会确保数据在读取前先被移动到顶层存储中。通过显式的将热数据移到最高层,该策略也可以用于数据块的管理。
 
 #### 固定文件
 
-另一控制文件存放和移动的方法是是*固定(pin)*和*取消固定(unpin)*文件。文件被固定时，数据块不会从Alluxio的存储空间中移出。同时用户可以将固定文件的数据块移到顶层存储。
+用户可以通过*固定(pin)*和*取消固定(unpin)*来固定和移动该文件。文件被固定时，数据块不会从Alluxio的存储空间中移出。同时用户可以将固定文件的数据块移到顶层存储。
 
 固定文件的例子：
 
@@ -93,7 +99,9 @@ Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移�
 
 ### 空间预留器
 
-空间预留器可以在存储空间被完全耗尽前试着在每一层预留一定比例的空间。用于改善突发写入的性能，也可以在回收策略连续运行时提高持续写入的边际性能增益。开启和配置空间预留器参见[配置部分](#enabling-and-configuring-tiered-storage)。
+空间预留器可以在该存储空间被完全耗尽前试着在每一层预留一定比例的空间。其用于改善突发写入的性能，也可以提高持续写入的边际性能增益，否则，由于回收策略会持续运行，从而为写数据释放空间，所以突发写可能会比较慢。开启和配置空间预留器参见[配置部分](#enabling-and-configuring-tiered-storage)。
+
+空间预留器可以通过为每一层级配置上下水位来执行。一旦达到高水位，后台的回收策略就会启动以释放空间，直到达到低水位。
 
 ## 开启和配置空间预留
 
@@ -113,13 +121,13 @@ Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移�
 * `alluxio.worker.tieredstore.level0.dirs.quota=100GB`设置了ramdisk的配额是`100GB`
 * `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9`设置了顶层的高水位比例是0.9
 * `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7`设置了顶层的低水位比例0.7
-* `alluxio.worker.tieredstore.level1.alias=HDD`配置了第二层是硬盘驱动器层
+* `alluxio.worker.tieredstore.level1.alias=HDD`配置了第二层是硬盘层
 * `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3`配置了第二层3个独立的文件路径
 * `alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB`定义了第二层3个文件路径各自的配额
 * `alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9`设置了第二层的高水位比例是0.9
 * `alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7`设置了第二层的低水位比例0.7
 
-定义存储层时有一些限制。首先，最多只有3个存储层。而且一层最多指定一个别名。举例而言，如果想在HDD层使用多个硬盘驱动器，可以配置`alluxio.worker.tieredstore.level{x}.dirs.path`为多个存储路径。
+定义存储层时有一些限制。Alluxio对于层级数量不做限制，首先一般是三层——内存，HDD和SDD。最多只有一层可以引用指定的别名。例如：最多有一层可以使用别名HDD。如果想在HDD层使用多个硬盘驱动器，可以配置`alluxio.worker.tieredstore.level{x}.dirs.path`为多个存储路径。
 
 另外，可以配置特定的回收策略和分配策略。配置参数是：
 
