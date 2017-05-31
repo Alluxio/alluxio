@@ -72,7 +72,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </p>
  * {@code
  * $ yarn jar \
- *     alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.yarn.Client \
+ *     alluxio-assembly-integration-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.yarn.Client \
  *     -num_workers NumAlluxioWorkers \
  *     -master_address MasterAddress \
  *     -resource_path ResourcePath
@@ -83,7 +83,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </p>
  * {@code
  * $ yarn jar \
- *     alluxio-assembly-server-<ALLUXIO-VERSION>-SNAPSHOT-jar-with-dependencies.jar \
+ *     alluxio-assembly-integration-<ALLUXIO-VERSION>-SNAPSHOT-jar-with-dependencies.jar \
  *     alluxio.yarn.Client -help
  * }
  */

@@ -19,10 +19,10 @@
     <groupId>org.alluxio</groupId>
     <version>1.5.0-RC1</version>
   </parent>
-  <artifactId>alluxio-assembly-server</artifactId>
+  <artifactId>alluxio-assembly-integration</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Assembly - Server</name>
-  <description>Assembly Server JAR</description>
+  <name>Alluxio Assembly - Integration</name>
+  <description>Assembly Integration JAR</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
@@ -50,54 +50,47 @@
       <artifactId>alluxio-core-server-worker</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-server</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-gcs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <!-- Removed to prevent colliding on core-default.xml
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-glusterfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-hdfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-local</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-oss</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-s3</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-s3a</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-swift</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>mesos</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-integration-mesos</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>yarn</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-integration-yarn</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>developer</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-integration-mesos</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-integration-yarn</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
