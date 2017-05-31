@@ -60,7 +60,7 @@ tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
   integration/yarn/bin/alluxio-worker-yarn.sh \
   integration/yarn/bin/alluxio-application-master.sh \
 
-JAR_LOCAL=${ALLUXIO_HOME}/assembly/integration/target/alluxio-assembly-integration-${VERSION}-jar-with-dependencies.jar
+JAR_LOCAL=${ALLUXIO_HOME}/integration/yarn/target/alluxio-integration-yarn-${VERSION}-jar-with-dependencies.jar
 
 echo "Uploading files to HDFS to distribute alluxio runtime"
 

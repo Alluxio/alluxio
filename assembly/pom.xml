@@ -24,7 +24,6 @@
 
   <modules>
     <module>client</module>
-    <module>integration</module>
     <module>server</module>
   </modules>
 
