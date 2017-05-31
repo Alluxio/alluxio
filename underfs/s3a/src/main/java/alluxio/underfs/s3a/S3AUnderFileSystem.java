@@ -373,7 +373,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // Advance the request continuation token to the next set of objects
       request.setContinuationToken(result.getNextContinuationToken());
     } catch (AmazonClientException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     }
     return result;
   }
@@ -387,7 +387,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // Advance the request continuation token to the next set of objects
       request.setMarker(result.getNextMarker());
     } catch (AmazonClientException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     }
     return result;
   }
@@ -505,7 +505,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (AmazonClientException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     }
   }
 }
