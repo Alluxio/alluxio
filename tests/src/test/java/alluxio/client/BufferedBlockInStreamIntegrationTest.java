@@ -66,6 +66,9 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
     }
   }
 
+  /**
+   * @return the list of file option
+   */
   private static List<CreateFileOptions> getOptionSet() {
     List<CreateFileOptions> ret = new ArrayList<>(3);
     ret.add(sWriteBoth);
