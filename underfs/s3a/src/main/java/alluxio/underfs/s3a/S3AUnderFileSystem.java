@@ -365,31 +365,19 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   // Get next chunk of listing result
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request) {
-    ListObjectsV2Result result;
-    try {
-      // Query S3 for the next batch of objects
-      result = mClient.listObjectsV2(request);
-      // Advance the request continuation token to the next set of objects
-      request.setContinuationToken(result.getNextContinuationToken());
-    } catch (AmazonClientException e) {
-      LOG.warn(e.getMessage());
-      result = null;
-    }
+    // Query S3 for the next batch of objects
+    ListObjectsV2Result result = mClient.listObjectsV2(request);
+    // Advance the request continuation token to the next set of objects
+    request.setContinuationToken(result.getNextContinuationToken());
     return result;
   }
 
   // Get next chunk of listing result
   private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) {
-    ObjectListing result;
-    try {
-      // Query S3 for the next batch of objects
-      result = mClient.listObjects(request);
-      // Advance the request continuation token to the next set of objects
-      request.setMarker(result.getNextMarker());
-    } catch (AmazonClientException e) {
-      LOG.warn(e.getMessage());
-      result = null;
-    }
+    // Query S3 for the next batch of objects
+    ObjectListing result = mClient.listObjects(request);
+    // Advance the request continuation token to the next set of objects
+    request.setMarker(result.getNextMarker());
     return result;
   }
 
