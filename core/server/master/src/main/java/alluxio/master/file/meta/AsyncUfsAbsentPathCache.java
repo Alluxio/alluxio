@@ -46,9 +46,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUfsAbsentPathCache.class);
-  /** Number of threads for the async pool. */
-  private static final int NUM_THREADS =
-      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS);
   /** Number of seconds to keep threads alive. */
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
   /** Number of paths to cache. */
@@ -63,18 +60,22 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private final Cache<String, Long> mCache;
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
+  /** Number of threads for the async pool. */
+  private final int mThreads;
 
   /**
    * Creates a new instance of {@link AsyncUfsAbsentPathCache}.
    *
    * @param mountTable the mount table
+   * @param numThreads the maximum number of threads for the async thread pool
    */
-  public AsyncUfsAbsentPathCache(MountTable mountTable) {
+  public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads) {
     mMountTable = mountTable;
     mCurrentPaths = new ConcurrentHashMapV8<>(8, 0.95f, 8);
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
+    mThreads = numThreads;
 
-    mPool = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, THREAD_KEEP_ALIVE_SECONDS,
+    mPool = new ThreadPoolExecutor(mThreads, mThreads, THREAD_KEEP_ALIVE_SECONDS,
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
   }
