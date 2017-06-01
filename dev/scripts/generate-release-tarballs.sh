@@ -30,10 +30,8 @@ function main {
     echo "Building tarball for ${hadoop_profile}"
     "${GENERATE_TARBALL_SCRIPT}" --deleteUnrevisioned --hadoopProfile ${hadoop_profile}
     local tarball="${SCRIPT_DIR}/tarballs/$(ls -tr ${SCRIPT_DIR}/tarballs | tail -1)"
-    md5 "${tarball}" > "${tarball}.md5"
     if [[ "$(dirname ${tarball})" != "${build_directory}" ]]; then
       cp "${tarball}" "${build_directory}"
-      cp "${tarball}.md5" "${build_directory}"
     fi
   done
 }
