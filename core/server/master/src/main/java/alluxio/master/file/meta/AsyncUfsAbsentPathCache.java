@@ -46,9 +46,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUfsAbsentPathCache.class);
-  // TODO(gpang): make this configurable
   /** Number of threads for the async pool. */
-  private static final int NUM_THREADS = 50;
+  private static final int NUM_THREADS =
+      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS);
   /** Number of seconds to keep threads alive. */
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
   /** Number of paths to cache. */
