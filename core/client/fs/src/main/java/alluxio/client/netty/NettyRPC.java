@@ -51,8 +51,8 @@ public final class NettyRPC {
       @Override
       public void operationComplete(ChannelFuture future) throws Exception {
         if (future.cause() != null) {
-          promise.tryFailure(future.cause());
           future.channel().close();
+          promise.tryFailure(future.cause());
         }
       }
     });
