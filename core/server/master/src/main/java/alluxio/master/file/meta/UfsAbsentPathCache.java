@@ -26,6 +26,14 @@ public interface UfsAbsentPathCache {
   void process(AlluxioURI path);
 
   /**
+   * Processes the given path that already exists. This will sequentially walk down the path and
+   * update the cache accordingly.
+   *
+   * @param path the path to process for the cache
+   */
+  void processExisting(AlluxioURI path);
+
+  /**
    * Returns true if the given path is absent, according to this cache. A path is absent if one of
    * its ancestors is absent.
    *

@@ -113,7 +113,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       NettyRPC.call(mNettyRPCContext, new ProtoMessage(
           Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).setCancel(true)
               .build()));
-    } catch (IOException e) {
+    } catch (Exception e) {
       mCloser.rethrow(e);
     } finally {
       mCloser.close();

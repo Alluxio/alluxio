@@ -55,17 +55,17 @@ ALLUXIO_TARFILE="alluxio.tar.gz"
 rm -rf $ALLUXIO_TARFILE
 tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
   assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar libexec \
-  core/server/src/main/webapp \
+  core/server/common/src/main/webapp \
   bin conf integration/yarn/bin/common.sh integration/yarn/bin/alluxio-master-yarn.sh \
   integration/yarn/bin/alluxio-worker-yarn.sh \
   integration/yarn/bin/alluxio-application-master.sh \
 
-JAR_LOCAL=${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar
+JAR_LOCAL=${ALLUXIO_HOME}/integration/yarn/target/alluxio-integration-yarn-${VERSION}-jar-with-dependencies.jar
 
 echo "Uploading files to HDFS to distribute alluxio runtime"
 
 ${HADOOP_HOME}/bin/hadoop fs -mkdir -p ${HDFS_PATH}
-${HADOOP_HOME}/bin/hadoop fs -put -f ${ALLUXIO_TARFILE} ${HDFS_PATH}/$ALLUXIO_TARFILE
+${HADOOP_HOME}/bin/hadoop fs -put -f ${ALLUXIO_TARFILE} ${HDFS_PATH}/${ALLUXIO_TARFILE}
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/alluxio.jar
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/alluxio-yarn-setup.sh ${HDFS_PATH}/alluxio-yarn-setup.sh
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/alluxio-application-master.sh ${HDFS_PATH}/alluxio-application-master.sh
@@ -78,6 +78,6 @@ ALLUXIO_JAVA_OPTS="${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console"
 export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
 ${YARN_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
-    -num_workers $NUM_WORKERS \
+    -num_workers ${NUM_WORKERS} \
     -master_address ${MASTER_ADDRESS} \
     -resource_path ${HDFS_PATH}

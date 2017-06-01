@@ -37,8 +37,10 @@ import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -340,18 +342,30 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    ListObjectsV2Request request =
-        new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
-            .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());
-    ListObjectsV2Result result = getObjectListingChunk(request);
-    if (result != null) {
-      return new S3AObjectListingChunk(request, result);
+    if (mConf.containsKey(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
+        .getValue(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
+      ListObjectsRequest request =
+          new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());
+      ObjectListing result = getObjectListingChunkV1(request);
+      if (result != null) {
+        return new S3AObjectListingChunkV1(request, result);
+      }
+    } else {
+      ListObjectsV2Request request =
+          new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());
+      ListObjectsV2Result result = getObjectListingChunk(request);
+      if (result != null) {
+        return new S3AObjectListingChunk(request, result);
+      }
     }
     return null;
   }
 
   // Get next chunk of listing result
-  private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request) {
+  private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
+      throws IOException {
     ListObjectsV2Result result;
     try {
       // Query S3 for the next batch of objects
@@ -359,8 +373,21 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // Advance the request continuation token to the next set of objects
       request.setContinuationToken(result.getNextContinuationToken());
     } catch (AmazonClientException e) {
-      LOG.error("Failed to list path {}", request.getPrefix(), e);
-      result = null;
+      throw new IOException(e);
+    }
+    return result;
+  }
+
+  // Get next chunk of listing result
+  private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
+    ObjectListing result;
+    try {
+      // Query S3 for the next batch of objects
+      result = mClient.listObjects(request);
+      // Advance the request continuation token to the next set of objects
+      request.setMarker(result.getNextMarker());
+    } catch (AmazonClientException e) {
+      throw new IOException(e);
     }
     return result;
   }
@@ -372,13 +399,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     final ListObjectsV2Request mRequest;
     final ListObjectsV2Result mResult;
 
-    S3AObjectListingChunk(ListObjectsV2Request request, ListObjectsV2Result result)
-        throws IOException {
+    S3AObjectListingChunk(ListObjectsV2Request request, ListObjectsV2Result result) {
+      Preconditions.checkNotNull(result, "result");
       mRequest = request;
       mResult = result;
-      if (mResult == null) {
-        throw new IOException("S3A listing result is null");
-      }
     }
 
     @Override
@@ -404,6 +428,48 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         ListObjectsV2Result nextResult = getObjectListingChunk(mRequest);
         if (nextResult != null) {
           return new S3AObjectListingChunk(mRequest, nextResult);
+        }
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Wrapper over S3 {@link ListObjectsRequest}.
+   */
+  private final class S3AObjectListingChunkV1 implements ObjectListingChunk {
+    final ListObjectsRequest mRequest;
+    final ObjectListing mResult;
+
+    S3AObjectListingChunkV1(ListObjectsRequest request, ObjectListing result) {
+      Preconditions.checkNotNull(result, "result");
+      mRequest = request;
+      mResult = result;
+    }
+
+    @Override
+    public ObjectStatus[] getObjectStatuses() {
+      List<S3ObjectSummary> objects = mResult.getObjectSummaries();
+      ObjectStatus[] ret = new ObjectStatus[objects.size()];
+      int i = 0;
+      for (S3ObjectSummary obj : objects) {
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
+      }
+      return ret;
+    }
+
+    @Override
+    public String[] getCommonPrefixes() {
+      List<String> res = mResult.getCommonPrefixes();
+      return res.toArray(new String[res.size()]);
+    }
+
+    @Override
+    public ObjectListingChunk getNextChunk() throws IOException {
+      if (mResult.isTruncated()) {
+        ObjectListing nextResult = getObjectListingChunkV1(mRequest);
+        if (nextResult != null) {
+          return new S3AObjectListingChunkV1(mRequest, nextResult);
         }
       }
       return null;
@@ -439,7 +505,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
     } catch (AmazonClientException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     }
   }
 }

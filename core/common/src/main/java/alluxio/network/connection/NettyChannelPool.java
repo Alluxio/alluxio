@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.DynamicResourcePool;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import io.netty.bootstrap.Bootstrap;
@@ -68,13 +69,13 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   @Override
   protected void closeResource(Channel channel) {
     LOG.info("Channel closed");
-    channel.close();
+    CommonUtils.closeChannel(channel);
   }
 
   @Override
   protected void closeResourceSync(Channel channel) {
     LOG.info("Channel closed synchronously.");
-    channel.close().syncUninterruptibly();
+    CommonUtils.closeChannelSync(channel);
   }
 
   /**
@@ -116,7 +117,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
       // compatible with <= 1.2.0 server.
       return false;
     }
-    return channel.isActive();
+    return channel.isOpen() && channel.isActive();
   }
 
   @Override
