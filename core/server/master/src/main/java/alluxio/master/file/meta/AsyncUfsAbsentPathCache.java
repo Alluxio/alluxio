@@ -90,7 +90,13 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     if (mountInfo == null) {
       return;
     }
-    // TODO(gpang): add comments
+    // This is called when we create a persisted path in Alluxio. The path components need to be
+    // invalidated so the cache does not incorrectly think a path is absent.
+    //
+    // As an optimization, this method avoids holding locks, to prevent waiting on UFS. However,
+    // since the locks are not being used in this code path, there could be a race between this
+    // invalidating thread, and a processing of the path from the thread pool. To avoid the race,
+    // this invalidating thread must set the intention to invalidate before invalidating.
     for (AlluxioURI alluxioUri : getNestedPaths(path, mountInfo)) {
       PathLock pathLock = mCurrentPaths.get(alluxioUri.getPath());
       if (pathLock != null) {
@@ -167,6 +173,8 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           if (pathLock.isInvalidate()) {
             // This path was marked to be invalidated, meaning this UFS path was just created,
             // and now exists. Invalidate the entry.
+            //
+            // This check is necessary to avoid the race with the invalidating thread.
             mCache.invalidate(alluxioUri.getPath());
           } else {
             // Further traversal is unnecessary.
@@ -234,6 +242,9 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     }
   }
 
+  /**
+   * This represents a lock for a path component.
+   */
   private final class PathLock {
     private final ReadWriteLock mRwLock;
     private volatile boolean mInvalidate;
@@ -243,18 +254,30 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
       mInvalidate = false;
     }
 
+    /**
+     * @return the write lock
+     */
     private Lock writeLock() {
       return mRwLock.writeLock();
     }
 
+    /**
+     * @return the read lock
+     */
     private Lock readLock() {
       return mRwLock.readLock();
     }
 
+    /**
+     * Sets the intention to invalidate this path.
+     */
     private void setInvalidate() {
       mInvalidate = true;
     }
 
+    /**
+     * @return true if the path was marked to be invalidated
+     */
     private boolean isInvalidate() {
       return mInvalidate;
     }
