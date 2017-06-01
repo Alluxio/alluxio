@@ -96,7 +96,7 @@ public class OutStreamOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fields() {
+  public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
     FileWriteLocationPolicy locationPolicy = new RoundRobinPolicy();
