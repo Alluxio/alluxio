@@ -271,6 +271,8 @@ public class PropertyKey {
       create(Name.MASTER_TTL_CHECKER_INTERVAL_MS, 3600000);
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       create(Name.MASTER_UFS_PATH_CACHE_CAPACITY, 100000);
+  public static final PropertyKey MASTER_UFS_PATH_CACHE_THREADS =
+      create(Name.MASTER_UFS_PATH_CACHE_THREADS, 64);
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       create(Name.MASTER_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_WEB_HOSTNAME = create(Name.MASTER_WEB_HOSTNAME, null);
@@ -869,6 +871,8 @@ public class PropertyKey {
         "alluxio.master.ttl.checker.interval.ms";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
         "alluxio.master.ufs.path.cache.capacity";
+    public static final String MASTER_UFS_PATH_CACHE_THREADS =
+        "alluxio.master.ufs.path.cache.threads";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";

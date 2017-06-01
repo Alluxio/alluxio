@@ -21,6 +21,7 @@ alluxio.master.retry,29
 alluxio.master.startup.consistency.check.enabled,true
 alluxio.master.ttl.checker.interval.ms,3600000
 alluxio.master.ufs.path.cache.capacity,100000
+alluxio.master.ufs.path.cache.threads,64
 alluxio.master.web.bind.host,0.0.0.0
 alluxio.master.web.hostname,localhost
 alluxio.master.web.port,19999
