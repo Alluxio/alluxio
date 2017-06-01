@@ -979,6 +979,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mBlockMaster.commitBlockInUFS(blockId, blockSize);
         currLength -= blockSize;
       }
+      // The path exists in UFS, so it is no longer absent
+      mUfsAbsentPathCache.processExisting(inodePath.getUri());
     }
     Metrics.FILES_COMPLETED.inc();
   }
