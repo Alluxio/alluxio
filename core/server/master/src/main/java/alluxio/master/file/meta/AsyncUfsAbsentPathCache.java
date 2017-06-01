@@ -92,7 +92,6 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     }
     // This is called when we create a persisted path in Alluxio. The path components need to be
     // invalidated so the cache does not incorrectly think a path is absent.
-    //
     // As an optimization, this method avoids holding locks, to prevent waiting on UFS. However,
     // since the locks are not being used in this code path, there could be a race between this
     // invalidating thread, and a processing of the path from the thread pool. To avoid the race,
@@ -173,7 +172,6 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           if (pathLock.isInvalidate()) {
             // This path was marked to be invalidated, meaning this UFS path was just created,
             // and now exists. Invalidate the entry.
-            //
             // This check is necessary to avoid the race with the invalidating thread.
             mCache.invalidate(alluxioUri.getPath());
           } else {
