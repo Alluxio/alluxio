@@ -11,6 +11,7 @@
 
 package alluxio.underfs;
 
+import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 
@@ -20,17 +21,46 @@ import java.io.Closeable;
  * A class that manages the UFS used by different services.
  */
 public interface UfsManager extends Closeable {
+  /** Container for a UFS and the URI for that UFS. */
+  static class Ufs {
+    private UnderFileSystem mUfs;
+    private AlluxioURI mUfsUri;
+
+    /**
+     * @param ufs a UFS
+     * @param ufsUri the URI for the UFS
+     */
+    public Ufs(UnderFileSystem ufs, AlluxioURI ufsUri) {
+      mUfs = ufs;
+      mUfsUri = ufsUri;
+    }
+
+    /**
+     * @return the UFS
+     */
+    public UnderFileSystem getUfs() {
+      return mUfs;
+    }
+
+    /**
+     * @return the URI for the UFS
+     */
+    public AlluxioURI getUfsUri() {
+      return mUfsUri;
+    }
+  }
+
   /**
-   * Maps a mount id to a UFS instance. Based on the UFS uri and conf, if this UFS instance already
-   * exists in the cache, map the mount id to this existing instance. Otherwise, creates a new
-   * instance and adds that to the cache. Use this method only when you create new UFS instances.
+   * Maps a mount id to a UFS. Based on the UFS uri and conf, if the UFS already exists in the
+   * cache, maps the mount id to the existing UFS. Otherwise, creates a new UFS and adds it to the
+   * cache. Use this method only when you create new UFS instances.
    *
    * @param mountId the mount id
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
-   * @return the UFS instance
+   * @return the created UFS
    */
-  UnderFileSystem addMount(long mountId, String ufsUri, UnderFileSystemConfiguration ufsConf);
+  Ufs addMount(long mountId, AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf);
 
   /**
    * Removes the association from a mount id to a UFS instance. If the mount id is not known, this
@@ -42,17 +72,17 @@ public interface UfsManager extends Closeable {
   void removeMount(long mountId);
 
   /**
-   * Gets a UFS instance from the cache if exists, or throws exception otherwise.
+   * Gets UFS information from the cache if exists, or throws exception otherwise.
    *
    * @param mountId the mount id
    * @return the UFS instance
    * @throws NotFoundException if mount id is not found in mount table
    * @throws UnavailableException if master is not available to query for mount table
    */
-  UnderFileSystem get(long mountId) throws NotFoundException, UnavailableException;
+  Ufs get(long mountId) throws NotFoundException, UnavailableException;
 
   /**
-   * @return the UFS instance associated with root
+   * @return the UFS information associated with root
    */
-  UnderFileSystem getRoot();
+  Ufs getRoot();
 }

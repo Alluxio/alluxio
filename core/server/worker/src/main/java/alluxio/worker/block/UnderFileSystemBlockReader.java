@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
@@ -23,6 +24,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsManager.Ufs;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.network.NetworkAddressUtils;
@@ -63,6 +65,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
   /** The input stream to read from UFS. */
   private InputStream mUnderFileSystemInputStream;
+  /** The uri of the UFS we are reading from. */
+  private AlluxioURI mUfsUri;
   /** The block writer to write the block to Alluxio. */
   private LocalFileBlockWriter mBlockWriter;
   /** If set, the reader is closed and should not be used afterwards. */
@@ -121,7 +125,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    */
   private void init(long offset) throws BlockDoesNotExistException, IOException {
-    UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId());
+    UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId()).getUfs();
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     if (!ufs.isFile(mBlockMeta.getUnderFileSystemPath())) {
@@ -258,6 +262,13 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   /**
+   * @return the URI of the UFS that this reader is currently reading from
+   */
+  public AlluxioURI getUfsUri() {
+    return mUfsUri;
+  }
+
+  /**
    * Updates the UFS input stream given an offset to read.
    *
    * @param offset the read offset within the block
@@ -270,7 +281,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
-      UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId());
+      Ufs ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
+      UnderFileSystem ufs = ufsInfo.getUfs();
+      mUfsUri = ufsInfo.getUfsUri();
       mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
           OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;

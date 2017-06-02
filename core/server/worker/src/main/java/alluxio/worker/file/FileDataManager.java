@@ -163,7 +163,7 @@ public final class FileDataManager {
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId());
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
     return ufs.isFile(dstPath);
   }
 
@@ -229,7 +229,7 @@ public final class FileDataManager {
 
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId());
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
     OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
         .setMode(new Mode((short) fileInfo.getMode())));
@@ -300,7 +300,7 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId());
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

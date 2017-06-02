@@ -290,7 +290,7 @@ public final class MountTable implements JournalEntryIterable {
         AlluxioURI ufsUri = info.getUfsUri();
         UnderFileSystem ufs;
         try {
-          ufs = mUfsManager.get(info.getMountId());
+          ufs = mUfsManager.get(info.getMountId()).getUfs();
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",

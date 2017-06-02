@@ -11,6 +11,7 @@
 
 package alluxio.worker.netty;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -69,6 +70,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
    */
   private final class BlockReadRequestInternal extends ReadRequestInternal {
     BlockReader mBlockReader;
+    Counter mBlockReaderMetricCounter;
     final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     final boolean mPromote;
 
@@ -228,19 +230,27 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    if (((BlockReadRequestInternal) mRequest).mBlockReader instanceof UnderFileSystemBlockReader) {
-      Metrics.BYTES_READ_UFS.inc(bytesRead);
-    } else {
-      Metrics.BYTES_READ_REMOTE.inc(bytesRead);
+    BlockReadRequestInternal request = (BlockReadRequestInternal) mRequest;
+    if (request.mBlockReaderMetricCounter == null) {
+      if (request.mBlockReader instanceof UnderFileSystemBlockReader) {
+        UnderFileSystemBlockReader reader = (UnderFileSystemBlockReader) request.mBlockReader;
+        AlluxioURI ufsUri = reader.getUfsUri();
+        String ufs = ufsUri.toString().replace("/", "_");
+        String metricName = String.format("BytesReadUfs-Ufs:%s", ufs);
+        request.mBlockReaderMetricCounter = MetricsSystem.workerCounter(metricName);
+      } else {
+        request.mBlockReaderMetricCounter = Metrics.BYTES_READ_ALLUXIO;
+      }
     }
+    request.mBlockReaderMetricCounter.inc(bytesRead);
   }
 
   /**
    * Class that contains metrics for BlockDataServerHandler.
    */
   private static final class Metrics {
-    private static final Counter BYTES_READ_UFS = MetricsSystem.workerCounter("BytesReadUFS");
-    private static final Counter BYTES_READ_REMOTE = MetricsSystem.workerCounter("BytesReadRemote");
+    private static final Counter BYTES_READ_ALLUXIO =
+        MetricsSystem.workerCounter("BytesReadAlluxio");
 
     private Metrics() {
     } // prevent instantiation
