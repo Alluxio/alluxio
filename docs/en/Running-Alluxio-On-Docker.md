@@ -46,7 +46,9 @@ By default, this will build an image for the latest released version of Alluxio.
 from a local Alluxio tarball or a different downloadable tarball, you can use `--build-arg`
 
 ```bash
+$ # Build from a local tarball
 $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+$ # Alternatively, build from a remote tarball
 $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz .
 ```
 
