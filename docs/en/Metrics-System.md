@@ -51,6 +51,10 @@ The following shows the details of the available metrics.
 
 ### Master
 
+Each of the master metrics is prepended with `master`, e.g. 
+
+`master.CapacityTotal`
+
 #### General
 
 * CapacityTotal: Total capacity of the file system in bytes.
@@ -95,6 +99,12 @@ The following shows the details of the available metrics.
 
 ### Worker
 
+Each of the worker metrics is prepended with the worker's address. For example a metric may be named
+
+`192_168_1_4.CapacityTotal`
+
+for a worker running on 192.168.1.4.
+
 #### General
 
 * CapacityTotal: Total capacity of the worker in bytes.
@@ -108,10 +118,7 @@ The following shows the details of the available metrics.
 * BlocksDeleted: Total number of blocks deleted.
 * BlocksEvicted: Total number of blocks evicted.
 * BlocksPromoted: Total number of blocks promoted.
-* NettyBlockRead: Total number of netty block read request to the worker.
-* NettyBlockReadFailures: Total number of netty block read request failed on the worker.
-* NettyBlockWrite: Total number of netty block write request to the worker.
-* NettyBlockWriteFailures: Total number of netty block write request failed on the worker.
+* BytesReadUfs-UFS:${UFS}: Total number of bytes read from the specified UFS on this worker
 
 ### Client
 
