@@ -402,7 +402,7 @@ public class FileInStreamTest {
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
         mCacheStreams.get(1).getWrittenData());
-    // Block 0 is cached.
+    // Block 0 is not cached.
     Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
   }
 
