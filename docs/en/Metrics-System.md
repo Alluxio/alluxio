@@ -119,6 +119,7 @@ for a worker running on 192.168.1.4.
 * BlocksEvicted: Total number of blocks evicted.
 * BlocksPromoted: Total number of blocks promoted.
 * BytesReadUfs-UFS:${UFS}: Total number of bytes read from the specified UFS on this worker
+* BytesWrittenUfs-UFS:${UFS}: Total number of bytes written to the specified UFS on this worker
 
 ### Client
 
