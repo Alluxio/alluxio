@@ -11,6 +11,7 @@
 
 package alluxio.underfs;
 
+import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.UfsInfo;
@@ -49,7 +50,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * ufs info.
    */
   @Override
-  public UnderFileSystem get(long mountId) throws NotFoundException, UnavailableException {
+  public Ufs get(long mountId) throws NotFoundException, UnavailableException {
     try {
       return super.get(mountId);
     } catch (NotFoundException e) {
@@ -64,12 +65,12 @@ public final class WorkerUfsManager extends AbstractUfsManager {
           String.format("Failed to get UFS info for mount point with id %d", mountId), e);
     }
     Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
-    UnderFileSystem ufs = super.addMount(mountId, info.getUri(),
+    Ufs ufs = super.addMount(mountId, new AlluxioURI(info.getUri()),
         UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
             .setShared(info.getProperties().isShared())
             .setUserSpecifiedConf(info.getProperties().getProperties()));
     try {
-      ufs.connectFromWorker(
+      ufs.getUfs().connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     } catch (IOException e) {
       removeMount(mountId);

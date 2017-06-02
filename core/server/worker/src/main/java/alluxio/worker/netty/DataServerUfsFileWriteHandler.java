@@ -52,7 +52,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
       super(request.getId());
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
       mUfsPath = createUfsFileOptions.getUfsPath();
-      mUnderFileSystem = mUfsManager.get(createUfsFileOptions.getMountId());
+      mUnderFileSystem = mUfsManager.get(createUfsFileOptions.getMountId()).getUfs();
       mOutputStream = mUnderFileSystem.create(mUfsPath,
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
