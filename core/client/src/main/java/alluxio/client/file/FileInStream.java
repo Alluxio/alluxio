@@ -697,6 +697,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (len <= 0) {
       return;
     }
+    if (mPos % mBlockSize == 0 && pos - mPos >= mBlockSize) {
+      closeOrCancelCacheStream();
+      return;
+    }
 
     do {
       // Account for the last read which might be less than mSeekBufferSizeBytes bytes.
