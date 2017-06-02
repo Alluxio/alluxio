@@ -11,6 +11,7 @@
 
 package alluxio.worker.netty;
 
+import alluxio.AlluxioURI;
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -18,6 +19,7 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsManager.Ufs;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -51,8 +53,10 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(mockUfs);
-    Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class))).thenReturn(
+    Mockito.when(ufsManager.get(Mockito.anyLong()))
+        .thenReturn(new Ufs(mockUfs, AlluxioURI.EMPTY_URI));
+    Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
+        .thenReturn(
         mOutputStream);
 
     mChannel = new EmbeddedChannel(

@@ -11,11 +11,13 @@
 
 package alluxio.worker.block;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsManager.Ufs;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -69,8 +71,8 @@ public final class UnderFileSystemBlockReaderTest {
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(BlockStoreLocation.class),
             Mockito.anyLong())).thenReturn(mTempBlockMeta);
     Mockito.when(mTempBlockMeta.getPath()).thenReturn(mFolder.newFile().getAbsolutePath());
-    Mockito.when(mUfsManager.get(Mockito.anyLong()))
-        .thenReturn(UnderFileSystem.Factory.create(testFilePath));
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(
+        new Ufs(UnderFileSystem.Factory.create(testFilePath), new AlluxioURI(testFilePath)));
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE).setUfsPath(testFilePath)
