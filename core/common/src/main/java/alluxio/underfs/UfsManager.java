@@ -11,8 +11,10 @@
 
 package alluxio.underfs;
 
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
+
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * A class that manages the UFS used by different services.
@@ -27,10 +29,8 @@ public interface UfsManager extends Closeable {
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
-   * @throws IOException if it is failed to create the UFS instance
    */
-  UnderFileSystem addMount(long mountId, String ufsUri, UnderFileSystemConfiguration ufsConf)
-      throws IOException;
+  UnderFileSystem addMount(long mountId, String ufsUri, UnderFileSystemConfiguration ufsConf);
 
   /**
    * Removes the association from a mount id to a UFS instance. If the mount id is not known, this
@@ -42,12 +42,14 @@ public interface UfsManager extends Closeable {
   void removeMount(long mountId);
 
   /**
-   * Gets a UFS instance from the cache if exists, or null otherwise.
+   * Gets a UFS instance from the cache if exists, or throws exception otherwise.
    *
    * @param mountId the mount id
    * @return the UFS instance
+   * @throws NotFoundException if mount id is not found in mount table
+   * @throws UnavailableException if master is not available to query for mount table
    */
-  UnderFileSystem get(long mountId);
+  UnderFileSystem get(long mountId) throws NotFoundException, UnavailableException;
 
   /**
    * @return the UFS instance associated with root

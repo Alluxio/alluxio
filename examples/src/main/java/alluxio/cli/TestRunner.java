@@ -94,7 +94,7 @@ public final class TestRunner {
 
     FileSystem fs = FileSystem.Factory.get();
     if (fs.exists(testDir)) {
-      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true));
+      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true).setUnchecked(true));
     }
     int ret = runner.runTests();
     System.exit(ret);

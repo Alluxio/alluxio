@@ -22,6 +22,8 @@ import com.google.protobuf.MessageLite;
  * generated in Alluxio. In other parts of Alluxio code base that are outside of this module,
  * use this class to replace MessageLite when it must reference MessageLite as a base class of
  * different generated messages. This class is intended to be used internally only.
+ *
+ * For any new proto message added here, consider adding a test in alluxio.worker.netty.CodecTest.
  */
 public final class ProtoMessage {
   private MessageLite mMessage;

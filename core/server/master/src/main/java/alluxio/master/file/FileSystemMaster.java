@@ -176,7 +176,7 @@ public interface FileSystemMaster extends Master {
    * @throws BlockInfoException if an invalid block information is encountered
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
-   * option is false
+   *         option is false
    */
   long createFile(AlluxioURI path, CreateFileOptions options)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
@@ -239,9 +239,9 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  void delete(AlluxioURI path, DeleteOptions options) throws IOException,
-      FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
-      AccessControlException;
+  void delete(AlluxioURI path, DeleteOptions options)
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
+      InvalidPathException, AccessControlException;
 
   /**
    * Gets the {@link FileBlockInfo} for all blocks of a file. If path is a directory, an exception
@@ -417,8 +417,8 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if the given path is not a mount point
    * @throws AccessControlException if the permission check fails
    */
-  void unmount(AlluxioURI alluxioPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException;
+  void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException, InvalidPathException,
+      IOException, AccessControlException;
 
   /**
    * Resets a file. It first free the whole file, and then reinitializes it.

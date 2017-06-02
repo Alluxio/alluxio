@@ -31,6 +31,9 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -109,6 +112,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -975,6 +979,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mBlockMaster.commitBlockInUFS(blockId, blockSize);
         currLength -= blockSize;
       }
+      // The path exists in UFS, so it is no longer absent
+      mUfsAbsentPathCache.processExisting(inodePath.getUri());
     }
     Metrics.FILES_COMPLETED.inc();
   }
@@ -1058,8 +1064,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mTtlBuckets.insert(inode);
 
     if (options.isPersisted()) {
-      // The path exists in UFS, so it is no longer absent.
-      mUfsAbsentPathCache.process(inodePath.getUri());
+      // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
+      // actual file does not exist in UFS yet.
+      mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
     }
 
     Metrics.FILES_CREATED.inc();
@@ -1113,7 +1120,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = mountInfo.toMountPointInfo();
-      UnderFileSystem ufs = mUfsManager.get(mountInfo.getMountId());
+      UnderFileSystem ufs;
+      try {
+        ufs = mUfsManager.get(mountInfo.getMountId());
+      } catch (UnavailableException | NotFoundException e) {
+        // We should never reach here
+        LOG.error(String.format("No UFS cached for %s", info), e);
+        continue;
+      }
       info.setUfsType(ufs.getUnderFSType());
       try {
         info.setUfsCapacityBytes(
@@ -1294,8 +1308,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       if (!failedUris.isEmpty()) {
-        throw new IOException(
-            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(failedUris, ',')));
+        throw new FailedPreconditionException(ExceptionMessage.DELETE_FAILED_DIRECTORY_NOT_IN_SYNC
+            .getMessage(StringUtils.join(failedUris, ',')));
       }
     }
 
@@ -1626,7 +1640,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       if (options.isPersisted()) {
         // The path exists in UFS, so it is no longer absent.
-        mUfsAbsentPathCache.process(inodePath.getUri());
+        mUfsAbsentPathCache.processExisting(inodePath.getUri());
       }
 
       return createResult;
@@ -1828,7 +1842,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
         }
         // The destination was persisted in ufs.
-        mUfsAbsentPathCache.process(dstPath);
+        mUfsAbsentPathCache.processExisting(dstPath);
       }
     } catch (Exception e) {
       // On failure, revert changes and throw exception.
@@ -2418,6 +2432,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
     try {
       if (!replayed) {
+        ufs.connectFromMaster(
+            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
         // Check that the ufsPath exists and is a directory
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
@@ -2435,7 +2451,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
       // mount and no existing mount is a prefix of this mount.
-
       mMountTable.add(alluxioPath, ufsPath, mountId, options);
     } catch (Exception e) {
       mUfsManager.removeMount(mountId);
@@ -2444,8 +2459,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void unmount(AlluxioURI alluxioPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
+  public void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException,
+      InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
     // Unmount should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();

@@ -43,14 +43,14 @@ public final class RestUtils {
         AuthenticatedClientUser.set(LoginUser.get().getName());
       }
     } catch (IOException e) {
-      LOG.error("Failed to set AuthenticatedClientUser in REST service handler.", e);
+      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
       return createErrorResponse(e.getMessage());
     }
 
     try {
       return createResponse(callable.call());
     } catch (Exception e) {
-      LOG.error("Unexpected error invoking rest endpoint", e);
+      LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
       return createErrorResponse(e.getMessage());
     }
   }

@@ -44,16 +44,20 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
-          .build();
+      buildLocalAlluxioClusterResource();
 
   protected FileSystem mFileSystem = null;
 
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+  }
+
+  protected LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
+    return new LocalAlluxioClusterResource.Builder()
+        .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
+        .build();
   }
 
   /**

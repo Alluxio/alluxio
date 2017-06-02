@@ -123,6 +123,9 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
             if (mRequest.getPromote()) {
               try {
                 mWorker.moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
+              } catch (BlockDoesNotExistException e) {
+                LOG.debug("Block {} to promote does not exist in Alluxio: {}",
+                    mRequest.getBlockId(), e.getMessage());
               } catch (Exception e) {
                 LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
               }
@@ -159,7 +162,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
 
         @Override
         public String toString() {
-          return String.format("Open block: %s", mRequest.toString());
+          return String.format("Session %d: open block: %s", mSessionId, mRequest.toString());
         }
       });
     }
@@ -208,7 +211,7 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
 
       @Override
       public String toString() {
-        return String.format("Close block: %s", request.toString());
+        return String.format("Session %d: close block: %s", mSessionId, request.toString());
       }
     });
   }

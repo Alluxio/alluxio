@@ -177,7 +177,7 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
           throw Throwables.propagate(e);
         }
       }
-    }, WaitForOptions.defaults().setTimeout(100 * Constants.SECOND_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
   }
 
   /**

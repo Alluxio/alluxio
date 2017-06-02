@@ -24,6 +24,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -250,7 +251,7 @@ public final class CommonUtils {
       WaitForOptions options) {
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
-    int timeout = options.getTimeout();
+    int timeout = options.getTimeoutMs();
     while (!condition.apply(null)) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
         throw new RuntimeException("Timed out waiting for " + description);
@@ -273,7 +274,7 @@ public final class CommonUtils {
     T t;
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
-    int timeout = options.getTimeout();
+    int timeout = options.getTimeoutMs();
     while ((t = operation.apply(null)) == null) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
         throw new RuntimeException("Timed out waiting for " + description);
@@ -533,6 +534,42 @@ public final class CommonUtils {
    */
   public static boolean isLocalHost(WorkerNetAddress address) {
     return address.getHost().equals(NetworkAddressUtils.getClientHostName());
+  }
+
+  /**
+   * Closes the netty channel from outside the netty I/O thread.
+   *
+   * @param channel the netty channel
+   */
+  public static void closeChannel(final Channel channel) {
+    if (channel.isOpen())  {
+      try {
+        channel.eventLoop().submit(new Runnable() {
+          @Override
+          public void run() {
+            channel.close();
+          }
+        }).sync();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  /**
+   * Closes the netty channel synchronously. Usually do not do this since this can take long time
+   * if the server is not responsive.
+   *
+   * @param channel the netty channel
+   */
+  public static void closeChannelSync(Channel channel) {
+    try {
+      channel.close().sync();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    }
   }
 
   private CommonUtils() {} // prevent instantiation

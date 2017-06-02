@@ -112,27 +112,11 @@
     </profile>
 
     <profile>
-      <id>yarn</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-integration-yarn</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
       <id>developer</id>
       <dependencies>
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-integration-mesos</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-integration-yarn</artifactId>
           <version>${project.version}</version>
         </dependency>
       </dependencies>

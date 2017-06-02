@@ -14,6 +14,8 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
@@ -100,36 +102,20 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   /**
-   * Establishes the connection to the given UFS from the server.
-   *
-   * @param ufs UFS instance
-   * @throws IOException if failed to create the UFS instance
-   */
-  protected abstract void connect(UnderFileSystem ufs) throws IOException;
-
-  /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return this.
    *
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
-   * @throws IOException if it is failed to create the UFS instance
    */
-  private UnderFileSystem getOrAdd(String ufsUri, UnderFileSystemConfiguration ufsConf)
-      throws IOException {
+  private UnderFileSystem getOrAdd(String ufsUri, UnderFileSystemConfiguration ufsConf) {
     Key key = new Key(new AlluxioURI(ufsUri), ufsConf.getUserSpecifiedConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       return cachedFs;
     }
     UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri, ufsConf);
-    try {
-      connect(fs);
-    } catch (IOException e) {
-      fs.close();
-      throw e;
-    }
     cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
     if (cachedFs == null) {
       // above insert is successful
@@ -146,8 +132,8 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public UnderFileSystem addMount(long mountId, String ufsUri, UnderFileSystemConfiguration ufsConf)
-      throws IOException {
+  public UnderFileSystem addMount(long mountId, String ufsUri,
+      UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
     Preconditions.checkArgument(ufsConf != null, "ufsConf");
@@ -165,8 +151,13 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public UnderFileSystem get(long mountId) {
-    return mMountIdToUnderFileSystemMap.get(mountId);
+  public UnderFileSystem get(long mountId) throws NotFoundException, UnavailableException {
+    UnderFileSystem ufs = mMountIdToUnderFileSystemMap.get(mountId);
+    if (ufs == null) {
+      throw new NotFoundException(
+          String.format("Mount Id %d not found in cached mount points", mountId));
+    }
+    return ufs;
   }
 
   @Override
@@ -179,13 +170,9 @@ public abstract class AbstractUfsManager implements UfsManager {
         boolean rootShared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
         Map<String, String> rootConf =
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-        try {
-          mRootUfs =
-              addMount(IdUtils.ROOT_MOUNT_ID, rootUri, UnderFileSystemConfiguration.defaults()
-                  .setReadOnly(rootReadOnly).setShared(rootShared).setUserSpecifiedConf(rootConf));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+        mRootUfs = addMount(IdUtils.ROOT_MOUNT_ID, rootUri,
+            UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
+                .setUserSpecifiedConf(rootConf));
       }
       return mRootUfs;
     }

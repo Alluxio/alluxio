@@ -17,6 +17,8 @@ import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.concurrent.Promise;
@@ -43,15 +45,25 @@ public final class NettyRPC {
   public static ProtoMessage call(final NettyRPCContext context, ProtoMessage request)
       throws IOException {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
-    Promise<ProtoMessage> promise = channel.eventLoop().newPromise();
+    final Promise<ProtoMessage> promise = channel.eventLoop().newPromise();
     channel.pipeline().addLast(new RPCHandler(promise));
-    channel.writeAndFlush(new RPCProtoMessage(request));
+    channel.writeAndFlush(new RPCProtoMessage(request)).addListener(new ChannelFutureListener() {
+      @Override
+      public void operationComplete(ChannelFuture future) throws Exception {
+        if (future.cause() != null) {
+          future.channel().close();
+          promise.tryFailure(future.cause());
+        }
+      }
+    });
     ProtoMessage message;
     try {
       message = promise.get(context.getTimeoutMs(), TimeUnit.MILLISECONDS);
     } catch (ExecutionException | TimeoutException e) {
+      CommonUtils.closeChannel(channel);
       throw new IOException(e);
     } catch (InterruptedException e) {
+      CommonUtils.closeChannel(channel);
       throw new RuntimeException(e);
     } finally {
       if (channel.isOpen()) {

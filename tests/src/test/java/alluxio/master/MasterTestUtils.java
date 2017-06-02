@@ -79,6 +79,6 @@ public class MasterTestUtils {
         return master.getStartupConsistencyCheck().getStatus()
             == StartupConsistencyCheck.Status.COMPLETE;
       }
-    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }

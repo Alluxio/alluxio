@@ -139,6 +139,8 @@ public class PropertyKey {
       create(Name.UNDERFS_S3A_DIRECTORY_SUFFIX, "/");
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       create(Name.UNDERFS_S3A_INHERIT_ACL, true);
+  public static final PropertyKey UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
+      create(Name.UNDERFS_S3A_LIST_OBJECTS_VERSION_1, false);
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
       create(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS, 60000);
   public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
@@ -269,6 +271,8 @@ public class PropertyKey {
       create(Name.MASTER_TTL_CHECKER_INTERVAL_MS, 3600000);
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       create(Name.MASTER_UFS_PATH_CACHE_CAPACITY, 100000);
+  public static final PropertyKey MASTER_UFS_PATH_CACHE_THREADS =
+      create(Name.MASTER_UFS_PATH_CACHE_THREADS, 64);
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       create(Name.MASTER_WEB_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_WEB_HOSTNAME = create(Name.MASTER_WEB_HOSTNAME, null);
@@ -763,6 +767,8 @@ public class PropertyKey {
         "alluxio.underfs.s3a.consistency.timeout.ms";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
+    public static final String UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
+        "alluxio.underfs.s3a.list.objects.v1";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
         "alluxio.underfs.s3a.request.timeout.ms";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
@@ -865,6 +871,8 @@ public class PropertyKey {
         "alluxio.master.ttl.checker.interval.ms";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
         "alluxio.master.ufs.path.cache.capacity";
+    public static final String MASTER_UFS_PATH_CACHE_THREADS =
+        "alluxio.master.ufs.path.cache.threads";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";

@@ -64,7 +64,7 @@ public final class IntegrationTestUtils {
             throw Throwables.propagate(e);
           }
         }
-      }, WaitForOptions.defaults().setTimeout(timeoutMs));
+      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -92,7 +92,7 @@ public final class IntegrationTestUtils {
           List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
           return blocksToRemove.containsAll(Arrays.asList(blockIds));
         }
-      }, WaitForOptions.defaults().setTimeout(100 * Constants.SECOND_MS));
+      }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
