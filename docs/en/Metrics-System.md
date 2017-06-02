@@ -118,8 +118,10 @@ for a worker running on 192.168.1.4.
 * BlocksDeleted: Total number of blocks deleted.
 * BlocksEvicted: Total number of blocks evicted.
 * BlocksPromoted: Total number of blocks promoted.
-* BytesReadUfs-UFS:${UFS}: Total number of bytes read from the specified UFS on this worker
-* BytesWrittenUfs-UFS:${UFS}: Total number of bytes written to the specified UFS on this worker
+* BytesReadAlluxio: Total number of bytes read from Alluxio storage through this worker. This does not include UFS reads.
+* BytesWrittenAlluxio: Total number of bytes written to Alluxio storage through this worker. This does not include UFS writes.
+* BytesReadUfs-UFS:${UFS}: Total number of bytes read from the specified UFS through this worker.
+* BytesWrittenUfs-UFS:${UFS}: Total number of bytes written to the specified UFS through this worker.
 
 ### Client
 
