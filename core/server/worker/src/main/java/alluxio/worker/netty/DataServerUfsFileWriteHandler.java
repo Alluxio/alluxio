@@ -60,7 +60,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
               .setMode(new Mode((short) createUfsFileOptions.getMode())));
-      String ufsName = ufs.getUfsUri().toString().replace("/", "_");
+      String ufsName = MetricsSystem.escapeURI(ufs.getUfsUri());
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsName);
       mCounter = MetricsSystem.workerCounter(metricName);
     }
