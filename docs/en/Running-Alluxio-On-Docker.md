@@ -96,11 +96,8 @@ We use these `docker run` flags when launching Alluxio master and worker contain
 ### Run the Alluxio master
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
@@ -116,6 +113,8 @@ This way, the data written by the Alluxio worker can be directly accessed from o
 container.
 
 ```bash
+$ # This gets the public ip of the current EC2 instance
+$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ docker run -d --net=host \
              -v /mnt/ramdisk:/mnt/ramdisk \
              -v $PWD/underStorage:/underStorage \
