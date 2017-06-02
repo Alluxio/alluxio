@@ -47,10 +47,7 @@ import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -563,12 +560,12 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the Alluxio log information
+   * @summary set the Alluxio log information
    * @param logName the log's name
    * @param level the log level
    * @return the response object
    */
-  @GET
+  @POST
   @Path(LOG_LEVEL)
   @ReturnType("alluxio.wire.AlluxioMasterInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam

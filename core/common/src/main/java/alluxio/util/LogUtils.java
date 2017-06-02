@@ -40,7 +40,7 @@ public final class LogUtils {
    * specify level first.
    * @param logName logger's name
    * @param level logger's level
-   * @return a entity object about the log info
+   * @return an entity object about the log info
    * @throws IOException if an I/O error occurs
    */
   public static LogInfo setLogLevel(String logName, String level) throws IOException {
@@ -48,26 +48,24 @@ public final class LogUtils {
     result.setLogName(logName);
     if (logName != null) {
       Log log = LogFactory.getLog(logName);
+      Logger logger = LoggerFactory.getLogger(logName);
       if (log instanceof Log4JLogger) {
         process(((Log4JLogger) log).getLogger(), level, result);
       } else if (log instanceof Jdk14Logger) {
         process(((Jdk14Logger) log).getLogger(), level, result);
-      } else {
-        Logger logger = LoggerFactory.getLogger(logName);
-        if (logger instanceof Log4jLoggerAdapter) {
-          try {
-            Field field = Log4jLoggerAdapter.class.getDeclaredField("logger");
-            field.setAccessible(true);
-            org.apache.log4j.Logger log4jLogger = (org.apache.log4j.Logger) field.get(logger);
-            process(log4jLogger, level, result);
-          } catch (NoSuchFieldException e) {
-            result.setMessage(e.getMessage());
-          } catch (IllegalAccessException e) {
-            result.setMessage(e.getMessage());
-          }
-        } else {
-          result.setMessage("Sorry, " + log.getClass() + " not supported.");
+      } else if (logger instanceof Log4jLoggerAdapter) {
+        try {
+          Field field = Log4jLoggerAdapter.class.getDeclaredField("logger");
+          field.setAccessible(true);
+          org.apache.log4j.Logger log4jLogger = (org.apache.log4j.Logger) field.get(logger);
+          process(log4jLogger, level, result);
+        } catch (NoSuchFieldException e) {
+          result.setMessage(e.getMessage());
+        } catch (IllegalAccessException e) {
+          result.setMessage(e.getMessage());
         }
+      } else {
+        result.setMessage("Sorry, " + log.getClass() + " not supported.");
       }
     }
     return result;
@@ -75,6 +73,10 @@ public final class LogUtils {
 
   private static void process(org.apache.log4j.Logger log, String level, LogInfo result)
       throws IOException {
+    if (log == null) {
+      result.setMessage("log is null.");
+      return;
+    }
     if (level != null) {
       if (!level.equals(org.apache.log4j.Level.toLevel(level).toString())) {
         result.setMessage("Bad level : " + level);
