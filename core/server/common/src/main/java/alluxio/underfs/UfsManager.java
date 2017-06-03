@@ -24,15 +24,15 @@ public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
   static class Ufs {
     private UnderFileSystem mUfs;
-    private AlluxioURI mUfsUri;
+    private AlluxioURI mUfsMountPointUri;
 
     /**
      * @param ufs a UFS
-     * @param ufsUri the URI for the UFS
+     * @param ufsMountPointUri the URI for the UFS path which is mounted in Alluxio
      */
-    public Ufs(UnderFileSystem ufs, AlluxioURI ufsUri) {
+    public Ufs(UnderFileSystem ufs, AlluxioURI ufsMountPointUri) {
       mUfs = ufs;
-      mUfsUri = ufsUri;
+      mUfsMountPointUri = ufsMountPointUri;
     }
 
     /**
@@ -43,10 +43,10 @@ public interface UfsManager extends Closeable {
     }
 
     /**
-     * @return the URI for the UFS
+     * @return the URI for the UFS path which is mounted in Alluxio
      */
-    public AlluxioURI getUfsUri() {
-      return mUfsUri;
+    public AlluxioURI getUfsMountPointUri() {
+      return mUfsMountPointUri;
     }
   }
 
