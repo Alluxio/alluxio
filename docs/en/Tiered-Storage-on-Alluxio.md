@@ -53,7 +53,7 @@ The user can also specify the tier that the data can be written to via
 Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being
 written into Alluxio. In this case, the data is always written to the top tier.
 
-Finally, data in written into ALluxio via the load command. In this case also, the data is always
+Finally, data in written into Alluxio via the load command. In this case also, the data is always
 written to the top tier.
 
 ### Reading Data
