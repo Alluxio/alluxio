@@ -283,7 +283,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
       Ufs ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
       UnderFileSystem ufs = ufsInfo.getUfs();
-      mUfsUri = ufsInfo.getUfsUri();
+      mUfsUri = ufsInfo.getUfsMountPointUri();
       mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
           OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;

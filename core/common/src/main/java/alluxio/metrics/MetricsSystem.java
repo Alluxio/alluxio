@@ -11,6 +11,7 @@
 
 package alluxio.metrics;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.metrics.sink.Sink;
@@ -214,6 +215,16 @@ public final class MetricsSystem {
     }
     pieces[0] = null;
     return Joiner.on(".").skipNulls().join(pieces);
+  }
+
+  /**
+   * Escapes a URI so that it is more suitable for being a part of a metric name.
+   *
+   * @param uri the URI to escape
+   * @return the string representing the escaped URI
+   */
+  public static String escapeURI(AlluxioURI uri) {
+    return uri.toString().replace("/", "_");
   }
 
   // Some helper functions.

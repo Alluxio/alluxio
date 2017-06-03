@@ -235,8 +235,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       if (request.mBlockReader instanceof UnderFileSystemBlockReader) {
         UnderFileSystemBlockReader reader = (UnderFileSystemBlockReader) request.mBlockReader;
         AlluxioURI ufsUri = reader.getUfsUri();
-        String ufs = ufsUri.toString().replace("/", "_");
-        String metricName = String.format("BytesReadUfs-Ufs:%s", ufs);
+        String metricName = String.format("BytesReadUfs-Ufs:%s", MetricsSystem.escapeURI(ufsUri));
         request.mBlockReaderMetricCounter = MetricsSystem.workerCounter(metricName);
       } else {
         request.mBlockReaderMetricCounter = Metrics.BYTES_READ_ALLUXIO;

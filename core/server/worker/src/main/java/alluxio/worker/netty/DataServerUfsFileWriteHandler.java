@@ -16,6 +16,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsManager.Ufs;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -47,16 +48,21 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     private final String mUfsPath;
     private final UnderFileSystem mUnderFileSystem;
     private final OutputStream mOutputStream;
+    private final Counter mCounter;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId());
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
       mUfsPath = createUfsFileOptions.getUfsPath();
-      mUnderFileSystem = mUfsManager.get(createUfsFileOptions.getMountId()).getUfs();
+      Ufs ufs = mUfsManager.get(createUfsFileOptions.getMountId());
+      mUnderFileSystem = ufs.getUfs();
       mOutputStream = mUnderFileSystem.create(mUfsPath,
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
               .setMode(new Mode((short) createUfsFileOptions.getMode())));
+      String ufsName = MetricsSystem.escapeURI(ufs.getUfsMountPointUri());
+      String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsName);
+      mCounter = MetricsSystem.workerCounter(metricName);
     }
 
     @Override
@@ -117,16 +123,6 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
 
   @Override
   protected void incrementMetrics(long bytesWritten) {
-    Metrics.BYTES_WRITTEN_UFS.inc(bytesWritten);
-  }
-
-  /**
-   * Class that contains metrics for BlockDataServerHandler.
-   */
-  private static final class Metrics {
-    private static final Counter BYTES_WRITTEN_UFS = MetricsSystem.workerCounter("BytesWrittenUFS");
-
-    private Metrics() {
-    } // prevent instantiation
+    ((FileWriteRequestInternal) mRequest).mCounter.inc(bytesWritten);
   }
 }
