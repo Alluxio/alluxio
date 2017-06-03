@@ -529,7 +529,7 @@ public class PropertyKey {
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       create(Name.USER_NETWORK_NETTY_CHANNEL, null);
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
-      create(Name.USER_NETWORK_NETTY_TIMEOUT_MS, "30sec");
+      create(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000);
   public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
       create(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0);
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
@@ -543,7 +543,7 @@ public class PropertyKey {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       create(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
-      create(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS, "5min");
+      create(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS, 300000);
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       create(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS, 16);
   public static final PropertyKey USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
