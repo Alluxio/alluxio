@@ -46,7 +46,7 @@ priority: 3
 
 如果HDFS的namenode以HA模式运行，那么应该正确配置Alluxio的服务端和客户端以访问HDFS。
 
-对于Alluxio服务器（master和worker节点），将hadoop安装目录下的`hdfs-site.xml`和`core-site.xml`文件拷贝到`${ALLUXIO_HOME}/conf`目录下。或者，你可以在`conf/alluxio-site.properties`文件中将`alluxio.underfs.hdfs.configuration`设置为hadoop属性文件`hdfs-site.xml`（或者`core-site.xml`）（确保所有的相关配置在文件中可用）。
+对于Alluxio服务器（master和worker节点），将hadoop安装目录下的`hdfs-site.xml`和`core-site.xml`文件拷贝或者符号连接到`${ALLUXIO_HOME}/conf`目录下。或者，你可以在`conf/alluxio-site.properties`文件中将`alluxio.underfs.hdfs.configuration`设置为hadoop属性文件`hdfs-site.xml`（或者`core-site.xml`）（确保所有的相关配置在文件中可用）。
 
 然后，如果你需要将HDFS的根目录映射到Alluxio，则将底层存储地址设为`hdfs://nameservice/`（`nameservice`是在`core-site.xml`文件中已配置的HDFS服务的名称），或者如果你仅仅需要把HDFS目录`/alluxio/data`映射到Alluxio，则将底层存储地址设置为`hdfs://nameservice/alluxio/data`。
 
