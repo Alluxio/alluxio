@@ -247,6 +247,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     registry.stop();
   }
 
+  /**
+   * Tests journalling of empty file system.
+   */
   @Test
   public void emptyImage() throws Exception {
     Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
@@ -400,6 +403,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     registry.stop();
   }
 
+  /**
+   * Tests directory persisting after creation.
+   */
   @Test
   public void persistDirectoryLater() throws Exception {
     String[] directories = new String[] {
@@ -569,6 +575,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     registry.stop();
   }
 
+  /**
+   *  Tests setting access control list.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
