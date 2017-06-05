@@ -36,7 +36,7 @@ public class AlluxioWorkerInfo {
   /**
    * Creates a new instance of {@link AlluxioWorkerInfo}.
    */
-  public AlluxioWorkerInfo() {}
+     public AlluxioWorkerInfo() {}
 
   /**
    * @return the capacity
