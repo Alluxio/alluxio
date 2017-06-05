@@ -538,6 +538,8 @@ public final class CommonUtils {
 
   /**
    * Closes the netty channel from outside the netty I/O thread.
+   * NOTE: Be careful when holding any lock that can be acquired in the netty I/O thread when
+   * calling this function to avoid having deadlocks.
    *
    * @param channel the netty channel
    */
