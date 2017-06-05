@@ -71,7 +71,7 @@ public final class LocalFirstPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     boolean success = false;
     for (int i = 0; i < 100; i++) {
       String host = policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost();
