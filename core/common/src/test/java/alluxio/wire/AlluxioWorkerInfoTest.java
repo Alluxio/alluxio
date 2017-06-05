@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class AlluxioWorkerInfoTest {
+public final class AlluxioWorkerInfoTest {
 
   @Test
   public void json() throws Exception {
