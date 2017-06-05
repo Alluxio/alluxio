@@ -36,6 +36,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,6 +229,7 @@ public final class NettyPacketWriter implements PacketWriter {
     }
 
     sendEof();
+    Future<?> closeFuture = null;
     mLock.lock();
     try {
       while (true) {
@@ -236,13 +238,23 @@ public final class NettyPacketWriter implements PacketWriter {
         }
         try {
           if (mPacketWriteException != null) {
-            CommonUtils.closeChannel(mChannel);
+            closeFuture = mChannel.eventLoop().submit(new Runnable() {
+              @Override
+              public void run() {
+                mChannel.close();
+              }
+            });
             throw new UnavailableException(mPacketWriteException);
           }
           if (!mDoneOrFailed
               .await(Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS),
                   TimeUnit.MILLISECONDS)) {
-            CommonUtils.closeChannel(mChannel);
+            closeFuture = mChannel.eventLoop().submit(new Runnable() {
+              @Override
+              public void run() {
+                mChannel.close();
+              }
+            });
             throw new DeadlineExceededException(String.format(
                 "Timeout closing PacketWriter to %s for request %s.", mAddress, mPartialRequest));
           }
@@ -253,6 +265,14 @@ public final class NettyPacketWriter implements PacketWriter {
       }
     } finally {
       mLock.unlock();
+      if (closeFuture != null) {
+        try {
+          closeFuture.sync();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new CanceledException(e);
+        }
+      }
       if (mChannel.isOpen()) {
         mChannel.pipeline().removeLast();
       }
