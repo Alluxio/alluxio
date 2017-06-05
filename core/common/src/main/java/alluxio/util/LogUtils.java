@@ -13,6 +13,7 @@ package alluxio.util;
 
 import alluxio.wire.LogInfo;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.impl.Jdk14Logger;
@@ -45,8 +46,8 @@ public final class LogUtils {
    */
   public static LogInfo setLogLevel(String logName, String level) throws IOException {
     LogInfo result = new LogInfo();
-    result.setLogName(logName);
-    if (logName != null) {
+    if (StringUtils.isNotBlank(logName)) {
+      result.setLogName(logName);
       Log log = LogFactory.getLog(logName);
       Logger logger = LoggerFactory.getLogger(logName);
       if (log instanceof Log4JLogger) {
@@ -67,6 +68,8 @@ public final class LogUtils {
       } else {
         result.setMessage("Sorry, " + log.getClass() + " not supported.");
       }
+    } else {
+      result.setMessage("Please specify a correct logName.");
     }
     return result;
   }

@@ -571,7 +571,7 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @POST
   @Path(LOG_LEVEL)
-  @ReturnType("alluxio.wire.AlluxioMasterInfo")
+  @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
       (LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
