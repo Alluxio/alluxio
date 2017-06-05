@@ -265,9 +265,6 @@ public final class NettyPacketWriter implements PacketWriter {
       }
     } finally {
       mLock.unlock();
-      if (mChannel.isOpen()) {
-        mChannel.pipeline().removeLast();
-      }
       if (closeFuture != null) {
         try {
           closeFuture.sync();
@@ -275,6 +272,9 @@ public final class NettyPacketWriter implements PacketWriter {
           Thread.currentThread().interrupt();
           throw new CanceledException(e);
         }
+      }
+      if (mChannel.isOpen()) {
+        mChannel.pipeline().removeLast();
       }
       mContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
