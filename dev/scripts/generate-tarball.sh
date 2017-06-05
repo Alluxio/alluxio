@@ -104,6 +104,8 @@ function create_tarball {
   fi
   # Remove any logs generated during the build.
   rm -rf logs/*.log
+  # Create the default under storage directory.
+  mkdir underFSStorage
   cd ..
   rm -rf "${prefix}"
   mv "${REPO_COPY}" "${prefix}"
