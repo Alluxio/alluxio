@@ -35,6 +35,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Unit tests for {@link AsyncUfsAbsentPathCache}.
  */
 public class AsyncUfsAbsentPathCacheTest {
+  private static final int THREADS = 4;
   private AsyncUfsAbsentPathCache mUfsAbsentPathCache;
   private MountTable mMountTable;
 
@@ -50,7 +51,7 @@ public class AsyncUfsAbsentPathCacheTest {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
-    mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable);
+    mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     MountOptions options = MountOptions.defaults();

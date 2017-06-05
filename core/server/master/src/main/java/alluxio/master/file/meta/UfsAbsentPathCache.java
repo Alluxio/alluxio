@@ -47,6 +47,9 @@ public interface UfsAbsentPathCache {
    */
   boolean isAbsent(AlluxioURI path);
 
+  /**
+   * Factory class for {@link UfsAbsentPathCache}.
+   */
   final class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(UfsAbsentPathCache.Factory.class);
 
