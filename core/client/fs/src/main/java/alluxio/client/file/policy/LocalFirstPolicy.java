@@ -54,7 +54,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
     // otherwise randomly pick a worker that has enough availability
     List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
     Collections.shuffle(shuffledWorkers);
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
+    for (BlockWorkerInfo workerInfo : shuffledWorkers) {
       if (workerInfo.getCapacityBytes() >= blockSizeBytes) {
         return workerInfo.getNetAddress();
       }
