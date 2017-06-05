@@ -46,6 +46,7 @@ function main {
       cp "${full_path_tarball}" "${build_directory}"
       if [[ ! -z ${md5_cmd} ]]; then
         cd "${build_directory}"
+        # Need to call md5 command on only the file, otherwise the full path will be included in the md5
         ${md5_cmd} "${tarball}" > "${tarball}".md5
         cp "${tarball}.md5" "${build_directory}"
         cd -
