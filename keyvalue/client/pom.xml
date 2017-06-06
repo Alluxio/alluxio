@@ -142,7 +142,10 @@
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
+                   <!--TODO(binfan): instead of hard-coding the shading prefix to be "alluxio.core.client.runtime"-->
+                   <!--to be the same as client runtime jar, make a separate core-thrift module and let other client-->
+                   <!--modules to depend on  this thrift module, similar to core-proto-->
+                  <shadedPattern>alluxio.core.client.runtime.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>
