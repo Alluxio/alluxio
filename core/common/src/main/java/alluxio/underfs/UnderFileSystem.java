@@ -95,9 +95,9 @@ public interface UnderFileSystem extends Closeable {
           // Use the factory to create the actual client for the Under File System
           return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
         } catch (Throwable e) {
-          // This needs to be Throwable rather than Error to catch service loading errors
+          // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
-          LOG.warn("Failed to create UnderFileSystemFactory {}", factory, e);
+          LOG.warn("Failed to create UnderFileSystem by factory {}: {}", factory, e.getMessage());
         }
       }
 
@@ -105,13 +105,12 @@ public interface UnderFileSystem extends Closeable {
       // missing configuration since if we reached here at least some factories claimed to support
       // the path
       // Need to collate the errors
-      StringBuilder errorStr = new StringBuilder();
-      errorStr.append("All eligible Under File Systems were unable to create an instance for the "
-          + "given path: ").append(path).append('\n');
-      for (Throwable e : errors) {
-        errorStr.append(e).append('\n');
+      IllegalArgumentException e = new IllegalArgumentException(
+          String.format("Unable to create an UnderFileSystem instance for path: %s", path));
+      for (Throwable t : errors) {
+        e.addSuppressed(t);
       }
-      throw new IllegalArgumentException(errorStr.toString());
+      throw e;
     }
 
     /**
