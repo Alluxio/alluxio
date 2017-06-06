@@ -59,7 +59,7 @@ public class PropertyKey {
       create(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/");
 
   public static final PropertyKey TEST_MODE = create(Name.TEST_MODE, false);
-  public static final PropertyKey VERSION = create(Name.VERSION, ProjectConstants.VERSION);
+  public static final PropertyKey VERSION = create(Name.VERSION, Name.VERSION);
   public static final PropertyKey WEB_RESOURCES = create(Name.WEB_RESOURCES,
       String.format("${%s}/core/server/common/src/main/webapp", Name.HOME));
   public static final PropertyKey WEB_THREADS = create(Name.WEB_THREADS, 1);
