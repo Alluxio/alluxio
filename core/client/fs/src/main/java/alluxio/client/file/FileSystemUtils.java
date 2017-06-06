@@ -94,7 +94,7 @@ public final class FileSystemUtils {
           throws IOException, AlluxioException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod = Configuration.getLong(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
+    final long pollPeriod = Configuration.getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
 

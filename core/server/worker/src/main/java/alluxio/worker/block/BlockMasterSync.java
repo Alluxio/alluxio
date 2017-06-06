@@ -97,7 +97,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
 
     registerWithMaster();

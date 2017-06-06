@@ -56,7 +56,7 @@ public abstract class AbstractClient implements Client {
   private static final int BASE_SLEEP_MS =
       Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
   private static final int MAX_SLEEP_MS =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
 
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY =
