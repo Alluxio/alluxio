@@ -116,6 +116,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     out.flush();
     mFileSystem.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFolder")));
+    mThrown.expect(IOException.class);
+    out.close();
   }
 
   @Test
