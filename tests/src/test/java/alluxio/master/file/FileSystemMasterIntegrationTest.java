@@ -361,20 +361,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
 
-  /**
-   * Tests if a directory with in-progress writes can be deleted recursively.
-   */
-  @Test
-  public void deleteDirectoryWithPersistedWritesInProgress() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
-        CreateDirectoryOptions.defaults().setPersisted(true));
-    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
-        CreateFileOptions.defaults().setPersisted(true));
-    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults().setRecursive(true));
-    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
-        mFsMaster.getFileId(new AlluxioURI("/testFolder")));
-  }
-
   @Test
   public void deleteDirectoryWithFiles() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
