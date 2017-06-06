@@ -19,7 +19,46 @@ priority: 2
 
 ## 配置
 
-Apache Hive允许你通过Hadoop通用文件系统接口使用Alluxio，因此要使用Alluxio作为存储系统，主要是配置Hive以及其底层计算框架。
+在Hadoop MapReduce上运行Hive之前，请按照[在Alluxio上运行MapReduce](Running-Hadoop-MapReduce-on-Alluxio.html)的指示来确保MapReduce可以运行在Alluxio上。
+
+Hive用户可以创建[外部表](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ExternalTables)，令其指向Alluxio中的特定位置，而使其他表的存储不变，或者使用Alluxio作为默认的文件系统。下面我们将介绍两种在Alluxio上使用Hive的方法。
+
+## 创建位于Alluxio上的外部表
+
+Hive可以创建存储在Alluxio上的外部表。设置很直接，并且独立于其他的Hive表。一个示例就是将频繁使用的Hive表存在Alluxio上，从而通过直接从内存中读文件获得高吞吐量和低延迟。
+
+### 配置Hive
+
+在shell中或`conf/hive-env.sh`下设置`HIVE_AUX_JARS_PATH`：
+
+```bash
+export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```
+###Hive 命令示例
+
+这里有一个示例展示了在Alluxio上创建Hive的外部表。你可以从[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)下载数据文件（如：`ml-100k.zip`）。然后接下该文件，并且将文件`u.user`上传到Alluxio的`ml-100k/`下：
+
+```bash
+$ bin/alluxio fs mkdir /ml-100k
+$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
+```
+然后创建外部表：
+
+```
+hive> CREATE EXTERNAL TABLE u_user (
+userid INT,
+age INT,
+gender CHAR(1),
+occupation STRING,
+zipcode STRING)
+OW FORMAT DELIMITED
+FIELDS TERMINATED BY '|'
+LOCATION 'alluxio://master_hostname:port/ml-100k';
+```
+
+## Alluxio作为默认文件系统
+
+Apache Hive允许使用Alluxio，只需通过一个一般的文件系统接口来替换Hadoop文件系统使用Alluxio。这种方式下，Hive使用Alluxio作为其默认文件系统，它的元数据和中间结果都将存储在Alluxio上。
 
 ### 配置 Hive
 
@@ -28,7 +67,7 @@ Apache Hive允许你通过Hadoop通用文件系统接口使用Alluxio，因此�
 ```xml
 <property>
    <name>fs.defaultFS</name>
-   <value>alluxio://<master_hostname>:19998</value>
+   <value>alluxio://master_hostname:port</value>
 </property>
 ```
 
@@ -40,11 +79,6 @@ Apache Hive允许你通过Hadoop通用文件系统接口使用Alluxio，因此�
    <value>alluxio-ft:///</value>
 </property>
 ```
-
-### 配置Hadoop MapReduce
-
-如果你在Hadoop MapReduce上运行Hive，那么Hive能够从Hadoop的配置文件中读取相应配置。另外，Hive的Hadoop作业会将其中间结果存储在Alluxio中。
-请按照[running MapReduce on Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)中的说明以确保Hadoop MapReduce能够运行在Alluxio上。
 
 ### 添加额外Alluxio配置到Hive中
 
@@ -58,7 +92,7 @@ Apache Hive允许你通过Hadoop通用文件系统接口使用Alluxio，因此�
 </property>
 ```
 
-## 在Alluxio上运行Hive
+### 在Alluxio上运行Hive
 
 在Alluxio中为Hive创建相应目录：
 
@@ -71,11 +105,11 @@ $ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 
 接着你可以根据[Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted)来使用Hive了。
 
-## Hive命令行示例
+### Hive命令行示例
 
 在Hive中创建表并且将本地文件加载到Hive中：
 
-你可以从[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)下载数据文件。
+依然使用来自[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)的数据文件`ml-100k.zip`。
 
 ```
 hive> CREATE TABLE u_user (
@@ -88,11 +122,11 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 STORED AS TEXTFILE;
 
-hive> LOAD DATA LOCAL INPATH '<path_to_ml-100k>/u.user'
+hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
 OVERWRITE INTO TABLE u_user;
 ```
 
-在浏览器中输入`http://master_hostname:19999`以访问Alluxio Web UI，你可以看到相应文件夹以及Hive创建的文件：
+在浏览器中输入`http://master_hostname:port`以访问Alluxio Web UI，你可以看到相应文件夹以及Hive创建的文件：
 
 ![HiveTableInAlluxio]({{site.data.img.screenshot_hive_table_in_alluxio}})
 
