@@ -297,7 +297,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       if (mTServerSocket != null) {
         mTServerSocket.close();
       }
-      mTServerSocket = new TServerSocket(mRpcAddress,
+      mTServerSocket = new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
           Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
     } catch (TTransportException e) {
       throw new RuntimeException(e);
