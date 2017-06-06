@@ -58,8 +58,8 @@ public interface UfsAbsentPathCache {
     public static UfsAbsentPathCache create(MountTable mountTable) {
       int numThreads = Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS);
       if (numThreads <= 0) {
-        LOG.info("UfsAbsentPathCache is disabled. " + PropertyKey.MASTER_UFS_PATH_CACHE_THREADS
-            + ": " + numThreads);
+        LOG.info("UfsAbsentPathCache is disabled. {}: {}",
+            PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, numThreads);
         return new NoopUfsAbsentPathCache();
       }
       return new AsyncUfsAbsentPathCache(mountTable, numThreads);
