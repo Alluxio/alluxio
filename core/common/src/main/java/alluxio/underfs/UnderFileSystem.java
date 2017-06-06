@@ -106,7 +106,7 @@ public interface UnderFileSystem extends Closeable {
       // the path
       // Need to collate the errors
       IllegalArgumentException e = new IllegalArgumentException(
-          String.format("Unable to create an instance for the given path: %s", path));
+          String.format("Unable to create an UnderFileSystem instance for path: %s", path));
       for (Throwable t : errors) {
         e.addSuppressed(t);
       }
