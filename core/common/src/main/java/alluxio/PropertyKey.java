@@ -225,26 +225,26 @@ public class PropertyKey {
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       create(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB");
   public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
-      create(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 5000);
+      create(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "5sec");
   public static final PropertyKey MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
-      create(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 1000);
+      create(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "1sec");
   public static final PropertyKey MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
       create(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2000000);
   public static final PropertyKey MASTER_JOURNAL_GC_PERIOD_MS =
-      create(Name.MASTER_JOURNAL_GC_PERIOD_MS, 120000);
+      create(Name.MASTER_JOURNAL_GC_PERIOD_MS, "2min");
   public static final PropertyKey MASTER_JOURNAL_GC_THRESHOLD_MS =
-      create(Name.MASTER_JOURNAL_GC_THRESHOLD_MS, 300000);
+      create(Name.MASTER_JOURNAL_GC_THRESHOLD_MS, "5min");
   public static final PropertyKey MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
-      create(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS, 1800000);
+      create(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS, "30min");
   public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
       create(Name.MASTER_KEYTAB_KEY_FILE, null);
   public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_CLASS =
       create(Name.MASTER_LINEAGE_CHECKPOINT_CLASS,
           "alluxio.master.lineage.checkpoint.CheckpointLatestPlanner");
   public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
-      create(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, 300000);
+      create(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "5min");
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
-      create(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, 300000);
+      create(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, "5min");
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       create(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
           String.format("${%s}/recompute.log", Name.LOGS_DIR));
@@ -268,7 +268,7 @@ public class PropertyKey {
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVELS =
       create(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS, 3);
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
-      create(Name.MASTER_TTL_CHECKER_INTERVAL_MS, 3600000);
+      create(Name.MASTER_TTL_CHECKER_INTERVAL_MS, "1hour");
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       create(Name.MASTER_UFS_PATH_CACHE_CAPACITY, 100000);
   public static final PropertyKey MASTER_UFS_PATH_CACHE_THREADS =
@@ -283,7 +283,7 @@ public class PropertyKey {
   public static final PropertyKey MASTER_WORKER_THREADS_MIN =
       create(Name.MASTER_WORKER_THREADS_MIN, 512);
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
-      create(Name.MASTER_WORKER_TIMEOUT_MS, 300000);
+      create(Name.MASTER_WORKER_TIMEOUT_MS, "5min");
 
   //
   // Worker related properties

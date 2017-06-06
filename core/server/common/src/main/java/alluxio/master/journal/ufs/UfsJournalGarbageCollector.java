@@ -60,7 +60,7 @@ final class UfsJournalGarbageCollector implements Closeable {
           public void run() {
             gc();
           }
-        }, Constants.SECOND_MS, Configuration.getLong(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
+        }, Constants.SECOND_MS, Configuration.getMs(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
         TimeUnit.MILLISECONDS);
   }
 
@@ -128,8 +128,8 @@ final class UfsJournalGarbageCollector implements Closeable {
     }
 
     long thresholdMs = file.isTmpCheckpoint()
-        ? Configuration.getLong(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
-        : Configuration.getLong(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
+        ? Configuration.getMs(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
+        : Configuration.getMs(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
 
     if (System.currentTimeMillis() - lastModifiedTimeMs > thresholdMs) {
       deleteNoException(file.getLocation());
