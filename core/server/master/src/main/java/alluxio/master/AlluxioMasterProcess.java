@@ -193,8 +193,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (mIsServing) {
       stopServing();
       stopMasters();
-      mTServerSocket.close();
-      mTServerSocket = null;
       mIsServing = false;
     }
   }
@@ -328,6 +326,10 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (mThriftServer != null) {
       mThriftServer.stop();
       mThriftServer = null;
+    }
+    if (mTServerSocket != null) {
+      mTServerSocket.close();
+      mTServerSocket = null;
     }
     if (mWebServer != null) {
       mWebServer.stop();
