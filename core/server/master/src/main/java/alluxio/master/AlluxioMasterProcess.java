@@ -132,7 +132,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
       // Create masters.
