@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Integration tests for writing to specified storage tier(s).
+ * Integration tests for writing to various storage tier(s).
  */
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
@@ -116,9 +116,6 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());
   }
 
-  /**
-   * Delete all files and related blocks from all tiers.
-   */
   private void deleteAllFiles() throws Exception {
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     for (URIStatus file : files) {
