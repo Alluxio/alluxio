@@ -141,11 +141,27 @@ $ cd opt/alluxio
 $ bin/alluxio runTests
 ```
 
-### Sharing ramdisk with clients
+### Read/Write to the local worker 
 
-Running the worker with `-v /mnt/ramdisk:/mnt/ramdisk` shares the ramdisk between the worker
-and host. To make this ramdisk available to clients in other containers running on the same host,
+There are two options to read/write to the local worker efficiently.
+
+#### Share ramdisk with clients
+To make this ramdisk available to clients in other containers running on the same host,
 those containers should also be run with `-v /mnt/ramdisk:/mnt/ramdisk`.
+
+#### Enable domain socket
+
+From host machine
+```bash
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
+$ touch /tmp/domain/domain
+$ chmod a+w /tmp/domain/domain
+```
+When starting worker and clients, run the docker container with `-v /tmp/domain/domain:/domain/domain`
+to share `/tmp/domain` directory with the worker and clients. And set the site property 
+`alluxio.worker.data.server.domain.socket.address` in the worker by pass 
+`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/domain/domain` when running the container.
 
 ## Configuration
 
