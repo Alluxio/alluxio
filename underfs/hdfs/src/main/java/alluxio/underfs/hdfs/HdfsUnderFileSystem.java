@@ -99,9 +99,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       UserGroupInformation.setConfiguration(hdfsConf);
       mFileSystem = path.getFileSystem(hdfsConf);
     } catch (IOException e) {
-      LOG.warn("Exception thrown when trying to get FileSystem for {} : {}", ufsUri,
-          e.getMessage());
-      throw new RuntimeException("Failed to create Hadoop FileSystem", e);
+      throw new RuntimeException(
+          String.format("Failed to get Hadoop FileSystem client for %s", ufsUri), e);
     }
   }
 

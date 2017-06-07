@@ -92,6 +92,10 @@ public final class UfsSyncChecker {
       if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
         ufsName = ufsName.substring(0, ufsName.length() - 1);
       }
+      if (PathUtils.isTemporaryFileName(ufsName)) {
+        // Check if Alluxio is aware of permanent filename
+        ufsName = PathUtils.getPermanentFileName(ufsName);
+      }
       if (ufsName.equals(inodeChildren[inodePos].getName())) {
         ufsPos++;
       }

@@ -382,6 +382,31 @@ public class FileInStreamTest {
   }
 
   /**
+   * Tests seeking with incomplete block caching enabled. It seeks forward for more than a block
+   * and then seek to the file beginning.
+   */
+  @Test
+  public void seekBackwardToFileBeginning() throws IOException {
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
+            .setCachePartiallyReadBlock(true), mContext);
+    int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
+
+    // Seek forward.
+    mTestStream.seek(seekAmount);
+    // Seek backward.
+    mTestStream.seek(0);
+    mTestStream.close();
+
+    // Block 1 is cached though it is not fully read.
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
+        mCacheStreams.get(1).getWrittenData());
+    // Block 0 is not cached.
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+  }
+
+  /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
    * cancels the existing cache stream.
    */

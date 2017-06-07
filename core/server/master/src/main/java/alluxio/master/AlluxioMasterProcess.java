@@ -126,7 +126,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master rpc port
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
-      mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+      mRpcAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
 
       // Check that journals of each service have been formatted.
       MasterUtils.checkJournalFormatted();
@@ -193,8 +193,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (mIsServing) {
       stopServing();
       stopMasters();
-      mTServerSocket.close();
-      mTServerSocket = null;
       mIsServing = false;
     }
   }
@@ -297,8 +295,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       if (mTServerSocket != null) {
         mTServerSocket.close();
       }
-      mTServerSocket = new TServerSocket(mRpcAddress,
-          Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
+      mTServerSocket =
+          new TServerSocket(mRpcAddress,
+              Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
     } catch (TTransportException e) {
       throw new RuntimeException(e);
     }
@@ -327,6 +326,10 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (mThriftServer != null) {
       mThriftServer.stop();
       mThriftServer = null;
+    }
+    if (mTServerSocket != null) {
+      mTServerSocket.close();
+      mTServerSocket = null;
     }
     if (mWebServer != null) {
       mWebServer.stop();

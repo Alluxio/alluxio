@@ -18,6 +18,17 @@ readonly HADOOP_PROFILES=( "default" "hadoop-1" "hadoop-2.2" "hadoop-2.3" "hadoo
 
 function main {
   local build_directory="${PWD}"
+
+  local md5_cmd
+  if hash md5 2>/dev/null; then
+    md5_cmd="md5"
+  elif hash md5sum 2>/dev/null; then
+    md5_cmd="md5sum"
+  else
+    echo "Could not find md5 or md5sum, md5 will not be generated"
+    md5_cmd=""
+  fi
+
   while [[ "$#" > 0 ]]; do
     case $1 in
       --directory) build_directory=$2; shift 2 ;;
@@ -29,11 +40,17 @@ function main {
   for hadoop_profile in "${HADOOP_PROFILES[@]}"; do
     echo "Building tarball for ${hadoop_profile}"
     "${GENERATE_TARBALL_SCRIPT}" --deleteUnrevisioned --hadoopProfile ${hadoop_profile}
-    local tarball="${SCRIPT_DIR}/tarballs/$(ls -tr ${SCRIPT_DIR}/tarballs | tail -1)"
-    md5 "${tarball}" > "${tarball}.md5"
-    if [[ "$(dirname ${tarball})" != "${build_directory}" ]]; then
-      cp "${tarball}" "${build_directory}"
-      cp "${tarball}.md5" "${build_directory}"
+    local tarball="$(ls -tr ${SCRIPT_DIR}/tarballs | tail -1)"
+    local full_path_tarball="${SCRIPT_DIR}/tarballs/${tarball}"
+    if [[ "$(dirname ${full_path_tarball})" != "${build_directory}" ]]; then
+      cp "${full_path_tarball}" "${build_directory}"
+      if [[ ! -z ${md5_cmd} ]]; then
+        cd "${build_directory}"
+        # Need to call md5 command on only the file, otherwise the full path will be included in the md5
+        ${md5_cmd} "${tarball}" > "${tarball}".md5
+        cp "${tarball}.md5" "${build_directory}"
+        cd -
+      fi
     fi
   done
 }

@@ -43,10 +43,13 @@ $ docker build -t alluxio .
 ```
 
 By default, this will build an image for the latest released version of Alluxio. To build
-from a local Alluxio tarball instead, you can use `--build-arg`
+from a local Alluxio tarball or a different downloadable tarball, you can use `--build-arg`
 
 ```bash
+$ # Build from a local tarball
 $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+$ # Alternatively, build from a remote tarball
+$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz .
 ```
 
 ### Set up under storage
@@ -73,7 +76,7 @@ From the host machine:
 
 ```bash
 $ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=10G ramfs /mnt/ramdisk
+$ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
 $ sudo chmod a+w /mnt/ramdisk
 ```
 
@@ -97,27 +100,28 @@ We use these `docker run` flags when launching Alluxio master and worker contain
 ```bash
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
 
 ### Run the Alluxio worker
 
-We need to tell the worker where to find the master. Set the `ALLUXIO_MASTER_HOSTNAME`
-environment variable to your machine's hostname when launching the worker Docker container.
-To enable short-circuit reads, share the ramdisk with `-v /mnt/ramdisk:/mnt/ramdisk`, and
-specify its location and size to the worker. `-v /mnt/ramdisk:/mnt/ramdisk` will mount the
-`/mnt/ramdisk` path on the host machine to the `/mnt/ramdisk` path in the worker container.
+We need to tell the worker where to find the master. Below, we set the `ALLUXIO_MASTER_HOSTNAME`
+environment variable to the machine's hostname when launching the worker Docker container.
+To enable short-circuit reads, we share the ramdisk with `-v /mnt/ramdisk:/opt/ramdisk`, and
+specify its location and size to the worker. `-v /mnt/ramdisk:/opt/ramdisk` will mount the
+`/mnt/ramdisk` path on the host machine to the `/opt/ramdisk` path in the worker container.
 This way, the data written by the Alluxio worker can be directly accessed from outside the
 container.
 
 ```bash
+$ # This gets the public ip of the current EC2 instance
+$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 $ docker run -d --net=host \
-             -v /mnt/ramdisk:/mnt/ramdisk \
+             -v /mnt/ramdisk:/opt/ramdisk \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_RAM_FOLDER=/mnt/ramdisk \
+             -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio worker
@@ -137,11 +141,33 @@ $ cd opt/alluxio
 $ bin/alluxio runTests
 ```
 
-### Sharing ramdisk with clients
+### Read/Write to the local worker 
 
-Running the worker with `-v /mnt/ramdisk:/mnt/ramdisk` shares the ramdisk between the worker
-and host. To make this ramdisk available to clients in other containers running on the same host,
-those containers should also be run with `-v /mnt/ramdisk:/mnt/ramdisk`.
+There are two options to read/write to the local worker efficiently. The option that shares ramdisk
+with the client requires the memory limit of the client container to be greater than the amount of
+data it writes to the local ramdisk. The domain socket approach does not have this
+limitation but it consumes more CPU on the client container and the worker container.
+
+#### Share ramdisk with clients
+Running the worker with `-v /mnt/ramdisk:/opt/ramdisk` shares the ramdisk between the worker 
+(`/opt/ramdisk`) and host (`/mnt/ramdisk`). To make this ramdisk available to clients in 
+other containers under `/opt/ramdisk` running on the same host, those containers should also be 
+run with `-v /mnt/ramdisk:/opt/ramdisk`.
+
+#### Share domain socket with clients
+
+From the host machine
+```bash
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
+$ touch /tmp/domain/d
+$ chmod a+w /tmp/domain/d
+```
+When starting worker and clients, run the docker container with `-v /tmp/domain:/opt/domain`
+to share `/tmp/domain` directory on the host machine with the worker and clients under 
+`/opt/domain`. And set the site property `alluxio.worker.data.server.domain.socket.address` 
+in the worker by passing `-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d` 
+when running the container.
 
 ## Configuration
 
