@@ -18,9 +18,11 @@ import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
@@ -45,6 +47,7 @@ import java.io.IOException;
  * Integration tests on Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
 public final class FileSystemIntegrationTest extends BaseIntegrationTest {
+  private static final byte[] TEST_BYTES = "TestBytes".getBytes();
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -98,6 +101,23 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
       mThrown.expect(FileDoesNotExistException.class);
       mFileSystem.getStatus(fileURI);
     }
+  }
+
+  /**
+   * Tests if a directory with in-progress writes can be deleted recursively.
+   */
+  @Test
+  public void deleteDirectoryWithPersistedWritesInProgress() throws Exception {
+    mFileSystem.createDirectory(new AlluxioURI("/testFolder"),
+        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    FileOutStream out = mFileSystem.createFile(new AlluxioURI("/testFolder/testFile"),
+            CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    out.write(TEST_BYTES);
+    out.flush();
+    mFileSystem.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults().setRecursive(true));
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFolder")));
+    mThrown.expect(IOException.class);
+    out.close();
   }
 
   @Test

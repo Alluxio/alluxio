@@ -14,6 +14,7 @@ fileInfo,"fileInfo ""path"""
 free,"free ""path"""
 getCapacityBytes,getCapacityBytes
 getUsedBytes,getUsedBytes
+help,"help ""cmd"""
 leader,leader
 load,"load ""path"""
 loadMetadata,"loadMetadata ""path"""
@@ -28,7 +29,9 @@ pin,"pin ""path"""
 report,"report ""path"""
 rm,"rm ""path"""
 setTtl,"setTtl ""path"" ""time"""
+stat,"stat ""path"""
 tail,"tail ""path"""
+test,"test ""path"""
 touch,"touch ""path"""
 unmount,"unmount ""path"""
 unpin,"unpin ""path"""

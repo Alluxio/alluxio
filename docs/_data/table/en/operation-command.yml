@@ -31,6 +31,9 @@ getCapacityBytes:
   Get the capacity of the AlluxioFS.
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
+help:
+  Prints help message for the given command. If there isn't given
+  command, prints help messages for all supported commands.
 leader:
   Prints the current Alluxio leader master host name.
 load:
@@ -75,8 +78,12 @@ rmr:
 setTtl:
   Set the TTL (time to live) in milliseconds to a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
+stat:
+  Displays info for the specified path both file and directory.
 tail:
   Print the last 1KB of the specified file to the console.
+test:
+  Test a property of a path, returning 0 if the property is true, or 1 otherwise.
 touch:
   Create a 0-byte file at the specified location.
 unmount:
