@@ -365,7 +365,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, "1000"})
+      PropertyKey.Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, "1sec"})
   public void heartbeat1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int size = 100;

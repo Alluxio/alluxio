@@ -49,7 +49,7 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
   protected void initChannel(Channel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
 
-    final long timeoutMs = Configuration.getInt(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
+    final long timeoutMs = Configuration.getMs(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
 
     // Decoders & Encoders
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());

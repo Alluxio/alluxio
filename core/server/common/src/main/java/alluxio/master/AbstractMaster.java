@@ -55,7 +55,7 @@ public abstract class AbstractMaster implements Master {
   private static final long INVALID_FLUSH_COUNTER = -1;
   private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
   private static final long JOURNAL_FLUSH_RETRY_TIMEOUT_MS =
-      Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
 
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory;

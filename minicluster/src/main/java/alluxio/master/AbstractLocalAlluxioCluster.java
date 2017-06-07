@@ -297,7 +297,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, 1);
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, 100);
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
     Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 50);
