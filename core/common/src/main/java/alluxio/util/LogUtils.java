@@ -100,6 +100,10 @@ public final class LogUtils {
 
   private static void process(java.util.logging.Logger log, String level, LogInfo result) throws
       IOException {
+    if (log == null) {
+      result.setMessage("log is null.");
+      return;
+    }
     if (level != null) {
       log.setLevel(java.util.logging.Level.parse(level));
       result.setMessage("Setting Level to " + level);
