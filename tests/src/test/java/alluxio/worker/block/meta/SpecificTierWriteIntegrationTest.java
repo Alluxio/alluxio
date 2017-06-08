@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Integration tests for writing to various storage tier(s).
+ * Integration tests for writing to various storage tiers.
  */
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
