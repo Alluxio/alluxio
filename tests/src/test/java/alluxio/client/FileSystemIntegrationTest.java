@@ -14,10 +14,10 @@ package alluxio.client;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -271,7 +271,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
       // Cannot mount to path that shadows a file in the primary UFS
       mFileSystem.mount(new AlluxioURI("/dir1"), new AlluxioURI(subdirPath));
       Assert.fail("Cannot mount to path that shadows a file in the primary UFS");
-    } catch (IOException e) {
+    } catch (AlluxioException e) {
       // Exception expected, continue
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
