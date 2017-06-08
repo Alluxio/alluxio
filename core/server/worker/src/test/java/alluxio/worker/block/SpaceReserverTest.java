@@ -42,7 +42,7 @@ import java.util.concurrent.Executors;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockWorker.class, BlockStoreMeta.class})
-public class SpaceReserverTest {
+final public class SpaceReserverTest {
   private ExecutorService mExecutorService;
 
   /** Rule to create a new temporary folder during each test. */
