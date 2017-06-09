@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert.assertEquals;
+import org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -119,7 +120,7 @@ public final class MasterWorkerInfoTest {
     assertEquals(NEW_BLOCKS, mInfo.getBlocks());
     // add a new block
     mInfo.addBlock(3L);
-    Assert.assertTrue(mInfo.getBlocks().contains(3L));
+    assertTrue(mInfo.getBlocks().contains(3L));
     // remove block
     mInfo.removeBlock(3L);
     Assert.assertFalse(mInfo.getBlocks().contains(3L));
@@ -146,17 +147,17 @@ public final class MasterWorkerInfoTest {
   public void updateToRemovedBlock() {
     // remove a non-existing block
     mInfo.updateToRemovedBlock(true, 10L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    assertTrue(mInfo.getToRemoveBlocks().isEmpty());
     // remove block 1
     mInfo.updateToRemovedBlock(true, 1L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().contains(1L));
+    assertTrue(mInfo.getToRemoveBlocks().contains(1L));
     // cancel the removal
     mInfo.updateToRemovedBlock(false, 1L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    assertTrue(mInfo.getToRemoveBlocks().isEmpty());
     // actually remove 1 for real
     mInfo.updateToRemovedBlock(true, 1L);
     mInfo.removeBlock(1L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    assertTrue(mInfo.getToRemoveBlocks().isEmpty());
   }
 
   /**
