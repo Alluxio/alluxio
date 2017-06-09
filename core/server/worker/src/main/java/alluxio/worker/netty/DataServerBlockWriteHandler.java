@@ -25,6 +25,7 @@ import alluxio.worker.block.io.BlockWriter;
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
@@ -48,7 +49,8 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
   private long mBytesReserved = 0;
 
   private class BlockWriteRequestInternal extends WriteRequestInternal {
-    final BlockWriter mBlockWriter;
+    BlockWriter mBlockWriter;
+    Counter mCounter;
 
     BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId());
@@ -56,12 +58,13 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
       mWorker.createBlockRemote(mSessionId, mId, mStorageTierAssoc.getAlias(request.getTier()),
           FILE_BUFFER_SIZE);
       mBytesReserved = FILE_BUFFER_SIZE;
-      mBlockWriter = mWorker.getTempBlockWriterRemote(mSessionId, mId);
     }
 
     @Override
-    public void close() throws IOException {
-      mBlockWriter.close();
+    public void close(Channel channel) throws IOException {
+      if (mBlockWriter != null) {
+        mBlockWriter.close();
+      }
       try {
         mWorker.commitBlock(mSessionId, mId);
       } catch (Exception e) {
@@ -71,7 +74,9 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
 
     @Override
     void cancel() throws IOException {
-      mBlockWriter.close();
+      if (mBlockWriter != null) {
+        mBlockWriter.close();
+      }
       try {
         mWorker.abortBlock(mSessionId, mId);
       } catch (Exception e) {
@@ -119,15 +124,19 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
   }
 
   @Override
-  protected void writeBuf(ByteBuf buf, long pos) throws Exception {
+  protected void writeBuf(Channel channel, ByteBuf buf, long pos) throws Exception {
     if (mBytesReserved < pos) {
       long bytesToReserve = Math.max(FILE_BUFFER_SIZE, pos - mBytesReserved);
       // Allocate enough space in the existing temporary block for the write.
       mWorker.requestSpace(mRequest.mSessionId, mRequest.mId, bytesToReserve);
       mBytesReserved += bytesToReserve;
     }
-    BlockWriter blockWriter = ((BlockWriteRequestInternal) mRequest).mBlockWriter;
-    GatheringByteChannel outputChannel = blockWriter.getChannel();
+    BlockWriteRequestInternal request = (BlockWriteRequestInternal) mRequest;
+    if (request.mBlockWriter == null) {
+      request.mBlockWriter = mWorker.getTempBlockWriterRemote(request.mSessionId, request.mId);
+      request.mCounter = MetricsSystem.workerCounter("BytesWrittenAlluxio");
+    }
+    GatheringByteChannel outputChannel = request.mBlockWriter.getChannel();
     int sz = buf.readableBytes();
     Preconditions.checkState(buf.readBytes(outputChannel, sz) == sz);
   }

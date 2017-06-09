@@ -35,7 +35,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -136,7 +135,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
    */
   protected volatile WriteRequestInternal mRequest;
 
-  abstract class WriteRequestInternal implements Closeable {
+  abstract class WriteRequestInternal {
     /** This ID can either be block ID or temp UFS file ID. */
     final long mId;
     /** The session id associated with all temporary resources of this request. */
@@ -146,6 +145,13 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
       mId = id;
       mSessionId = IdUtils.createSessionId();
     }
+
+    /**
+     * Closes the request.
+     *
+     * @param channel the channel
+     */
+    abstract void close(Channel channel) throws IOException;
 
     /**
      * Cancels the request.
@@ -329,9 +335,10 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
         }
 
         try {
-          mPosToWrite += buf.readableBytes();
-          incrementMetrics(buf.readableBytes());
-          writeBuf(buf, mPosToWrite);
+          int readableBytes = buf.readableBytes();
+          mPosToWrite += readableBytes;
+          writeBuf(mChannel, buf, mPosToWrite);
+          incrementMetrics(readableBytes);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
           Throwables.propagateIfPossible(e);
@@ -371,7 +378,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
      */
     private void complete() throws IOException {
       if (mRequest != null) {
-        mRequest.close();
+        mRequest.close(mChannel);
         mRequest = null;
       }
       mPosToWrite = 0;
@@ -493,10 +500,11 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   /**
    * Writes the buffer.
    *
+   * @param channel the netty channel
    * @param buf the buffer
    * @param pos the pos
    */
-  protected abstract void writeBuf(ByteBuf buf, long pos) throws Exception;
+  protected abstract void writeBuf(Channel channel, ByteBuf buf, long pos) throws Exception;
 
   /**
    * @param bytesWritten bytes written

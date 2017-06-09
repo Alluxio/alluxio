@@ -19,7 +19,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.Ufs;
+import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
@@ -46,7 +46,7 @@ public final class MountTableTest {
   public void before() throws Exception {
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     Mockito.when(ufsManager.get(Mockito.anyLong()))
-        .thenReturn(new Ufs(mTestUfs, AlluxioURI.EMPTY_URI));
+        .thenReturn(new UfsInfo(mTestUfs, AlluxioURI.EMPTY_URI));
     mMountTable = new MountTable(ufsManager);
   }
 

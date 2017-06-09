@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.thrift.UfsInfo;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
@@ -88,13 +89,13 @@ public abstract class AbstractUfsManager implements UfsManager {
   private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
       new ConcurrentHashMap<>();
   /**
-   * Maps from mount id to {@link UnderFileSystem} instances. This map helps efficiently retrieve
-   * an existing UFS instance given its mount id.
+   * Maps from mount id to {@link UfsInfo} instances. This map helps efficiently retrieve
+   * existing UFS info given its mount id.
    */
-  private final ConcurrentHashMap<Long, Ufs> mMountIdToUfsMap =
+  private final ConcurrentHashMap<Long, UfsInfo> mMountIdToUfsMap =
       new ConcurrentHashMap<>();
 
-  private Ufs mRootUfs;
+  private UfsInfo mRootUfsInfo;
   protected final Closer mCloser;
 
   AbstractUfsManager() {
@@ -132,14 +133,14 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public Ufs addMount(long mountId, AlluxioURI ufsUri,
+  public UfsInfo addMount(long mountId, AlluxioURI ufsUri,
       UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
     Preconditions.checkArgument(ufsConf != null, "ufsConf");
-    Ufs ufs = new Ufs(getOrAdd(ufsUri, ufsConf), ufsUri);
-    mMountIdToUfsMap.put(mountId, ufs);
-    return ufs;
+    UfsInfo ufsInfo = new UfsInfo(getOrAdd(ufsUri, ufsConf), ufsUri);
+    mMountIdToUfsMap.put(mountId, ufsInfo);
+    return ufsInfo;
   }
 
   @Override
@@ -151,30 +152,30 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public Ufs get(long mountId) throws NotFoundException, UnavailableException {
-    Ufs ufs = mMountIdToUfsMap.get(mountId);
-    if (ufs == null) {
+  public UfsInfo get(long mountId) throws NotFoundException, UnavailableException {
+    UfsInfo ufsInfo = mMountIdToUfsMap.get(mountId);
+    if (ufsInfo == null) {
       throw new NotFoundException(
           String.format("Mount Id %d not found in cached mount points", mountId));
     }
-    return ufs;
+    return ufsInfo;
   }
 
   @Override
-  public Ufs getRoot() {
+  public UfsInfo getRoot() {
     synchronized (this) {
-      if (mRootUfs == null) {
+      if (mRootUfsInfo == null) {
         String rootUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         boolean rootReadOnly =
             Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
         boolean rootShared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
         Map<String, String> rootConf =
             Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-        mRootUfs = addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
+        mRootUfsInfo = addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
             UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
                 .setUserSpecifiedConf(rootConf));
       }
-      return mRootUfs;
+      return mRootUfsInfo;
     }
   }
 

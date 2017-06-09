@@ -70,7 +70,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
    */
   private final class BlockReadRequestInternal extends ReadRequestInternal {
     BlockReader mBlockReader;
-    Counter mBlockReaderMetricCounter;
+    Counter mCounter;
     final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     final boolean mPromote;
 
@@ -196,6 +196,7 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
           request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
+          request.mCounter = MetricsSystem.workerCounter("BytesReadAlluxio");
           mWorker.accessBlock(request.mSessionId, request.mId);
           ((FileChannel) request.mBlockReader.getChannel()).position(request.mStart);
           return;
@@ -206,10 +207,16 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
       }
 
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-      if (mWorker.openUfsBlock(request.mSessionId, request.mId, request.mOpenUfsBlockOptions)) {
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.mOpenUfsBlockOptions;
+      if (mWorker.openUfsBlock(request.mSessionId, request.mId, openUfsBlockOptions)) {
         try {
           request.mBlockReader = mWorker
               .readUfsBlock(request.mSessionId, request.mId, request.mStart);
+          AlluxioURI ufsMountPointUri =
+              ((UnderFileSystemBlockReader) request.mBlockReader).getUfsMountPointUri();
+          String ufsString = MetricsSystem.escape(ufsMountPointUri);
+          String metricName = String.format("BytesReadUfs-Ufs:%s", ufsString);
+          request.mCounter = MetricsSystem.workerCounter(metricName);
           return;
         } catch (Exception e) {
           mWorker.closeUfsBlock(request.mSessionId, request.mId);
@@ -230,28 +237,10 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    BlockReadRequestInternal request = (BlockReadRequestInternal) mRequest;
-    if (request.mBlockReaderMetricCounter == null) {
-      if (request.mBlockReader instanceof UnderFileSystemBlockReader) {
-        UnderFileSystemBlockReader reader = (UnderFileSystemBlockReader) request.mBlockReader;
-        AlluxioURI ufsUri = reader.getUfsUri();
-        String metricName = String.format("BytesReadUfs-Ufs:%s", MetricsSystem.escapeURI(ufsUri));
-        request.mBlockReaderMetricCounter = MetricsSystem.workerCounter(metricName);
-      } else {
-        request.mBlockReaderMetricCounter = Metrics.BYTES_READ_ALLUXIO;
-      }
+    Counter counter = ((BlockReadRequestInternal) mRequest).mCounter;
+    if (counter == null) {
+      throw new IllegalStateException("metric counter is null");
     }
-    request.mBlockReaderMetricCounter.inc(bytesRead);
-  }
-
-  /**
-   * Class that contains metrics for BlockDataServerHandler.
-   */
-  private static final class Metrics {
-    private static final Counter BYTES_READ_ALLUXIO =
-        MetricsSystem.workerCounter("BytesReadAlluxio");
-
-    private Metrics() {
-    } // prevent instantiation
+    counter.inc(bytesRead);
   }
 }

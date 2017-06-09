@@ -22,16 +22,16 @@ import java.io.Closeable;
  */
 public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
-  static class Ufs {
-    private UnderFileSystem mUfs;
+  static class UfsInfo {
+    private UnderFileSystem mUfsInfo;
     private AlluxioURI mUfsMountPointUri;
 
     /**
      * @param ufs a UFS
      * @param ufsMountPointUri the URI for the UFS path which is mounted in Alluxio
      */
-    public Ufs(UnderFileSystem ufs, AlluxioURI ufsMountPointUri) {
-      mUfs = ufs;
+    public UfsInfo(UnderFileSystem ufs, AlluxioURI ufsMountPointUri) {
+      mUfsInfo = ufs;
       mUfsMountPointUri = ufsMountPointUri;
     }
 
@@ -39,7 +39,7 @@ public interface UfsManager extends Closeable {
      * @return the UFS
      */
     public UnderFileSystem getUfs() {
-      return mUfs;
+      return mUfsInfo;
     }
 
     /**
@@ -58,9 +58,9 @@ public interface UfsManager extends Closeable {
    * @param mountId the mount id
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
-   * @return the created UFS
+   * @return information about the created UFS
    */
-  Ufs addMount(long mountId, AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf);
+  UfsInfo addMount(long mountId, AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf);
 
   /**
    * Removes the association from a mount id to a UFS instance. If the mount id is not known, this
@@ -75,14 +75,14 @@ public interface UfsManager extends Closeable {
    * Gets UFS information from the cache if exists, or throws exception otherwise.
    *
    * @param mountId the mount id
-   * @return the UFS instance
+   * @return the UFS information
    * @throws NotFoundException if mount id is not found in mount table
    * @throws UnavailableException if master is not available to query for mount table
    */
-  Ufs get(long mountId) throws NotFoundException, UnavailableException;
+  UfsInfo get(long mountId) throws NotFoundException, UnavailableException;
 
   /**
    * @return the UFS information associated with root
    */
-  Ufs getRoot();
+  UfsInfo getRoot();
 }
