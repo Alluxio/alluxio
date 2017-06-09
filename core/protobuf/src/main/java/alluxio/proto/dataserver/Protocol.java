@@ -1345,6 +1345,33 @@ public final class Protocol {
      * </pre>
      */
     boolean getNoCache();
+
+    // optional string user = 7;
+    /**
+     * <code>optional string user = 7;</code>
+     *
+     * <pre>
+     * The client does not need to set this. This is set by the worker.
+     * </pre>
+     */
+    boolean hasUser();
+    /**
+     * <code>optional string user = 7;</code>
+     *
+     * <pre>
+     * The client does not need to set this. This is set by the worker.
+     * </pre>
+     */
+    java.lang.String getUser();
+    /**
+     * <code>optional string user = 7;</code>
+     *
+     * <pre>
+     * The client does not need to set this. This is set by the worker.
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.OpenUfsBlockOptions}
@@ -1430,6 +1457,11 @@ public final class Protocol {
             case 48: {
               bitField0_ |= 0x00000020;
               noCache_ = input.readBool();
+              break;
+            }
+            case 58: {
+              bitField0_ |= 0x00000040;
+              user_ = input.readBytes();
               break;
             }
           }
@@ -1619,6 +1651,61 @@ public final class Protocol {
       return noCache_;
     }
 
+    // optional string user = 7;
+    public static final int USER_FIELD_NUMBER = 7;
+    private java.lang.Object user_;
+    /**
+     * <code>optional string user = 7;</code>
+     *
+     * <pre>
+     * The client does not need to set this. This is set by the worker.
+     * </pre>
+     */
+    public boolean hasUser() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional string user = 7;</code>
+     *
+     * <pre>
+     * The client does not need to set this. This is set by the worker.
+     * </pre>
+     */
+    public java.lang.String getUser() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          user_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string user = 7;</code>
+     *
+     * <pre>
+     * The client does not need to set this. This is set by the worker.
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        user_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private void initFields() {
       ufsPath_ = "";
       offsetInFile_ = 0L;
@@ -1626,6 +1713,7 @@ public final class Protocol {
       maxUfsReadConcurrency_ = 0;
       mountId_ = 0L;
       noCache_ = false;
+      user_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1656,6 +1744,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         output.writeBool(6, noCache_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        output.writeBytes(7, getUserBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1689,6 +1780,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(6, noCache_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(7, getUserBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1823,6 +1918,8 @@ public final class Protocol {
         bitField0_ = (bitField0_ & ~0x00000010);
         noCache_ = false;
         bitField0_ = (bitField0_ & ~0x00000020);
+        user_ = "";
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
 
@@ -1875,6 +1972,10 @@ public final class Protocol {
           to_bitField0_ |= 0x00000020;
         }
         result.noCache_ = noCache_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000040;
+        }
+        result.user_ = user_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1910,6 +2011,11 @@ public final class Protocol {
         }
         if (other.hasNoCache()) {
           setNoCache(other.getNoCache());
+        }
+        if (other.hasUser()) {
+          bitField0_ |= 0x00000040;
+          user_ = other.user_;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2221,6 +2327,104 @@ public final class Protocol {
       public Builder clearNoCache() {
         bitField0_ = (bitField0_ & ~0x00000020);
         noCache_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional string user = 7;
+      private java.lang.Object user_ = "";
+      /**
+       * <code>optional string user = 7;</code>
+       *
+       * <pre>
+       * The client does not need to set this. This is set by the worker.
+       * </pre>
+       */
+      public boolean hasUser() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional string user = 7;</code>
+       *
+       * <pre>
+       * The client does not need to set this. This is set by the worker.
+       * </pre>
+       */
+      public java.lang.String getUser() {
+        java.lang.Object ref = user_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          user_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string user = 7;</code>
+       *
+       * <pre>
+       * The client does not need to set this. This is set by the worker.
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string user = 7;</code>
+       *
+       * <pre>
+       * The client does not need to set this. This is set by the worker.
+       * </pre>
+       */
+      public Builder setUser(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000040;
+        user_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string user = 7;</code>
+       *
+       * <pre>
+       * The client does not need to set this. This is set by the worker.
+       * </pre>
+       */
+      public Builder clearUser() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        user_ = getDefaultInstance().getUser();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string user = 7;</code>
+       *
+       * <pre>
+       * The client does not need to set this. This is set by the worker.
+       * </pre>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000040;
+        user_ = value;
         onChanged();
         return this;
       }
@@ -8804,35 +9008,35 @@ public final class Protocol {
       "et\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\016\n\006cancel\030\004 \001(\010" +
       "\022\017\n\007promote\030\007 \001(\010\022\023\n\013packet_size\030\005 \001(\003\022M" +
       "\n\026open_ufs_block_options\030\006 \001(\0132-.alluxio" +
-      ".proto.dataserver.OpenUfsBlockOptions\"\225\001" +
+      ".proto.dataserver.OpenUfsBlockOptions\"\243\001" +
       "\n\023OpenUfsBlockOptions\022\020\n\010ufs_path\030\001 \001(\t\022" +
       "\026\n\016offset_in_file\030\002 \001(\003\022\022\n\nblock_size\030\003 " +
       "\001(\003\022\035\n\025maxUfsReadConcurrency\030\004 \001(\005\022\017\n\007mo",
-      "untId\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\"\333\001\n\014WriteR" +
-      "equest\0223\n\004type\030\001 \001(\0162%.alluxio.proto.dat" +
-      "aserver.RequestType\022\n\n\002id\030\002 \001(\003\022\016\n\006offse" +
-      "t\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013\n\003eof\030\005 \001(\010\022\016\n\006ca" +
-      "ncel\030\006 \001(\010\022O\n\027create_ufs_file_options\030\007 " +
-      "\001(\0132..alluxio.proto.dataserver.CreateUfs" +
-      "FileOptions\"f\n\024CreateUfsFileOptions\022\020\n\010u" +
-      "fs_path\030\001 \001(\t\022\r\n\005owner\030\002 \001(\t\022\r\n\005group\030\003 " +
-      "\001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mount_id\030\005 \001(\003\"J\n\010R" +
-      "esponse\022-\n\006status\030\001 \001(\0162\035.alluxio.proto.",
-      "status.PStatus\022\017\n\007message\030\002 \001(\t\"i\n\014ReadR" +
-      "esponse\0229\n\004type\030\001 \001(\0162+.alluxio.proto.da" +
-      "taserver.ReadResponse.Type\"\036\n\004Type\022\026\n\022UF" +
-      "S_READ_HEARTBEAT\020\001\"\013\n\tHeartbeat\":\n\025Local" +
-      "BlockOpenRequest\022\020\n\010block_id\030\001 \001(\003\022\017\n\007pr" +
-      "omote\030\002 \001(\010\"&\n\026LocalBlockOpenResponse\022\014\n" +
-      "\004path\030\001 \001(\t\"*\n\026LocalBlockCloseRequest\022\020\n" +
-      "\010block_id\030\001 \001(\003\"o\n\027LocalBlockCreateReque" +
-      "st\022\020\n\010block_id\030\001 \001(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020sp" +
-      "ace_to_reserve\030\004 \001(\003\022\032\n\022only_reserve_spa",
-      "ce\030\005 \001(\010\"(\n\030LocalBlockCreateResponse\022\014\n\004" +
-      "path\030\001 \001(\t\"=\n\031LocalBlockCompleteRequest\022" +
-      "\020\n\010block_id\030\001 \001(\003\022\016\n\006cancel\030\002 \001(\010*.\n\013Req" +
-      "uestType\022\021\n\rALLUXIO_BLOCK\020\000\022\014\n\010UFS_FILE\020" +
-      "\001"
+      "untId\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\022\014\n\004user\030\007 " +
+      "\001(\t\"\333\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.all" +
+      "uxio.proto.dataserver.RequestType\022\n\n\002id\030" +
+      "\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013\n\003e" +
+      "of\030\005 \001(\010\022\016\n\006cancel\030\006 \001(\010\022O\n\027create_ufs_f" +
+      "ile_options\030\007 \001(\0132..alluxio.proto.datase" +
+      "rver.CreateUfsFileOptions\"f\n\024CreateUfsFi" +
+      "leOptions\022\020\n\010ufs_path\030\001 \001(\t\022\r\n\005owner\030\002 \001" +
+      "(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mount" +
+      "_id\030\005 \001(\003\"J\n\010Response\022-\n\006status\030\001 \001(\0162\035.",
+      "alluxio.proto.status.PStatus\022\017\n\007message\030" +
+      "\002 \001(\t\"i\n\014ReadResponse\0229\n\004type\030\001 \001(\0162+.al" +
+      "luxio.proto.dataserver.ReadResponse.Type" +
+      "\"\036\n\004Type\022\026\n\022UFS_READ_HEARTBEAT\020\001\"\013\n\tHear" +
+      "tbeat\":\n\025LocalBlockOpenRequest\022\020\n\010block_" +
+      "id\030\001 \001(\003\022\017\n\007promote\030\002 \001(\010\"&\n\026LocalBlockO" +
+      "penResponse\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlockC" +
+      "loseRequest\022\020\n\010block_id\030\001 \001(\003\"o\n\027LocalBl" +
+      "ockCreateRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n\004ti" +
+      "er\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022on",
+      "ly_reserve_space\030\005 \001(\010\"(\n\030LocalBlockCrea" +
+      "teResponse\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBlockCo" +
+      "mpleteRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006cance" +
+      "l\030\002 \001(\010*.\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020" +
+      "\000\022\014\n\010UFS_FILE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -8850,7 +9054,7 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor,
-              new java.lang.String[] { "UfsPath", "OffsetInFile", "BlockSize", "MaxUfsReadConcurrency", "MountId", "NoCache", });
+              new java.lang.String[] { "UfsPath", "OffsetInFile", "BlockSize", "MaxUfsReadConcurrency", "MountId", "NoCache", "User", });
           internal_static_alluxio_proto_dataserver_WriteRequest_descriptor =
             getDescriptor().getMessageTypes().get(2);
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new

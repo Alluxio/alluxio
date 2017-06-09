@@ -28,6 +28,7 @@ public final class UnderFileSystemBlockMeta {
   private final long mMountId;
   /** Do not cache the block to the local Alluxio worker if set. */
   private final boolean mNoCache;
+  private final String mUser;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockMeta}.
@@ -45,6 +46,7 @@ public final class UnderFileSystemBlockMeta {
     mBlockSize = options.getBlockSize();
     mMountId = options.getMountId();
     mNoCache = options.getNoCache();
+    mUser = options.getUser();
   }
 
   /**
@@ -94,5 +96,12 @@ public final class UnderFileSystemBlockMeta {
    */
   public boolean isNoCache() {
     return mNoCache;
+  }
+
+  /**
+   * @return the user
+   */
+  public String getUser() {
+    return mUser;
   }
 }
