@@ -142,8 +142,8 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
     request.mUnderFileSystem = ufsInfo.getUfs();
     request.mOutputStream = request.mUnderFileSystem.create(request.mUfsPath,
         CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
-        .setGroup(createUfsFileOptions.getGroup())
-        .setMode(new Mode((short) createUfsFileOptions.getMode())));
+            .setGroup(createUfsFileOptions.getGroup())
+            .setMode(new Mode((short) createUfsFileOptions.getMode())));
     String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
     String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
     request.mCounter = MetricsSystem.workerCounter(metricName);
