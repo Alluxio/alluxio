@@ -23,7 +23,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.Ufs;
+import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -82,7 +82,7 @@ public final class FileDataManagerTest {
     Mockito.when(FileSystem.Factory.get()).thenReturn(mMockFileSystem);
     Mockito.when(mUfs.isDirectory(Mockito.anyString())).thenReturn(true);
     Mockito.when(mUfsManager.get(Mockito.anyLong()))
-        .thenReturn(new Ufs(mUfs, AlluxioURI.EMPTY_URI));
+        .thenReturn(new UfsInfo(mUfs, AlluxioURI.EMPTY_URI));
   }
 
   @After

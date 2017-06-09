@@ -16,12 +16,13 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.Ufs;
+import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,19 +55,19 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
       super(request.getId());
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
       mUfsPath = createUfsFileOptions.getUfsPath();
-      Ufs ufs = mUfsManager.get(createUfsFileOptions.getMountId());
+      UfsInfo ufs = mUfsManager.get(createUfsFileOptions.getMountId());
       mUnderFileSystem = ufs.getUfs();
       mOutputStream = mUnderFileSystem.create(mUfsPath,
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
               .setMode(new Mode((short) createUfsFileOptions.getMode())));
-      String ufsName = MetricsSystem.escapeURI(ufs.getUfsMountPointUri());
+      String ufsName = MetricsSystem.escape(ufs.getUfsMountPointUri());
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsName);
       mCounter = MetricsSystem.workerCounter(metricName);
     }
 
     @Override
-    public void close() throws IOException {
+    public void close(Channel channel) throws IOException {
       mOutputStream.close();
     }
 
@@ -117,7 +118,7 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
   }
 
   @Override
-  protected void writeBuf(ByteBuf buf, long pos) throws Exception {
+  protected void writeBuf(Channel channel, ByteBuf buf, long pos) throws Exception {
     buf.readBytes(((FileWriteRequestInternal) mRequest).mOutputStream, buf.readableBytes());
   }
 
