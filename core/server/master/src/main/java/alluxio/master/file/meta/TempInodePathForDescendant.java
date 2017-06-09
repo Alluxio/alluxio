@@ -87,7 +87,18 @@ public final class TempInodePathForDescendant extends LockedInodePath {
     if (mDescendantInode == null) {
       return super.getInodeList();
     }
-    throw new UnsupportedOperationException();
+    try {
+      if (super.getInode().getId() == mDescendantInode.getParentId()) {
+        // Only return the inode list if the descendant is the direct child.
+        List<Inode<?>> inodeList = super.getInodeList();
+        inodeList.add(mDescendantInode);
+        return inodeList;
+      } else {
+        throw new UnsupportedOperationException();
+      }
+    } catch (FileDoesNotExistException e) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override
