@@ -272,7 +272,7 @@ public class AlluxioStatusException extends IOException {
     } catch (AlluxioStatusException e) {
       return e;
     } catch (IOException e) {
-      return new UnavailableException(e);
+      return new UnknownException(e);
     }
   }
 }
