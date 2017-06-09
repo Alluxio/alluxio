@@ -47,35 +47,37 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
     private final String mUfsPath;
-    private final UnderFileSystem mUnderFileSystem;
-    private final OutputStream mOutputStream;
-    private final Counter mCounter;
+    private final Protocol.WriteRequest mWriteRequest;
+
+    private UnderFileSystem mUnderFileSystem;
+    private OutputStream mOutputStream;
+    private Counter mCounter;
 
     FileWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
       super(request.getId());
-      Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
-      mUfsPath = createUfsFileOptions.getUfsPath();
-      UfsInfo ufs = mUfsManager.get(createUfsFileOptions.getMountId());
-      mUnderFileSystem = ufs.getUfs();
-      mOutputStream = mUnderFileSystem.create(mUfsPath,
-          CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
-              .setGroup(createUfsFileOptions.getGroup())
-              .setMode(new Mode((short) createUfsFileOptions.getMode())));
-      String ufsName = MetricsSystem.escape(ufs.getUfsMountPointUri());
-      String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsName);
-      mCounter = MetricsSystem.workerCounter(metricName);
+      mWriteRequest = request;
+      mUfsPath = request.getCreateUfsFileOptions().getUfsPath();
     }
 
     @Override
     public void close(Channel channel) throws IOException {
-      mOutputStream.close();
+      if (mOutputStream == null) {
+        createUfsFile(channel);
+      }
+      if (mOutputStream != null) {
+        mOutputStream.close();
+        mOutputStream = null;
+      }
     }
 
     @Override
     void cancel() throws IOException {
       // TODO(calvin): Consider adding cancel to the ufs stream api.
-      mOutputStream.close();
-      mUnderFileSystem.deleteFile(mUfsPath);
+      if (mOutputStream != null && mUnderFileSystem != null) {
+        mOutputStream.close();
+        mUnderFileSystem.deleteFile(mUfsPath);
+        mOutputStream = null;
+      }
     }
 
     @Override
@@ -119,11 +121,31 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
 
   @Override
   protected void writeBuf(Channel channel, ByteBuf buf, long pos) throws Exception {
+    FileWriteRequestInternal request = (FileWriteRequestInternal) mRequest;
+    if (request.mOutputStream == null) {
+      createUfsFile(channel);
+    }
+
     buf.readBytes(((FileWriteRequestInternal) mRequest).mOutputStream, buf.readableBytes());
   }
 
   @Override
   protected void incrementMetrics(long bytesWritten) {
     ((FileWriteRequestInternal) mRequest).mCounter.inc(bytesWritten);
+  }
+
+  private void createUfsFile(Channel channel) throws IOException {
+    FileWriteRequestInternal request = (FileWriteRequestInternal) mRequest;
+    Protocol.CreateUfsFileOptions createUfsFileOptions =
+        request.mWriteRequest.getCreateUfsFileOptions();
+    UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
+    request.mUnderFileSystem = ufsInfo.getUfs();
+    request.mOutputStream = request.mUnderFileSystem.create(request.mUfsPath,
+        CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
+        .setGroup(createUfsFileOptions.getGroup())
+        .setMode(new Mode((short) createUfsFileOptions.getMode())));
+    String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
+    String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
+    request.mCounter = MetricsSystem.workerCounter(metricName);
   }
 }
