@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert.assertEquals;
 import org.junit.Assert.assertTrue;
+import org.junit.Assert.assertFalse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -123,7 +124,7 @@ public final class MasterWorkerInfoTest {
     assertTrue(mInfo.getBlocks().contains(3L));
     // remove block
     mInfo.removeBlock(3L);
-    Assert.assertFalse(mInfo.getBlocks().contains(3L));
+    assertFalse(mInfo.getBlocks().contains(3L));
   }
 
   /**
