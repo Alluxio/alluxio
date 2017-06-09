@@ -13,7 +13,7 @@ package alluxio.master.block.meta;
 
 import alluxio.master.block.BlockContainerIdGenerator;
 
-import org.junit.Assert;
+import org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,9 +39,9 @@ public final class BlockContainerIdGeneratorTest {
   @Test
   public void getNewContainerId() {
     // The default container id is 0.
-    Assert.assertEquals(0, mGenerator.getNewContainerId());
-    Assert.assertEquals(1, mGenerator.getNewContainerId());
-    Assert.assertEquals(2, mGenerator.getNewContainerId());
+    assertEquals(0, mGenerator.getNewContainerId());
+    assertEquals(1, mGenerator.getNewContainerId());
+    assertEquals(2, mGenerator.getNewContainerId());
   }
 
   /**
@@ -50,8 +50,8 @@ public final class BlockContainerIdGeneratorTest {
   @Test
   public void setNextContainerId() {
     mGenerator.setNextContainerId(TEST_ID);
-    Assert.assertEquals(TEST_ID, mGenerator.getNewContainerId());
-    Assert.assertEquals(TEST_ID + 1, mGenerator.getNewContainerId());
-    Assert.assertEquals(TEST_ID + 2, mGenerator.getNewContainerId());
+    assertEquals(TEST_ID, mGenerator.getNewContainerId());
+    assertEquals(TEST_ID + 1, mGenerator.getNewContainerId());
+    assertEquals(TEST_ID + 2, mGenerator.getNewContainerId());
   }
 }
