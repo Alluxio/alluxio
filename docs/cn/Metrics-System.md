@@ -39,6 +39,10 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 
 ### Master
 
+每个master度量指标都会以`master`开头，例如：
+
+`master.CapacityTotal`
+
 #### 常规信息
 
 * CapacityTotal: 文件系统总容量（以字节为单位）。
@@ -83,6 +87,12 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 
 ### Worker
 
+每个worker的度量指标都会以worker的地址开头。例如某个名为
+
+`192_168_1_4.CapacityTotal`
+
+的指标就是地址为192.168.1.4的worker的度量指标。
+
 #### 常规信息
 
 * CapacityTotal: 该Worker的总容量（以字节为单位）。
@@ -97,10 +107,10 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * BlocksDeleted: 被删除的数据块数目。
 * BlocksEvicted: 被替换的数据块数目。
 * BlocksPromoted: 被提升到内存的数据块数目。
-* NettyBlockRead: 块读取访问的数目。
-* NettyBlockReadFailures: 块读取访问失败的数目。
-* NettyBlockWrite: 块写入请求的数目。
-* NettyBlockWriteFailures: 块写入请求失败的数目。
+* BytesReadAlluxio: 通过该worker从Alluxio存储读取的数据量，单位为byte。其中不包括UFS读。
+* BytesWrittenAlluxio: 通过该worker写到Alluxio存储的数据量，单位为byte。其中不包括UTF写。
+* BytesReadUfs-UFS:${UFS}: 通过该worker从指定UFS读取的数据量，单位为byte。
+* BytesWrittenUfs-UFS:${UFS}: 通过该worker写到指定UFS的数据量，单位为byte。
 
 ### Client
 
