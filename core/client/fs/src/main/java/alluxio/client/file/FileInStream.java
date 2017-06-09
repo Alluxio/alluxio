@@ -413,7 +413,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the current block id based on mPos, -1 if at the end of the file
    */
   private long getCurrentBlockId() {
-    if (remaining() <= 0) {
+    if (remainingInternal() <= 0) {
       return -1;
     }
     return getBlockId(mPos);
