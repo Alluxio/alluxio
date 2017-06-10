@@ -11,12 +11,13 @@
 
 package alluxio.master.block.meta;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.Constants;
 
 import com.google.common.collect.ImmutableSet;
-import org.junit.Assert.assertTrue;
-import org.junit.Assert.assertEquals;
-import org.junit.Assert.assertFalse;
 import org.junit.Before;
 import org.junit.Test;
 
