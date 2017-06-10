@@ -87,7 +87,7 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
       UfsManager ufsManager) {
-    mBlockWorker = Preconditions.checkNotNull(blockWorker);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
