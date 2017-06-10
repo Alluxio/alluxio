@@ -11,9 +11,10 @@
 
 package alluxio.master.block.meta;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.master.block.BlockContainerIdGenerator;
 
-import org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
