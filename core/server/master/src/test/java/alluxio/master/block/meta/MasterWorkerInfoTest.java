@@ -11,6 +11,10 @@
 
 package alluxio.master.block.meta;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
@@ -20,9 +24,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.Assert.assertEquals;
-import org.junit.Assert.assertTrue;
-import org.junit.Assert.assertFalse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
