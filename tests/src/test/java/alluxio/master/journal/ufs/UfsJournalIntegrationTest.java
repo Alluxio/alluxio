@@ -247,11 +247,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     registry.stop();
   }
 
-  /**
-   * Tests journalling of empty file system.
-   */
   @Test
-  public void emptyImage() throws Exception {
+  public void emptyFileSystem() throws Exception {
     Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
     mLocalAlluxioCluster.stopFS();
     MasterRegistry registry = createFsMasterFromJournal();
@@ -404,7 +401,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Tests directory persisting after creation.
+   * Tests journalling of creating directories with MUST_CACHE, then creating the same directories
+   * again with CACHE_THROUGH and AllowExists=true.
    */
   @Test
   public void persistDirectoryLater() throws Exception {
@@ -575,9 +573,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     registry.stop();
   }
 
-  /**
-   *  Tests setting access control list.
-   */
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
