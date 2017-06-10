@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
@@ -186,6 +187,7 @@ public class BlockMetadataManagerView {
    * @param tierView the storage tier view
    * @return the next storage tier view, null if this is the last tier view
    */
+  @Nullable
   public StorageTierView getNextTier(StorageTierView tierView) {
     int nextOrdinal = tierView.getTierViewOrdinal() + 1;
     if (nextOrdinal < mTierViews.size()) {
@@ -214,6 +216,7 @@ public class BlockMetadataManagerView {
    * @return metadata of the block or null
    * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
+  @Nullable
   public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
