@@ -81,7 +81,7 @@ public final class EvictorUtils {
    * @return a {@link StorageDirView} in the range of location that already has availableBytes
    *         larger than bytesToBeAvailable, otherwise null
    */
-  @Nullable 
+  @Nullable
   public static StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
       BlockStoreLocation location, BlockMetadataManagerView mManagerView) {
     if (location.equals(BlockStoreLocation.anyTier())) {
