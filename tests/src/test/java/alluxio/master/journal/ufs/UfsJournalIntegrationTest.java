@@ -248,7 +248,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void emptyImage() throws Exception {
+  public void emptyFileSystem() throws Exception {
     Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
     mLocalAlluxioCluster.stopFS();
     MasterRegistry registry = createFsMasterFromJournal();
@@ -400,6 +400,10 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     registry.stop();
   }
 
+  /**
+   * Tests journalling of creating directories with MUST_CACHE, then creating the same directories
+   * again with CACHE_THROUGH and AllowExists=true.
+   */
   @Test
   public void persistDirectoryLater() throws Exception {
     String[] directories = new String[] {
