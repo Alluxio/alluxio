@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * This class is used to evict blocks by LRFU. LRFU evict blocks with minimum CRF, where CRF of a
@@ -100,6 +101,7 @@ public final class LRFUEvictor extends AbstractEvictor {
     return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
   }
 
+  @Nullable
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) {
