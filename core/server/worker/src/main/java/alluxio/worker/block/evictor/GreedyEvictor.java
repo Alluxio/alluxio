@@ -50,8 +50,8 @@ public final class GreedyEvictor implements Evictor {
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view) {
-    Preconditions.checkNotNull(location);
-    Preconditions.checkNotNull(view);
+    Preconditions.checkNotNull(location, "location");
+    Preconditions.checkNotNull(view, "view");
 
     // 1. Select a StorageDirView that has enough capacity for required bytes.
     StorageDirView selectedDirView = null;
