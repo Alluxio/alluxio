@@ -643,6 +643,99 @@ public final class InodeTreeTest {
     }
   }
 
+  @Test
+  public void tempInodePathWithNoDescendant() throws Exception {
+    InodeTree.CreatePathResult createResult =
+        createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+
+    for (Inode<?> inode : createResult.getCreated()) {
+      long id = inode.getId();
+      try (LockedInodePath inodePath = mTree.lockFullInodePath(id, InodeTree.LockMode.READ)) {
+        TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+        Assert.assertEquals(inodePath.getInode(), tempInodePath.getInode());
+        Assert.assertEquals(inodePath.getUri(), tempInodePath.getUri());
+        Assert.assertEquals(inodePath.getParentInodeDirectory(),
+            tempInodePath.getParentInodeDirectory());
+        Assert.assertEquals(inodePath.getInodeList(), tempInodePath.getInodeList());
+        Assert.assertEquals(inodePath.fullPathExists(), tempInodePath.fullPathExists());
+      }
+    }
+  }
+
+  @Test
+  public void tempInodePathWithDirectDescendant() throws Exception {
+    InodeTree.CreatePathResult createResult =
+        createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+
+    Inode<?> parentInode = createResult.getCreated().get(0);
+    Assert.assertTrue(parentInode.isDirectory());
+    Inode<?> childInode = createResult.getCreated().get(1);
+    Assert.assertTrue(childInode.isDirectory());
+    long parentId = parentInode.getId();
+    long childId = childInode.getId();
+    AlluxioURI childUri;
+    List<Inode<?>> childInodeList;
+    try (LockedInodePath lockedChildPath = mTree.lockFullInodePath(
+        childId, InodeTree.LockMode.READ)) {
+      childUri = lockedChildPath.getUri();
+      childInodeList = lockedChildPath.getInodeList();
+    }
+    try (LockedInodePath locked = mTree.lockFullInodePath(parentId, InodeTree.LockMode.READ)) {
+      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(locked);
+      tempInodePath.setDescendant(childInode, childUri);
+      Assert.assertEquals(childInode, tempInodePath.getInode());
+      Assert.assertEquals(childUri, tempInodePath.getUri());
+      Assert.assertEquals(true, tempInodePath.fullPathExists());
+      // Get inode list of the direct ancestor is support.
+      Assert.assertEquals(childInodeList, tempInodePath.getInodeList());
+      // Get parent inode directory of the direct ancestor is support.
+      Assert.assertEquals(parentInode, tempInodePath.getParentInodeDirectory());
+    }
+  }
+
+  @Test
+  public void tempInodePathWithIndirectDescendant() throws Exception {
+    InodeTree.CreatePathResult createResult =
+        createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+
+    Inode<?> dirInode = createResult.getCreated().get(0);
+    Assert.assertTrue(dirInode.isDirectory());
+    int size = createResult.getCreated().size();
+    Assert.assertTrue(size > 2);
+    Inode<?> fileInode = createResult.getCreated().get(size - 1);
+    Assert.assertTrue(fileInode.isFile());
+    long dirId = dirInode.getId();
+    long fileId = fileInode.getId();
+    AlluxioURI fileUri;
+    List<Inode<?>> fileInodeList;
+    try (LockedInodePath lockedFilePath = mTree.lockFullInodePath(
+        fileId, InodeTree.LockMode.READ)) {
+      fileUri = lockedFilePath.getUri();
+      fileInodeList = lockedFilePath.getInodeList();
+    }
+    try (LockedInodePath locked = mTree.lockFullInodePath(dirId, InodeTree.LockMode.READ)) {
+      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(locked);
+      tempInodePath.setDescendant(fileInode, fileUri);
+      Assert.assertEquals(fileInode, tempInodePath.getInode());
+      Assert.assertEquals(fileUri, tempInodePath.getUri());
+      Assert.assertEquals(true, tempInodePath.fullPathExists());
+      try {
+        // Get inode list of the indirect ancestor is not support.
+        Assert.assertEquals(fileInodeList, tempInodePath.getInodeList());
+        Assert.fail();
+      } catch (UnsupportedOperationException e) {
+        // expected
+      }
+      try {
+        // Get parent inode directory of the indirect ancestor is not support.
+        tempInodePath.getParentInodeDirectory();
+        Assert.fail();
+      } catch (UnsupportedOperationException e) {
+        // expected
+      }
+    }
+  }
+
   // Helper to create a path.
   InodeTree.CreatePathResult createPath(InodeTree root, AlluxioURI path,
       CreatePathOptions<?> options)
