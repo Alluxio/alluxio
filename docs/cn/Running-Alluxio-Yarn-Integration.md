@@ -41,9 +41,9 @@ $ mvn clean install -Dhadoop.version=<your hadoop version> -Pyarn -Dlicense.skip
 
 使用脚本`integration/yarn/bin/alluxio-yarn.sh`来启动Alluxio，这个脚本需要三个参数：
 
-1、需要启动的Alluxio workers的总数目（必须的）
-2、一个HDFS路径来分发包给Alluxio ApplicationMaster（必须的）
-3、运行Alluxio Master的节点的YARN的名字（可选的，默认为`${ALLUXIO_MASTER_HOSTNAME}`）
+1. 需要启动的Alluxio workers的总数目（必须的）
+2. 一个HDFS路径来分发包给Alluxio ApplicationMaster（必须的）
+3. 运行Alluxio Master的节点的YARN的名字（可选的，默认为`${ALLUXIO_MASTER_HOSTNAME}`）
 
 例如，启动一个有3个worker节点的Alluxio集群，其中一个HDFS的临时目录为`hdfs://masterhost:9000/tmp/`，并且master节点的主机名为`masterhost`，你可以这样运行：
 
