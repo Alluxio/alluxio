@@ -23,6 +23,7 @@ import com.qmino.miredot.annotations.ReturnType;
 import java.io.Closeable;
 import java.io.InputStream;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
@@ -70,6 +71,7 @@ public final class StreamsRestServiceHandler {
   @POST
   @Path(ID_PARAM + CLOSE)
   @ReturnType("java.lang.Void")
+  @Nullable
   public Response close(@PathParam("id") final Integer id) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
