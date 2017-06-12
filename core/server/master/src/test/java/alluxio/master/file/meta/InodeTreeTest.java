@@ -688,12 +688,8 @@ public final class InodeTreeTest {
       Assert.assertEquals(true, tempInodePath.fullPathExists());
       // Get inode list of the direct ancestor is support.
       Assert.assertEquals(childInodeList, tempInodePath.getInodeList());
-      try {
-        tempInodePath.getParentInodeDirectory();
-        Assert.fail();
-      } catch (UnsupportedOperationException e) {
-        // expected
-      }
+      // Get parent inode directory of the direct ancestor is support.
+      Assert.assertEquals(parentInode, tempInodePath.getParentInodeDirectory());
     }
   }
 

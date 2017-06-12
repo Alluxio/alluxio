@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
@@ -79,7 +80,20 @@ public final class TempInodePathForDescendant extends LockedInodePath {
     if (mDescendantInode == null) {
       return super.getParentInodeDirectory();
     }
-    throw new UnsupportedOperationException();
+    try {
+      if (super.getInode().getId() == mDescendantInode.getParentId()) {
+        Inode<?> parentInode = super.getInode();
+        if (!parentInode.isDirectory()) {
+          throw new InvalidPathException(
+              ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mDescendantUri));
+        }
+        return (InodeDirectory) parentInode;
+      } else {
+        throw new UnsupportedOperationException();
+      }
+    } catch (FileDoesNotExistException e) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override
