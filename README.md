@@ -1,7 +1,7 @@
 Alluxio (formerly Tachyon)
 =======
 
-The master branch is in version 1.5.0-SNAPSHOT:
+The master branch is in version 1.6.0-SNAPSHOT:
 
 - [Alluxio Open Source Website](http://www.alluxio.org/) | [Alluxio Latest Release Document](http://www.alluxio.org/documentation/) | [Master Branch Document](http://alluxio.org/documentation/master/) | [Alluxio Inc.](http://www.alluxio.com/)
 - [Contribute to Alluxio](http://alluxio.org/documentation/master/en/Contributing-to-Alluxio.html) and
@@ -32,27 +32,27 @@ For Alluxio versions below 1.5.0, use the `alluxio-core-client` artifact.
 ```xml
 <dependency>
   <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client</artifactId>
-  <version>1.4.0</version>
+  <artifactId>alluxio-core-client-fs</artifactId>
+  <version>1.5.0</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-compile 'org.alluxio:alluxio-core-client:1.4.0'
+compile 'org.alluxio:alluxio-core-client-fs:1.5.0'
 ```
 
 #### Apache Ant
 ```xml
-<dependency org="org.alluxio" name="alluxio" rev="1.4.0">
-  <artifact name="alluxio-core-client" type="jar" />
+<dependency org="org.alluxio" name="alluxio" rev="1.5.0">
+  <artifact name="alluxio-core-client-fs" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client" % "1.4.0"
+libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.5.0"
 ```
 
 ## Contributing
