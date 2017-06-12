@@ -32,7 +32,7 @@ For Alluxio versions below 1.5.0, use the `alluxio-core-client` artifact.
 ```xml
 <dependency>
   <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client</artifactId>
+  <artifactId>alluxio-core-client-fs</artifactId>
   <version>1.5.0</version>
 </dependency>
 ```
@@ -40,19 +40,19 @@ For Alluxio versions below 1.5.0, use the `alluxio-core-client` artifact.
 #### Gradle
 
 ```groovy
-compile 'org.alluxio:alluxio-core-client:1.5.0'
+compile 'org.alluxio:alluxio-core-client-fs:1.5.0'
 ```
 
 #### Apache Ant
 ```xml
 <dependency org="org.alluxio" name="alluxio" rev="1.5.0">
-  <artifact name="alluxio-core-client" type="jar" />
+  <artifact name="alluxio-core-client-fs" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client" % "1.5.0"
+libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.5.0"
 ```
 
 ## Contributing
