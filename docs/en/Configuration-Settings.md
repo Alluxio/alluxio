@@ -90,6 +90,10 @@ will be remove in version 2.0.</td>
   <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>
   <td>additional Java VM options for Alluxio shell configuration.</td>
 </tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
+  <td>additional classpath entries for Alluxio processes. This is empty by default.</td>
+</tr>
 </table>
 
 For example, if you would like to setup an Alluxio master at `localhost` that talks to an HDFS cluster with a namenode
