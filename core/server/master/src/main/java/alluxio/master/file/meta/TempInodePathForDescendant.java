@@ -82,6 +82,7 @@ public final class TempInodePathForDescendant extends LockedInodePath {
     }
     try {
       if (super.getInode().getId() == mDescendantInode.getParentId()) {
+        // It is possible to get the descendant parent if the descendant is the direct child.
         Inode<?> parentInode = super.getInode();
         if (!parentInode.isDirectory()) {
           throw new InvalidPathException(

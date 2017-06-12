@@ -727,6 +727,7 @@ public final class InodeTreeTest {
         // expected
       }
       try {
+        // Get parent inode directory of the indirect ancestor is not support.
         tempInodePath.getParentInodeDirectory();
         Assert.fail();
       } catch (UnsupportedOperationException e) {
