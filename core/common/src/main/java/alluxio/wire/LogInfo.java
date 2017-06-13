@@ -70,4 +70,9 @@ public final class LogInfo {
   public void setMessage(String message) {
     mMessage = message;
   }
+
+  @Override
+  public String toString() {
+    return mLogName + ":" + mLevel + "." + (mMessage != null ? " message: " + mMessage : "");
+  }
 }
