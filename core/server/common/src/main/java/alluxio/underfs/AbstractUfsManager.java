@@ -138,8 +138,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkArgument(ufsUri != null, "uri");
     Preconditions.checkArgument(ufsConf != null, "ufsConf");
-    UfsInfo ufsInfo = new UfsInfo(ufsConf, ufsUri);
-    mMountIdToUfsInfoMap.put(mountId, ufsInfo);
+    mMountIdToUfsInfoMap.put(mountId, new UfsInfo(ufsConf, ufsUri));
   }
 
   @Override

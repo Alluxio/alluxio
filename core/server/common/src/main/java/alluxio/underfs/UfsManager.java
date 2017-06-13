@@ -24,8 +24,8 @@ public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
   class UfsInfo {
     private UnderFileSystem mUfs;
-    private AlluxioURI mUfsMountPointUri;
-    private UnderFileSystemConfiguration mUfsConf;
+    private final AlluxioURI mUfsMountPointUri;
+    private final UnderFileSystemConfiguration mUfsConf;
 
     /**
      * @param ufsConf a UFS configuration
@@ -66,8 +66,8 @@ public interface UfsManager extends Closeable {
   }
 
   /**
-   * Keeps track of a mount id and map it to a its URI and configuration. This is an Alluxio-only
-   * operation and no interaction to UFS is made.
+   * Keeps track of a mount id and maps it to its URI in Alluxio and configuration. This is an
+   * Alluxio-only operation and no interaction to UFS will be made.
    *
    * @param mountId the mount id
    * @param ufsUri the UFS path
