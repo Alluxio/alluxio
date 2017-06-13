@@ -98,15 +98,13 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void freeWildCardPinnedFile() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem, WriteType.CACHE_THROUGH);
-    mFsShell.run("pin", testDir + "/foo/foobar1");
+    mFsShell.run("pin", testDir + "/foo/*");
     Assert.assertEquals(-1, mFsShell.run("free", testDir + "/foo/*"));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class));
     // freeing non pinned files is expected to fail without "-f"
     Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));
     Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar2"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/foobar4"));
   }
 
   @Test
