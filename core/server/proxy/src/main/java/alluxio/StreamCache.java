@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * Cache for storing file input and output streams.
@@ -106,6 +107,7 @@ public final class StreamCache {
    * @param key the key for the stream to invalidate
    * @return the invalidated stream or null if the cache contains no stream for the given key
    */
+  @Nullable
   public Closeable invalidate(Integer key) {
     FileInStream is = mInStreamCache.getIfPresent(key);
     if (is != null) {
