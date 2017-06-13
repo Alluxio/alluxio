@@ -35,8 +35,8 @@ public interface UfsManager extends Closeable {
      * @param ufsMountPointUri the URI for the UFS path which is mounted in Alluxio
      */
     public UfsInfo(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
-      mUfsMountPointUri = ufsMountPointUri;
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
+      mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsSupplier is null");
     }
 
     /**
