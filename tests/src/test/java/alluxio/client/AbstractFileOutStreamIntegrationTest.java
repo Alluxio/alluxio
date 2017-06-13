@@ -146,7 +146,15 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
         // Returns -1 for zero-sized byte array to indicate no more bytes available here.
         Assert.assertEquals(-1, is.read(res));
       } else {
-        Assert.assertEquals((int) status.getLength(), is.read(res));
+        int totalBytesRead = 0;
+        while (true) {
+          int bytesRead = is.read(res, totalBytesRead, res.length - totalBytesRead);
+          if (bytesRead <= 0) {
+            break;
+          }
+          totalBytesRead += bytesRead;
+        }
+        Assert.assertEquals((int) status.getLength(), totalBytesRead);
       }
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, res));
     }
