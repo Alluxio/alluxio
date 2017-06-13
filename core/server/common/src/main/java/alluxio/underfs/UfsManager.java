@@ -15,6 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+
 import java.io.Closeable;
 
 /**
@@ -25,29 +28,27 @@ public interface UfsManager extends Closeable {
   class UfsInfo {
     private UnderFileSystem mUfs;
     private final AlluxioURI mUfsMountPointUri;
-    private final UnderFileSystemConfiguration mUfsConf;
+    private final Supplier<UnderFileSystem> mUfsSupplier;
 
     /**
-     * @param ufsConf a UFS configuration
+     * @param ufsSupplier the supplier function to create a new UFS instance
      * @param ufsMountPointUri the URI for the UFS path which is mounted in Alluxio
      */
-    public UfsInfo(UnderFileSystemConfiguration ufsConf, AlluxioURI ufsMountPointUri) {
+    public UfsInfo(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
       mUfsMountPointUri = ufsMountPointUri;
-      mUfsConf = ufsConf;
+      mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
     }
 
     /**
-     * @return the UFS instance initialized in a lazy way
+     * @return the UFS instance
      */
     public UnderFileSystem getUfs() {
-      return mUfs;
-    }
-
-    /**
-     * @return the UFS configuration
-     */
-    public UnderFileSystemConfiguration getUfsConf() {
-      return mUfsConf;
+      synchronized (this) {
+        if (mUfs == null) {
+          mUfs = mUfsSupplier.get();
+        }
+        return mUfs;
+      }
     }
 
     /**
@@ -55,13 +56,6 @@ public interface UfsManager extends Closeable {
      */
     public AlluxioURI getUfsMountPointUri() {
       return mUfsMountPointUri;
-    }
-
-    /**
-     * @param ufs the UFS instance to set
-     */
-    public void setUfs(UnderFileSystem ufs) {
-      mUfs = ufs;
     }
   }
 

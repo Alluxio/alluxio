@@ -19,11 +19,11 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
+import com.google.common.base.Suppliers;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.After;
@@ -68,9 +68,9 @@ public final class UnderFileSystemBlockReaderTest {
     mAlluxioBlockStore = Mockito.mock(BlockStore.class);
     mTempBlockMeta = Mockito.mock(TempBlockMeta.class);
     mUfsManager = Mockito.mock(UfsManager.class);
-    UfsInfo ufsInfo = new UfsInfo(UnderFileSystemConfiguration.defaults(),
+    UfsInfo ufsInfo = new UfsInfo(
+        Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
         new AlluxioURI(testFilePath));
-    ufsInfo.setUfs(UnderFileSystem.Factory.create(testFilePath));
     Mockito.when(mAlluxioBlockStore
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(BlockStoreLocation.class),
             Mockito.anyLong())).thenReturn(mTempBlockMeta);

@@ -21,6 +21,7 @@ import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,12 +134,17 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public void addMount(long mountId, AlluxioURI ufsUri,
-      UnderFileSystemConfiguration ufsConf) {
+  public void addMount(long mountId, final AlluxioURI ufsUri,
+      final UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    Preconditions.checkArgument(ufsUri != null, "uri");
+    Preconditions.checkArgument(ufsUri != null, "ufsUri");
     Preconditions.checkArgument(ufsConf != null, "ufsConf");
-    mMountIdToUfsInfoMap.put(mountId, new UfsInfo(ufsConf, ufsUri));
+    mMountIdToUfsInfoMap.put(mountId, new UfsInfo(new Supplier<UnderFileSystem>() {
+      @Override
+      public UnderFileSystem get() {
+        return getOrAdd(ufsUri, ufsConf);
+      }
+    }, ufsUri));
   }
 
   @Override
@@ -151,18 +157,12 @@ public abstract class AbstractUfsManager implements UfsManager {
 
   @Override
   public UfsInfo get(long mountId) throws NotFoundException, UnavailableException {
-    synchronized (this) {
-      UfsInfo ufsInfo = mMountIdToUfsInfoMap.get(mountId);
-      if (ufsInfo == null) {
-        throw new NotFoundException(
-            String.format("Mount Id %d not found in cached mount points", mountId));
-      }
-      if (ufsInfo.getUfs() == null) {
-        UnderFileSystem ufs = getOrAdd(ufsInfo.getUfsMountPointUri(), ufsInfo.getUfsConf());
-        ufsInfo.setUfs(ufs);
-      }
-      return ufsInfo;
+    UfsInfo ufsInfo = mMountIdToUfsInfoMap.get(mountId);
+    if (ufsInfo == null) {
+      throw new NotFoundException(
+          String.format("Mount Id %d not found in cached mount points", mountId));
     }
+    return ufsInfo;
   }
 
   @Override

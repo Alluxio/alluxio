@@ -25,6 +25,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 
+import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,8 +46,7 @@ public final class MountTableTest {
   @Before
   public void before() throws Exception {
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    UfsInfo ufsInfo = new UfsInfo(UnderFileSystemConfiguration.defaults(), AlluxioURI.EMPTY_URI);
-    ufsInfo.setUfs(mTestUfs);
+    UfsInfo ufsInfo = new UfsInfo(Suppliers.ofInstance(mTestUfs), AlluxioURI.EMPTY_URI);
     Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
     mMountTable = new MountTable(ufsManager);
   }
