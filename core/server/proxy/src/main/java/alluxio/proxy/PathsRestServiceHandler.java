@@ -48,6 +48,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.annotation.Nullable;
 
 /**
  * This class is a REST handler for path resources.
@@ -99,6 +100,7 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + CREATE_DIRECTORY)
   @ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_JSON)
+  @Nullable
   public Response createDirectory(@PathParam("path") final String path,
       final CreateDirectoryOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -149,6 +151,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + DELETE)
   @ReturnType("java.lang.Void")
+  @Nullable
   public Response delete(@PathParam("path") final String path, final DeleteOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -194,6 +197,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + FREE)
   @ReturnType("java.lang.Void")
+  @Nullable
   public Response free(@PathParam("path") final String path, final FreeOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -263,6 +267,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + MOUNT)
   @ReturnType("java.lang.Void")
+  @Nullable
   public Response mount(@PathParam("path") final String path, @QueryParam("src") final String src,
       final MountOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -314,6 +319,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + RENAME)
   @ReturnType("java.lang.Void")
+  @Nullable
   public Response rename(@PathParam("path") final String path, @QueryParam("dst") final String dst,
       final RenameOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -339,6 +345,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + SET_ATTRIBUTE)
   @ReturnType("java.lang.Void")
+  @Nullable
   public Response setAttribute(@PathParam("path") final String path,
       final SetAttributeOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -363,6 +370,7 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + UNMOUNT)
   @ReturnType("java.lang.Void")
+  @Nullable
   public Response unmount(@PathParam("path") final String path, final UnmountOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
