@@ -181,7 +181,7 @@ public abstract class AbstractUfsManager implements UfsManager {
         try {
           mRootUfsInfo = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {
-          Preconditions.checkState(false, "We should never reach here");
+          throw new RuntimeException("We should never reach here", e);
         }
       }
       return mRootUfsInfo;

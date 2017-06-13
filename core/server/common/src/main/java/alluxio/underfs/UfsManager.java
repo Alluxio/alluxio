@@ -36,19 +36,17 @@ public interface UfsManager extends Closeable {
      */
     public UfsInfo(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
-      mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsSupplier is null");
+      mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
     }
 
     /**
      * @return the UFS instance
      */
-    public UnderFileSystem getUfs() {
-      synchronized (this) {
-        if (mUfs == null) {
-          mUfs = mUfsSupplier.get();
-        }
-        return mUfs;
+    public synchronized UnderFileSystem getUfs() {
+      if (mUfs == null) {
+        mUfs = mUfsSupplier.get();
       }
+      return mUfs;
     }
 
     /**
@@ -79,10 +77,7 @@ public interface UfsManager extends Closeable {
   void removeMount(long mountId);
 
   /**
-   * Gets UFS information from the cache if exists, or throws exception otherwise. The UFS
-   * information is created lazily on get, based on the UFS uri and conf. If the UFS already exists
-   * in the cache, maps the mount id to the existing UFS. Otherwise, creates a new UFS and adds it
-   * to the cache.
+   * Gets UFS information from the manager if this mount ID exists, or throws exception otherwise.
    *
    * @param mountId the mount id
    * @return the UFS information
