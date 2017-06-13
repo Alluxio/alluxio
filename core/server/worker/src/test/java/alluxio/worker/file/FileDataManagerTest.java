@@ -25,6 +25,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -78,11 +79,12 @@ public final class FileDataManagerTest {
         new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(), mUfsManager);
 
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
+    UfsInfo ufsInfo = new UfsInfo(UnderFileSystemConfiguration.defaults(), AlluxioURI.EMPTY_URI);
+    ufsInfo.setUfs(mUfs);
     PowerMockito.mockStatic(FileSystem.Factory.class);
     Mockito.when(FileSystem.Factory.get()).thenReturn(mMockFileSystem);
     Mockito.when(mUfs.isDirectory(Mockito.anyString())).thenReturn(true);
-    Mockito.when(mUfsManager.get(Mockito.anyLong()))
-        .thenReturn(new UfsInfo(mUfs, AlluxioURI.EMPTY_URI));
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
   }
 
   @After

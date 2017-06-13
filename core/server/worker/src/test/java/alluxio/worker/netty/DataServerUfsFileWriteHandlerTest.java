@@ -21,6 +21,7 @@ import alluxio.proto.status.Status.PStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
@@ -53,8 +54,9 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    Mockito.when(ufsManager.get(Mockito.anyLong()))
-        .thenReturn(new UfsInfo(mockUfs, AlluxioURI.EMPTY_URI));
+    UfsInfo ufsInfo = new UfsInfo(UnderFileSystemConfiguration.defaults(), AlluxioURI.EMPTY_URI);
+    ufsInfo.setUfs(mockUfs);
+    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
         .thenReturn(mOutputStream);
 

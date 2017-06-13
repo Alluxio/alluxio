@@ -22,24 +22,32 @@ import java.io.Closeable;
  */
 public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
-  static class UfsInfo {
+  class UfsInfo {
     private UnderFileSystem mUfs;
     private AlluxioURI mUfsMountPointUri;
+    private UnderFileSystemConfiguration mUfsConf;
 
     /**
-     * @param ufs a UFS
+     * @param ufsConf a UFS configuration
      * @param ufsMountPointUri the URI for the UFS path which is mounted in Alluxio
      */
-    public UfsInfo(UnderFileSystem ufs, AlluxioURI ufsMountPointUri) {
-      mUfs = ufs;
+    public UfsInfo(UnderFileSystemConfiguration ufsConf, AlluxioURI ufsMountPointUri) {
       mUfsMountPointUri = ufsMountPointUri;
+      mUfsConf = ufsConf;
     }
 
     /**
-     * @return the UFS
+     * @return the UFS instance initialized in a lazy way
      */
     public UnderFileSystem getUfs() {
       return mUfs;
+    }
+
+    /**
+     * @return the UFS configuration
+     */
+    public UnderFileSystemConfiguration getUfsConf() {
+      return mUfsConf;
     }
 
     /**
@@ -48,19 +56,24 @@ public interface UfsManager extends Closeable {
     public AlluxioURI getUfsMountPointUri() {
       return mUfsMountPointUri;
     }
+
+    /**
+     * @param ufs the UFS instance to set
+     */
+    public void setUfs(UnderFileSystem ufs) {
+      mUfs = ufs;
+    }
   }
 
   /**
-   * Maps a mount id to a UFS. Based on the UFS uri and conf, if the UFS already exists in the
-   * cache, maps the mount id to the existing UFS. Otherwise, creates a new UFS and adds it to the
-   * cache. Use this method only when you create new UFS instances.
+   * Keeps track of a mount id and map it to a its URI and configuration. This is an Alluxio-only
+   * operation and no interaction to UFS is made.
    *
    * @param mountId the mount id
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
-   * @return information about the created UFS
    */
-  UfsInfo addMount(long mountId, AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf);
+  void addMount(long mountId, AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf);
 
   /**
    * Removes the association from a mount id to a UFS instance. If the mount id is not known, this
@@ -72,7 +85,10 @@ public interface UfsManager extends Closeable {
   void removeMount(long mountId);
 
   /**
-   * Gets UFS information from the cache if exists, or throws exception otherwise.
+   * Gets UFS information from the cache if exists, or throws exception otherwise. The UFS
+   * information is created lazily on get, based on the UFS uri and conf. If the UFS already exists
+   * in the cache, maps the mount id to the existing UFS. Otherwise, creates a new UFS and adds it
+   * to the cache.
    *
    * @param mountId the mount id
    * @return the UFS information
