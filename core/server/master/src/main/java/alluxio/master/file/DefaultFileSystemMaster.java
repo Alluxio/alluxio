@@ -1158,13 +1158,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void delete(AlluxioURI path, DeleteOptions options) throws IOException,
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
       AccessControlException {
+    List<Long> blocks;
     Metrics.DELETE_PATHS_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      deleteAndJournal(inodePath, options, journalContext);
+      blocks = deleteAndJournal(inodePath, options, journalContext);
     }
+    mBlockMaster.removeBlocks(blocks, true);
   }
 
   /**
@@ -1172,18 +1174,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * <p>
    * Writes to the journal.
    *
+   * This method does not delete blocks. Instead, it returns the blocks so that they can be deleted
+   * after the path deletion journal entry has been written. We cannot delete blocks earlier because
+   * the path deletion may fail, leaving us with files containing deleted blocks.
+   *
    * @param inodePath the path to delete
    * @param deleteOptions the method options
    * @param journalContext the journal context
+   * @return the list of deleted block ids
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
+  private List<Long> deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
       JournalContext journalContext) throws InvalidPathException, FileDoesNotExistException,
       IOException, DirectoryNotEmptyException {
     long opTimeMs = System.currentTimeMillis();
-    deleteInternal(inodePath, false, opTimeMs, deleteOptions, journalContext);
+    return deleteInternal(inodePath, false, opTimeMs, deleteOptions, journalContext);
   }
 
   /**
@@ -1191,41 +1198,51 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void deleteFromEntry(DeleteFileEntry entry) {
     Metrics.DELETE_PATHS_OPS.inc();
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      deleteInternal(inodePath, true, entry.getOpTimeMs(),
-          DeleteOptions.defaults().setRecursive(entry.getRecursive())
-              .setAlluxioOnly(entry.getAlluxioOnly()), NoopJournalContext.INSTANCE);
+    List<Long> blocks;
+    try (LockedInodePath inodePath =
+        mInodeTree.lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
+      blocks = deleteInternal(
+          inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
+              .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()),
+          NoopJournalContext.INSTANCE);
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    mBlockMaster.removeBlocks(blocks, true);
   }
 
   /**
    * Implements file deletion.
+   * <p>
+   * This method does not delete blocks. Instead, it returns the blocks so that they can be deleted
+   * after the path deletion journal entry has been written. We cannot delete blocks earlier because
+   * the path deletion may fail, leaving us with files containing deleted blocks.
    *
    * @param inodePath the file {@link LockedInodePath}
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
    * @param deleteOptions the method optitions
    * @param journalContext the journal context
+   * @return the list of deleted block ids
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
+  private List<Long> deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
       DeleteOptions deleteOptions, JournalContext journalContext)
       throws FileDoesNotExistException, IOException, DirectoryNotEmptyException,
       InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
-      return;
+      return Collections.EMPTY_LIST;
     }
     Inode<?> inode = inodePath.getInode();
     if (inode == null) {
-      return;
+      return Collections.EMPTY_LIST;
     }
+
     boolean recursive = deleteOptions.isRecursive();
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
@@ -1239,6 +1256,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     List<Pair<AlluxioURI, Inode>> delInodes = new LinkedList<>();
+    List<Long> delBlocks = new ArrayList<>();
 
     Pair<AlluxioURI, Inode> inodePair = new Pair<AlluxioURI, Inode>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
@@ -1285,8 +1303,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
         if (!failedToDelete) {
           if (delInode.isFile()) {
-            // Remove corresponding blocks from workers and delete metadata in master.
-            mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
+            delBlocks.addAll(((InodeFile) delInode).getBlockIds());
           }
           inodesToDelete.add(delInode);
         } else {
@@ -1313,6 +1330,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
+    return delBlocks;
   }
 
   /**
@@ -2461,14 +2479,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException,
       InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
+    List<Long> blocks;
     // Unmount should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-      unmountAndJournal(inodePath, journalContext);
+      blocks = unmountAndJournal(inodePath, journalContext);
       Metrics.PATHS_UNMOUNTED.inc();
     }
+    mBlockMaster.removeBlocks(blocks, true);
   }
 
   /**
@@ -2476,32 +2496,40 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * <p>
    * Writes to the journal.
    *
+   * This method does not delete blocks. Instead, it returns the blocks so that they can be deleted
+   * after the unmount journal entry has been written. We cannot delete blocks earlier because the
+   * file deletion may fail, leaving us with files containing deleted blocks.
+   *
    * @param inodePath the Alluxio path to unmount, must be a mount point
    * @param journalContext the journal context
+   * @return the list of deleted block ids
    * @throws InvalidPathException if the given path is not a mount point
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    */
-  private void unmountAndJournal(LockedInodePath inodePath, JournalContext journalContext)
+  private List<Long> unmountAndJournal(LockedInodePath inodePath, JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     if (!unmountInternal(inodePath.getUri())) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }
+    List<Long> delBlocks;
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
       DeleteOptions deleteOptions =
           DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
-      deleteAndJournal(inodePath, deleteOptions, journalContext);
+      delBlocks = deleteAndJournal(inodePath, deleteOptions, journalContext);
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
           "We should never see this exception because %s should never be thrown when recursive "
-              + "is true.", e.getClass()));
+              + "is true.",
+          e.getClass()));
     }
     DeleteMountPointEntry deleteMountPoint =
         DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
     appendJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build(),
         journalContext);
+    return delBlocks;
   }
 
   /**
