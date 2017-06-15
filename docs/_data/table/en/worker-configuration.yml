@@ -127,3 +127,5 @@ alluxio.worker.keytab.file:
   Kerberos keytab file for Alluxio worker.
 alluxio.worker.principal:
   Kerberos principal for Alluxio worker.
+alluxio.worker.block.master.client.pool.size:
+  The block master client pool size on the Alluxio workers.

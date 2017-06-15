@@ -88,6 +88,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
+  /**
+   * Block master clients. commitBlock is the only reason to keep a pool of block master clients
+   * on each worker. We should either improve our RPC model in the master or get rid of the
+   * necessity to call commitBlock in the workers.
+   */
+  private final BlockMasterClientPool mBlockMasterClientPool;
 
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
@@ -117,7 +123,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   DefaultBlockWorker(UfsManager ufsManager) {
-    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+    this(new BlockMasterClientPool(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
@@ -125,18 +131,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * Constructs a default block worker.
    *
-   * @param blockMasterClient a client for talking to the block master
+   * @param blockMasterClientPool a client pool for talking to the block master
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @param ufsManager ufs manager
    */
-  DefaultBlockWorker(BlockMasterClient blockMasterClient,
+  DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
     super(Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mBlockMasterClient = blockMasterClient;
+    mBlockMasterClientPool = blockMasterClientPool;
+    mBlockMasterClient = mBlockMasterClientPool.acquire();
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
@@ -253,7 +260,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         }
       }
     });
-    mBlockMasterClient.close();
+    mBlockMasterClientPool.release(mBlockMasterClient);
+    try {
+      mBlockMasterClientPool.close();
+    } catch (IOException e) {
+      LOG.warn("Failed to close the block master client pool with error {}.", e.getMessage());
+    }
     mFileSystemMasterClient.close();
   }
 
@@ -284,17 +296,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      mBlockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
+      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
           length);
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
       mBlockStore.unlockBlock(lockId);
     }
   }

@@ -46,6 +46,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -55,11 +56,10 @@ import java.util.Set;
  * Unit tests for {@link DefaultBlockWorker}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(
-    {BlockMasterClient.class, FileSystemMasterClient.class, BlockHeartbeatReporter.class,
-        BlockMetricsReporter.class, BlockMeta.class, BlockStoreLocation.class, BlockStoreMeta.class,
-        StorageDir.class, Configuration.class, UnderFileSystem.class, BlockWorker.class,
-        Sessions.class})
+@PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
+    BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
+    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
+    UnderFileSystem.class, BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -67,6 +67,7 @@ public class BlockWorkerTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   private BlockMasterClient mBlockMasterClient;
+  private BlockMasterClientPool mBlockMasterClientPool;
   private BlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
@@ -81,6 +82,9 @@ public class BlockWorkerTest {
   public void before() throws IOException {
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    mBlockMasterClientPool =
+        Mockito.spy(new BlockMasterClientPool(new InetSocketAddress("localhost", 12345)));
+    Mockito.when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     mBlockStore = PowerMockito.mock(BlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
@@ -99,8 +103,8 @@ public class BlockWorkerTest {
         mFolder.newFolder().getAbsolutePath());
 
     mBlockWorker =
-        new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions, mBlockStore,
-            mUfsManager);
+        new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient, mSessions,
+            mBlockStore, mUfsManager);
   }
 
   /**
