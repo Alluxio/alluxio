@@ -1166,7 +1166,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(path);
       blocks = deleteAndJournal(inodePath, options, journalContext);
     }
-    mBlockMaster.removeBlocks(blocks, true);
+    mBlockMaster.removeBlocks(blocks, true /* delete */);
   }
 
   /**
@@ -1209,7 +1209,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    mBlockMaster.removeBlocks(blocks, true);
+    mBlockMaster.removeBlocks(blocks, true /* delete */);
   }
 
   /**
@@ -1256,7 +1256,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     List<Pair<AlluxioURI, Inode>> delInodes = new LinkedList<>();
-    List<Long> delBlocks = new ArrayList<>();
+    List<Long> blocksToDelete = new ArrayList<>();
 
     Pair<AlluxioURI, Inode> inodePair = new Pair<AlluxioURI, Inode>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
@@ -1303,7 +1303,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
         if (!failedToDelete) {
           if (delInode.isFile()) {
-            delBlocks.addAll(((InodeFile) delInode).getBlockIds());
+            blocksToDelete.addAll(((InodeFile) delInode).getBlockIds());
           }
           inodesToDelete.add(delInode);
         } else {
@@ -1330,7 +1330,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
-    return delBlocks;
+    return blocksToDelete;
   }
 
   /**
@@ -2488,7 +2488,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       blocks = unmountAndJournal(inodePath, journalContext);
       Metrics.PATHS_UNMOUNTED.inc();
     }
-    mBlockMaster.removeBlocks(blocks, true);
+    mBlockMaster.removeBlocks(blocks, true /* delete */);
   }
 
   /**
@@ -2512,13 +2512,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }
-    List<Long> delBlocks;
+    List<Long> blocksToDelete;
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
       DeleteOptions deleteOptions =
           DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true);
-      delBlocks = deleteAndJournal(inodePath, deleteOptions, journalContext);
+      blocksToDelete = deleteAndJournal(inodePath, deleteOptions, journalContext);
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
           "We should never see this exception because %s should never be thrown when recursive "
@@ -2529,7 +2529,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
     appendJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build(),
         journalContext);
-    return delBlocks;
+    return blocksToDelete;
   }
 
   /**
