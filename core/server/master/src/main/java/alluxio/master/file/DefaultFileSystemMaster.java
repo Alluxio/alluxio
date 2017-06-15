@@ -1158,15 +1158,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void delete(AlluxioURI path, DeleteOptions options) throws IOException,
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
       AccessControlException {
-    List<Long> blocks;
+    List<Long> blocksToDelete;
     Metrics.DELETE_PATHS_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      blocks = deleteAndJournal(inodePath, options, journalContext);
+      blocksToDelete = deleteAndJournal(inodePath, options, journalContext);
     }
-    mBlockMaster.removeBlocks(blocks, true /* delete */);
+    mBlockMaster.removeBlocks(blocksToDelete, true /* delete */);
   }
 
   /**
@@ -1198,10 +1198,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void deleteFromEntry(DeleteFileEntry entry) {
     Metrics.DELETE_PATHS_OPS.inc();
-    List<Long> blocks;
     try (LockedInodePath inodePath =
         mInodeTree.lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      blocks = deleteInternal(
+      deleteInternal(
           inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
               .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()),
           NoopJournalContext.INSTANCE);
@@ -1209,7 +1208,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    mBlockMaster.removeBlocks(blocks, true /* delete */);
   }
 
   /**
@@ -2479,16 +2477,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void unmount(AlluxioURI alluxioPath) throws FileDoesNotExistException,
       InvalidPathException, IOException, AccessControlException {
     Metrics.UNMOUNT_OPS.inc();
-    List<Long> blocks;
+    List<Long> blocksToDelete;
     // Unmount should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-      blocks = unmountAndJournal(inodePath, journalContext);
+      blocksToDelete = unmountAndJournal(inodePath, journalContext);
       Metrics.PATHS_UNMOUNTED.inc();
     }
-    mBlockMaster.removeBlocks(blocks, true /* delete */);
+    mBlockMaster.removeBlocks(blocksToDelete, true /* delete */);
   }
 
   /**
