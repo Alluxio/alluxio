@@ -23,11 +23,6 @@ O Alluxio funciona com o `Spark 1.1` ou superiores `out-of-the-box`.
 * Alluxio `cluster` deve ser configurado de acordo com os guias
 [Local Mode](Running-Alluxio-Locally.html) ou [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
-* Alluxio `client` irá precisar ser compilado com o perfil específico do `Spark`. Construa o
-projeto inteiro a partir do diretório raiz do Alluxio com o comando:
-
-{% include Running-Spark-on-Alluxio/spark-profile-build.md %}
-
 * Adicione a linha seguinte para `spark/conf/spark-defaults.conf`:
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
