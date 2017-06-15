@@ -15,13 +15,6 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). And the
 Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
-Alluxio client will need to be compiled with the Presto specific profile. Build the entire project
-from the top level `alluxio` directory with the following command:
-
-```bash
-mvn clean package -Ppresto -DskipTests
-```
-
 Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.170). And have finished
 [Hive On Alluxio](http://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html)
 
@@ -85,7 +78,7 @@ Presto's hive integration uses the config [`hive.max-split-size`](https://terada
 # Distribute the Alluxio Client Jar
 
 Distribute the Alluxio client jar to all worker nodes in Presto:
-- You must put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto cluster's worker directory
+- You must put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH_PRESTO}}` into Presto cluster's worker directory
 `$PRESTO_HOME/plugin/hive-hadoop2/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 
