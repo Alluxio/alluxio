@@ -1190,6 +1190,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       JournalContext journalContext) throws InvalidPathException, FileDoesNotExistException,
       IOException, DirectoryNotEmptyException {
     long opTimeMs = System.currentTimeMillis();
+    // TODO(gpang): Report deleted files via context so that we can still delete blocks when delete
+    // throws an exception partway through.
     return deleteInternal(inodePath, false, opTimeMs, deleteOptions, journalContext);
   }
 
