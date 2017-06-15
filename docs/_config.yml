@@ -12,7 +12,6 @@ ALLUXIO_MASTER_VERSION_SHORT: 1.5.0
 # Otherwise the macro name remains in the output.
 ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/core/client/runtime/target/alluxio-core-client-runtime-1.5.0-jar-with-dependencies.jar
 ALLUXIO_CLIENT_JAR_PATH_PRESTO: /<PATH_TO_ALLUXIO>/client/presto/alluxio-1.5.0-presto-client.jar
-ALLUXIO_CLIENT_JAR_PATH_SPARK: /<PATH_TO_ALLUXIO>/client/spark/alluxio-1.5.0-spark-client.jar
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
