@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
+import alluxio.client.block.*;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -88,6 +89,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
+  /** Block master clients used to commit blocks. */
+  private final BlockMasterClientPool mBlockMasterClientPool;
 
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
@@ -137,6 +140,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     super(Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;
+    mBlockMasterClientPool =
+        new BlockMasterClientPool(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
@@ -254,6 +259,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
     });
     mBlockMasterClient.close();
+    try {
+      mBlockMasterClientPool.close();
+    } catch (IOException e) {
+      LOG.warn("Failed to close the block master client pool with error {}.", e.getMessage());
+    }
     mFileSystemMasterClient.close();
   }
 
@@ -284,17 +294,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      mBlockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
+      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
           length);
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
       mBlockStore.unlockBlock(lockId);
     }
   }
