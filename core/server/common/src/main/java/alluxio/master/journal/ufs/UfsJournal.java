@@ -20,6 +20,7 @@ import alluxio.master.journal.options.JournalReaderOptions;
 import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -76,12 +78,21 @@ public class UfsJournal implements Journal {
   private final UnderFileSystem mUfs;
 
   /**
+   * @return the ufs configuration to use for the journal operations
+   */
+  protected static UnderFileSystemConfiguration getJournalUfsConf() {
+    Map<String, String> ufsConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
+    return UnderFileSystemConfiguration.defaults().setUserSpecifiedConf(ufsConf);
+  }
+
+  /**
    * Creates a new instance of {@link UfsJournal}.
    *
    * @param location the location for this journal
    */
   public UfsJournal(URI location) {
-    this(location, UnderFileSystem.Factory.create(location));
+    this(location, UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()));
   }
 
   /**
