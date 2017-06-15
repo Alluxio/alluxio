@@ -36,6 +36,7 @@ import alluxio.master.journal.JournalFactory;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
+import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
@@ -212,6 +213,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (entry.hasBlockContainerIdGenerator()) {
       mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
       mBlockContainerIdGenerator.setNextContainerId((mJournaledNextContainerId));
+    } else if (entry.hasDeleteBlock()) {
+      mBlocks.remove(entry.getDeleteBlock().getBlockId());
     } else if (entry.hasBlockInfo()) {
       BlockInfoEntry blockInfoEntry = entry.getBlockInfo();
       if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
@@ -263,6 +266,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     super.start(isLeader);
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     if (isLeader) {
+      LOG.info("I am blockmaster. I have {} blocks", mBlocks.size());
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
@@ -331,30 +335,36 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         continue;
       }
       HashSet<Long> workerIds = new HashSet<>();
-      synchronized (block) {
-        // Technically, 'block' should be confirmed to still be in the data structure. A
-        // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
-        // race, since deleting the same block again is a noop.
-        workerIds.addAll(block.getWorkers());
-        // Two cases here:
-        // 1) For delete: delete the block metadata.
-        // 2) For free: keep the block metadata. mLostBlocks will be changed in
-        // processWorkerRemovedBlocks
-        if (delete) {
-          // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
-          // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
-          mLostBlocks.remove(blockId);
-          mBlocks.remove(blockId);
+      try (JournalContext journalContext = createJournalContext()) {
+        synchronized (block) {
+          // Technically, 'block' should be confirmed to still be in the data structure. A
+          // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
+          // race, since deleting the same block again is a noop.
+          workerIds.addAll(block.getWorkers());
+          // Two cases here:
+          // 1) For delete: delete the block metadata.
+          // 2) For free: keep the block metadata. mLostBlocks will be changed in
+          // processWorkerRemovedBlocks
+          if (delete) {
+            // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
+            // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
+            mLostBlocks.remove(blockId);
+            mBlocks.remove(blockId);
+            JournalEntry entry = JournalEntry.newBuilder()
+                .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
+            appendJournalEntry(entry, journalContext);
+          }
         }
-      }
 
-      // Outside of locking the block. This does not have to be synchronized with the block
-      // metadata, since it is essentially an asynchronous signal to the worker to remove the block.
-      for (long workerId : workerIds) {
-        MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-        if (worker != null) {
-          synchronized (worker) {
-            worker.updateToRemovedBlock(true, blockId);
+        // Outside of locking the block. This does not have to be synchronized with the block
+        // metadata, since it is essentially an asynchronous signal to the worker to remove the
+        // block.
+        for (long workerId : workerIds) {
+          MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+          if (worker != null) {
+            synchronized (worker) {
+              worker.updateToRemovedBlock(true, blockId);
+            }
           }
         }
       }
