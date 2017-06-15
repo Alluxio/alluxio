@@ -368,6 +368,9 @@ public class PropertyKey {
       create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 1024);
   public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX, 1024);
+  // The default is set to 11. One client is reserved for some light weight operations such as
+  // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
+  // master.
   public static final PropertyKey WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
       create(Name.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE, 11);
 
