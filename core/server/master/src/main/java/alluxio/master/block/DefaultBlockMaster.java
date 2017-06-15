@@ -266,7 +266,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     super.start(isLeader);
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     if (isLeader) {
-      LOG.info("I am blockmaster. I have {} blocks", mBlocks.size());
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
@@ -349,10 +348,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
             // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
             mLostBlocks.remove(blockId);
-            mBlocks.remove(blockId);
-            JournalEntry entry = JournalEntry.newBuilder()
-                .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
-            appendJournalEntry(entry, journalContext);
+            if (mBlocks.remove(blockId) != null) {
+              JournalEntry entry = JournalEntry.newBuilder()
+                      .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
+              appendJournalEntry(entry, journalContext);
+            }
           }
         }
 
