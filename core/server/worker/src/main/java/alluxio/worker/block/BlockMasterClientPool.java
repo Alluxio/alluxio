@@ -40,7 +40,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    * @param masterAddress the master address
    */
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
-    super(Configuration.getInt(PropertyKey.WORKER_BLOCK_MASTER_CLIENT_THREADS));
+    super(Configuration.getInt(PropertyKey.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE));
     mMasterAddress = masterAddress;
     mClientList = new ConcurrentLinkedQueue<>();
   }

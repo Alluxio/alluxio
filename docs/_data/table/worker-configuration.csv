@@ -45,3 +45,4 @@ alluxio.worker.web.hostname,localhost
 alluxio.worker.web.port,30000
 alluxio.worker.keytab.file,
 alluxio.worker.principal,
+alluxio.worker.block.master.client.pool.size,11
