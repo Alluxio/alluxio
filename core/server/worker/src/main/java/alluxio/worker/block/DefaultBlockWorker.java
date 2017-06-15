@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
-import alluxio.client.block.*;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -89,7 +88,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
-  /** Block master clients used to commit blocks. */
+  /**
+   * Block master clients. commitBlock is the only reason to keep a pool of block master clients
+   * on each worker. We should either improve our RPC model in the master or get rid of the
+   * necessity to call commitBlock in the workers.
+   */
   private final BlockMasterClientPool mBlockMasterClientPool;
 
   /** Client for all file system master communication. */
