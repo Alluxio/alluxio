@@ -33,7 +33,7 @@ import org.junit.rules.ExpectedException;
 /**
  * Unit tests for starting a cluster when security is enabled.
  */
-public final class ClusterInitializationTest extends BaseIntegrationTest {
+public final class ClusterInitializationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
