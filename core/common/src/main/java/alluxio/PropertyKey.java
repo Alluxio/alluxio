@@ -369,7 +369,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX, 1024);
   public static final PropertyKey WORKER_BLOCK_MASTER_CLIENT_THREADS =
-      create(Name.WORKER_BLOCK_MASTER_CLIENT_THREADS, 10);
+      create(Name.WORKER_BLOCK_MASTER_CLIENT_THREADS, 11);
 
   public static final PropertyKey WORKER_PRINCIPAL = create(Name.WORKER_PRINCIPAL, null);
   public static final PropertyKey WORKER_RPC_PORT = create(Name.WORKER_RPC_PORT, 29998);

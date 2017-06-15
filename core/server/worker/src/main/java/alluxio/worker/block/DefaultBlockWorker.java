@@ -120,7 +120,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   DefaultBlockWorker(UfsManager ufsManager) {
-    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+    this(new BlockMasterClientPool(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
@@ -128,20 +128,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * Constructs a default block worker.
    *
-   * @param blockMasterClient a client for talking to the block master
+   * @param blockMasterClientPool a client pool for talking to the block master
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @param ufsManager ufs manager
    */
-  DefaultBlockWorker(BlockMasterClient blockMasterClient,
+  DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
     super(Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mBlockMasterClient = blockMasterClient;
-    mBlockMasterClientPool =
-        new BlockMasterClientPool(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+    mBlockMasterClientPool = blockMasterClientPool;
+    mBlockMasterClient = mBlockMasterClientPool.acquire();
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
@@ -258,7 +257,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         }
       }
     });
-    mBlockMasterClient.close();
+    mBlockMasterClientPool.release(mBlockMasterClient);
     try {
       mBlockMasterClientPool.close();
     } catch (IOException e) {
