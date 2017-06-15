@@ -55,7 +55,7 @@ public class BlockMasterIntegrationTest {
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
     Assert.assertNotNull(blockMaster.getBlockInfo(blockId));
-    mCluster.stop();
+    mCluster.stopFS();
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     Assert.assertNotNull(registry.get(BlockMaster.class).getBlockInfo(blockId));
     registry.stop();
@@ -79,7 +79,7 @@ public class BlockMasterIntegrationTest {
     } catch (BlockInfoException e) {
       // expected
     }
-    mCluster.stop();
+    mCluster.stopFS();
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     try {
       registry.get(BlockMaster.class).getBlockInfo(blockId);
