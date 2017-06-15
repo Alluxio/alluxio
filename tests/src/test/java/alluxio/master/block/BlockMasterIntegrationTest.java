@@ -20,7 +20,7 @@ import org.junit.Test;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Integration test for block master functionality.
+ * Integration tests for block master functionality.
  */
 public class BlockMasterIntegrationTest {
 
