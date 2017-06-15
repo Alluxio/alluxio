@@ -67,7 +67,7 @@ age INT,
 gender CHAR(1),
 occupation STRING,
 zipcode STRING)
-OW FORMAT DELIMITED
+ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```

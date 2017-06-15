@@ -66,6 +66,8 @@ alluxio.underfs.s3a.consistency.timeout.ms:
   等待底层存储元数据一致所持续的最久时间。该配置仅用于本应该执行成功的Alluxio内部操作，但是由于最终一致性，可能现在并没有执行成功。默认值是60000毫秒（1分钟）。
 alluxio.underfs.s3a.directory.suffix:
   S3会把目录表示为0字节的对象，名字以指定后缀结尾。默认值为“/”。
+alluxio.underfs.s3a.list.objects.v1:
+  是否使用GET Bucket（列出对象）API。默认为"false"。
 alluxio.underfs.s3a.secure.http.enabled:
   是否使用HTTPS协议与S3进行通信。默认值为false。
 alluxio.underfs.s3a.server.side.encryption.enabled:
