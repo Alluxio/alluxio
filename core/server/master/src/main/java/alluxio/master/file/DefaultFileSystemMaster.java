@@ -1166,11 +1166,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(path);
       deletedInodes = deleteAndJournal(inodePath, options, journalContext);
     }
-    for (Inode<?> inode : deletedInodes) {
-      if (inode.isFile()) {
-        mBlockMaster.removeBlocks(((InodeFile) inode).getBlockIds(), true /* delete */);
-      }
-    }
+    deleteInodeBlocks(deletedInodes);
   }
 
   /**
@@ -1208,7 +1204,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           inodePath, true, entry.getOpTimeMs(), DeleteOptions.defaults()
               .setRecursive(entry.getRecursive()).setAlluxioOnly(entry.getAlluxioOnly()),
           NoopJournalContext.INSTANCE);
-
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -1330,6 +1325,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
     return deletedInodes;
+  }
+
+  private void deleteInodeBlocks(List<Inode<?>> deletedInodes) {
+    List<Long> deletedBlockIds = new ArrayList<>();
+    for (Inode<?> inode : deletedInodes) {
+      if (inode.isFile()) {
+        deletedBlockIds.addAll(((InodeFile) inode).getBlockIds());
+      }
+    }
+    mBlockMaster.removeBlocks(deletedBlockIds, true /* delete */);
   }
 
   /**
@@ -2487,11 +2492,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       deletedInodes = unmountAndJournal(inodePath, journalContext);
       Metrics.PATHS_UNMOUNTED.inc();
     }
-    for (Inode<?> inode : deletedInodes) {
-      if (inode.isFile()) {
-        mBlockMaster.removeBlocks(((InodeFile) inode).getBlockIds(), true /* delete */);
-      }
-    }
+    deleteInodeBlocks(deletedInodes);
   }
 
   /**

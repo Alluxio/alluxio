@@ -328,13 +328,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public void removeBlocks(List<Long> blockIds, boolean delete) {
-    for (long blockId : blockIds) {
-      MasterBlockInfo block = mBlocks.get(blockId);
-      if (block == null) {
-        continue;
-      }
-      HashSet<Long> workerIds = new HashSet<>();
-      try (JournalContext journalContext = createJournalContext()) {
+    try (JournalContext journalContext = createJournalContext()) {
+      for (long blockId : blockIds) {
+        MasterBlockInfo block = mBlocks.get(blockId);
+        if (block == null) {
+          continue;
+        }
+        HashSet<Long> workerIds = new HashSet<>();
+
         synchronized (block) {
           // Technically, 'block' should be confirmed to still be in the data structure. A
           // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
@@ -350,7 +351,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             mLostBlocks.remove(blockId);
             if (mBlocks.remove(blockId) != null) {
               JournalEntry entry = JournalEntry.newBuilder()
-                      .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
+                  .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
               appendJournalEntry(entry, journalContext);
             }
           }
