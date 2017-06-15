@@ -11,7 +11,6 @@ ALLUXIO_MASTER_VERSION_SHORT: 1.5.0
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro defined above.
 # Otherwise the macro name remains in the output.
 ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/core/client/runtime/target/alluxio-core-client-runtime-1.5.0-jar-with-dependencies.jar
-ALLUXIO_CLIENT_JAR_PATH_PRESTO: /<PATH_TO_ALLUXIO>/client/presto/alluxio-1.5.0-presto-client.jar
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
