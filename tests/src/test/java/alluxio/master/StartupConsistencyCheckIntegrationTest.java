@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Tests the consistency check which happens on master start up.
  */
-public class StartupConsistencyCheckTest extends BaseIntegrationTest {
+public class StartupConsistencyCheckIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI TOP_LEVEL_FILE = new AlluxioURI("/file");
   private static final AlluxioURI TOP_LEVEL_DIR = new AlluxioURI("/dir");
   private static final AlluxioURI SECOND_LEVEL_FILE = new AlluxioURI("/dir/file");
