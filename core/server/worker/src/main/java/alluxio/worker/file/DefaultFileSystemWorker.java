@@ -77,7 +77,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = blockWorker.getWorkerId();
     mUfsManager = ufsManager;
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker, "blockWorker"),
         RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
         mUfsManager);
 
