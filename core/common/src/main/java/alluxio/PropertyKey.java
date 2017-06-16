@@ -176,6 +176,10 @@ public class PropertyKey {
   public static final PropertyKey SWIFT_USER_KEY = create(Name.SWIFT_USER_KEY, null);
   public static final PropertyKey SWIFT_REGION_KEY = create(Name.SWIFT_REGION_KEY, null);
 
+  // Journal ufs related properties
+  public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =
+      create(Template.MASTER_JOURNAL_UFS_OPTION, null);
+
   //
   // Mount table related properties
   //
@@ -1143,6 +1147,10 @@ public class PropertyKey {
    */
   @ThreadSafe
   public enum Template {
+    MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
+        "alluxio\\.master\\.journal\\.ufs\\.option"),
+    MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
+        "alluxio\\.master\\.journal\\.ufs\\.option(\\.\\w+)++"),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
     MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",
