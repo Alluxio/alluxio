@@ -78,7 +78,7 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
     mOutputStream.close();
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
-    checkWriteResponse(writeResponse, PStatus.UNAVAILABLE);
+    checkWriteResponse(writeResponse, PStatus.UNKNOWN);
   }
 
   @Override

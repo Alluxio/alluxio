@@ -9,6 +9,7 @@ alluxio.worker.data.bind.host,0.0.0.0
 alluxio.worker.data.folder,/alluxioworker/
 alluxio.worker.data.port,29999
 alluxio.worker.data.server.class,alluxio.worker.netty.&#8203;NettyDataServer
+alluxio.worker.data.server.domain.socket.address,
 alluxio.worker.evictor.class,alluxio.worker.block.&#8203;evictor.LRUEvictor
 alluxio.worker.evictor.lrfu.attenuation.factor,2.0
 alluxio.worker.evictor.lrfu.step.factor,0.25
@@ -45,3 +46,4 @@ alluxio.worker.web.hostname,localhost
 alluxio.worker.web.port,30000
 alluxio.worker.keytab.file,
 alluxio.worker.principal,
+alluxio.worker.block.master.client.pool.size,11

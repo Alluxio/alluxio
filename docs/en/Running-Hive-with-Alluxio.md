@@ -31,7 +31,7 @@ that point to specified locations in Alluxio while keeping the storage of other 
 or use Alluxio as the default filesystem to operate on. In the following, we will introduce these
 two approaches to use Hive with Alluxio.
 
-## Create External Table Loacted in Alluxio
+## Create External Table Located in Alluxio
 
 Hive can create external tables from files stored on Alluxio. The setup is fairly straightforward
 and the change is also isolated from other Hive tables. An example use case is to store frequently
@@ -67,14 +67,14 @@ age INT,
 gender CHAR(1),
 occupation STRING,
 zipcode STRING)
-OW FORMAT DELIMITED
+ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
 ## Use Alluxio as Default Filesystem
 
-Apache Hive also allows to use Alluxio through a generic file system interface to replace the
+Apache Hive can also use Alluxio through a generic file system interface to replace the
 Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal
 metadata and intermediate results will be stored in Alluxio by default.
 

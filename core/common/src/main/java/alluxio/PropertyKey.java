@@ -368,6 +368,11 @@ public class PropertyKey {
       create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 1024);
   public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX, 1024);
+  // The default is set to 11. One client is reserved for some light weight operations such as
+  // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
+  // master.
+  public static final PropertyKey WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
+      create(Name.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE, 11);
 
   public static final PropertyKey WORKER_PRINCIPAL = create(Name.WORKER_PRINCIPAL, null);
   public static final PropertyKey WORKER_RPC_PORT = create(Name.WORKER_RPC_PORT, 29998);
@@ -961,6 +966,8 @@ public class PropertyKey {
         "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
         "alluxio.worker.network.netty.rpc.threads.max";
+    public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
+        "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
