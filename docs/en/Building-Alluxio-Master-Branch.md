@@ -58,6 +58,8 @@ To have the logs output to STDOUT, append the following to the `mvn` command
 
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
+## Compute Framework Support
+
 ## Distro Support
 
 To build Alluxio against one of the different distros of hadoop, you only need to change the
