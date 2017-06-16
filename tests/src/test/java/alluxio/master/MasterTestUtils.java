@@ -17,7 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
-import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
 import alluxio.util.CommonUtils;
@@ -76,8 +76,7 @@ public class MasterTestUtils {
     CommonUtils.waitFor("Startup consistency check completion", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void aVoid) {
-        return master.getStartupConsistencyCheck().getStatus()
-            == StartupConsistencyCheck.Status.COMPLETE;
+        return master.getStartupConsistencyCheck().getStatus() != Status.RUNNING;
       }
     }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
   }
