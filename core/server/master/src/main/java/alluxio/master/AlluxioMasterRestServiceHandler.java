@@ -36,6 +36,7 @@ import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -529,11 +530,15 @@ public final class AlluxioMasterRestServiceHandler {
     StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
     alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
     List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-    List<String> uris = new ArrayList<>(inconsistentUris.size());
-    for (AlluxioURI uri : inconsistentUris) {
-      uris.add(uri.toString());
+    if (inconsistentUris != null) {
+      List<String> uris = new ArrayList<>(inconsistentUris.size());
+      for (AlluxioURI uri : inconsistentUris) {
+        uris.add(uri.toString());
+      }
+      ret.setInconsistentUris(uris);
+    } else {
+      ret.setInconsistentUris(Collections.EMPTY_LIST);
     }
-    ret.setInconsistentUris(uris);
     ret.setStatus(check.getStatus().toString().toLowerCase());
     return ret;
   }
