@@ -11,6 +11,9 @@
 
 package alluxio.master.block;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
@@ -32,7 +35,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -117,11 +119,11 @@ public class BlockMasterTest {
         NO_BLOCKS_ON_TIERS);
 
     // Check that byte counts are summed correctly.
-    Assert.assertEquals(3030, mBlockMaster.getCapacityBytes());
-    Assert.assertEquals(303L, mBlockMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of("MEM", 1010L, "SSD", 2020L),
+    assertEquals(3030, mBlockMaster.getCapacityBytes());
+    assertEquals(303L, mBlockMaster.getUsedBytes());
+    assertEquals(ImmutableMap.of("MEM", 1010L, "SSD", 2020L),
         mBlockMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of("MEM", 101L, "SSD", 202L),
+    assertEquals(ImmutableMap.of("MEM", 101L, "SSD", 202L),
         mBlockMaster.getUsedBytesOnTiers());
   }
 
@@ -143,7 +145,7 @@ public class BlockMasterTest {
 
     // Make sure the worker is detected as lost.
     List<WorkerInfo> info = mBlockMaster.getLostWorkersInfoList();
-    Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
+    assertEquals(worker1, Iterables.getOnlyElement(info).getId());
   }
 
   @Test
@@ -171,8 +173,8 @@ public class BlockMasterTest {
         NO_BLOCKS_ON_TIERS);
 
     // Check that there are no longer any lost workers and there is a live worker.
-    Assert.assertEquals(1, mBlockMaster.getWorkerCount());
-    Assert.assertEquals(0, mBlockMaster.getLostWorkersInfoList().size());
+    assertEquals(1, mBlockMaster.getWorkerCount());
+    assertEquals(0, mBlockMaster.getLostWorkersInfoList().size());
   }
 
   @Test
@@ -191,7 +193,7 @@ public class BlockMasterTest {
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 0L);
     Command heartBeat = mBlockMaster
         .workerHeartbeat(worker1, memUsage, NO_BLOCKS, NO_BLOCKS_ON_TIERS);
-    Assert.assertEquals(ImmutableList.of(1L), heartBeat.getData());
+    assertEquals(ImmutableList.of(1L), heartBeat.getData());
   }
 
   @Test
@@ -207,7 +209,7 @@ public class BlockMasterTest {
     mBlockMaster.workerHeartbeat(worker, newUsedBytesOnTiers, NO_BLOCKS, NO_BLOCKS_ON_TIERS);
 
     WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getWorkerInfoList());
-    Assert.assertEquals(50, workerInfo.getUsedBytes());
+    assertEquals(50, workerInfo.getUsedBytes());
   }
 
   @Test
@@ -222,7 +224,7 @@ public class BlockMasterTest {
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(worker, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
         NO_BLOCKS_ON_TIERS);
-    Assert.assertTrue(mBlockMaster.getBlockInfo(blockId).getLocations().isEmpty());
+    assertTrue(mBlockMaster.getBlockInfo(blockId).getLocations().isEmpty());
   }
 
   @Test
@@ -245,19 +247,19 @@ public class BlockMasterTest {
         ImmutableMap.of("MEM", addedBlocks));
 
     // The block now has two locations.
-    Assert.assertEquals(2, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+    assertEquals(2, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
   @Test
   public void unknownWorkerHeartbeatTriggersRegisterRequest() {
     Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null);
-    Assert.assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
+    assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
   }
 
   @Test
   public void stopTerminatesExecutorService() throws Exception {
     mBlockMaster.stop();
-    Assert.assertTrue(mExecutorService.isTerminated());
+    assertTrue(mExecutorService.isTerminated());
   }
 
   @Test
@@ -278,13 +280,13 @@ public class BlockMasterTest {
         .setBlockId(1L)
         .setLength(20L)
         .setLocations(ImmutableList.of(blockLocation));
-    Assert.assertEquals(expectedBlockInfo, mBlockMaster.getBlockInfo(blockId));
+    assertEquals(expectedBlockInfo, mBlockMaster.getBlockInfo(blockId));
   }
 
   @Test
   public void stop() throws Exception {
     mRegistry.stop();
-    Assert.assertTrue(mExecutorService.isShutdown());
-    Assert.assertTrue(mExecutorService.isTerminated());
+    assertTrue(mExecutorService.isShutdown());
+    assertTrue(mExecutorService.isTerminated());
   }
 }
