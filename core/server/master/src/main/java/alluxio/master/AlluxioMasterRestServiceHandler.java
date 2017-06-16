@@ -529,11 +529,15 @@ public final class AlluxioMasterRestServiceHandler {
     StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
     alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
     List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-    List<String> uris = new ArrayList<>(inconsistentUris.size());
-    for (AlluxioURI uri : inconsistentUris) {
-      uris.add(uri.toString());
+    if (inconsistentUris != null) {
+      List<String> uris = new ArrayList<>(inconsistentUris.size());
+      for (AlluxioURI uri : inconsistentUris) {
+        uris.add(uri.toString());
+      }
+      ret.setInconsistentUris(uris);
+    } else {
+      ret.setInconsistentUris(new ArrayList<String>());
     }
-    ret.setInconsistentUris(uris);
     ret.setStatus(check.getStatus().toString().toLowerCase());
     return ret;
   }
