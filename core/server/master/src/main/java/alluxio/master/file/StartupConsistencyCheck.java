@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,21 +42,21 @@ public final class StartupConsistencyCheck {
    * @return a result set to the disabled status
    */
   public static StartupConsistencyCheck disabled() {
-    return new StartupConsistencyCheck(Status.DISABLED, null);
+    return new StartupConsistencyCheck(Status.DISABLED, new ArrayList<AlluxioURI>());
   }
 
   /**
    * @return a result set to the failed status
    */
   public static StartupConsistencyCheck failed() {
-    return new StartupConsistencyCheck(Status.FAILED, null);
+    return new StartupConsistencyCheck(Status.FAILED, new ArrayList<AlluxioURI>());
   }
 
   /**
    * @return a result set to the running status
    */
   public static StartupConsistencyCheck running() {
-    return new StartupConsistencyCheck(Status.RUNNING, null);
+    return new StartupConsistencyCheck(Status.RUNNING, new ArrayList<AlluxioURI>());
   }
 
   private Status mStatus;
