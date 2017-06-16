@@ -14,6 +14,8 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -21,8 +23,7 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A policy that returns the worker with the most available bytes. The policy returns null if no
- * worker is qualified.
+ * A policy that returns the worker with the most available bytes.
  */
 // TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
@@ -36,7 +37,7 @@ public final class MostAvailableFirstPolicy
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+      long blockSizeBytes) throws UnavailableException {
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
     for (BlockWorkerInfo workerInfo : workerInfoList) {
@@ -45,11 +46,15 @@ public final class MostAvailableFirstPolicy
         result = workerInfo.getNetAddress();
       }
     }
+    if (result == null) {
+      throw new UnavailableException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSizeBytes));
+    }
     return result;
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) throws UnavailableException {
     return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 

@@ -32,7 +32,7 @@ public final class RoundRobinPolicyTest {
    * Tests that the correct workers are chosen when round robin is used.
    */
   @Test
-  public void getWorker() {
+  public void getWorker() throws Exception {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));

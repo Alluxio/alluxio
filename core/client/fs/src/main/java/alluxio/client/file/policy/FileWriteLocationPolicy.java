@@ -14,6 +14,7 @@ package alluxio.client.file.policy;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
+import alluxio.exception.status.UnavailableException;
 import alluxio.wire.WorkerNetAddress;
 
 /**
@@ -39,8 +40,9 @@ public interface FileWriteLocationPolicy {
    *
    * @param workerInfoList the info of the active workers
    * @param blockSizeBytes the size of the block in bytes
-   * @return the address of the worker to write to, null if no worker can be selected
+   * @return the address of the worker to write to
+   * @throws UnavailableException if no worker is eligible to serve the request
    */
   WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes);
+      long blockSizeBytes) throws UnavailableException;
 }

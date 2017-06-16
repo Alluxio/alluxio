@@ -14,6 +14,7 @@ package alluxio.client.block.policy;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -66,7 +67,8 @@ public interface BlockLocationPolicy {
    * Gets the worker's network address for serving operations requested for the block.
    *
    * @param options the options to get a block worker network address for a block
-   * @return the address of the worker to write to, null if no worker can be selected
+   * @return the address of the worker to write to
+   * @throws UnavailableException if there are no workers eligible to serve the request
    */
-  WorkerNetAddress getWorker(GetWorkerOptions options);
+  WorkerNetAddress getWorker(GetWorkerOptions options) throws UnavailableException;
 }
