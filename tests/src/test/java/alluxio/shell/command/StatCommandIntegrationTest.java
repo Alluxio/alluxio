@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for stat command.
  */
-public final class StatCommandTest extends AbstractAlluxioShellTest {
+public final class StatCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void statFileNotExist() throws IOException {
     int ret = mFsShell.run("stat", "/NotExistFile");
