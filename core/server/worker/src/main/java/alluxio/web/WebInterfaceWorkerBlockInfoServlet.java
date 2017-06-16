@@ -59,7 +59,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param blockWorker block worker handle
    */
   public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockWorker) {
-    mBlockWorker = Preconditions.checkNotNull(blockWorker);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
   }
 
   /**
