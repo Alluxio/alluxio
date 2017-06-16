@@ -26,32 +26,32 @@ import java.util.List;
  * Unit tests for {@link StartupConsistencyCheck}.
  */
 public final class StartupConsistencyCheckTest {
-    @Test
-    public void createCompleteCheck() {
-        List<AlluxioURI> uris = ImmutableList.of(new AlluxioURI("/"), new AlluxioURI("/dir"));
-        StartupConsistencyCheck check = StartupConsistencyCheck.complete(uris);
-        assertEquals(Status.COMPLETE, check.getStatus());
-        assertEquals(uris, check.getInconsistentUris());
-    }
+  @Test
+  public void createCompleteCheck() {
+    List<AlluxioURI> uris = ImmutableList.of(new AlluxioURI("/"), new AlluxioURI("/dir"));
+    StartupConsistencyCheck check = StartupConsistencyCheck.complete(uris);
+    assertEquals(Status.COMPLETE, check.getStatus());
+    assertEquals(uris, check.getInconsistentUris());
+  }
 
-    @Test
-    public void createDisabledCheck() {
-        StartupConsistencyCheck check = StartupConsistencyCheck.disabled();
-        assertEquals(Status.DISABLED, check.getStatus());
-        assertEquals(Collections.EMPTY_LIST, check.getInconsistentUris());
-    }
+  @Test
+  public void createDisabledCheck() {
+    StartupConsistencyCheck check = StartupConsistencyCheck.disabled();
+    assertEquals(Status.DISABLED, check.getStatus());
+    assertEquals(Collections.EMPTY_LIST, check.getInconsistentUris());
+  }
 
-    @Test
-    public void createFailedCheck() {
-        StartupConsistencyCheck check = StartupConsistencyCheck.failed();
-        assertEquals(Status.FAILED, check.getStatus());
-        assertEquals(Collections.EMPTY_LIST, check.getInconsistentUris());
-    }
+  @Test
+  public void createFailedCheck() {
+    StartupConsistencyCheck check = StartupConsistencyCheck.failed();
+    assertEquals(Status.FAILED, check.getStatus());
+    assertEquals(Collections.EMPTY_LIST, check.getInconsistentUris());
+  }
 
-    @Test
-    public void createRunningCheck() {
-        StartupConsistencyCheck check = StartupConsistencyCheck.running();
-        assertEquals(Status.RUNNING, check.getStatus());
-        assertEquals(Collections.EMPTY_LIST, check.getInconsistentUris());
-    }
+  @Test
+  public void createRunningCheck() {
+    StartupConsistencyCheck check = StartupConsistencyCheck.running();
+    assertEquals(Status.RUNNING, check.getStatus());
+    assertEquals(Collections.EMPTY_LIST, check.getInconsistentUris());
+  }
 }
