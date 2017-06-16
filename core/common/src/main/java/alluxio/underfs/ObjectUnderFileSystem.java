@@ -247,7 +247,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     deleteBuffer.add(stripPrefixIfPresent(convertToFolderName(path)));
-    return deleteBuffer.getResult().size() == deleteBuffer.mEntriesAdded;
+    int filesDeleted = deleteBuffer.getResult().size();
+    if (filesDeleted != deleteBuffer.mEntriesAdded) {
+      LOG.warn("Failed to delete directory, successfully deleted {} files out of {}.",
+          filesDeleted, deleteBuffer.mEntriesAdded);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -305,8 +311,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           result.addAll(list.get());
         } catch (InterruptedException e) {
           // If operation was interrupted do not add to successfully deleted list
+          LOG.warn("Interrupted while waiting for the result of batch delete. UFS and Alluxio "
+              + "state may be inconsistent. Error: {}", e.getMessage());
+          Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
+          LOG.warn("A batch delete failed. UFS and Alluxio state may be inconsistent. Error: {}",
+              e.getMessage());
         }
       }
       return result;
