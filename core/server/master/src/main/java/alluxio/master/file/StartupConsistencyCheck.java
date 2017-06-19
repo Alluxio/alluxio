@@ -29,6 +29,7 @@ public final class StartupConsistencyCheck {
     COMPLETE,
     DISABLED,
     FAILED,
+    NOT_STARTED,
     RUNNING
   }
 
@@ -45,6 +46,13 @@ public final class StartupConsistencyCheck {
    */
   public static StartupConsistencyCheck disabled() {
     return new StartupConsistencyCheck(Status.DISABLED, new ArrayList<AlluxioURI>());
+  }
+
+  /**
+   * @return a result set to the disabled status
+   */
+  public static StartupConsistencyCheck notStarted() {
+    return new StartupConsistencyCheck(Status.NOT_STARTED, new ArrayList<AlluxioURI>());
   }
 
   /**

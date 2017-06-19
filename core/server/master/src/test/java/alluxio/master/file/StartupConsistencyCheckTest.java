@@ -42,6 +42,13 @@ public final class StartupConsistencyCheckTest {
   }
 
   @Test
+  public void createNotStartedCheck() {
+    StartupConsistencyCheck check = StartupConsistencyCheck.notStarted();
+    assertEquals(Status.NOT_STARTED, check.getStatus());
+    assertEquals(Collections.EMPTY_LIST, check.getInconsistentUris());
+  }
+
+  @Test
   public void createFailedCheck() {
     StartupConsistencyCheck check = StartupConsistencyCheck.failed();
     assertEquals(Status.FAILED, check.getStatus());
