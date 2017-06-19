@@ -40,6 +40,7 @@ readonly EXTRA_SYMLINK_CLIENT_PROFILES=( "flink" "hadoop" )
 readonly HOME="${SCRIPT_DIR}/../.."
 readonly BUILD_LOG="${HOME}/logs/build.log"
 readonly REPO_COPY="${WORK_DIR}/alluxio"
+readonly HADOOP_PROFILE_VERSIONS=( ["hadoop-1.0"]="1.0.4" ["hadoop-1.2"]="1.2.1" ["hadoop-2.2"]="2.2.0" ["hadoop-2.3"]="2.3.0" ["hadoop-2.4"]="2.4.1" ["hadoop-2.5"]="2.5.2" ["hadoop-2.6"]="2.6.5" ["hadoop-2.7"]="2.7.3" ["hadoop-2.8"]="2.8.0" )
 
 # Cleans out previous builds and creates a clean copy of the repo.
 function prepare_repo {
@@ -71,14 +72,13 @@ function build {
   mkdir -p "${CLIENT_DIR}"
   for profile in "${client_profiles[@]}"; do
     echo "Running build ${profile} and logging to ${BUILD_LOG}"
-    local profiles_arg="-Pmesos"
+    local mvn_args="-Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos"
     if [[ ${profile} != "default" ]]; then
-      profiles_arg+=" -P${profile}"
+      mvn_args+=" -P${profile}"
     fi
-    if [[ ${hadoop_profile} != "default" ]]; then
-      profiles_arg+=" -P${hadoop_profile}"
-    fi
-    mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true ${profiles_arg} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
+    mvn_args+=" -P${hadoop_profile:0:8}" # sets profile for major hadoop version (i.e. hadoop-1 or hadoop-2)
+    mvn_args+=" -P${hadoop_profile} -D${HADOOP_PROFILE_VERSIONS[${hadoop_profile}]"
+    mvn -T 4C clean install ${mvn_args} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
     mkdir -p "${CLIENT_DIR}/${profile}"
     local version=$(bin/alluxio version)
     cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
