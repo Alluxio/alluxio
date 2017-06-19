@@ -630,7 +630,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
       return StartupConsistencyCheck.disabled();
     }
-    if (!mStartupConsistencyCheck.isDone()) {
+    if (mStartupConsistencyCheck == null || !mStartupConsistencyCheck.isDone()) {
       return StartupConsistencyCheck.running();
     }
     try {
