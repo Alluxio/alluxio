@@ -14,7 +14,7 @@ set -e
 
 readonly SCRIPT_DIR=$(cd "$( dirname "$0" )"; pwd)
 readonly GENERATE_TARBALL_SCRIPT="${SCRIPT_DIR}/generate-tarball.sh"
-readonly HADOOP_PROFILES=( "default" "hadoop-1" "hadoop-2.2" "hadoop-2.3" "hadoop-2.4" "hadoop-2.5" "hadoop-2.6" "hadoop-2.7" "hadoop-2.8" )
+readonly HADOOP_PROFILES=( "hadoop-1.0" "hadoop-1.2" "hadoop-2.2" "hadoop-2.3" "hadoop-2.4" "hadoop-2.5" "hadoop-2.6" "hadoop-2.7" "hadoop-2.8" )
 
 function main {
   local build_directory="${PWD}"
