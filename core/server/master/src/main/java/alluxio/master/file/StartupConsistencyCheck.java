@@ -13,6 +13,8 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,8 +61,8 @@ public final class StartupConsistencyCheck {
     return new StartupConsistencyCheck(Status.RUNNING, new ArrayList<AlluxioURI>());
   }
 
-  private Status mStatus;
-  private List<AlluxioURI> mInconsistentUris;
+  private final Status mStatus;
+  private final List<AlluxioURI> mInconsistentUris;
 
   /**
    * Create a new startup consistency check result.
@@ -69,8 +71,8 @@ public final class StartupConsistencyCheck {
    * @param inconsistentUris the uris which are inconsistent with the underlying storage
    */
   private StartupConsistencyCheck(Status status, List<AlluxioURI> inconsistentUris) {
-    mStatus = status;
-    mInconsistentUris = inconsistentUris;
+    mStatus = Preconditions.checkNotNull(status, "status");
+    mInconsistentUris = Preconditions.checkNotNull(inconsistentUris, "inconsistentUris");
   }
 
   /**
