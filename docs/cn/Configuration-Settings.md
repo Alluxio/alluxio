@@ -76,6 +76,10 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
   <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>
   <td>对Alluxio Shell配置的额外Java虚拟机配置选项</td>
 </tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
+  <td>Alluxio进程的额外classpath入口. 默认为空</td>
+</tr>
 </table>
 
 例如，如果你希望将Alluxio master运行在`localhost`上，其底层存储系统HDFS的namenode也运行在`localhost`上，并且在7001端口启用Java远程调试，可以使用：
