@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for rm command.
  */
-public final class RmCommandTest extends AbstractAlluxioShellTest {
+public final class RmCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void rmNotExistingDir() throws IOException {
     StringBuilder toCompare = new StringBuilder();
