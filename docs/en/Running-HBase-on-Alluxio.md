@@ -65,7 +65,7 @@ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
 Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at 
-{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}} for the rest of this guide.
+`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
 
 ### Add additional Alluxio site properties to HBase
 
