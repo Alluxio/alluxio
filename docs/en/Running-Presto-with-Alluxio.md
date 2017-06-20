@@ -1,12 +1,12 @@
 ---
 layout: global
-title: Running Facebook Presto with Alluxio
+title: Running Presto with Alluxio
 nickname: Presto
 group: Frameworks
 priority: 2
 ---
 
-This guide describes how to run [Facebook Presto](https://prestodb.io/) with Alluxio, so
+This guide describes how to run [Presto](https://prestodb.io/) with Alluxio, so
 that you can easily use presto to query Hive tables in Alluxio's tiered storage.
 
 # Prerequisites

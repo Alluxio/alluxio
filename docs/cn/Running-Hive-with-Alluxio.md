@@ -58,7 +58,7 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 
 ## Alluxio作为默认文件系统
 
-Apache Hive允许使用Alluxio，只需通过一个一般的文件系统接口来替换Hadoop文件系统使用Alluxio。这种方式下，Hive使用Alluxio作为其默认文件系统，它的元数据和中间结果都将存储在Alluxio上。
+Apache Hive也可以使用Alluxio，只需通过一个一般的文件系统接口来替换Hadoop文件系统使用Alluxio。这种方式下，Hive使用Alluxio作为其默认文件系统，它的元数据和中间结果都将存储在Alluxio上。
 
 ### 配置 Hive
 
