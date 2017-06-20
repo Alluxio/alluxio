@@ -1,12 +1,12 @@
 ---
 layout: global
-title: 在Alluxio上运行Facebook Presto
+title: 在Alluxio上运行Presto
 nickname: Presto
 group: Frameworks
 priority: 2
 ---
 
-该文档介绍如何运行[Facebook Presto](https://prestodb.io/)，让Presto能够查询Alluxio上的Hive表。
+该文档介绍如何运行[Presto](https://prestodb.io/)，让Presto能够查询Alluxio上的Hive表。
 
 # 前期准备
 
