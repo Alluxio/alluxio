@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
@@ -20,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -35,7 +37,7 @@ import java.util.List;
 /**
  * Tests the consistency check which happens on master start up.
  */
-public class StartupConsistencyCheckTest extends BaseIntegrationTest {
+public final class StartupConsistencyCheckIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI TOP_LEVEL_FILE = new AlluxioURI("/file");
   private static final AlluxioURI TOP_LEVEL_DIR = new AlluxioURI("/dir");
   private static final AlluxioURI SECOND_LEVEL_FILE = new AlluxioURI("/dir/file");
@@ -77,6 +79,7 @@ public class StartupConsistencyCheckTest extends BaseIntegrationTest {
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);
+    Assert.assertTrue(master.getStartupConsistencyCheck().getStatus().equals(Status.COMPLETE));
     Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
     registry.stop();
   }
@@ -96,12 +99,25 @@ public class StartupConsistencyCheckTest extends BaseIntegrationTest {
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);
+    Assert.assertTrue(master.getStartupConsistencyCheck().getStatus().equals(Status.COMPLETE));
     List<AlluxioURI> expected =
         Lists.newArrayList(TOP_LEVEL_FILE, SECOND_LEVEL_DIR, THIRD_LEVEL_FILE);
     List<AlluxioURI> result = master.getStartupConsistencyCheck().getInconsistentUris();
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
+    registry.stop();
+  }
+
+  @Test
+  public void disabled() throws Exception {
+    mCluster.stopFS();
+    Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
+    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    FileSystemMaster master = registry.get(FileSystemMaster.class);
+    MasterTestUtils.waitForStartupConsistencyCheck(master);
+    Assert.assertTrue(master.getStartupConsistencyCheck().getInconsistentUris().isEmpty());
+    Assert.assertTrue(master.getStartupConsistencyCheck().getStatus().equals(Status.DISABLED));
     registry.stop();
   }
 }

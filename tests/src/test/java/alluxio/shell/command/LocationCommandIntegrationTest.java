@@ -22,7 +22,7 @@ import java.io.IOException;
 /**
  * Test for location command.
  */
-public final class LocationCommandTest extends AbstractAlluxioShellTest {
+public final class LocationCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void locationNotExist() throws IOException {
     int ret = mFsShell.run("location", "/NotExistFile");
