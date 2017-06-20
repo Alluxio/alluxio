@@ -19,7 +19,7 @@ that manages data access and provides fast storage, facilitating data sharing an
 between jobs, regardless of whether they are running on the same computation engine. As a 
 result, Alluxio can bring an order of magnitude speed up for those big data applications while
 providing a common interface of data access. For under storage systems, Alluxio connects the 
-gap between big data applications and traditional storage systems, and expnads the set of 
+gap between big data applications and traditional storage systems, and expands the set of 
 workloads available to utilize the data. Since Alluxio hides the integration of under storage 
 systems to applications, any under storage can back all the applications and frameworks running
 on top of Alluxio. Coupled with the potential to mount multiple under storage systems, Alluxio 
