@@ -14,6 +14,8 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -27,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
- * that do not have enough space. The policy returns null if no worker can be found.
+ * that do not have enough space.
  */
 // TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @NotThreadSafe
@@ -52,10 +54,11 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
    * @param workerInfoList the info of the active workers
    * @param blockSizeBytes the size of the block in bytes
    * @return the address of the worker to write to
+   * @throws UnavailableException if no worker is eligible to serve the request
    */
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+      long blockSizeBytes) throws UnavailableException {
     if (!mInitialized) {
       mWorkerInfoList = Lists.newArrayList(workerInfoList);
       Collections.shuffle(mWorkerInfoList);
@@ -72,11 +75,12 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
         return candidate;
       }
     }
-    return null;
+    throw new UnavailableException(
+        ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSizeBytes));
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) throws UnavailableException {
     WorkerNetAddress address = mBlockLocationCache.get(options.getBlockId());
     if (address != null) {
       return address;

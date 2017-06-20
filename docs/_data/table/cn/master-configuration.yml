@@ -40,6 +40,8 @@ alluxio.master.ttl.checker.interval.ms:
   清除过期ttl值的文件任务的时间间隔（单位：毫秒）。
 alluxio.master.ufs.path.cache.capacity:
   UFS路径缓存的容量。此缓存用来近似`一次性`元数据加载行为。（查看 `alluxio.user.file.metadata.load.type`)。更大的缓存将耗费更大的内存，但是能够更好地近似`一次性`行为。
+alluxio.master.ufs.path.cache.threads:
+  线程池（可异步处理路径，用于缓存UFS路径）的最大容积。
 alluxio.master.web.bind.host:
   Alluxio master web UI绑定的主机名。参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.master.web.hostname:

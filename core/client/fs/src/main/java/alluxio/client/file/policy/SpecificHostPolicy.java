@@ -14,6 +14,8 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -22,8 +24,7 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Always returns a worker with the specified hostname. Returns null if no active worker on that
- * hostname found.
+ * A policy which always returns a worker with the specified hostname.
  */
 // TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
@@ -41,18 +42,19 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockL
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+      long blockSizeBytes) throws UnavailableException {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : workerInfoList) {
       if (info.getNetAddress().getHost().equals(mHostname)) {
         return info.getNetAddress();
       }
     }
-    return null;
+    throw new UnavailableException(
+        ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSizeBytes));
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) throws UnavailableException {
     return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 

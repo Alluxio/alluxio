@@ -32,7 +32,7 @@ public final class MostAvailableFirstPolicyTest {
    * Tests that the worker with the most available space is chosen.
    */
   @Test
-  public void getMostAvailableWorker() {
+  public void getMostAvailableWorker() throws Exception {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));

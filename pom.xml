@@ -155,6 +155,7 @@
     <libthrift.version>0.9.3</libthrift.version>
     <license.header.path>build/license/</license.header.path>
     <log4j.version>1.2.17</log4j.version>
+    <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
     <protobuf.version>2.5.0</protobuf.version>
@@ -976,6 +977,9 @@
             </goals>
             <configuration>
               <rules>
+                <requireMavenVersion>
+                  <version>${maven.version}</version>
+                </requireMavenVersion>
                 <requireJavaVersion>
                   <version>${java.version}</version>
                 </requireJavaVersion>

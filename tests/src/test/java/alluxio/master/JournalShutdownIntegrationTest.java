@@ -86,6 +86,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   public void singleMasterJournalStopIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     runCreateFileThread(cluster.getClient());
+    System.out.println(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
     // Shutdown the cluster
     cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
