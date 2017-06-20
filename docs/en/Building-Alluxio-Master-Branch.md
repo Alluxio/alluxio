@@ -98,7 +98,12 @@ $ mvn install -Ppresto -DskipTests
 ## Distro Support
 
 To build Alluxio against one of the different distros of hadoop, you only need to change the
-`hadoop.version`.
+`hadoop.version`. You can run the following command:
+
+```bash
+$ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
+```
+where `<HADOOP_VERSION>` can be set for different distributions.
 
 ### Apache
 
