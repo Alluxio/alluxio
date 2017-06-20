@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * Tests the "pin" and "unpin" commands.
  */
-public final class PinCommandTest extends AbstractAlluxioShellTest {
+public final class PinCommandIntegrationTest extends AbstractAlluxioShellTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,
