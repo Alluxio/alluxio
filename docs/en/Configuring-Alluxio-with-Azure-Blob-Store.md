@@ -28,7 +28,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Alluxio can support the Azure blob store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store over [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
@@ -36,7 +36,7 @@ Download azure storage java library(version 2.2.0) from [here](https://mvnreposi
 
 You need to add the above mentioned libraries in the `ALLUXIO_CLASSPATH`. You can do this by adding following line in the `conf/alluxio-env.sh`:
 ```
-export ALLUXIO_CLASSPATH=PATH_TO_HADOOP_AZURE_JAR/hadoop-azure-2.7.3.jar:PATH_TO_AZURE_STORAGE_JAR/azure-storage-2.2.0.jar
+$ export ALLUXIO_CLASSPATH=PATH_TO_HADOOP_AZURE_JAR/hadoop-azure-2.7.3.jar:PATH_TO_AZURE_STORAGE_JAR/azure-storage-2.2.0.jar
 ```
 
 You need to configure Alluxio to use Azure Blob Store as its under storage system. The first modification is to specify the underfs address and setting hdfs prefixes so that Alluxio can recognize `wasb://` scheme by modifying `conf/alluxio-site.properties` to include:
