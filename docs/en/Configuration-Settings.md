@@ -97,7 +97,8 @@ also running at `localhost`, and enable Java remote debugging at port 7001, you 
 
 {% include Configuration-Settings/more-conf.md %}
 
-Users can either set these variables through shell or in `conf/alluxio-env.sh`. If this file does not exist yet, you can create one from a template we provided in the source code using:
+Users can either set these variables through shell or in `conf/alluxio-env.sh`. If this file does not exist yet, 
+you can create one from a template we provided in the source code using:
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
