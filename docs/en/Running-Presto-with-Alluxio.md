@@ -82,6 +82,8 @@ Distribute the Alluxio client jar to all worker nodes in Presto:
 `$PRESTO_HOME/plugin/hive-hadoop2/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+
 # Presto cli examples
 
 Create a table in Hive and load a file in local path into Hive:
