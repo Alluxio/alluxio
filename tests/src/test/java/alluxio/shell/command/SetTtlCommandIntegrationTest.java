@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * Tests for setTtl command.
  */
-public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
+public final class SetTtlCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void setTtl() throws Exception {
     String filePath = "/testFile";
