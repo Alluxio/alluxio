@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
- * If No worker meets the demands, return local host.
+ * If no worker meets the demands, return local host.
  * USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES is used to reserve some space of the worker
  * to store the block, for the values mCapacityBytes minus mUsedBytes is not the available bytes.
  */
