@@ -298,7 +298,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       create(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
-      create(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "1min");
+      create(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "5min");
   public static final PropertyKey WORKER_BLOCK_THREADS_MAX =
       create(Name.WORKER_BLOCK_THREADS_MAX, 2048);
   public static final PropertyKey WORKER_BLOCK_THREADS_MIN =
