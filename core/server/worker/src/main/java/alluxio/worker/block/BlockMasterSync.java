@@ -142,8 +142,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
             cmdFromMaster.toString(), e);
       }
       mMasterClient.resetConnection();
-      if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
-        throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
+      if (mHeartbeatTimeoutMs > 0) {
+        if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
+          if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+            throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
+          }
+          LOG.error("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
+          // TODO(andrew): Propagate the exception to the main thread and exit there.
+          System.exit(-1);
+        }
       }
     }
   }
