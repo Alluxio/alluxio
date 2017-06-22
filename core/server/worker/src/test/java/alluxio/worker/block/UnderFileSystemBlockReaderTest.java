@@ -23,6 +23,7 @@ import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
+import com.google.common.base.Suppliers;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.After;
@@ -67,12 +68,14 @@ public final class UnderFileSystemBlockReaderTest {
     mAlluxioBlockStore = Mockito.mock(BlockStore.class);
     mTempBlockMeta = Mockito.mock(TempBlockMeta.class);
     mUfsManager = Mockito.mock(UfsManager.class);
+    UfsInfo ufsInfo = new UfsInfo(
+        Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
+        new AlluxioURI(testFilePath));
     Mockito.when(mAlluxioBlockStore
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(BlockStoreLocation.class),
             Mockito.anyLong())).thenReturn(mTempBlockMeta);
     Mockito.when(mTempBlockMeta.getPath()).thenReturn(mFolder.newFile().getAbsolutePath());
-    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(
-        new UfsInfo(UnderFileSystem.Factory.create(testFilePath), new AlluxioURI(testFilePath)));
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE).setUfsPath(testFilePath)

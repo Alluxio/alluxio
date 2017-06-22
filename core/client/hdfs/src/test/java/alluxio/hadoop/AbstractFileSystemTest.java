@@ -140,6 +140,22 @@ public class AbstractFileSystemTest {
   }
 
   /**
+   * Tests that using an alluxio-ft:/// URI is still possible after using an alluxio://host:port/
+   * URI.
+   */
+  @Test
+  public void loadRegularThenFaultTolerant() throws Exception {
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.ZOOKEEPER_ENABLED, "true",
+        PropertyKey.ZOOKEEPER_ADDRESS, "host:2")).toResource()) {
+      org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host:1/"), getConf());
+      org.apache.hadoop.fs.FileSystem fs =
+          org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER_FT + "/"), getConf());
+      Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+    }
+  }
+
+  /**
    * Ensures that Hadoop loads the Alluxio file system when configured.
    */
   @Test

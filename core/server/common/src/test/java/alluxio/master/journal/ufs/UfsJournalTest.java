@@ -39,11 +39,11 @@ public class UfsJournalTest {
   public void nonEmptyConfiguration() throws Exception {
     PropertyKey key =
         PropertyKey.Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
-            .format(PropertyKey.UNDERFS_LISTING_LENGTH.toString());
-    String value = "10000";
+            .format(PropertyKey.UNDERFS_HDFS_VERSION.toString());
+    String value = "bar";
     Configuration.set(key, value);
     UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
-    Assert.assertEquals(value, conf.getValue(PropertyKey.UNDERFS_LISTING_LENGTH));
+    Assert.assertEquals(value, conf.getValue(PropertyKey.UNDERFS_HDFS_VERSION));
     Assert.assertEquals(1, conf.getUserSpecifiedConf().size());
   }
 }
