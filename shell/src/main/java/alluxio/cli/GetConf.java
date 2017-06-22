@@ -124,7 +124,6 @@ public final class GetConf {
       printHelp("Unable to parse input args: " + e.getMessage());
       return 1;
     }
-    Preconditions.checkNotNull(cmd, "Unable to parse input args");
     args = cmd.getArgs();
     switch (args.length) {
       case 0:
