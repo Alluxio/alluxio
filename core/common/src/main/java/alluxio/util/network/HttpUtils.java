@@ -17,8 +17,8 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Utility methods for working with http.
@@ -32,11 +32,10 @@ public final class HttpUtils {
   /**
    * use post method to send params by http.
    * @param url the http url
-   * @param timeout socket timeout and connection timeout
-   * @return the response body
+   * @param timeout millisecond to wait for the server to respond before giving up
+   * @return the response body stream
    */
-  public static String sendPost(String url, Integer timeout) {
-    StringBuilder contentBuffer = new StringBuilder();
+  public static InputStream post(String url, Integer timeout) throws IOException {
     PostMethod postMethod = null;
     try {
       HttpClient httpClient = new HttpClient();
@@ -47,23 +46,18 @@ public final class HttpUtils {
       postMethod = new PostMethod(url);
       int statusCode = httpClient.executeMethod(postMethod);
       if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_CREATED) {
-        try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(postMethod.getResponseBodyAsStream(), "UTF-8"))) {
-          String line;
-          while ((line = br.readLine()) != null) {
-            contentBuffer.append(line);
-          }
-        }
+        return postMethod.getResponseBodyAsStream();
       } else {
         LOG.error("HTTP POST error code:" + statusCode);
       }
     } catch (Exception e) {
       LOG.error("HTTP POST error code:", e);
+      throw e;
     } finally {
       if (postMethod != null) {
         postMethod.releaseConnection();
       }
     }
-    return contentBuffer.toString();
+    return null;
   }
 }

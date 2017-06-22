@@ -73,6 +73,6 @@ public final class LogInfo {
 
   @Override
   public String toString() {
-    return mLogName + ":" + mLevel + "." + (mMessage != null ? " message: " + mMessage : "");
+    return mLevel + " " + mLogName + " - " + (mMessage != null ? mMessage : "");
   }
 }

@@ -21,7 +21,6 @@ import alluxio.wire.LogInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,9 +30,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,22 +48,25 @@ public final class LogLevel {
   private static final String TARGET_OPTION_NAME = "target";
   private static final Option TATGET_OPTION =
       Option.builder().required(false).longOpt(TARGET_OPTION_NAME).hasArg(true)
-          .desc("<master|workers|host:port>. Multi target split by ','.").build();
-  private static final String LOGNAME_OPTION_NAME = "logName";
-  private static final Option LOGNAME_OPTION =
-      Option.builder().required(true).longOpt(LOGNAME_OPTION_NAME).hasArg(true)
-          .desc("log name.").build();
+          .desc("<master|workers|host:port>."
+              + " Multi target split by ',' host:port pair must be one of workers."
+              + " Default target is master and all workers").build();
+  private static final String LOG_NAME_OPTION_NAME = "logName";
+  private static final Option LOG_NAME_OPTION =
+      Option.builder().required(true).longOpt(LOG_NAME_OPTION_NAME).hasArg(true)
+          .desc("The log name you want to get or set level.").build();
   private static final String LEVEL_OPTION_NAME = "level";
   private static final Option LEVEL_OPTION =
       Option.builder().required(false).longOpt(LEVEL_OPTION_NAME).hasArg(true)
-          .desc("<master|workers|host:port>.").build();
+          .desc("The level of the log what you specified.").build();
   private static final Options OPTIONS = new Options()
       .addOption(TATGET_OPTION)
-      .addOption(LOGNAME_OPTION)
+      .addOption(LOG_NAME_OPTION)
       .addOption(LEVEL_OPTION);
 
   private static final String USAGE =
       "logLevel --logName=LOGNAME [--target=<master|workers|host:port>] [--level=LEVEL]";
+  public static final String TARGET_SEPARATOR = ",";
 
   /**
    * Prints the help message.
@@ -72,13 +76,13 @@ public final class LogLevel {
   public static void printHelp(String message) {
     System.err.println(message);
     HelpFormatter help = new HelpFormatter();
-    help.printHelp(USAGE, OPTIONS);
+    help.printHelp(LOG_LEVEL, OPTIONS, true);
   }
 
   /**
    * Implements log level setting and getting.
    *
-   * @param args list of arguments
+   * @param args list of arguments contains target, logName and level
    * @return 0 on success, 1 on failures
    */
   public static int logLevel(String... args) {
@@ -91,81 +95,115 @@ public final class LogLevel {
       printHelp("Unable to parse input args: " + e.getMessage());
       return 1;
     }
-    Preconditions.checkNotNull(cmd, "Unable to parse input args");
-    List<TargetInfo> addrList = new ArrayList<>();
-    String logName = "";
-    String level = null;
-    String[] targets;
+    List<TargetInfo> targetInfoList = new ArrayList<>();
 
-    String argName = cmd.getOptionValue(LOGNAME_OPTION_NAME);
-    if (StringUtils.isNotBlank(argName)) {
-      logName = argName;
-    }
+    String[] targets = parseOptTarget(cmd);
+    String logName = parseOptLogName(cmd);
+    String level = parseOptLevel(cmd);
 
-    if (cmd.hasOption(TARGET_OPTION_NAME)) {
-      String argTarget = cmd.getOptionValue(TARGET_OPTION_NAME);
-      if (StringUtils.isBlank(argTarget)) {
-        targets = new String[]{"master", "workers"};
-      } else if (argTarget.contains(",")) {
-        targets = argTarget.split(",");
-      } else {
-        targets = new String[]{argTarget};
-      }
-    } else {
-      targets = new String[]{"master", "workers"};
-    }
     for (String target : targets) {
       if (target.contains("master")) {
         String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB);
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB);
-        addrList.add(new TargetInfo(masterHost + ":" + masterPort, "master"));
+        targetInfoList.add(new TargetInfo(masterHost, masterPort, "master"));
       } else if (target.contains("workers")) {
         AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create();
         try {
           List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getWorkerInfoList();
           for (BlockWorkerInfo workerInfo : workerInfoList) {
             WorkerNetAddress netAddress = workerInfo.getNetAddress();
-            addrList.add(
-                new TargetInfo(netAddress.getHost() + ":" + netAddress.getWebPort(), "worker"));
+            targetInfoList.add(
+                new TargetInfo(netAddress.getHost(), netAddress.getWebPort(), "worker"));
           }
         } catch (IOException e) {
           e.printStackTrace();
+          return 1;
         }
       } else if (target.contains(":")) {
-        addrList.add(new TargetInfo(target, "worker"));
+        String[] hostPortPair = target.split(":");
+        int port = Integer.parseInt(hostPortPair[1]);
+        targetInfoList.add(new TargetInfo(hostPortPair[0], port, "worker"));
       }
     }
 
-    if (cmd.hasOption(LEVEL_OPTION_NAME)) {
-      String argLevel = cmd.getOptionValue(LEVEL_OPTION_NAME);
-      if (StringUtils.isNotBlank(argLevel)) {
-        level = argLevel;
-      }
-    }
-
-    for (TargetInfo targetInfo : addrList) {
-      String url = "http://" + targetInfo.getAddres() + Constants.REST_API_PREFIX + "/"
-          + targetInfo.getRole() + "/" + LOG_LEVEL + "?" + LOGNAME_OPTION_NAME + "=" + logName;
-      if (level != null) {
-        url += "&" + LEVEL_OPTION_NAME + "=" + level;
-      }
-      String result = HttpUtils.sendPost(url, 5000);
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        LogInfo logInfo = mapper.readValue(result, LogInfo.class);
-        System.out.println(
-            targetInfo.getAddres() + "[" + targetInfo.getRole() + "]" + logInfo.toString());
-      } catch (IOException e) {
-        e.printStackTrace();
+    for (TargetInfo targetInfo : targetInfoList) {
+      if (handleTarget(logName, level, targetInfo)) {
+        return 1;
       }
     }
     return 0;
   }
 
+  private static String[] parseOptTarget(CommandLine cmd) {
+    String[] targets;
+    if (cmd.hasOption(TARGET_OPTION_NAME)) {
+      String argTarget = cmd.getOptionValue(TARGET_OPTION_NAME);
+      if (StringUtils.isBlank(argTarget)) {
+        targets = new String[]{"master", "workers"};
+      } else if (argTarget.contains(TARGET_SEPARATOR)) {
+        targets = argTarget.split(TARGET_SEPARATOR);
+      } else {
+        targets = new String[]{argTarget};
+      }
+    } else {
+      targets = new String[]{"master", "workers"};
+    }
+    return targets;
+  }
+
+  private static String parseOptLogName(CommandLine cmd) {
+    String argName = cmd.getOptionValue(LOG_NAME_OPTION_NAME);
+    if (StringUtils.isNotBlank(argName)) {
+      return argName;
+    }
+    return "";
+  }
+
+  private static String parseOptLevel(CommandLine cmd) {
+    if (cmd.hasOption(LEVEL_OPTION_NAME)) {
+      String argLevel = cmd.getOptionValue(LEVEL_OPTION_NAME);
+      if (StringUtils.isNotBlank(argLevel)) {
+        return argLevel;
+      }
+    }
+    return null;
+  }
+
+  private static boolean handleTarget(String logName, String level, TargetInfo targetInfo) {
+    URIBuilder uriBuilder = new URIBuilder();
+    uriBuilder.setScheme("http");
+    uriBuilder.setHost(targetInfo.getHost());
+    uriBuilder.setPort(targetInfo.getPort());
+    uriBuilder.setPath(Constants.REST_API_PREFIX + "/" + targetInfo.getRole() + "/" + LOG_LEVEL);
+    uriBuilder.addParameter(LOG_NAME_OPTION_NAME, logName);
+    if (level != null) {
+      uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
+    }
+    InputStream inputStream = null;
+    try {
+      inputStream = HttpUtils.post(uriBuilder.toString(), 5000);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    if (inputStream != null) {
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
+        System.out.println(targetInfo.toString() + logInfo.toString());
+      } catch (IOException e) {
+        e.printStackTrace();
+        return true;
+      }
+    } else {
+      return true;
+    }
+    return false;
+  }
+
   /**
-   * Prints Alluxio configuration.
+   * Set or get log level of Alluxio servers.
    *
-   * @param args the arguments to specify the unit (optional) and configuration key (optional)
+   * @param args the arguments to specify the arguments of this command
    */
   public static void main(String[] args) {
     System.exit(logLevel(args));
@@ -173,21 +211,32 @@ public final class LogLevel {
 
   private LogLevel() {} // this class is not intended for instantiation
 
-  static final class TargetInfo {
-    private String mAddres;
+  private static final class TargetInfo {
     private String mRole;
+    private String mHost;
+    private int mPort;
 
-    public TargetInfo(String address, String role) {
-      mAddres = address;
+    public TargetInfo(String host, int port, String role) {
+      mHost = host;
+      mPort = port;
       mRole = role;
     }
 
-    public String getAddres() {
-      return mAddres;
+    public int getPort() {
+      return mPort;
+    }
+
+    public String getHost() {
+      return mHost;
     }
 
     public String getRole() {
       return mRole;
+    }
+
+    @Override
+    public String toString() {
+      return mHost + ":" + mPort + "[" + mRole + "]";
     }
   }
 }
