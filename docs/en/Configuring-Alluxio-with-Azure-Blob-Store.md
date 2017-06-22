@@ -28,11 +28,11 @@ Alternatively, you can also create the configuration file from the template and 
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
-Also, in preparation for using Azure blob store with Alluxio, create a new container in your Azure storage account or use an existing container. You should also note that the directory you want to use in that container, either by creating a new directory in the container, or using an existing one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)
+Also, in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure storage account or use an existing container. You should also note that the directory you want to use in that container, either by creating a new directory in the container, or using an existing one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)
 
 ## Configuring Alluxio
 
-Alluxio can support the Azure blob store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store over [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
+Alluxio can support the Azure Blob Store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
 Download azure storage java library(version 2.2.0) from [here](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) and hadoop azure libraries corresponding to your Hadoop version from [here](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure). Please make sure to use `azure-storage-2.2.0.jar` and not any other higher version due to version conflicts with hadoop-azure libraries.
 
 You need to add the above mentioned libraries in the `ALLUXIO_CLASSPATH`. You can do this by adding following line in the `conf/alluxio-env.sh`:
