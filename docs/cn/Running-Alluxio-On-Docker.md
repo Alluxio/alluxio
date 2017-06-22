@@ -40,10 +40,13 @@ cd alluxio/integration/docker
 docker build -t alluxio .
 ```
 
-默认情况下，这会为最新版本的Alluxio构建镜像。若要为本地的Alluxio压缩包构建，可以使用`--build-arg`参数。
+默认情况下，这会为最新版本的Alluxio构建镜像。若要根据本地的Alluxio压缩包或者另外一个可下载的压缩包构建，可以使用`--build-arg`参数。
 
 ```bash
+$ # 根据本地压缩包构建
 $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+$ # 根据远端压缩包构建
+$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz .
 ```
 
 ### 设置底层存储系统
@@ -65,7 +68,7 @@ $ mkdir underStorage
 
 ```bash
 $ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=10G ramfs /mnt/ramdisk
+$ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
 $ sudo chmod a+w /mnt/ramdisk
 ```
 
@@ -95,7 +98,6 @@ docker run -d --net=host alluxio master
 ```bash
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
@@ -103,14 +105,14 @@ $ docker run -d --net=host \
 ## 运行Alluxio worker
 
 我们需要让worker知道master的位置，在启动worker Docker容器时设置`ALLUXIO_MASTER_HOSTNAME`环境变量为你的主机的主机名。为了允许快速短路读取，
-通过`-v /mnt/ramdisk:/mnt/ramdisk`来给worker指定给定位置和大小的共享虚拟内存。`-v /mnt/ramdisk:/mnt/ramdisk`命令将主机路径`/mnt/ramdisk`挂载到worker容器路径`/mnt/ramdisk`。这样，Alluxio worker 可以直接从容器外部写入数据。
+通过`-v /mnt/ramdisk:/opt/ramdisk`来给worker指定给定位置和大小的共享虚拟内存。`-v /mnt/ramdisk:/opt/ramdisk`命令将主机路径`/mnt/ramdisk`挂载到worker容器路径`/opt/ramdisk`。这样，Alluxio worker 可以直接从容器外部写入数据。
 
 ```bash
 $ docker run -d --net=host \
-             -v /mnt/ramdisk:/mnt/ramdisk \
+             -v /mnt/ramdisk:/opt/ramdisk \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_RAM_FOLDER=/mnt/ramdisk \
+             -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio worker
@@ -131,9 +133,25 @@ cd opt/alluxio
 bin/alluxio runTests
 ```
 
-### 客户端之间共享虚拟内存
+### 读／写本地worker节点
 
-带`-v /mnt/ramdisk:/mnt/ramdisk`命令启动的客户端与主机共享虚拟内存。为了使同一台主机上其他容器内的客户端使用当前机器的虚拟内存，这些容器需要带`-v /mnt/ramdisk:/mnt/ramdisk`命令启动。
+有两种方法可以对本地worker节点进行高效的读／写，与客户端共享ramdisk的选项要求客户端容器的内存限制大于其写入本地ramdisk的数据量，使用域套接字的方法没有这种限制，但是在客户端容器和工作容器上会消耗更多的CPU。
+
+#### 与客户端共享ramdisk
+
+带`-v /mnt/ramdisk:/opt/ramdisk`命令启动的客户端(`/opt/ramdisk`)与主机(`/mnt/ramdisk`)共享虚拟内存。为了使同一台主机上其他容器内的客户端使用/opt/ramdisk的虚拟内存，这些容器需要带`-v /mnt/ramdisk:/opt/ramdisk`命令启动。
+
+#### 与客户端共享域套接字
+
+在主机上：
+```bash
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
+$ touch /tmp/domain/d
+$ chmod a+w /tmp/domain/d
+```
+当启动worker和client时，使用`-v / tmp / domain：/ opt / domain`运行docker容器来共享主机上的`/ tmp / domain`目录与worker节点和客户端的`/ opt / domain`目录。
+在运行容器时通过传递`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS = / opt / domain / d`来设置 `alluxio.worker.data.server.domain.socket.address` 属性。
 
 # 配置
 

@@ -52,7 +52,7 @@ public final class DeterministicHashPolicyTest {
   }
 
   @Test
-  public void getWorkerDeterministically() throws Exception {
+  public void getWorkerDeterministically() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         CreateOptions.defaults()
             .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
@@ -74,7 +74,7 @@ public final class DeterministicHashPolicyTest {
   }
 
   @Test
-  public void getWorkerEnoughCapacity() throws Exception {
+  public void getWorkerEnoughCapacity() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         CreateOptions.defaults()
             .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
@@ -87,7 +87,7 @@ public final class DeterministicHashPolicyTest {
   }
 
   @Test
-  public void getWorkerMultipleShards() throws Exception {
+  public void getWorkerMultipleShards() {
     DeterministicHashPolicy policy2 = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         CreateOptions.defaults()
             .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName())

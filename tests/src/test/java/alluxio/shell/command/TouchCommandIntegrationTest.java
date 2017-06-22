@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for touch command.
  */
-public final class TouchCommandTest extends AbstractAlluxioShellTest {
+public final class TouchCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void touch() throws IOException, AlluxioException {
     String[] argv = new String[] {"touch", "/testFile"};

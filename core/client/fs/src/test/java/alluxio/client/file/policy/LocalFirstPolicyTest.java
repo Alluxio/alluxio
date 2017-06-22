@@ -33,7 +33,7 @@ public final class LocalFirstPolicyTest {
    * Tests that the local host is returned first.
    */
   @Test
-  public void getLocalFirst() throws Exception {
+  public void getLocalFirst() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
@@ -49,7 +49,7 @@ public final class LocalFirstPolicyTest {
    * Tests that another worker is picked in case the local host does not have enough space.
    */
   @Test
-  public void getOthersWhenNotEnoughSpaceOnLocal() throws Exception {
+  public void getOthersWhenNotEnoughSpaceOnLocal() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
@@ -65,7 +65,7 @@ public final class LocalFirstPolicyTest {
    * Tests that non-local workers are randomly selected.
    */
   @Test
-  public void getOthersRandomly() throws Exception {
+  public void getOthersRandomly() {
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")

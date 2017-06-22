@@ -33,7 +33,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
    * Tests that the local host is returned first.
    */
   @Test
-  public void getLocalFirst() throws Exception {
+  public void getLocalFirst() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
     LocalFirstAvoidEvictionPolicy policy = new LocalFirstAvoidEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
@@ -49,7 +49,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
    * Tests that another worker is picked in case the local host does not have enough space.
    */
   @Test
-  public void getOthersWhenNotEnoughSpaceOnLocal() throws Exception {
+  public void getOthersWhenNotEnoughSpaceOnLocal() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
     LocalFirstAvoidEvictionPolicy policy = new LocalFirstAvoidEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
@@ -65,7 +65,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
    * Tests that local host is picked if none of the workers has enough availability.
    */
   @Test
-  public void getLocalWhenNoneHasSpace() throws Exception {
+  public void getLocalWhenNoneHasSpace() {
     String localhostName = NetworkAddressUtils.getLocalHostName();
     LocalFirstAvoidEvictionPolicy policy = new LocalFirstAvoidEvictionPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
