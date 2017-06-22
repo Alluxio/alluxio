@@ -102,7 +102,7 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_HDFS_IMPL =
       create(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem");
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
-    create(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///,maprfs:///");
+      create(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///,maprfs:///");
   public static final PropertyKey UNDERFS_HDFS_REMOTE = create(Name.UNDERFS_HDFS_REMOTE, false);
   public static final PropertyKey UNDERFS_OBJECT_STORE_SERVICE_THREADS =
       create(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS, 20);
