@@ -359,25 +359,31 @@ resources are below.
 Alluxio can be deployed in many different environments.
 
 * [Alluxio on Local Machine](Running-Alluxio-Locally.html)
-* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
 * [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
+* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
+* [Alluxio on Docker](Running-Alluxio-On-Docker.html)
 * [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
 * [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
 * [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
 * [Alluxio with YARN on EC2](Running-Alluxio-on-EC2-Yarn.html)
+* [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
+* [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
 
 ### Under Storage Systems
 
 There are many Under storage systems that can be accessed through Alluxio.
 
-* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Azure Blob Store](Configuring-Alluxio-with-Azure-Blob-Store.html)
 * [Alluxio with S3](Configuring-Alluxio-with-S3.html)
+* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Minio](Configuring-Alluxio-with-Minio.html)
+* [Alluxio with Ceph](Configuring-Alluxio-with-Ceph.html)
 * [Alluxio with Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio with GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
-* [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio with MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
+* [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio with Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
 * [Alluxio with OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio with NFS](Configuring-Alluxio-with-NFS.html)
@@ -388,6 +394,9 @@ Different frameworks and applications work with Alluxio.
 
 * [Apache Spark with Alluxio](Running-Spark-on-Alluxio.html)
 * [Apache Hadoop MapReduce with Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
-* [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
-* [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
 * [Apache HBase with Alluxio](Running-HBase-on-Alluxio.html)
+* [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
+* [Presto with Alluxio](Running-Presto-with-Alluxio.html)
+* [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
+* [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
+
