@@ -879,8 +879,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return ufs.isDirectory(ufsPath);
     } else {
       InodeFile file = (InodeFile) inode;
-      return ufs.isFile(ufsPath)
-          && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
+      if (ufs.isFile(ufsPath)) {
+        UfsFileStatus ufsFileStatus = ufs.getFileStatus(path.getPath());
+        if (ufs.getFileStatus(ufsPath).getContentLength() != file.getLength()) {
+          return false;
+        } else if (hasAnyBlockCached(mBlockMaster.getBlockInfoList(file.getBlockIds()))
+            && (ufsFileStatus.getLastModifiedTime() > file.getLastModificationTimeMs())) {
+          return false;
+        }
+      }
+      return true;
     }
   }
 
@@ -895,6 +903,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       completeFileAndJournal(inodePath, options, journalContext);
     }
+  }
+
+  private boolean hasAnyBlockCached(List<BlockInfo> blockInfoList) {
+    for (BlockInfo blockInfo : blockInfoList) {
+      if (blockInfo.getLocations().size() > 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
