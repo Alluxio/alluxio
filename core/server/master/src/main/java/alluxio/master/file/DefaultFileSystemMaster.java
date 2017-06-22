@@ -889,8 +889,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         } else {
           return true;
         }
-      } else
-          return false;
+      } else {
+        return false;
+      }
     }
   }
 
