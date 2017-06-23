@@ -14,7 +14,6 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
