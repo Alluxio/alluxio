@@ -565,7 +565,7 @@ public class PropertyKey {
       create(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB");
 
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
-      create(Name.USER_RPC_RETRY_BASE_SLEEP_MS, "50ms");
+      create(Name.USER_RPC_RETRY_BASE_SLEEP_MS, 50);
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       create(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
