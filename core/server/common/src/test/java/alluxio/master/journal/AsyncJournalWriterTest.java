@@ -45,9 +45,9 @@ public class AsyncJournalWriterTest {
 
   private void setupAsyncJournalWriter(boolean batchingEnabled) throws Exception {
     if (batchingEnabled) {
-      Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 500);
+      Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "500ms");
     } else {
-      Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 0);
+      Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "0ms");
     }
 
     mMockJournalWriter = PowerMockito.mock(JournalWriter.class);
