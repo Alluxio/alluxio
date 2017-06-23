@@ -65,12 +65,15 @@ source files and Java binaries.
 
 Before we start Alluxio, we have to configure it. We will be using most of the default settings.
 
-Create the `conf/alluxio-env.sh` configuration file from the template. You can create the config
-file with the following command:
+In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-site.properties` configuration
+file from the template.
 
 ```bash
-$ ./bin/alluxio bootstrapConf localhost
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
+
+Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
+you plan to run Alluxio Master on.
 
 ### [Bonus] Configuration for AWS
 
