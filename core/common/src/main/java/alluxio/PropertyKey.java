@@ -204,7 +204,7 @@ public class PropertyKey {
   public static final PropertyKey MASTER_ADDRESS = create(Name.MASTER_ADDRESS, null);
   public static final PropertyKey MASTER_BIND_HOST = create(Name.MASTER_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
-      create(Name.MASTER_CONNECTION_TIMEOUT_MS, 0);
+      create(Name.MASTER_CONNECTION_TIMEOUT_MS, "0ms");
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       create(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER,
           "alluxio.master.file.async.DefaultAsyncPersistHandler");
@@ -214,7 +214,7 @@ public class PropertyKey {
       create(Name.MASTER_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey MASTER_HOSTNAME = create(Name.MASTER_HOSTNAME, null);
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
-      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5);
+      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "5ms");
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       create(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min");
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
