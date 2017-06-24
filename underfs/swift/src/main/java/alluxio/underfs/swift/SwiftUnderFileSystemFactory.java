@@ -44,7 +44,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path);
 
-    if (addAndCheckSwiftCredentials()) {
+    if (addAndCheckSwiftCredentials(conf)) {
       try {
         return new SwiftUnderFileSystem(new AlluxioURI(path), conf);
       } catch (Exception e) {
@@ -68,7 +68,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    *
    * @return true if simulation mode or if all required authentication credentials are present
    */
-  private boolean addAndCheckSwiftCredentials() {
+  private boolean addAndCheckSwiftCredentials(UnderFileSystemConfiguration conf) {
     PropertyKey[] propertiesToRead = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
         PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
         PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
@@ -76,26 +76,26 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
 
     for (PropertyKey property : propertiesToRead) {
       if (System.getProperty(property.toString()) != null
-          && (!Configuration.containsKey(property) || Configuration.get(property) == null)) {
+          && (!conf.containsKey(property) || conf.getValue(property) == null)) {
         Configuration.set(property, System.getProperty(property.toString()));
       }
     }
 
     // We do not need authentication credentials in simulation mode
-    if (Configuration.containsKey(PropertyKey.SWIFT_SIMULATION)
-        && Configuration.getBoolean(PropertyKey.SWIFT_SIMULATION)) {
+    if (conf.containsKey(PropertyKey.SWIFT_SIMULATION)
+        && Boolean.valueOf(conf.getValue(PropertyKey.SWIFT_SIMULATION))) {
       return true;
     }
 
     // API or Password Key is required
-    PropertyKey apiOrPasswordKey = Configuration.containsKey(PropertyKey.SWIFT_API_KEY)
+    PropertyKey apiOrPasswordKey = conf.containsKey(PropertyKey.SWIFT_API_KEY)
         ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
 
     // Check if required credentials exist
     PropertyKey[] requiredProperties = {apiOrPasswordKey, PropertyKey.SWIFT_TENANT_KEY,
         PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_USER_KEY};
     for (PropertyKey propertyName : requiredProperties) {
-      if (Configuration.get(propertyName) == null) {
+      if (conf.getValue(propertyName) == null) {
         return false;
       }
     }
