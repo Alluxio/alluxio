@@ -61,6 +61,15 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
     return 0;
   }
 
+  /**
+   * Checks the inconsistent files and directories which exist in Alluxio but don't exist in the
+   * under storage, repairs the inconsistent paths by deleting them if repairConsistency is true.
+   *
+   * @param path the specified path to be checked
+   * @param repairConsistency whether to repair the consistency or not
+   * @throws AlluxioException
+   * @throws IOException
+   */
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
     CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
