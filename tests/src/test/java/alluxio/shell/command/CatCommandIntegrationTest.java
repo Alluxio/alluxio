@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Tests for cat command.
  */
-public final class CatCommandTest extends AbstractAlluxioShellTest {
+public final class CatCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void catDirectory() throws Exception {
     String[] command = new String[] {"mkdir", "/testDir"};
