@@ -58,6 +58,8 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
+   * @param conf optional configuration object for the UFS
+   *
    * @return true if both access, secret and endpoint keys are present, false otherwise
    */
   private boolean checkOSSCredentials(UnderFileSystemConfiguration conf) {
