@@ -25,7 +25,10 @@ import org.junit.Test;
 
 import java.io.OutputStream;
 
-public class CheckConsistencyCommandTest extends AbstractAlluxioShellTest {
+/**
+ * Integration tests for checkConsistency command.
+ */
+public class CheckConsistencyCommandIntegrationTest extends AbstractAlluxioShellTest {
   /**
    * Tests the check consistency shell command correctly identifies a consistent subtree.
    */
