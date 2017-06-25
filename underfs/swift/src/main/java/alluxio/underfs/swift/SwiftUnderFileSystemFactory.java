@@ -12,7 +12,6 @@
 package alluxio.underfs.swift;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
@@ -44,7 +43,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path);
 
-    if (addAndCheckSwiftCredentials(conf)) {
+    if (checkSwiftCredentials(conf)) {
       try {
         return new SwiftUnderFileSystem(new AlluxioURI(path), conf);
       } catch (Exception e) {
@@ -63,24 +62,11 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds Swift credentials from system properties to the Alluxio configuration if they are not
-   * already present.
+   * @param conf optional configuration object for the UFS
    *
    * @return true if simulation mode or if all required authentication credentials are present
    */
-  private boolean addAndCheckSwiftCredentials(UnderFileSystemConfiguration conf) {
-    PropertyKey[] propertiesToRead = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
-        PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
-        PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
-        PropertyKey.SWIFT_SIMULATION, PropertyKey.SWIFT_REGION_KEY};
-
-    for (PropertyKey property : propertiesToRead) {
-      if (System.getProperty(property.toString()) != null
-          && (!conf.containsKey(property) || conf.getValue(property) == null)) {
-        Configuration.set(property, System.getProperty(property.toString()));
-      }
-    }
-
+  private boolean checkSwiftCredentials(UnderFileSystemConfiguration conf) {
     // We do not need authentication credentials in simulation mode
     if (conf.containsKey(PropertyKey.SWIFT_SIMULATION)
         && Boolean.valueOf(conf.getValue(PropertyKey.SWIFT_SIMULATION))) {
@@ -92,13 +78,9 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
         ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
 
     // Check if required credentials exist
-    PropertyKey[] requiredProperties = {apiOrPasswordKey, PropertyKey.SWIFT_TENANT_KEY,
-        PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_USER_KEY};
-    for (PropertyKey propertyName : requiredProperties) {
-      if (conf.getValue(propertyName) == null) {
-        return false;
-      }
-    }
-    return true;
+    return conf.containsKey(apiOrPasswordKey)
+        && conf.containsKey(PropertyKey.SWIFT_TENANT_KEY)
+        && conf.containsKey(PropertyKey.SWIFT_AUTH_URL_KEY)
+        && conf.containsKey(PropertyKey.SWIFT_USER_KEY);
   }
 }

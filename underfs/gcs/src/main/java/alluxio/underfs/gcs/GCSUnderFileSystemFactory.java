@@ -45,7 +45,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path);
 
-    if (addAndCheckGoogleCredentials(conf)) {
+    if (checkGoogleCredentials(conf)) {
       try {
         return GCSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (ServiceException e) {
@@ -64,12 +64,11 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds Google credentials from system properties to the Alluxio configuration if they are not
-   * already present.
+   * @param conf optional configuration object for the UFS
    *
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckGoogleCredentials(UnderFileSystemConfiguration conf) {
+  private boolean checkGoogleCredentials(UnderFileSystemConfiguration conf) {
     return conf.containsKey(PropertyKey.GCS_ACCESS_KEY)
         && conf.containsKey(PropertyKey.GCS_SECRET_KEY);
   }
