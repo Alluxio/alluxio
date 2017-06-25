@@ -11,6 +11,10 @@
 
 package alluxio;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
@@ -26,32 +30,31 @@ public final class PropertyKeyTest {
    */
   @Test
   public void fromString() throws Exception {
-    Assert
-        .assertEquals(PropertyKey.VERSION, PropertyKey.fromString(PropertyKey.VERSION.toString()));
+    assertEquals(PropertyKey.VERSION, PropertyKey.fromString(PropertyKey.VERSION.toString()));
   }
 
   @Test
   public void equalsTest() throws Exception {
-    Assert.assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"),
+    assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"),
         PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"));
-    Assert.assertEquals(PropertyKey.HOME, PropertyKey.HOME);
+    assertEquals(PropertyKey.HOME, PropertyKey.HOME);
   }
 
   @Test
   public void length() throws Exception {
-    Assert.assertEquals(PropertyKey.Name.HOME.length(), PropertyKey.HOME.length());
+    assertEquals(PropertyKey.Name.HOME.length(), PropertyKey.HOME.length());
   }
 
   @Test
   public void isValid() throws Exception {
-    Assert.assertTrue(PropertyKey.isValid(PropertyKey.HOME.toString()));
-    Assert.assertTrue(PropertyKey
+    assertTrue(PropertyKey.isValid(PropertyKey.HOME.toString()));
+    assertTrue(PropertyKey
         .isValid(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo").toString()));
-    Assert.assertFalse(PropertyKey.isValid(""));
-    Assert.assertFalse(PropertyKey.isValid(" "));
-    Assert.assertFalse(PropertyKey.isValid("foo"));
-    Assert.assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString() + "1"));
-    Assert.assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString().toUpperCase()));
+    assertFalse(PropertyKey.isValid(""));
+    assertFalse(PropertyKey.isValid(" "));
+    assertFalse(PropertyKey.isValid("foo"));
+    assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString() + "1"));
+    assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString().toUpperCase()));
   }
 
   @Test
@@ -64,7 +67,7 @@ public final class PropertyKeyTest {
         PropertyKey.fromString(key);
         Assert.fail();
       } catch (IllegalArgumentException e) {
-        Assert.assertEquals(e.getMessage(),
+        assertEquals(e.getMessage(),
             ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
       }
     }
@@ -72,97 +75,97 @@ public final class PropertyKeyTest {
 
   @Test
   public void formatMasterTieredStoreGlobalAlias() throws Exception {
-    Assert.assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS,
+    assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS,
         PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0));
-    Assert.assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS,
+    assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS,
         PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(1));
-    Assert.assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS,
+    assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS,
         PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2));
   }
 
   @Test
   public void formatWorkerTieredStoreAlias() throws Exception {
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_ALIAS,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_ALIAS,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2));
   }
 
   @Test
   public void formatWorkerTieredStoreDirsPath() throws Exception {
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(2));
   }
 
   @Test
   public void formatWorkerTieredStoreDirsQuota() throws Exception {
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(2));
   }
 
   @Test
   public void formatWorkerTieredStoreReservedRatio() throws Exception {
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(0));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(1));
-    Assert.assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO,
+    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(2));
   }
 
   @Test
   public void mountTableRootProperties() throws Exception {
-    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
         PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("root"));
-    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         PropertyKey.Template.MASTER_MOUNT_TABLE_UFS.format("root"));
-    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY,
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY,
         PropertyKey.Template.MASTER_MOUNT_TABLE_READONLY.format("root"));
-    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED,
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED,
         PropertyKey.Template.MASTER_MOUNT_TABLE_SHARED.format("root"));
-    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION,
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION,
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("root"));
   }
 
   @Test
   public void isValidParameterized() throws Exception {
     // String parameter
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.alluxio"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.foo.alluxio"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.Fo123.alluxio"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.option"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.option.foo"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.option.alluxio.foo"));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.master.mount.table.alluxio"));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.master.mount.table..alluxio"));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.master.mount.table. .alluxio"));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.master.mount.table.foo.alluxio1"));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.master.mount.table.root.option."));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.master.mount.table.root.option.foo."));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.alluxio"));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.foo.alluxio"));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.Fo123.alluxio"));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.FoO.alluxio"));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.option"));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.option.foo"));
+    assertTrue(PropertyKey.isValid("alluxio.master.mount.table.root.option.alluxio.foo"));
+    assertFalse(PropertyKey.isValid("alluxio.master.mount.table.alluxio"));
+    assertFalse(PropertyKey.isValid("alluxio.master.mount.table..alluxio"));
+    assertFalse(PropertyKey.isValid("alluxio.master.mount.table. .alluxio"));
+    assertFalse(PropertyKey.isValid("alluxio.master.mount.table.foo.alluxio1"));
+    assertFalse(PropertyKey.isValid("alluxio.master.mount.table.root.option."));
+    assertFalse(PropertyKey.isValid("alluxio.master.mount.table.root.option.foo."));
     // Numeric parameter
-    Assert.assertTrue(PropertyKey.isValid("alluxio.worker.tieredstore.level1.alias"));
-    Assert.assertTrue(PropertyKey.isValid("alluxio.worker.tieredstore.level99.alias"));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.worker.tieredstore.level.alias"));
-    Assert.assertFalse(PropertyKey.isValid("alluxio.worker.tieredstore.levela.alias"));
+    assertTrue(PropertyKey.isValid("alluxio.worker.tieredstore.level1.alias"));
+    assertTrue(PropertyKey.isValid("alluxio.worker.tieredstore.level99.alias"));
+    assertFalse(PropertyKey.isValid("alluxio.worker.tieredstore.level.alias"));
+    assertFalse(PropertyKey.isValid("alluxio.worker.tieredstore.levela.alias"));
   }
 
   @Test
   public void fromStringParameterized() throws Exception {
-    Assert.assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
+    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
         PropertyKey.fromString("alluxio.master.mount.table.root.alluxio"));
-    Assert.assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"),
+    assertEquals(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("foo"),
         PropertyKey.fromString("alluxio.master.mount.table.foo.alluxio"));
   }
 
@@ -175,7 +178,7 @@ public final class PropertyKeyTest {
         PropertyKey.fromString(key);
         Assert.fail();
       } catch (IllegalArgumentException e) {
-        Assert.assertEquals(e.getMessage(),
+        assertEquals(e.getMessage(),
             ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
       }
     }
@@ -183,12 +186,12 @@ public final class PropertyKeyTest {
 
   @Test
   public void isDeprecated() throws Exception {
-    Assert.assertFalse(PropertyKey.isDeprecated("VERSION"));
-    Assert.assertTrue(PropertyKey.isDeprecated("MASTER_ADDRESS"));
+    assertFalse(PropertyKey.isDeprecated("VERSION"));
+    assertTrue(PropertyKey.isDeprecated("MASTER_ADDRESS"));
   }
 
   @Test
   public void isDeprecatedExceptionThrown() throws Exception {
-    Assert.assertFalse(PropertyKey.isDeprecated("foo"));
+    assertFalse(PropertyKey.isDeprecated("foo"));
   }
 }
