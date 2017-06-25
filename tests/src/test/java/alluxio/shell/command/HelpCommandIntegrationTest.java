@@ -25,9 +25,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Tests for help command.
+ * Integration tests for help command.
  */
-public final class HelpCommandTest extends AbstractAlluxioShellTest {
+public final class HelpCommandIntegrationTest extends AbstractAlluxioShellTest {
 
   /**
    * Tests help which given command doesn't exist.
