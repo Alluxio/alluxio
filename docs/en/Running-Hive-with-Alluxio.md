@@ -133,14 +133,14 @@ hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/ml-100
 Use the following HiveQL and check the "Location" attribute to verify whether the table location is set correctly:
 
 ```
-desc formatted u_user;
+hive> desc formatted u_user;
 ```
 
 ## Use alluxio as the FileSystem for Internal tables currently in HDFS
 
 ### Hive cli examples
 
-We assume that the **"hive.metastore.warehouse.dir"** is set as following: 
+We assume that the **"hive.metastore.warehouse.dir"** property is set as following: 
 ```xml
 <property>
   <name>hive.metastore.warehouse.dir</name>
