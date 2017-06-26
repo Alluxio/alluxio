@@ -38,7 +38,7 @@ and internal tables. These tables can be new tables that are being created or ex
 are stored in HDFS. Alluxio can also be used as the default file system for Hive. In the following
 sections, we will describe how to use Hive with Alluxio for these use cases. 
 
-## Create External Table Located in Alluxio
+## Create External Table from Files Located in Alluxio
 
 Hive can create external tables from files stored on Alluxio. The setup is fairly straightforward
 and the change is also isolated from other Hive tables. An example use case is to store frequently
@@ -102,18 +102,6 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 
 ## Use Alluxio as the FileSystem for External tables currently in HDFS
 
-First, transfer your table data which originally in HDFS into Alluxio, assuming that you have put
-your table data in this Alluxio path successfully.
-
-```
-alluxio://master_hostname:port/table/data/path/in/alluxio
-```
-Using the following HiveQL to change the table data location：
-
-```
-hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/table/data/path/in/alluxio";
-```
-
 ### Hive cli examples
 
 Create an external table in HDFS:
@@ -129,47 +117,38 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 LOCATION 'hdfs://namenode_hostname:port/ml-100k';
 ```
-Transfer the data from HDFS into Alluxio：
 
-```bash
-$ hdfs dfs -get /ml-100k ~/ml-100k
-$ bin/alluxio fs copyFromLocal ~/ml-100k/u.user alluxio://master_hostname:port/ml-100k
-```
-
-Change the table data location：
+Mount the existing HDFS under an Alluxio path, we assume that you have mounted "hdfs://namenode:port/ml-100k"
+under "alluxio://master_hostname:port/ml-100k": 
 
 ```
-hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
+bin/alluxio fs mount /ml-100k hdfs://namenode:port/ml-100k
 ```
-using the following HiveQL and check the "Location" attribute to verify whether the table location is set correctly:
+Use the following HiveQL to change the table data location：
 
-```$xslt
+```
+hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/ml-100k";
+```
+
+Use the following HiveQL and check the "Location" attribute to verify whether the table location is set correctly:
+
+```
 desc formatted u_user;
 ```
 
 ## Use alluxio as the FileSystem for Internal tables currently in HDFS
 
-First, transfer your table data which originally in HDFS into Alluxio, assuming that you have put your table data
-in a directory under **"hive.metastore.warehouse.dir"**
-
-```
-alluxio://master_hostname:port/hive/metastore/warehouse/dir/tableDirectory
-```
-Using the following HiveQL to change the table data location：
-
-```
-hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/hive/metastore/warehouse/dir/tableDirectory";
-```
-
 ### Hive cli examples
-Assuming that **"hive.metastore.warehouse.dir"** is set as following:
+
+We assume that the **"hive.metastore.warehouse.dir"** is set as following: 
 ```xml
 <property>
   <name>hive.metastore.warehouse.dir</name>
   <value>/user/hive/warehouse</value>
 </property>
 ```
-Create an internal table in HDFS:
+
+Create an internal table in HDFS and load data into it:
 
 ```
 hive> CREATE TABLE u_user (
@@ -185,18 +164,17 @@ hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
 OVERWRITE INTO TABLE u_user;
 ```
 
-Transfer the data from HDFS into Alluxio：
-
-```bash
-$ hdfs dfs -get /user/hive/warehouse/u_user ~/u_user
-$ bin/alluxio fs copyFromLocal ~/u_user alluxio://master_hostname:port/user/hive/warehouse/u_user
-```
-
-Change the table data location：
+Mount the existing HDFS under an Alluxio path, we assume that you have mounted "hdfs://namenode:port/user/hive/warehouse"
+under "alluxio://master_hostname:port/user/hive/warehouse" 
 
 ```
-hive> alter table u_user set location "alluxio://master_hostname:port/user/hive/warehouse/u_user";
-## Use Alluxio as Default Filesystem
+bin/alluxio fs mount /user/hive/warehouse hdfs://namenode:port/user/hive/warehouse/
+```
+
+Use the following HiveQL to change the table data location：
+
+```
+hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/user/hive/warehouse";
 ```
 
 ## Use Alluxio as Default Filesystem
