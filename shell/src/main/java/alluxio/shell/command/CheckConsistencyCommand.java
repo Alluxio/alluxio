@@ -20,6 +20,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -31,6 +32,14 @@ import java.util.List;
  * Command for checking the consistency of a file or folder between Alluxio and the under storage.
  */
 public class CheckConsistencyCommand extends AbstractShellCommand {
+
+  private static final Option FIX_INCONSISTENT_FILES =
+      Option.builder("r")
+          .required(false)
+          .hasArg(false)
+          .desc("repair inconsistent files")
+          .build();
+
   /**
    * @param fs the filesystem of Alluxio
    */
