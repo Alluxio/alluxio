@@ -225,8 +225,6 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     is.read();
     is.close();
 
-    Thread.sleep(1000);
-
     ufs.deleteFile(ufsFile);
 
     OutputStream out = ufs.create(ufsFile);

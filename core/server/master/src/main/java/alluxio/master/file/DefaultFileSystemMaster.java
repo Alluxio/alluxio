@@ -881,10 +881,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       InodeFile file = (InodeFile) inode;
       if (ufs.isFile(ufsPath)) {
         UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsPath);
-        if (ufs.getFileStatus(ufsPath).getContentLength() != file.getLength()) {
-          return false;
-        } else if (hasAnyBlockCached(mBlockMaster.getBlockInfoList(file.getBlockIds()))
-            && (ufsFileStatus.getLastModifiedTime() > file.getLastModificationTimeMs())) {
+        if (ufs.getFileStatus(ufsPath).getContentLength() != file.getLength()
+            || (hasAnyBlockCached(mBlockMaster.getBlockInfoList(file.getBlockIds()))
+            && (ufsFileStatus.getLastModifiedTime() > file.getLastModificationTimeMs()))) {
           return false;
         } else {
           return true;
