@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Tests for head command.
  */
-public final class HeadCommandTest extends AbstractAlluxioShellTest {
+public final class HeadCommandIntegrationTest extends AbstractAlluxioShellTest {
 
   @Test
   public void headEmptyFile() throws Exception {
