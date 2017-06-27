@@ -397,7 +397,7 @@ public final class CpCommand extends AbstractShellCommand {
                   PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY), new Class[] {},
                   new Object[] {});
         } catch (Exception e) {
-          throw Throwables.propagate(e);
+          throw new RuntimeException(e);
         }
         os = closer.register(mFileSystem.createFile(dstPath,
             CreateFileOptions.defaults().setLocationPolicy(locationPolicy)));
