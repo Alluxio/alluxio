@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * Tests for fileInfo command.
  */
-public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
+public final class FileInfoCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void fileInfoNotExist() throws IOException {
     mFsShell.run("fileInfo", "/NotExistFile");
