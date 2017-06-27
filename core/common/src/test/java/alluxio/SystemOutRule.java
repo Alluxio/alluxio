@@ -11,7 +11,7 @@
 
 package alluxio;
 
-import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -23,14 +23,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SystemOutRule extends AbstractResourceRule {
-  private final ByteArrayOutputStream mOutputStream;
+  private final OutputStream mOutputStream;
   private PrintStream mNewOutput;
   private PrintStream mOldOutput;
 
   /**
    * @param outputStream the output stream to set as output
    */
-  public SystemOutRule(ByteArrayOutputStream outputStream) {
+  public SystemOutRule(OutputStream outputStream) {
     mOutputStream = outputStream;
   }
 

@@ -22,24 +22,24 @@ import java.io.PrintStream;
  * Unit tests for {@link SystemOutRule}.
  */
 public class SystemOutRuleTest {
-  private static final ByteArrayOutputStream RULE_INPUT = new ByteArrayOutputStream();
-  private static final PrintStream OUT_PRINT_STREAM = System.out;
+  private static final ByteArrayOutputStream OUTPUT = new ByteArrayOutputStream();
+  private static final PrintStream ORIGINAL_SYSTEM_OUT = System.out;
 
   private Statement mStatement = new Statement() {
     @Override
     public void evaluate() throws Throwable {
       System.out.println("2048");
-      Assert.assertEquals("2048\n", RULE_INPUT.toString());
-      RULE_INPUT.reset();
+      Assert.assertEquals("2048\n", OUTPUT.toString());
+      OUTPUT.reset();
 
       System.out.println("1234");
-      Assert.assertEquals("1234\n", RULE_INPUT.toString());
+      Assert.assertEquals("1234\n", OUTPUT.toString());
     }
   };
 
   @Test
   public void testSystemOutRule() throws Throwable {
-    new SystemOutRule(RULE_INPUT).apply(mStatement, null).evaluate();
-    Assert.assertEquals(System.out, OUT_PRINT_STREAM);
+    new SystemOutRule(OUTPUT).apply(mStatement, null).evaluate();
+    Assert.assertEquals(System.out, ORIGINAL_SYSTEM_OUT);
   }
 }
