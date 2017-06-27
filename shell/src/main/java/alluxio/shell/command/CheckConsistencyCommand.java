@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class CheckConsistencyCommand extends AbstractShellCommand {
 
-  private static final Option FIX_INCONSISTENT_FILES =
+  private static final Option REPAIR_OPTION =
       Option.builder("r")
           .required(false)
           .hasArg(false)
@@ -54,7 +54,7 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(FIX_INCONSISTENT_FILES);
+    return new Options().addOption(REPAIR_OPTION);
   }
 
   @Override

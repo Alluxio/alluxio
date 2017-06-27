@@ -57,7 +57,7 @@ public final class CpCommand extends AbstractShellCommand {
       Option.builder("R")
           .required(false)
           .hasArg(false)
-          .desc("recursive")
+          .desc("copy files in subdirectories recursively")
           .build();
 
   /**

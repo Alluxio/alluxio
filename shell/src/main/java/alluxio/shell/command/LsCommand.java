@@ -46,7 +46,7 @@ public final class LsCommand extends WithWildCardPathCommand {
       Option.builder("f")
           .required(false)
           .hasArg(false)
-          .desc("force")
+          .desc("force to load metadata for immediate children in a directory")
           .build();
 
   private static final Option LIST_DIR_AS_FILE_OPTION =
@@ -74,7 +74,7 @@ public final class LsCommand extends WithWildCardPathCommand {
       Option.builder("R")
           .required(false)
           .hasArg(false)
-          .desc("recursive")
+          .desc("list subdirectories recursively")
           .build();
 
   /**

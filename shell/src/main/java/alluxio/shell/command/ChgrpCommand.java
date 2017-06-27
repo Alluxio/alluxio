@@ -34,7 +34,7 @@ public final class ChgrpCommand extends AbstractShellCommand {
       Option.builder("R")
           .required(false)
           .hasArg(false)
-          .desc("recursive")
+          .desc("change group recursively")
           .build();
 
   /**

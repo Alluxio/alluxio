@@ -36,7 +36,7 @@ public final class RmCommand extends WithWildCardPathCommand {
       Option.builder("R")
           .required(false)
           .hasArg(false)
-          .desc("recursive")
+          .desc("delete files and subdirectories recursively")
           .build();
 
   /**

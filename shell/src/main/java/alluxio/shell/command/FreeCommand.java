@@ -35,7 +35,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
       Option.builder("f")
           .required(false)
           .hasArg(false)
-          .desc("force")
+          .desc("force to free files even pinned")
           .build();
 
   /**

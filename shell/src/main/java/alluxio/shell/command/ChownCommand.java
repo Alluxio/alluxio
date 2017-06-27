@@ -34,7 +34,7 @@ public final class ChownCommand extends AbstractShellCommand {
       Option.builder("R")
           .required(false)
           .hasArg(false)
-          .desc("recursive")
+          .desc("change owner recursively")
           .build();
 
   /**

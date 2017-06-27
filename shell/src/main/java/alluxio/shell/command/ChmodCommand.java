@@ -36,7 +36,7 @@ public final class ChmodCommand extends AbstractShellCommand {
       Option.builder("R")
           .required(false)
           .hasArg(false)
-          .desc("recursive")
+          .desc("change mode recursively")
           .build();
 
   private final ModeParser mParser = new ModeParser();
