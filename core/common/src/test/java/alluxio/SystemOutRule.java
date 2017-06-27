@@ -17,7 +17,7 @@ import java.io.PrintStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A rule for set output stream during a test suite. It sets
+ * A rule for setting output stream during a test suite. It sets
  * System.out to the specified output stream during the lifetime
  * of this rule.
  */
