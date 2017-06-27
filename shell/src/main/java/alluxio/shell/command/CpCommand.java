@@ -33,7 +33,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
