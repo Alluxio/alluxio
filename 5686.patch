@@ -1,0 +1,242 @@
+diff --git a/core/common/src/test/java/alluxio/SystemOutRule.java b/core/common/src/test/java/alluxio/SystemOutRule.java
+new file mode 100644
+index 0000000000..3de7fd8849
+--- /dev/null
++++ b/core/common/src/test/java/alluxio/SystemOutRule.java
+@@ -0,0 +1,48 @@
++/*
++ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
++ * (the "License"). You may not use this work except in compliance with the License, which is
++ * available at www.apache.org/licenses/LICENSE-2.0
++ *
++ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
++ * either express or implied, as more fully set forth in the License.
++ *
++ * See the NOTICE file distributed with this work for information regarding copyright ownership.
++ */
++
++package alluxio;
++
++import java.io.ByteArrayOutputStream;
++import java.io.PrintStream;
++
++import javax.annotation.concurrent.NotThreadSafe;
++
++/**
++ * A rule for set output stream during a test suite. It sets
++ * System.out to the specified output stream during the lifetime
++ * of this rule.
++ */
++@NotThreadSafe
++public final class SystemOutRule extends AbstractResourceRule {
++  private final ByteArrayOutputStream mOutputStream;
++  private PrintStream mNewOutput;
++  private PrintStream mOldOutput;
++
++  /**
++   * @param outputStream the output stream to set as output
++   */
++  public SystemOutRule(ByteArrayOutputStream outputStream) {
++    mOutputStream = outputStream;
++  }
++
++  @Override
++  protected void before() throws Exception {
++    mNewOutput = new PrintStream(mOutputStream);
++    mOldOutput = System.out;
++    System.setOut(mNewOutput);
++  }
++
++  @Override
++  protected void after() {
++    System.setOut(mOldOutput);
++  }
++}
+diff --git a/core/common/src/test/java/alluxio/SystemOutRuleTest.java b/core/common/src/test/java/alluxio/SystemOutRuleTest.java
+new file mode 100644
+index 0000000000..b7b53db3f3
+--- /dev/null
++++ b/core/common/src/test/java/alluxio/SystemOutRuleTest.java
+@@ -0,0 +1,45 @@
++/*
++ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
++ * (the "License"). You may not use this work except in compliance with the License, which is
++ * available at www.apache.org/licenses/LICENSE-2.0
++ *
++ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
++ * either express or implied, as more fully set forth in the License.
++ *
++ * See the NOTICE file distributed with this work for information regarding copyright ownership.
++ */
++
++package alluxio;
++
++import org.junit.Assert;
++import org.junit.Test;
++import org.junit.runners.model.Statement;
++
++import java.io.ByteArrayOutputStream;
++import java.io.PrintStream;
++
++/**
++ * Unit tests for {@link SystemOutRule}.
++ */
++public class SystemOutRuleTest {
++  private static final ByteArrayOutputStream RULE_INPUT = new ByteArrayOutputStream();
++  private static final PrintStream OUT_PRINT_STREAM = System.out;
++
++  private Statement mStatement = new Statement() {
++    @Override
++    public void evaluate() throws Throwable {
++      System.out.println("2048");
++      Assert.assertEquals("2048\n", RULE_INPUT.toString());
++      RULE_INPUT.reset();
++
++      System.out.println("1234");
++      Assert.assertEquals("1234\n", RULE_INPUT.toString());
++    }
++  };
++
++  @Test
++  public void testSystemOutRule() throws Throwable {
++    new SystemOutRule(RULE_INPUT).apply(mStatement, null).evaluate();
++    Assert.assertEquals(System.out, OUT_PRINT_STREAM);
++  }
++}
+diff --git a/tests/src/test/java/alluxio/cli/GetConfTest.java b/tests/src/test/java/alluxio/cli/GetConfTest.java
+index 0879809dcb..1ba15dbf6b 100644
+--- a/tests/src/test/java/alluxio/cli/GetConfTest.java
++++ b/tests/src/test/java/alluxio/cli/GetConfTest.java
+@@ -15,35 +15,22 @@ import static org.junit.Assert.assertEquals;
+ 
+ import alluxio.Configuration;
+ import alluxio.PropertyKey;
++import alluxio.SystemOutRule;
+ 
+-import org.junit.After;
+-import org.junit.Before;
++import org.junit.Rule;
+ import org.junit.Test;
+ 
+ import java.io.ByteArrayOutputStream;
+-import java.io.PrintStream;
+ 
+ /**
+  * Tests for {@link GetConf}.
+  */
+ // TODO(binfan): create a SystemOutRule for unit test
+ public final class GetConfTest {
+-  private ByteArrayOutputStream mOutputStream = null;
+-  private PrintStream mNewOutput = null;
+-  private PrintStream mOldOutput = null;
++  private ByteArrayOutputStream mOutputStream = new ByteArrayOutputStream();
+ 
+-  @Before
+-  public final void before() throws Exception {
+-    mOutputStream = new ByteArrayOutputStream();
+-    mNewOutput = new PrintStream(mOutputStream);
+-    mOldOutput = System.out;
+-    System.setOut(mNewOutput);
+-  }
+-
+-  @After
+-  public final void after() throws Exception {
+-    System.setOut(mOldOutput);
+-  }
++  @Rule
++  public SystemOutRule mOutputStreamRule = new SystemOutRule(mOutputStream);
+ 
+   @Test
+   public void getConf() throws Exception {
+diff --git a/tests/src/test/java/alluxio/shell/AbstractAlluxioShellTest.java b/tests/src/test/java/alluxio/shell/AbstractAlluxioShellTest.java
+index 560a63d2cd..edf3b158f3 100644
+--- a/tests/src/test/java/alluxio/shell/AbstractAlluxioShellTest.java
++++ b/tests/src/test/java/alluxio/shell/AbstractAlluxioShellTest.java
+@@ -11,11 +11,12 @@
+ 
+ package alluxio.shell;
+ 
++import alluxio.PropertyKey;
+ import alluxio.AlluxioURI;
+-import alluxio.Constants;
+ import alluxio.LocalAlluxioClusterResource;
+-import alluxio.PropertyKey;
++import alluxio.Constants;
+ import alluxio.BaseIntegrationTest;
++import alluxio.SystemOutRule;
+ import alluxio.cli.AlluxioShell;
+ import alluxio.client.ReadType;
+ import alluxio.client.WriteType;
+@@ -41,7 +42,6 @@ import java.io.FileInputStream;
+ import java.io.FileNotFoundException;
+ import java.io.FileOutputStream;
+ import java.io.IOException;
+-import java.io.PrintStream;
+ 
+ /**
+  * The base class for all the {@link AlluxioShell} test classes.
+@@ -57,17 +57,17 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
+   protected LocalAlluxioCluster mLocalAlluxioCluster = null;
+   protected FileSystem mFileSystem = null;
+   protected AlluxioShell mFsShell = null;
+-  protected ByteArrayOutputStream mOutput = null;
+-  protected PrintStream mNewOutput = null;
+-  protected PrintStream mOldOutput = null;
++  protected ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
+ 
+   @Rule
+   public ExpectedException mException = ExpectedException.none();
+ 
++  @Rule
++  public SystemOutRule mOutRule = new SystemOutRule(mOutput);
++
+   @After
+   public final void after() throws Exception {
+     mFsShell.close();
+-    System.setOut(mOldOutput);
+   }
+ 
+   @Before
+@@ -76,10 +76,6 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
+     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+     mFileSystem = mLocalAlluxioCluster.getClient();
+     mFsShell = new AlluxioShell();
+-    mOutput = new ByteArrayOutputStream();
+-    mNewOutput = new PrintStream(mOutput);
+-    mOldOutput = System.out;
+-    System.setOut(mNewOutput);
+   }
+ 
+   /**
+diff --git a/tests/src/test/java/alluxio/shell/command/RmrCommandTest.java b/tests/src/test/java/alluxio/shell/command/RmrCommandIntegrationTest.java
+similarity index 97%
+rename from tests/src/test/java/alluxio/shell/command/RmrCommandTest.java
+rename to tests/src/test/java/alluxio/shell/command/RmrCommandIntegrationTest.java
+index 3a5005ccd7..3eb1c87a19 100644
+--- a/tests/src/test/java/alluxio/shell/command/RmrCommandTest.java
++++ b/tests/src/test/java/alluxio/shell/command/RmrCommandIntegrationTest.java
+@@ -24,7 +24,7 @@ import java.io.IOException;
+ /**
+  * Tests for rmr command.
+  */
+-public final class RmrCommandTest extends AbstractAlluxioShellTest {
++public final class RmrCommandIntegrationTest extends AbstractAlluxioShellTest {
+   @Test
+   public void rmr() throws IOException {
+     StringBuilder toCompare = new StringBuilder();
+diff --git a/tests/src/test/java/alluxio/shell/command/UnsetTtlTest.java b/tests/src/test/java/alluxio/shell/command/UnsetTtlCommandIntegrationTest.java
+similarity index 95%
+rename from tests/src/test/java/alluxio/shell/command/UnsetTtlTest.java
+rename to tests/src/test/java/alluxio/shell/command/UnsetTtlCommandIntegrationTest.java
+index 24e852a1cc..a215e53092 100644
+--- a/tests/src/test/java/alluxio/shell/command/UnsetTtlTest.java
++++ b/tests/src/test/java/alluxio/shell/command/UnsetTtlCommandIntegrationTest.java
+@@ -23,7 +23,7 @@ import org.junit.Test;
+ /**
+  * Test for unsetTtl command.
+  */
+-public final class UnsetTtlTest extends AbstractAlluxioShellTest {
++public final class UnsetTtlCommandIntegrationTest extends AbstractAlluxioShellTest {
+   @Test
+   public void unsetTtl() throws Exception {
+     String filePath = "/testFile";
