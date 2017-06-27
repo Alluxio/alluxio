@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Test for unsetTtl command.
  */
-public final class UnsetTtlCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class UnsetTtlTest extends AbstractAlluxioShellTest {
   @Test
   public void unsetTtl() throws Exception {
     String filePath = "/testFile";
