@@ -129,6 +129,8 @@ public final class MasterInquireClient {
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     } catch (Exception e) {
       LOG.error("Error getting the leader master address from zookeeper. Zookeeper address: {}",
           mZookeeperAddress, e);
