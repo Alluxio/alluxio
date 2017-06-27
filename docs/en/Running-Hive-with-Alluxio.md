@@ -36,7 +36,8 @@ Alluxio can be used as storage for both
 [external tables](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ExternalTables)
 and internal tables. These tables can be new tables that are being created or existing tables that
 are stored in HDFS. Alluxio can also be used as the default file system for Hive. In the following
-sections, we will describe how to use Hive with Alluxio for these use cases. 
+sections, we will describe how to use Hive with Alluxio for these use cases. Hive is running on Hadoop
+MapReduce in this documentation.
 
 ## Create External Table from Files Located in Alluxio
 
@@ -118,12 +119,8 @@ FIELDS TERMINATED BY '|'
 LOCATION 'hdfs://namenode_hostname:port/ml-100k';
 ```
 
-Mount the existing HDFS under an Alluxio path, we assume that you have mounted "hdfs://namenode:port/ml-100k"
-under "alluxio://master_hostname:port/ml-100k": 
+We assume that you have set alluxio.underfs.address=hdfs://namenode:port/ in alluxio-site.properties.
 
-```
-bin/alluxio fs mount /ml-100k hdfs://namenode:port/ml-100k
-```
 Use the following HiveQL to change the table data location：
 
 ```
@@ -164,17 +161,21 @@ hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
 OVERWRITE INTO TABLE u_user;
 ```
 
-Mount the existing HDFS under an Alluxio path, we assume that you have mounted "hdfs://namenode:port/user/hive/warehouse"
-under "alluxio://master_hostname:port/user/hive/warehouse" 
-
-```
-bin/alluxio fs mount /user/hive/warehouse hdfs://namenode:port/user/hive/warehouse/
-```
+We assume that you have set alluxio.underfs.address=hdfs://namenode:port/ in alluxio-site.properties.
 
 Use the following HiveQL to change the table data location：
 
 ```
 hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/user/hive/warehouse";
+```
+
+## change the table metadata to point back to HDFS
+
+In both cases above about changing table data location to Alluxio, you can also change the table
+location back to HDFS:
+
+```
+hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HDFS";
 ```
 
 ## Use Alluxio as Default Filesystem
