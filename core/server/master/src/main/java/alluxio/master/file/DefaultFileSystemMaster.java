@@ -1398,8 +1398,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
      * @param alluxioUri Alluxio path to delete
      * @return true, if path can be deleted recursively from UFS; false, otherwise
      */
-    @Nullable
-    private boolean isRecursiveDeleteSafe(AlluxioURI alluxioUri) {
+    private boolean isRecursiveDeleteSafe(@Nullable AlluxioURI alluxioUri) {
       if (alluxioUri == null || !alluxioUri.toString().startsWith(mRootPath.toString())) {
         // Path is not part of sub-tree being deleted
         return false;
