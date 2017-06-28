@@ -202,26 +202,26 @@ public final class FileUtils {
    * Moves file from one place to another, can across storage devices (e.g., from memory to SSD)
    * when {@link File#renameTo} may not work.
    *
-   * Current implementation uses {@link java.nio.file.Files#move(Path, Path, CopyOption...)}, may change if
-   * there is a better solution.
+   * Current implementation uses {@link java.nio.file.Files#move(Path, Path, CopyOption...)},
+   * may change if there is a better solution.
    *
    * @param srcPath pathname string of source file
    * @param dstPath pathname string of destination file
    */
   public static void move(String srcPath, String dstPath) throws IOException {
-    Files.move(Paths.get(srcPath),Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
+    Files.move(Paths.get(srcPath), Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
   }
 
   /**
    * Deletes the file or directory.
    *
-   * Current implementation uses {@link java.nio.file.Files#deleteIfExists(Path)} (), may change if there is a better
-   * solution.
+   * Current implementation uses {@link java.nio.file.Files#deleteIfExists(Path)},
+   * may change if there is a better solution.
    *
    * @param path pathname string of file or directory
    */
   public static void delete(String path) throws IOException {
-    if(!Files.deleteIfExists(Paths.get(path))){
+    if (!Files.deleteIfExists(Paths.get(path))) {
       throw new IOException("Failed to delete " + path);
     }
   }
@@ -261,19 +261,19 @@ public final class FileUtils {
    * @param path storage directory path to create
    */
   public static void createStorageDirPath(String path) throws IOException {
-    if(Files.exists(Paths.get(path))){
+    if (Files.exists(Paths.get(path))) {
       return;
     }
     Path storagePath;
     try {
       storagePath = Files.createDirectories(Paths.get(path));
-    }catch (FileAlreadyExistsException e1){
+    } catch (FileAlreadyExistsException e1) {
       throw new IOException("Failed to create folder " + path);
-    }catch (UnsupportedOperationException e2){
+    } catch (UnsupportedOperationException e2) {
       throw new IOException("Failed to create folder " + path);
-    }catch (SecurityException e3){
+    } catch (SecurityException e3) {
       throw new IOException("Failed to create folder " + path);
-    }catch (IOException e4){
+    } catch (IOException e4) {
       throw new IOException("Failed to create folder " + path);
     }
     String absolutePath = storagePath.toAbsolutePath().toString();
@@ -288,15 +288,15 @@ public final class FileUtils {
    * @param filePath pathname string of the file to create
    */
   public static void createFile(String filePath) throws IOException {
-    try{
+    try {
       Files.createDirectories(Paths.get(filePath));
-    }catch (FileAlreadyExistsException e1){
+    } catch (FileAlreadyExistsException e1) {
       throw new IOException("File already exist " + filePath);
-    }catch (UnsupportedOperationException e2){
+    } catch (UnsupportedOperationException e2) {
       throw new IOException("Failed to create file " + filePath);
-    }catch (SecurityException e3){
+    } catch (SecurityException e3) {
       throw new IOException("Failed to create file " + filePath);
-    }catch (IOException e4){
+    } catch (IOException e4) {
       throw new IOException("Failed to create file " + filePath);
     }
   }
