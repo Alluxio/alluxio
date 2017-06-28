@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Tests for count command.
  */
-public final class CountCommandTest extends AbstractAlluxioShellTest {
+public final class CountCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void countNotExist() throws Exception {
     int ret = mFsShell.run("count", "/NotExistFile");
