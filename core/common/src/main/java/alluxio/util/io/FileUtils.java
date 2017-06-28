@@ -26,7 +26,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.CopyOption;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.AccessDeniedException;
