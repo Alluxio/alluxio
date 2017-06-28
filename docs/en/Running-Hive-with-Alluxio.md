@@ -46,7 +46,7 @@ and the change is also isolated from other Hive tables. An example use case is t
 used Hive tables in Alluxio for high throughput and low latency by serving these files from memory
 storage.
 
-### Hive cli examples
+### Hive CLI examples
 
 Here is an example to create an external table in Hive backed by files in Alluxio.
 You can download a data file (e.g., `ml-100k.zip`) from
@@ -77,7 +77,7 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 Hive can create internal tables from files stored on Alluxio and Hive will manage the lifecycle of internal tables.
 When you drop an internal table, Hive drops the table metadata and data both.
 
-### Hive cli examples
+### Hive CLI examples
 
 Use the data file in `ml-100k.zip` from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/) as an example.
@@ -103,7 +103,7 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 
 ## Use Alluxio as the FileSystem for External tables currently in HDFS
 
-### Hive cli examples
+### Hive CLI examples
 
 Create an external table in HDFS:
 
@@ -119,7 +119,7 @@ FIELDS TERMINATED BY '|'
 LOCATION 'hdfs://namenode_hostname:port/ml-100k';
 ```
 
-We assume that you have set alluxio.underfs.address=hdfs://namenode:port/ in alluxio-site.properties.
+We assume that you have set `alluxio.underfs.address=hdfs://namenode:port/` in `alluxio-site.properties`.
 
 Use the following HiveQL to change the table data location：
 
@@ -133,9 +133,9 @@ Use the following HiveQL and check the "Location" attribute to verify whether th
 hive> desc formatted u_user;
 ```
 
-## Use alluxio as the FileSystem for Internal tables currently in HDFS
+## Use Alluxio as the FileSystem for Internal tables currently in HDFS
 
-### Hive cli examples
+### Hive CLI examples
 
 We assume that the **"hive.metastore.warehouse.dir"** property is set as following: 
 ```xml
@@ -161,7 +161,7 @@ hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
 OVERWRITE INTO TABLE u_user;
 ```
 
-We assume that you have set alluxio.underfs.address=hdfs://namenode:port/ in alluxio-site.properties.
+We assume that you have set `alluxio.underfs.address=hdfs://namenode:port/` in `alluxio-site.properties`.
 
 Use the following HiveQL to change the table data location：
 
@@ -169,7 +169,7 @@ Use the following HiveQL to change the table data location：
 hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/user/hive/warehouse";
 ```
 
-## change the table metadata to point back to HDFS
+## Change the table metadata to point back to HDFS
 
 In both cases above about changing table data location to Alluxio, you can also change the table
 location back to HDFS:
@@ -232,7 +232,7 @@ $ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 Then you can follow the
 [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted) to use Hive.
 
-### Hive cli examples
+### Hive CLI examples
 
 Create a table in Hive and load a file in local path into Hive:
 
