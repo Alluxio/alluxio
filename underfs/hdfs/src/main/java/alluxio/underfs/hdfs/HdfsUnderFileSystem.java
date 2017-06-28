@@ -127,7 +127,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    hdfsConf.addResource(new Path(conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
+    for (String path : conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
+      hdfsConf.addResource(new Path(path));
+    }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is

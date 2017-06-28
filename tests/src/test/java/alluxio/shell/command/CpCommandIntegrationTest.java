@@ -33,7 +33,7 @@ import java.io.FileOutputStream;
 /**
  * Tests for cp command.
  */
-public final class CpCommandTest extends AbstractAlluxioShellTest {
+public final class CpCommandIntegrationTest extends AbstractAlluxioShellTest {
 
   /**
    * Tests copying a file to a new location.

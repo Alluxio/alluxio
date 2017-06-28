@@ -72,7 +72,8 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
         new DataServerShortCircuitReadHandler(NettyExecutors.RPC_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class)));
     pipeline.addLast("dataServerShortCircuitWriteHandler",
-        new DataServerShortCircuitWriteHandler(mWorkerProcess.getWorker(BlockWorker.class)));
+        new DataServerShortCircuitWriteHandler(NettyExecutors.RPC_EXECUTOR,
+            mWorkerProcess.getWorker(BlockWorker.class)));
 
     // UFS Handlers
     pipeline.addLast("dataServerUfsFileWriteHandler", new DataServerUfsFileWriteHandler(

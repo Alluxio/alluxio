@@ -31,6 +31,7 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -51,6 +52,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CpCommand extends AbstractShellCommand {
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("copy files in subdirectories recursively")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
