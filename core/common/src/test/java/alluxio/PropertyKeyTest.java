@@ -25,10 +25,11 @@ import org.junit.Test;
  * Tests enum type {@link PropertyKey}.
  */
 public final class PropertyKeyTest {
-  static PropertyKey DEBUG_ALIAS;
+  static PropertyKey sDebugAlias;
+
   @BeforeClass
   public static void initialize() {
-    DEBUG_ALIAS = PropertyKey.create(PropertyKey.Name.DEBUG, false,
+    sDebugAlias = PropertyKey.create(PropertyKey.Name.DEBUG, false,
             new String[] {"alluxio.debug.alias1", "alluxio.debug.alias2"});
   }
   /**
@@ -37,7 +38,7 @@ public final class PropertyKeyTest {
   @Test
   public void fromString() throws Exception {
     assertEquals(PropertyKey.DEBUG, PropertyKey.fromString("alluxio.debug.alias1"));
-    assertEquals(PropertyKey.DEBUG, PropertyKey.fromString(DEBUG_ALIAS.toString()));
+    assertEquals(PropertyKey.DEBUG, PropertyKey.fromString(sDebugAlias.toString()));
     assertEquals(PropertyKey.VERSION, PropertyKey.fromString(PropertyKey.VERSION.toString()));
   }
 
@@ -67,7 +68,7 @@ public final class PropertyKeyTest {
 
   @Test
   public void aliasIsValid() throws Exception {
-    Assert.assertTrue(PropertyKey.isValid(DEBUG_ALIAS.toString()));
+    Assert.assertTrue(PropertyKey.isValid(sDebugAlias.toString()));
   }
 
   @Test
