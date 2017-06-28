@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -30,6 +31,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class RmCommand extends WithWildCardPathCommand {
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("delete files and subdirectories recursively")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio

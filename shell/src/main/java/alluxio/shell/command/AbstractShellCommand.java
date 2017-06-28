@@ -30,42 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class AbstractShellCommand implements ShellCommand {
 
   protected FileSystem mFileSystem;
-  protected static final Option RECURSIVE_OPTION =
-      Option.builder("R")
-            .required(false)
-            .hasArg(false)
-            .desc("recursive")
-            .build();
-  protected static final Option FORCE_OPTION =
-      Option.builder("f")
-          .required(false)
-          .hasArg(false)
-          .desc("force")
-          .build();
-  protected static final Option LIST_DIR_AS_FILE_OPTION =
-      Option.builder("d")
-          .required(false)
-          .hasArg(false)
-          .desc("list directories as plain files")
-          .build();
-  protected static final Option LIST_PINNED_FILES_OPTION =
-          Option.builder("p")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("list all pinned files")
-                  .build();
-  protected static final Option FIX_INCONSISTENT_FILES =
-      Option.builder("r")
-          .required(false)
-          .hasArg(false)
-          .desc("repair inconsistent files")
-          .build();
-  protected static final Option LIST_HUMAN_READABLE_OPTION =
-      Option.builder("h")
-          .required(false)
-          .hasArg(false)
-          .desc("print human-readable format sizes")
-          .build();
 
   protected static final String REMOVE_UNCHECKED_OPTION_CHAR = "U";
   protected static final Option REMOVE_UNCHECKED_OPTION =
