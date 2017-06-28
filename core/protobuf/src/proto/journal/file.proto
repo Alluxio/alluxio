@@ -76,7 +76,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 18
+// next available id: 19
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -95,6 +95,7 @@ message InodeFileEntry {
   optional string group = 15;
   optional int32 mode = 16;
   optional PTtlAction ttlAction = 17 [default = DELETE];
+  optional int64 ufs_last_modification_time_ms = 18;
 }
 
 // next available id: 3

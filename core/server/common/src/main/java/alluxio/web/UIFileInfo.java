@@ -86,6 +86,7 @@ public final class UIFileInfo {
   private final long mSize;
   private final long mCreationTimeMs;
   private final long mLastModificationTimeMs;
+  private final long mUfsLastModificationTimeMs;
   private final boolean mInMemory;
   private final int mInMemoryPercent;
   private final boolean mIsDirectory;
@@ -112,6 +113,7 @@ public final class UIFileInfo {
     mSize = status.getLength();
     mCreationTimeMs = status.getCreationTimeMs();
     mLastModificationTimeMs = status.getLastModificationTimeMs();
+    mUfsLastModificationTimeMs = status.getUfsLastModificationTimeMs();
     mInMemory = (100 == status.getInMemoryPercentage());
     mInMemoryPercent = status.getInMemoryPercentage();
     mIsDirectory = status.isFolder();
@@ -145,6 +147,7 @@ public final class UIFileInfo {
     mSize = fileInfo.mSize;
     mCreationTimeMs = fileInfo.mCreationTimeMs;
     mLastModificationTimeMs = fileInfo.mLastModificationTimeMs;
+    mUfsLastModificationTimeMs = 0;
     mInMemory = false;
     mInMemoryPercent = 0;
     mIsDirectory = fileInfo.mIsDirectory;
@@ -218,6 +221,13 @@ public final class UIFileInfo {
    */
   public String getModificationTime() {
     return WebUtils.convertMsToDate(mLastModificationTimeMs);
+  }
+
+  /**
+   * @return the ufs modification time
+   */
+  public String getUfsModificationTime() {
+    return WebUtils.convertMsToDate(mUfsLastModificationTimeMs);
   }
 
   /**

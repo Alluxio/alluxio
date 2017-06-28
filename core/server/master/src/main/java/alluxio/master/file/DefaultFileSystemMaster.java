@@ -883,7 +883,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsPath);
         if (ufs.getFileStatus(ufsPath).getContentLength() != file.getLength()
             || (hasAnyBlockCached(mBlockMaster.getBlockInfoList(file.getBlockIds()))
-            && (ufsFileStatus.getLastModifiedTime() > file.getLastModificationTimeMs()))) {
+            && (ufsFileStatus.getLastModifiedTime() > file.getUfsLastModificationTimeMs()))) {
           return false;
         } else {
           return true;

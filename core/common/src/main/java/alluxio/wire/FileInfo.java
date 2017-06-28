@@ -52,6 +52,7 @@ public final class FileInfo implements Serializable {
   private boolean mMountPoint;
   private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
   private long mMountId;
+  private long mUfsLastModificationTimeMs;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -87,6 +88,7 @@ public final class FileInfo implements Serializable {
     mPersistenceState = fileInfo.getPersistenceState();
     mMountPoint = fileInfo.isMountPoint();
     mFileBlockInfos = new ArrayList<>();
+    mUfsLastModificationTimeMs = fileInfo.getUfsLastModificationTimeMs();
     if (fileInfo.getFileBlockInfos() != null) {
       for (alluxio.thrift.FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
         mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
@@ -261,6 +263,13 @@ public final class FileInfo implements Serializable {
    */
   public long getMountId() {
     return mMountId;
+  }
+
+  /**
+   * @return the ufs last modification time, in milliseconds
+   */
+  public long getUfsLastModificationTimeMs() {
+    return mUfsLastModificationTimeMs;
   }
 
   /**
@@ -487,6 +496,15 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param ufsLastModificationTimeMs the ufs last modification time to use
+   * @return the file information
+   */
+  public FileInfo setUfsLastModificationTimeMs(long ufsLastModificationTimeMs) {
+    mUfsLastModificationTimeMs = ufsLastModificationTimeMs;
+    return this;
+  }
+
+  /**
    * @return thrift representation of the file information
    */
   protected alluxio.thrift.FileInfo toThrift() {
@@ -499,7 +517,8 @@ public final class FileInfo implements Serializable {
         new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
-        mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction), mMountId);
+        mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction), mMountId,
+        mUfsLastModificationTimeMs);
     return info;
   }
 
@@ -545,6 +564,7 @@ public final class FileInfo implements Serializable {
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId)
+        .add("ufsLastModificationTimeMs", mUfsLastModificationTimeMs)
         .toString();
   }
 }
