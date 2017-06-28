@@ -97,7 +97,8 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_GLUSTERFS_VOLUMES =
       create(Name.UNDERFS_GLUSTERFS_VOLUMES, null);
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
-      create(Name.UNDERFS_HDFS_CONFIGURATION, String.format("${%s}/core-site.xml", Name.CONF_DIR));
+      create(Name.UNDERFS_HDFS_CONFIGURATION,
+          String.format("${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR));
   public static final PropertyKey UNDERFS_HDFS_IMPL =
       create(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem");
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
@@ -204,7 +205,7 @@ public class PropertyKey {
   public static final PropertyKey MASTER_ADDRESS = create(Name.MASTER_ADDRESS, null);
   public static final PropertyKey MASTER_BIND_HOST = create(Name.MASTER_BIND_HOST, "0.0.0.0");
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
-      create(Name.MASTER_CONNECTION_TIMEOUT_MS, 0);
+      create(Name.MASTER_CONNECTION_TIMEOUT_MS, "0ms");
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       create(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER,
           "alluxio.master.file.async.DefaultAsyncPersistHandler");
@@ -214,7 +215,7 @@ public class PropertyKey {
       create(Name.MASTER_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey MASTER_HOSTNAME = create(Name.MASTER_HOSTNAME, null);
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
-      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5);
+      create(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "5ms");
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       create(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min");
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
@@ -298,7 +299,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       create(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "1sec");
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
-      create(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "1min");
+      create(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "5min");
   public static final PropertyKey WORKER_BLOCK_THREADS_MAX =
       create(Name.WORKER_BLOCK_THREADS_MAX, 2048);
   public static final PropertyKey WORKER_BLOCK_THREADS_MIN =
@@ -371,7 +372,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
       create(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX, 1024);
   public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
-      create(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX, 1024);
+      create(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX, 2048);
   // The default is set to 11. One client is reserved for some light weight operations such as
   // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
   // master.
@@ -1294,7 +1295,7 @@ public class PropertyKey {
    * @param template String of this property
    * @param defaultValue Default value of this property in compile time if not null
    */
-   static PropertyKey create(Template template, Object defaultValue, Object... param) {
+  static PropertyKey create(Template template, Object defaultValue, Object... param) {
     PropertyKey key = template.format(param);
     DEFAULT_KEYS_MAP.put(key.toString(), key);
     DEFAULT_VALUES.put(key, defaultValue);
@@ -1306,7 +1307,7 @@ public class PropertyKey {
    *
    * @param name String of this property
    * @param defaultValue Default value of this property in compile time if not null
-   * @param aliases String array of aliases of this property
+   * @param aliases String list of aliases of this property
    */
   static PropertyKey create(String name, Object defaultValue, String[] aliases) {
     PropertyKey key = new PropertyKey(name);
