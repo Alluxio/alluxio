@@ -131,7 +131,7 @@ public final class LineageInfo implements Serializable {
    * @return the lineage information
    */
   public LineageInfo setOutputFiles(List<String> outputFiles) {
-    Preconditions.checkNotNull(outputFiles);
+    Preconditions.checkNotNull(outputFiles, "outputFiles");
     mOutputFiles = new ArrayList<>(outputFiles);
     return this;
   }
@@ -141,7 +141,7 @@ public final class LineageInfo implements Serializable {
    * @return the lineage information
    */
   public LineageInfo setJob(CommandLineJobInfo job) {
-    Preconditions.checkNotNull(job);
+    Preconditions.checkNotNull(job, "job");
     mJob = job;
     return this;
   }
@@ -160,7 +160,7 @@ public final class LineageInfo implements Serializable {
    * @return the lineage information
    */
   public LineageInfo setParents(List<Long> parents) {
-    Preconditions.checkNotNull(parents);
+    Preconditions.checkNotNull(parents, "parents");
     mParents = new ArrayList<>(parents);
     return this;
   }
@@ -170,7 +170,7 @@ public final class LineageInfo implements Serializable {
    * @return the lineage information
    */
   public LineageInfo setChildren(List<Long> children) {
-    Preconditions.checkNotNull(children);
+    Preconditions.checkNotNull(children, "children");
     mChildren = new ArrayList<>(children);
     return this;
   }
