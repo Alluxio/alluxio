@@ -288,16 +288,12 @@ public final class FileUtils {
    * @param filePath pathname string of the file to create
    */
   public static void createFile(String filePath) throws IOException {
+    Path storagePath = Paths.get(filePath);
+    Files.createDirectories(storagePath.getParent());
     try {
-      Files.createDirectories(Paths.get(filePath));
-    } catch (FileAlreadyExistsException e1) {
+      Files.createFile(storagePath);
+    } catch (FileAlreadyExistsException e) {
       throw new IOException("File already exist " + filePath);
-    } catch (UnsupportedOperationException e2) {
-      throw new IOException("Failed to create file " + filePath);
-    } catch (SecurityException e3) {
-      throw new IOException("Failed to create file " + filePath);
-    } catch (IOException e4) {
-      throw new IOException("Failed to create file " + filePath);
     }
   }
 
