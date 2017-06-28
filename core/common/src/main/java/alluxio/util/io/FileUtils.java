@@ -47,7 +47,6 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * By convention, methods take file path strings as parameters.
  *
- * TODO(peis): Move everything to nio.
  */
 @ThreadSafe
 public final class FileUtils {
@@ -203,8 +202,6 @@ public final class FileUtils {
    * Moves file from one place to another, can across storage devices (e.g., from memory to SSD)
    * when {@link File#renameTo} may not work.
    *
-   * Current implementation uses {@link java.nio.file.Files#move(Path, Path, CopyOption...)},
-   * may change if there is a better solution.
    *
    * @param srcPath pathname string of source file
    * @param dstPath pathname string of destination file
@@ -216,8 +213,6 @@ public final class FileUtils {
   /**
    * Deletes the file or directory.
    *
-   * Current implementation uses {@link java.nio.file.Files#deleteIfExists(Path)},
-   * may change if there is a better solution.
    *
    * @param path pathname string of file or directory
    */
