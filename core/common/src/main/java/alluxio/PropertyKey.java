@@ -1294,9 +1294,26 @@ public class PropertyKey {
    * @param template String of this property
    * @param defaultValue Default value of this property in compile time if not null
    */
-  static PropertyKey create(Template template, Object defaultValue, Object... param) {
+   static PropertyKey create(Template template, Object defaultValue, Object... param) {
     PropertyKey key = template.format(param);
     DEFAULT_KEYS_MAP.put(key.toString(), key);
+    DEFAULT_VALUES.put(key, defaultValue);
+    return key;
+  }
+
+  /**
+   * Factory method to create a constant default property and assign a default value together with its alias.
+   *
+   * @param name String of this property
+   * @param defaultValue Default value of this property in compile time if not null
+   * @param aliases String array of aliases of this property
+   */
+  static PropertyKey create(String name, Object defaultValue, String[] aliases) {
+    PropertyKey key = new PropertyKey(name);
+    for (String alias : aliases) {
+      DEFAULT_KEYS_MAP.put(alias, key);
+    }
+    DEFAULT_KEYS_MAP.put(name, key);
     DEFAULT_VALUES.put(key, defaultValue);
     return key;
   }
