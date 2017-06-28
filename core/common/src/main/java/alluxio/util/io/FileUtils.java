@@ -29,6 +29,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.CopyOption;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
@@ -303,7 +304,11 @@ public final class FileUtils {
    * @param path path of the directory to create
    */
   public static void createDir(String path) throws IOException {
-    Files.createDirectories(Paths.get(path));
+    try {
+      Files.createDirectories(Paths.get(path));
+    } catch (AccessDeniedException e) {
+      LOG.info("Fail to create folder " + path + "caused by AccessDeniedException");
+    }
   }
 
   /**
