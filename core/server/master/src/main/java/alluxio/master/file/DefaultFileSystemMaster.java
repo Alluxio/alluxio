@@ -630,6 +630,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
       return StartupConsistencyCheck.disabled();
     }
+    if (mStartupConsistencyCheck == null) {
+      return StartupConsistencyCheck.notStarted();
+    }
     if (!mStartupConsistencyCheck.isDone()) {
       return StartupConsistencyCheck.running();
     }
@@ -943,7 +946,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // determined by its memory footprint.
     long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
 
-    completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs());
+    completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
+        false);
     CompleteFileEntry completeFileEntry =
         CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(inode.getId())
             .setLength(length).setOpTimeMs(options.getOperationTimeMs()).build();
@@ -956,13 +960,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to complete
    * @param length the length to use
    * @param opTimeMs the operation time (in milliseconds)
+   * @param replayed whether the operation is a result of replaying the journal
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
   private void completeFileInternal(List<Long> blockIds, LockedInodePath inodePath, long length,
-      long opTimeMs)
+      long opTimeMs, boolean replayed)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
     InodeFile inode = inodePath.getInodeFile();
@@ -971,12 +976,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     inode.complete(length);
 
     if (inode.isPersisted()) {
-      // Commit all the file blocks (without locations) so the metadata for the block exists.
-      long currLength = length;
-      for (long blockId : inode.getBlockIds()) {
-        long blockSize = Math.min(currLength, inode.getBlockSizeBytes());
-        mBlockMaster.commitBlockInUFS(blockId, blockSize);
-        currLength -= blockSize;
+      if (!replayed) {
+        // Commit all the file blocks (without locations) so the metadata for the block exists.
+        long currLength = length;
+        for (long blockId : inode.getBlockIds()) {
+          long blockSize = Math.min(currLength, inode.getBlockSizeBytes());
+          mBlockMaster.commitBlockInUFS(blockId, blockSize);
+          currLength -= blockSize;
+        }
       }
       // The path exists in UFS, so it is no longer absent
       mUfsAbsentPathCache.processExisting(inodePath.getUri());
@@ -995,7 +1002,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       completeFileInternal(entry.getBlockIdsList(), inodePath, entry.getLength(),
-          entry.getOpTimeMs());
+          entry.getOpTimeMs(), true);
     } catch (FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }
@@ -2450,11 +2457,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean replayed, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    UnderFileSystem ufs = mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
+    // Adding the mount point will not create the UFS instance and thus not connect to UFS
+    mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-            .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties())).getUfs();
+            .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
     try {
       if (!replayed) {
+        UnderFileSystem ufs = mUfsManager.get(mountId).getUfs();
         ufs.connectFromMaster(
             NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
         // Check that the ufsPath exists and is a directory

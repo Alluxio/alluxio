@@ -22,6 +22,7 @@ import alluxio.util.SecurityUtils;
 import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -40,6 +41,41 @@ public final class LsCommand extends WithWildCardPathCommand {
   public static final String STATE_FOLDER = "Directory";
   public static final String STATE_FILE_IN_MEMORY = "In Memory";
   public static final String STATE_FILE_NOT_IN_MEMORY = "Not In Memory";
+
+  private static final Option FORCE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("force to load metadata for immediate children in a directory")
+          .build();
+
+  private static final Option LIST_DIR_AS_FILE_OPTION =
+      Option.builder("d")
+          .required(false)
+          .hasArg(false)
+          .desc("list directories as plain files")
+          .build();
+
+  private static final Option LIST_HUMAN_READABLE_OPTION =
+      Option.builder("h")
+          .required(false)
+          .hasArg(false)
+          .desc("print human-readable format sizes")
+          .build();
+
+  private static final Option LIST_PINNED_FILES_OPTION =
+      Option.builder("p")
+          .required(false)
+          .hasArg(false)
+          .desc("list all pinned files")
+          .build();
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("list subdirectories recursively")
+          .build();
 
   /**
    * Formats the ls result string.

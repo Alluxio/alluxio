@@ -14,8 +14,6 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -44,7 +42,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) throws UnavailableException {
+      long blockSizeBytes) {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
@@ -61,12 +59,11 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         return workerInfo.getNetAddress();
       }
     }
-    throw new UnavailableException(
-        ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSizeBytes));
+    return null;
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) throws UnavailableException {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
     return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 

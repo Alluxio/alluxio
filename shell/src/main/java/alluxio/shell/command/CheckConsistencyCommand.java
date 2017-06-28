@@ -20,6 +20,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -31,6 +32,14 @@ import java.util.List;
  * Command for checking the consistency of a file or folder between Alluxio and the under storage.
  */
 public class CheckConsistencyCommand extends AbstractShellCommand {
+
+  private static final Option REPAIR_OPTION =
+      Option.builder("r")
+          .required(false)
+          .hasArg(false)
+          .desc("repair inconsistent files")
+          .build();
+
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -45,7 +54,7 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(FIX_INCONSISTENT_FILES);
+    return new Options().addOption(REPAIR_OPTION);
   }
 
   @Override
@@ -61,6 +70,15 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
     return 0;
   }
 
+  /**
+   * Checks the inconsistent files and directories which exist in Alluxio but don't exist in the
+   * under storage, repairs the inconsistent paths by deleting them if repairConsistency is true.
+   *
+   * @param path the specified path to be checked
+   * @param repairConsistency whether to repair the consistency or not
+   * @throws AlluxioException
+   * @throws IOException
+   */
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
     CheckConsistencyOptions options = CheckConsistencyOptions.defaults();

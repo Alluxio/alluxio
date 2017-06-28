@@ -412,13 +412,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
-    // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
-    // configuration property, so the user doesn't need to specify the authority.
-    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
-      Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
-    }
-
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addS3Credentials(conf);
@@ -472,7 +465,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // We assume here that all clients use the same configuration.
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf);
     Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, isZookeeperMode());
+    // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
+    // configuration property, so the user doesn't need to specify the authority.
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
+      Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
       Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
       Configuration.set(PropertyKey.MASTER_RPC_PORT, uri.getPort());
     }

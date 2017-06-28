@@ -54,7 +54,7 @@ public abstract class AbstractClient implements Client {
       Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
 
   private static final int BASE_SLEEP_MS =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
   private static final int MAX_SLEEP_MS =
       (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
 

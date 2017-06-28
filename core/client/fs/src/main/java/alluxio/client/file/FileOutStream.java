@@ -23,6 +23,7 @@ import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
@@ -97,9 +98,13 @@ public class FileOutStream extends AbstractOutStream {
     if (!mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream = null;
     } else { // Write is through to the under storage, create mUnderStorageOutputStream
+      WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
+          options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
+      if (workerNetAddress == null) {
+        // Assume no worker is available because block size is 0
+        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      }
       try {
-        WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
-            options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getWorkerInfoList(), 0);
         mUnderStorageOutputStream = mCloser
             .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
       } catch (Throwable t) {

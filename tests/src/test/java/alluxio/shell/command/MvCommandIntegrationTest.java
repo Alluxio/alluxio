@@ -22,7 +22,7 @@ import java.io.IOException;
 /**
  * Tests for mv command.
  */
-public final class MvCommandTest extends AbstractAlluxioShellTest {
+public final class MvCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void rename() throws IOException {
     StringBuilder toCompare = new StringBuilder();

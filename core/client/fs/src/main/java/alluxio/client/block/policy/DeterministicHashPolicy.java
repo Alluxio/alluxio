@@ -13,8 +13,6 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.UnavailableException;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
@@ -60,7 +58,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) throws UnavailableException {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
     List<BlockWorkerInfo> workerInfos = Lists.newArrayList(options.getBlockWorkerInfos());
     Collections.sort(workerInfos, new Comparator<BlockWorkerInfo>() {
       @Override
@@ -89,11 +87,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
       }
       index = (index + 1) % workerInfos.size();
     }
-    if (workers.isEmpty()) {
-      throw new UnavailableException(
-          ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(options.getBlockSize()));
-    }
-    return workers.get(mRandom.nextInt(workers.size()));
+    return workers.isEmpty() ? null : workers.get(mRandom.nextInt(workers.size()));
   }
 
   @Override
