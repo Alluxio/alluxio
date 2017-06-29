@@ -105,18 +105,14 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void hadoopShouldLoadFaultTolerantFileSystemWhenConfigured() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    if (HadoopClientTestUtils.isHadoop1x()) {
-      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
-    }
-
     URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, uri.getHost(),
         PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
-        PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+            PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs =
+          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
       Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
     }
   }
@@ -126,15 +122,10 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void loadFaultTolerantSystemWhenUsingNoAuthority() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    if (HadoopClientTestUtils.isHadoop1x()) {
-      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
-    }
-
     URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
-    try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true")
-        .toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true").toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs =
+          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
       Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
     }
   }
@@ -338,6 +329,7 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (HadoopClientTestUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
+      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
     return conf;
   }

@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for rmr command.
  */
-public final class RmrCommandTest extends AbstractAlluxioShellTest {
+public final class RmrCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void rmr() throws IOException {
     StringBuilder toCompare = new StringBuilder();
