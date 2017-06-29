@@ -2603,8 +2603,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * Checks whether the owner belongs to the group.
    *
-   * @param owner The owner to check
-   * @param group The group to check
+   * @param owner the owner to check
+   * @param group the group to check
    * @throws FailedPreconditionException if owner does not belong to group
    * @throws AccessControlException if this operation is not permitted
    */
@@ -2613,7 +2613,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       List<String> groups = CommonUtils.getGroups(owner);
       if (groups == null || !groups.contains(group)) {
-        throw new FailedPreconditionException("setOwner: owner " + owner
+        throw new FailedPreconditionException("Owner " + owner
             + " does not belong to the group " + group);
       }
     } catch (IOException e) {

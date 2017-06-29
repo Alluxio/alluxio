@@ -78,10 +78,10 @@ public final class ChownCommand extends AbstractShellCommand {
   /**
    * Changes the owner and group for the directory or file with the path specified in args.
    *
-   * @param path The {@link AlluxioURI} path as the input of the command
-   * @param owner The owner to be updated to the file or directory
-   * @param group The group to be updated to the file or directory
-   * @param recursive Whether change the owner and group recursively
+   * @param path the {@link AlluxioURI} path as the input of the command
+   * @param owner the owner to be updated to the file or directory
+   * @param group the group to be updated to the file or directory
+   * @param recursive whether change the owner and group recursively
    */
   private void chown(AlluxioURI path, String owner, String group, boolean recursive)
       throws AlluxioException, IOException {
