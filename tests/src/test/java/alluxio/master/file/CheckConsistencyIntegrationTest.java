@@ -214,20 +214,20 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void inconsistentFileModifiedTime() throws Exception {
-    mFileSystem.delete(FILE);
-    FileOutStream fileOutStream = mFileSystem.createFile(FILE, FILE_OPTIONS);
-    fileOutStream.write('a');
-    fileOutStream.close();
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
+    mFileSystem.delete(FILE);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile);
-
+    OutputStream out = ufs.create(ufsFile);
+    out.write('a');
+    out.close();
+    mFileSystem.createFile(FILE, FILE_OPTIONS);
     InputStream is = mFileSystem.openFile(FILE);
     is.read();
     is.close();
 
     ufs.deleteFile(ufsFile);
 
-    OutputStream out = ufs.create(ufsFile);
+    out = ufs.create(ufsFile);
     out.write('b');
     out.close();
 
