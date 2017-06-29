@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.LoadMetadataType;
@@ -105,11 +106,11 @@ public final class LsCommand extends WithWildCardPathCommand {
     String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
-          sizeStr, CommandUtils.convertMsToDate(createTimeMs),
+          sizeStr, CommonUtils.convertMsToDate(createTimeMs),
           memoryState, path);
     } else {
       return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
-          CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
+          CommonUtils.convertMsToDate(createTimeMs), memoryState, path);
     }
   }
 

@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.proto.dataserver.Protocol;
@@ -31,7 +33,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +62,8 @@ public final class CommonUtils {
 
   private static final String ALPHANUM =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  private static final String DATE_FORMAT_PATTERN =
+      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
   private static final Random RANDOM = new Random();
 
   /**
@@ -572,6 +579,17 @@ public final class CommonUtils {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Converts a millisecond number to a formatted date String.
+   *
+   * @param millis a long millisecond number
+   * @return formatted date String
+   */
+  public static String convertMsToDate(long millis) {
+    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+    return dateFormat.format(new Date(millis));
   }
 
   private CommonUtils() {} // prevent instantiation
