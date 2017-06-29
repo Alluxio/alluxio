@@ -56,6 +56,7 @@ public final class InodeFile extends Inode<InodeFile> {
     mCacheable = false;
     mCompleted = false;
     mLength = 0;
+    mUfsLastModificationTimeMs = 0;
   }
 
   @Override

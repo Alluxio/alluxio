@@ -670,12 +670,10 @@ public class InodeTree implements JournalEntryIterable {
           MountTable.Resolution resolution = mMountTable.resolve(getPath(lastInode));
           String ufsUri = resolution.getUri().toString();
           UnderFileSystem ufs = resolution.getUfs();
-          try {
+          if (ufs != null && ufs.exists(ufsUri)) {
             UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsUri);
             ((InodeFile) lastInode).setUfsLastModificationTimeMs(
                 ufsFileStatus.getLastModifiedTime());
-          } catch (IOException e) {
-            LOG.info(ufsUri + " read error and the " + path + " have no ufs file.");
           }
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());
