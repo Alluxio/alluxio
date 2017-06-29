@@ -66,7 +66,7 @@ public final class ChownCommand extends AbstractShellCommand {
   private static final Pattern USER_PATTERN = Pattern.compile("(?<user>[\\w][\\w-]*)");
 
   private static final Pattern USER_GROUP_PATTERN =
-      Pattern.compile("(?<user>[a-zA-Z_][\\w_-]*):(?<group>[\\w][\\w-]*)");
+      Pattern.compile("(?<user>[\\w][\\w_-]*):(?<group>[\\w][\\w-]*)");
 
   /**
    * Changes the owner for the directory or file with the path specified in args.

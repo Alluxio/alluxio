@@ -2583,7 +2583,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
-      FailedPreconditionException {
+      IOException {
     Metrics.SET_ATTRIBUTE_OPS.inc();
     // for chown
     boolean rootRequired = options.getOwner() != null;
@@ -2609,16 +2609,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws AccessControlException if this operation is not permitted
    */
   private void checkUserBelongsToGroup(String owner, String group)
-      throws FailedPreconditionException, AccessControlException {
-    try {
-      List<String> groups = CommonUtils.getGroups(owner);
-      if (groups == null || !groups.contains(group)) {
-        throw new FailedPreconditionException("Owner " + owner
-            + " does not belong to the group " + group);
-      }
-    } catch (IOException e) {
-      throw new AccessControlException("Could not setOwner for file."
-          + " Aborting the setAttribute operation in Alluxio.", e);
+      throws AccessControlException, IOException {
+    List<String> groups = CommonUtils.getGroups(owner);
+    if (groups == null || !groups.contains(group)) {
+      throw new FailedPreconditionException("Owner " + owner
+          + " does not belong to the group " + group);
     }
   }
 
@@ -2743,7 +2738,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      FailedPreconditionException {
+      IOException {
     for (long fileId : persistedFiles) {
       try {
         // Permission checking for each file is performed inside setAttribute

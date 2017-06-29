@@ -22,7 +22,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.exception.status.FailedPreconditionException;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -451,7 +450,7 @@ public interface FileSystemMaster extends Master {
    */
   void setAttribute(AlluxioURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
-      FailedPreconditionException;
+      IOException;
 
   /**
    * Schedules a file for async persistence.
@@ -474,7 +473,7 @@ public interface FileSystemMaster extends Master {
    */
   FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      FailedPreconditionException;
+      IOException;
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio

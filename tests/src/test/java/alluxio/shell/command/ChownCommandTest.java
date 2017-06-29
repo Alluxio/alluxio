@@ -47,7 +47,7 @@ public final class ChownCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void chownUserAndGroup() throws IOException, AlluxioException, Exception {
+  public void chownUserAndGroup() throws Exception {
     clearLoginUser();
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
@@ -64,32 +64,24 @@ public final class ChownCommandTest extends AbstractAlluxioShellTest {
     int numOfGroups = groups.size();
     // chown legalUser:legalGroup
     for (int i = 0; i < 8; i++) {
-      try {
-        int k = rand.nextInt(numOfGroups);
-        String group = groups.get(k);
-        mFsShell.run("chown", newOwner + ":" + group, "/testFile");
-        String currentGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
-        Assert.assertEquals(group, currentGroup);
-      } catch (IllegalArgumentException e) {
-        mOldOutput.format("The user %s does not belong any group.%n", newOwner);
-      }
+      int k = rand.nextInt(numOfGroups);
+      String group = groups.get(k);
+      mFsShell.run("chown", newOwner + ":" + group, "/testFile");
+      String currentGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
+      Assert.assertEquals(group, currentGroup);
     }
 
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
     // chown illegalUser:legalGroup
     for (int i = 0; i < 8; i++) {
-      try {
-        int k = rand.nextInt(numOfGroups);
-        String group = groups.get(k);
-        mFsShell.run("chown", nonexistUser + ":" + group, "/testFile");
-        String currentOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
-        String currentGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
-        Assert.assertEquals(originalOwner, currentOwner);
-        Assert.assertEquals(originalGroup, currentGroup);
-      } catch (IllegalArgumentException e) {
-        mOldOutput.format("The user %s does not belong to any group.%n", newOwner);
-      }
+      int k = rand.nextInt(numOfGroups);
+      String group = groups.get(k);
+      mFsShell.run("chown", nonexistUser + ":" + group, "/testFile");
+      String currentOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
+      String currentGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
+      Assert.assertEquals(originalOwner, currentOwner);
+      Assert.assertEquals(originalGroup, currentGroup);
     }
 
     // chown illegalUser:illegalGroup
