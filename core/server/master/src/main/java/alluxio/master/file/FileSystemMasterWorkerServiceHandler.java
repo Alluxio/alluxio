@@ -32,6 +32,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -66,13 +67,15 @@ public final class FileSystemMasterWorkerServiceHandler
   public FileSystemHeartbeatTResponse fileSystemHeartbeat(final long workerId,
       final List<Long> persistedFiles, FileSystemHeartbeatTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<FileSystemHeartbeatTResponse>() {
-      @Override
-      public FileSystemHeartbeatTResponse call() throws AlluxioException {
-        return new FileSystemHeartbeatTResponse(
-            mFileSystemMaster.workerHeartbeat(workerId, persistedFiles));
-      }
-    });
+    return RpcUtils.call(LOG,
+        new RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>() {
+          @Override
+          public FileSystemHeartbeatTResponse call() throws AlluxioException, IOException {
+            return new FileSystemHeartbeatTResponse(
+                mFileSystemMaster.workerHeartbeat(workerId, persistedFiles));
+          }
+        }
+    );
   }
 
   @Override

@@ -20,6 +20,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -53,6 +55,11 @@ public final class ChownCommand extends AbstractShellCommand {
     return new Options().addOption(RECURSIVE_OPTION);
   }
 
+  private static final Pattern USER_PATTERN = Pattern.compile("(?<user>[a-z_][a-z0-9_-]*)");
+
+  private static final Pattern USER_GROUP_PATTERN =
+      Pattern.compile("(?<user>[a-z_][a-z0-9_-]*):(?<group>[a-z_][a-z0-9_-]*)");
+
   /**
    * Changes the owner for the directory or file with the path specified in args.
    *
@@ -68,13 +75,40 @@ public final class ChownCommand extends AbstractShellCommand {
     System.out.println("Changed owner of " + path + " to " + owner);
   }
 
+  /**
+   * Changes the owner and group for the directory or file with the path specified in args.
+   * @param path The {@link AlluxioURI} path as the input of the command
+   * @param owner The owner to be updated to the file or directory
+   * @param group The group to be updated to the file or directory
+   * @param recursive Whether change the owner and group recursively
+   */
+  private void chown(AlluxioURI path, String owner, String group, boolean recursive)
+    throws AlluxioException, IOException {
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setRecursive(recursive);
+    mFileSystem.setAttribute(path, options);
+    System.out.println("Changed owner:group of " + path + " to " + owner + ":" + group);
+  }
+
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    String owner = args[0];
     AlluxioURI path = new AlluxioURI(args[1]);
-    chown(path, owner, cl.hasOption("R"));
-    return 0;
+    Matcher matchUserGroup = USER_GROUP_PATTERN.matcher(args[0]);
+    if (matchUserGroup.matches()) {
+      String owner = matchUserGroup.group("user");
+      String group = matchUserGroup.group("group");
+      chown(path, owner, group, cl.hasOption("R"));
+      return 0;
+    }
+    Matcher matchUserOnly = USER_PATTERN.matcher(args[0]);
+    if (matchUserOnly.matches()) {
+      String owner = matchUserOnly.group("user");
+      chown(path, owner, cl.hasOption("R"));
+      return 0;
+    }
+    System.out.println("The syntax of user/group is invalid.");
+    return -1;
   }
 
   @Override

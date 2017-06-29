@@ -2582,17 +2582,43 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      FailedPreconditionException {
     Metrics.SET_ATTRIBUTE_OPS.inc();
     // for chown
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
+    if (options.getOwner() != null && options.getGroup() != null) {
+      checkUserBelongsToGroup(options.getOwner(), options.getGroup());
+    }
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
       setAttributeAndJournal(inodePath, rootRequired, ownerRequired, options, journalContext);
+    }
+  }
+
+  /**
+   * Checks whether the owner belongs to the group.
+   * @param owner The owner to check
+   * @param group The group to check
+   * @throws FailedPreconditionException if owner does not belong to group
+   * @throws AccessControlException if this operation is not permitted
+   */
+  private void checkUserBelongsToGroup(String owner, String group)
+  throws FailedPreconditionException, AccessControlException {
+    try {
+      List<String> groups = null;
+      groups = CommonUtils.getGroups(owner);
+      if (groups == null || !groups.contains(group)) {
+        throw new FailedPreconditionException("setOwner: owner " + owner
+            + " does not belong to the group " + group);
+      }
+    } catch (IOException e) {
+      throw new AccessControlException("Could not setOwner for file."
+          + " Aborting the setAttribute operation in Alluxio.", e);
     }
   }
 
@@ -2716,7 +2742,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      FailedPreconditionException {
     for (long fileId : persistedFiles) {
       try {
         // Permission checking for each file is performed inside setAttribute
