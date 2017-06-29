@@ -166,7 +166,7 @@ We assume that you have set `alluxio.underfs.address=hdfs://namenode:port/` in `
 Use the following HiveQL to change the table data location：
 
 ```
-hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/user/hive/warehouse";
+hive> alter table TABLE_NAME set location "alluxio://master_hostname:port/user/hive/warehouse/u_user";
 ```
 
 ## Change the table metadata to point back to HDFS
