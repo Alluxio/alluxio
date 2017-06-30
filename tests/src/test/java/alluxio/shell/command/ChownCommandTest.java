@@ -28,29 +28,11 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Tests for chown command.
  */
 public final class ChownCommandTest extends AbstractAlluxioShellTest {
-  private void checkFileOwnerAndGroup(String path, String expectedOwner, String expectedGroup)
-      throws Exception {
-    String currentOwner = mFileSystem.getStatus(new AlluxioURI(path)).getOwner();
-    String currentGroup = mFileSystem.getStatus(new AlluxioURI(path)).getGroup();
-    Assert.assertEquals(expectedOwner, currentOwner);
-    Assert.assertEquals(expectedGroup, currentGroup);
-  }
-
-  private void setupTestGroupMappingService() {
-    clearLoginUser();
-    GroupMappingServiceTestUtils.resetCache();
-    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-        IdentityUserGroupsMapping.class.getName());
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-  }
-
   @Test
   public void chown() throws IOException, AlluxioException {
     clearLoginUser();
@@ -69,33 +51,26 @@ public final class ChownCommandTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     String newOwner = "alice";
     List<String> groups = CommonUtils.getGroups(newOwner);
-    Random rand = new Random();
-    int numOfGroups = groups.size();
-    for (int i = 0; i < 8; i++) {
-      int k = rand.nextInt(numOfGroups);
-      String group = groups.get(k);
-      mFsShell.run("chown", newOwner + ":" + group, "/testFile");
-      checkFileOwnerAndGroup("/testFile", newOwner, group);
-    }
+    String group = groups.get(0);
+    String[] command = new String[] {"chown", newOwner + ":" + group, "/testFile"};
+    String expectedCommandOutput =
+        "Changed owner:group of /testFile to alice:" +  group + ".";
+    runChownOwnerAndGroup(command, 0, expectedCommandOutput, newOwner, group);
   }
 
   @Test
   public void chownInvalidOwnerValidGroup() throws Exception {
     setupTestGroupMappingService();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
-    String newOwner = "alice";
+    String user = "alice";
     String nonexistUser = "nonexistuser";
-    List<String> groups = CommonUtils.getGroups(newOwner);
-    int numOfGroups = groups.size();
-    Random rand = new Random();
+    List<String> groups = CommonUtils.getGroups(user);
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
-    for (int i = 0; i < 8; i++) {
-      int k = rand.nextInt(numOfGroups);
-      String group = groups.get(k);
-      mFsShell.run("chown", nonexistUser + ":" + group, "/testFile");
-      checkFileOwnerAndGroup("/testFile", originalOwner, originalGroup);
-    }
+    String group = groups.get(0);
+    String[] command = new String[] {"chown", nonexistUser + ":" + group, "/testFile"};
+    String expectedCommandOutput = "Could not setOwner for /testFile.";
+    runChownOwnerAndGroup(command, -1, expectedCommandOutput, originalOwner, originalGroup);
   }
 
   @Test
@@ -106,8 +81,9 @@ public final class ChownCommandTest extends AbstractAlluxioShellTest {
     String nonexistGroup = "nonexistgroup";
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
-    mFsShell.run("chown", newOwner + ":" + nonexistGroup, "/testFile");
-    checkFileOwnerAndGroup("/testFile", originalOwner, originalGroup);
+    String[] command = new String[] {"chown", newOwner + ":" + nonexistGroup, "/testFile"};
+    String expectedCommandOutput = "Could not setOwner for /testFile.";
+    runChownOwnerAndGroup(command, -1, expectedCommandOutput, originalOwner, originalGroup);
   }
 
   @Test
@@ -118,8 +94,9 @@ public final class ChownCommandTest extends AbstractAlluxioShellTest {
     String nonexistGroup = "nonexistgroup";
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
-    mFsShell.run("chown", nonexistUser + ":" + nonexistGroup, "/testFile");
-    checkFileOwnerAndGroup("/testFile", originalOwner, originalGroup);
+    String[] command = new String[] {"chown", nonexistUser + ":" + nonexistGroup, "/testFile"};
+    String expectedCommandOutput = "Could not setOwner for /testFile.";
+    runChownOwnerAndGroup(command, -1, expectedCommandOutput, originalOwner, originalGroup);
   }
 
   /**
@@ -137,5 +114,51 @@ public final class ChownCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("chown", "-R", "user2", "/testDir");
     owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getOwner();
     Assert.assertEquals("user2", owner);
+  }
+
+  /**
+   * Run chown command to change owner and group of a path.
+   *
+   * @param command the command to run
+   * @param expectedReturnValue return value expected from running the command
+   * @param expectedCommandOutput command output expected from running the command
+   * @param expectedOwner expected owner of the path
+   * @param expectedGroup expected group of the path
+   * @throws Exception
+   */
+  private void runChownOwnerAndGroup(String[] command, int expectedReturnValue,
+      String expectedCommandOutput, String expectedOwner, String expectedGroup) throws Exception {
+    int ret = mFsShell.run(command[0], command[1], command[2]);
+    Assert.assertEquals(expectedReturnValue, ret);
+    Assert.assertTrue(mOutput.toString().contains(expectedCommandOutput));
+    checkPathOwnerAndGroup(command[2], expectedOwner, expectedGroup);
+  }
+
+  /**
+   * Check whether the owner and group of the path are expectedOwner and expectedGroup.
+   *
+   * @param path the path to check
+   * @param expectedOwner the owner that we expect to own the path
+   * @param expectedGroup the expected group of the path
+   * @throws Exception
+   */
+  private void checkPathOwnerAndGroup(String path, String expectedOwner, String expectedGroup)
+      throws Exception {
+    String currentOwner = mFileSystem.getStatus(new AlluxioURI(path)).getOwner();
+    String currentGroup = mFileSystem.getStatus(new AlluxioURI(path)).getGroup();
+    Assert.assertEquals(expectedOwner, currentOwner);
+    Assert.assertEquals(expectedGroup, currentGroup);
+  }
+
+  /**
+   * Set up a group mapping service for test with {@link IdentityUserGroupsMapping}.
+   */
+  private void setupTestGroupMappingService() {
+    clearLoginUser();
+    GroupMappingServiceTestUtils.resetCache();
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
   }
 }

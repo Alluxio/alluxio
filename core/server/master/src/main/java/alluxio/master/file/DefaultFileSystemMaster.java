@@ -2594,7 +2594,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
       } catch (IOException e) {
-        throw new FailedPreconditionException("Could not setOwner.", e);
+        throw new IOException("Could not setOwner for " + path.toString() + ".", e);
       }
     }
     try (JournalContext journalContext = createJournalContext();
@@ -2610,10 +2610,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param owner the owner to check
    * @param group the group to check
    * @throws FailedPreconditionException if owner does not belong to group
-   * @throws AccessControlException if this operation is not permitted
    */
   private void checkUserBelongsToGroup(String owner, String group)
-      throws AccessControlException, IOException {
+      throws IOException {
     List<String> groups = CommonUtils.getGroups(owner);
     if (groups == null || !groups.contains(group)) {
       throw new FailedPreconditionException("Owner " + owner
