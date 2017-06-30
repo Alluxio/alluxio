@@ -22,6 +22,7 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
 import org.junit.Assert;
@@ -49,7 +50,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     return String
         .format(Constants.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir),
             testUser, testGroup, String.valueOf(size),
-            CommandUtils.convertMsToDate(createTime), fileType, path);
+            CommonUtils.convertMsToDate(createTime), fileType, path);
   }
 
   // Helper function to format ls result without acl enabled.
@@ -71,7 +72,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
       throws IOException, AlluxioException {
     String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
-        CommandUtils.convertMsToDate(createTime), fileType, path);
+        CommonUtils.convertMsToDate(createTime), fileType, path);
   }
 
   // Helper function to create a set of files in the file system
