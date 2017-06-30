@@ -140,7 +140,7 @@ Please read [Configuration-Settings](Configuration-Settings.html) for how to cus
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
 
-- If you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
+- Before version 1.6.0, if you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
 and stores data on the local worker (see [location policy](File-System-API.html#location-policy)).
 In this case, you will see the above error once the local worker does not have enough space.
 To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
