@@ -57,7 +57,43 @@
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- Internal test dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>s3Test</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <!-- Change "s3a://my-bucket/alluxio-test" to the name of your S3 bucket & dir -->
+                <s3Bucket>s3a://my-bucket/alluxio-test</s3Bucket>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes combine.self="override" />
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
@@ -144,6 +180,16 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <testExcludes>
+            <!--By default we skip UFS contract tests, unless s3Test profile is used-->
+            <exclude>**/S3AUnderFileSystemContractTest.java</exclude>
+          </testExcludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>

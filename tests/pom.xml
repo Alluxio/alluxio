@@ -358,49 +358,6 @@
     </profile>
 
     <profile>
-      <id>s3Test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-s3</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.s3.S3UnderStorageCluster</ufs>
-                <!-- Change "myAccessKey" to your access key for this test if using s3n -->
-                <fs.s3n.awsAccessKeyId>myAccessKey</fs.s3n.awsAccessKeyId>
-                <!-- Change "mySecretKey" to your secret key for this test if using s3n -->
-                <fs.s3n.awsSecretAccessKey>mySecretKey</fs.s3n.awsSecretAccessKey>
-                <!-- Change "myAccessKey" to your access key for this test if using s3a -->
-                <aws.accessKeyId>myAccessKey</aws.accessKeyId>
-                <!-- Change "mySecretKey" to your secret key for this test if using s3a -->
-                <aws.secretKey>mySecretKey</aws.secretKey>
-                <!-- Change "s3a://my-bucket/alluxio-test" to the name of your S3 bucket & dir -->
-                <s3Bucket>s3a://my-bucket/alluxio-test</s3Bucket>
-                <!-- Increase the buffer time of journal writes to speed up tests -->
-                <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
-              </systemPropertyVariables>
-              <excludes>
-                <!-- Exclude SleepingUFS tests, in non-default profiles. -->
-                <exclude>**/ConcurrentFileSystemMasterCreateTest.java</exclude>
-                <exclude>**/ConcurrentFileSystemMasterDeleteTest.java</exclude>
-                <exclude>**/ConcurrentFileSystemMasterRenameTest.java</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
       <id>ossTest</id>
       <dependencies>
         <dependency>
