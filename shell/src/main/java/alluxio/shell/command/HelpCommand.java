@@ -15,10 +15,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AlluxioShellUtils;
 
+import jline.TerminalFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
-
-import jline.TerminalFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
