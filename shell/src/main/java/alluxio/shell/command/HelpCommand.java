@@ -18,12 +18,13 @@ import alluxio.shell.AlluxioShellUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 
+import jline.TerminalFactory;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import jline.TerminalFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -43,8 +44,6 @@ public final class HelpCommand extends AbstractShellCommand {
   public static void printCommandInfo(ShellCommand command, PrintWriter pw) {
     String description =
         String.format("%s: %s", command.getCommandName(), command.getDescription());
-    // TODO(binfan): instead of using a constant, adjust the value according to console width
-    // int width = HELP_FORMATTER.getWidth();
     int width = TerminalFactory.get().getWidth();
 
     HELP_FORMATTER.printWrapped(pw, width, description);
