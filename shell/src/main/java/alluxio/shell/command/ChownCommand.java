@@ -87,8 +87,8 @@ public final class ChownCommand extends AbstractShellCommand {
    * Changes the owner and group for the path specified in args.
    *
    * @param path the {@link AlluxioURI} path to update
-   * @param owner the new owner to be updated to the file or directory
-   * @param group the new group to be updated to the file or directory
+   * @param owner the new owner
+   * @param group the new group
    * @param recursive whether to change the owner and group recursively
    */
   private void chown(AlluxioURI path, String owner, String group, boolean recursive)
@@ -116,7 +116,7 @@ public final class ChownCommand extends AbstractShellCommand {
       chown(path, owner, cl.hasOption("R"));
       return 0;
     }
-    System.out.println("The syntax of user/group is invalid.");
+    System.out.println("Failed to parse " + args[0] + "as user or user:group");
     return -1;
   }
 
