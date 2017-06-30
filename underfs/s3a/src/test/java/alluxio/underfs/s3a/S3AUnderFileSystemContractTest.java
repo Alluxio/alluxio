@@ -15,11 +15,8 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-
-import java.util.UUID;
 
 /**
  * This UFS contract test will use Amazon S3 as the backing store.
@@ -27,6 +24,13 @@ import java.util.UUID;
 public final class S3AUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
   private static final String INTEGRATION_S3_BUCKET = "s3Bucket";
   private String mS3Bucket;
+
+  public S3AUnderFileSystemContractTest() {
+    Preconditions.checkState(System.getProperty(INTEGRATION_S3_BUCKET) != null,
+        PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), INTEGRATION_S3_BUCKET);
+    mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
+    Preconditions.checkState(new S3AUnderFileSystemFactory().supportsPath(mS3Bucket));
+  }
 
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
@@ -36,9 +40,6 @@ public final class S3AUnderFileSystemContractTest extends AbstractUnderFileSyste
 
   @Override
   public String getUfsBaseDir() {
-    mS3Bucket = PathUtils.concatPath(System.getProperty(INTEGRATION_S3_BUCKET), UUID.randomUUID());
-    Preconditions.checkState(mS3Bucket != null && !mS3Bucket.equals(""),
-        PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), INTEGRATION_S3_BUCKET);
     return mS3Bucket;
   }
 }
