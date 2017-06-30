@@ -50,7 +50,7 @@ storage.
 
 #### Hive CLI examples for New Internal Table
 
-Here is an example to create an external table in Hive backed by files in Alluxio.
+Here is an example to create an internal table in Hive backed by files in Alluxio.
 You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
@@ -76,7 +76,7 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 
 #### Hive CLI examples for New External Table
 
-Make the same setup as previous example, then create a new external table:
+Make the same setup as the previous example, and create a new external table:
 
 ```
 hive> CREATE EXTERNAL TABLE u_user (
@@ -91,16 +91,17 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
 The difference is that Hive will manage the lifecycle of internal tables.
-When you drop an internal table, Hive deletes both the table metadata and the data (from Alluxio).
+When you drop an internal table, Hive deletes both the table metadata and the data file from
+Alluxio.
 
 ### Use Alluxio for Existing Tables Stored in HDFS
 
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
-In this example, we assume the property a HDFS cluster is mounted as the under storage of
-Alluxio root directory (i.e., `alluxio.underfs.address=hdfs://namenode:port/`
+In this example, we assume a HDFS cluster is mounted as the under storage of
+Alluxio root directory (i.e., property `alluxio.underfs.address=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
-[unified namespace](Unified-and-Transparent-Namespace.html) for more details about mount.
+[unified namespace](Unified-and-Transparent-Namespace.html) for more details about mount operation.
 
 #### Hive CLI examples for Existing Internal Table
 
@@ -120,32 +121,10 @@ FIELDS TERMINATED BY '|';
 hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user' OVERWRITE INTO TABLE u_user;
 ```
 
-The following HiveQL statement will change the table data from HDFS to Alluxio：
+The following HiveQL statement will change the table data location from HDFS to Alluxio：
 
 ```
 hive> alter table u_user set location "alluxio://master_hostname:port/user/hive/warehouse/u_user";
-```
-
-Note that, accessing files in `alluxio://master_hostname:port/user/hive/warehouse/u_user` for the
-first time will be translated to access corresponding files in
-`hdfs://namenode:port/user/hive/warehouse/u_user` (the default Hive internal data storage); once
-the data is cached in Alluxio, Alluxio will serve them. The entire process is transparent to the
-Hive and users.
-
-#### Hive CLI examples for Existing External Table
-
-Assume there is an existing external table `u_user` in Hive with location set to
-`hdfs://namenode_hostname:port/ml-100k`.
-You can use the following HiveQL to check the "Location" attribute :
-
-```
-hive> desc formatted u_user;
-```
-
-Then use the following HiveQL to change the table data location from HDFS to Alluxio：
-
-```
-hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 ```
 
 Verify whether the table location is set correctly:
@@ -154,6 +133,27 @@ Verify whether the table location is set correctly:
 hive> desc formatted u_user;
 ```
 
+Note that, accessing files in `alluxio://master_hostname:port/user/hive/warehouse/u_user` for the
+first time will be translated to access corresponding files in
+`hdfs://namenode:port/user/hive/warehouse/u_user` (the default Hive internal data storage); once
+the data is cached in Alluxio, Alluxio will serve them for follow-up queries without loading data
+again from HDFS. The entire process is transparent to Hive and users.
+
+#### Hive CLI examples for Existing External Table
+
+Assume there is an existing external table `u_user` in Hive with location set to
+`hdfs://namenode_hostname:port/ml-100k`.
+You can use the following HiveQL statement to check its "Location" attribute:
+
+```
+hive> desc formatted u_user;
+```
+
+Then use the following HiveQL statement to change the table data location from HDFS to Alluxio：
+
+```
+hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
+```
 
 ### Change Back the Table Metadata to HDFS
 
