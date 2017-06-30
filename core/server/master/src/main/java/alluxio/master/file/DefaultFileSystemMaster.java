@@ -2591,7 +2591,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
     if (options.getOwner() != null && options.getGroup() != null) {
-      checkUserBelongsToGroup(options.getOwner(), options.getGroup());
+      try {
+        checkUserBelongsToGroup(options.getOwner(), options.getGroup());
+      } catch (IOException e) {
+        throw new FailedPreconditionException("Could not setOwner.", e);
+      }
     }
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
