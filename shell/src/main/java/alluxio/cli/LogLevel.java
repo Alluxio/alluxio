@@ -43,30 +43,39 @@ import java.util.List;
  */
 @NotThreadSafe
 public final class LogLevel {
-
   private static final String LOG_LEVEL = "logLevel";
+  private static final String TARGET_SEPARATOR = ",";
   private static final String TARGET_OPTION_NAME = "target";
   private static final Option TATGET_OPTION =
-      Option.builder().required(false).longOpt(TARGET_OPTION_NAME).hasArg(true)
-          .desc("<master|workers|host:port>."
-              + " Multi target split by ',' host:port pair must be one of workers."
-              + " Default target is master and all workers").build();
+      Option.builder()
+          .required(false)
+          .longOpt(TARGET_OPTION_NAME)
+          .hasArg(true)
+          .desc("<master|workers|host:webPort>."
+              + " A list of targets separated by " + TARGET_SEPARATOR + " can be specified."
+              + " host:webPort pair must be one of workers."
+              + " Default target is master and all workers")
+          .build();
   private static final String LOG_NAME_OPTION_NAME = "logName";
   private static final Option LOG_NAME_OPTION =
-      Option.builder().required(true).longOpt(LOG_NAME_OPTION_NAME).hasArg(true)
-          .desc("The log name you want to get or set level.").build();
+      Option.builder()
+          .required(true)
+          .longOpt(LOG_NAME_OPTION_NAME)
+          .hasArg(true)
+          .desc("The logger's name(e.g. alluxio.master.file.DefaultFileSystemMaster)"
+              + " you want to get or set level.")
+          .build();
   private static final String LEVEL_OPTION_NAME = "level";
   private static final Option LEVEL_OPTION =
-      Option.builder().required(false).longOpt(LEVEL_OPTION_NAME).hasArg(true)
-          .desc("The level of the log what you specified.").build();
+      Option.builder()
+          .required(false)
+          .longOpt(LEVEL_OPTION_NAME)
+          .hasArg(true)
+          .desc("The log level to be set.").build();
   private static final Options OPTIONS = new Options()
       .addOption(TATGET_OPTION)
       .addOption(LOG_NAME_OPTION)
       .addOption(LEVEL_OPTION);
-
-  private static final String USAGE =
-      "logLevel --logName=LOGNAME [--target=<master|workers|host:port>] [--level=LEVEL]";
-  public static final String TARGET_SEPARATOR = ",";
 
   /**
    * Prints the help message.
@@ -84,57 +93,26 @@ public final class LogLevel {
    *
    * @param args list of arguments contains target, logName and level
    * @return 0 on success, 1 on failures
+   * @exception ParseException if there is an error in parsing
+   * @exception IOException if the rpc server cannot reached
    */
-  public static int logLevel(String... args) {
+  public static int logLevel(String... args) throws ParseException, IOException {
     CommandLineParser parser = new DefaultParser();
-    CommandLine cmd;
+    CommandLine cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
 
-    try {
-      cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
-    } catch (ParseException e) {
-      printHelp("Unable to parse input args: " + e.getMessage());
-      return 1;
-    }
-    List<TargetInfo> targetInfoList = new ArrayList<>();
-
-    String[] targets = parseOptTarget(cmd);
+    List<TargetInfo> targets = parseOptTarget(cmd);
     String logName = parseOptLogName(cmd);
     String level = parseOptLevel(cmd);
 
-    for (String target : targets) {
-      if (target.contains("master")) {
-        String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB);
-        int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB);
-        targetInfoList.add(new TargetInfo(masterHost, masterPort, "master"));
-      } else if (target.contains("workers")) {
-        AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create();
-        try {
-          List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getWorkerInfoList();
-          for (BlockWorkerInfo workerInfo : workerInfoList) {
-            WorkerNetAddress netAddress = workerInfo.getNetAddress();
-            targetInfoList.add(
-                new TargetInfo(netAddress.getHost(), netAddress.getWebPort(), "worker"));
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-          return 1;
-        }
-      } else if (target.contains(":")) {
-        String[] hostPortPair = target.split(":");
-        int port = Integer.parseInt(hostPortPair[1]);
-        targetInfoList.add(new TargetInfo(hostPortPair[0], port, "worker"));
-      }
-    }
-
-    for (TargetInfo targetInfo : targetInfoList) {
-      if (handleTarget(logName, level, targetInfo)) {
+    for (TargetInfo targetInfo : targets) {
+      if (handleTarget(targetInfo, logName, level)) {
         return 1;
       }
     }
     return 0;
   }
 
-  private static String[] parseOptTarget(CommandLine cmd) {
+  private static List<TargetInfo> parseOptTarget(CommandLine cmd) throws IOException {
     String[] targets;
     if (cmd.hasOption(TARGET_OPTION_NAME)) {
       String argTarget = cmd.getOptionValue(TARGET_OPTION_NAME);
@@ -148,7 +126,34 @@ public final class LogLevel {
     } else {
       targets = new String[]{"master", "workers"};
     }
-    return targets;
+    return getTargetInfos(targets);
+  }
+
+  private static List<TargetInfo> getTargetInfos(String[] targets) throws IOException {
+    List<TargetInfo> targetInfoList = new ArrayList<>();
+    for (String target : targets) {
+      if (target.equals("master")) {
+        String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB);
+        int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB);
+        targetInfoList.add(new TargetInfo(masterHost, masterPort, "master"));
+      } else if (target.equals("workers")) {
+        AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create();
+        List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getWorkerInfoList();
+        for (BlockWorkerInfo workerInfo : workerInfoList) {
+          WorkerNetAddress netAddress = workerInfo.getNetAddress();
+          targetInfoList.add(
+              new TargetInfo(netAddress.getHost(), netAddress.getWebPort(), "worker"));
+        }
+      } else if (target.contains(":")) {
+        String[] hostPortPair = target.split(":");
+        int port = Integer.parseInt(hostPortPair[1]);
+        targetInfoList.add(new TargetInfo(hostPortPair[0], port, "worker"));
+      } else {
+        // TODO(maobaolong)
+        // else, throw an exception because the target is unknown
+      }
+    }
+    return targetInfoList;
   }
 
   private static String parseOptLogName(CommandLine cmd) {
@@ -169,7 +174,7 @@ public final class LogLevel {
     return null;
   }
 
-  private static boolean handleTarget(String logName, String level, TargetInfo targetInfo) {
+  private static boolean handleTarget(TargetInfo targetInfo, String logName, String level) {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
     uriBuilder.setHost(targetInfo.getHost());
@@ -201,12 +206,22 @@ public final class LogLevel {
   }
 
   /**
-   * Set or get log level of Alluxio servers.
+   * Sets or gets log level of master and worker through their REST API.
    *
-   * @param args the arguments to specify the arguments of this command
+   * @param args same arguments as {@link LogLevel}
    */
   public static void main(String[] args) {
-    System.exit(logLevel(args));
+    int exitCode;
+    try {
+      exitCode = logLevel(args);
+    } catch (ParseException e) {
+      printHelp("Unable to parse input args: " + e.getMessage());
+      exitCode = 1;
+    } catch (IOException e) {
+      e.printStackTrace();
+      exitCode = 1;
+    }
+    System.exit(exitCode);
   }
 
   private LogLevel() {} // this class is not intended for instantiation

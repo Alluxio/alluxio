@@ -30,10 +30,11 @@ public final class HttpUtils {
   }
 
   /**
-   * use post method to send params by http.
+   * use post method to send a url with arguments by http, this method can call RESTful Api.
    * @param url the http url
    * @param timeout millisecond to wait for the server to respond before giving up
    * @return the response body stream
+   * @throws IOException if an I/O error occurs
    */
   public static InputStream post(String url, Integer timeout) throws IOException {
     PostMethod postMethod = null;
@@ -50,9 +51,6 @@ public final class HttpUtils {
       } else {
         LOG.error("HTTP POST error code:" + statusCode);
       }
-    } catch (Exception e) {
-      LOG.error("HTTP POST error code:", e);
-      throw e;
     } finally {
       if (postMethod != null) {
         postMethod.releaseConnection();
