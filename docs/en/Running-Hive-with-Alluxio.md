@@ -35,8 +35,8 @@ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 
 ## Create Hive Tables on Alluxio
 
-There al different ways to integrate Hive with Alluxio, as storage for both
-[internal or external tables](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables),
+There are different ways to integrate Hive with Alluxio, as storage for
+[internal (managed) or external tables](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables),
 newly created or existing tables. Alluxio can also be used as the default file system
 for Hive. In the following sections, we will describe how to use Hive with Alluxio for these use
 cases. Hive is running on Hadoop MapReduce in this documentation.
@@ -48,7 +48,7 @@ and the change is also isolated from other Hive tables. An example use case is t
 used Hive tables in Alluxio for high throughput and low latency by serving these files from memory
 storage.
 
-#### Hive CLI examples for New Intenral Table
+#### Hive CLI examples for New Internal Table
 
 Here is an example to create an external table in Hive backed by files in Alluxio.
 You can download a data file (e.g., `ml-100k.zip`) from
@@ -91,14 +91,16 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
 The difference is that Hive will manage the lifecycle of internal tables.
-When you drop an internal table, Hive drops the table metadata and data both.
+When you drop an internal table, Hive deletes both the table metadata and the data (from Alluxio).
 
 ### Use Alluxio for Existing Tables Stored in HDFS
 
-Sometimes Hive is already serving and managing the tables that are stored in HDFS.
-Alluxio can also serve these tables for Hive, after you mount HDFS as an understorage of Alluxio.
-In this example, we assume the property `alluxio.underfs.address=hdfs://namenode:port/`
-is set in `alluxio-site.properties` and run Alluxio.
+When Hive is already serving and managing the tables stored in HDFS,
+Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
+In this example, we assume the property a HDFS cluster is mounted as the under storage of
+Alluxio root directory (i.e., `alluxio.underfs.address=hdfs://namenode:port/`
+is set in `conf/alluxio-site.properties`). Please refer to
+[unified namespace](Unified-and-Transparent-Namespace.html) for more details about mount.
 
 #### Hive CLI examples for Existing Internal Table
 
@@ -115,20 +117,20 @@ zipcode STRING)
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|';
 
-hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
-OVERWRITE INTO TABLE u_user;
+hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user' OVERWRITE INTO TABLE u_user;
 ```
 
-Then use the following HiveQL we can change the table data location from HDFS to Alluxio：
+The following HiveQL statement will change the table data from HDFS to Alluxio：
 
 ```
 hive> alter table u_user set location "alluxio://master_hostname:port/user/hive/warehouse/u_user";
 ```
 
-Note that, the access to files `alluxio://master_hostname:port/user/hive/warehouse/u_user` will be
-translated to access `hdfs://namenode:port/user/hive/warehouse` which is the default Hive internal
-data storage; once the data is cached in Alluxio, Alluxio will serve them. The entire process is
-transparent to the Hive and users.
+Note that, accessing files in `alluxio://master_hostname:port/user/hive/warehouse/u_user` for the
+first time will be translated to access corresponding files in
+`hdfs://namenode:port/user/hive/warehouse/u_user` (the default Hive internal data storage); once
+the data is cached in Alluxio, Alluxio will serve them. The entire process is transparent to the
+Hive and users.
 
 #### Hive CLI examples for Existing External Table
 
