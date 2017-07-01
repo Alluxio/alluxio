@@ -27,8 +27,6 @@ public final class PropertyKeyTest {
 
   private PropertyKey mTestProperty = PropertyKey.create("alluxio.test.property", false,
             new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"});
-  private PropertyKey mNullAliasTestProperty = PropertyKey.create("alluxio.test.property.nullAlias",
-          false, null);
 
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.
