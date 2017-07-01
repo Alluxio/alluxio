@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for chgrp command.
  */
-public final class ChgrpCommandTest extends AbstractAlluxioShellTest {
+public final class ChgrpCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void chgrp() throws IOException, AlluxioException {
     clearLoginUser();

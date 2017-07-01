@@ -209,7 +209,7 @@ restart_worker() {
     ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
   fi
 
-  RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7)
+  RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
     (nohup "${JAVA}" -cp ${CLASSPATH} \
@@ -225,7 +225,7 @@ restart_workers() {
 run_safe() {
   while [ 1 ]
   do
-    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | cut -d" " -f7)
+    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | awk '{ print $1; }')
     if [[ ${RUN} -eq 0 ]]; then
       echo "Restarting the system master..."
       start_master
