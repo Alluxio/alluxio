@@ -18,23 +18,18 @@ import static org.junit.Assert.assertFalse;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Tests enum type {@link PropertyKey}.
  */
 public final class PropertyKeyTest {
-  private PropertyKey mTestProperty;
-  private PropertyKey mNullAliasTestProperty;
 
-  @Before
-  public void initialize() {
-    mTestProperty = PropertyKey.create("alluxio.test.property", false,
+  private PropertyKey mTestProperty = PropertyKey.create("alluxio.test.property", false,
             new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"});
-    mNullAliasTestProperty = PropertyKey.create("alluxio.test.property.nullAlias", false,
-            null);
-  }
+  private PropertyKey mNullAliasTestProperty = PropertyKey.create("alluxio.test.property.nullAlias",
+          false, null);
+
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.
    */
@@ -74,7 +69,8 @@ public final class PropertyKeyTest {
   @Test
   public void aliasIsValid() throws Exception {
     assertTrue(PropertyKey.isValid(mTestProperty.toString()));
-    assertTrue(PropertyKey.isValid(mNullAliasTestProperty.toString()));
+    assertTrue(PropertyKey.isValid("alluxio.test.property.alias1"));
+    assertTrue(PropertyKey.isValid("alluxio.test.property.alias2"));
   }
 
   @Test
