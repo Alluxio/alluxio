@@ -262,14 +262,8 @@ public final class FileUtils {
     Path storagePath;
     try {
       storagePath = Files.createDirectories(Paths.get(path));
-    } catch (FileAlreadyExistsException e1) {
-      throw new IOException("Failed to create folder " + path);
-    } catch (UnsupportedOperationException e2) {
-      throw new IOException("Failed to create folder " + path);
-    } catch (SecurityException e3) {
-      throw new IOException("Failed to create folder " + path);
-    } catch (IOException e4) {
-      throw new IOException("Failed to create folder " + path);
+    } catch (UnsupportedOperationException | SecurityException | IOException e) {
+      throw new IOException("Failed to create folder " + path, e);
     }
     String absolutePath = storagePath.toAbsolutePath().toString();
     changeLocalFileToFullPermission(absolutePath);
@@ -301,7 +295,7 @@ public final class FileUtils {
     try {
       Files.createDirectories(Paths.get(path));
     } catch (AccessDeniedException e) {
-      LOG.info("Fail to create folder " + path + "caused by AccessDeniedException");
+      throw new IOException("Fail to create folder " + path);
     }
   }
 
