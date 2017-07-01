@@ -140,14 +140,19 @@ Please read [Configuration-Settings](Configuration-Settings.html) for how to cus
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
 
-- Before version 1.6.0, if you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
-and stores data on the local worker (see [location policy](File-System-API.html#location-policy)).
+- If you are copying a file to Alluxio using `copyFromLocal` with `LocalFirstPolicy`,
+the shell command will store data on the local worker (see [location policy](File-System-API.html#location-policy)).
 In this case, you will see the above error once the local worker does not have enough space.
-To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
 
-```bash
-$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
-```
+    Before version 1.6.0, `LocalFirstPolicy` is the default location policy for `copyFromLocal`.
+    To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
+
+    ```bash
+    $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+    ```
+
+    For Alluxio version 1.6.0 and above, `copyFromLocal` uses `RoundRobinPolicy` by default.
+    You can change the location policy for this command by changing `alluxio.user.file.copyfromlocal.write.location.policy.class` property.
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
 See [Command-Line-Interface](Command-Line-Interface.html) for more details.
