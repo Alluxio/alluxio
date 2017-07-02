@@ -72,9 +72,9 @@ public class BlockMetadataManagerView {
   // TODO(qifan): Incrementally update the view.
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Long> pinnedInodes,
       Set<Long> lockedBlocks) {
-    mMetadataManager = Preconditions.checkNotNull(manager);
-    mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
-    Preconditions.checkNotNull(lockedBlocks);
+    mMetadataManager = Preconditions.checkNotNull(manager, "manager");
+    mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes, "pinnedInodes"));
+    Preconditions.checkNotNull(lockedBlocks, "lockedBlocks");
     mInUseBlocks.addAll(lockedBlocks);
 
     // iteratively create all StorageTierViews and StorageDirViews
