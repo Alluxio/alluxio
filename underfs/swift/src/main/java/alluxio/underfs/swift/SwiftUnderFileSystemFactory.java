@@ -52,7 +52,6 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
     }
 
     String err = "Swift Credentials not available, cannot create Swift Under File System.";
-    LOG.error(err);
     throw Throwables.propagate(new IOException(err));
   }
 
