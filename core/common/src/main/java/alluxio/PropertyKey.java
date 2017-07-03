@@ -502,6 +502,9 @@ public class PropertyKey {
       create(Name.USER_FILE_BUFFER_BYTES, "8MB");
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       create(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
+  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
+      create(Name.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY,
+          "alluxio.client.file.policy.RoundRobinPolicy");
   public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
       create(Name.USER_FILE_DELETE_UNCHECKED, false);
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
@@ -1028,6 +1031,8 @@ public class PropertyKey {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
+    public static final String USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
+            "alluxio.user.file.copyfromlocal.write.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =

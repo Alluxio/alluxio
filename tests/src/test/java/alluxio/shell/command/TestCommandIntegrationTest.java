@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Tests for test command.
  */
-public final class TestCommandTest extends AbstractAlluxioShellTest {
+public final class TestCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void testPathIsDirectoryWhenPathNotExist() throws Exception {
     int ret = mFsShell.run("test", "-d", "/testPath");
