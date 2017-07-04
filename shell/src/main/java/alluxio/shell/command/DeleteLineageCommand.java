@@ -68,4 +68,10 @@ public final class DeleteLineageCommand extends AbstractShellCommand {
     return "Deletes a lineage. If cascade is specified as true, "
       + "dependent lineages will also be deleted.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

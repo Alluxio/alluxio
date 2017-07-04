@@ -95,4 +95,10 @@ public final class ChgrpCommand extends AbstractShellCommand {
     return "Changes the group of a file or directory specified by args."
         + " Specify -R to change the group recursively.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

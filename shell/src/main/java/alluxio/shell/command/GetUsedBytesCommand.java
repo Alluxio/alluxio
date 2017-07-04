@@ -61,4 +61,10 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Gets number of bytes used in the Alluxio file system.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

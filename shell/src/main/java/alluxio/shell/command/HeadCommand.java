@@ -94,4 +94,10 @@ public final class HeadCommand extends WithWildCardPathCommand {
         Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
     return new Options().addOption(bytesOption);
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

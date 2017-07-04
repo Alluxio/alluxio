@@ -64,4 +64,10 @@ public final class MvCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Renames a file or directory.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

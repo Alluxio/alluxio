@@ -87,4 +87,10 @@ public final class ChecksumCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Calculates the md5 checksum of a file in the Alluxio filesystem.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

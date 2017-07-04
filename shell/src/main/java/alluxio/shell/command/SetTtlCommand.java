@@ -100,4 +100,15 @@ public final class SetTtlCommand extends AbstractShellCommand {
     return "Sets a new TTL value for the file at path, "
         + "performing an action, delete(Default)/free after Ttl expiry.";
   }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length <= getNumOfArgs();
+    if (!valid) {
+      System.out.println(
+              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
+                      + args.length + "\n");
+    }
+    return valid;
+  }
 }

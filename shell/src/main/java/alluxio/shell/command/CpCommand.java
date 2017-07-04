@@ -602,4 +602,10 @@ public final class CpCommand extends AbstractShellCommand {
   private static boolean isFile(String scheme) {
     return "file".equals(scheme);
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

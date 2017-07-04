@@ -66,4 +66,10 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Copies a file or a directory from local filesystem to Alluxio filesystem.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

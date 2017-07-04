@@ -136,10 +136,10 @@ public final class LsCommand extends WithWildCardPathCommand {
     return "ls";
   }
 
-  @Override
-  protected int getNumOfArgs() {
-    return 1;
-  }
+//  @Override
+//  protected int getNumOfArgs() {
+//    return 1;
+//  }
 
   @Override
   public Options getOptions() {
@@ -227,4 +227,17 @@ public final class LsCommand extends WithWildCardPathCommand {
         + " Specify -R to display files and directories recursively."
         + " Specify -h to print human-readable format sizes.";
   }
+
+//  @Override
+//  public boolean validateArgs(String... args) {
+//    boolean valid = args.length <= getNumOfArgs();
+//    if (!valid) {
+//      System.out.println(
+//              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
+//                      + args.length + "\n");
+//    }
+//    return valid;
+//  }∂
+  @Override
+  public boolean validateArgs(String... args) { return true; }
 }

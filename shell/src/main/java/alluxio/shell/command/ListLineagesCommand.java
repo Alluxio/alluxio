@@ -67,4 +67,10 @@ public final class ListLineagesCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Lists all lineages.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

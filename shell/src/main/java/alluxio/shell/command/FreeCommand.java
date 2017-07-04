@@ -74,4 +74,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
     return "Frees the space occupied by a file or a directory in Alluxio."
         + " Specify -f to force freeing pinned files in the directory.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

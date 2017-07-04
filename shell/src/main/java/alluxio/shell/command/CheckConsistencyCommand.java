@@ -135,4 +135,10 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
         + "under storage will be returned. An administrator should then reconcile the differences."
         + "Specify -r to repair the inconsistent files.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

@@ -90,4 +90,10 @@ public final class MasterInfoCommand extends AbstractShellCommand {
     return "Prints information regarding master fault tolerance such as leader address, list of "
         + "master addresses, and the configured Zookeeper address.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

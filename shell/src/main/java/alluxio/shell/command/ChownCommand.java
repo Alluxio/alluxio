@@ -95,4 +95,10 @@ public final class ChownCommand extends AbstractShellCommand {
     return "Changes the owner of a file or directory specified by args."
         + " Specify -R to change the owner recursively.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

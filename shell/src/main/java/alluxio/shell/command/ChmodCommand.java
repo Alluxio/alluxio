@@ -101,4 +101,10 @@ public final class ChmodCommand extends AbstractShellCommand {
     return "Changes the permission of a file or directory specified by args."
         + " Specify -R to change the permission recursively.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }

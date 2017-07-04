@@ -179,4 +179,16 @@ public final class TestCommand extends AbstractShellCommand {
         + " Specify -s to test whether the directory is not empty,"
         + " Specify -z to test whether the file is zero length,";
   }
+
+
+  @Override
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length <= getNumOfArgs();
+    if (!valid) {
+      System.out.println(
+              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
+                      + args.length + "\n");
+    }
+    return valid;
+  }
 }

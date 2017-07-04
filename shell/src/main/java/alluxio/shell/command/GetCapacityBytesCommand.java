@@ -61,4 +61,10 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Gets the capacity of the Alluxio file system.";
   }
+
+  @Override
+  protected boolean validateArgs(String... args) {
+    int testaaa = 1;
+    return false;
+  }
 }
