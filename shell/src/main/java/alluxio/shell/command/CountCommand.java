@@ -93,8 +93,5 @@ public final class CountCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected boolean validateArgs(String... args) {
-    int testaaa = 1;
-    return false;
-  }
+  public boolean validateArgs(String... args) { return true; }
 }

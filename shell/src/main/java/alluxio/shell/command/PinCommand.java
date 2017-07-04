@@ -58,11 +58,5 @@ public final class PinCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length >= getNumOfArgs();
-    if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
-    }
-    return valid;
-  }
+  public boolean validateArgs(String... args) { return true; }
 }

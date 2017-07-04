@@ -42,6 +42,11 @@ public final class DuCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  protected int getNumOfArgs() {
+    return 1;
+  }
+
+  @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     long sizeInBytes = getFileOrFolderSize(mFileSystem, path);
     System.out.println(path + " is " + sizeInBytes + " bytes");
@@ -80,8 +85,13 @@ public final class DuCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected boolean validateArgs(String... args) {
-    int testaaa = 1;
-    return false;
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length <= getNumOfArgs();
+    if (!valid) {
+      System.out.println(
+              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
+                      + args.length + "\n");
+    }
+    return valid;
   }
 }

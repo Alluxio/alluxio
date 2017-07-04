@@ -50,6 +50,9 @@ public final class StatCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  protected int getNumOfArgs() { return 1; }
+
+  @Override
   public Options getOptions() {
     return new Options().addOption(
         Option.builder("f")
@@ -154,7 +157,6 @@ public final class StatCommand extends WithWildCardPathCommand {
     }
     return resp;
   }
-
 
   @Override
   public boolean validateArgs(String... args) {
