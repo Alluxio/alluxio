@@ -91,7 +91,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void deleteLineage() throws Exception {
-    LineageMaster lineageMaster = mMasterProcess.getMaster(LineageMaster.class);
+    LineageMaster lineageMaster = mMasterProcess.getMaster(DefaultLineageMaster.class);
     long lineageId = lineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         new ArrayList<AlluxioURI>(), new CommandLineJob("test", new JobConf("/output")));
 
@@ -108,7 +108,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   public void getLineageInfoList() throws Exception {
     AlluxioURI input = new AlluxioURI("/input");
     AlluxioURI output = new AlluxioURI("/output");
-    LineageMaster lineageMaster = mMasterProcess.getMaster(LineageMaster.class);
+    LineageMaster lineageMaster = mMasterProcess.getMaster(DefaultLineageMaster.class);
     mLineageClient.createFile(new AlluxioURI("/input")).close();
     long lineageId = lineageMaster.createLineage(Lists.newArrayList(input),
         Lists.newArrayList(output), new CommandLineJob("test", new JobConf(output.getPath())));

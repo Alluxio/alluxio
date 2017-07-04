@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory to create a {@link LineageMaster} instance.
+ * Factory to create a {@link DefaultLineageMaster} instance.
  */
 @ThreadSafe
 public final class LineageMasterFactory implements MasterFactory {
@@ -50,10 +50,10 @@ public final class LineageMasterFactory implements MasterFactory {
   @Override
   public LineageMaster create(MasterRegistry registry, JournalFactory journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
-    LOG.info("Creating {} ", LineageMaster.class.getName());
+    LOG.info("Creating {} ", DefaultLineageMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
-    LineageMaster lineageMaster = new LineageMaster(fileSystemMaster, journalFactory);
-    registry.add(LineageMaster.class, lineageMaster);
+    LineageMaster lineageMaster = new DefaultLineageMaster(fileSystemMaster, journalFactory);
+    registry.add(DefaultLineageMaster.class, lineageMaster);
     return lineageMaster;
   }
 }
