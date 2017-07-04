@@ -136,10 +136,8 @@ public final class LsCommand extends WithWildCardPathCommand {
     return "ls";
   }
 
-//  @Override
-//  protected int getNumOfArgs() {
-//    return 1;
-//  }
+  @Override
+  protected int getNumOfArgs() { return 1; }
 
   @Override
   public Options getOptions() {
