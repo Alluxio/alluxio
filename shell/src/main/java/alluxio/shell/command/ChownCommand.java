@@ -63,10 +63,15 @@ public final class ChownCommand extends AbstractShellCommand {
     return new Options().addOption(RECURSIVE_OPTION);
   }
 
-  private static final Pattern USER_PATTERN = Pattern.compile("(?<user>[\\w][\\w-]*)");
+  /*
+  See https://paulgorman.org/technical/presentations/linux_username_conventions.pdf
+  in which the author refers to IEEE Std 1003.1-2001 regarding the standards for
+  valid POSIX usernames.
+   */
+  private static final Pattern USER_PATTERN = Pattern.compile("(?<user>[\\w][\\w-]*[$]?)");
 
   private static final Pattern USER_GROUP_PATTERN =
-      Pattern.compile("(?<user>[\\w][\\w_-]*):(?<group>[\\w][\\w-]*)");
+      Pattern.compile("(?<user>[\\w][\\w-]*[$]?):(?<group>[\\w][\\w-]*[$]?)");
 
   /**
    * Changes the owner for the path specified in args.
