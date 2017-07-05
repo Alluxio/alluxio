@@ -20,12 +20,12 @@ import com.google.common.base.Preconditions;
 /**
  * This UFS contract test will use Swift as the backing store.
  */
-public final class SwfitUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
+public final class SwiftUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
   private static final String INTEGRATION_SWIFT_CONTAINER_KEY = "containerKey";
 
   private String mSwiftContainer;
 
-  public SwfitUnderFileSystemContractTest() {
+  public SwiftUnderFileSystemContractTest() {
     String swiftContainer = System.getProperty(INTEGRATION_SWIFT_CONTAINER_KEY);
     Preconditions.checkState(swiftContainer != null);
     Preconditions.checkState(new SwiftUnderFileSystemFactory().supportsPath(swiftContainer));
