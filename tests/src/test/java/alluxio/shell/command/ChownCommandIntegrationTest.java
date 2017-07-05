@@ -114,8 +114,9 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String group = "staff";
     String expectedCommandOutput =
         "Changed owner:group of /testFile to " + newOwner + ":" +  group + ".";
-    runChownOwnerAndGroup("/testFile", 0, expectedCommandOutput, newOwner, group,
+    verifyCommandReturnValueAndOutput(0, expectedCommandOutput,
         "chown", newOwner + ":" + group, "/testFile");
+    checkPathOwnerAndGroup("/testFile", newOwner, group);
   }
 
   @Test
@@ -128,8 +129,9 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String group = "alice";
     String expectedCommandOutput =
         String.format("Could not update owner:group for /testFile to %s:%s", newOwner, group);
-    runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
+    verifyCommandReturnValueAndOutput(-1, expectedCommandOutput,
         "chown", newOwner + ":" + group, "/testFile");
+    checkPathOwnerAndGroup("/testFile", originalOwner, originalGroup);
   }
 
   @Test
@@ -142,8 +144,9 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String group = "staff";
     String expectedCommandOutput =
         String.format("Could not update owner:group for /testFile to %s:%s", nonexistUser, group);
-    runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
+    verifyCommandReturnValueAndOutput(-1, expectedCommandOutput,
         "chown", nonexistUser + ":" + group, "/testFile");
+    checkPathOwnerAndGroup("/testFile", originalOwner, originalGroup);
   }
 
   @Test
@@ -157,8 +160,9 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String expectedCommandOutput =
         String.format("Could not update owner:group for /testFile to %s:%s",
         newOwner, nonexistGroup);
-    runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
+    verifyCommandReturnValueAndOutput(-1, expectedCommandOutput,
         "chown", newOwner + ":" + nonexistGroup, "/testFile");
+    checkPathOwnerAndGroup("/testFile", originalOwner, originalGroup);
   }
 
   @Test
@@ -172,8 +176,9 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String expectedCommandOutput =
         String.format("Could not update owner:group for /testFile to %s:%s",
         nonexistUser, nonexistGroup);
-    runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
+    verifyCommandReturnValueAndOutput(-1, expectedCommandOutput,
         "chown", nonexistUser + ":" + nonexistGroup, "/testFile");
+    checkPathOwnerAndGroup("/testFile", originalOwner, originalGroup);
   }
 
   /**
@@ -191,22 +196,6 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     mFsShell.run("chown", "-R", TEST_USER_2.getUser(), "/testDir");
     owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getOwner();
     Assert.assertEquals(TEST_USER_2.getUser(), owner);
-  }
-
-  /**
-   * Run chown command to change owner and group of a path.
-   *
-   * @param command the command to run
-   * @param expectedReturnValue return value expected from running the command
-   * @param expectedCommandOutput command output expected from running the command
-   * @param expectedOwner expected owner of the path
-   * @param expectedGroup expected group of the path
-   */
-  private void runChownOwnerAndGroup(String path, int expectedReturnValue,
-      String expectedCommandOutput, String expectedOwner, String expectedGroup, String... command)
-      throws Exception {
-    verifyCommandReturnValueAndOutput(expectedReturnValue, expectedCommandOutput, command);
-    checkPathOwnerAndGroup(path, expectedOwner, expectedGroup);
   }
 
   /**
