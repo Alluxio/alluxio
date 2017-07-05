@@ -31,7 +31,7 @@ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_
 export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
 ```
 
-特别的，如果你想调试shell命令，可以通过加上`-debug`标志来加上jvm调试参数`ALLUXIO_USER_DEBUG_JAVA_OPTS`来开启调试服务。例如`alluxio fs -debug ls /`。
+特别的，如果你想调试shell命令，可以通过加上`-jvmdebug`标志来加上jvm调试参数`ALLUXIO_USER_DEBUG_JAVA_OPTS`来开启调试服务。例如`alluxio -jvmdebug fs ls /`。
 
 
 `suspend = y/n` 会决定JVM进程是否等待直至调试器连接。如果你希望在命令行中进行调试，设置`suspend = y`。否则，设置 `suspend = n` ，这样就可以避免不必要的等待时间。

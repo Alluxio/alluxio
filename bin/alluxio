@@ -11,7 +11,7 @@
 #
 
 function printUsage {
-  echo "Usage: alluxio [-debug] COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
+  echo "Usage: alluxio [-jvmdebug] COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
   echo "COMMAND is one of:"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
@@ -186,7 +186,7 @@ function main {
   fi
 
   IS_DEBUG_MODE=false
-  if [[ "$1" == "-debug" ]]; then
+  if [[ "$1" == "-jvmdebug" ]]; then
     IS_DEBUG_MODE=true
     shift
   fi
