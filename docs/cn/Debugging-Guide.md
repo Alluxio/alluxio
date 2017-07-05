@@ -127,13 +127,15 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
-- 如果你使用`copyFromLocal`命令向Alluxio写数据，shell命令默认使用`LocalFirstPolicy`命令,并将数据存储到本地worker节点上(查看[location policy](File-System-API.html#location-policy))
-如果本地worker节点没有足够空间，你将会看到上述错误。
-你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
+- 在版本1.6.0及以上，`copyFromLocal`命令默认使用`RoundRobinPolicy`定位策略。你可以通过更改 `alluxio.user.file.copyfromlocal.write.location.policy.class` 属性值来改变该命令的定位策略.
+
+    在版本1.6.0以前，如果你使用`copyFromLocal`命令向Alluxio写数据，该命令默认使用`LocalFirstPolicy`定位策略将数据存储到本地worker节点上(查看[location policy](File-System-API.html#location-policy))。
+如果本地worker节点没有足够空间，你将会看到上述错误。你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
 
 ```bash
 $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
+
 
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。
 - 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration](Configuration-Settings.html#common-configuration) 获取更多信息。

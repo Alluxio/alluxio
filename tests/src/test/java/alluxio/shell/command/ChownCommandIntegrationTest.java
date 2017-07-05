@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Tests for chown command.
  */
-public final class ChownCommandTest extends AbstractAlluxioShellTest {
+public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest {
   /*
    * The user and group mappings for testing are:
    *    alice -> alice,staff

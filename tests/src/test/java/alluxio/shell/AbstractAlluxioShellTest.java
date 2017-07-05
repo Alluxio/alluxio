@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -149,6 +150,7 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
    * @param command a shell command
    * @return the output string
    */
+  @Nullable
   protected String getCommandOutput(String[] command) {
     String cmd = command[0];
     if (command.length == 2) {

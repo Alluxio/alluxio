@@ -22,6 +22,8 @@ alluxio.user.failed.space.request.limits:
   The number of times to request space from the file system before aborting.
 alluxio.user.file.buffer.bytes:
   The size of the file buffer to use for file system reads/writes.
+alluxio.user.file.copyfromlocal.write.location.policy.class:
+  The default location policy for choosing workers for writing a file's blocks using copyFromLocal command
 alluxio.user.file.master.client.threads:
   The number of threads used by a file master client to talk to the file master.
 alluxio.user.file.metadata.load.type:
