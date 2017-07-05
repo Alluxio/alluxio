@@ -107,7 +107,7 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
   }
 
   @Test
-  public void chownValidOwnerValidGroup() throws Exception {
+  public void chownValidOwnerValidGroupSuccess() throws Exception {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     String newOwner = TEST_USER_1.getUser();
@@ -115,6 +115,20 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String expectedCommandOutput =
         "Changed owner:group of /testFile to " + newOwner + ":" +  group + ".";
     runChownOwnerAndGroup("/testFile", 0, expectedCommandOutput, newOwner, group,
+        "chown", newOwner + ":" + group, "/testFile");
+  }
+
+  @Test
+  public void chownValidOwnerValidGroupFail() throws Exception {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    String newOwner = TEST_USER_2.getUser();
+    String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
+    String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
+    String group = "alice";
+    String expectedCommandOutput =
+        String.format("Could not update owner:group for /testFile to %s:%s", newOwner, group);
+    runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
         "chown", newOwner + ":" + group, "/testFile");
   }
 
