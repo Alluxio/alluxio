@@ -18,7 +18,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import com.google.common.base.Preconditions;
 
 /**
- * This UFS contract test will use Swift as the backing store.
+ * This UFS contract test will use Aliyun OSS as the backing store.
  */
 public final class OSSUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
   private static final String INTEGRATION_OSS_BUCKET = "ossBucket";

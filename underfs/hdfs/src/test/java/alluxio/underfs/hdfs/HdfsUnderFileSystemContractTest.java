@@ -25,9 +25,10 @@ public final class HdfsUnderFileSystemContractTest extends AbstractUnderFileSyst
   private String mHdfsBaseDir;
 
   public HdfsUnderFileSystemContractTest() {
-    Preconditions.checkState(System.getProperty(HDFS_BASE_DIR) != null);
-    mHdfsBaseDir = System.getProperty(HDFS_BASE_DIR);
-    Preconditions.checkState(new HdfsUnderFileSystemFactory().supportsPath(mHdfsBaseDir));
+    String hdfsBaseDir = System.getProperty(HDFS_BASE_DIR);
+    Preconditions.checkState(hdfsBaseDir != null);
+    Preconditions.checkState(new HdfsUnderFileSystemFactory().supportsPath(hdfsBaseDir));
+    mHdfsBaseDir = hdfsBaseDir;
   }
 
   @Override

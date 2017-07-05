@@ -25,9 +25,10 @@ public final class GCSUnderFileSystemContractTest extends AbstractUnderFileSyste
   private String mGCSBucket;
 
   public GCSUnderFileSystemContractTest() {
-    Preconditions.checkState(System.getProperty(INTEGRATION_GCS_BUCKET) != null);
-    mGCSBucket = System.getProperty(INTEGRATION_GCS_BUCKET);
-    Preconditions.checkState(new GCSUnderFileSystemFactory().supportsPath(mGCSBucket));
+    String gcsBucket = System.getProperty(INTEGRATION_GCS_BUCKET);
+    Preconditions.checkState(gcsBucket != null);
+    Preconditions.checkState(new GCSUnderFileSystemFactory().supportsPath(gcsBucket));
+    mGCSBucket = gcsBucket;
   }
 
   @Override

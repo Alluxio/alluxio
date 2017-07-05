@@ -26,10 +26,11 @@ public final class S3UnderFileSystemContractTest extends AbstractUnderFileSystem
   private String mS3Bucket;
 
   public S3UnderFileSystemContractTest() {
-    Preconditions.checkState(System.getProperty(INTEGRATION_S3_BUCKET) != null,
+    String s3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
+    Preconditions.checkState(s3Bucket != null,
         PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), INTEGRATION_S3_BUCKET);
-    mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
-    Preconditions.checkState(new S3UnderFileSystemFactory().supportsPath(mS3Bucket));
+    Preconditions.checkState(new S3UnderFileSystemFactory().supportsPath(s3Bucket));
+    mS3Bucket = s3Bucket;
   }
 
   @Override

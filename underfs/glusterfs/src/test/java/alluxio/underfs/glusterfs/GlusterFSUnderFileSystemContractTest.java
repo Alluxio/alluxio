@@ -21,7 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * This UFS contract test will use GlusterFS as the backing store.
  */
-public final class GlusterFSUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
+public final class GlusterFSUnderFileSystemContractTest
+    extends AbstractUnderFileSystemContractTest {
 
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
