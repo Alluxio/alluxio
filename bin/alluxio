@@ -13,6 +13,10 @@
 function printUsage {
   echo "Usage: alluxio [-jvmdebug] COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
+  echo "Flag description:"
+  echo -e "  -jvmdebug     \t If this flag specified, the env variable ALLUXIO_USER_DEBUG_JAVA_OPTS will be added to jvm flags."
+  echo -e "                \t ALLUXIO_USER_DEBUG_JAVA_OPTS can be '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609'"
+  echo
   echo "COMMAND is one of:"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
