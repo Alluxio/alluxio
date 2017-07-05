@@ -165,27 +165,11 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
         CommonUtils.singleElementIterator(mLineageIdGenerator.toJournalEntry()));
   }
 
-  /**
-   * @return a lineage store view wrapping the contained lineage store
-   */
   @Override
   public LineageStoreView getLineageStoreView() {
     return new LineageStoreView(mLineageStore);
   }
 
-  /**
-   * Creates a lineage. It creates a new file for each output file.
-   *
-   * @param inputFiles the input files
-   * @param outputFiles the output files
-   * @param job the job
-   * @return the id of the created lineage
-   * @throws InvalidPathException if the path to the input file is invalid
-   * @throws FileAlreadyExistsException if the output file already exists
-   * @throws BlockInfoException if fails to create the output file
-   * @throws AccessControlException if the permission check fails
-   * @throws FileDoesNotExistException if any of the input files do not exist
-   */
   @Override
   public synchronized long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
@@ -222,15 +206,6 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
     return lineageId;
   }
 
-  /**
-   * Deletes a lineage.
-   *
-   * @param lineageId id the of lineage
-   * @param cascade the flag if to delete all the downstream lineages
-   * @return true if the lineage is deleted, false otherwise
-   * @throws LineageDoesNotExistException the lineage does not exist
-   * @throws LineageDeletionException the lineage deletion fails
-   */
   @Override
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
@@ -267,19 +242,6 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
     }
   }
 
-  /**
-   * Reinitializes the file when the file is lost or not completed.
-   *
-   * @param path the path to the file
-   * @param blockSizeBytes the block size
-   * @param ttl the TTL
-   * @param ttlAction action to perform on ttl expiry
-   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
-   * @throws InvalidPathException the file path is invalid
-   * @throws LineageDoesNotExistException when the file does not exist
-   * @throws AccessControlException if permission checking fails
-   * @throws FileDoesNotExistException if the path does not exist
-   */
   @Override
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
       TtlAction ttlAction) throws InvalidPathException, LineageDoesNotExistException,
@@ -300,11 +262,6 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
     return -1;
   }
 
-  /**
-   * @return the list of all the {@link LineageInfo}s
-   * @throws LineageDoesNotExistException if the lineage does not exist
-   * @throws FileDoesNotExistException if any associated file does not exist
-   */
   @Override
   public synchronized List<LineageInfo> getLineageInfoList()
       throws LineageDoesNotExistException, FileDoesNotExistException {
@@ -341,11 +298,6 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
     return lineages;
   }
 
-  /**
-   * Schedules persistence for the output files of the given checkpoint plan.
-   *
-   * @param plan the plan for checkpointing
-   */
   @Override
   public synchronized void scheduleCheckpoint(CheckpointPlan plan) {
     for (long lineageId : plan.getLineagesToCheckpoint()) {
@@ -361,14 +313,6 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
     }
   }
 
-  /**
-   * Reports a file as lost.
-   *
-   * @param path the path to the file
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
   @Override
   public synchronized void reportLostFile(String path)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
