@@ -2594,7 +2594,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
       } catch (IOException e) {
-        throw new IOException("Could not setOwner for " + path.toString() + ".", e);
+        throw new IOException(String.format("Could not update owner:group for %s to %s:%s. %s",
+            path.toString(), options.getOwner(), options.getGroup(), e.toString()), e);
       }
     }
     try (JournalContext journalContext = createJournalContext();

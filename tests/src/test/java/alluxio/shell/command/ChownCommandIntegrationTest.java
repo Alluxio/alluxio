@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.HashMap;
 import java.util.List;
 
@@ -127,7 +126,8 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
     String group = "staff";
-    String expectedCommandOutput = "Could not setOwner for /testFile.";
+    String expectedCommandOutput =
+        String.format("Could not update owner:group for /testFile to %s:%s", nonexistUser, group);
     runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
         "chown", nonexistUser + ":" + group, "/testFile");
   }
@@ -140,7 +140,9 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String nonexistGroup = "nonexistgroup";
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
-    String expectedCommandOutput = "Could not setOwner for /testFile.";
+    String expectedCommandOutput =
+        String.format("Could not update owner:group for /testFile to %s:%s",
+        newOwner, nonexistGroup);
     runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
         "chown", newOwner + ":" + nonexistGroup, "/testFile");
   }
@@ -153,7 +155,9 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
     String nonexistGroup = "nonexistgroup";
     String originalOwner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
-    String expectedCommandOutput = "Could not setOwner for /testFile.";
+    String expectedCommandOutput =
+        String.format("Could not update owner:group for /testFile to %s:%s",
+        nonexistUser, nonexistGroup);
     runChownOwnerAndGroup("/testFile", -1, expectedCommandOutput, originalOwner, originalGroup,
         "chown", nonexistUser + ":" + nonexistGroup, "/testFile");
   }
