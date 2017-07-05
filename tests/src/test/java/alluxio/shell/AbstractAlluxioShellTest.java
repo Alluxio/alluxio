@@ -273,7 +273,7 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
   }
 
   /**
-   * Verify the return value and output of executing command meet expectations.
+   * Verifies the return value and output of executing command meet expectations.
    *
    * @param expectedReturnValue the expected return value
    * @param expectedOutput the expected output string

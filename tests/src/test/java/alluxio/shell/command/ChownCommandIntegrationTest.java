@@ -210,7 +210,7 @@ public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest 
   }
 
   /**
-   * Check whether the owner and group of the path are expectedOwner and expectedGroup.
+   * Checks whether the owner and group of the path are expectedOwner and expectedGroup.
    *
    * @param path the path to check
    * @param expectedOwner the owner that we expect to own the path
