@@ -11,19 +11,17 @@
 
 package alluxio;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+
 import alluxio.util.OSUtils;
 
-import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * Unit tests for {@link AlluxioURI}.
