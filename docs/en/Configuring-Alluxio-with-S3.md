@@ -9,7 +9,7 @@ priority: 0
 * Table of Contents
 {:toc}
 
-This guide describes how to configure Alluxio with [Amazon S3](https://aws.amazon.com/s3/) as the
+This guide describes the instructions to configure [Amazon S3](https://aws.amazon.com/s3/) as Alluxio's
 under storage system. Alluxio natively provides two different client implementations for accessing
 s3, aws-sdk-java-s3 through the s3a:// scheme (recommended for better performance) and jets3t
 through the s3n:// scheme.
