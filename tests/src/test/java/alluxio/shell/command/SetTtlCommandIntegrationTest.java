@@ -97,11 +97,4 @@ public final class SetTtlCommandIntegrationTest extends AbstractAlluxioShellTest
     Assert.assertEquals(-1,
         mFsShell.run("setTtl", "-action", "invalid", filePath, String.valueOf(ttl)));
   }
-
-  @Test
-  public void setTtlNegative() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 1);
-    mFsShell.run("setTtl", "/testFile", "\"-1\"");
-    Assert.assertTrue(mOutput.toString().contains("TTL value must be >= 0"));
-  }
 }

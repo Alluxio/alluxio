@@ -19,8 +19,10 @@ import alluxio.cli.AlluxioShell;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -240,6 +242,20 @@ public final class AlluxioShellUtils {
       }
     }
     return commandsMap;
+  }
+
+  /**
+   * Converts the input time into millisecond unit.
+   *
+   * @param time the time to be converted into milliseconds
+   * @return the time in millisecond unit
+   */
+  public static long getMs(String time) {
+    try {
+      return FormatUtils.parseTimeSize(time);
+    } catch (Exception e) {
+      throw new RuntimeException(ExceptionMessage.VALUE_NOT_VALID_TIME.getMessage(time));
+    }
   }
 
   /**

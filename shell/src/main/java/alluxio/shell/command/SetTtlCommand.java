@@ -14,10 +14,10 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.shell.AlluxioShellUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -81,8 +81,9 @@ public final class SetTtlCommand extends AbstractShellCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    long ttlMs = Long.parseLong(CommonUtils.stripLeadingAndTrailingQuotes(args[1]));
-    Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
+    //long ttlMs = Long.parseLong(CommonUtils.stripLeadingAndTrailingQuotes(args[1]));
+    String ttl = CommonUtils.stripLeadingAndTrailingQuotes(args[1]);
+    long ttlMs = AlluxioShellUtils.getMs(ttl);
     AlluxioURI path = new AlluxioURI(args[0]);
     CommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
     System.out.println("TTL of path '" + path + "' was successfully set to " + ttlMs
@@ -92,7 +93,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "setTtl [-action delete|free] <path> <time to live(in milliseconds)>";
+    return "setTtl [-action delete|free] <path> <time to live>";
   }
 
   @Override
