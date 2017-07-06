@@ -66,6 +66,10 @@ public final class SetTtlCommand extends AbstractShellCommand {
   public CommandLine parseAndValidateArgs(String... args) {
 
     CommandLine cmd = super.parseAndValidateArgs(args);
+    if (cmd == null) {
+      return null;
+    }
+
     try {
       String operation = cmd.getOptionValue(TTL_ACTION);
       if (operation != null) {
