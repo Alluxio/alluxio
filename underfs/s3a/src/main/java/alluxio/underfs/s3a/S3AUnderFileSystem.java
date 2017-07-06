@@ -27,10 +27,10 @@ import alluxio.util.io.PathUtils;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
-import com.amazonaws.SDKGlobalConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
@@ -110,20 +110,18 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       UnderFileSystemConfiguration conf) {
 
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-
-    // Set the aws credential system properties based on Alluxio properties, if they are set
-    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)) {
-      System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY,
-          conf.getValue(PropertyKey.S3A_ACCESS_KEY));
+    AWSCredentialsProvider credentials;
+    // Set the aws credential system properties based on Alluxio properties, if they are set;
+    // otherwise, use the default credential provider.
+    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY) &&
+        conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
+      credentials = new StaticCredentialsProvider(new BasicAWSCredentials(
+          conf.getValue(PropertyKey.S3A_ACCESS_KEY),
+          conf.getValue(PropertyKey.S3A_SECRET_KEY)));
+    } else {
+      // Checks, in order, env variables, system properties, profile file, and instance profile
+      credentials = new DefaultAWSCredentialsProviderChain();
     }
-    if (conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
-      System.setProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY,
-          conf.getValue(PropertyKey.S3A_SECRET_KEY));
-    }
-
-    // Checks, in order, env variables, system properties, profile file, and instance profile
-    AWSCredentialsProvider credentials =
-        new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
 
     // Set the client configuration based on Alluxio configuration values
     ClientConfiguration clientConf = new ClientConfiguration();
