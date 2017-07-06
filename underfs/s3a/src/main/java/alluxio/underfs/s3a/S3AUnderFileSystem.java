@@ -113,8 +113,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     AWSCredentialsProvider credentials;
     // Set the aws credential system properties based on Alluxio properties, if they are set;
     // otherwise, use the default credential provider.
-    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY) &&
-        conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
+    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)
+        && conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
       credentials = new StaticCredentialsProvider(new BasicAWSCredentials(
           conf.getValue(PropertyKey.S3A_ACCESS_KEY),
           conf.getValue(PropertyKey.S3A_SECRET_KEY)));
