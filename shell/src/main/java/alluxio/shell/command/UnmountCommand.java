@@ -63,7 +63,6 @@ public final class UnmountCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Unmounts an Alluxio path.";
   }
-  
   @Override
   public boolean validateArgs(String... args) {
     boolean valid = args.length <= getNumOfArgs();

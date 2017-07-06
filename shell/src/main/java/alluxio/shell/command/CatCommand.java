@@ -74,5 +74,7 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) { return args.length >= 1; }
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
+  }
 }

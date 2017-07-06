@@ -227,5 +227,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) { return args.length >= 1; }
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
+  }
 }
