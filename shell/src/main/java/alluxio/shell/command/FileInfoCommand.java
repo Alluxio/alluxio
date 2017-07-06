@@ -57,15 +57,4 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Displays all block info for the specified file.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
-  }
 }

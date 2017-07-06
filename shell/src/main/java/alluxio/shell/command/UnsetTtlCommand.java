@@ -65,15 +65,4 @@ public final class UnsetTtlCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Unsets the TTL value for the given path.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
-  }
 }

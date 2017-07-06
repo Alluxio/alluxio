@@ -47,16 +47,6 @@ public final class DeleteLineageCommand extends AbstractShellCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length >= getNumOfArgs();
-    if (!valid) {
-      System.out.println(getCommandName() + " takes at least" + getNumOfArgs() + " arguments, "
-              + " not " + args.length + "\n");
-    }
-    return valid;
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);

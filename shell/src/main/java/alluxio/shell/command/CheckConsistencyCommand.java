@@ -135,15 +135,4 @@ public class CheckConsistencyCommand extends AbstractShellCommand {
         + "under storage will be returned. An administrator should then reconcile the differences."
         + "Specify -r to repair the inconsistent files.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
-  }
 }

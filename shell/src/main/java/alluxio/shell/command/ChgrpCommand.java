@@ -95,15 +95,4 @@ public final class ChgrpCommand extends AbstractShellCommand {
     return "Changes the group of a file or directory specified by args."
         + " Specify -R to change the group recursively.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
-  }
 }

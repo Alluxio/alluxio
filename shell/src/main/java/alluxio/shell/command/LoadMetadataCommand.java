@@ -61,15 +61,4 @@ public final class LoadMetadataCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Loads metadata for the given Alluxio path from the under file system.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
-  }
 }

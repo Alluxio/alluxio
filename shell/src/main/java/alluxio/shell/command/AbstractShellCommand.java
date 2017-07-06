@@ -49,7 +49,14 @@ public abstract class AbstractShellCommand implements ShellCommand {
    * @param args the arguments for the command, excluding the command name and options
    * @return whether the args are valid
    */
-  protected abstract boolean validateArgs(String... args);
+  protected boolean validateArgs(String... args) {
+    boolean valid = args.length == getNumOfArgs();
+    if (!valid) {
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
+              + args.length + "\n");
+    }
+    return valid;
+  }
 
   /**
    * Gets the expected number of arguments of the command.

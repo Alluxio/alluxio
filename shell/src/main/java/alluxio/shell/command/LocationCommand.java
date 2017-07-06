@@ -45,11 +45,6 @@ public final class LocationCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
-  @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
@@ -70,16 +65,5 @@ public final class LocationCommand extends WithWildCardPathCommand {
   @Override
   public String getDescription() {
     return "Displays the list of hosts storing the specified file.";
-  }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
   }
 }

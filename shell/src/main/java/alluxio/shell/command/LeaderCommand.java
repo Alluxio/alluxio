@@ -66,15 +66,4 @@ public final class LeaderCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Prints the current leader master host name.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
-  }
 }

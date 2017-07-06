@@ -49,9 +49,6 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected int getNumOfArgs() { return 1; }
-
-  @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
@@ -96,17 +93,5 @@ public final class TailCommand extends WithWildCardPathCommand {
     Option bytesOption =
         Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
     return new Options().addOption(bytesOption);
-  }
-
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
   }
 }

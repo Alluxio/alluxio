@@ -91,7 +91,4 @@ public final class CountCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Displays the number of files and directories matching the specified prefix.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) { return true; }
 }

@@ -98,5 +98,5 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) { return true; }
+  public boolean validateArgs(String... args) { return args.length >= 1; }
 }

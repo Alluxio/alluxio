@@ -112,15 +112,4 @@ public final class MountCommand extends AbstractShellCommand {
   public String getDescription() {
     return "Mounts a UFS path onto an Alluxio path.";
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
-  }
 }

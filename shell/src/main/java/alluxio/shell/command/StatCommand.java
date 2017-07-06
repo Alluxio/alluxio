@@ -50,9 +50,6 @@ public final class StatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected int getNumOfArgs() { return 1; }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(
         Option.builder("f")
@@ -156,16 +153,5 @@ public final class StatCommand extends WithWildCardPathCommand {
         Preconditions.checkArgument(false, "Unknown format specifier %c", formatSpecifier);
     }
     return resp;
-  }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-              getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-                      + args.length + "\n");
-    }
-    return valid;
   }
 }
