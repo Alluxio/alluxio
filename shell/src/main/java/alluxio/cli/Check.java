@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.TreeMap;
@@ -36,7 +37,7 @@ import java.util.Map;
  * Utility for checking Alluxio environment.
  */
 public final class Check {
-  private static final String USAGE = "USAGE: Check [task name]\n\n"
+  private static final String USAGE = "USAGE: Check [task full name or prefix]\n\n"
       + "Check environment for Alluxio";
 
   private static final Options OPTIONS = new Options();
@@ -74,7 +75,7 @@ public final class Check {
 
   private static boolean isAlluxioRunning(String className) {
     String[] command = {"bash", "-c",
-                        "ps -Aww -o pid,command | grep -i \"[j]ava\" | grep " + className};
+                        "ps -Aww -o command | grep -i \"[j]ava\" | grep " + className};
     try {
       Process p = Runtime.getRuntime().exec(command);
       try (InputStreamReader input = new InputStreamReader(p.getInputStream())) {
@@ -84,6 +85,7 @@ public final class Check {
       }
       return false;
     } catch (IOException e) {
+      System.err.format("Unable to check Alluxio status: %s.%n", e.getMessage());
       return false;
     }
   }
@@ -135,7 +137,7 @@ public final class Check {
       String confDir = Configuration.get(PropertyKey.CONF_DIR);
       List<String> workerNames = null;
       try {
-        workerNames = Files.readAllLines(Paths.get(confDir, "workers"));
+        workerNames = Files.readAllLines(Paths.get(confDir, "workers"), StandardCharsets.UTF_8);
       } catch (IOException e) {
         System.err.format("Unable to read workers file at %s/workers.%n", confDir);
         return false;
@@ -168,7 +170,7 @@ public final class Check {
   }
 
   /**
-   * Implements get configuration.
+   * Check environment.
    *
    * @param args list of arguments
    * @return 0 on success, 1 on failures
@@ -224,9 +226,9 @@ public final class Check {
   }
 
   /**
-   * Prints Alluxio configuration.
+   * Check Alluxio environment.
    *
-   * @param args the arguments to specify check tasks to run
+   * @param args the arguments to specify which check tasks to run
    */
   public static void main(String[] args) {
     System.exit(check(args));
