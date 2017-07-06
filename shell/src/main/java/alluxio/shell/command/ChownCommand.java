@@ -68,10 +68,8 @@ public final class ChownCommand extends AbstractShellCommand {
    * in which the author refers to IEEE Std 1003.1-2001 regarding the standards for
    * valid POSIX usernames.
    */
-  private static final Pattern USER_PATTERN = Pattern.compile("(?<user>[\\w][\\w-]*[$]?)");
-
   private static final Pattern USER_GROUP_PATTERN =
-      Pattern.compile("(?<user>[\\w][\\w-]*[$]?):(?<group>[\\w][\\w-]*[$]?)");
+      Pattern.compile("(?<user>[\\w][\\w-]*\\$?)(:(?<group>[\\w][\\w-]*\\$?))?");
 
   /**
    * Changes the owner for the path specified in args.
@@ -112,13 +110,11 @@ public final class ChownCommand extends AbstractShellCommand {
     if (matchUserGroup.matches()) {
       String owner = matchUserGroup.group("user");
       String group = matchUserGroup.group("group");
-      chown(path, owner, group, cl.hasOption("R"));
-      return 0;
-    }
-    Matcher matchUserOnly = USER_PATTERN.matcher(args[0]);
-    if (matchUserOnly.matches()) {
-      String owner = matchUserOnly.group("user");
-      chown(path, owner, cl.hasOption("R"));
+      if (group == null) {
+        chown(path, owner, cl.hasOption("R"));
+      } else {
+        chown(path, owner, group, cl.hasOption("R"));
+      }
       return 0;
     }
     System.out.println("Failed to parse " + args[0] + "as user or user:group");
