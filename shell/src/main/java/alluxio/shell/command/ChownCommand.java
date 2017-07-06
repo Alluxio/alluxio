@@ -117,7 +117,7 @@ public final class ChownCommand extends AbstractShellCommand {
       }
       return 0;
     }
-    System.out.println("Failed to parse " + args[0] + "as user or user:group");
+    System.out.println("Failed to parse " + args[0] + " as user or user:group");
     return -1;
   }
 
