@@ -573,7 +573,7 @@ public class PropertyKey {
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       create(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
-      create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, "5min");
+      create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, "30sec");
   /**
    * @deprecated It will be removed in 2.0.0.
    */
