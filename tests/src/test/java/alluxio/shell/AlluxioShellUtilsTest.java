@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * Unit tests on {@link alluxio.shell.AlluxioShellUtils}.
  *
@@ -195,6 +197,7 @@ public final class AlluxioShellUtilsTest {
    * @param fsType the type of file system
    * @return the test directory, null if the fsType is invalid
    */
+  @Nullable
   public String resetFsHierarchy(FsType fsType) throws IOException, AlluxioException {
     if (fsType == FsType.TFS) {
       return resetFileHierarchy();

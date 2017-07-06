@@ -29,7 +29,7 @@ import java.util.HashMap;
 /**
  * Tests for copyToLocal command.
  */
-public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
+public final class CopyToLocalCommandIntegrationTest extends AbstractAlluxioShellTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
