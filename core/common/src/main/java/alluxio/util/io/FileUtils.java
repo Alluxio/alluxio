@@ -27,8 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
@@ -45,7 +43,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * Provides utility methods for working with files and directories.
  *
  * By convention, methods take file path strings as parameters.
- *
  */
 @ThreadSafe
 public final class FileUtils {
@@ -201,7 +198,6 @@ public final class FileUtils {
    * Moves file from one place to another, can across storage devices (e.g., from memory to SSD)
    * when {@link File#renameTo} may not work.
    *
-   *
    * @param srcPath pathname string of source file
    * @param dstPath pathname string of destination file
    */
@@ -211,7 +207,6 @@ public final class FileUtils {
 
   /**
    * Deletes the file or directory.
-   *
    *
    * @param path pathname string of file or directory
    */
@@ -279,11 +274,7 @@ public final class FileUtils {
   public static void createFile(String filePath) throws IOException {
     Path storagePath = Paths.get(filePath);
     Files.createDirectories(storagePath.getParent());
-    try {
-      Files.createFile(storagePath);
-    } catch (FileAlreadyExistsException e) {
-      throw new IOException("File already exist " + filePath);
-    }
+    Files.createFile(storagePath);
   }
 
   /**
@@ -292,11 +283,7 @@ public final class FileUtils {
    * @param path path of the directory to create
    */
   public static void createDir(String path) throws IOException {
-    try {
-      Files.createDirectories(Paths.get(path));
-    } catch (AccessDeniedException e) {
-      throw new IOException("Fail to create folder " + path);
-    }
+    Files.createDirectories(Paths.get(path));
   }
 
   /**
