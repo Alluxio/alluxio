@@ -25,6 +25,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.SDKGlobalConfiguration;
@@ -150,6 +151,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           .setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
     }
 
+    // Number of metadata and I/O threads to S3
     int numAdminThreads =
         Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     int numTransferThreads =
@@ -167,15 +169,18 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     clientConf
         .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
 
+    // Signer algorithm
     if (conf.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
       clientConf.setSignerOverride(conf.getValue(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
     }
 
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
+
     // Set a custom endpoint.
     if (conf.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
       amazonS3Client.setEndpoint(conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
+
     // Disable DNS style buckets, this enables path style requests.
     if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
       S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
@@ -195,21 +200,28 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Default to readable and writable by the user.
     short bucketMode = (short) 700;
     String accountOwner = ""; // There is no known account owner by default.
-    // if ACL enabled inherit bucket acl for all the objects.
-    if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
-      String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
-      // Gets the owner from user-defined static mapping from S3 canonical user
-      // id to Alluxio user name.
-      String owner = CommonUtils.getValueFromStaticMapping(
-          conf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
-      // If there is no user-defined mapping, use the display name.
-      if (owner == null) {
-        owner = amazonS3Client.getS3AccountOwner().getDisplayName();
-      }
-      accountOwner = owner == null ? accountOwnerId : owner;
 
-      AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
-      bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
+    // if ACL enabled try to inherit bucket acl for all the objects.
+    try {
+      if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
+        String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
+        // Gets the owner from user-defined static mapping from S3 canonical user
+        // id to Alluxio user name.
+        String owner = CommonUtils.getValueFromStaticMapping(
+            conf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
+        // If there is no user-defined mapping, use the display name.
+        if (owner == null) {
+          owner = amazonS3Client.getS3AccountOwner().getDisplayName();
+        }
+        accountOwner = owner == null ? accountOwnerId : owner;
+
+        AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
+        bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
+      }
+    } catch (AmazonServiceException e) {
+      LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.getMessage());
+      bucketMode = (short) 700;
+      accountOwner = "";
     }
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, bucketMode, accountOwner,
         transferManager, conf);
