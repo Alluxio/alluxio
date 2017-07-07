@@ -43,8 +43,8 @@ import java.util.UUID;
 
 /**
  * This is the base class of UFS contract tests. It describes the contract of Alluxio with the UFS
- * through the UFS interface. Each implementation of {@link UnderFileSystem} is expected to extend
- * this base class and complete this test.
+ * through the UFS interface. Each implementation of {@link UnderFileSystem} is expected to create
+ * a test that extends this base class.
  */
 public abstract class AbstractUnderFileSystemContractTest {
   private static final Logger LOG =
