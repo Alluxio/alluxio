@@ -97,7 +97,7 @@ public final class RestUtils {
    * Error response when {@link RestCallable#call()} throws an exception.
    * It will be encoded into a Json string to be returned as an error response for the REST call.
    */
-  private static class ErrorResponse {
+  static class ErrorResponse {
     private final Status mStatus;
     private final String mMessage;
 
