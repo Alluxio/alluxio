@@ -13,7 +13,9 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
@@ -174,6 +176,7 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
     JournalFactory factory =
@@ -192,6 +195,7 @@ public final class PermissionCheckTest {
   public void after() throws Exception {
     mRegistry.stop();
     GroupMappingServiceTestUtils.resetCache();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
