@@ -24,7 +24,6 @@ import java.util.Map;
 /**
  * A utility to generate property keys to csv files.
  */
-
 @ThreadSafe
 public final class PropertyDocGeneration {
   private static final Logger LOG = LoggerFactory.getLogger(PropertyDocGeneration.class);
@@ -33,7 +32,7 @@ public final class PropertyDocGeneration {
   }
 
   /**
-   * Write property key to csv files.
+   * Writes property key to csv files.
    *
    * @param defaultVals DEFAULT_VALUES HashMap which is from PropertyKey
    */
