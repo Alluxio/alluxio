@@ -16,20 +16,20 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.base.Preconditions;
+import org.junit.BeforeClass;
 
 /**
  * This UFS contract test will use Aliyun OSS as the backing store.
  */
 public final class OSSUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
-  private static final String INTEGRATION_OSS_BUCKET = "ossBucket";
+  private static final String OSS_BUCKET_CONF = "testOSSBucket";
+  private static final String OSS_BUCKET = System.getProperty(OSS_BUCKET_CONF);
 
-  private String mOSSBucket;
-
-  public OSSUnderFileSystemContractTest() {
-    String ossBucket = System.getProperty(INTEGRATION_OSS_BUCKET);
-    Preconditions.checkState(ossBucket != null);
-    Preconditions.checkState(new OSSUnderFileSystemFactory().supportsPath(ossBucket));
-    mOSSBucket = ossBucket;
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    Preconditions.checkNotNull(OSS_BUCKET);
+    Preconditions.checkState(new OSSUnderFileSystemFactory().supportsPath(OSS_BUCKET),
+        String.format("%s is not a valid OSS path", OSS_BUCKET));
   }
 
   @Override
@@ -40,6 +40,6 @@ public final class OSSUnderFileSystemContractTest extends AbstractUnderFileSyste
 
   @Override
   public String getUfsBaseDir() {
-    return mOSSBucket;
+    return OSS_BUCKET;
   }
 }

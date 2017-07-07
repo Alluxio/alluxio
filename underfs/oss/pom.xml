@@ -70,27 +70,14 @@
 
   <profiles>
     <profile>
-      <id>ossTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-oss</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testOSSBucket</name>
+        </property>
+      </activation>
       <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <!-- Change "your-bucket" to your oss bucket for this test -->
-                <ossBucket>oss://your-bucket/alluxio-test/</ossBucket>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
@@ -181,7 +168,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!--By default we skip UFS contract tests, unless ossTest profile is used-->
+            <!-- Skip UFS contract tests unless -DtestOSSBucket="oss://bucketName/testDir" is specified-->
             <exclude>**/OSSUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
