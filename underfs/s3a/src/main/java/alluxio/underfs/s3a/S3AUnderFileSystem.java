@@ -104,7 +104,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @return the created {@link AWSCredentialsProvider} instance
    */
-  public static AWSCredentialsProvider createAwdCredentialsProvider(
+  public static AWSCredentialsProvider createAwsCredentialsProvider(
       UnderFileSystemConfiguration conf) {
     // Set the aws credential system properties based on Alluxio properties, if they are set;
     // otherwise, use the default credential provider.
@@ -127,7 +127,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   public static S3AUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
 
-    AWSCredentialsProvider credentials = createAwdCredentialsProvider(conf);
+    AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
 
     // Set the client configuration based on Alluxio configuration values

@@ -19,6 +19,8 @@ import alluxio.underfs.options.DeleteOptions;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -90,16 +92,25 @@ public class S3AUnderFileSystemTest {
   }
 
   @Test
-  public void createCredentials() throws Exception {
+  public void createCredentialsFromConf() throws Exception {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, "key1");
     conf.put(PropertyKey.S3A_SECRET_KEY, "key2");
     try (Closeable c = new ConfigurationRule(conf).toResource()) {
       UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
       AWSCredentialsProvider credentialsProvider =
-          S3AUnderFileSystem.createAwdCredentialsProvider(ufsConf);
+          S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
       Assert.assertEquals("key1", credentialsProvider.getCredentials().getAWSAccessKeyId());
       Assert.assertEquals("key2", credentialsProvider.getCredentials().getAWSSecretKey());
+      Assert.assertTrue(credentialsProvider instanceof StaticCredentialsProvider);
     }
+  }
+
+  @Test
+  public void createCredentialsFromDefault() throws Exception {
+    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
+    AWSCredentialsProvider credentialsProvider =
+        S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
+    Assert.assertTrue(credentialsProvider instanceof DefaultAWSCredentialsProviderChain);
   }
 }
