@@ -66,19 +66,14 @@
 
   <profiles>
     <profile>
-      <id>s3Test</id>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testS3Bucket</name>
+        </property>
+      </activation>
       <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <!-- Change "s3n://my-bucket/alluxio-test" to the name of your S3 bucket & dir -->
-                <s3Bucket>s3n://my-bucket/alluxio-test</s3Bucket>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
@@ -169,7 +164,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!--By default we skip UFS contract tests, unless s3Test profile is used-->
+            <!-- Skip UFS contract tests unless -DtestS3Bucket="s3n://my-bucket/alluxio-test" is specified -->
             <exclude>**/S3UnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>

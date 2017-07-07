@@ -422,7 +422,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestGlusterFSBaseDir="glusterfs:///alluxio_test" is specified-->
+            <!-- Skip UFS contract tests unless -DtestGlusterFSBaseDir="glusterfs:///alluxio_test" is specified -->
             <exclude>**/GlusterFSUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>

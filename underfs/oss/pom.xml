@@ -168,7 +168,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestOSSBucket="oss://bucketName/testDir" is specified-->
+            <!-- Skip UFS contract tests unless -DtestOSSBucket="oss://bucketName/testDir" is specified -->
             <exclude>**/OSSUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>

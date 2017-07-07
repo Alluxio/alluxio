@@ -2540,7 +2540,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified-->
+            <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
             <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
