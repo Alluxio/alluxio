@@ -98,8 +98,8 @@ public final class RestUtils {
    * It will be encoded into a Json string to be returned as an error response for the REST call.
    */
   private static class ErrorResponse {
-    private Status mStatus;
-    private String mMessage;
+    private final Status mStatus;
+    private final String mMessage;
 
     public ErrorResponse(Status status, String message) {
       mStatus = status;
