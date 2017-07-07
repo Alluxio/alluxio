@@ -2483,15 +2483,12 @@
     </profile>
 
     <profile>
-      <id>hdfsTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-hdfs</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testHdfsBaseDir</name>
+        </property>
+      </activation>
       <build>
         <plugins>
           <plugin>
@@ -2543,7 +2540,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!--By default we skip UFS contract tests, unless hdfsTest profile is used-->
+            <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified-->
             <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>

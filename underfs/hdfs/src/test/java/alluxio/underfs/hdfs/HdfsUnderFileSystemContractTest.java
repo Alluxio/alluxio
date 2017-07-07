@@ -16,19 +16,20 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.base.Preconditions;
+import org.junit.BeforeClass;
 
 /**
  * This UFS contract test will use Hdfs as the backing store.
  */
 public final class HdfsUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
-  private static final String HDFS_BASE_DIR = "hdfsBaseDir";
-  private String mHdfsBaseDir;
+  private static final String HDFS_BASE_DIR_CONF = "testHdfsBaseDir";
+  private static final String HDFS_BASE_DIR = System.getProperty(HDFS_BASE_DIR_CONF);
 
-  public HdfsUnderFileSystemContractTest() {
-    String hdfsBaseDir = System.getProperty(HDFS_BASE_DIR);
-    Preconditions.checkState(hdfsBaseDir != null);
-    Preconditions.checkState(new HdfsUnderFileSystemFactory().supportsPath(hdfsBaseDir));
-    mHdfsBaseDir = hdfsBaseDir;
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    Preconditions.checkNotNull(HDFS_BASE_DIR);
+    Preconditions.checkState(new HdfsUnderFileSystemFactory().supportsPath(HDFS_BASE_DIR),
+        String.format("%s is not a valid HDFS path", HDFS_BASE_DIR));
   }
 
   @Override
@@ -39,6 +40,6 @@ public final class HdfsUnderFileSystemContractTest extends AbstractUnderFileSyst
 
   @Override
   public String getUfsBaseDir() {
-    return mHdfsBaseDir;
+    return HDFS_BASE_DIR;
   }
 }
