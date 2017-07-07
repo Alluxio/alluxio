@@ -53,7 +53,7 @@ public abstract class AbstractShellCommand implements ShellCommand {
     boolean valid = args.length == getNumOfArgs();
     if (!valid) {
       System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
-              + args.length + "\n");
+          + args.length + "\n");
     }
     return valid;
   }
