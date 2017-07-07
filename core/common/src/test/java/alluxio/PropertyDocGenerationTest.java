@@ -48,6 +48,7 @@ public class PropertyDocGenerationTest {
 
   @Before
   public void backupCSVFiles() throws Exception {
+    System.out.println("-->userdir: " + USERDIR);
     SimpleDateFormat sdfDate = new SimpleDateFormat("yyyyMMdd");
     String currentDate = sdfDate.format(new Date());
     String filePath = LOCATION + "/docs/_data/table/";
@@ -174,6 +175,8 @@ public class PropertyDocGenerationTest {
     PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST);
     String filePath = LOCATION + "/docs/_data/table/common-configuration.csv";
     Path p = Paths.get(filePath);
+    System.out.println("-->filePath: " + filePath);
+    System.out.println("-->Path p: " + p.toString());
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
