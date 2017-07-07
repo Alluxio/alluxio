@@ -17,19 +17,21 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.base.Preconditions;
+import org.junit.BeforeClass;
 
 /**
  * This UFS contract test will use Amazon S3 as the backing store.
  */
 public final class S3AUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
-  private static final String INTEGRATION_S3_BUCKET = "s3Bucket";
-  private String mS3Bucket;
+  private static final String S3A_BUCKET_CONF = "testS3ABucket";
+  private static final String S3A_BUCKET = System.getProperty(S3A_BUCKET_CONF);
 
-  public S3AUnderFileSystemContractTest() {
-    Preconditions.checkState(System.getProperty(INTEGRATION_S3_BUCKET) != null,
-        PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), INTEGRATION_S3_BUCKET);
-    mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
-    Preconditions.checkState(new S3AUnderFileSystemFactory().supportsPath(mS3Bucket));
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    Preconditions.checkNotNull(S3A_BUCKET,
+        PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), S3A_BUCKET);
+    Preconditions.checkState(new S3AUnderFileSystemFactory().supportsPath(S3A_BUCKET),
+        String.format("%s is not a valid S3 path", S3A_BUCKET));
   }
 
   @Override
@@ -40,6 +42,6 @@ public final class S3AUnderFileSystemContractTest extends AbstractUnderFileSyste
 
   @Override
   public String getUfsBaseDir() {
-    return mS3Bucket;
+    return S3A_BUCKET;
   }
 }

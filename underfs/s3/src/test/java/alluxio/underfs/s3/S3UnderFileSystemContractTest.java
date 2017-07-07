@@ -11,6 +11,7 @@
 
 package alluxio.underfs.s3;
 
+import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -27,7 +28,8 @@ public final class S3UnderFileSystemContractTest extends AbstractUnderFileSystem
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Preconditions.checkNotNull(S3_BUCKET);
+    Preconditions.checkNotNull(S3_BUCKET,
+        PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), S3_BUCKET);
     Preconditions.checkState(new S3UnderFileSystemFactory().supportsPath(S3_BUCKET),
         String.format("%s is not a valid S3 path", S3_BUCKET));
   }
