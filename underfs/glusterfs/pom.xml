@@ -80,7 +80,12 @@
 
   <profiles>
     <profile>
-      <id>glusterfsTest</id>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testGlusterFSBaseDir</name>
+        </property>
+      </activation>
       <build>
         <plugins>
           <plugin>
@@ -417,7 +422,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!--By default we skip UFS contract tests, unless glusterfsTest profile is used-->
+            <!-- Skip UFS contract tests unless -DtestGlusterFSBaseDir="glusterfs:///alluxio_test" is specified-->
             <exclude>**/GlusterFSUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>

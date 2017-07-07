@@ -23,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public final class GlusterFSUnderFileSystemContractTest
     extends AbstractUnderFileSystemContractTest {
+  private static final String GLUSTER_FS_BASE_DIR_CONF = "testGlusterFSBaseDir";
+  private static final String GLUSTER_FS_BASE_DIR = System.getProperty(GLUSTER_FS_BASE_DIR_CONF);
 
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
@@ -38,6 +40,6 @@ public final class GlusterFSUnderFileSystemContractTest
 
   @Override
   public String getUfsBaseDir() {
-    return "glusterfs:///alluxio_test";
+    return GLUSTER_FS_BASE_DIR;
   }
 }
