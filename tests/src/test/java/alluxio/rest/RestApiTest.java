@@ -21,7 +21,7 @@ import org.junit.Rule;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class RestApiTest extends BaseIntegrationTest {
+public abstract class RestApiIntegrationTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = new HashMap<>();
 
   protected String mHostname;

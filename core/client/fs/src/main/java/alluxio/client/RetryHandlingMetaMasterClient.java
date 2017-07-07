@@ -32,9 +32,10 @@ import javax.security.auth.Subject;
 /**
  * A wrapper for the thrift client to interact with the meta master.
  *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
- */
+ * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety and
+ * support for retries.
+ */ 
+
 @ThreadSafe
 public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
     implements MetaMasterClient {
