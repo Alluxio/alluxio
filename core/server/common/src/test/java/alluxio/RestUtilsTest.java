@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Objects;
-
 import javax.ws.rs.core.Response;
 
 /**
@@ -48,7 +46,7 @@ public class RestUtilsTest {
       private final int mStatus;
       private final String mMessage;
 
-      public Obj(int status, String message) {
+      Obj(int status, String message) {
         mStatus = status;
         mMessage = message;
       }
@@ -60,22 +58,11 @@ public class RestUtilsTest {
       public String getMessage() {
         return mMessage;
       }
-
-      @Override
-      public boolean equals(Object obj) {
-        if (obj == null) {
-          return false;
-        }
-        if (!(obj instanceof Obj)) {
-          return false;
-        }
-        Obj that = (Obj) obj;
-        return Objects.equals(mStatus, that.getStatus()) &&
-            Objects.equals(mMessage, that.getMessage());
-      }
     }
 
-    final Obj object = new Obj(200, "OK");
+    int status = 200;
+    String message = "OK";
+    final Obj object = new Obj(status, message);
     Response response = RestUtils.call(new RestUtils.RestCallable<Obj>() {
       @Override
       public Obj call() throws Exception {
@@ -83,7 +70,9 @@ public class RestUtilsTest {
       }
     });
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-    Assert.assertEquals(object, response.getEntity());
+    Obj obj = (Obj) response.getEntity();
+    Assert.assertEquals(status, obj.getStatus());
+    Assert.assertEquals(message, obj.getMessage());
   }
 
   @Test
