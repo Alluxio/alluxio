@@ -14,12 +14,13 @@ package alluxio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A utility to generate property keys to csv files.
@@ -35,7 +36,7 @@ public final class PropertyDocGeneration {
    * Writes property key to csv files.
    *
    * @param defaultVals DEFAULT_VALUES HashMap which is from PropertyKey
-   * @param filePath file file for csv files
+   * @param filePath path for csv files
    */
   public static void writeCSVFile(HashMap<PropertyKey, Object> defaultVals, String filePath) {
     if (defaultVals.size() == 0) {
