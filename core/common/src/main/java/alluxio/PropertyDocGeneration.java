@@ -35,8 +35,9 @@ public final class PropertyDocGeneration {
    * Writes property key to csv files.
    *
    * @param defaultVals DEFAULT_VALUES HashMap which is from PropertyKey
+   * @param filePath file file for csv files
    */
-  public static void writeCSVFile(HashMap<PropertyKey, Object> defaultVals) {
+  public static void writeCSVFile(HashMap<PropertyKey, Object> defaultVals, String filePath) {
     if (defaultVals.size() == 0) {
       return;
     }
@@ -44,10 +45,6 @@ public final class PropertyDocGeneration {
     //CSV file header
     String fileHeader = "propertyName,defaultValue";
     FileWriter fileWriter;
-
-    String userDir = System.getProperty("user.dir");
-    String location = userDir.substring(0, userDir.indexOf("alluxio") + 7);
-    String filePath = location + "/docs/_data/table/";
 
     //HashMap for CSV file names
     Map<String, String> fileNames = new HashMap<>();
@@ -129,7 +126,10 @@ public final class PropertyDocGeneration {
     try {
       Field defaultValues = pk.getDeclaredField("DEFAULT_VALUES");
       defaultValues.setAccessible(true);
-      writeCSVFile((HashMap<PropertyKey, Object>) defaultValues.get(propertyKey));
+      String userDir = System.getProperty("user.dir");
+      String location = userDir.substring(0, userDir.indexOf("alluxio") + 7);
+      String filePath = location + "/docs/_data/table/";
+      writeCSVFile((HashMap<PropertyKey, Object>) defaultValues.get(propertyKey), filePath);
     } catch (Exception e) {
       LOG.error("No Such Field!", e);
     }

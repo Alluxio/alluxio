@@ -13,14 +13,13 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.util.ShellUtils;
-
 import org.junit.Assert;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -28,54 +27,34 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 
 /**
  * Tests for {@link PropertyDocGeneration}.
  */
 public class PropertyDocGenerationTest {
   private static final Map<PropertyKey, Object> PROPERTY_KEY_TEST = new HashMap<>();
-  private static final String[] FILENAMES = {"user-configuration.csv", "master-configuration.csv",
-      "worker-configuration.csv", "security-configuration.csv", "key-value-configuration.csv",
-      "common-configuration.csv"};
   private static final String FILE_HEADER = "propertyName,defaultValue";
-  private static final String USERDIR = System.getProperty("user.dir");
-  private static final String LOCATION = USERDIR.substring(0, USERDIR.indexOf("alluxio") + 7);
+  private String mLocation;
+
+  /** Rule to create a new temporary folder during each test. */
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
 
   /**
-   * Tests the {@link PropertyDocGeneration#writeCSVFile(HashMap)}.
+   * Sets up all dependencies before a test runs.
    */
-
   @Before
   public void backupCSVFiles() throws Exception {
-    System.out.println("-->userdir: " + USERDIR);
-    SimpleDateFormat sdfDate = new SimpleDateFormat("yyyyMMdd");
-    String currentDate = sdfDate.format(new Date());
-    String filePath = LOCATION + "/docs/_data/table/";
-    for (String f : FILENAMES) {
-      String file = filePath + f;
-      Path p = Paths.get(file);
-      if (Files.exists(p)) {
-        ShellUtils.execCommand("bash", "-c", "mv " + file + " " + filePath + f
-            + ".unitTest." + currentDate);
-      }
-    }
+    mLocation = mFolder.newFolder().toString() + "/";
+    System.out.println("-->tempfolder: " + mLocation);
   }
 
+  /**
+   * Cleans up the temp folder and files.
+   */
   @After
   public void restoreCSVFiles() throws Exception {
-    SimpleDateFormat sdfDate = new SimpleDateFormat("yyyyMMdd");
-    String currentDate = sdfDate.format(new Date());
-    String filePath = LOCATION + "/docs/_data/table/";
-    for (String f : FILENAMES) {
-      String file = filePath + f + ".unitTest." + currentDate;
-      Path p = Paths.get(file);
-      int index = file.indexOf(".unitTest");
-      String originalFile = file.substring(0, index);
-      if (Files.exists(p)) {
-        ShellUtils.execCommand("bash", "-c", "mv " + file + " " + originalFile);
-      }
-    }
+    mFolder.delete();
   }
 
   public void checkFileContents(String source, List<String> target) throws Exception {
@@ -92,8 +71,8 @@ public class PropertyDocGenerationTest {
     PropertyKey userLocalWriterPacketSizeBytes = new PropertyKey(key);
     String defaultValue = Configuration.get(userLocalWriterPacketSizeBytes);
     PROPERTY_KEY_TEST.put(userLocalWriterPacketSizeBytes, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST);
-    String filePath = LOCATION + "/docs/_data/table/user-configuration.csv";
+    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    String filePath = mLocation + "user-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
 
@@ -108,8 +87,8 @@ public class PropertyDocGenerationTest {
     PropertyKey integrationMasterResourceCpu = new PropertyKey(key);
     String defaultValue = Configuration.get(integrationMasterResourceCpu);
     PROPERTY_KEY_TEST.put(integrationMasterResourceCpu, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST);
-    String filePath = LOCATION + "/docs/_data/table/master-configuration.csv";
+    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    String filePath = mLocation + "master-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
 
@@ -124,8 +103,8 @@ public class PropertyDocGenerationTest {
     PropertyKey workerDataFolder = new PropertyKey(key);
     String defaultValue = Configuration.get(workerDataFolder);
     PROPERTY_KEY_TEST.put(workerDataFolder, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST);
-    String filePath = LOCATION + "/docs/_data/table/worker-configuration.csv";
+    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    String filePath = mLocation + "worker-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
 
@@ -140,8 +119,8 @@ public class PropertyDocGenerationTest {
     PropertyKey securityAuthenticationType = new PropertyKey(key);
     String defaultValue = Configuration.get(securityAuthenticationType);
     PROPERTY_KEY_TEST.put(securityAuthenticationType, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST);
-    String filePath = LOCATION + "/docs/_data/table/security-configuration.csv";
+    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    String filePath = mLocation + "security-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
 
@@ -156,8 +135,8 @@ public class PropertyDocGenerationTest {
     PropertyKey keyValueEnabled = new PropertyKey(key);
     String defaultValue = Configuration.get(keyValueEnabled);
     PROPERTY_KEY_TEST.put(keyValueEnabled, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST);
-    String filePath = LOCATION + "/docs/_data/table/key-value-configuration.csv";
+    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    String filePath = mLocation + "key-value-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
 
@@ -172,8 +151,8 @@ public class PropertyDocGenerationTest {
     PropertyKey siteConfDir = new PropertyKey(key);
     String defaultValue = Configuration.get(siteConfDir);
     PROPERTY_KEY_TEST.put(siteConfDir, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST);
-    String filePath = LOCATION + "/docs/_data/table/common-configuration.csv";
+    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    String filePath = mLocation + "common-configuration.csv";
     Path p = Paths.get(filePath);
     System.out.println("-->filePath: " + filePath);
     System.out.println("-->Path p: " + p.toString());
