@@ -286,14 +286,8 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<MountTResponse>() {
       @Override
       public MountTResponse call() throws AlluxioException, IOException {
-//        if (numOfArgs == 0) {
-//          mFileSystemMaster.getMountTable();
-//        } else {
-//          mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-//              new MountOptions(options));
-//        }
         mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-                new MountOptions(options));
+            new MountOptions(options));
         return new MountTResponse();
       }
 
