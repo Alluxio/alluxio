@@ -529,8 +529,8 @@ public final class TieredBlockStore implements BlockStore {
    * Creates a temp block meta only if allocator finds available space. This method will not trigger
    * any eviction.
    *
-   * @param sessionId session Id
-   * @param blockId block Id
+   * @param sessionId session id
+   * @param blockId block id
    * @param location location to create the block
    * @param initialBlockSize initial block size in bytes
    * @param newBlock true if this temp block is created for a new block
@@ -573,7 +573,7 @@ public final class TieredBlockStore implements BlockStore {
   /**
    * Increases the temp block size only if this temp block's parent dir has enough available space.
    *
-   * @param blockId block Id
+   * @param blockId block id
    * @param additionalBytes additional bytes to request for this block
    * @return a pair of boolean and {@link BlockStoreLocation}. The boolean indicates if the
    *         operation succeeds and the {@link BlockStoreLocation} denotes where to free more space
@@ -604,7 +604,7 @@ public final class TieredBlockStore implements BlockStore {
    * Tries to get an eviction plan to free a certain amount of space in the given location, and
    * carries out this plan with the best effort.
    *
-   * @param sessionId the session Id
+   * @param sessionId the session id
    * @param availableBytes amount of space in bytes to free
    * @param location location of space
    * @throws WorkerOutOfSpaceException if it is impossible to achieve the free requirement
@@ -702,13 +702,13 @@ public final class TieredBlockStore implements BlockStore {
    * Moves a block to new location only if allocator finds available space in newLocation. This
    * method will not trigger any eviction. Returns {@link MoveBlockResult}.
    *
-   * @param sessionId session Id
-   * @param blockId block Id
+   * @param sessionId session id
+   * @param blockId block id
    * @param oldLocation the source location of the block
    * @param newLocation new location to move this block
    * @return the resulting information about the move operation
    * @throws BlockDoesNotExistException if block is not found
-   * @throws BlockAlreadyExistsException if a block with same Id already exists in new location
+   * @throws BlockAlreadyExistsException if a block with same id already exists in new location
    * @throws InvalidWorkerStateException if the block to move is a temp block
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
@@ -780,8 +780,8 @@ public final class TieredBlockStore implements BlockStore {
   /**
    * Removes a block.
    *
-   * @param sessionId session Id
-   * @param blockId block Id
+   * @param sessionId session id
+   * @param blockId block id
    * @param location the source location of the block
    * @throws InvalidWorkerStateException if the block to remove is a temp block
    * @throws BlockDoesNotExistException if this block can not be found

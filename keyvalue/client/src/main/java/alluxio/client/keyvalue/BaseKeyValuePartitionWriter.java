@@ -59,7 +59,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
    * @param fileOutStream output stream to store the key-value file
    */
   BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
-    mFileOutStream = Preconditions.checkNotNull(fileOutStream);
+    mFileOutStream = Preconditions.checkNotNull(fileOutStream, "fileOutStream");
     // TODO(binfan): write a header in the file
 
     mPayloadWriter = new BasePayloadWriter(mFileOutStream);
@@ -91,8 +91,8 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
 
   @Override
   public void put(byte[] key, byte[] value) throws IOException {
-    Preconditions.checkNotNull(key);
-    Preconditions.checkNotNull(value);
+    Preconditions.checkNotNull(key, "key");
+    Preconditions.checkNotNull(value, "value");
     Preconditions.checkArgument(key.length > 0, "Cannot put an empty key");
     Preconditions.checkArgument(value.length > 0, "Cannot put an empty value");
     Preconditions.checkState(!mClosed);

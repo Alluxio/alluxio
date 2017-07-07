@@ -502,6 +502,9 @@ public class PropertyKey {
       create(Name.USER_FILE_BUFFER_BYTES, "8MB");
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       create(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, true);
+  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
+      create(Name.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY,
+          "alluxio.client.file.policy.RoundRobinPolicy");
   public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
       create(Name.USER_FILE_DELETE_UNCHECKED, false);
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
@@ -570,7 +573,7 @@ public class PropertyKey {
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       create(Name.USER_RPC_RETRY_MAX_NUM_RETRY, 20);
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
-      create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, "5min");
+      create(Name.USER_RPC_RETRY_MAX_SLEEP_MS, "30sec");
   /**
    * @deprecated It will be removed in 2.0.0.
    */
@@ -1028,6 +1031,8 @@ public class PropertyKey {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
+    public static final String USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
+            "alluxio.user.file.copyfromlocal.write.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
@@ -1299,6 +1304,24 @@ public class PropertyKey {
     PropertyKey key = template.format(param);
     DEFAULT_KEYS_MAP.put(key.toString(), key);
     DEFAULT_VALUES.put(key, defaultValue);
+    return key;
+  }
+
+  /**
+   * Factory method to create a constant default property
+   * and assign a default value together with its alias.
+   *
+   * @param name String of this property
+   * @param defaultValue Default value of this property in compile time if not null
+   * @param aliases String list of aliases of this property
+   */
+  static PropertyKey create(String name, Object defaultValue, String[] aliases) {
+    PropertyKey key = create(name, defaultValue);
+    if (aliases != null) {
+      for (String alias : aliases) {
+        DEFAULT_KEYS_MAP.put(alias, key);
+      }
+    }
     return key;
   }
 
