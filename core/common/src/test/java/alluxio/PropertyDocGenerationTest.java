@@ -27,6 +27,7 @@ import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 
 /**
@@ -96,7 +97,7 @@ public class PropertyDocGenerationTest {
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
-    List<String> userFile = Files.readAllLines(p);
+    List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
     checkFileContents(key + "," + defaultValue, userFile);
   }
 
@@ -112,7 +113,7 @@ public class PropertyDocGenerationTest {
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
-    List<String> userFile = Files.readAllLines(p);
+    List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
     checkFileContents(key + "," + defaultValue, userFile);
   }
 
@@ -128,7 +129,7 @@ public class PropertyDocGenerationTest {
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
-    List<String> userFile = Files.readAllLines(p);
+    List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
     checkFileContents(key + "," + defaultValue, userFile);
   }
 
@@ -144,7 +145,7 @@ public class PropertyDocGenerationTest {
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
-    List<String> userFile = Files.readAllLines(p);
+    List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
     checkFileContents(key + "," + defaultValue, userFile);
   }
 
@@ -160,7 +161,7 @@ public class PropertyDocGenerationTest {
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
-    List<String> userFile = Files.readAllLines(p);
+    List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
     checkFileContents(key + "," + defaultValue, userFile);
   }
 
@@ -176,7 +177,7 @@ public class PropertyDocGenerationTest {
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
-    List<String> userFile = Files.readAllLines(p);
+    List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
     checkFileContents(key + "," + defaultValue, userFile);
   }
 }
