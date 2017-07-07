@@ -16,20 +16,20 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.base.Preconditions;
+import org.junit.BeforeClass;
 
 /**
  * This UFS contract test will use Swift as the backing store.
  */
 public final class SwiftUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
-  private static final String INTEGRATION_SWIFT_CONTAINER_KEY = "containerKey";
+  private static final String SWIFT_CONTAINER_KEY_CONF = "testSwiftContainerKey";
+  private static final String SWIFT_CONTAINER_KEY = System.getProperty(SWIFT_CONTAINER_KEY_CONF);
 
-  private String mSwiftContainer;
-
-  public SwiftUnderFileSystemContractTest() {
-    String swiftContainer = System.getProperty(INTEGRATION_SWIFT_CONTAINER_KEY);
-    Preconditions.checkState(swiftContainer != null);
-    Preconditions.checkState(new SwiftUnderFileSystemFactory().supportsPath(swiftContainer));
-    mSwiftContainer = swiftContainer;
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    Preconditions.checkNotNull(SWIFT_CONTAINER_KEY);
+    Preconditions.checkState(new SwiftUnderFileSystemFactory().supportsPath(SWIFT_CONTAINER_KEY),
+        "%s is not a valid Swift path", SWIFT_CONTAINER_KEY);
   }
 
   @Override
@@ -40,6 +40,6 @@ public final class SwiftUnderFileSystemContractTest extends AbstractUnderFileSys
 
   @Override
   public String getUfsBaseDir() {
-    return mSwiftContainer;
+    return SWIFT_CONTAINER_KEY;
   }
 }

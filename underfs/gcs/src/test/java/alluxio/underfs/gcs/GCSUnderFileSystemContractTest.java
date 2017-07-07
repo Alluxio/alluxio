@@ -29,7 +29,7 @@ public final class GCSUnderFileSystemContractTest extends AbstractUnderFileSyste
   public static void beforeClass() throws Exception {
     Preconditions.checkNotNull(GCS_BUCKET);
     Preconditions.checkState(new GCSUnderFileSystemFactory().supportsPath(GCS_BUCKET),
-        String.format("%s is not a valid GCS path", GCS_BUCKET));
+        "%s is not a valid GCS path", GCS_BUCKET);
   }
 
   @Override

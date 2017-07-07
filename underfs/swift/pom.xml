@@ -65,27 +65,14 @@
 
   <profiles>
     <profile>
-      <id>swiftTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-swift</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testSwiftContainerKey</name>
+        </property>
+      </activation>
       <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <!--argLine>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/dump</argLine-->
-              <systemPropertyVariables>
-                <containerKey>swift://container/folder</containerKey>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
@@ -173,7 +160,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!--By default we skip UFS contract tests, unless swiftTest profile is used-->
+            <!-- Skip UFS contract tests unless -DtestSwiftContainerKey=swift://container/folder is specified -->
             <exclude>**/SwiftUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>

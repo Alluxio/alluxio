@@ -31,7 +31,7 @@ public final class S3AUnderFileSystemContractTest extends AbstractUnderFileSyste
     Preconditions.checkNotNull(S3A_BUCKET,
         PreconditionMessage.S3_BUCKET_MUST_BE_SET.toString(), S3A_BUCKET);
     Preconditions.checkState(new S3AUnderFileSystemFactory().supportsPath(S3A_BUCKET),
-        String.format("%s is not a valid S3 path", S3A_BUCKET));
+        "%s is not a valid S3 path", S3A_BUCKET);
   }
 
   @Override
