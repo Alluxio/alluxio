@@ -46,7 +46,6 @@ public class PropertyDocGenerationTest {
   @Before
   public void backupCSVFiles() throws Exception {
     mLocation = mFolder.newFolder().toString() + "/";
-    System.out.println("-->tempfolder: " + mLocation);
   }
 
   /**
@@ -154,8 +153,6 @@ public class PropertyDocGenerationTest {
     PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
     String filePath = mLocation + "common-configuration.csv";
     Path p = Paths.get(filePath);
-    System.out.println("-->filePath: " + filePath);
-    System.out.println("-->Path p: " + p.toString());
     Assert.assertTrue(Files.exists(p));
 
     //assert file contents
