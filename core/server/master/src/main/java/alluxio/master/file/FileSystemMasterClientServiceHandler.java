@@ -363,9 +363,9 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public SetAttributeTResponse setAttribute(final String path, final SetAttributeTOptions options)
       throws AlluxioTException {
-    return RpcUtils.callAndLog(LOG, new RpcCallable<SetAttributeTResponse>() {
+    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<SetAttributeTResponse>() {
       @Override
-      public SetAttributeTResponse call() throws AlluxioException {
+      public SetAttributeTResponse call() throws AlluxioException, IOException {
         mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
         return new SetAttributeTResponse();
       }
