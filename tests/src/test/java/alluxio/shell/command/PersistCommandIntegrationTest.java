@@ -34,7 +34,7 @@ import org.junit.Test;
 /**
  * Tests for persist command.
  */
-public final class PersistCommandTest extends AbstractAlluxioShellTest {
+public final class PersistCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void persist() throws Exception {
     String testFilePath = "/testPersist/testFile";
