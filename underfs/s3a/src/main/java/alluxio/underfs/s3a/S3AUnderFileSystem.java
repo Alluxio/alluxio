@@ -100,6 +100,24 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
+   * @param conf the configuration for this UFS
+   *
+   * @return the created {@link AWSCredentialsProvider} instance
+   */
+  public static AWSCredentialsProvider createAwdCredentialsProvider(
+      UnderFileSystemConfiguration conf) {
+    // Set the aws credential system properties based on Alluxio properties, if they are set;
+    // otherwise, use the default credential provider.
+    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)
+        && conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
+      return new StaticCredentialsProvider(new BasicAWSCredentials(
+          conf.getValue(PropertyKey.S3A_ACCESS_KEY), conf.getValue(PropertyKey.S3A_SECRET_KEY)));
+    }
+    // Checks, in order, env variables, system properties, profile file, and instance profile
+    return new DefaultAWSCredentialsProviderChain();
+  }
+
+  /**
    * Constructs a new instance of {@link S3AUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
@@ -109,19 +127,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   public static S3AUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
 
+    AWSCredentialsProvider credentials = createAwdCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-    AWSCredentialsProvider credentials;
-    // Set the aws credential system properties based on Alluxio properties, if they are set;
-    // otherwise, use the default credential provider.
-    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)
-        && conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
-      credentials = new StaticCredentialsProvider(new BasicAWSCredentials(
-          conf.getValue(PropertyKey.S3A_ACCESS_KEY),
-          conf.getValue(PropertyKey.S3A_SECRET_KEY)));
-    } else {
-      // Checks, in order, env variables, system properties, profile file, and instance profile
-      credentials = new DefaultAWSCredentialsProviderChain();
-    }
 
     // Set the client configuration based on Alluxio configuration values
     ClientConfiguration clientConf = new ClientConfiguration();
@@ -144,12 +151,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Proxy port
     if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
-      clientConf
-          .setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
+      clientConf.setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
     }
 
-    int numAdminThreads =
-        Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
+    int numAdminThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     int numTransferThreads =
         Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
     int numThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX));

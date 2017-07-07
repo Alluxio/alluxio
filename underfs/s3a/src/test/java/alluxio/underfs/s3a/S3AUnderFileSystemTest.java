@@ -12,10 +12,13 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -27,7 +30,10 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Unit tests for the {@link S3AUnderFileSystem}.
@@ -45,15 +51,9 @@ public class S3AUnderFileSystemTest {
   private static final short BUCKET_MODE = 0;
   private static final String ACCOUNT_OWNER = "account owner";
 
-  /**
-   * The exception expected to be thrown.
-   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  /**
-   * Set up.
-   */
   @Before
   public void before() throws InterruptedException, AmazonClientException {
     mClient = Mockito.mock(AmazonS3Client.class);
@@ -62,9 +62,6 @@ public class S3AUnderFileSystemTest {
         BUCKET_MODE, ACCOUNT_OWNER, mManager, UnderFileSystemConfiguration.defaults());
   }
 
-  /**
-   * Test case for {@link S3AUnderFileSystem#delete(String, boolean)}.
-   */
   @Test
   public void deleteNonRecursiveOnAmazonClientException() throws IOException {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
@@ -74,9 +71,6 @@ public class S3AUnderFileSystemTest {
     mS3UnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(false));
   }
 
-  /**
-   * Test case for {@link S3AUnderFileSystem#delete(String, boolean)}.
-   */
   @Test
   public void deleteRecursiveOnAmazonClientException() throws IOException {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
@@ -86,9 +80,6 @@ public class S3AUnderFileSystemTest {
     mS3UnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(true));
   }
 
-  /**
-   * Test case for {@link S3AUnderFileSystem#renameFile(String, String)}.
-   */
   @Test
   public void renameOnAmazonClientException() throws IOException {
     Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
@@ -96,5 +87,19 @@ public class S3AUnderFileSystemTest {
 
     boolean result = mS3UnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
+  }
+
+  @Test
+  public void createCredentials() throws Exception {
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.S3A_ACCESS_KEY, "key1");
+    conf.put(PropertyKey.S3A_SECRET_KEY, "key2");
+    try (Closeable c = new ConfigurationRule(conf).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
+      AWSCredentialsProvider credentialsProvider =
+          S3AUnderFileSystem.createAwdCredentialsProvider(ufsConf);
+      Assert.assertEquals("key1", credentialsProvider.getCredentials().getAWSAccessKeyId());
+      Assert.assertEquals("key2", credentialsProvider.getCredentials().getAWSSecretKey());
+    }
   }
 }
