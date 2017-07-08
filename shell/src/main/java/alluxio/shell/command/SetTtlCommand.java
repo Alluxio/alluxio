@@ -85,7 +85,6 @@ public final class SetTtlCommand extends AbstractShellCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    //long ttlMs = Long.parseLong(CommonUtils.stripLeadingAndTrailingQuotes(args[1]));
     String ttl = CommonUtils.stripLeadingAndTrailingQuotes(args[1]);
     long ttlMs = AlluxioShellUtils.getMs(ttl);
     AlluxioURI path = new AlluxioURI(args[0]);
