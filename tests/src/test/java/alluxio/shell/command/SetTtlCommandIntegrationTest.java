@@ -97,4 +97,29 @@ public final class SetTtlCommandIntegrationTest extends AbstractAlluxioShellTest
     Assert.assertEquals(-1,
         mFsShell.run("setTtl", "-action", "invalid", filePath, String.valueOf(ttl)));
   }
+
+  @Test
+  public void setTtlWithDifferentUnitTime() throws Exception {
+    String filePath = "/testFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    Assert.assertEquals(Constants.NO_TTL,
+        mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
+
+    AlluxioURI uri = new AlluxioURI("/testFile");
+    String[] timeUnits = {"", "ms", "millisecond", "s", "sec", "second", "m", "min", "minute", "h",
+        "hr", "hour", "d", "day"};
+    long[] timeUnitInMilliseconds =
+        {1L, 1L, 1L, Constants.SECOND_MS, Constants.SECOND_MS, Constants.SECOND_MS,
+            Constants.MINUTE_MS, Constants.MINUTE_MS, Constants.MINUTE_MS, Constants.HOUR_MS,
+            Constants.HOUR_MS, Constants.HOUR_MS, Constants.DAY_MS, Constants.DAY_MS};
+    long numericValue = 100;
+    for (int i = 0; i < timeUnits.length; i++) {
+      String timeUnit = timeUnits[i];
+      String testValueWithTimeUnit = String.valueOf(numericValue) + timeUnit;
+      Assert.assertEquals(0, mFsShell.run("setTtl", filePath, testValueWithTimeUnit));
+      URIStatus status = mFileSystem.getStatus(uri);
+      Assert.assertEquals(numericValue * timeUnitInMilliseconds[i], status.getTtl());
+      Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
+    }
+  }
 }
