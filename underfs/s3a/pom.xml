@@ -68,6 +68,28 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testS3ABucket</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes combine.self="override" />
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
@@ -153,6 +175,16 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <testExcludes>
+            <!-- Skip UFS contract tests unless -DtestS3ABucket="s3a://my-bucket/alluxio-test" is specified -->
+            <exclude>**/S3AUnderFileSystemContractTest.java</exclude>
+          </testExcludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>
