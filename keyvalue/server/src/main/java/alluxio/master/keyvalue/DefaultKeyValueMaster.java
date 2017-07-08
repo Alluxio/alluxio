@@ -39,7 +39,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import net.jcip.annotations.ThreadSafe;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -51,6 +50,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This master stores key-value store information in Alluxio, including the partitions of
