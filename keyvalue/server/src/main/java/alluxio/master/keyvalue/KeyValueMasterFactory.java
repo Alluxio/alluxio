@@ -54,7 +54,8 @@ public final class KeyValueMasterFactory implements MasterFactory {
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
     Journal journal = journalFactory.create(getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
-    DefaultKeyValueMaster defaultKeyValueMaster = new DefaultKeyValueMaster(fileSystemMaster, journal);
+    DefaultKeyValueMaster defaultKeyValueMaster =
+        new DefaultKeyValueMaster(fileSystemMaster, journal);
     registry.add(DefaultKeyValueMaster.class, defaultKeyValueMaster);
     return defaultKeyValueMaster;
   }

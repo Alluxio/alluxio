@@ -22,6 +22,10 @@ import alluxio.thrift.PartitionInfo;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Interface of key-value master that stores key-value store information in Alluxio, including the partitions of
+ * each key-value store.
+ */
 public interface KeyValueMaster {
 
   /**

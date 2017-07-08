@@ -27,6 +27,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
@@ -38,6 +39,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import net.jcip.annotations.ThreadSafe;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -50,6 +52,11 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * This master stores key-value store information in Alluxio, including the partitions of
+ * each key-value store.
+ */
+@ThreadSafe
 public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMaster {
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(FileSystemMaster.class);
@@ -119,7 +126,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   }
 
   @Override
-  public synchronized Iterator<alluxio.proto.journal.Journal.JournalEntry> getJournalEntryIterator() {
+  public synchronized Iterator<JournalEntry> getJournalEntryIterator() {
     return Iterators.concat(getStoreIterator(mCompleteStoreToPartitions),
         getStoreIterator(mIncompleteStoreToPartitions));
   }
