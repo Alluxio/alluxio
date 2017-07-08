@@ -97,19 +97,31 @@ public final class RestUtils {
    * Error response when {@link RestCallable#call()} throws an exception.
    * It will be encoded into a Json string to be returned as an error response for the REST call.
    */
-  private static class ErrorResponse {
-    private Status mStatus;
-    private String mMessage;
+  public static class ErrorResponse {
+    private final Status mStatus;
+    private final String mMessage;
 
+    /**
+     * Creates a new {@link ErrorResponse}.
+     *
+     * @param status the RPC call result's {@link Status}
+     * @param message the error message
+     */
     public ErrorResponse(Status status, String message) {
       mStatus = status;
       mMessage = message;
     }
 
+    /**
+     * @return the status
+     */
     public Status getStatus() {
       return mStatus;
     }
 
+    /**
+     * @return the error message
+     */
     public String getMessage() {
       return mMessage;
     }
