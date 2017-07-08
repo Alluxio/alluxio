@@ -205,6 +205,25 @@ public class AlluxioStatusException extends IOException {
   }
 
   /**
+   * Converts unchecked throwables to Alluxio status exceptions. Checked throwables should not be
+   * passed to this method.
+   *
+   * @param throwable a throwable
+   * @return the converted {@link AlluxioStatusException}
+   */
+  public static AlluxioStatusException fromUncheckedException(Throwable throwable) {
+    try {
+      throw throwable;
+    } catch (IllegalArgumentException e) {
+      return new InvalidArgumentException(e);
+    } catch (Error | RuntimeException e) {
+      return new InternalException(e);
+    } catch (Throwable t) {
+      throw new IllegalStateException("Expected an unchecked exception but got " + t);
+    }
+  }
+
+  /**
    * Converts an arbitrary throwable to an Alluxio status exception. This method should be used with
    * caution because it could potentially convert an unchecked exception (indicating a bug) to a
    * checked Alluxio status exception.
@@ -214,7 +233,7 @@ public class AlluxioStatusException extends IOException {
    */
   public static AlluxioStatusException fromThrowable(Throwable t) {
     if (t instanceof Error || t instanceof RuntimeException) {
-      return new InternalException(t);
+      return fromUncheckedException(t);
     }
     return fromCheckedException(t);
   }
