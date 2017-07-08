@@ -101,15 +101,27 @@ public final class RestUtils {
     private final Status mStatus;
     private final String mMessage;
 
+    /**
+     * Creates a new {@link ErrorResponse}.
+     *
+     * @param status the RPC call result's {@link Status}
+     * @param message the error message
+     */
     public ErrorResponse(Status status, String message) {
       mStatus = status;
       mMessage = message;
     }
 
+    /**
+     * @return the status
+     */
     public Status getStatus() {
       return mStatus;
     }
 
+    /**
+     * @return the error message
+     */
     public String getMessage() {
       return mMessage;
     }
