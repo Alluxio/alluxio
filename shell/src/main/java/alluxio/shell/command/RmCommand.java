@@ -90,4 +90,9 @@ public final class RmCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Removes the specified file. Specify -R to remove file or directory recursively.";
   }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
+  }
 }

@@ -55,4 +55,9 @@ public final class UnpinCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Unpins the given file or folder from memory (works recursively for a directory).";
   }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
+  }
 }

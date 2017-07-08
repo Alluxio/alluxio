@@ -57,25 +57,27 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI inputPath = new AlluxioURI(args[0]);
+    for (String arg : args) {
+      AlluxioURI inputPath = new AlluxioURI(arg);
 
-    List<AlluxioURI> paths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, inputPath);
-    if (paths.size() == 0) { // A unified sanity check on the paths
-      throw new IOException(inputPath + " does not exist.");
-    }
-    Collections.sort(paths, createAlluxioURIComparator());
-
-    List<String> errorMessages = new ArrayList<>();
-    for (AlluxioURI path : paths) {
-      try {
-        runCommand(path, cl);
-      } catch (AlluxioException | IOException e) {
-        errorMessages.add(e.getMessage());
+      List<AlluxioURI> paths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, inputPath);
+      if (paths.size() == 0) { // A unified sanity check on the paths
+        throw new IOException(inputPath + " does not exist.");
       }
-    }
+      Collections.sort(paths, createAlluxioURIComparator());
 
-    if (errorMessages.size() != 0) {
-      throw new IOException(Joiner.on('\n').join(errorMessages));
+      List<String> errorMessages = new ArrayList<>();
+      for (AlluxioURI path : paths) {
+        try {
+          runCommand(path, cl);
+        } catch (AlluxioException | IOException e) {
+          errorMessages.add(e.getMessage());
+        }
+      }
+
+      if (errorMessages.size() != 0) {
+        throw new IOException(Joiner.on('\n').join(errorMessages));
+      }
     }
     return 0;
   }

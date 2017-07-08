@@ -116,5 +116,4 @@ public final class HelpCommand extends AbstractShellCommand {
   protected int getNumOfArgs() {
     return 1;
   }
-
 }
