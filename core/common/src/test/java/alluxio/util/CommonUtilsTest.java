@@ -35,6 +35,8 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
+
 
 /**
  * Tests the {@link CommonUtils} class.
@@ -348,6 +350,7 @@ public class CommonUtilsTest {
   }
 
   @Test
+  @Nullable
   public void invokeAllSuccess() throws Exception {
     int numTasks = 5;
     final CyclicBarrier b = new CyclicBarrier(numTasks);
@@ -368,6 +371,7 @@ public class CommonUtilsTest {
   }
 
   @Test
+  @Nullable
   public void invokeAllHang() throws Exception {
     int numTasks = 5;
     List<Callable<Void>> tasks = new ArrayList<>();
@@ -389,6 +393,7 @@ public class CommonUtilsTest {
   }
 
   @Test
+  @Nullable
   public void invokeAllPropagatesException() throws Exception {
     int numTasks = 5;
     final AtomicInteger id = new AtomicInteger();
@@ -420,6 +425,7 @@ public class CommonUtilsTest {
    * propagated.
    */
   @Test
+  @Nullable
   public void invokeAllPropagatesExceptionWithTimeout() throws Exception {
     int numTasks = 5;
     final AtomicInteger id = new AtomicInteger();
