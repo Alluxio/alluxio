@@ -37,7 +37,7 @@ function printUsage {
   echo -e "  protoGen      \t Generate all protocol buffer code."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
-  echo -e "  check         \t Check Alluxio environment."
+  echo -e "  validateEnv   \t Validate Alluxio environment."
   echo
   echo "GENERIC_COMMAND_OPTIONS supports:"
   echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
@@ -349,8 +349,8 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
-  "check")
-    CLASS="alluxio.cli.Check"
+  "validateEnv")
+    CLASS="alluxio.cli.ValidateEnv"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
