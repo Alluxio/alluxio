@@ -85,6 +85,7 @@ to multiple under storage systems. Alluxio's [Command Line Interface](Command-Li
 ```bash 
 $ ./bin/alluxio fs mount --option aws.accessKeyId=<AWS_ACCESS_KEY_ID> --option aws.secretKey=<AWS_SECRET_KEY_ID>\
   /mnt/s3 s3a://<S3_BUCKET>/<S3_DIRECTORY>
+```
 
 ### Enabling Server Side Encryption
 
