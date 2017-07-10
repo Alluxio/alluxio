@@ -14,25 +14,23 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
- * Tests for {@link PropertyDocGeneration}.
+ * Tests for {@link ConfigurationDocGenerator}.
  */
-public class PropertyDocGenerationTest {
-  private static final Map<PropertyKey, Object> PROPERTY_KEY_TEST = new HashMap<>();
+public class ConfigurationDocGeneratorTest {
   private static final String FILE_HEADER = "propertyName,defaultValue";
   private String mLocation;
 
@@ -48,20 +46,11 @@ public class PropertyDocGenerationTest {
     mLocation = mFolder.newFolder().toString() + "/";
   }
 
-  /**
-   * Cleans up the temp folder and files.
-   */
-  @After
-  public void restoreCSVFiles() throws Exception {
-    mFolder.delete();
-  }
-
   public void checkFileContents(String source, List<String> target) throws Exception {
     //assert file contents
     assertEquals(2, target.size());
     assertEquals(FILE_HEADER, target.get(0));
     assertEquals(source, target.get(1));
-    PROPERTY_KEY_TEST.clear();
   }
 
   @Test
@@ -69,8 +58,9 @@ public class PropertyDocGenerationTest {
     String key = "alluxio.user.local.reader.packet.size.bytes";
     PropertyKey userLocalWriterPacketSizeBytes = new PropertyKey(key);
     String defaultValue = Configuration.get(userLocalWriterPacketSizeBytes);
-    PROPERTY_KEY_TEST.put(userLocalWriterPacketSizeBytes, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    Collection<PropertyKey> defaultKeys = new ArrayList<>();
+    defaultKeys.add(userLocalWriterPacketSizeBytes);
+    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation);
     String filePath = mLocation + "user-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
@@ -83,10 +73,11 @@ public class PropertyDocGenerationTest {
   @Test
   public void checkCSVFile_master() throws Exception {
     String key = "alluxio.integration.master.resource.cpu";
-    PropertyKey integrationMasterResourceCpu = new PropertyKey(key);
-    String defaultValue = Configuration.get(integrationMasterResourceCpu);
-    PROPERTY_KEY_TEST.put(integrationMasterResourceCpu, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    PropertyKey integrationMasterResourceCPU = new PropertyKey(key);
+    String defaultValue = Configuration.get(integrationMasterResourceCPU);
+    Collection<PropertyKey> defaultKeys = new ArrayList<>();
+    defaultKeys.add(integrationMasterResourceCPU);
+    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation);
     String filePath = mLocation + "master-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
@@ -101,8 +92,9 @@ public class PropertyDocGenerationTest {
     String key = "alluxio.worker.data.folder";
     PropertyKey workerDataFolder = new PropertyKey(key);
     String defaultValue = Configuration.get(workerDataFolder);
-    PROPERTY_KEY_TEST.put(workerDataFolder, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    Collection<PropertyKey> defaultKeys = new ArrayList<>();
+    defaultKeys.add(workerDataFolder);
+    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation);
     String filePath = mLocation + "worker-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
@@ -117,8 +109,9 @@ public class PropertyDocGenerationTest {
     String key = "alluxio.security.authentication.type";
     PropertyKey securityAuthenticationType = new PropertyKey(key);
     String defaultValue = Configuration.get(securityAuthenticationType);
-    PROPERTY_KEY_TEST.put(securityAuthenticationType, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    Collection<PropertyKey> defaultKeys = new ArrayList<>();
+    defaultKeys.add(securityAuthenticationType);
+    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation);
     String filePath = mLocation + "security-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
@@ -133,8 +126,9 @@ public class PropertyDocGenerationTest {
     String key = "alluxio.keyvalue.enabled";
     PropertyKey keyValueEnabled = new PropertyKey(key);
     String defaultValue = Configuration.get(keyValueEnabled);
-    PROPERTY_KEY_TEST.put(keyValueEnabled, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    Collection<PropertyKey> defaultKeys = new ArrayList<>();
+    defaultKeys.add(keyValueEnabled);
+    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation);
     String filePath = mLocation + "key-value-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));
@@ -149,8 +143,9 @@ public class PropertyDocGenerationTest {
     String key = "alluxio.site.conf.dir";
     PropertyKey siteConfDir = new PropertyKey(key);
     String defaultValue = Configuration.get(siteConfDir);
-    PROPERTY_KEY_TEST.put(siteConfDir, defaultValue);
-    PropertyDocGeneration.writeCSVFile((HashMap<PropertyKey, Object>) PROPERTY_KEY_TEST, mLocation);
+    Collection<PropertyKey> defaultKeys = new ArrayList<>();
+    defaultKeys.add(siteConfDir);
+    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation);
     String filePath = mLocation + "common-configuration.csv";
     Path p = Paths.get(filePath);
     Assert.assertTrue(Files.exists(p));

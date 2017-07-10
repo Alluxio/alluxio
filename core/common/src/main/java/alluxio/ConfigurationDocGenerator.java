@@ -11,12 +11,15 @@
 
 package alluxio;
 
+import alluxio.util.io.PathUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.io.Closer;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,20 +29,21 @@ import javax.annotation.concurrent.ThreadSafe;
  * A utility to generate property keys to csv files.
  */
 @ThreadSafe
-public final class PropertyDocGeneration {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyDocGeneration.class);
+public final class ConfigurationDocGenerator {
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigurationDocGenerator.class);
 
-  private PropertyDocGeneration() {
-  }
+  private ConfigurationDocGenerator() {
+  } // prevent instantiation
 
   /**
    * Writes property key to csv files.
    *
-   * @param defaultVals DEFAULT_VALUES HashMap which is from PropertyKey
-   * @param filePath path for csv files
+   * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
+   * @param filePath    path for csv files
    */
-  public static void writeCSVFile(HashMap<PropertyKey, Object> defaultVals, String filePath) {
-    if (defaultVals.size() == 0) {
+  public static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+      throws IOException {
+    if (defaultKeys.size() == 0) {
       return;
     }
 
@@ -49,15 +53,16 @@ public final class PropertyDocGeneration {
 
     //HashMap for CSV file names
     Map<String, String> fileNames = new HashMap<>();
-    fileNames.put("user", filePath + "user-configuration.csv");
-    fileNames.put("master", filePath + "master-configuration.csv");
-    fileNames.put("worker", filePath + "worker-configuration.csv");
-    fileNames.put("security", filePath + "security-configuration.csv");
-    fileNames.put("keyvalue", filePath + "key-value-configuration.csv");
-    fileNames.put("common", filePath + "common-configuration.csv");
+    fileNames.put("user", PathUtils.concatPath(filePath, "user-configuration.csv"));
+    fileNames.put("master", PathUtils.concatPath(filePath, "master-configuration.csv"));
+    fileNames.put("worker", PathUtils.concatPath(filePath, "worker-configuration.csv"));
+    fileNames.put("security", PathUtils.concatPath(filePath, "security-configuration.csv"));
+    fileNames.put("keyvalue", PathUtils.concatPath(filePath, "key-value-configuration.csv"));
+    fileNames.put("common", PathUtils.concatPath(filePath, "common-configuration.csv"));
 
     //HashMap for FileWriter per each category
     Map<String, FileWriter> fileWriterMap = new HashMap<>();
+    Closer closer = Closer.create();
     try {
       for (Map.Entry<String, String> entry : fileNames.entrySet()) {
         fileWriter = new FileWriter(entry.getValue());
@@ -67,49 +72,48 @@ public final class PropertyDocGeneration {
         fileWriter.append("\n");
         //put fileWriter
         fileWriterMap.put(entry.getKey(), fileWriter);
+        //register file writer
+        closer.register(fileWriter);
       }
 
-      for (Map.Entry<PropertyKey, Object> entry : defaultVals.entrySet()) {
-        String pKey = entry.getKey().toString();
+      for (PropertyKey iteratorPK : defaultKeys) {
+        String pKey = iteratorPK.toString();
         String value;
-        if (entry.getValue() == null) {
+        PropertyKey pk = new PropertyKey(pKey);
+        if (pk.getDefaultValue() == null) {
           value = "";
         } else {
-          value = entry.getValue().toString();
+          value = pk.getDefaultValue();
         }
 
         //Persist property key and default value to CSV
         String keyValueStr = pKey + "," + value + "\n";
         if (pKey.contains(".user.")) {
           fileWriter = fileWriterMap.get("user");
-          fileWriter.append(keyValueStr);
         } else if (pKey.contains(".master.")) {
           fileWriter = fileWriterMap.get("master");
-          fileWriter.append(keyValueStr);
         } else if (pKey.contains(".worker.")) {
           fileWriter = fileWriterMap.get("worker");
-          fileWriter.append(keyValueStr);
         } else if (pKey.contains(".security.")) {
           fileWriter = fileWriterMap.get("security");
-          fileWriter.append(keyValueStr);
         } else if (pKey.contains(".keyvalue.")) {
           fileWriter = fileWriterMap.get("keyvalue");
-          fileWriter.append(keyValueStr);
         } else {
           fileWriter = fileWriterMap.get("common");
-          fileWriter.append(keyValueStr);
         }
+        fileWriter.append(keyValueStr);
       }
 
       LOG.info("Property Key CSV files were created successfully.");
     } catch (Exception e) {
-      LOG.error("Error in Property Key CSV FileWriter", e);
+      throw closer.rethrow(e);
     } finally {
       try {
         for (Map.Entry<String, FileWriter> entry : fileWriterMap.entrySet()) {
           entry.getValue().flush();
           entry.getValue().close();
         }
+        closer.close();
       } catch (IOException e) {
         LOG.error("Error while flushing/closing Property Key CSV FileWriter", e);
       }
@@ -121,18 +125,11 @@ public final class PropertyDocGeneration {
    *
    * @param args arguments for command line
    */
-  public static void main(String[] args) throws IllegalAccessException, NoSuchFieldException {
-    PropertyKey propertyKey = new PropertyKey("");
-    Class pk = propertyKey.getClass();
-    try {
-      Field defaultValues = pk.getDeclaredField("DEFAULT_VALUES");
-      defaultValues.setAccessible(true);
-      String userDir = System.getProperty("user.dir");
-      String location = userDir.substring(0, userDir.indexOf("alluxio") + 7);
-      String filePath = location + "/docs/_data/table/";
-      writeCSVFile((HashMap<PropertyKey, Object>) defaultValues.get(propertyKey), filePath);
-    } catch (Exception e) {
-      LOG.error("No Such Field!", e);
-    }
+  public static void main(String[] args) throws IllegalAccessException, IOException {
+    Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
+    String userDir = System.getProperty("user.dir");
+    String location = userDir.substring(0, userDir.indexOf("alluxio") + 7);
+    String filePath = PathUtils.concatPath(location, "/docs/_data/table/");
+    writeCSVFile(defaultKeys, filePath);
   }
 }
