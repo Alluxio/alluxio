@@ -71,6 +71,7 @@ access to multiple under storage systems. Alluxio's
 $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>\
   fs.oss.endpoint=<OSS_ENDPOINT>
+```
 
 ## Running Alluxio Locally with OSS
 
