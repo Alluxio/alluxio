@@ -11,11 +11,10 @@
 
 package alluxio.master.file;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
@@ -113,9 +112,13 @@ public final class PermissionCheckTest {
   private InodeTree mInodeTree;
 
   @Rule
-  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
-      .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName(),
-          PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP));
+  public ConfigurationRule mConfiguration =
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+          .put(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName())
+          .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP)
+          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+              .createTemporaryDirectory("PermissionCheckTest").getAbsolutePath())
+          .build());
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser =
@@ -176,7 +179,6 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
     JournalFactory factory =
@@ -195,7 +197,6 @@ public final class PermissionCheckTest {
   public void after() throws Exception {
     mRegistry.stop();
     GroupMappingServiceTestUtils.resetCache();
-    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
