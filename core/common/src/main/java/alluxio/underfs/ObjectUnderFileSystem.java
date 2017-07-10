@@ -165,7 +165,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Permissions in object UFS.
    */
-  protected class ObjectPermissions {
+  public class ObjectPermissions {
     final String mOwner;
     final String mGroup;
     final short mMode;
