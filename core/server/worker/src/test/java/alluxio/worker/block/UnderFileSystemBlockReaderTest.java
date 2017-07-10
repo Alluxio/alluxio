@@ -25,7 +25,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.Assert;
@@ -40,6 +39,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TempBlockMeta.class})
@@ -60,11 +60,12 @@ public final class UnderFileSystemBlockReaderTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
-  public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
-          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
-              .createTemporaryDirectory("UnderFileSystemBlockReaderTest").getAbsolutePath())
-          .build());
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
+    {
+      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+          .createTemporaryDirectory("UnderFileSystemBlockReaderTest").getAbsolutePath());
+    }
+  });
 
   @Before
   public void before() throws Exception {

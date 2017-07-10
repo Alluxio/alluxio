@@ -136,12 +136,14 @@ public final class FileSystemMasterTest {
   public LoginUserRule mLoginUser = new LoginUserRule(TEST_USER);
 
   @Rule
-  public ConfigurationRule mConfigurationRule = new ConfigurationRule(
-      new ImmutableMap.Builder<PropertyKey, String>()
-          .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000")
-          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
-              .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath())
-          .build());
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
+    {
+      put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
+      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+          .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
+    }
+  });
+
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
