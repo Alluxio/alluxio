@@ -17,6 +17,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.Master;
 import alluxio.thrift.PartitionInfo;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ import java.util.List;
  * Interface of key-value master that stores key-value store information in Alluxio,
  * including the partitions of each key-value store.
  */
-public interface KeyValueMaster {
+public interface KeyValueMaster extends Master {
 
   /**
    * Marks a partition complete and adds it to an incomplete key-value store.

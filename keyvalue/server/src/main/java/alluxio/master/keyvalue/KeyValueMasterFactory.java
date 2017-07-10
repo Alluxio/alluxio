@@ -49,14 +49,14 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public DefaultKeyValueMaster create(MasterRegistry registry, JournalFactory journalFactory) {
+  public KeyValueMaster create(MasterRegistry registry, JournalFactory journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
     Journal journal = journalFactory.create(getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
     DefaultKeyValueMaster defaultKeyValueMaster =
         new DefaultKeyValueMaster(fileSystemMaster, journal);
-    registry.add(DefaultKeyValueMaster.class, defaultKeyValueMaster);
+    registry.add(KeyValueMaster.class, defaultKeyValueMaster);
     return defaultKeyValueMaster;
   }
 }
