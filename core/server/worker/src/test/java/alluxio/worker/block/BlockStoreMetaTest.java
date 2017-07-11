@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for {@link DefaultBlockStoreMeta}.
+ * Unit tests for {@link BlockStoreMeta}.
  */
 public final class BlockStoreMetaTest {
   private static final long TEST_SESSION_ID = 33L;
@@ -59,12 +59,12 @@ public final class BlockStoreMetaTest {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
-    mBlockStoreMeta = BlockStoreMeta.Factory.getBlockStoreMeta(mMetadataManager);
-    mBlockStoreMetaFull = BlockStoreMeta.Factory.getBlockStoreMetaFull(mMetadataManager);
+    mBlockStoreMeta = BlockStoreMeta.Factory.create(mMetadataManager);
+    mBlockStoreMetaFull = BlockStoreMeta.Factory.createFull(mMetadataManager);
   }
 
   /**
-   * Tests the {@link DefaultBlockStoreMeta#getBlockList()} method.
+   * Tests the {@link BlockStoreMeta#getBlockList()} method.
    */
   @Test
   public void getBlockList() {
@@ -82,7 +82,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link DefaultBlockStoreMeta#getCapacityBytes()} method.
+   * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
   public void getCapacityBytes() {

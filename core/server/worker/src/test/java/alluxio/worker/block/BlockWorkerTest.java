@@ -58,7 +58,7 @@ import java.util.Set;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, DefaultBlockStoreMeta.class, StorageDir.class, Configuration.class,
+    BlockStoreLocation.class, StorageDir.class, Configuration.class,
     UnderFileSystem.class, BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
@@ -181,7 +181,7 @@ public class BlockWorkerTest {
     usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
-    BlockStoreMeta blockStoreMeta = PowerMockito.mock(DefaultBlockStoreMeta.class);
+    BlockStoreMeta blockStoreMeta = Mockito.mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(
@@ -215,7 +215,7 @@ public class BlockWorkerTest {
     usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
-    BlockStoreMeta blockStoreMeta = PowerMockito.mock(DefaultBlockStoreMeta.class);
+    BlockStoreMeta blockStoreMeta = Mockito.mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
