@@ -24,7 +24,6 @@ import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -58,8 +57,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   protected List<WorkerProcess> mWorkers;
   protected List<Thread> mWorkerThreads;
-
-  protected UnderFileSystemCluster mUfsCluster;
 
   protected String mWorkDirectory;
   protected String mHostname;
@@ -186,16 +183,6 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
 
-    // Starts the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
-    // (see also {@link alluxio.LocalMiniDFSCluster} and sets up the folder like
-    // "hdfs://xxx:xxx/alluxio*".
-    mUfsCluster = UnderFileSystemCluster.get(mWorkDirectory);
-
-    // Sets the journal folder
-    String journalFolder =
-        mUfsCluster.getUnderFilesystemAddress() + "/journal" + RANDOM_GENERATOR.nextLong();
-    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
-
     // Formats the journal
     Format.format(Format.Mode.MASTER);
   }
@@ -205,7 +192,6 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void stop() throws Exception {
     stopFS();
-    stopUFS();
     ConfigurationTestUtils.resetConfiguration();
     reset();
     LoginUserTestUtils.resetLoginUser();
@@ -219,16 +205,6 @@ public abstract class AbstractLocalAlluxioCluster {
     stopProxy();
     stopWorkers();
     stopMasters();
-  }
-
-  /**
-   * Cleans up the underfs cluster test folder only.
-   */
-  protected void stopUFS() throws Exception {
-    LOG.info("stop under storage system");
-    if (mUfsCluster != null) {
-      mUfsCluster.cleanup();
-    }
   }
 
   /**
@@ -353,11 +329,10 @@ public abstract class AbstractLocalAlluxioCluster {
           Joiner.on(',').join(newPaths));
     }
 
-    // For some test profiles, default properties get overwritten by system properties (e.g., s3
-    // credentials for s3Test).
-    // TODO(binfan): have one dedicated property (e.g., alluxio.test.properties) to carry on all the
-    // properties we want to overwrite in tests, rather than simply merging all system properties.
-    Configuration.merge(System.getProperties());
+    // Sets up the journal folder
+    String journalFolder =
+        PathUtils.concatPath(mWorkDirectory, "journal" + RANDOM_GENERATOR.nextLong());
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
   }
 
   /**
