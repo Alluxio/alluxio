@@ -27,9 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +36,6 @@ import java.util.concurrent.Executors;
 /**
  * Unit tests for {@link SpaceReserver}.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class SpaceReserverTest {
   private ExecutorService mExecutorService;
 
