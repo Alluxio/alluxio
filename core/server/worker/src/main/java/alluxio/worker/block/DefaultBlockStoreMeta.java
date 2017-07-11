@@ -51,11 +51,6 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
   /** Mapping from storage dir tier and path to used bytes. */
   private final Map<Pair<String, String>, Long> mUsedBytesOnDirs = new HashMap<>();
 
-  /**
-   * Note: This is only available in {@link DefaultBlockStoreMeta#getBlockStoreMetaFull}.
-   *
-   * @return A mapping from storage tier alias to blocks
-   */
   @Override
   public Map<String, List<Long>> getBlockList() {
     Preconditions.checkNotNull(mBlockIdsOnTiers, "mBlockIdsOnTiers");
@@ -63,9 +58,6 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     return mBlockIdsOnTiers;
   }
 
-  /**
-   * @return the capacity in bytes
-   */
   @Override
   public long getCapacityBytes() {
     long capacityBytes = 0L;
@@ -75,25 +67,16 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     return capacityBytes;
   }
 
-  /**
-   * @return a mapping from tier aliases to capacity in bytes
-   */
   @Override
   public Map<String, Long> getCapacityBytesOnTiers() {
     return mCapacityBytesOnTiers;
   }
 
-  /**
-   * @return a mapping from tier directory-path pairs to capacity in bytes
-   */
   @Override
   public Map<Pair<String, String>, Long> getCapacityBytesOnDirs() {
     return mCapacityBytesOnDirs;
   }
 
-  /**
-   * @return a mapping from tier aliases to directory paths in that tier
-   */
   @Override
   public Map<String, List<String>> getDirectoryPathsOnTiers() {
     Map<String, List<String>> pathsOnTiers = new HashMap<>();
@@ -107,11 +90,6 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     return pathsOnTiers;
   }
 
-  /**
-   * Note: This is only available in {@link DefaultBlockStoreMeta#getBlockStoreMetaFull}.
-   *
-   * @return the number of blocks
-   */
   @Override
   public int getNumberOfBlocks() {
     Preconditions.checkNotNull(mBlockIdsOnTiers, "mBlockIdsOnTiers");
@@ -123,9 +101,6 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     return numberOfBlocks;
   }
 
-  /**
-   * @return the used capacity in bytes
-   */
   @Override
   public long getUsedBytes() {
     long usedBytes = 0L;
@@ -135,17 +110,11 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     return usedBytes;
   }
 
-  /**
-   * @return a mapping from tier aliases to used capacity in bytes
-   */
   @Override
   public Map<String, Long> getUsedBytesOnTiers() {
     return Collections.unmodifiableMap(mUsedBytesOnTiers);
   }
 
-  /**
-   * @return a mapping from tier directory-path pairs to used capacity in bytes
-   */
   @Override
   public Map<Pair<String, String>, Long> getUsedBytesOnDirs() {
     return mUsedBytesOnDirs;
