@@ -26,13 +26,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -41,8 +36,6 @@ import java.util.concurrent.Executors;
 /**
  * Unit tests for {@link SpaceReserver}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class, BlockStoreMeta.class})
 public class SpaceReserverTest {
   private ExecutorService mExecutorService;
 
@@ -66,17 +59,18 @@ public class SpaceReserverTest {
     mExecutorService.shutdownNow();
   }
 
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void reserveCorrectAmountsOfSpace() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 400L, "HDD", 1000L);
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
 
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
+
     // Create two tiers named "MEM" and "HDD" with aliases 0 and 1.
-    TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1}, new String[] {"MEM", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
         new long[][]{new long[]{0}, new long[]{0}}, "/");
@@ -101,11 +95,10 @@ public class SpaceReserverTest {
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
   }
 
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void testLowWatermark() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
@@ -114,8 +107,10 @@ public class SpaceReserverTest {
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
     Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
+
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
-    TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
@@ -153,11 +148,10 @@ public class SpaceReserverTest {
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
   }
 
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void testHighWatermark() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
@@ -166,8 +160,10 @@ public class SpaceReserverTest {
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
     Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
+
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
-    TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
