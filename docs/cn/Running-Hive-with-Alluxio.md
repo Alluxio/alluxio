@@ -31,7 +31,7 @@ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 
 ## 在Alluxio上创建Hive表
 
-有不同的方法可以将Hive与Alluxio整合，将Alluxio作为[内部表或外部表](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或已存在的表的存储器。Alluxio也可以作为Hive的默认文件系统。在接下来的部分我们会介绍对于这些情况如何在Alluxio上使用Hive。本文档中Hive运行在Hadoop MapReduce上。
+有不同的方法可以将Hive与Alluxio整合，以将Alluxio作为[内部表或外部表](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或已存在的表的存储器。Alluxio也可以作为Hive的默认文件系统。在接下来的部分我们会介绍对于这些情况如何在Alluxio上使用Hive。本文档中Hive运行在Hadoop MapReduce上。
 *建议：接下来所有的Hive命令行例子同样适用于Hive Beeline。你可以在Beeline shell中尝试这些例子*
 
 ### 使用文件在Alluxio中创建新表
@@ -100,7 +100,7 @@ FIELDS TERMINATED BY '|';
 hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user' OVERWRITE INTO TABLE u_user;
 ```
 
-下面的HiveQL语句会将表的数据存储位置从HDFS移到Alluxio中
+下面的HiveQL语句会将表数据的存储位置从HDFS转移到Alluxio中
 
 ```
 hive> alter table u_user set location "alluxio://master_hostname:port/user/hive/warehouse/u_user";
@@ -123,7 +123,7 @@ hive> desc formatted u_user;
 hive> desc formatted u_user;
 ```
 
-然后使用下面的HiveQL语句将表数据的存储位置从HDFS移到Alluxio中：
+然后使用下面的HiveQL语句将表数据的存储位置从HDFS转移到Alluxio中：
 
 ```
 hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
@@ -131,7 +131,7 @@ hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 
 ### 将表的元数据恢复到HDFS
 
-在上面的两个关于将改变表数据的存储位置至Alluxio的例子中，你也可以将表的存储位置恢复到HDFS中：
+在上面的两个关于将转移表数据的存储位置至Alluxio的例子中，你也可以将表的存储位置恢复到HDFS中：
 
 ```
 hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HDFS";
