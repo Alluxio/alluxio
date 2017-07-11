@@ -53,6 +53,8 @@ public class S3AUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
+  private static final String DEFAULT_OWNER = "";
+  private static final short DEFAULT_MODE = 0700;
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
@@ -129,8 +131,8 @@ public class S3AUnderFileSystemTest {
   public void getPermissionsDefault() throws Exception {
     Mockito.when(mClient.getS3AccountOwner()).thenThrow(AmazonClientException.class);
     ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
-    Assert.assertEquals("", permissions.getGroup());
-    Assert.assertEquals("", permissions.getOwner());
-    Assert.assertEquals(0700, permissions.getMode());
+    Assert.assertEquals(DEFAULT_OWNER, permissions.getGroup());
+    Assert.assertEquals(DEFAULT_OWNER, permissions.getOwner());
+    Assert.assertEquals(DEFAULT_MODE, permissions.getMode());
   }
 }
