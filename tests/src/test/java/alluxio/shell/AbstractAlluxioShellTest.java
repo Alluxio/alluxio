@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -149,6 +150,7 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
    * @param command a shell command
    * @return the output string
    */
+  @Nullable
   protected String getCommandOutput(String[] command) {
     String cmd = command[0];
     if (command.length == 2) {
@@ -268,5 +270,19 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
       tfis.read(actual);
       Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
     }
+  }
+
+  /**
+   * Verifies the return value and output of executing command meet expectations.
+   *
+   * @param expectedReturnValue the expected return value
+   * @param expectedOutput the expected output string
+   * @param command command to execute
+   */
+  protected void verifyCommandReturnValueAndOutput(int expectedReturnValue, String expectedOutput,
+      String... command) {
+    int ret = mFsShell.run(command);
+    Assert.assertEquals(expectedReturnValue, ret);
+    Assert.assertTrue(mOutput.toString().contains(expectedOutput));
   }
 }

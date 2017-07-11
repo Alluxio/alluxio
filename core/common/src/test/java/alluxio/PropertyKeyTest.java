@@ -25,12 +25,19 @@ import org.junit.Test;
  */
 public final class PropertyKeyTest {
 
+  private PropertyKey mTestProperty = PropertyKey.create("alluxio.test.property", false,
+       new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"});
+
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.
    */
   @Test
   public void fromString() throws Exception {
     assertEquals(PropertyKey.VERSION, PropertyKey.fromString(PropertyKey.VERSION.toString()));
+    PropertyKey.fromString(PropertyKey.VERSION.toString());
+    assertEquals(mTestProperty, PropertyKey.fromString("alluxio.test.property.alias1"));
+    assertEquals(mTestProperty, PropertyKey.fromString("alluxio.test.property.alias2"));
+    assertEquals(mTestProperty, PropertyKey.fromString(mTestProperty.toString()));
   }
 
   @Test
@@ -55,6 +62,13 @@ public final class PropertyKeyTest {
     assertFalse(PropertyKey.isValid("foo"));
     assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString() + "1"));
     assertFalse(PropertyKey.isValid(PropertyKey.HOME.toString().toUpperCase()));
+  }
+
+  @Test
+  public void aliasIsValid() throws Exception {
+    assertTrue(PropertyKey.isValid(mTestProperty.toString()));
+    assertTrue(PropertyKey.isValid("alluxio.test.property.alias1"));
+    assertTrue(PropertyKey.isValid("alluxio.test.property.alias2"));
   }
 
   @Test

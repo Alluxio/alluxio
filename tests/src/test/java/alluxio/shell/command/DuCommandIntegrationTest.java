@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Test for du command.
  */
-public final class DuCommandTest extends AbstractAlluxioShellTest {
+public final class DuCommandIntegrationTest extends AbstractAlluxioShellTest {
   @Test
   public void du() throws Exception {
     FileSystemTestUtils

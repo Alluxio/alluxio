@@ -20,6 +20,8 @@ alluxio.user.failed.space.request.limits:
   从文件系统请求空间的尝试次数。
 alluxio.user.file.buffer.bytes:
   在文件系统中进行读写操作时使用的缓冲区大小。
+alluxio.user.file.copyfromlocal.write.location.policy.class:
+  使用copyFromLocal命令时，选择worker进行写文件数据块所使用的默认定位机制。
 alluxio.user.file.master.client.threads:
   文件master client与文件master通信时使用的线程数目。
 alluxio.user.file.metadata.load.type:

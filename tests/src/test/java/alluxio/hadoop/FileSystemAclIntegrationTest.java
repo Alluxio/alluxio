@@ -251,7 +251,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
 
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not setOwner for UFS file");
+    mThrown.expectMessage("Could not update owner");
     sTFS.setOwner(fileC, nonexistentOwner, nonexistentGroup);
   }
 
