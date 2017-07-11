@@ -19,13 +19,6 @@ import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,20 +34,18 @@ public final class ValidateEnv {
   private static final String USAGE = "USAGE: ValidateEnv TARGET [NAME]\n\n"
       + "Validate environment for Alluxio.\n\n"
       + "TARGET can be one of the following values:\n"
-      + "local: \trun all validation tasks on local\n"
-      + "master: \trun master validation tasks on local\n"
-      + "worker: \trun worker validation tasks on local\n"
-      + "all: \trun corresponding validation tasks on all master nodes and worker nodes\n"
-      + "masters: \trun master validation tasks on all master nodes\n"
-      + "workers: \trun worker validation tasks on all worker nodes\n\n"
+      + "local:   run all validation tasks on local\n"
+      + "master:  run master validation tasks on local\n"
+      + "worker:  run worker validation tasks on local\n"
+      + "all:     run corresponding validation tasks on all master nodes and worker nodes\n"
+      + "masters: run master validation tasks on all master nodes\n"
+      + "workers: run worker validation tasks on all worker nodes\n\n"
       + "NAME can be any task full name or prefix.\n"
       + "When NAME is given, only tasks with name starts with the prefix will run.\n"
       + "For example, specifying NAME \"master\" or \"ma\" will run both tasks named "
       + "\"master.rpc.port.available\" and \"master.web.port.available\" but not "
       + "\"worker.rpc.port.available\".\n"
       + "If NAME is not given, all tasks for the given TARGET will run.\n";
-
-  private static final Options OPTIONS = new Options();
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
 
@@ -214,8 +205,7 @@ public final class ValidateEnv {
    */
   public static void printHelp(String message) {
     System.err.println(message);
-    HelpFormatter help = new HelpFormatter();
-    help.printHelp(USAGE, OPTIONS);
+    System.out.print(USAGE);
   }
 
   /**
@@ -225,17 +215,6 @@ public final class ValidateEnv {
    * @return 0 on success, -1 on validation failures, -2 on invalid arguments
    */
   public static int validate(String... args) throws InterruptedException {
-    CommandLineParser parser = new DefaultParser();
-    CommandLine cmd;
-
-    try {
-      cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
-    } catch (ParseException e) {
-      printHelp("Unable to parse input args: " + e.getMessage());
-      return -2;
-    }
-
-    args = cmd.getArgs();
     if (args.length < 1) {
       printHelp("Target not specified.");
       return -2;
