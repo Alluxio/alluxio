@@ -9,7 +9,7 @@ priority: 0
 * 内容列表
 {:toc}
 
-该指南介绍如何配置Alluxio从而使用[Amazon S3](https://aws.amazon.com/s3/)作为底层文件系统。
+该指南介绍配置[Amazon S3](https://aws.amazon.com/s3/)作为Alluxio底层文件系统的指令。
 
 ## 初始步骤
 
