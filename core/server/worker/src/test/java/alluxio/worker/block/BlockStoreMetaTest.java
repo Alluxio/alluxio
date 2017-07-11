@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for {@link BlockStoreMeta}.
+ * Unit tests for {@link DefaultBlockStoreMeta}.
  */
 public final class BlockStoreMetaTest {
   private static final long TEST_SESSION_ID = 33L;
@@ -59,12 +59,12 @@ public final class BlockStoreMetaTest {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
-    mBlockStoreMeta = BlockStoreMeta.getBlockStoreMeta(mMetadataManager);
-    mBlockStoreMetaFull = BlockStoreMeta.getBlockStoreMetaFull(mMetadataManager);
+    mBlockStoreMeta = BlockStoreMeta.Factory.getBlockStoreMeta(mMetadataManager);
+    mBlockStoreMetaFull = BlockStoreMeta.Factory.getBlockStoreMetaFull(mMetadataManager);
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getBlockList()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getBlockList()} method.
    */
   @Test
   public void getBlockList() {
@@ -82,7 +82,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
   public void getCapacityBytes() {
@@ -91,7 +91,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
   public void getCapacityBytesOnDirs() {
@@ -108,7 +108,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getCapacityBytesOnTiers()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getCapacityBytesOnTiers()} method.
    */
   @Test
   public void getCapacityBytesOnTiers() {
@@ -117,7 +117,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getNumberOfBlocks()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getNumberOfBlocks()} method.
    */
   @Test
   public void getNumberOfBlocks() {
@@ -125,7 +125,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getUsedBytes()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getUsedBytes()} method.
    */
   @Test
   public void getUsedBytes() {
@@ -134,7 +134,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getUsedBytesOnDirs()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getUsedBytesOnDirs()} method.
    */
   @Test
   public void getUsedBytesOnDirs() {
@@ -149,7 +149,7 @@ public final class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getUsedBytesOnTiers()} method.
+   * Tests the {@link DefaultBlockStoreMeta#getUsedBytesOnTiers()} method.
    */
   @Test
   public void getUsedBytesOnTiers() {
