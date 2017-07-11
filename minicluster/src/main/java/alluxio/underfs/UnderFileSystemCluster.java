@@ -83,7 +83,6 @@ public abstract class UnderFileSystemCluster {
    * @return the {@link UnderFileSystemCluster}
    */
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
-    LOG.info("Using default {} for integration testing.", DefaultUnderFileSystemCluster.class.getName());
     return new DefaultUnderFileSystemCluster(baseDir);
   }
 

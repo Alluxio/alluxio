@@ -198,14 +198,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Formats the journal
     Format.format(Format.Mode.MASTER);
-
-    // Update the MASTER_MOUNT_TABLE_ROOT_UFS to point to the cluster's current address.
-    // This must happen after UFS is started with UnderFileSystemCluster.get().
-    String rootUfsAddress =
-        PathUtils.concatPath(mUfsCluster.getUnderFilesystemAddress(), mWorkDirectory);
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, rootUfsAddress);
-    UnderFileSystem rootUfs = UnderFileSystem.Factory.createForRoot();
-    UnderFileSystemUtils.mkdirIfNotExists(rootUfs, rootUfsAddress);
   }
 
   /**
