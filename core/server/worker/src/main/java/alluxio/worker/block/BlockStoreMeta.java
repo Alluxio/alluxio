@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * TODO(bin): Use proto buf to represent this information.
  */
 @ThreadSafe
-public final class BlockStoreMeta {
+public class BlockStoreMeta {
   // TODO(bin): The following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
 

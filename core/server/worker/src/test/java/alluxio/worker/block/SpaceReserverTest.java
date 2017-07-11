@@ -29,9 +29,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -40,8 +38,7 @@ import java.util.concurrent.Executors;
 /**
  * Unit tests for {@link SpaceReserver}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class, BlockStoreMeta.class})
+@RunWith(MockitoJUnitRunner.class)
 public class SpaceReserverTest {
   private ExecutorService mExecutorService;
 
@@ -67,13 +64,13 @@ public class SpaceReserverTest {
 
   @Test
   public void reserveCorrectAmountsOfSpace() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 400L, "HDD", 1000L);
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
 
-    String tmpFolderPath = mTempFolder.getRoot().getAbsolutePath();
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
 
     // Create two tiers named "MEM" and "HDD" with aliases 0 and 1.
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
@@ -103,8 +100,8 @@ public class SpaceReserverTest {
 
   @Test
   public void testLowWatermark() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
@@ -113,7 +110,7 @@ public class SpaceReserverTest {
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
     Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
-    String tmpFolderPath = mTempFolder.getRoot().getAbsolutePath();
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
 
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
@@ -156,8 +153,8 @@ public class SpaceReserverTest {
 
   @Test
   public void testHighWatermark() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
@@ -166,7 +163,7 @@ public class SpaceReserverTest {
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
     Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
-    String tmpFolderPath = mTempFolder.getRoot().getAbsolutePath();
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
 
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
     TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
