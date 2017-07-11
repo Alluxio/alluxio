@@ -11,9 +11,10 @@
 
 package alluxio.worker.block;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -26,7 +27,6 @@ import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 import com.google.common.base.Suppliers;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,7 +37,9 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TempBlockMeta.class})
@@ -57,11 +59,18 @@ public final class UnderFileSystemBlockReaderTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  @Rule
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
+    {
+      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+          .createTemporaryDirectory("UnderFileSystemBlockReaderTest").getAbsolutePath());
+    }
+  });
+
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mFolder.getRoot().getAbsolutePath());
-
-    String testFilePath = mFolder.newFile().getAbsolutePath();
+    String ufsFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String testFilePath = File.createTempFile("temp", null, new File(ufsFolder)).getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE * 2);
     BufferUtils.writeBufferToFile(testFilePath, buffer);
 
@@ -73,8 +82,10 @@ public final class UnderFileSystemBlockReaderTest {
         new AlluxioURI(testFilePath));
     Mockito.when(mAlluxioBlockStore
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(BlockStoreLocation.class),
-            Mockito.anyLong())).thenReturn(mTempBlockMeta);
-    Mockito.when(mTempBlockMeta.getPath()).thenReturn(mFolder.newFile().getAbsolutePath());
+            Mockito.anyLong()))
+        .thenReturn(mTempBlockMeta);
+    Mockito.when(mTempBlockMeta.getPath())
+        .thenReturn(File.createTempFile("temp", null, new File(ufsFolder)).getAbsolutePath());
     Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10)
@@ -82,11 +93,6 @@ public final class UnderFileSystemBlockReaderTest {
         .build();
     mUnderFileSystemBlockMeta =
         new UnderFileSystemBlockMeta(SESSION_ID, BLOCK_ID, mOpenUfsBlockOptions);
-  }
-
-  @After
-  public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test

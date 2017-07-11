@@ -26,6 +26,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
@@ -42,8 +43,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * Provides utility methods for working with files and directories.
  *
  * By convention, methods take file path strings as parameters.
- *
- * TODO(peis): Move everything to nio.
  */
 @ThreadSafe
 public final class FileUtils {
@@ -199,27 +198,20 @@ public final class FileUtils {
    * Moves file from one place to another, can across storage devices (e.g., from memory to SSD)
    * when {@link File#renameTo} may not work.
    *
-   * Current implementation uses {@link com.google.common.io.Files#move(File, File)}, may change if
-   * there is a better solution.
-   *
    * @param srcPath pathname string of source file
    * @param dstPath pathname string of destination file
    */
   public static void move(String srcPath, String dstPath) throws IOException {
-    com.google.common.io.Files.move(new File(srcPath), new File(dstPath));
+    Files.move(Paths.get(srcPath), Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
   }
 
   /**
    * Deletes the file or directory.
    *
-   * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
-   * solution.
-   *
    * @param path pathname string of file or directory
    */
   public static void delete(String path) throws IOException {
-    File file = new File(path);
-    if (!file.delete()) {
+    if (!Files.deleteIfExists(Paths.get(path))) {
       throw new IOException("Failed to delete " + path);
     }
   }
@@ -259,18 +251,16 @@ public final class FileUtils {
    * @param path storage directory path to create
    */
   public static void createStorageDirPath(String path) throws IOException {
-    File dir = new File(path);
-    if (dir.exists()) {
+    if (Files.exists(Paths.get(path))) {
       return;
     }
-    if (!dir.mkdirs()) {
-      if (dir.exists()) {
-        // This dir has been created concurrently.
-        return;
-      }
-      throw new IOException("Failed to create folder " + path);
+    Path storagePath;
+    try {
+      storagePath = Files.createDirectories(Paths.get(path));
+    } catch (UnsupportedOperationException | SecurityException | IOException e) {
+      throw new IOException("Failed to create folder " + path, e);
     }
-    String absolutePath = dir.getAbsolutePath();
+    String absolutePath = storagePath.toAbsolutePath().toString();
     changeLocalFileToFullPermission(absolutePath);
     setLocalDirStickyBit(absolutePath);
     LOG.info("Folder {} was created!", path);
@@ -282,11 +272,9 @@ public final class FileUtils {
    * @param filePath pathname string of the file to create
    */
   public static void createFile(String filePath) throws IOException {
-    File file = new File(filePath);
-    com.google.common.io.Files.createParentDirs(file);
-    if (!file.createNewFile()) {
-      throw new IOException("File already exists " + filePath);
-    }
+    Path storagePath = Paths.get(filePath);
+    Files.createDirectories(storagePath.getParent());
+    Files.createFile(storagePath);
   }
 
   /**
@@ -295,7 +283,7 @@ public final class FileUtils {
    * @param path path of the directory to create
    */
   public static void createDir(String path) throws IOException {
-    new File(path).mkdirs();
+    Files.createDirectories(Paths.get(path));
   }
 
   /**
@@ -305,7 +293,7 @@ public final class FileUtils {
    * @return true if path exists, false otherwise
    */
   public static boolean exists(String path) {
-    return new File(path).exists();
+    return Files.exists(Paths.get(path));
   }
 
   private FileUtils() {} // prevent instantiation

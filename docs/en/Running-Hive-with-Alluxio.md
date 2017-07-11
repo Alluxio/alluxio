@@ -40,6 +40,7 @@ There are different ways to integrate Hive with Alluxio, as storage for
 newly created or existing tables. Alluxio can also be used as the default file system
 for Hive. In the following sections, we will describe how to use Hive with Alluxio for these use
 cases. Hive is running on Hadoop MapReduce in this documentation.
+*Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.*
 
 ### Create New Tables from Files in Alluxio
 

@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -65,6 +66,7 @@ public class SpaceReserverTest {
     mExecutorService.shutdownNow();
   }
 
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void reserveCorrectAmountsOfSpace() throws Exception {
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
@@ -99,6 +101,7 @@ public class SpaceReserverTest {
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 380L, "HDD");
   }
 
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void testLowWatermark() throws Exception {
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
@@ -150,6 +153,7 @@ public class SpaceReserverTest {
     Mockito.verify(blockWorker).freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, 20L, "MEM");
   }
 
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void testHighWatermark() throws Exception {
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);

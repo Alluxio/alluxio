@@ -25,12 +25,13 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
-import com.amazonaws.SDKGlobalConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
@@ -100,6 +101,24 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
+   * @param conf the configuration for this UFS
+   *
+   * @return the created {@link AWSCredentialsProvider} instance
+   */
+  public static AWSCredentialsProvider createAwsCredentialsProvider(
+      UnderFileSystemConfiguration conf) {
+    // Set the aws credential system properties based on Alluxio properties, if they are set;
+    // otherwise, use the default credential provider.
+    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)
+        && conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
+      return new StaticCredentialsProvider(new BasicAWSCredentials(
+          conf.getValue(PropertyKey.S3A_ACCESS_KEY), conf.getValue(PropertyKey.S3A_SECRET_KEY)));
+    }
+    // Checks, in order, env variables, system properties, profile file, and instance profile
+    return new DefaultAWSCredentialsProviderChain();
+  }
+
+  /**
    * Constructs a new instance of {@link S3AUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
@@ -109,21 +128,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   public static S3AUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
 
+    AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-
-    // Set the aws credential system properties based on Alluxio properties, if they are set
-    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)) {
-      System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY,
-          conf.getValue(PropertyKey.S3A_ACCESS_KEY));
-    }
-    if (conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
-      System.setProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY,
-          conf.getValue(PropertyKey.S3A_SECRET_KEY));
-    }
-
-    // Checks, in order, env variables, system properties, profile file, and instance profile
-    AWSCredentialsProvider credentials =
-        new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
 
     // Set the client configuration based on Alluxio configuration values
     ClientConfiguration clientConf = new ClientConfiguration();
@@ -146,12 +152,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Proxy port
     if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
-      clientConf
-          .setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
+      clientConf.setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
     }
 
-    int numAdminThreads =
-        Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
+    // Number of metadata and I/O threads to S3
+    int numAdminThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     int numTransferThreads =
         Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
     int numThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX));
@@ -167,15 +172,18 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     clientConf
         .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
 
+    // Signer algorithm
     if (conf.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
       clientConf.setSignerOverride(conf.getValue(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
     }
 
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
+
     // Set a custom endpoint.
     if (conf.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
       amazonS3Client.setEndpoint(conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
+
     // Disable DNS style buckets, this enables path style requests.
     if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
       S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
@@ -195,21 +203,28 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Default to readable and writable by the user.
     short bucketMode = (short) 700;
     String accountOwner = ""; // There is no known account owner by default.
-    // if ACL enabled inherit bucket acl for all the objects.
-    if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
-      String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
-      // Gets the owner from user-defined static mapping from S3 canonical user
-      // id to Alluxio user name.
-      String owner = CommonUtils.getValueFromStaticMapping(
-          conf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
-      // If there is no user-defined mapping, use the display name.
-      if (owner == null) {
-        owner = amazonS3Client.getS3AccountOwner().getDisplayName();
-      }
-      accountOwner = owner == null ? accountOwnerId : owner;
 
-      AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
-      bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
+    // if ACL enabled try to inherit bucket acl for all the objects.
+    try {
+      if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
+        String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
+        // Gets the owner from user-defined static mapping from S3 canonical user
+        // id to Alluxio user name.
+        String owner = CommonUtils.getValueFromStaticMapping(
+            conf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
+        // If there is no user-defined mapping, use the display name.
+        if (owner == null) {
+          owner = amazonS3Client.getS3AccountOwner().getDisplayName();
+        }
+        accountOwner = owner == null ? accountOwnerId : owner;
+
+        AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
+        bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
+      }
+    } catch (AmazonServiceException e) {
+      LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.getMessage());
+      bucketMode = (short) 700;
+      accountOwner = "";
     }
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, bucketMode, accountOwner,
         transferManager, conf);
