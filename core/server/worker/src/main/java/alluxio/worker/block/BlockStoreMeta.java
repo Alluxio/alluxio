@@ -18,8 +18,14 @@ import net.jcip.annotations.ThreadSafe;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Interface for the block store meta in Alluxio.
+ */
 public interface BlockStoreMeta {
 
+  /**
+   * Factory for {@link BlockStoreMeta}.
+   */
   @ThreadSafe
   class Factory{
 
