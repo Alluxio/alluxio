@@ -23,7 +23,6 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;
@@ -200,15 +199,13 @@ public abstract class AbstractLocalAlluxioCluster {
     // Formats the journal
     Format.format(Format.Mode.MASTER);
 
-    // If we are using anything except LocalFileSystemCluster as UnderFS,
-    // we need to update the MASTER_MOUNT_TABLE_ROOT_UFS to point to the cluster's current address.
+    // Update the MASTER_MOUNT_TABLE_ROOT_UFS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
-    if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
-      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
-      Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsAddress);
-      UnderFileSystem nonLocalUfs = UnderFileSystem.Factory.createForRoot();
-      UnderFileSystemUtils.mkdirIfNotExists(nonLocalUfs, ufsAddress);
-    }
+    String rootUfsAddress =
+        PathUtils.concatPath(mUfsCluster.getUnderFilesystemAddress(), mWorkDirectory);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, rootUfsAddress);
+    UnderFileSystem rootUfs = UnderFileSystem.Factory.createForRoot();
+    UnderFileSystemUtils.mkdirIfNotExists(rootUfs, rootUfsAddress);
   }
 
   /**

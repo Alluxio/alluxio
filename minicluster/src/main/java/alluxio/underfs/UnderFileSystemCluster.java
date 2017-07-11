@@ -12,8 +12,6 @@
 package alluxio.underfs;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,10 +45,6 @@ public abstract class UnderFileSystemCluster {
       }
     }
   }
-
-  private static final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
-
-  private static String sUnderFSClass;
 
   private static UnderFileSystemCluster sUnderFSCluster = null;
 
@@ -89,31 +83,8 @@ public abstract class UnderFileSystemCluster {
    * @return the {@link UnderFileSystemCluster}
    */
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
-    sUnderFSClass = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
-
-    if (!StringUtils.isEmpty(sUnderFSClass)) {
-      try {
-        UnderFileSystemCluster ufsCluster =
-            (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class)
-                .newInstance(baseDir);
-        LOG.info("Initialized ufs cluster {} for integration testing.", sUnderFSClass);
-        return ufsCluster;
-      } catch (Exception e) {
-        LOG.warn("Failed to initialize the ufs cluster {} for integration testing: {}",
-            sUnderFSClass, e.getMessage());
-        throw Throwables.propagate(e);
-      }
-    }
-    LOG.info("Using default {} for integration testing.", LocalFileSystemCluster.class.getName());
-    return new LocalFileSystemCluster(baseDir);
-  }
-
-  /**
-   *
-   * @return the {@link UnderFileSystem} class name
-   */
-  public static synchronized String getUnderFSClass() {
-    return sUnderFSClass;
+    LOG.info("Using default {} for integration testing.", DefaultUnderFileSystemCluster.class.getName());
+    return new DefaultUnderFileSystemCluster(baseDir);
   }
 
   protected String mBaseDir;
