@@ -14,6 +14,7 @@ package alluxio.underfs.s3a;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
+import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -22,7 +23,9 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,8 +53,8 @@ public class S3AUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final short BUCKET_MODE = 0;
-  private static final String ACCOUNT_OWNER = "account owner";
+  private static final String DEFAULT_OWNER = "";
+  private static final short DEFAULT_MODE = 0700;
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
@@ -61,7 +64,7 @@ public class S3AUnderFileSystemTest {
     mClient = Mockito.mock(AmazonS3Client.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        BUCKET_MODE, ACCOUNT_OWNER, mManager, UnderFileSystemConfiguration.defaults());
+        mManager, UnderFileSystemConfiguration.defaults());
   }
 
   @Test
@@ -112,5 +115,24 @@ public class S3AUnderFileSystemTest {
     AWSCredentialsProvider credentialsProvider =
         S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
     Assert.assertTrue(credentialsProvider instanceof DefaultAWSCredentialsProviderChain);
+  }
+
+  @Test
+  public void getPermissionsCached() throws Exception {
+    Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
+    Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
+    mS3UnderFileSystem.getPermissions();
+    mS3UnderFileSystem.getPermissions();
+    Mockito.verify(mClient).getS3AccountOwner();
+    Mockito.verify(mClient).getBucketAcl(Mockito.anyString());
+  }
+
+  @Test
+  public void getPermissionsDefault() throws Exception {
+    Mockito.when(mClient.getS3AccountOwner()).thenThrow(AmazonClientException.class);
+    ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
+    Assert.assertEquals(DEFAULT_OWNER, permissions.getGroup());
+    Assert.assertEquals(DEFAULT_OWNER, permissions.getOwner());
+    Assert.assertEquals(DEFAULT_MODE, permissions.getMode());
   }
 }
