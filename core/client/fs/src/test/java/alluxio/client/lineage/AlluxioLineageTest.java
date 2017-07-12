@@ -11,18 +11,19 @@
 
 package alluxio.client.lineage;
 
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.*;
+import alluxio.client.WriteType;
+import alluxio.client.file.options.OutStreamOptionsTest;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -30,6 +31,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -42,9 +44,12 @@ public final class AlluxioLineageTest {
   private LineageMasterClient mLineageMasterClient;
   private AlluxioLineage mAlluxioLineage;
 
+  @Rule
+  public ConfigurationRule mConfigurationRule =
+          new ConfigurationRule(PropertyKey.USER_LINEAGE_ENABLED, "true");
+
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.USER_LINEAGE_ENABLED, "true");
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
@@ -53,7 +58,6 @@ public final class AlluxioLineageTest {
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
   }
 
