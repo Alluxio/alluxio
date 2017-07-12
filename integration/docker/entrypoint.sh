@@ -19,9 +19,12 @@ fi
 
 service=$1
 
-# Docker will set this tmpfs up by default. It's size is configurable through the
-# --shm-size argument to docker run
-export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
+# Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
+if [[ -z "${ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH}" ]]; then
+  # Docker will set this tmpfs up by default. Its size is configurable through the
+  # --shm-size argument to docker run
+  export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
+fi
 
 home=/opt/alluxio
 cd ${home}
@@ -47,6 +50,8 @@ for keyvaluepair in $(env | grep "ALLUXIO_"); do
   if [[ ! "${special_env_vars[*]}" =~ "${key}" ]]; then
     confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
     echo "${confkey}=${value}" >> conf/alluxio-site.properties
+  else
+    echo "${key}=${value}" >> conf/alluxio-env.sh
   fi
 done
 
