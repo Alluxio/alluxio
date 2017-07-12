@@ -11,7 +11,9 @@
 
 package alluxio.client.lineage;
 
-import alluxio.*;
+import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.PropertyKey;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.job.CommandLineJob;
