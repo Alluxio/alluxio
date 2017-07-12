@@ -13,6 +13,7 @@ package alluxio.security.login;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+
 import alluxio.security.User;
 
 import org.junit.Rule;
