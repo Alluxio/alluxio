@@ -288,8 +288,8 @@ interface BlockStore extends SessionCleanable {
   BlockStoreMeta getBlockStoreMeta();
 
   /**
-   * Similar as {@link BlockStoreMeta#getBlockStoreMeta} except that this includes more information
-   * about the block store (e.g. blockId list). This is an expensive operation.
+   * Similar as {@link BlockStoreMeta.Factory#getBlockStoreMeta} except that this includes
+   * more information about the block store (e.g. blockId list). This is an expensive operation.
    *
    * @return full store metadata
    */

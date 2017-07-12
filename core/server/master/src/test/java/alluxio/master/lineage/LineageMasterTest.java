@@ -73,7 +73,7 @@ public final class LineageMasterTest {
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
-    mLineageMaster = new LineageMaster(mFileSystemMaster, factory,
+    mLineageMaster = new DefaultLineageMaster(mFileSystemMaster, factory,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(LineageMaster.class, mLineageMaster);
     mJob = new CommandLineJob("test", new JobConf("output"));
@@ -152,8 +152,8 @@ public final class LineageMasterTest {
 
   /**
    * Tests that an exception is thrown when trying to delete a lineage with children via the
-   * {@link LineageMaster#deleteLineage(long, boolean)} without setting the {@code cascade} flag to
-   * {@code true}.
+   * {@link LineageMaster#deleteLineage(long, boolean)} without setting the {@code cascade}
+   * flag to {@code true}.
    */
   @Test
   public void deleteLineageWithChildren() throws Exception {

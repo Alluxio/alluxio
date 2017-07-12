@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
@@ -253,6 +254,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
+  @Nullable
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
@@ -520,6 +522,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * @return the hadoop subject if exists, null if not exist
    */
+  @Nullable
   private Subject getHadoopSubject() {
     try {
       UserGroupInformation ugi = UserGroupInformation.getCurrentUser();

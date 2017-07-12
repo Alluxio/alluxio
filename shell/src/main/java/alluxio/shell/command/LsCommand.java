@@ -227,4 +227,9 @@ public final class LsCommand extends WithWildCardPathCommand {
         + " Specify -R to display files and directories recursively."
         + " Specify -h to print human-readable format sizes.";
   }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
+  }
 }
