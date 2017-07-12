@@ -12,14 +12,11 @@
 package alluxio.client.lineage;
 
 import alluxio.*;
-import alluxio.client.WriteType;
-import alluxio.client.file.options.OutStreamOptionsTest;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +28,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -46,7 +42,7 @@ public final class AlluxioLineageTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-          new ConfigurationRule(PropertyKey.USER_LINEAGE_ENABLED, "true");
+      new ConfigurationRule(PropertyKey.USER_LINEAGE_ENABLED, "true");
 
   @Before
   public void before() throws Exception {
