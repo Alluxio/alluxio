@@ -163,7 +163,12 @@ function copyDir {
 function runJavaClass {
   CLASS_ARGS=()
   if [[ ${IS_DEBUG_MODE} == true ]]; then
-    ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}"
+    if [[ $ALLUXIO_USER_DEBUG_JAVA_OPTS ]];then
+      ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}"
+    else
+      echo "env variable ALLUXIO_USER_DEBUG_JAVA_OPTS is not define."
+      exit 3
+    fi
   fi
   for arg in "$@"; do
       case "${arg}" in
