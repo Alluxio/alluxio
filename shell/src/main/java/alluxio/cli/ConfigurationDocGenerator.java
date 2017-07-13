@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
+
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,13 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import java.util.Comparator;
 
 /**
  * A utility to generate property keys to csv files.
@@ -73,7 +80,7 @@ public final class ConfigurationDocGenerator {
       }
 
       //Sort defaultKeys
-      Comparator pC = new ConfigurationDocGenerator().new PropertyKeyComparator();
+      Comparator<PropertyKey> pC = new ConfigurationDocGenerator().new PropertyKeyComparator();
       List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
       Collections.sort(dfkeys, pC);
 
@@ -134,6 +141,9 @@ public final class ConfigurationDocGenerator {
    * PropertyKey Comparator inner class.
    */
   private class PropertyKeyComparator implements Comparator<PropertyKey> {
+    private PropertyKeyComparator() {
+    } // prevent instantiation
+
     /**
      * Compare two PropertyKeys.
      *
