@@ -20,9 +20,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A utility to generate property keys to csv files.
@@ -74,7 +72,12 @@ public final class ConfigurationDocGenerator {
         closer.register(fileWriter);
       }
 
-      for (PropertyKey iteratorPK : defaultKeys) {
+      //Sort defaultKeys
+      Comparator pC = new ConfigurationDocGenerator().new PropertyKeyComparator();
+      List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
+      Collections.sort(dfkeys, pC);
+
+      for (PropertyKey iteratorPK : dfkeys) {
         String pKey = iteratorPK.toString();
         String value;
         PropertyKey pk = PropertyKey.fromString(pKey);
@@ -125,5 +128,23 @@ public final class ConfigurationDocGenerator {
     String location = userDir.substring(0, userDir.indexOf("alluxio") + 7);
     String filePath = PathUtils.concatPath(location, "/docs/_data/table/");
     writeCSVFile(defaultKeys, filePath);
+  }
+
+  /**
+   * PropertyKey Comparator inner class.
+   */
+  private class PropertyKeyComparator implements Comparator<PropertyKey> {
+    /**
+     * Compare two PropertyKeys.
+     *
+     * @param pk1 PropertyKey object
+     * @param pk2 PropertyKey object
+     */
+    @Override
+    public int compare(PropertyKey pk1, PropertyKey pk2) {
+      String pk1Name = pk1.toString();
+      String pk2Name = pk2.toString();
+      return pk1Name.compareTo(pk2Name);
+    }
   }
 }

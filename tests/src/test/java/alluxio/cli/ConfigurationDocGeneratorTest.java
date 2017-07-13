@@ -64,7 +64,7 @@ public class ConfigurationDocGeneratorTest {
    * Sets up all dependencies before a test runs.
    */
   @Before
-  public void backupCSVFiles() throws Exception {
+  public void before() throws Exception {
     mLocation = mFolder.newFolder().toString();
   }
 
