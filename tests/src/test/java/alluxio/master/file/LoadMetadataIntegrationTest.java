@@ -47,7 +47,7 @@ import java.io.FileWriter;
 /**
  * Tests the loading of metadata and the available options.
  */
-public class LoadMetadataTest extends BaseIntegrationTest {
+public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
   private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
 
