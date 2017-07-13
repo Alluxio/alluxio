@@ -271,4 +271,18 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
       Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
     }
   }
+
+  /**
+   * Verifies the return value and output of executing command meet expectations.
+   *
+   * @param expectedReturnValue the expected return value
+   * @param expectedOutput the expected output string
+   * @param command command to execute
+   */
+  protected void verifyCommandReturnValueAndOutput(int expectedReturnValue, String expectedOutput,
+      String... command) {
+    int ret = mFsShell.run(command);
+    Assert.assertEquals(expectedReturnValue, ret);
+    Assert.assertTrue(mOutput.toString().contains(expectedOutput));
+  }
 }

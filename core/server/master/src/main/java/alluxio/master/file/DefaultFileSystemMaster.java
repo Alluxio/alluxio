@@ -2582,17 +2582,42 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      IOException {
     Metrics.SET_ATTRIBUTE_OPS.inc();
     // for chown
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
+    if (options.getOwner() != null && options.getGroup() != null) {
+      try {
+        checkUserBelongsToGroup(options.getOwner(), options.getGroup());
+      } catch (IOException e) {
+        throw new IOException(String.format("Could not update owner:group for %s to %s:%s. %s",
+            path.toString(), options.getOwner(), options.getGroup(), e.toString()), e);
+      }
+    }
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
       setAttributeAndJournal(inodePath, rootRequired, ownerRequired, options, journalContext);
+    }
+  }
+
+  /**
+   * Checks whether the owner belongs to the group.
+   *
+   * @param owner the owner to check
+   * @param group the group to check
+   * @throws FailedPreconditionException if owner does not belong to group
+   */
+  private void checkUserBelongsToGroup(String owner, String group)
+      throws IOException {
+    List<String> groups = CommonUtils.getGroups(owner);
+    if (groups == null || !groups.contains(group)) {
+      throw new FailedPreconditionException("Owner " + owner
+          + " does not belong to the group " + group);
     }
   }
 
@@ -2716,7 +2741,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      IOException {
     for (long fileId : persistedFiles) {
       try {
         // Permission checking for each file is performed inside setAttribute

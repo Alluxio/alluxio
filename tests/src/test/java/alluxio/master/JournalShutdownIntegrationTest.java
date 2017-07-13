@@ -92,8 +92,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
   }
 
   @Test
@@ -108,8 +106,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     cluster.stopFS();
     awaitClientTermination();
     reproduceAndCheckState(mCreateFileThread.getSuccessNum());
-    // clean up
-    cluster.stopUFS();
   }
 
   @Test
@@ -124,8 +120,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     Mockito.doThrow(new RuntimeException()).when(factory).create(Mockito.anyString(),
         Mockito.any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
-    // clean up
-    cluster.stopUFS();
   }
 
   @Test
@@ -145,8 +139,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     Mockito.doThrow(new RuntimeException()).when(factory).create(Mockito.anyString(),
         Mockito.any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
-    // clean up
-    cluster.stopUFS();
   }
 
   /**
