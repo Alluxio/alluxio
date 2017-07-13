@@ -24,6 +24,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -35,7 +36,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -109,13 +109,8 @@ public class BlockWorkerTest {
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
         mSessions, mBlockStore, mUfsManager);
+    FileSystemContext.INSTANCE.reset();
   }
-
-  /**
-   * Resets the worker context.
-   */
-  @After
-  public void after() throws IOException {}
 
   @Test
   public void openUnderFileSystemBlock() throws Exception {
