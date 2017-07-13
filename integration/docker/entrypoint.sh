@@ -29,9 +29,9 @@ fi
 home=/opt/alluxio
 cd ${home}
 
-# List of environment variables starting with ALLUXIO_ which
-# don't have corresponding configuration keys.
-special_env_vars=(
+# List of environment variables which go in alluxio-env.sh instead of
+# alluxio-site.properties
+alluxio_env_vars=(
   ALLUXIO_CLASSPATH
   ALLUXIO_HOSTNAME
   ALLUXIO_JARS
@@ -47,7 +47,7 @@ for keyvaluepair in $(env | grep "ALLUXIO_"); do
   # split around the "="
   key=$(echo ${keyvaluepair} | cut -d= -f1)
   value=$(echo ${keyvaluepair} | cut -d= -f2)
-  if [[ ! "${special_env_vars[*]}" =~ "${key}" ]]; then
+  if [[ ! "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
     confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
     echo "${confkey}=${value}" >> conf/alluxio-site.properties
   else
