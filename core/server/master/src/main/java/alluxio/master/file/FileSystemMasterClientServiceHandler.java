@@ -252,14 +252,8 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<MountTResponse>() {
       @Override
       public MountTResponse call() throws AlluxioException, IOException {
-        if (alluxioPath == null && ufsPath == null && options == null) {
-          mFileSystemMaster.getMountTable();
-        } else {
-          mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-                  new MountOptions(options));
-        }
-//        mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-//            new MountOptions(options));
+        mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
+            new MountOptions(options));
         return new MountTResponse();
       }
 
@@ -271,6 +265,16 @@ public final class FileSystemMasterClientServiceHandler implements
     });
   }
 
+  @Override
+  public GetMountTableTResponse getMountTable() throws AlluxioTException {
+    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<GetMountTableTResponse>() {
+      @Override
+      public GetMountTableTResponse call() throws AlluxioException, IOException {
+          mFileSystemMaster.getMountTable();
+        return new GetMountTableTResponse();
+      }
+    });
+  }
 
 
   @Override
