@@ -16,6 +16,7 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
@@ -78,6 +79,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @After
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
+    ConfigurationTestUtils.resetConfiguration();
     FileSystemContext.INSTANCE.reset();
   }
 
