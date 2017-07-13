@@ -140,7 +140,7 @@ public final class ConfigurationDocGenerator {
   /**
    * PropertyKey Comparator inner class.
    */
-  private class PropertyKeyComparator implements Comparator<PropertyKey> {
+  private final class PropertyKeyComparator implements Comparator<PropertyKey> {
     private PropertyKeyComparator() {
     } // prevent instantiation
 
