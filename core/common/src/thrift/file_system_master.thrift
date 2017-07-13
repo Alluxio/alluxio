@@ -123,6 +123,23 @@ struct MountTOptions {
 }
 struct MountTResponse {}
 
+struct GetMountTableTResponse {
+  1: map<string, MountPointInfo> mountTable
+}
+
+struct MountPointInfo {
+  // 1: const i64 serialVersionUID = -2912330427506888886L
+  // 2: const i64 UNKNOWN_CAPACITY_BYTES = -1
+  // 3: const i64 UNKNOWN_USED_BYTES = -1
+  1: string ufsUri
+  2: string ufsType
+  3: i64 ufsCapacityBytes = -1
+  4: i64 ufsUsedBytes = -1
+  5: bool readOnly
+  6: map<string, string> properties
+  7: bool shared
+}
+
 struct FileSystemCommand {
   1: common.CommandType commandType
   2: FileSystemCommandOptions commandOptions
@@ -269,6 +286,9 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the under file system */ 2: string ufsPath,
     /** the options for creating the mount point */ 3: MountTOptions options,
     )
+    throws (1: exception.AlluxioTException e)
+
+  GetMountTableTResponse getMountTable()
     throws (1: exception.AlluxioTException e)
 
   /**
