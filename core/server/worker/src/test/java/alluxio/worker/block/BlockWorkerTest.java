@@ -18,8 +18,9 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
@@ -33,6 +34,7 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,8 +60,8 @@ import java.util.Set;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class, Sessions.class})
+    BlockStoreLocation.class, StorageDir.class, Configuration.class, UnderFileSystem.class,
+    BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -74,6 +76,21 @@ public class BlockWorkerTest {
   private Sessions mSessions;
   private BlockWorker mBlockWorker;
   private UfsManager mUfsManager;
+
+  @Rule
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+          .put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
+              String.valueOf(Constants.GB))
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
+              AlluxioTestDirectory.createTemporaryDirectory("WORKER_TIERED_STORE_LEVEL0_DIRS_PATH")
+                  .getAbsolutePath())
+          .put(PropertyKey.WORKER_DATA_PORT, Integer.toString(0))
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, "HDD")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, AlluxioTestDirectory
+              .createTemporaryDirectory("WORKER_TIERED_STORE_LEVEL1_DIRS_PATH").getAbsolutePath())
+          .build());
 
   /**
    * Sets up all dependencies before a test runs.
@@ -90,37 +107,21 @@ public class BlockWorkerTest {
     mSessions = PowerMockito.mock(Sessions.class);
     mUfsManager = Mockito.mock(UfsManager.class);
 
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2");
-
-    Configuration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
-        String.valueOf(Constants.GB));
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
-        mFolder.newFolder().getAbsolutePath());
-    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
-
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, "HDD");
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH,
-        mFolder.newFolder().getAbsolutePath());
-
-    mBlockWorker =
-        new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient, mSessions,
-            mBlockStore, mUfsManager);
+    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
+        mSessions, mBlockStore, mUfsManager);
   }
 
   /**
    * Resets the worker context.
    */
   @After
-  public void after() throws IOException {
-    ConfigurationTestUtils.resetConfiguration();
-  }
+  public void after() throws IOException {}
 
   @Test
   public void openUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-        Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10).setUfsPath("/a")
-            .build();
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
+        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
@@ -132,9 +133,8 @@ public class BlockWorkerTest {
   @Test
   public void closeUnderFileSystemBlock() throws Exception {
     long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-        Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10).setUfsPath("/a")
-            .build();
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
+        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
@@ -184,8 +184,7 @@ public class BlockWorkerTest {
     BlockStoreMeta blockStoreMeta = Mockito.mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(
-        blockMeta);
+    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(mBlockStore.getBlockStoreMetaFull()).thenReturn(blockStoreMeta);
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
@@ -242,8 +241,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
-        .thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -252,8 +250,8 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method with a tier
-   * other than MEM.
+   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method with a tier other
+   * than MEM.
    */
   @Test
   public void createBlockLowerTier() throws Exception {
@@ -265,8 +263,7 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
-        .thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -287,11 +284,11 @@ public class BlockWorkerTest {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes))
-        .thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
-    assertEquals(PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
-        String.format("%x-%x", sessionId, blockId)),
+    assertEquals(
+        PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
+            String.format("%x-%x", sessionId, blockId)),
         mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
@@ -480,8 +477,8 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#unlockBlock(long)} and
-   * {@link BlockWorker#unlockBlock(long, long)} method.
+   * Tests the {@link BlockWorker#unlockBlock(long)} and {@link BlockWorker#unlockBlock(long, long)}
+   * method.
    */
   @Test
   public void unlockBlock() throws Exception {
@@ -497,7 +494,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#sessionHeartbeat(long)}  method.
+   * Tests the {@link BlockWorker#sessionHeartbeat(long)} method.
    */
   @Test
   public void sessionHeartbeat() {
