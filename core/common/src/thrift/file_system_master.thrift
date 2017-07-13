@@ -123,6 +123,9 @@ struct MountTOptions {
 }
 struct MountTResponse {}
 
+struct GetMountTableTResponse {}
+
+/*
 struct GetMountTableTResponse {
   1: map<string, MountPointInfo> mountTable
 }
@@ -139,6 +142,7 @@ struct MountPointInfo {
   6: map<string, string> properties
   7: bool shared
 }
+*/
 
 struct FileSystemCommand {
   1: common.CommandType commandType

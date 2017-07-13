@@ -29,41 +29,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.CheckConsistencyTOptions;
-import alluxio.thrift.CheckConsistencyTResponse;
-import alluxio.thrift.CompleteFileTOptions;
-import alluxio.thrift.CompleteFileTResponse;
-import alluxio.thrift.CreateDirectoryTOptions;
-import alluxio.thrift.CreateDirectoryTResponse;
-import alluxio.thrift.CreateFileTOptions;
-import alluxio.thrift.CreateFileTResponse;
-import alluxio.thrift.DeleteTOptions;
-import alluxio.thrift.DeleteTResponse;
-import alluxio.thrift.FileInfo;
-import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.FreeTOptions;
-import alluxio.thrift.FreeTResponse;
-import alluxio.thrift.GetNewBlockIdForFileTOptions;
-import alluxio.thrift.GetNewBlockIdForFileTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.GetStatusTOptions;
-import alluxio.thrift.GetStatusTResponse;
-import alluxio.thrift.ListStatusTOptions;
-import alluxio.thrift.ListStatusTResponse;
-import alluxio.thrift.LoadMetadataTOptions;
-import alluxio.thrift.LoadMetadataTResponse;
-import alluxio.thrift.MountTOptions;
-import alluxio.thrift.MountTResponse;
-import alluxio.thrift.RenameTOptions;
-import alluxio.thrift.RenameTResponse;
-import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
-import alluxio.thrift.ScheduleAsyncPersistenceTResponse;
-import alluxio.thrift.SetAttributeTOptions;
-import alluxio.thrift.SetAttributeTResponse;
-import alluxio.thrift.UnmountTOptions;
-import alluxio.thrift.UnmountTResponse;
+import alluxio.thrift.*;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
@@ -286,8 +252,14 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<MountTResponse>() {
       @Override
       public MountTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-            new MountOptions(options));
+        if (alluxioPath == null && ufsPath == null && options == null) {
+          mFileSystemMaster.getMountTable();
+        } else {
+          mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
+                  new MountOptions(options));
+        }
+//        mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
+//            new MountOptions(options));
         return new MountTResponse();
       }
 
@@ -298,6 +270,8 @@ public final class FileSystemMasterClientServiceHandler implements
       }
     });
   }
+
+
 
   @Override
   public DeleteTResponse remove(final String path, final boolean recursive,
