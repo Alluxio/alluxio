@@ -51,7 +51,7 @@ for keyvaluepair in $(env | grep "ALLUXIO_"); do
     confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
     echo "${confkey}=${value}" >> conf/alluxio-site.properties
   else
-    echo "${key}=${value}" >> conf/alluxio-env.sh
+    echo "export ${key}=${value}" >> conf/alluxio-env.sh
   fi
 done
 
