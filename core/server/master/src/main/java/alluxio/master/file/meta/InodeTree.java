@@ -492,7 +492,7 @@ public class InodeTree implements JournalEntryIterable {
     // TODO(gpang): consider splitting this into createFilePath and createDirectoryPath, with a
     // helper method for the shared logic.
     AlluxioURI path = inodePath.getUri();
-    if (path.isRoot()) {
+    if (path.isRoot() || inodePath.fullPathExists()) {
       String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
       LOG.error(errorMessage);
       throw new FileAlreadyExistsException(errorMessage);
@@ -546,9 +546,8 @@ public class InodeTree implements JournalEntryIterable {
     if (options.isPersisted()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
-        if (inode instanceof InodeDirectory) {
-          syncPersistDirectory((InodeDirectory) inode, journalContext);
-        }
+        // This cast is safe because we've already verified that the file inode doesn't exist.
+        syncPersistDirectory((InodeDirectory) inode, journalContext);
       }
     }
     if (pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null) {
