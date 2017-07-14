@@ -17,22 +17,20 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.io.Files;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -73,19 +71,10 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           "sleep://" + mLocalUfsPath).setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
-  // Must be done in beforeClass so execution is before rules
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
-    sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS);
-    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
-  }
+  @Rule
+  public UnderFileSystemFactoryRegistryRule mUnderFileSystemFactoryRegistry =
+      new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
+          new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));
 
   @Before
   public void before() {
