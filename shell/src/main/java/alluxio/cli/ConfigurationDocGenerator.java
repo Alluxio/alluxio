@@ -80,7 +80,7 @@ public final class ConfigurationDocGenerator {
       }
 
       //Sort defaultKeys
-      Comparator<PropertyKey> pC = new ConfigurationDocGenerator().new PropertyKeyComparator();
+      Comparator<PropertyKey> pC = new PropertyKeyComparator();
       List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
       Collections.sort(dfkeys, pC);
 
@@ -140,7 +140,7 @@ public final class ConfigurationDocGenerator {
   /**
    * PropertyKey Comparator inner class.
    */
-  private final class PropertyKeyComparator implements Comparator<PropertyKey> {
+  private static final class PropertyKeyComparator implements Comparator<PropertyKey> {
     private PropertyKeyComparator() {
     } // prevent instantiation
 
