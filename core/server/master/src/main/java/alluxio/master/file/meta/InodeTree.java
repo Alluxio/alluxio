@@ -546,7 +546,9 @@ public class InodeTree implements JournalEntryIterable {
     if (options.isPersisted()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
-        syncPersistDirectory((InodeDirectory) inode, journalContext);
+        if (inode instanceof InodeDirectory) {
+          syncPersistDirectory((InodeDirectory) inode, journalContext);
+        }
       }
     }
     if (pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null) {
