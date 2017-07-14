@@ -80,7 +80,7 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mountWithMultipleOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
         new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
-    try (Closeable mUnderFileSystemFactoryRegistryRule =
+    try (Closeable closeable =
         new UnderFileSystemFactoryRegistryRule(factory).toResource()) {
       AlluxioURI mountPoint = new AlluxioURI("/mnt");
       String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
@@ -98,7 +98,7 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mountWithWrongOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
         new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
-    try (Closeable mUnderFileSystemFactoryRegistryRule =
+    try (Closeable closeable =
         new UnderFileSystemFactoryRegistryRule(factory).toResource()) {
       AlluxioURI mountPoint = new AlluxioURI("/mnt");
       String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();

@@ -14,8 +14,8 @@ package alluxio;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
-public class UnderFileSystemFactoryRegistryRule extends AbstractResourceRule {
-  private UnderFileSystemFactory mFactory = null;
+public final class UnderFileSystemFactoryRegistryRule extends AbstractResourceRule {
+  private UnderFileSystemFactory mFactory;
 
   /**
    * @param factory the UnderFileSystemFactory type variable for register and unregister
@@ -34,5 +34,4 @@ public class UnderFileSystemFactoryRegistryRule extends AbstractResourceRule {
   public void after() {
     UnderFileSystemFactoryRegistry.unregister(mFactory);
   }
-
 }

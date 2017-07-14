@@ -29,6 +29,7 @@ import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -74,7 +75,7 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
           "sleep://" + mLocalUfsPath).setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
-  @Rule
+  @ClassRule
   public UnderFileSystemFactoryRegistryRule mUnderFileSystemFactoryRegistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
           new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));

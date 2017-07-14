@@ -35,6 +35,7 @@ import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
@@ -58,7 +59,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
 
-  @Rule
+  @ClassRule
   public UnderFileSystemFactoryRegistryRule mUnderFileSystemFactoryRegistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
           new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));

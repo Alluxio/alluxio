@@ -12,23 +12,33 @@
 package alluxio;
 
 import org.junit.Test;
-import org.junit.runners.model.Statement;
 
 /**
  * Unit tests for {@link UnderFileSystemFactoryRegistryRule}.
  */
 public class UnderFileSystemFactoryRegistryRuleTest {
+  //import part
+  //import alluxio.underfs.UnderFileSystemFactory;
+  //import alluxio.underfs.UnderFileSystemFactoryRegistry;
+  //import org.mockito.Mockito;
+  //import org.junit.runners.model.Statement;
 
-  private Statement mStatement = new Statement() {
-    @Override
-    public void evaluate() throws Throwable {
-
-    }
-  };
+  //codepart
+  //private UnderFileSystemFactory mUnderFileSystemFactory;
+  //private UnderFileSystemFactoryRegistry mUnderFileSystemFactoryRegistry;
+  //private Statement mStatement = new Statement() {
+    //@Override
+    //public void evaluate() throws Throwable {
+      //mUnderFileSystemFactoryRegistry = Mockito.mock(UnderFileSystemFactoryRegistry.class);
+      //Mockito.when(mUnderFileSystemFactory.getClass().getMethod("register")).thenReturn();
+      //Mockito.when(mUnderFileSystemFactory.getClass().getMethod("unregister")).thenReturn();
+    //}
+  //};
 
   @Test
   public void testUnderFileSystemFactoryRegistryRule() throws Throwable {
-    
+    //mUnderFileSystemFactory = Mockito.mock(UnderFileSystemFactory.class);
+    //new UnderFileSystemFactoryRegistryRule(mUnderFileSystemFactory)
+    //    .apply(mStatement, null).evaluate();
   }
-
 }
