@@ -32,6 +32,7 @@ import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.RenameTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -39,7 +40,9 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -230,6 +233,17 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       }
     });
   }
+
+//  @Override
+//  public synchronized Map<String, MountPointInfo> getMountTable() throws IOException {
+//    return retryRPC(new RpcCallable<List<URIStatus>>() {
+//      @Override
+//      public List<URIStatus> call() throws TException {
+//        Map<String, MountPointInfo> result = new HashMap<>();
+//        return mClient.getMountTable().get;
+//      }
+//    });
+//  }
 
   @Override
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) throws IOException {
