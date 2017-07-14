@@ -42,11 +42,13 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.wire.LoadMetadataType;
 
+import alluxio.wire.MountPointInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -322,6 +324,22 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
+  }
+
+  @Override
+  public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      masterClient.getMountTable();
+      LOG.info("Mount points:");
+    } catch (UnavailableException e) {
+      throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+    return getMountTable();
   }
 
   @Override
