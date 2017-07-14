@@ -310,15 +310,16 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
     FileInputStream inputStream = new FileInputStream(path);
-    if (options.getOffset() > 0) {
+    long toSkip = options.getOffset();
+    while (toSkip > 0) {
       try {
-        inputStream.skip(options.getOffset());
+        toSkip -= inputStream.skip(toSkip);
       } catch (IOException e) {
         inputStream.close();
         throw e;
       }
     }
-    return new LocalUnderFileInputStream(inputStream);
+    return inputStream;
   }
 
   @Override
