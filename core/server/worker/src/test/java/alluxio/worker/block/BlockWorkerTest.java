@@ -24,7 +24,6 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
-import alluxio.client.file.FileSystemContext;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -109,7 +108,6 @@ public class BlockWorkerTest {
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
         mSessions, mBlockStore, mUfsManager);
-    FileSystemContext.INSTANCE.reset();
   }
 
   @Test
