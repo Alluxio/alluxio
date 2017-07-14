@@ -170,6 +170,16 @@ public final class FileSystemMasterTest {
     ConfigurationTestUtils.resetConfiguration();
   }
 
+  @Test
+  public void createFileMustCacheThenCacheThrough() throws Exception {
+    File file = mTestFolder.newFile();
+    AlluxioURI path = new AlluxioURI("/test");
+    mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setPersisted(false));
+
+    mThrown.expect(FileAlreadyExistsException.class);
+    mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setPersisted(true));
+  }
+
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteOptions)} method.
    */
