@@ -11,10 +11,13 @@
 
 package alluxio.cli;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,8 +34,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link alluxio.cli.ConfigurationDocGenerator}.
