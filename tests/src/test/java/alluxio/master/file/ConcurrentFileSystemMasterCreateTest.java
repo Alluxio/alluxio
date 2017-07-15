@@ -71,7 +71,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
   @ClassRule
-  public UnderFileSystemFactoryRegistryRule mUnderFileSystemFactoryRegistry =
+  public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
           new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));
 

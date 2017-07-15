@@ -60,9 +60,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder().build();
 
   @ClassRule
-  public UnderFileSystemFactoryRegistryRule mUnderFileSystemFactoryRegistry =
+  public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
-          new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));
+          new SleepingUnderFileSystemOptions().setExistsMs(SLEEP_MS)));
 
   @Before
   public void before() throws Exception {
