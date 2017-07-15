@@ -500,7 +500,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return new ObjectUnderFileInputStream(this, stripPrefixIfPresent(path), options);
+    return openObject(stripPrefixIfPresent(path), options);
   }
 
   @Override
