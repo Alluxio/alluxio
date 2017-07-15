@@ -52,7 +52,7 @@ public final class LineageMasterFactory implements MasterFactory {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", LineageMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
-    LineageMaster lineageMaster = new LineageMaster(fileSystemMaster, journalFactory);
+    LineageMaster lineageMaster = new DefaultLineageMaster(fileSystemMaster, journalFactory);
     registry.add(LineageMaster.class, lineageMaster);
     return lineageMaster;
   }

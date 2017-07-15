@@ -36,7 +36,12 @@ should also note the directory you want to use in that bucket, either by creatin
 the bucket, or using an existing one. For the purposes of this guide, the S3 bucket name is called
 `S3_BUCKET`, and the directory in that bucket is called `S3_DIRECTORY`.
 
-## Configuring Alluxio
+## Mounting S3
+
+Alluxio unifies access to different storage systems through the [unified namespace](Unified-and-Transparent-Namespace.html)
+feature. An S3 location can be either mounted at the root of the Alluxio namespace or at a nested directory. 
+
+### Root Mount
 
 You need to configure Alluxio to use S3 as its under storage system by modifying
 `conf/alluxio-site.properties`. The first modification is to specify an **existing** S3
@@ -72,6 +77,15 @@ for more details.
 Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
 details about setting configuration parameters can be found in
 [Configuration Settings](Configuration-Settings.html#environment-variables).
+
+### Nested Mount
+An S3 location can be mounted at a nested directory in the Alluxio namespace to have unified access
+to multiple under storage systems. Alluxio's [Command Line Interface](Command-Line-Interface.html) can be used for this purpose.
+
+```bash 
+$ ./bin/alluxio fs mount --option aws.accessKeyId=<AWS_ACCESS_KEY_ID> --option aws.secretKey=<AWS_SECRET_KEY_ID>\
+  /mnt/s3 s3a://<S3_BUCKET>/<S3_DIRECTORY>
+```
 
 ### Enabling Server Side Encryption
 

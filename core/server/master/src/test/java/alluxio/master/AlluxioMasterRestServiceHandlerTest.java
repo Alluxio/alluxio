@@ -20,8 +20,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
@@ -91,8 +90,16 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
+
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @Rule
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
+    {
+      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
+    }
+  });
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -127,7 +134,6 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   private void registerFileSystemMock() throws IOException {
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
     when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
     when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
@@ -146,7 +152,6 @@ public final class AlluxioMasterRestServiceHandlerTest {
   @After
   public void after() throws Exception {
     mRegistry.stop();
-    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
