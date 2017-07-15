@@ -22,6 +22,9 @@ import alluxio.wire.TtlAction;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Tests for setTtl command.
  */
@@ -106,19 +109,28 @@ public final class SetTtlCommandIntegrationTest extends AbstractAlluxioShellTest
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
     AlluxioURI uri = new AlluxioURI("/testFile");
-    String[] timeUnits = {"", "ms", "millisecond", "s", "sec", "second", "m", "min", "minute", "h",
-        "hr", "hour", "d", "day"};
-    long[] timeUnitInMilliseconds =
-        {1L, 1L, 1L, Constants.SECOND_MS, Constants.SECOND_MS, Constants.SECOND_MS,
-            Constants.MINUTE_MS, Constants.MINUTE_MS, Constants.MINUTE_MS, Constants.HOUR_MS,
-            Constants.HOUR_MS, Constants.HOUR_MS, Constants.DAY_MS, Constants.DAY_MS};
+    HashMap<String, Long> timeUnits = new HashMap<String, Long>();
+    timeUnits.put("", 1L);
+    timeUnits.put("ms", 1L);
+    timeUnits.put("millisecond", 1L);
+    timeUnits.put("s", (long) Constants.SECOND_MS);
+    timeUnits.put("sec", (long) Constants.SECOND_MS);
+    timeUnits.put("second", (long) Constants.SECOND_MS);
+    timeUnits.put("m", (long) Constants.MINUTE_MS);
+    timeUnits.put("min", (long) Constants.MINUTE_MS);
+    timeUnits.put("minute", (long) Constants.MINUTE_MS);
+    timeUnits.put("h", (long) Constants.HOUR_MS);
+    timeUnits.put("hour", (long) Constants.HOUR_MS);
+    timeUnits.put("d", (long) Constants.DAY_MS);
+    timeUnits.put("day", (long) Constants.DAY_MS);
     long numericValue = 100;
-    for (int i = 0; i < timeUnits.length; i++) {
-      String timeUnit = timeUnits[i];
+    for (Map.Entry<String, Long> entry: timeUnits.entrySet()) {
+      String timeUnit = entry.getKey();
+      long timeUnitInMilliSeconds = entry.getValue();
       String testValueWithTimeUnit = String.valueOf(numericValue) + timeUnit;
       Assert.assertEquals(0, mFsShell.run("setTtl", filePath, testValueWithTimeUnit));
       URIStatus status = mFileSystem.getStatus(uri);
-      Assert.assertEquals(numericValue * timeUnitInMilliseconds[i], status.getTtl());
+      Assert.assertEquals(numericValue * timeUnitInMilliSeconds, status.getTtl());
       Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
     }
   }
