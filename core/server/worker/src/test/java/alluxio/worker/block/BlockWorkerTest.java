@@ -39,7 +39,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -65,8 +64,6 @@ public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
-
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockStore mBlockStore;
