@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class PropertyKey {
      * @return the updated builder instance
      */
     public Builder setAlias(String[] alias) {
-      mAlias = alias;
+      mAlias = Arrays.copyOf(alias, alias.length);
       return this;
     }
 
