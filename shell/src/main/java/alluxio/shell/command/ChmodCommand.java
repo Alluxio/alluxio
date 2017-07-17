@@ -19,6 +19,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -30,6 +31,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ChmodCommand extends AbstractShellCommand {
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("change mode recursively")
+          .build();
 
   private final ModeParser mParser = new ModeParser();
 

@@ -96,4 +96,9 @@ public final class LoadCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Loads a file or directory in Alluxio space, makes it resident in memory.";
   }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
+  }
 }

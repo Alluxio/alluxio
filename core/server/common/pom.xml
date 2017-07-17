@@ -94,6 +94,13 @@
       <artifactId>jetty-webapp</artifactId>
     </dependency>
 
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>

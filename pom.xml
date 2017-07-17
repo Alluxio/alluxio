@@ -327,7 +327,7 @@
       <dependency>
         <groupId>jline</groupId>
         <artifactId>jline</artifactId>
-        <version>0.9.94</version>
+        <version>2.14.2</version>
       </dependency>
       <dependency>
         <groupId>log4j</groupId>
@@ -844,6 +844,11 @@
               <arg>-Xlint:none</arg>
             </compilerArgs>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.0.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

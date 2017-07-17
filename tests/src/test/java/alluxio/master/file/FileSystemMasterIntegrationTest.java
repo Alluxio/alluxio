@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -42,7 +43,6 @@ import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -104,18 +104,15 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+
   private FileSystemMaster mFsMaster;
 
   @Before
   public final void before() throws Exception {
     mFsMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-    AuthenticatedClientUser.set(TEST_USER);
-  }
-
-  @After
-  public final void after() throws Exception {
-    AuthenticatedClientUser.remove();
   }
 
   /**
@@ -231,6 +228,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   /**
    * Tests concurrent rename of files.
    */
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void concurrentRename() throws Exception {
     ConcurrentCreator concurrentCreator =

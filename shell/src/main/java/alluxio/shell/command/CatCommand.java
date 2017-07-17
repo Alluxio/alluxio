@@ -72,4 +72,9 @@ public final class CatCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Prints the file's contents to the console.";
   }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
+  }
 }

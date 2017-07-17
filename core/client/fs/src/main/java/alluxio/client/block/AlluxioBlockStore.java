@@ -23,6 +23,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
@@ -164,6 +165,9 @@ public final class AlluxioBlockStore {
       // No local worker/block, choose a random location. In the future we could change this to
       // only randomize among locations in the highest tier, or have the master randomize the order.
       List<BlockLocation> locations = blockInfo.getLocations();
+      if (locations.isEmpty()) {
+        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      }
       address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
     }
     return BlockInStream
@@ -215,6 +219,10 @@ public final class AlluxioBlockStore {
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockSize);
+    if (address == null) {
+      throw new UnavailableException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
+    }
     return getOutStream(blockId, blockSize, address, options);
   }
 

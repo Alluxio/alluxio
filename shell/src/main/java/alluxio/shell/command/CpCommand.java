@@ -12,7 +12,9 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -20,17 +22,20 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -51,6 +56,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CpCommand extends AbstractShellCommand {
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("copy files in subdirectories recursively")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -385,7 +397,17 @@ public final class CpCommand extends AbstractShellCommand {
 
       FileOutStream os = null;
       try (Closer closer = Closer.create()) {
-        os = closer.register(mFileSystem.createFile(dstPath));
+        FileWriteLocationPolicy locationPolicy;
+        try {
+          locationPolicy =
+              CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY), new Class[] {},
+                  new Object[] {});
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        os = closer.register(mFileSystem.createFile(dstPath,
+            CreateFileOptions.defaults().setLocationPolicy(locationPolicy)));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
         ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);

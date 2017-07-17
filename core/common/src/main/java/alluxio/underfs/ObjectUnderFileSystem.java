@@ -165,25 +165,41 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Permissions in object UFS.
    */
-  protected class ObjectPermissions {
+  public class ObjectPermissions {
     final String mOwner;
     final String mGroup;
     final short mMode;
 
+    /**
+     * Creates a new ObjectPermissions.
+     *
+     * @param owner the owner of the object
+     * @param group the group of the object
+     * @param mode the representation of the permission bits
+     */
     public ObjectPermissions(String owner, String group, short mode) {
       mOwner = owner;
       mGroup = group;
       mMode = mode;
     }
 
+    /**
+     * @return the name of the owner
+     */
     public String getOwner() {
       return mOwner;
     }
 
+    /**
+     * @return the name of the group
+     */
     public String getGroup() {
       return mGroup;
     }
 
+    /**
+     * @return the short representation of the permission bits
+     */
     public short getMode() {
       return mMode;
     }
@@ -484,7 +500,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return new ObjectUnderFileInputStream(this, stripPrefixIfPresent(path), options);
+    return openObject(stripPrefixIfPresent(path), options);
   }
 
   @Override

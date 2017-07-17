@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import alluxio.AlluxioURI;
 import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
@@ -32,9 +33,12 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -108,12 +112,25 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void deleteDirectoryWithPersistedWritesInProgress() throws Exception {
-    mFileSystem.createDirectory(new AlluxioURI("/testFolder"),
+    final AlluxioURI testFolder = new AlluxioURI("/testFolder");
+    mFileSystem.createDirectory(testFolder,
         CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
-    FileOutStream out = mFileSystem.createFile(new AlluxioURI("/testFolder/testFile"),
-            CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    FileOutStream out =
+        mFileSystem.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults()
+            .setWriteType(WriteType.CACHE_THROUGH));
     out.write(TEST_BYTES);
     out.flush();
+    // Need to wait for the file to be flushed, see ALLUXIO-2899
+    CommonUtils.waitFor("File flush.", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        try {
+          return mUfs.listStatus(mFileSystem.getStatus(testFolder).getUfsPath()).length > 0;
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
     mFileSystem.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFolder")));
     mThrown.expect(IOException.class);

@@ -29,7 +29,13 @@ on. The endpoint here is called `OSS_ENDPOINT`, and to learn more about the endp
 range you can see [here](https://intl.aliyun.com/help/en/doc-detail/31834.htm). For more
 information about OSS Bucket, Please see [here](https://intl.aliyun.com/help/doc-detail/31885.htm)
 
-## Configuring Alluxio
+## Mounting OSS
+
+Alluxio unifies access to different storage systems through the 
+[unified namespace](Unified-and-Transparent-Namespace.html) feature. An OSS location can be 
+either mounted at the root of the Alluxio namespace or at a nested directory. 
+
+### Root Mount
 
 You need to configure Alluxio to use OSS as its under storage system. The first modification is to
 specify an existing OSS bucket and directory as the under storage system by modifying
@@ -56,6 +62,16 @@ possible values like "oss-us-west-1.aliyuncs.com", "oss-cn-shanghai.aliyuncs.com
 
 After these changes, Alluxio should be configured to work with OSS as its under storage system,
 and you can try to run alluxio locally with OSS.
+
+### Nested Mount
+An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified
+access to multiple under storage systems. Alluxio's 
+[Command Line Interface](Command-Line-Interface.html) can be used for this purpose.
+```bash 
+$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
+  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>\
+  fs.oss.endpoint=<OSS_ENDPOINT>
+```
 
 ## Running Alluxio Locally with OSS
 

@@ -29,7 +29,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * Tests for the {@link LocalFileBlockWriter} class.
  */
-public class LocalFileBlockWriterTest {
+public final class LocalFileBlockWriterTest {
   private static final long TEST_BLOCK_SIZE = 1024;
 
   private LocalFileBlockWriter mWriter;

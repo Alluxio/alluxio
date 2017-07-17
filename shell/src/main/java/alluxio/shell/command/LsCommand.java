@@ -17,11 +17,13 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -40,6 +42,41 @@ public final class LsCommand extends WithWildCardPathCommand {
   public static final String STATE_FOLDER = "Directory";
   public static final String STATE_FILE_IN_MEMORY = "In Memory";
   public static final String STATE_FILE_NOT_IN_MEMORY = "Not In Memory";
+
+  private static final Option FORCE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("force to load metadata for immediate children in a directory")
+          .build();
+
+  private static final Option LIST_DIR_AS_FILE_OPTION =
+      Option.builder("d")
+          .required(false)
+          .hasArg(false)
+          .desc("list directories as plain files")
+          .build();
+
+  private static final Option LIST_HUMAN_READABLE_OPTION =
+      Option.builder("h")
+          .required(false)
+          .hasArg(false)
+          .desc("print human-readable format sizes")
+          .build();
+
+  private static final Option LIST_PINNED_FILES_OPTION =
+      Option.builder("p")
+          .required(false)
+          .hasArg(false)
+          .desc("list all pinned files")
+          .build();
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("list subdirectories recursively")
+          .build();
 
   /**
    * Formats the ls result string.
@@ -69,11 +106,11 @@ public final class LsCommand extends WithWildCardPathCommand {
     String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
-          sizeStr, CommandUtils.convertMsToDate(createTimeMs),
+          sizeStr, CommonUtils.convertMsToDate(createTimeMs),
           memoryState, path);
     } else {
       return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
-          CommandUtils.convertMsToDate(createTimeMs), memoryState, path);
+          CommonUtils.convertMsToDate(createTimeMs), memoryState, path);
     }
   }
 
@@ -189,5 +226,10 @@ public final class LsCommand extends WithWildCardPathCommand {
         + " Specify -p to list all the pinned files."
         + " Specify -R to display files and directories recursively."
         + " Specify -h to print human-readable format sizes.";
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
   }
 }
