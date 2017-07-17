@@ -68,12 +68,17 @@ import alluxio.thrift.UnmountTResponse;
 import alluxio.wire.ThriftUtils;
 
 import alluxio.wire.MountPointInfo;
+
 import com.google.common.base.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -307,12 +312,11 @@ public final class FileSystemMasterClientServiceHandler implements
       public GetMountTableTResponse call() throws AlluxioException, IOException {
         Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountTable();
         Map<String, alluxio.thrift.MountPointInfo> mountTableThrift = new HashMap<>();
-        Iterator it = mountTableWire.entrySet().iterator();
-        while (it.hasNext()) {
-          MountPointInfo key = (MountPointInfo) it.next();
-          alluxio.thrift.MountPointInfo mountPointThrift = ThriftUtils.toThrift(key);
-          mountTableThrift.put(it.toString(), mountPointThrift);
-          it.remove();
+        for (Map.Entry<String, MountPointInfo> entry :
+                mountTableWire.entrySet()) {
+          MountPointInfo mMountPointInfo = entry.getValue();
+          alluxio.thrift.MountPointInfo mountPointThrift = ThriftUtils.toThrift(mMountPointInfo);
+          mountTableThrift.put(entry.getKey(), mountPointThrift);
         }
         return new GetMountTableTResponse(mountTableThrift);
       }
@@ -323,7 +327,6 @@ public final class FileSystemMasterClientServiceHandler implements
       }
     });
   }
-
 
   @Override
   public DeleteTResponse remove(final String path, final boolean recursive,
