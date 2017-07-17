@@ -23,25 +23,27 @@ import org.junit.runners.model.Statement;
  * Unit tests for {@link UnderFileSystemFactoryRegistryRule}.
  */
 public class UnderFileSystemFactoryRegistryRuleTest {
+  private static final String UFS_PATH = "test://foo";
+
   private UnderFileSystemFactory mUnderFileSystemFactory;
 
   private Statement mStatement = new Statement() {
     @Override
     public void evaluate() throws Throwable {
       Assert.assertEquals(mUnderFileSystemFactory, UnderFileSystemFactoryRegistry
-          .find("mock://foo"));
+          .find(UFS_PATH));
     }
   };
 
   @Test
   public void testUnderFileSystemFactoryRegistryRule() throws Throwable {
     mUnderFileSystemFactory = Mockito.mock(UnderFileSystemFactory.class);
-    Mockito.when(mUnderFileSystemFactory.supportsPath("mock://foo")).thenReturn(true);
-    //check before
-    Assert.assertEquals(null, UnderFileSystemFactoryRegistry.find("mock://foo"));
+    Mockito.when(mUnderFileSystemFactory.supportsPath(UFS_PATH)).thenReturn(true);
+    // check before
+    Assert.assertEquals(null, UnderFileSystemFactoryRegistry.find(UFS_PATH));
     new UnderFileSystemFactoryRegistryRule(mUnderFileSystemFactory)
         .apply(mStatement, null).evaluate();
-    //check after
-    Assert.assertEquals(null, UnderFileSystemFactoryRegistry.find("mock://foo"));
+    // check after
+    Assert.assertEquals(null, UnderFileSystemFactoryRegistry.find(UFS_PATH));
   }
 }
