@@ -202,8 +202,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         GetMountTableTResponse result = mClient.getMountTable();
         Map<String, alluxio.thrift.MountPointInfo> mountTableThrift = result.getMountTable();
         Map<String, alluxio.wire.MountPointInfo>  mountTableWire = new HashMap<>();
-        for (Map.Entry<String, alluxio.thrift.MountPointInfo>
-          entry : mountTableThrift.entrySet()) {
+        for (Map.Entry<String, alluxio.thrift.MountPointInfo> entry :
+            mountTableThrift.entrySet()) {
           alluxio.thrift.MountPointInfo mMountPointInfoThrift = entry.getValue();
           alluxio.wire.MountPointInfo mMountPointInfoWire =
               ThriftUtils.fromThrift(mMountPointInfoThrift);
