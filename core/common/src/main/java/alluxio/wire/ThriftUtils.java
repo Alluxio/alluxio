@@ -206,6 +206,7 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
+   * @param mountPointInfo the wire representation of a mount point information
    * @return thrift representation of the mount point information
    */
   public static alluxio.thrift.MountPointInfo toThrift(MountPointInfo mountPointInfo) {
