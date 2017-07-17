@@ -47,7 +47,7 @@ public class PropertyKey {
     private final String mName;
 
     /**
-     * @param name name of this property to build.
+     * @param name name of this property to build
      */
     public Builder(String name) {
       mName = name;
@@ -62,7 +62,7 @@ public class PropertyKey {
     }
 
     /**
-     * @param alias alias of this property key to build.
+     * @param alias alias of this property key to build
      * @return the updated builder instance
      */
     public Builder setAlias(String[] alias) {
@@ -71,7 +71,7 @@ public class PropertyKey {
     }
 
     /**
-     * @param defaultValue default value of this property key to build.
+     * @param defaultValue default value of this property key to build
      * @return the updated builder instance
      */
     public Builder setDefaultValue(Object defaultValue) {
@@ -80,7 +80,7 @@ public class PropertyKey {
     }
 
     /**
-     * @param description of this property key to build.
+     * @param description of this property key to build
      * @return the updated builder instance
      */
     public Builder setDescription(String description) {
@@ -232,8 +232,8 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
-          .setDefaultValue( String.format("${%s}/core-site.xml:${%s}/hdfs-site.xml",
-              Name.CONF_DIR, Name.CONF_DIR))
+          .setDefaultValue(String.format(
+              "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
           .build();
   public static final PropertyKey UNDERFS_HDFS_IMPL =
       new Builder(Name.UNDERFS_HDFS_IMPL)
