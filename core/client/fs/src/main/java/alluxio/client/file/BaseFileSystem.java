@@ -330,8 +330,7 @@ public class BaseFileSystem implements FileSystem {
   public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
-      masterClient.getMountTable();
-      LOG.info("Mount points:");
+      return masterClient.getMountTable();
     } catch (UnavailableException e) {
       throw e;
     } catch (AlluxioStatusException e) {
@@ -339,7 +338,6 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
-    return getMountTable();
   }
 
   @Override
