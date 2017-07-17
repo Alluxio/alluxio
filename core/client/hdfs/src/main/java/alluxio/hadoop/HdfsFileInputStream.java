@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -35,19 +34,17 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * An input stream for reading a file from HDFS.
+ * An input stream for reading a file from HDFS. This is just a wrapper around
+ * {@link FileInStream} with additional statistics gathering in a {@link Statistics} object.
  */
 @NotThreadSafe
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsFileInputStream.class);
 
   private final Statistics mStatistics;
-  private final URIStatus mFileInfo;
   private final FileInStream mInputStream;
 
   private boolean mClosed = false;
-
-  private long mCurrentPosition;
 
   /**
    * Constructs a new stream for reading a file from HDFS.
@@ -56,15 +53,13 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * @param uri the Alluxio file URI
    * @param stats filesystem statistics
    */
-  public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri,
-      org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
+  public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri, Statistics stats)
+      throws IOException {
     LOG.debug("HdfsFileInputStream({}, {})", uri, stats);
 
-    mCurrentPosition = 0;
     mStatistics = stats;
     FileSystem fs = FileSystem.Factory.get(context);
     try {
-      mFileInfo = fs.getStatus(uri);
       mInputStream = fs.openFile(uri, OpenFileOptions.defaults());
     } catch (FileDoesNotExistException e) {
       // Transform the Alluxio exception to a Java exception to satisfy the HDFS API contract.
@@ -93,7 +88,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public long getPos() throws IOException {
-    return mCurrentPosition;
+    return mInputStream.getPos();
   }
 
   @Override
@@ -103,11 +98,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
 
     int ret = mInputStream.read();
-    if (ret != -1) {
-      mCurrentPosition++;
-      if (mStatistics != null) {
-        mStatistics.incrementBytesRead(1);
-      }
+    if (ret != -1 && mStatistics != null) {
+      mStatistics.incrementBytesRead(1);
     }
     return ret;
   }
@@ -124,11 +116,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
 
     int ret = mInputStream.read(buffer, offset, length);
-    if (ret != -1) {
-      mCurrentPosition += ret;
-      if (mStatistics != null) {
+    if (ret != -1 && mStatistics != null) {
         mStatistics.incrementBytesRead(ret);
-      }
     }
     return ret;
   }
@@ -139,11 +128,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    int bytesRead = mInputStream.positionedRead(position, buffer, offset, length);
-    if (mStatistics != null && bytesRead != -1) {
-      mStatistics.incrementBytesRead(bytesRead);
+    int ret = mInputStream.positionedRead(position, buffer, offset, length);
+    if (ret != -1 && mStatistics != null) {
+      mStatistics.incrementBytesRead(ret);
     }
-    return bytesRead;
+    return ret;
   }
 
   @Override
@@ -163,27 +152,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
   }
 
-  /**
-   * Seek to the given offset from the start of the file. The next {@link #read()} will be from that
-   * location. Can't seek past the end of the file.
-   *
-   * @param pos the position to seek to
-   */
   @Override
   public void seek(long pos) throws IOException {
-    if (pos == mCurrentPosition) {
-      return;
-    }
-
-    if (pos < 0) {
-      throw new IOException(ExceptionMessage.SEEK_NEGATIVE.getMessage(pos));
-    }
-    if (pos > mFileInfo.getLength()) {
-      throw new IOException(ExceptionMessage.SEEK_PAST_EOF.getMessage(pos, mFileInfo.getLength()));
-    }
-
     mInputStream.seek(pos);
-    mCurrentPosition = pos;
   }
 
   /**
@@ -198,25 +169,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 
-  /**
-   * Skips over the given bytes from the current position. Since the inherited
-   * {@link InputStream#skip(long)} is inefficient, {@link #skip(long)} should be explicitly
-   * overrided.
-   *
-   * @param n the number of bytes to be skipped
-   * @return the actual number of bytes skipped
-   */
   @Override
   public long skip(long n) throws IOException {
     if (mClosed) {
       throw new IOException("Cannot skip bytes in a closed stream.");
     }
-    if (n <= 0) {
-      return 0;
-    }
-
-    long toSkip = Math.min(n, available());
-    seek(mCurrentPosition + toSkip);
-    return toSkip;
+    return mInputStream.skip(n);
   }
 }

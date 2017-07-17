@@ -26,4 +26,9 @@ public interface Seekable {
    * @param pos the position to seek to, it must be between 0 and the end of the stream - 1
    */
   void seek(long pos) throws IOException;
+
+  /**
+   * @return the current position of the stream
+   */
+  long getPos();
 }
