@@ -165,6 +165,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   @Override
+  public long getPos() {
+    return mPos;
+  }
+
+  @Override
   public int read() throws IOException {
     return readInternal();
   }
