@@ -20,7 +20,6 @@ public final class UnderFileSystemFactoryRegistryRule extends AbstractResourceRu
   /**
    * @param factory the UnderFileSystemFactory type variable for register and unregister
    */
-
   public UnderFileSystemFactoryRegistryRule(UnderFileSystemFactory factory) {
     mFactory = factory;
   }
