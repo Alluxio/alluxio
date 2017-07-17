@@ -97,11 +97,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    int ret = mInputStream.read();
-    if (ret != -1 && mStatistics != null) {
+    int data = mInputStream.read();
+    if (data != -1 && mStatistics != null) {
       mStatistics.incrementBytesRead(1);
     }
-    return ret;
+    return data;
   }
 
   @Override
@@ -115,11 +115,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    int ret = mInputStream.read(buffer, offset, length);
-    if (ret != -1 && mStatistics != null) {
-      mStatistics.incrementBytesRead(ret);
+    int bytesRead = mInputStream.read(buffer, offset, length);
+    if (bytesRead != -1 && mStatistics != null) {
+      mStatistics.incrementBytesRead(bytesRead);
     }
-    return ret;
+    return bytesRead;
   }
 
   @Override
@@ -128,11 +128,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
 
-    int ret = mInputStream.positionedRead(position, buffer, offset, length);
-    if (ret != -1 && mStatistics != null) {
-      mStatistics.incrementBytesRead(ret);
+    int bytesRead = mInputStream.positionedRead(position, buffer, offset, length);
+    if (bytesRead != -1 && mStatistics != null) {
+      mStatistics.incrementBytesRead(bytesRead);
     }
-    return ret;
+    return bytesRead;
   }
 
   @Override
@@ -142,13 +142,14 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
-    int n = 0; // total bytes read
-    while (n < length) {
-      int ret = read(position + n, buffer, offset + n, length - n);
-      if (ret == -1) {
+    int totalBytesRead = 0;
+    while (totalBytesRead < length) {
+      int bytesRead =
+          read(position + totalBytesRead, buffer, offset + totalBytesRead, length - totalBytesRead);
+      if (bytesRead == -1) {
         throw new EOFException();
       }
-      n += ret;
+      totalBytesRead += bytesRead;
     }
   }
 
