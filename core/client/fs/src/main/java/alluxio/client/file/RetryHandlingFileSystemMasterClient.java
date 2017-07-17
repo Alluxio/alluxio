@@ -40,7 +40,12 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -201,8 +206,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         Map<String, alluxio.wire.MountPointInfo>  mountTableWire = new HashMap<>();
         Iterator it = mountTableThrift.entrySet().iterator();
         while (it.hasNext()) {
-          alluxio.thrift.MountPointInfo mMountPointInfoThrift = (alluxio.thrift.MountPointInfo)it.next();
-          alluxio.wire.MountPointInfo mMountPointInfoWire = ThriftUtils.fromThrift(mMountPointInfoThrift);
+          alluxio.thrift.MountPointInfo mMountPointInfoThrift =
+                  (alluxio.thrift.MountPointInfo) it.next();
+          alluxio.wire.MountPointInfo mMountPointInfoWire =
+                  ThriftUtils.fromThrift(mMountPointInfoThrift);
           mountTableWire.put(it.toString(), mMountPointInfoWire);
           it.remove();
         }

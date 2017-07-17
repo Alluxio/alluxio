@@ -167,6 +167,8 @@ public interface FileSystemMasterClient extends MasterClient {
 
   /**
    * Lists all mount points and their corresponding under storage addresses.
+   *
+   * @return a table of String and {@link MountPointInfo}
    */
   Map<String, MountPointInfo> getMountTable() throws IOException;
 
