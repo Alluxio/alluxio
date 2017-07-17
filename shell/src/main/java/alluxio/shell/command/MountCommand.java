@@ -17,13 +17,13 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
 
 import alluxio.wire.MountPointInfo;
+
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
