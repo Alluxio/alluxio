@@ -12,7 +12,10 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
+import alluxio.client.WriteType;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -28,6 +31,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.collections.PrefixList;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -45,10 +49,9 @@ import alluxio.wire.LoadMetadataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
@@ -62,6 +65,8 @@ public class BaseFileSystem implements FileSystem {
 
   protected final FileSystemContext mFileSystemContext;
 
+  private PrefixList mMustCacheList = new PrefixList(
+      Configuration.getList(PropertyKey.USER_MUSTCACHELIST, ","));
   /**
    * @param context file system context
    * @return a {@link BaseFileSystem}
@@ -89,6 +94,9 @@ public class BaseFileSystem implements FileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    if (mMustCacheList.inList(path.getPath().toString())) {
+      options.setWriteType(WriteType.MUST_CACHE);
+    }
     try {
       masterClient.createDirectory(path, options);
       LOG.debug("Created directory {}, options: {}", path.getPath(), options);
@@ -116,6 +124,9 @@ public class BaseFileSystem implements FileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     URIStatus status;
+    if (mMustCacheList.inList(path.getPath().toString())) {
+      options.setWriteType(WriteType.MUST_CACHE);
+    }
     try {
       masterClient.createFile(path, options);
       status = masterClient.getStatus(path, GetStatusOptions.defaults().setLoadMetadataType(
