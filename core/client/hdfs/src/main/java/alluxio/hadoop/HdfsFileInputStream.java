@@ -155,7 +155,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public void seek(long pos) throws IOException {
-    mInputStream.seek(pos);
+    try {
+      mInputStream.seek(pos);
+    } catch (IllegalArgumentException e) { // convert back to IOException
+      throw new IOException(e);
+    }
   }
 
   /**
