@@ -497,6 +497,13 @@ public class InodeTree implements JournalEntryIterable {
       LOG.error(errorMessage);
       throw new FileAlreadyExistsException(errorMessage);
     }
+    if (inodePath.fullPathExists()) {
+      if (!(options instanceof CreateDirectoryOptions)
+          || !((CreateDirectoryOptions) options).isAllowExists()) {
+        throw new FileAlreadyExistsException(path);
+      }
+    }
+
     if (options instanceof CreateFileOptions) {
       CreateFileOptions fileOptions = (CreateFileOptions) options;
       if (fileOptions.getBlockSizeBytes() < 1) {
@@ -546,6 +553,7 @@ public class InodeTree implements JournalEntryIterable {
     if (options.isPersisted()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
+        // This cast is safe because we've already verified that the file inode doesn't exist.
         syncPersistDirectory((InodeDirectory) inode, journalContext);
       }
     }

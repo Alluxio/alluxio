@@ -12,8 +12,11 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
@@ -22,6 +25,7 @@ import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -355,6 +359,21 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
     read = readContent(uri2, 20);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, 20, read));
+  }
+
+  @Test
+  public void copyFromLocalMustCacheThenCacheThrough() throws Exception {
+    File file = mTestFolder.newFile();
+    try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
+        WriteType.MUST_CACHE.toString()).toResource()) {
+      Assert.assertEquals(0, mFsShell.run("copyFromLocal", file.getAbsolutePath(), "/"));
+    }
+    try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
+        WriteType.CACHE_THROUGH.toString()).toResource()) {
+      mOutput.reset();
+      mFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
+    }
+    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString("already exists"));
   }
 
   @Test
