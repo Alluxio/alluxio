@@ -176,7 +176,6 @@ public class PropertyKey {
           .build();
   public static final PropertyKey ZOOKEEPER_ADDRESS =
       new Builder(Name.ZOOKEEPER_ADDRESS)
-          .setDefaultValue(null)
           .build();
   public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
       new Builder(Name.ZOOKEEPER_ELECTION_PATH)
