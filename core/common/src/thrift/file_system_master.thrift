@@ -123,17 +123,11 @@ struct MountTOptions {
 }
 struct MountTResponse {}
 
-//struct GetMountTableTResponse {}
-
-
 struct GetMountTableTResponse {
   1: map<string, MountPointInfo> mountTable
 }
 
 struct MountPointInfo {
-  // 1: const i64 serialVersionUID = -2912330427506888886L
-  // 2: const i64 UNKNOWN_CAPACITY_BYTES = -1
-  // 3: const i64 UNKNOWN_USED_BYTES = -1
   1: string ufsUri
   2: string ufsType
   3: i64 ufsCapacityBytes = -1
