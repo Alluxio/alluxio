@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountTableTResponse, GetMountTableTResponse._Fields>, java.io.Serializable, Cloneable, Comparable<GetMountTableTResponse> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GetMountTableTResponse");
 
+  private static final org.apache.thrift.protocol.TField MOUNT_TABLE_FIELD_DESC = new org.apache.thrift.protocol.TField("mountTable", org.apache.thrift.protocol.TType.MAP, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,10 +46,11 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
     schemes.put(TupleScheme.class, new GetMountTableTResponseTupleSchemeFactory());
   }
 
+  private Map<String,MountPointInfo> mountTable; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+    MOUNT_TABLE((short)1, "mountTable");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,6 +65,8 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
+        case 1: // MOUNT_TABLE
+          return MOUNT_TABLE;
         default:
           return null;
       }
@@ -101,9 +105,15 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
       return _fieldName;
     }
   }
+
+  // isset id assignments
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.MOUNT_TABLE, new org.apache.thrift.meta_data.FieldMetaData("mountTable", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "MountPointInfo"))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetMountTableTResponse.class, metaDataMap);
   }
@@ -111,10 +121,32 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
   public GetMountTableTResponse() {
   }
 
+  public GetMountTableTResponse(
+    Map<String,MountPointInfo> mountTable)
+  {
+    this();
+    this.mountTable = mountTable;
+  }
+
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public GetMountTableTResponse(GetMountTableTResponse other) {
+    if (other.isSetMountTable()) {
+      Map<String,MountPointInfo> __this__mountTable = new HashMap<String,MountPointInfo>(other.mountTable.size());
+      for (Map.Entry<String, MountPointInfo> other_element : other.mountTable.entrySet()) {
+
+        String other_element_key = other_element.getKey();
+        MountPointInfo other_element_value = other_element.getValue();
+
+        String __this__mountTable_copy_key = other_element_key;
+
+        MountPointInfo __this__mountTable_copy_value = other_element_value;
+
+        __this__mountTable.put(__this__mountTable_copy_key, __this__mountTable_copy_value);
+      }
+      this.mountTable = __this__mountTable;
+    }
   }
 
   public GetMountTableTResponse deepCopy() {
@@ -123,15 +155,62 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
 
   @Override
   public void clear() {
+    this.mountTable = null;
+  }
+
+  public int getMountTableSize() {
+    return (this.mountTable == null) ? 0 : this.mountTable.size();
+  }
+
+  public void putToMountTable(String key, MountPointInfo val) {
+    if (this.mountTable == null) {
+      this.mountTable = new HashMap<String,MountPointInfo>();
+    }
+    this.mountTable.put(key, val);
+  }
+
+  public Map<String,MountPointInfo> getMountTable() {
+    return this.mountTable;
+  }
+
+  public GetMountTableTResponse setMountTable(Map<String,MountPointInfo> mountTable) {
+    this.mountTable = mountTable;
+    return this;
+  }
+
+  public void unsetMountTable() {
+    this.mountTable = null;
+  }
+
+  /** Returns true if field mountTable is set (has been assigned a value) and false otherwise */
+  public boolean isSetMountTable() {
+    return this.mountTable != null;
+  }
+
+  public void setMountTableIsSet(boolean value) {
+    if (!value) {
+      this.mountTable = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case MOUNT_TABLE:
+      if (value == null) {
+        unsetMountTable();
+      } else {
+        setMountTable((Map<String,MountPointInfo>)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case MOUNT_TABLE:
+      return getMountTable();
+
     }
     throw new IllegalStateException();
   }
@@ -143,6 +222,8 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
     }
 
     switch (field) {
+    case MOUNT_TABLE:
+      return isSetMountTable();
     }
     throw new IllegalStateException();
   }
@@ -160,12 +241,26 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
     if (that == null)
       return false;
 
+    boolean this_present_mountTable = true && this.isSetMountTable();
+    boolean that_present_mountTable = true && that.isSetMountTable();
+    if (this_present_mountTable || that_present_mountTable) {
+      if (!(this_present_mountTable && that_present_mountTable))
+        return false;
+      if (!this.mountTable.equals(that.mountTable))
+        return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
+
+    boolean present_mountTable = true && (isSetMountTable());
+    list.add(present_mountTable);
+    if (present_mountTable)
+      list.add(mountTable);
 
     return list.hashCode();
   }
@@ -178,6 +273,16 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetMountTable()).compareTo(other.isSetMountTable());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMountTable()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mountTable, other.mountTable);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -198,6 +303,13 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
     StringBuilder sb = new StringBuilder("GetMountTableTResponse(");
     boolean first = true;
 
+    sb.append("mountTable:");
+    if (this.mountTable == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.mountTable);
+    }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -241,6 +353,27 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
           break;
         }
         switch (schemeField.id) {
+          case 1: // MOUNT_TABLE
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map58 = iprot.readMapBegin();
+                struct.mountTable = new HashMap<String,MountPointInfo>(2*_map58.size);
+                String _key59;
+                MountPointInfo _val60;
+                for (int _i61 = 0; _i61 < _map58.size; ++_i61)
+                {
+                  _key59 = iprot.readString();
+                  _val60 = new MountPointInfo();
+                  _val60.read(iprot);
+                  struct.mountTable.put(_key59, _val60);
+                }
+                iprot.readMapEnd();
+              }
+              struct.setMountTableIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -256,6 +389,19 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.mountTable != null) {
+        oprot.writeFieldBegin(MOUNT_TABLE_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, struct.mountTable.size()));
+          for (Map.Entry<String, MountPointInfo> _iter62 : struct.mountTable.entrySet())
+          {
+            oprot.writeString(_iter62.getKey());
+            _iter62.getValue().write(oprot);
+          }
+          oprot.writeMapEnd();
+        }
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -273,11 +419,43 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, GetMountTableTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      BitSet optionals = new BitSet();
+      if (struct.isSetMountTable()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetMountTable()) {
+        {
+          oprot.writeI32(struct.mountTable.size());
+          for (Map.Entry<String, MountPointInfo> _iter63 : struct.mountTable.entrySet())
+          {
+            oprot.writeString(_iter63.getKey());
+            _iter63.getValue().write(oprot);
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, GetMountTableTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        {
+          org.apache.thrift.protocol.TMap _map64 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.mountTable = new HashMap<String,MountPointInfo>(2*_map64.size);
+          String _key65;
+          MountPointInfo _val66;
+          for (int _i67 = 0; _i67 < _map64.size; ++_i67)
+          {
+            _key65 = iprot.readString();
+            _val66 = new MountPointInfo();
+            _val66.read(iprot);
+            struct.mountTable.put(_key65, _val66);
+          }
+        }
+        struct.setMountTableIsSet(true);
+      }
     }
   }
 

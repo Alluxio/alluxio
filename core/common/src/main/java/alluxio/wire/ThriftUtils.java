@@ -11,9 +11,10 @@
 
 package alluxio.wire;
 
-import alluxio.thrift.TTtlAction;
+import alluxio.thrift.*;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Map;
 
 /**
  * Utility methods for conversion between wire types and thrift types.
@@ -91,6 +92,16 @@ public final class ThriftUtils {
    */
   public static LineageInfo fromThrift(alluxio.thrift.LineageInfo lineageInfo) {
     return new LineageInfo(lineageInfo);
+  }
+
+  /**
+   * Converts a thrift type to a wire type.
+   *
+   * @param mountPointInfo the thrift representation of a lineage information
+   * @return wire representation of the lineage information
+   */
+  public static MountPointInfo fromThrift(alluxio.thrift.MountPointInfo mountPointInfo) {
+    return new MountPointInfo(mountPointInfo);
   }
 
   /**
@@ -192,6 +203,20 @@ public final class ThriftUtils {
   public static alluxio.thrift.LineageInfo toThrift(LineageInfo lineageInfo) {
     return lineageInfo.toThrift();
   }
+
+  /**
+   * Converts a wire type to a thrift type.
+   *
+   * @return thrift representation of the mount point information
+   */
+  public static alluxio.thrift.MountPointInfo toThrift(MountPointInfo mountPointInfo) {return mountPointInfo.toThrift(); }
+
+//  /**
+//   * Converts a wire type to a thrift type.
+//   *
+//   * @return thrift representation of the mount point information
+//   */
+//  public static alluxio.thrift.MountTableInfo toThrift(MountTableInfo mountTableInfo) {return mountTableInfo.toThrift(); }
 
   /**
    * Converts a wire type to a thrift type.

@@ -16,12 +16,15 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
 
+import alluxio.wire.MountPointInfo;
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -84,7 +87,7 @@ public final class MountCommand extends AbstractShellCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     if (args.length == 0) {
-      mFileSystem.getMountTable();
+      Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
       return 0;
     }
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);

@@ -14,7 +14,9 @@ package alluxio.wire;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -41,6 +43,21 @@ public class MountPointInfo implements Serializable {
    * Creates a new instance of {@link MountPointInfo}.
    */
   public MountPointInfo() {}
+
+  /**
+   * Creates a new instance of {@link MountPointInfo} from thrift representation.
+   *
+   * @param mountPointInfo the thrift representation of a mount point information
+   */
+  protected MountPointInfo(alluxio.thrift.MountPointInfo mountPointInfo) {
+    mUfsUri = mountPointInfo.getUfsUri();
+    mUfsType = mountPointInfo.getUfsType();
+    mUfsCapacityBytes = mountPointInfo.getUfsCapacityBytes();
+    mUfsUsedBytes = mountPointInfo.getUfsUsedBytes();
+    mReadOnly = mountPointInfo.isReadOnly();
+    mProperties = new HashMap<>(mountPointInfo.getProperties());
+    mShared = mountPointInfo.isShared();
+  }
 
   /**
    * @return the uri of the under filesystem
@@ -152,6 +169,16 @@ public class MountPointInfo implements Serializable {
   public MountPointInfo setShared(boolean shared) {
     mShared = shared;
     return this;
+  }
+
+  /**
+   * @return thrift representation of the file information
+   */
+  protected alluxio.thrift.MountPointInfo toThrift() {
+    alluxio.thrift.MountPointInfo info =
+            new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
+                    mReadOnly, mProperties, mShared);
+    return info;
   }
 
   @Override

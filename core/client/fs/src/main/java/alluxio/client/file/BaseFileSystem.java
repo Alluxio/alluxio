@@ -41,8 +41,8 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.wire.LoadMetadataType;
-
 import alluxio.wire.MountPointInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

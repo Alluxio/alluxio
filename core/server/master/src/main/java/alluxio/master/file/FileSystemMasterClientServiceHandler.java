@@ -29,16 +29,51 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.thrift.*;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.CheckConsistencyTOptions;
+import alluxio.thrift.CheckConsistencyTResponse;
+import alluxio.thrift.CompleteFileTOptions;
+import alluxio.thrift.CompleteFileTResponse;
+import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.thrift.CreateDirectoryTResponse;
+import alluxio.thrift.CreateFileTOptions;
+import alluxio.thrift.CreateFileTResponse;
+import alluxio.thrift.DeleteTOptions;
+import alluxio.thrift.DeleteTResponse;
+import alluxio.thrift.FileInfo;
+import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.FreeTOptions;
+import alluxio.thrift.FreeTResponse;
+import alluxio.thrift.GetMountTableTResponse;
+import alluxio.thrift.GetNewBlockIdForFileTOptions;
+import alluxio.thrift.GetNewBlockIdForFileTResponse;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
+import alluxio.thrift.GetStatusTOptions;
+import alluxio.thrift.GetStatusTResponse;
+import alluxio.thrift.ListStatusTOptions;
+import alluxio.thrift.ListStatusTResponse;
+import alluxio.thrift.LoadMetadataTOptions;
+import alluxio.thrift.LoadMetadataTResponse;
+import alluxio.thrift.MountTOptions;
+import alluxio.thrift.MountTResponse;
+import alluxio.thrift.RenameTOptions;
+import alluxio.thrift.RenameTResponse;
+import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
+import alluxio.thrift.ScheduleAsyncPersistenceTResponse;
+import alluxio.thrift.SetAttributeTOptions;
+import alluxio.thrift.SetAttributeTResponse;
+import alluxio.thrift.UnmountTOptions;
+import alluxio.thrift.UnmountTResponse;
 import alluxio.wire.ThriftUtils;
 
+import alluxio.wire.MountPointInfo;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -270,8 +305,21 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<GetMountTableTResponse>() {
       @Override
       public GetMountTableTResponse call() throws AlluxioException, IOException {
-          mFileSystemMaster.getMountTable();
-        return new GetMountTableTResponse();
+        Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountTable();
+        Map<String, alluxio.thrift.MountPointInfo> mountTableThrift = new HashMap<>();
+        Iterator it = mountTableWire.entrySet().iterator();
+        while (it.hasNext()) {
+          MountPointInfo key = (MountPointInfo) it.next();
+          alluxio.thrift.MountPointInfo mountPointThrift = ThriftUtils.toThrift(key);
+          mountTableThrift.put(it.toString(), mountPointThrift);
+          it.remove();
+        }
+        return new GetMountTableTResponse(mountTableThrift);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetMountTable: ");
       }
     });
   }

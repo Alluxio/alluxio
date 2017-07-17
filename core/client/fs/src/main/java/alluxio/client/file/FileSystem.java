@@ -268,6 +268,9 @@ public interface FileSystem {
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws IOException, AlluxioException;
 
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   */
   Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**

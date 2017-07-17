@@ -165,6 +165,9 @@ public interface FileSystemMasterClient extends MasterClient {
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options) throws IOException;
 
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   */
   Map<String, MountPointInfo> getMountTable() throws IOException;
 
   /**
