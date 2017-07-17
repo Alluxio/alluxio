@@ -117,7 +117,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
     int ret = mInputStream.read(buffer, offset, length);
     if (ret != -1 && mStatistics != null) {
-        mStatistics.incrementBytesRead(ret);
+      mStatistics.incrementBytesRead(ret);
     }
     return ret;
   }
