@@ -30,6 +30,8 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import static alluxio.util.FormatUtils.parseSpaceSize;
+
 /**
  * Prints the file's last n bytes (by default, 1KB) to the console.
  */
@@ -51,10 +53,9 @@ public final class TailCommand extends WithWildCardPathCommand {
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
-
     int numOfBytes = Constants.KB;
     if (cl.hasOption('c')) {
-      numOfBytes = Integer.parseInt(cl.getOptionValue('c'));
+      numOfBytes = (int)parseSpaceSize(cl.getOptionValue('c'));
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
