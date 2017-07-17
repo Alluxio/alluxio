@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -203,20 +202,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         GetMountTableTResponse result = mClient.getMountTable();
         Map<String, alluxio.thrift.MountPointInfo> mountTableThrift = result.getMountTable();
         Map<String, alluxio.wire.MountPointInfo>  mountTableWire = new HashMap<>();
-//        Iterator it = mountTableThrift.entrySet().iterator();
-//        while (it.hasNext()) {
-//          alluxio.thrift.MountPointInfo mMountPointInfoThrift =
-//                  (alluxio.thrift.MountPointInfo) it.next();
-//          alluxio.wire.MountPointInfo mMountPointInfoWire =
-//                  ThriftUtils.fromThrift(mMountPointInfoThrift);
-//          mountTableWire.put(it.toString(), mMountPointInfoWire);
-//          it.remove();
-//        }
         for (Map.Entry<String, alluxio.thrift.MountPointInfo>
-                entry : mountTableThrift.entrySet()) {
+          entry : mountTableThrift.entrySet()) {
           alluxio.thrift.MountPointInfo mMountPointInfoThrift = entry.getValue();
           alluxio.wire.MountPointInfo mMountPointInfoWire =
-                  ThriftUtils.fromThrift(mMountPointInfoThrift);
+              ThriftUtils.fromThrift(mMountPointInfoThrift);
           mountTableWire.put(entry.getKey(), mMountPointInfoWire);
         }
         return mountTableWire;
