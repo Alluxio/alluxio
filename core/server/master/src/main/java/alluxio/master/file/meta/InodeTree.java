@@ -492,11 +492,18 @@ public class InodeTree implements JournalEntryIterable {
     // TODO(gpang): consider splitting this into createFilePath and createDirectoryPath, with a
     // helper method for the shared logic.
     AlluxioURI path = inodePath.getUri();
-    if (path.isRoot() || inodePath.fullPathExists()) {
+    if (path.isRoot()) {
       String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
       LOG.error(errorMessage);
       throw new FileAlreadyExistsException(errorMessage);
     }
+    if (inodePath.fullPathExists()) {
+      if (!(options instanceof CreateDirectoryOptions)
+          || !((CreateDirectoryOptions) options).isAllowExists()) {
+        throw new FileAlreadyExistsException(path);
+      }
+    }
+
     if (options instanceof CreateFileOptions) {
       CreateFileOptions fileOptions = (CreateFileOptions) options;
       if (fileOptions.getBlockSizeBytes() < 1) {
