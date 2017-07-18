@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -30,7 +31,7 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import static alluxio.util.FormatUtils.parseSpaceSize;
+
 
 /**
  * Prints the file's first n bytes (by default, 1KB) to the console.
@@ -60,7 +61,7 @@ public final class HeadCommand extends WithWildCardPathCommand {
     URIStatus status = mFileSystem.getStatus(path);
     int numOfBytes = Constants.KB;
     if (cl.hasOption('c')) {
-      numOfBytes = (int)parseSpaceSize(cl.getOptionValue('c'));
+      numOfBytes = (int) FormatUtils.parseSpaceSize(cl.getOptionValue('c'));
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
