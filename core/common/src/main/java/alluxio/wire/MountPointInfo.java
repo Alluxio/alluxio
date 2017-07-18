@@ -173,10 +173,8 @@ public class MountPointInfo implements Serializable {
    * @return thrift representation of the file information
    */
   protected alluxio.thrift.MountPointInfo toThrift() {
-    alluxio.thrift.MountPointInfo info =
-            new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
-                    mReadOnly, mProperties, mShared);
-    return info;
+    return new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
+        mReadOnly, mProperties, mShared);
   }
 
   @Override
