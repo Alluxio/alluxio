@@ -259,9 +259,9 @@ public interface FileSystemMaster extends Master {
       throws FileDoesNotExistException, InvalidPathException, AccessControlException;
 
   /**
-   * @return absolute paths of all in memory files
+   * @return absolute paths of all in-Alluxio files
    */
-  List<AlluxioURI> getInMemoryFiles();
+  List<AlluxioURI> getInAlluxioFiles();
 
   /**
    * Creates a directory for a given path.
