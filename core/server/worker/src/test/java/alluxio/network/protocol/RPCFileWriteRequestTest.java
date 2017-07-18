@@ -11,6 +11,8 @@
 
 package alluxio.network.protocol;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
@@ -33,10 +35,10 @@ public class RPCFileWriteRequestTest {
   private ByteBuf mBuffer = null;
 
   private void assertValid(long tempUfsFileId, long offset, long length, RPCFileWriteRequest req) {
-    Assert.assertEquals(RPCMessage.Type.RPC_FILE_WRITE_REQUEST, req.getType());
-    Assert.assertEquals(tempUfsFileId, req.getTempUfsFileId());
-    Assert.assertEquals(offset, req.getOffset());
-    Assert.assertEquals(length, req.getLength());
+    assertEquals(RPCMessage.Type.RPC_FILE_WRITE_REQUEST, req.getType());
+    assertEquals(tempUfsFileId, req.getTempUfsFileId());
+    assertEquals(offset, req.getOffset());
+    assertEquals(length, req.getLength());
   }
 
   private void assertValid(RPCFileWriteRequest req) {
@@ -72,7 +74,7 @@ public class RPCFileWriteRequestTest {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null);
     int encodedLength = req.getEncodedLength();
     req.encode(mBuffer);
-    Assert.assertEquals(encodedLength, mBuffer.readableBytes());
+    assertEquals(encodedLength, mBuffer.readableBytes());
   }
 
   /**
@@ -113,7 +115,7 @@ public class RPCFileWriteRequestTest {
     DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, payload);
     assertValid(req);
-    Assert.assertEquals(payload, req.getPayloadDataBuffer());
+    assertEquals(payload, req.getPayloadDataBuffer());
   }
 
   /**
