@@ -223,7 +223,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           FileBlockInfo blockInfo =
               fileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
           List<String> locations = new ArrayList<>();
-          // add the in-memory block locations
+          // add the in-Alluxio block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
             WorkerNetAddress address = location.getWorkerAddress();
             locations.add(address.getHost() + ":" + address.getDataPort());

@@ -55,7 +55,7 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_RAM_FOLDER</code></td>
-  <td>Alluxio worker保存in-memory数据的目录，默认为<code class="highlighter-rouge">/mnt/ramdisk</code>.</td>
+  <td>Alluxio worker保存in-Alluxio数据的目录，默认为<code class="highlighter-rouge">/mnt/ramdisk</code>.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code></td>

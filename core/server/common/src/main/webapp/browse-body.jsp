@@ -78,7 +78,7 @@
             <th>File Name</th>
             <th>Size</th>
             <th>Block Size</th>
-            <th>In-Memory</th>
+            <th>In-Alluxio</th>
             <% if ((Boolean)request.getAttribute("showPermissions")) { %>
               <th>Mode</th>
               <th>Owner</th>

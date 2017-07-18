@@ -275,7 +275,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<>();
         ArrayList<String> hosts = new ArrayList<>();
-        // add the existing in-memory block locations
+        // add the existing in-Alluxio block locations
         for (alluxio.wire.BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
           HostAndPort address = HostAndPort.fromParts(location.getWorkerAddress().getHost(),
               location.getWorkerAddress().getDataPort());

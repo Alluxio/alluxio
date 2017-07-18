@@ -29,7 +29,7 @@ import java.util.UUID;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A stream for writing data to an in-memory simulated Swift client. The data will be written to a
+ * A stream for writing data to an in-Alluxio simulated Swift client. The data will be written to a
  * file in a temporary directory and written out all at once.
  */
 @NotThreadSafe

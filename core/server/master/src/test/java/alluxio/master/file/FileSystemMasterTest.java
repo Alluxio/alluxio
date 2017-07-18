@@ -1338,7 +1338,7 @@ public final class FileSystemMasterTest {
   public void isFullyInMemory() throws Exception {
     // add nested file
     mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
-    // add in-memory block
+    // add in-Alluxio block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     // add SSD block

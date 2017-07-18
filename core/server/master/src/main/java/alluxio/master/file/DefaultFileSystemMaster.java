@@ -1567,11 +1567,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * Gets the in-memory percentage of an Inode. For a file that has all blocks in memory, it returns
-   * 100; for a file that has no block in memory, it returns 0. Returns 0 for a directory.
+   * Gets the in-Alluxio percentage of an Inode. For a file that has all blocks in Alluxio, it
+   * returns 100; for a file that has no block in Alluxio, it returns 0. Returns 0 for a directory.
    *
    * @param inode the inode
-   * @return the in memory percentage
+   * @return the in alluxio percentage
    */
   private int getInMemoryPercentage(Inode<?> inode) {
     if (!inode.isFile()) {
@@ -1584,13 +1584,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return 100;
     }
 
-    long inMemoryLength = 0;
+    long inAlluxioLength = 0;
     for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
       if (isInTopStorageTier(info)) {
-        inMemoryLength += info.getLength();
+        inAlluxioLength += info.getLength();
       }
     }
-    return (int) (inMemoryLength * 100 / length);
+    return (int) (inAlluxioLength * 100 / length);
   }
 
   /**

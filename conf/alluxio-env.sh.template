@@ -34,7 +34,7 @@
 # This is now deprecated. Support will be removed in v2.0
 # ALLUXIO_MASTER_ADDRESS
 
-# The directory where a worker stores in-memory data. (Default: /mnt/ramdisk).
+# The directory where a worker stores in-Alluxio data. (Default: /mnt/ramdisk).
 # E.g. On linux,  /mnt/ramdisk for ramdisk, /dev/shm for tmpFS; on MacOS, /Volumes/ramdisk for ramdisk
 # ALLUXIO_RAM_FOLDER
 

@@ -68,7 +68,7 @@ will be remove in version 2.0.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_RAM_FOLDER</code></td>
-  <td>the directory where a worker stores in-memory data, defaults to <code class="highlighter-rouge">/mnt/ramdisk</code>.</td>
+  <td>the directory where a worker stores in-Alluxio data, defaults to <code class="highlighter-rouge">/mnt/ramdisk</code>.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code></td>
