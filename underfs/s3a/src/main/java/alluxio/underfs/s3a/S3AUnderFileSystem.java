@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
@@ -330,6 +331,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  @Nullable
   protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
@@ -417,6 +419,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
+    @Nullable
     public ObjectListingChunk getNextChunk() throws IOException {
       if (mResult.isTruncated()) {
         ListObjectsV2Result nextResult = getObjectListingChunk(mRequest);
@@ -459,6 +462,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
+    @Nullable
     public ObjectListingChunk getNextChunk() throws IOException {
       if (mResult.isTruncated()) {
         ObjectListing nextResult = getObjectListingChunkV1(mRequest);
@@ -471,6 +475,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  @Nullable
   protected ObjectStatus getObjectStatus(String key) {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
