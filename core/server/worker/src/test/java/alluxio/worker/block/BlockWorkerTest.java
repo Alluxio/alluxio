@@ -12,6 +12,8 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -36,7 +38,6 @@ import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -114,9 +115,9 @@ public class BlockWorkerTest {
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
-      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
     }
-    Assert.assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+    assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   @Test
@@ -127,10 +128,10 @@ public class BlockWorkerTest {
 
     long sessionId = 1;
     for (; sessionId < 11; sessionId++) {
-      Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
       mBlockWorker.closeUfsBlock(sessionId, blockId);
     }
-    Assert.assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
+    assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   /**

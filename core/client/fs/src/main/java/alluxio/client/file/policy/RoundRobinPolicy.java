@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -54,6 +55,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
    * @return the address of the worker to write to
    */
   @Override
+  @Nullable
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     if (!mInitialized) {
@@ -76,6 +78,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
   }
 
   @Override
+  @Nullable
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     WorkerNetAddress address = mBlockLocationCache.get(options.getBlockId());
     if (address != null) {
