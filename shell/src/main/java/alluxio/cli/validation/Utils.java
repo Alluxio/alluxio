@@ -67,7 +67,7 @@ public final class Utils {
    * Reads a list of nodes from given file name ignoring comments and empty lines.
    * Can be used to read conf/workers or conf/masters.
    * @param fileName name of a file that contains the list of the nodes
-   * @return list of the node names
+   * @return list of the node names, null when file fails to read
    */
   public static List<String> readNodeList(String fileName) {
     String confDir = Configuration.get(PropertyKey.CONF_DIR);

@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Task for validating SSH reachability.
  */
-public class SshValidationTask implements ValidationTask {
+public final class SshValidationTask implements ValidationTask {
   private final String mFileName;
 
   /**

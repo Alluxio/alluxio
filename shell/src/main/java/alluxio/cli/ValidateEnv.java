@@ -31,7 +31,7 @@ import java.util.Map;
  * Utility for checking Alluxio environment.
  */
 public final class ValidateEnv {
-  private static final String USAGE = "USAGE: ValidateEnv TARGET [NAME]\n\n"
+  private static final String USAGE = "USAGE: validateEnv TARGET [NAME]\n\n"
       + "Validate environment for Alluxio.\n\n"
       + "TARGET can be one of the following values:\n"
       + "local:   run all validation tasks on local\n"

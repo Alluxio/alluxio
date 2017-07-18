@@ -20,7 +20,7 @@ import java.net.ServerSocket;
 /**
  * Task for validating whether a specific port is available.
  */
-public class PortAvailabilityValidationTask implements ValidationTask {
+public final class PortAvailabilityValidationTask implements ValidationTask {
   private final ServiceType mServiceType;
   private final String mOwner;
 
