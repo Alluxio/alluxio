@@ -12,13 +12,13 @@
 package alluxio.network.protocol;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,14 +45,14 @@ public class RPCFileWriteRequestTest {
     try {
       req.validate();
     } catch (Exception e) {
-      Assert.fail("request should be valid.");
+      fail("request should be valid.");
     }
   }
 
   private void assertInvalid(RPCFileWriteRequest req) {
     try {
       req.validate();
-      Assert.fail("request should be invalid.");
+      fail("request should be invalid.");
     } catch (Exception e) {
       return;
     }
