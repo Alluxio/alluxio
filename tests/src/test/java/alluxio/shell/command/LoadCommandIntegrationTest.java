@@ -11,6 +11,9 @@
 
 package alluxio.shell.command;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
@@ -18,7 +21,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,14 +39,14 @@ public final class LoadCommandIntegrationTest extends AbstractAlluxioShellTest {
 
     URIStatus statusA = mFileSystem.getStatus(uriA);
     URIStatus statusB = mFileSystem.getStatus(uriB);
-    Assert.assertFalse(statusA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
+    assertFalse(statusA.getInMemoryPercentage() == 100);
+    assertTrue(statusB.getInMemoryPercentage() == 100);
     // Testing loading of a directory
     mFsShell.run("load", "/testRoot");
     statusA = mFileSystem.getStatus(uriA);
     statusB = mFileSystem.getStatus(uriB);
-    Assert.assertTrue(statusA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
+    assertTrue(statusA.getInMemoryPercentage() == 100);
+    assertTrue(statusB.getInMemoryPercentage() == 100);
   }
 
   @Test
@@ -52,10 +54,10 @@ public final class LoadCommandIntegrationTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertFalse(status.getInMemoryPercentage() == 100);
+    assertFalse(status.getInMemoryPercentage() == 100);
     // Testing loading of a single file
     mFsShell.run("load", "/testFile");
     status = mFileSystem.getStatus(uri);
-    Assert.assertTrue(status.getInMemoryPercentage() == 100);
+    assertTrue(status.getInMemoryPercentage() == 100);
   }
 }

@@ -17,7 +17,11 @@ priority: 4
 
 另外，为了在OSS上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该指南中，OSS bucket的名称为OSS_BUCKET，在该bucket里的目录名称为OSS_DIRECTORY。另外，要使用OSS服务，还需提供一个oss 端点，该端点指定了你的bucket在哪个范围，本向导中的端点名为OSS_ENDPOINT。要了解更多指定范围的端点的具体内容，可以参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region)，要了解更多OSS Bucket的信息，请参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
 
-## 配置Alluxio
+## 安装OSS
+
+Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一访问不同存储系统。 OSS的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
+
+### 根目录安装
 
 若要在Alluxio中使用OSS作为底层文件系统，一定要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的OSS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它：
 
@@ -37,6 +41,16 @@ fs.oss.endpoint=<OSS_ENDPOINT>
 ([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm))。
 
 更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#running-alluxio-locally-with-s3)
+
+###嵌套目录安装
+
+OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 使用Alluxio的[命令行接口](Command-Line-Interface.html)可以实现这一目的。
+
+```bash 
+$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
+  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>\
+  fs.oss.endpoint=<OSS_ENDPOINT>
+```
 
 ## 使用OSS在本地运行Alluxio
 
@@ -62,3 +76,4 @@ $ bin/alluxio runTests
 ```bash
 $ bin/alluxio-stop.sh local
 ```
+
