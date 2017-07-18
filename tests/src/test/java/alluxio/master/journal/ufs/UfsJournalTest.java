@@ -11,10 +11,11 @@
 
 package alluxio.master.journal.ufs;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.BaseIntegrationTest;
 import alluxio.util.URIUtils;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,10 +65,10 @@ public final class UfsJournalTest extends BaseIntegrationTest {
         .close();
 
     mJournal.format();
-    Assert.assertTrue(mJournal.isFormatted());
+    assertTrue(mJournal.isFormatted());
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-    Assert.assertTrue(snapshot.getCheckpoints().isEmpty());
-    Assert.assertTrue(snapshot.getLogs().isEmpty());
-    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
+    assertTrue(snapshot.getCheckpoints().isEmpty());
+    assertTrue(snapshot.getLogs().isEmpty());
+    assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 }
