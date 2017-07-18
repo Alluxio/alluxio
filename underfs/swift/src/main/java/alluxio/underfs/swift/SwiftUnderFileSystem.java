@@ -46,6 +46,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -330,6 +331,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
+    @Nullable
     public ObjectListingChunk getNextChunk() throws IOException {
       int nextPage = mPage + 1;
       if (nextPage >= mPaginationMap.getNumberOfPages()) {
@@ -340,6 +342,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  @Nullable
   protected ObjectStatus getObjectStatus(String key) {
     Container container = mAccount.getContainer(mContainerName);
     StoredObject meta = container.getObject(key);
