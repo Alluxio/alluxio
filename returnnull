@@ -1,4 +1,0 @@
-./tests/src/test/java/alluxio/collections/IndexedSetConcurrencyTest.java
-./tests/src/test/java/alluxio/master/file/FileSystemMasterIntegrationTest.java
-./tests/src/test/java/alluxio/master/MockMaster.java
-./tests/src/test/java/alluxio/master/journal/ufs/UfsJournalReaderTest.java

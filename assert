@@ -1,4 +1,0 @@
-./tests/src/test/java/alluxio/shell/command/PinCommandIntegrationTest.java
-./tests/src/test/java/alluxio/shell/command/StatCommandIntegrationTest.java
-./tests/src/test/java/alluxio/shell/command/LoadCommandIntegrationTest.java
-./tests/src/test/java/alluxio/shell/command/FreeCommandIntegrationTest.java
