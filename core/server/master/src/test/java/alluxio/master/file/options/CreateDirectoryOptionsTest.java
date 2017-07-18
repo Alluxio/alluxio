@@ -39,6 +39,7 @@ public final class CreateDirectoryOptionsTest {
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
+    
     assertEquals(false, options.isAllowExists());
     assertEquals("", options.getOwner());
     assertEquals("", options.getGroup());
