@@ -62,8 +62,6 @@ import java.util.Set;
     BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
-  /** Rule to create a new temporary folder during each test. */
-  @Rule
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockStore mBlockStore;
