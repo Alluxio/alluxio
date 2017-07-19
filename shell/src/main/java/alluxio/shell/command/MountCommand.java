@@ -58,6 +58,7 @@ public final class MountCommand extends AbstractShellCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
+  private static final String leftAlignFormat = " %-20s  %-3s %-60s %-8s %-15d %-15d %-5b %-5b   ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -87,7 +88,6 @@ public final class MountCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     if (args.length == 0) {
       Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
-      String leftAlignFormat = " %-20s  %-3s %-60s %-8s %-15d %-15d %-5b %-5b   ";
       for (Map.Entry<String, MountPointInfo> entry :
               mountTable.entrySet()) {
         String mMountPoint = entry.getKey();
@@ -121,7 +121,8 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>\n" +
+            "mount [--readonly] [--shared] [--option <key=val>]";
   }
 
   @Override
