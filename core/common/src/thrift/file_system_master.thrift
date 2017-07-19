@@ -137,7 +137,6 @@ struct MountPointInfo {
   7: bool shared
 }
 
-
 struct FileSystemCommand {
   1: common.CommandType commandType
   2: FileSystemCommandOptions commandOptions

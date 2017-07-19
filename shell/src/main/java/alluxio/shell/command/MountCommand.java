@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
-
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.Maps;

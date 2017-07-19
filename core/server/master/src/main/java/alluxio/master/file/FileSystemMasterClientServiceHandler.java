@@ -70,7 +70,6 @@ import alluxio.wire.ThriftUtils;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
