@@ -285,6 +285,9 @@ service FileSystemMasterClientService extends common.AlluxioService {
     )
     throws (1: exception.AlluxioTException e)
 
+  /**
+  * Returns a map from each Alluxio path to information of corresponding mount point
+  */
   GetMountTableTResponse getMountTable()
     throws (1: exception.AlluxioTException e)
 
