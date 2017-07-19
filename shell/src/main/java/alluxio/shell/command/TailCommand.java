@@ -31,7 +31,6 @@ import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-
 /**
  * Prints the file's last n bytes (by default, 1KB) to the console.
  */
