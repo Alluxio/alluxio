@@ -58,7 +58,7 @@ public final class MountCommand extends AbstractShellCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final String leftAlignFormat = "%-60s %-3s %-20s (%s, capacity=%d,"
+  private static final String LEFT_ALIGN_FORMAT = "%-60s %-3s %-20s (%s, capacity=%d,"
           + " used bytes=%d, %sread-only, %sshared, ";
 
   /**
@@ -93,7 +93,7 @@ public final class MountCommand extends AbstractShellCommand {
               mountTable.entrySet()) {
         String mMountPoint = entry.getKey();
         MountPointInfo mountPointInfo = entry.getValue();
-        System.out.format(leftAlignFormat, mountPointInfo.getUfsUri(), "on", mMountPoint,
+        System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), "on", mMountPoint,
                 mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
                 mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
                 mountPointInfo.getShared() ? "" : "not ");
