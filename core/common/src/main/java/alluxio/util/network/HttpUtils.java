@@ -74,7 +74,10 @@ public final class HttpUtils {
     }
   }
 
-  public interface IProcessInputStream{
+  /**
+   * This interface should be implemented by the http response body stream processor.
+   */
+  public interface IProcessInputStream {
     /**
      * @param inputStream the input stream to process
      */
