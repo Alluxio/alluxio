@@ -259,6 +259,11 @@ function main {
     echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead." >&2
     exit 1
   ;;
+  "logLevel")
+    CLASS="alluxio.cli.LogLevel"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "runClass")
     CLASS=$1
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case

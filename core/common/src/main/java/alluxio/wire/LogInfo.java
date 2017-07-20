@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -73,6 +75,9 @@ public final class LogInfo {
 
   @Override
   public String toString() {
-    return mLevel + " " + mLogName + " - " + (mMessage != null ? mMessage : "");
+    return Objects.toStringHelper(this)
+        .addValue(mLevel)
+        .addValue(mLogName)
+        .addValue((mMessage != null ? mMessage : "")).toString();
   }
 }

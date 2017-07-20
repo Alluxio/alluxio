@@ -39,14 +39,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Set and get the specify target specify log's level.
+ * Sets or gets the log level for the specified server.
  */
 @NotThreadSafe
 public final class LogLevel {
   private static final String LOG_LEVEL = "logLevel";
+  private static final String ROLE_WORKERS = "workers";
+  private static final String ROLE_MASTER = "master";
+  private static final String ROLE_WORKER = "worker";
   private static final String TARGET_SEPARATOR = ",";
   private static final String TARGET_OPTION_NAME = "target";
-  private static final Option TATGET_OPTION =
+  private static final Option TARGET_OPTION =
       Option.builder()
           .required(false)
           .longOpt(TARGET_OPTION_NAME)
@@ -73,7 +76,7 @@ public final class LogLevel {
           .hasArg(true)
           .desc("The log level to be set.").build();
   private static final Options OPTIONS = new Options()
-      .addOption(TATGET_OPTION)
+      .addOption(TARGET_OPTION)
       .addOption(LOG_NAME_OPTION)
       .addOption(LEVEL_OPTION);
 
@@ -92,11 +95,9 @@ public final class LogLevel {
    * Implements log level setting and getting.
    *
    * @param args list of arguments contains target, logName and level
-   * @return 0 on success, 1 on failures
    * @exception ParseException if there is an error in parsing
-   * @exception IOException if the rpc server cannot reached
    */
-  public static int logLevel(String... args) throws ParseException, IOException {
+  public static void logLevel(String[] args) throws ParseException, IOException {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
 
@@ -105,11 +106,8 @@ public final class LogLevel {
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      if (handleTarget(targetInfo, logName, level)) {
-        return 1;
-      }
+      setLogLevel(targetInfo, logName, level);
     }
-    return 0;
   }
 
   private static List<TargetInfo> parseOptTarget(CommandLine cmd) throws IOException {
@@ -117,14 +115,15 @@ public final class LogLevel {
     if (cmd.hasOption(TARGET_OPTION_NAME)) {
       String argTarget = cmd.getOptionValue(TARGET_OPTION_NAME);
       if (StringUtils.isBlank(argTarget)) {
-        targets = new String[]{"master", "workers"};
+//        targets = new String[]{ROLE_MASTER, ROLE_WORKERS};
+        throw new IOException("Option " + TARGET_OPTION_NAME + " can not be blank.");
       } else if (argTarget.contains(TARGET_SEPARATOR)) {
         targets = argTarget.split(TARGET_SEPARATOR);
       } else {
         targets = new String[]{argTarget};
       }
     } else {
-      targets = new String[]{"master", "workers"};
+      targets = new String[]{ROLE_MASTER, ROLE_WORKERS};
     }
     return getTargetInfos(targets);
   }
@@ -132,25 +131,24 @@ public final class LogLevel {
   private static List<TargetInfo> getTargetInfos(String[] targets) throws IOException {
     List<TargetInfo> targetInfoList = new ArrayList<>();
     for (String target : targets) {
-      if (target.equals("master")) {
+      if (target.equals(ROLE_MASTER)) {
         String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB);
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB);
-        targetInfoList.add(new TargetInfo(masterHost, masterPort, "master"));
-      } else if (target.equals("workers")) {
+        targetInfoList.add(new TargetInfo(masterHost, masterPort, ROLE_MASTER));
+      } else if (target.equals(ROLE_WORKERS)) {
         AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create();
         List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getWorkerInfoList();
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           targetInfoList.add(
-              new TargetInfo(netAddress.getHost(), netAddress.getWebPort(), "worker"));
+              new TargetInfo(netAddress.getHost(), netAddress.getWebPort(), ROLE_WORKER));
         }
       } else if (target.contains(":")) {
         String[] hostPortPair = target.split(":");
         int port = Integer.parseInt(hostPortPair[1]);
-        targetInfoList.add(new TargetInfo(hostPortPair[0], port, "worker"));
+        targetInfoList.add(new TargetInfo(hostPortPair[0], port, ROLE_WORKER));
       } else {
-        // TODO(maobaolong)
-        // else, throw an exception because the target is unknown
+        throw new IOException("Unrecognized target argument: " + target);
       }
     }
     return targetInfoList;
@@ -174,7 +172,8 @@ public final class LogLevel {
     return null;
   }
 
-  private static boolean handleTarget(TargetInfo targetInfo, String logName, String level) {
+  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level)
+      throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
     uriBuilder.setHost(targetInfo.getHost());
@@ -184,25 +183,14 @@ public final class LogLevel {
     if (level != null) {
       uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
     }
-    InputStream inputStream = null;
-    try {
-      inputStream = HttpUtils.post(uriBuilder.toString(), 5000);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    if (inputStream != null) {
-      ObjectMapper mapper = new ObjectMapper();
-      try {
+    HttpUtils.post(uriBuilder.toString(), 5000, new HttpUtils.IProcessInputStream() {
+      @Override
+      public void process(InputStream inputStream) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
         LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
         System.out.println(targetInfo.toString() + logInfo.toString());
-      } catch (IOException e) {
-        e.printStackTrace();
-        return true;
       }
-    } else {
-      return true;
-    }
-    return false;
+    });
   }
 
   /**
@@ -211,15 +199,15 @@ public final class LogLevel {
    * @param args same arguments as {@link LogLevel}
    */
   public static void main(String[] args) {
-    int exitCode;
+    int exitCode = 1;
     try {
-      exitCode = logLevel(args);
+      logLevel(args);
+      exitCode = 0;
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());
-      exitCode = 1;
     } catch (IOException e) {
       e.printStackTrace();
-      exitCode = 1;
+      System.err.println(String.format("Failed to set log level: %s", e.getMessage()));
     }
     System.exit(exitCode);
   }
