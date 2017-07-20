@@ -58,7 +58,7 @@ public final class MountCommand extends AbstractShellCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final String leftAlignFormat = "%-50s %-3s %-20s (%s, capacity=%d,"
+  private static final String leftAlignFormat = "%-60s %-3s %-20s (%s, capacity=%d,"
           + " used bytes=%d, %sread-only, %sshared, ";
 
   /**
