@@ -52,6 +52,10 @@ categoryInfo:
     en: Features
     cn: 特性
     pt: Features
+  Clients:
+    en: Clients
+    cn: Clients
+    pt: Clients
   Frameworks:
     en: Frameworks
     cn: 计算框架

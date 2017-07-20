@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Filesystem Client API
-nickname: Filesystem API
-group: Features
+title: Native Java Client
+nickname: Native Java
+group: Clients
 priority: 1
 ---
 
@@ -16,10 +16,8 @@ compatible API. The native API provides better performance, while the Hadoop com
 users the flexibility of leveraging Alluxio without having to modify existing code written using
 Hadoop's API.
 
-## Native API
-
-Alluxio provides a Java like API for accessing and modifying files in the Alluxio namespace. All
-resources are specified through a `AlluxioURI` which represents the path to the resource.
+All resources with the native Java API are specified through a `AlluxioURI` which represents the
+path to the resource.
 
 ### Getting a Filesystem Client
 
@@ -136,33 +134,3 @@ metadata, ie. ttl or pin state, or getting an input stream to read the file.
 For example, to read a file:
 
 {% include File-System-API/read-file.md %}
-
-### REST API
-
-For portability with other languages, the Alluxio native API is also accessible via an HTTP proxy in
-the form of a REST API.
-
-The REST API documentation is generated as part of Alluxio build and accessible through
-`${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`. In particular, the `paths`
-resource endpoints correspond to the `FileSystem` API endpoints. The main difference between
-the REST API and the Native API is in how streams are represented. While the native API
-can use in-memory streams, the REST API decouples the stream creation and access (see the
-`create` and `open` REST API methods and the `streams` resource endpoints for details).
-
-The HTTP proxy is a standalone server that can be started using
-`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy` and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh
-proxy`. By default, the REST API is available on port 39999.
-
-There are performance implications of using the HTTP proxy. In particular, using the proxy requires
-an extra hop. For optimal performance, it is recommended to run the proxy server an Alluxio worker
-on each compute node.
-
-## Hadoop API
-
-Alluxio has a wrapper of the native client which provides the Hadoop compatible `FileSystem`
-interface. With this client, Hadoop file operations will be translated to FileSystem
-operations. The latest documentation for the `FileSystem` interface may be found
-[here](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html).
-
-The Hadoop compatible interface is provided as a convenience class, allowing users to retain
-previous code written for Hadoop.
