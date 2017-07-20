@@ -58,8 +58,8 @@ public final class MountCommand extends AbstractShellCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final String leftAlignFormat = "%-50s %-3s %-20s (%-5s, capacity=%-16d,"
-          + " used bytes=%-16d, %sread-only, %sshared, ";
+  private static final String leftAlignFormat = "%-50s %-3s %-20s (%s, capacity=%d,"
+          + " used bytes=%d, %sread-only, %sshared, ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -97,7 +97,7 @@ public final class MountCommand extends AbstractShellCommand {
                 mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
                 mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
                 mountPointInfo.getShared() ? "" : "not ");
-        System.out.println(mountPointInfo.getProperties());
+        System.out.println("properties=" + mountPointInfo.getProperties() + ")");
       }
       return 0;
     }
