@@ -65,8 +65,6 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mountWithWrongArgs() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    // alluxio, ufs path missing
-    Assert.assertEquals(-1, mFsShell.run("mount"));
     // ufs missing
     Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString()));
     // extra arg
