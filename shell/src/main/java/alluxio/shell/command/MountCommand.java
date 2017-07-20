@@ -58,7 +58,8 @@ public final class MountCommand extends AbstractShellCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final String leftAlignFormat = " %-20s  %-3s %-60s %-8s %-15d %-15d %-5b %-5b   ";
+  private static final String leftAlignFormat = "%-50s %-3s %-20s (%-5s, capacity=%-16d,"
+          + " used bytes=%-16d, %sread-only, %sshared, ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -92,10 +93,10 @@ public final class MountCommand extends AbstractShellCommand {
               mountTable.entrySet()) {
         String mMountPoint = entry.getKey();
         MountPointInfo mountPointInfo = entry.getValue();
-        System.out.format(leftAlignFormat, mMountPoint, "on", mountPointInfo.getUfsUri(),
+        System.out.format(leftAlignFormat, mountPointInfo.getUfsUri(), "on", mMountPoint,
                 mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
-                mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly(),
-                mountPointInfo.getShared());
+                mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
+                mountPointInfo.getShared() ? "" : "not ");
         System.out.println(mountPointInfo.getProperties());
       }
       return 0;
@@ -121,8 +122,8 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>\n" +
-            "mount [--readonly] [--shared] [--option <key=val>]";
+    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>\n"
+            + "mount [--readonly] [--shared] [--option <key=val>]";
   }
 
   @Override
