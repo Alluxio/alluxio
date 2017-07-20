@@ -123,7 +123,7 @@ public final class MountCommand extends AbstractShellCommand {
   @Override
   public String getUsage() {
     return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>\n"
-            + "mount [--readonly] [--shared] [--option <key=val>]";
+            + "mount";
   }
 
   @Override
