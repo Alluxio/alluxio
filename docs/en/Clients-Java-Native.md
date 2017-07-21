@@ -134,3 +134,8 @@ metadata, ie. ttl or pin state, or getting an input stream to read the file.
 For example, to read a file:
 
 {% include File-System-API/read-file.md %}
+
+### Javadoc
+
+For additional API information, please refer to the
+[Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html).
