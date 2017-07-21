@@ -21,5 +21,5 @@ The HTTP proxy is a standalone server that can be started using
 proxy`. By default, the REST API is available on port 39999.
 
 There are performance implications of using the HTTP proxy. In particular, using the proxy requires
-an extra hop. For optimal performance, it is recommended to run the proxy server an Alluxio worker
-on each compute node.
+an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
+worker on each compute node.

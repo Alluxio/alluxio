@@ -12,9 +12,9 @@ priority: 1
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
 before being completed. Alluxio provides two different Filesystem APIs, a native API and a Hadoop
-compatible API. The native API provides better performance, while the Hadoop compatible API gives
-users the flexibility of leveraging Alluxio without having to modify existing code written using
-Hadoop's API.
+compatible API. The native API provides additional functionality, while the Hadoop compatible API
+gives users the flexibility of leveraging Alluxio without having to modify existing code written
+using Hadoop's API.
 
 All resources with the native Java API are specified through a `AlluxioURI` which represents the
 path to the resource.
