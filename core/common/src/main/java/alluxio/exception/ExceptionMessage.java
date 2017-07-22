@@ -166,7 +166,7 @@ public enum ExceptionMessage {
   DESTINATION_CANNOT_BE_FILE(
       "The destination cannot be an existing file when the source is a directory or a list of "
           + "files."),
-  VALUE_NOT_VALID_TIME("{0} is not valid time"),
+  INVALID_TIME("{0} is not valid time"),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),

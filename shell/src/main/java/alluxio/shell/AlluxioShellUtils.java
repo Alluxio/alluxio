@@ -254,7 +254,7 @@ public final class AlluxioShellUtils {
     try {
       return FormatUtils.parseTimeSize(time);
     } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.VALUE_NOT_VALID_TIME.getMessage(time));
+      throw new RuntimeException(ExceptionMessage.INVALID_TIME.getMessage(time));
     }
   }
 
