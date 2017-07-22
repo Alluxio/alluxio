@@ -96,7 +96,8 @@ public final class SetTtlCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "setTtl [-action delete|free] <path> <time to live>";
+    return "setTtl [-action delete|free] <path> <time to live>[ms|millisecond|s"
+      + "|second|m|min|minute|h|hour|d|day]";
   }
 
   @Override
