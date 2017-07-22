@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
@@ -22,6 +23,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -56,6 +58,8 @@ public final class MountCommand extends AbstractShellCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
+  private static final String LEFT_ALIGN_FORMAT = "%-60s %-3s %-20s (%s, capacity=%d,"
+          + " used bytes=%d, %sread-only, %sshared, ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -83,6 +87,20 @@ public final class MountCommand extends AbstractShellCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
+    if (args.length == 0) {
+      Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
+      for (Map.Entry<String, MountPointInfo> entry :
+              mountTable.entrySet()) {
+        String mMountPoint = entry.getKey();
+        MountPointInfo mountPointInfo = entry.getValue();
+        System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), "on", mMountPoint,
+                mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
+                mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
+                mountPointInfo.getShared() ? "" : "not ");
+        System.out.println("properties=" + mountPointInfo.getProperties() + ")");
+      }
+      return 0;
+    }
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
     MountOptions options = MountOptions.defaults();
@@ -97,7 +115,6 @@ public final class MountCommand extends AbstractShellCommand {
       Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
       options.setProperties(Maps.fromProperties(properties));
     }
-
     mFileSystem.mount(alluxioPath, ufsPath, options);
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     return 0;
@@ -105,7 +122,8 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>\n"
+            + "mount";
   }
 
   @Override

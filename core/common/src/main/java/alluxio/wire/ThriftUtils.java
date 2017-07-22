@@ -96,6 +96,16 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
+   * @param mountPointInfo the thrift representation of a lineage information
+   * @return wire representation of the lineage information
+   */
+  public static MountPointInfo fromThrift(alluxio.thrift.MountPointInfo mountPointInfo) {
+    return new MountPointInfo(mountPointInfo);
+  }
+
+  /**
+   * Converts a thrift type to a wire type.
+   *
    * @param workerInfo the thrift representation of a worker information
    * @return wire representation of the worker information
    */
@@ -191,6 +201,16 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.LineageInfo toThrift(LineageInfo lineageInfo) {
     return lineageInfo.toThrift();
+  }
+
+  /**
+   * Converts a wire type to a thrift type.
+   *
+   * @param mountPointInfo the wire representation of a mount point information
+   * @return thrift representation of the mount point information
+   */
+  public static alluxio.thrift.MountPointInfo toThrift(MountPointInfo mountPointInfo) {
+    return mountPointInfo.toThrift();
   }
 
   /**

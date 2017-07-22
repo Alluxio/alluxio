@@ -153,6 +153,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   @Override
+  public long getPos() {
+    return mPos;
+  }
+
+  @Override
   public int read() throws IOException {
     int bytesRead = read(mSingleByte);
     if (bytesRead == -1) {

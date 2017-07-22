@@ -63,8 +63,6 @@ public enum ExceptionMessage {
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
-  SEEK_NEGATIVE("Seek position is negative: {0,number,#}"),
-  SEEK_PAST_EOF("Seek position is past EOF: {0,number,#}, fileSize: {1,number,#}"),
 
   // netty
   BLOCK_WRITE_ERROR(

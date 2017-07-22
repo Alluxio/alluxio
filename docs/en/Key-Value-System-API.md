@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Key Value System Client API (alpha)
-nickname: Key Value System API
+title: (Experimental) Key Value System Client API
+nickname: (Experimental) Key Value System API
 group: Features
-priority: 4
+priority: 99
 ---
 
 * Table of Contents

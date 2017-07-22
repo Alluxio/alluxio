@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
+import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -33,6 +34,7 @@ import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,6 +65,13 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   /** Executor for running client threads. */
   private ExecutorService mExecutorsForClient;
 
+  @Rule
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+          .put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "100")
+          .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
+          .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "32").build());
+
   @ClassRule
   public static SystemPropertyRule sDisableHdfsCacheRule =
       new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
@@ -77,9 +86,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mExecutorsForClient = Executors.newFixedThreadPool(1);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
   }
 
   @Test
@@ -146,9 +152,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    * @return a spied UFS factory mounted to and then unmounted from fs
    */
   private UnderFileSystemFactory mountUnmount(FileSystem fs) throws Exception {
-    SleepingUnderFileSystem sleepingUfs =
-        new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
-            new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults());
+    SleepingUnderFileSystem sleepingUfs = new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
+        new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults());
     SleepingUnderFileSystemFactory sleepingUfsFactory =
         new SleepingUnderFileSystemFactory(sleepingUfs);
     UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);
@@ -184,8 +189,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     int actualFiles =
-        fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
-            .size();
+        fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults()).size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f++) {
       Assert.assertTrue(
@@ -199,8 +203,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
     // Setup and start the alluxio-ft cluster.
-    MultiMasterLocalAlluxioCluster cluster =
-        new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+    MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
     cluster.initConfiguration();
     cluster.start();
     return cluster;

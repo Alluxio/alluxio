@@ -12,8 +12,7 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.util.ClientTestUtils;
@@ -23,6 +22,7 @@ import alluxio.job.JobConf;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -42,9 +42,12 @@ public final class AlluxioLineageTest {
   private LineageMasterClient mLineageMasterClient;
   private AlluxioLineage mAlluxioLineage;
 
+  @Rule
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(PropertyKey.USER_LINEAGE_ENABLED, "true");
+
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.USER_LINEAGE_ENABLED, "true");
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
@@ -53,7 +56,6 @@ public final class AlluxioLineageTest {
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
   }
 
