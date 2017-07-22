@@ -134,4 +134,11 @@ public final class SetTtlCommandIntegrationTest extends AbstractAlluxioShellTest
       Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
     }
   }
+
+  @Test
+  public void setTtlWithInvalidTime() throws Exception {
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 1);
+    mFsShell.run("setTtl", "/testFile", "some-random-text");
+    Assert.assertTrue(mOutput.toString().contains("is not valid time"));
+  }
 }
