@@ -45,9 +45,8 @@ alluxio.user.network.netty.writer.buffer.size.packets,16
 alluxio.user.network.netty.writer.close.timeout.ms,300000
 alluxio.user.network.netty.writer.packet.size.bytes,64KB
 alluxio.user.rpc.retry.base.sleep.ms,50
-alluxio.user.rpc.retry.max.sleep.ms,30000
 alluxio.user.rpc.retry.max.num.retry,20
-alluxio.user.rpc.retry.max.sleep.ms,5min
+alluxio.user.rpc.retry.max.sleep.ms,30sec
 alluxio.user.short.circuit.enabled,true
 alluxio.user.ufs.block.open.timeout.ms,300000
 alluxio.user.ufs.block.read.concurrency.max,2147483647
