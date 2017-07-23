@@ -19,11 +19,11 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.meta.UfsAbsentPathCache;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
@@ -33,10 +33,9 @@ import alluxio.wire.LoadMetadataType;
 import com.google.common.base.Function;
 import com.google.common.io.Files;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
@@ -49,7 +48,6 @@ import java.io.FileWriter;
  */
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
-  private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
 
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
@@ -61,18 +59,10 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
 
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
-    options.setExistsMs(SLEEP_MS);
-    sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
-  }
+  @ClassRule
+  public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
+      new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
+          new SleepingUnderFileSystemOptions().setExistsMs(SLEEP_MS)));
 
   @Before
   public void before() throws Exception {

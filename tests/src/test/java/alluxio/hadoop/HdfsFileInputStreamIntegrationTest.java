@@ -22,7 +22,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 import org.apache.hadoop.fs.Seekable;
@@ -371,21 +371,22 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   @Test
   public void seekNegative() throws Exception {
     mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.SEEK_NEGATIVE.getMessage(-1));
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1));
     mInMemInputStream.seek(-1);
   }
 
   @Test
   public void seekPastEof() throws Exception {
     mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.SEEK_PAST_EOF.getMessage(FILE_LEN + 1, FILE_LEN));
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(),
+        FILE_LEN + 1));
     mInMemInputStream.seek(FILE_LEN + 1);
   }
 
   @Test
   public void seekNegativeUfs() throws Exception {
     mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.SEEK_NEGATIVE.getMessage(-1));
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1));
     createUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.seek(-1);
   }
@@ -393,7 +394,8 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   @Test
   public void seekPastEofUfs() throws Exception {
     mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.SEEK_PAST_EOF.getMessage(FILE_LEN + 1, FILE_LEN));
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(),
+        FILE_LEN + 1));
     createUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.seek(FILE_LEN + 1);
   }

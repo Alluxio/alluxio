@@ -12,12 +12,12 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.shell.AbstractAlluxioShellTest;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -28,6 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.Closeable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -64,8 +65,6 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mountWithWrongArgs() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    // alluxio, ufs path missing
-    Assert.assertEquals(-1, mFsShell.run("mount"));
     // ufs missing
     Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString()));
     // extra arg
@@ -79,37 +78,40 @@ public final class MountCommandTest extends AbstractAlluxioShellTest {
   public void mountWithMultipleOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
         new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
-    UnderFileSystemFactoryRegistry.register(factory);
-    AlluxioURI mountPoint = new AlluxioURI("/mnt");
-    String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell
-        .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
-    FileSystemTestUtils.createByteFile(mFileSystem, "/mnt/testFile1", WriteType.CACHE_THROUGH, 20);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
-    Assert.assertTrue(status.isPersisted());
-    UnderFileSystemFactoryRegistry.unregister(factory);
+    try (Closeable closeable =
+        new UnderFileSystemFactoryRegistryRule(factory).toResource()) {
+      AlluxioURI mountPoint = new AlluxioURI("/mnt");
+      String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
+      Assert.assertEquals(0, mFsShell
+          .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
+      FileSystemTestUtils.createByteFile(mFileSystem,
+          "/mnt/testFile1", WriteType.CACHE_THROUGH, 20);
+      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
+      URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
+      Assert.assertTrue(status.isPersisted());
+    }
   }
 
   @Test
   public void mountWithWrongOptions() throws Exception {
     ConfExpectingUnderFileSystemFactory factory =
         new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v1", "k2", "v2"));
-    UnderFileSystemFactoryRegistry.register(factory);
-    AlluxioURI mountPoint = new AlluxioURI("/mnt");
-    String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
-    // one property is wrong
-    Assert.assertEquals(-1, mFsShell
-        .run("mount", "--option", "k1=not_v1", "--option", "k2=v2", mountPoint.toString(),
-            ufsPath));
-    // one property is missing
-    Assert.assertEquals(-1,
-        mFsShell.run("mount", "--option", "k1=v1", mountPoint.toString(), ufsPath));
-    // one property is unnecessary
-    Assert.assertEquals(-1, mFsShell
-        .run("mount", "--option", "k1=v1", "--option", "k2=v2", "--option", "k3=v3",
-            mountPoint.toString(), ufsPath));
-    UnderFileSystemFactoryRegistry.unregister(factory);
+    try (Closeable closeable =
+        new UnderFileSystemFactoryRegistryRule(factory).toResource()) {
+      AlluxioURI mountPoint = new AlluxioURI("/mnt");
+      String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
+      // one property is wrong
+      Assert.assertEquals(-1, mFsShell
+          .run("mount", "--option", "k1=not_v1", "--option", "k2=v2", mountPoint.toString(),
+              ufsPath));
+      // one property is missing
+      Assert.assertEquals(-1,
+          mFsShell.run("mount", "--option", "k1=v1", mountPoint.toString(), ufsPath));
+      // one property is unnecessary
+      Assert.assertEquals(-1, mFsShell
+          .run("mount", "--option", "k1=v1", "--option", "k2=v2", "--option", "k3=v3",
+              mountPoint.toString(), ufsPath));
+    }
   }
 
   @Test

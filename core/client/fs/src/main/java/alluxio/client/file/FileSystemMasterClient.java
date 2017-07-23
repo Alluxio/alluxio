@@ -26,10 +26,12 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.wire.MountPointInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 
 import javax.security.auth.Subject;
 
@@ -162,6 +164,13 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param options mount options
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options) throws IOException;
+
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   *
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable() throws IOException;
 
   /**
    * Renames a file or a directory.

@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -25,7 +26,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.AlluxioException;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
@@ -33,10 +33,9 @@ import alluxio.util.CommonUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -74,8 +73,6 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
   private static CreateDirectoryOptions sCreatePersistedDirOptions =
       CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH).setRecursive(true);
 
-  private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
-
   private FileSystem mFileSystem;
 
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
@@ -89,20 +86,10 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
           "sleep://" + mLocalUfsPath).setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
-  // Must be done in beforeClass so execution is before rules
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    // Register sleeping ufs with slow rename
-    SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
-    sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setRenameFileMs(SLEEP_MS).setRenameDirectoryMs(SLEEP_MS);
-    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
-  }
+  @ClassRule
+  public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
+      new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
+          new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));
 
   @Before
   public void before() {

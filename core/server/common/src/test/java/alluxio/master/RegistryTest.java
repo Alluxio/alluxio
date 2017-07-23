@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 public final class RegistryTest {
 
   @Rule
@@ -35,6 +37,7 @@ public final class RegistryTest {
 
   public abstract class TestServer implements Server<Void> {
     @Override
+    @Nullable
     public Map<String, TProcessor> getServices() {
       return null;
     }
