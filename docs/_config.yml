@@ -6,8 +6,10 @@ kramdown:
 
 # These allow the documentation to be updated with new releases of Alluxio.
 ALLUXIO_RELEASED_VERSION: 1.5.0
-# For example, "master" for the master branch, and 1.1 for 1.1.x releases and release candidates.
+# For example, "master" for the master branch, or the full version (1.1.1, 1.5.0, etc) for releases and release candidates.
 ALLUXIO_MASTER_VERSION_SHORT: master
+# This must track the major version of the release (1.5 for 1.5.x), or be "master".
+ALLUXIO_MAJOR_VERSION: master
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro defined above.
 # Otherwise the macro name remains in the output.
 ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/core/client/runtime/target/alluxio-core-client-runtime-1.6.0-SNAPSHOT-jar-with-dependencies.jar
@@ -52,6 +54,10 @@ categoryInfo:
     en: Features
     cn: 特性
     pt: Features
+  Clients:
+    en: Clients
+    cn: Clients
+    pt: Clients
   Frameworks:
     en: Frameworks
     cn: 计算框架
