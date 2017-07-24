@@ -10,18 +10,18 @@ priority: 1
 
 Alluxio can be configured by setting the values of supported  [configuration properties
 ](Configuration-Properties.html). For a user who wants to customize how an application  (e.g., a
-Spark or MapReduce job) interacting with Alluxio, check [how to configure Alluxio
-applications](#configure- applications); for Alluxio admin who wants to customize Alluxio service,
+Spark or MapReduce job) interacts with Alluxio, check [how to configure Alluxio
+applications](#configure-applications); for Alluxio admin who wants to customize Alluxio service,
 check [how to configure Alluxio clusters](#configure-alluxio-cluster).
 
 # Configure Applications
 
-Customizing how an application job interacts with Alluxio service can be application specific. Here
+Customizing how an application job interacts with Alluxio service is application specific. Here
 we provide recommendation for a few common applications.
 
 ## Alluxio Shell Commands
 
-Alluxio shell users can use JVM system property `-Dproperty=value` to specify an Alluxio property
+Alluxio shell users can use JVM system property `-Dproperty=value` to specify Alluxio properties
 in commandline. For example, the following Alluxio shell command sets the write type to
 `CACHE_THROUGH` when copying files to Alluxio:
 
@@ -33,7 +33,7 @@ $ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLoc
 
 Spark users can pass JVM system properties to Spark jobs by adding `"-Dproperty=value"` to
 `spark.executor.extraJavaOptions` for Spark executors and `spark.driver.extraJavaOptions` for
-Spark drivers. For example, the following Spark job sets write type to `CACHE_THROUGH` when
+Spark drivers. For example, the following Spark job sets the write type to `CACHE_THROUGH` when
 writing to Alluxio:
 
 ```bash
@@ -60,22 +60,26 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 
 ## Use Site-Property Files (Recommended)
 
-Alluxio admin can create and customize Java property file `alluxio-site.properties` to
+Alluxio admin can create and customize a Java property file `alluxio-site.properties` to
 configuration an Alluxio cluster. If this file does not exist, it can be simply created from a
-template file:
+template file under `${ALLUXIO_HOME}/conf`:
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-On startup, Alluxio runtime searches `alluxio-site.properties` in `${HOME}/.alluxio/`,
-`/etc/alluxio/`
-and the classpath of the relevant Java VM process in order including `${ALLUXIO_HOME}/conf`, and skips the remaining paths once this `alluxio-site.properties` file is found.
+Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio nodes (masters
+and workers) before starting the cluster.
+
+> Note that, the site property file is co-located with and respected by Alluxio server processes.
+> Applications interacting with Alluxio service through Alluxio client will not pick up the
+> properties defined in these site property files, unless they are also on the classpath of
+> these applications.
 
 ## Use Environment variables
 
-Alluxio supports a few basic and but frequently used configuration settings via the environment variables in
-`conf/alluxio-env.sh`, including:
+Alluxio supports a few basic but frequently used configuration settings via the environment
+variables, including:
 
 <table class="table table-striped">
 <tr><th>Environment Variable</th><th>Description</th></tr>
@@ -123,14 +127,22 @@ will be remove in version 2.0.</td>
 </tr>
 </table>
 
-For example, if you would like to setup an Alluxio master at `localhost` that talks to an HDFS cluster with a namenode
-also running at `localhost`, and enable Java remote debugging at port 7001, you can do so before starting master process using:
+For example, if you would like to setup an Alluxio master at `localhost` that talks to an HDFS
+cluster with a namenode also running at `localhost`, and enable Java remote debugging at port 7001,
+you can do so before starting master process using:
 
-{% include Configuration-Settings/more-conf.md %}
+```bash
+$ export ALLUXIO_MASTER_HOSTNAME="localhost"
+$ export ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000"
+$ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
+```
 
-Users can either set these variables through shell or in `conf/alluxio-env.sh`. If this file does not exist yet, you can create one from a template we provided in the source code using:
+Users can either set these variables through shell or in `conf/alluxio-env.sh`. If this file does
+not exist yet, you can create one from a template we provided in the source code using:
 
-{% include Common-Commands/copy-alluxio-env.md %}
+```bash
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+```
 
 # Order of Configuration Sources
 
@@ -139,6 +151,8 @@ the following order from the highest to the lowest:
 
 1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
 2. [Environment variable](#use-environment-variables)
-3. [Property file](#use-site-property-files-recommended)
+3. [Property file](#use-site-property-files-recommended). When an Alluxio cluster starts, each server process including master and worker searches `alluxio-site.properties` in a list paths of
+`${HOME}/.alluxio/`, `/etc/alluxio/` and `${ALLUXIO_HOME}/conf` in order, and will skip the
+remaining paths once this `alluxio-site.properties` file is found.
 4. [Default property value](Configuration-Propertiess.html). If no above user-specified
 configuration is found, Alluxio runtime will fallback to the default configuration values.
