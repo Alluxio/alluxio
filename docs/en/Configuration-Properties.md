@@ -106,7 +106,3 @@ The security configuration specifies information regarding the security features
   </tr>
 {% endfor %}
 </table>
-
-### Configure Multihomed Networks
-
-Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Alluxio master to listen on all NICs, you can specify `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node from connecting to any of its NIC. This is also the same case for other settings suffixed with `bind.host`.
