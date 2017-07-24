@@ -200,7 +200,7 @@ function main {
 
   PARAMETER=""
 
-  if [[ -z "${ALLUXIO_LOGS_DIR}" ]] && [[ ${COMMAND} != "getConf" ]]; then
+  if [[ ${COMMAND} != "getConf" ]]; then
     ALLUXIO_LOGS_DIR=$(${BIN}/alluxio getConf alluxio.logs.dir)
   fi
 
