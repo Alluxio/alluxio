@@ -115,7 +115,6 @@ public final class LogLevel {
     if (cmd.hasOption(TARGET_OPTION_NAME)) {
       String argTarget = cmd.getOptionValue(TARGET_OPTION_NAME);
       if (StringUtils.isBlank(argTarget)) {
-//        targets = new String[]{ROLE_MASTER, ROLE_WORKERS};
         throw new IOException("Option " + TARGET_OPTION_NAME + " can not be blank.");
       } else if (argTarget.contains(TARGET_SEPARATOR)) {
         targets = argTarget.split(TARGET_SEPARATOR);

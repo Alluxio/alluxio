@@ -38,12 +38,12 @@ public final class HttpUtils {
    * @param url the http url
    * @param timeout milliseconds to wait for the server to respond before giving up
    * @param processInputStream the response body stream processor
-   * @return the response body stream if response status is OK or CREATED, otherwise return null
    */
-  public static String post(String url, Integer timeout,
-                                 IProcessInputStream processInputStream)
+  public static void post(String url, Integer timeout,
+                          IProcessInputStream processInputStream)
       throws IOException {
     Preconditions.checkNotNull(timeout, "timeout");
+    Preconditions.checkNotNull(processInputStream, "processInputStream");
     PostMethod postMethod = new PostMethod(url);
     try {
       HttpClient httpClient = new HttpClient();
@@ -52,26 +52,38 @@ public final class HttpUtils {
       int statusCode = httpClient.executeMethod(postMethod);
       if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_CREATED) {
         InputStream inputStream = postMethod.getResponseBodyAsStream();
-        if (processInputStream != null) {
-          processInputStream.process(inputStream);
-          return null;
-        } else {
-          StringBuilder contentBuffer = new StringBuilder();
-          try (BufferedReader br = new BufferedReader(
-              new InputStreamReader(inputStream, "UTF-8"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-              contentBuffer.append(line);
-            }
-          }
-          return contentBuffer.toString();
-        }
+        processInputStream.process(inputStream);
       } else {
         throw new IOException("Failed to perform POST request. Status code: " + statusCode);
       }
     } finally {
       postMethod.releaseConnection();
     }
+  }
+
+  /**
+   * Uses the post method to send a url with arguments by http, this method can call RESTful Api.
+   *
+   * @param url the http url
+   * @param timeout milliseconds to wait for the server to respond before giving up
+   * @return the response body stream as UTF-8 string if response status is OK or CREATED
+   */
+  public static String post(String url, Integer timeout)
+      throws IOException {
+    final StringBuilder contentBuffer = new StringBuilder();
+    post(url, timeout, new IProcessInputStream() {
+      @Override
+      public void process(InputStream inputStream) throws IOException {
+        try (BufferedReader br = new BufferedReader(
+            new InputStreamReader(inputStream, "UTF-8"))) {
+          String line;
+          while ((line = br.readLine()) != null) {
+            contentBuffer.append(line);
+          }
+        }
+      }
+    });
+    return contentBuffer.toString();
   }
 
   /**
