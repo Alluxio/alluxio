@@ -8,27 +8,26 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Alluxio can be configured by setting the values of supported [configuration properties
-](Configuration-Parameters.html). For a user who wants to customize how an application  (e.g., a
-Spark or MapReduce job) interacting with Alluxio, check
-[how to configure Alluxio applications](#configure- applications);
-for Alluxio admin who wants to customize Alluxio service, check
-[how to configure Alluxio clusters](#configure-alluxio-cluster).
+Alluxio can be configured by setting the values of supported  [configuration properties
+](Configuration-Properties.html). For a user who wants to customize how an application  (e.g., a
+Spark or MapReduce job) interacting with Alluxio, check [how to configure Alluxio
+applications](#configure- applications); for Alluxio admin who wants to customize Alluxio service,
+check [how to configure Alluxio clusters](#configure-alluxio-cluster).
 
 # Configure Applications
 
-Customizing how an application job interacts with Alluxio can be application specific. Here we
-provide recommendation for a few common applications, as well as an general solution.
+Customizing how an application job interacts with Alluxio service can be application specific. Here
+we provide recommendation for a few common applications.
 
 ## Alluxio Shell Commands
 
-Alluxio shell users can use JVM system property `-Dproperty=value` to specify an Alluxio property in commandline. For example, the following Alluxio shell command sets the write type to
+Alluxio shell users can use JVM system property `-Dproperty=value` to specify an Alluxio property
+in commandline. For example, the following Alluxio shell command sets the write type to
 `CACHE_THROUGH` when copying files to Alluxio:
 
 ```bash
 $ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
 ```
-
 
 ## Spark Jobs
 
@@ -44,34 +43,17 @@ $ spark-submit \
 ...
 ```
 
-
 ## Hadoop MapReduce Jobs
 
-Hadoop MapReduce users can add `"-Dproperty=value"` in `hadoop jar` command-lines. For example, the
-following MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
+Hadoop MapReduce users can add `"-Dproperty=value"` in `hadoop jar` or `yarn jar` command and the
+properties will be propagated to all the tasks of this job.  For example, the following MapReduce
+job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
 
 ```bash
 $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
 -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
 -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
 <INPUT FILES> <OUTPUT DIRECTORY>
-```
-
-
-## General Java Applications
-
-For a general application using Alluxio client, one can create a
-[Java property file](https://en.wikipedia.org/wiki/.properties) named
-`alluxio-site.properties` and append the directory of this property file to the application
-classpath. Note that, this requires the privilege to set application classpath before launching
-the application, and also to deploy the property file on every node running the application.
-
-For example one can make the following change for Spark or Hadoop cluster:
-
-```bash
-$ edit /path/alluxio-site.properties
-$ export SPARK_CLASSPATH=${SPARK_CLASSPATH}:/path # for Spark jobs
-$ export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/path # for Hadoop jobs
 ```
 
 # Configure Alluxio Cluster
@@ -92,11 +74,11 @@ and the classpath of the relevant Java VM process in order including `${ALLUXIO_
 
 ## Use Environment variables
 
-Alluxio supports a few basic and very frequently used configuration settings via the environment variables in
+Alluxio supports a few basic and but frequently used configuration settings via the environment variables in
 `conf/alluxio-env.sh`, including:
 
 <table class="table table-striped">
-<tr><th>Environment Variable</th><th>Meaning</th></tr>
+<tr><th>Environment Variable</th><th>Description</th></tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></td>
   <td>hostname of Alluxio master, defaults to localhost.</td>
@@ -152,11 +134,11 @@ Users can either set these variables through shell or in `conf/alluxio-env.sh`. 
 
 # Order of Configuration Sources
 
-If an Alluxio property is configured in potentially multiple sources, its value gets decided in the
-following order from the highest to the lowest:
+If an Alluxio property is configured in multiple sources, its value gets decided by the source in
+the following order from the highest to the lowest:
 
-1. [JVM System Properties (`-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
+1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
 2. [Environment variable](#use-environment-variables)
 3. [Property file](#use-site-property-files-recommended)
-4. [Default property value](Configuration-Parameters.html). If no above configuration
-sources is found, Alluxio runtime will fallback to the default configuration.
+4. [Default property value](Configuration-Propertiess.html). If no above user-specified
+configuration is found, Alluxio runtime will fallback to the default configuration values.

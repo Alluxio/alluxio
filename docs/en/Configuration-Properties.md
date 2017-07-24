@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Configuration Parameters
+title: Configuration Properties
 group: Resources
 priority: 1
 ---
@@ -20,7 +20,7 @@ Alluxio with cluster managers like Mesos and YARN), and
 The common configuration contains constants shared by different components.
 
 <table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.common-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -36,7 +36,7 @@ The master configuration specifies information regarding the master node, such a
 the port number.
 
 <table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.master-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -52,7 +52,7 @@ The worker configuration specifies information regarding the worker nodes, such 
 the port number.
 
 <table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.worker-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -62,13 +62,12 @@ the port number.
 {% endfor %}
 </table>
 
-
 ### User Configuration
 
 The user configuration specifies values regarding file system access.
 
 <table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.user-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -83,7 +82,7 @@ The user configuration specifies values regarding file system access.
 When running Alluxio with resource managers like Mesos and YARN, Alluxio has additional configuration options.
 
 <table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.cluster-management %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -98,7 +97,7 @@ When running Alluxio with resource managers like Mesos and YARN, Alluxio has add
 The security configuration specifies information regarding the security features, such as authentication and file permission. Settings for authentication take effect for master, worker, and user. Settings for file permission only take effect for master. See [Security](Security.html) for more information about security features.
 
 <table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.security-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
