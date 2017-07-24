@@ -54,11 +54,28 @@ ensure_dirs() {
   fi
 }
 
+locate_log_dirs() {
+  if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
+    if [[ -n "$(${BIN}/alluxio getConf alluxio.logs.dir)" ]]; then
+      ALLUXIO_LOGS_DIR=$(${BIN}/alluxio getConf alluxio.logs.dir)
+    else
+      ALLUXIO_HOME=$(dirname $(dirname "${this}"))
+      ALLUXIO_LOGS_DIR=${ALLUXIO_HOME}/logs
+    fi
+  fi
+  ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+  ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+  ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+  ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+  ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+}
+
 get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
   CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+  locate_log_dirs
 }
 
 # Pass ram folder to check as $1

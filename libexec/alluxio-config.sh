@@ -36,7 +36,6 @@ if [[ -z "${ALLUXIO_SYSTEM_INSTALLATION}" ]]; then
   ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
   ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
   ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
-  ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
 fi
 
 if [[ -z "$(which java)" ]]; then
@@ -59,10 +58,6 @@ fi
 
 if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
-fi
-
-if [[ -n "${ALLUXIO_LOGS_DIR}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
 
 if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then

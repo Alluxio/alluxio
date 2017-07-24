@@ -30,6 +30,14 @@ ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
 HOSTLIST=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
+if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
+  if [[ -n "$(${BIN}/alluxio getConf alluxio.logs.dir)" ]]; then
+    ALLUXIO_LOGS_DIR=$(${BIN}/alluxio getConf alluxio.logs.dir)
+  else
+    ALLUXIO_HOME=$(dirname $(dirname "${this}"))
+    ALLUXIO_LOGS_DIR=${ALLUXIO_HOME}/logs
+  fi
+fi
 mkdir -p "${ALLUXIO_LOGS_DIR}"
 ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
