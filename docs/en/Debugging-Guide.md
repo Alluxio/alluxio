@@ -172,7 +172,7 @@ HDFS deployment is connected and healthy for Alluxio to store journals when the 
 
 #### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
 
-A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-Alluxio storage
+A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
 (and tiered storage). If your workloads don't have any locality, you will not see tremendous performance boost.
 
 ## Environment

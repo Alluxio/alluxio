@@ -1338,7 +1338,7 @@ public final class FileSystemMasterTest {
   public void isFullyInMemory() throws Exception {
     // add nested file
     mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileOptions);
-    // add in-Alluxio block
+    // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     // add SSD block
@@ -1350,9 +1350,9 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(ROOT_FILE_URI);
     AlluxioURI nestedMemUri = NESTED_URI.join("mem_file");
     createFileWithSingleBlock(nestedMemUri);
-    Assert.assertEquals(2, mFileSystemMaster.getInMemoryFiles().size());
-    Assert.assertTrue(mFileSystemMaster.getInMemoryFiles().contains(ROOT_FILE_URI));
-    Assert.assertTrue(mFileSystemMaster.getInMemoryFiles().contains(nestedMemUri));
+    Assert.assertEquals(2, mFileSystemMaster.getInAlluxioFiles().size());
+    Assert.assertTrue(mFileSystemMaster.getInAlluxioFiles().contains(ROOT_FILE_URI));
+    Assert.assertTrue(mFileSystemMaster.getInAlluxioFiles().contains(nestedMemUri));
   }
 
   /**

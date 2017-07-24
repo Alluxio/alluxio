@@ -702,7 +702,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Inode<?> inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
-    fileInfo.setInMemoryPercentage(getInAlluxioPercentage(inode));
+    fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode instanceof InodeFile) {
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
@@ -943,7 +943,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // If the file is persisted, its length is determined by UFS. Otherwise, its length is
-    // determined by its memory footprint.
+    // determined by its size in Alluxio.
     long length = fileInode.isPersisted() ? options.getUfsLength() : inAlluxioLength;
 
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
@@ -1586,7 +1586,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     long inAlluxioLength = 0;
     for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
-      inAlluxioLength += info.getLength();
+      if (!info.getLocations().isEmpty()) {
+        inAlluxioLength += info.getLength();
+      }
     }
     return (int) (inAlluxioLength * 100 / length);
   }

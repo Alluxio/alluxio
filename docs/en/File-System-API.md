@@ -146,7 +146,7 @@ The REST API documentation is generated as part of Alluxio build and accessible 
 `${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`. In particular, the `paths`
 resource endpoints correspond to the `FileSystem` API endpoints. The main difference between
 the REST API and the Native API is in how streams are represented. While the native API
-can use in-Alluxio streams, the REST API decouples the stream creation and access (see the
+can use in-memory streams, the REST API decouples the stream creation and access (see the
 `create` and `open` REST API methods and the `streams` resource endpoints for details).
 
 The HTTP proxy is a standalone server that can be started using
