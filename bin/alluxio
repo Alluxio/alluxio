@@ -200,6 +200,10 @@ function main {
 
   PARAMETER=""
 
+  if [[ -z "${ALLUXIO_LOGS_DIR}" ]] && [[ ${COMMAND} != "getConf" ]]; then
+    ALLUXIO_LOGS_DIR=$(${BIN}/alluxio getConf alluxio.logs.dir)
+  fi
+
   case ${COMMAND} in
   "format")
     if [[ $# -eq 1 ]]; then
@@ -246,14 +250,6 @@ function main {
   "fs")
     CLASS="alluxio.cli.AlluxioShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
-      if [[ -n "$(${BIN}/alluxio getConf alluxio.logs.dir)" ]]; then
-        ALLUXIO_LOGS_DIR=$(${BIN}/alluxio getConf alluxio.logs.dir)
-      else
-        ALLUXIO_HOME=$(dirname $(dirname "${this}"))
-        ALLUXIO_LOGS_DIR=${ALLUXIO_HOME}/logs
-      fi
-    fi
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
     runJavaClass "$@"
   ;;
