@@ -201,11 +201,6 @@ function main {
 
   PARAMETER=""
 
-  # Check whether the command itself is "getConf" to avoid recursive calls
-  if [[ ${COMMAND} != "getConf" ]]; then
-    ALLUXIO_LOGS_DIR=$(${BIN}/alluxio getConf alluxio.logs.dir)
-  fi
-
   case ${COMMAND} in
   "format")
     if [[ $# -eq 1 ]]; then
@@ -252,7 +247,6 @@ function main {
   "fs")
     CLASS="alluxio.cli.AlluxioShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
     runJavaClass "$@"
   ;;
   "getConf")
