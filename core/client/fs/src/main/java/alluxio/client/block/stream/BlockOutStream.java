@@ -75,7 +75,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
       Protocol.WriteRequest writeRequestPartial =
           Protocol.WriteRequest.newBuilder().setId(blockId).setTier(options.getWriteTier())
               .setType(Protocol.RequestType.ALLUXIO_BLOCK).buildPartial();
-      LOG.info("Creating netty input stream for block {} @ {} from client {}", blockId, address,
+      LOG.info("Creating netty output stream for block {} @ {} from client {}", blockId, address,
           NetworkAddressUtils.getClientHostName());
       return createNettyBlockOutStream(context, address, blockSize, writeRequestPartial, options);
     }
