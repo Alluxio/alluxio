@@ -161,4 +161,4 @@ server process including master and worker searches `alluxio-site.properties` in
 remaining paths once this `alluxio-site.properties` file is found.
 
 If no above user-specified configuration is found for a property, Alluxio runtime will fallback to
-its [default property value](Configuration-Propertiess.html).
+its [default property value](Configuration-Properties.html).
