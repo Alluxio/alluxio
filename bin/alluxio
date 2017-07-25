@@ -201,6 +201,7 @@ function main {
 
   PARAMETER=""
 
+  # Check whether the command itself is "getConf" to avoid recursive calls
   if [[ ${COMMAND} != "getConf" ]]; then
     ALLUXIO_LOGS_DIR=$(${BIN}/alluxio getConf alluxio.logs.dir)
   fi
