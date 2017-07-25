@@ -91,7 +91,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    * @param options the out stream options
    * @return the {@link BlockOutStream} created
    */
-  protected static BlockOutStream createLocalBlockOutStream(FileSystemContext context,
+  private static BlockOutStream createLocalBlockOutStream(FileSystemContext context,
       WorkerNetAddress address, long id, long length, OutStreamOptions options) throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
     PacketWriter packetWriter =
@@ -109,7 +109,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    * @param options the out stream options
    * @return the {@link BlockOutStream} created
    */
-  protected static BlockOutStream createNettyBlockOutStream(FileSystemContext context,
+  private static BlockOutStream createNettyBlockOutStream(FileSystemContext context,
       WorkerNetAddress address, long length, Protocol.WriteRequest partialRequest,
       OutStreamOptions options) throws IOException {
     long packetSize =
