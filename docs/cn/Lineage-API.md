@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 世系关系（Lineage）客户端API（内测版）
-nickname: 世系关系（Lineage）API
+title: （实验版）世系关系（Lineage）客户端API
+nickname: （实验版）世系关系（Lineage）API
 group: Features
-priority: 2
+priority: 99
 ---
 
 * 内容列表
