@@ -702,6 +702,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Inode<?> inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
+    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode instanceof InodeFile) {
       try {
@@ -1519,6 +1520,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return getInAlluxioPercentage(inode) == 100;
   }
 
+  /**
+   * Returns whether the inodeFile is fully in memory or not. The file is fully in memory only if
+   * all the blocks of the file are in memory, in other words, the in-memory percentage is 100.
+   *
+   * @return true if the file is fully in Alluxio, false otherwise
+   */
+  private boolean isFullyInMemory(InodeFile inode) {
+    return getInMemoryPercentage(inode) == 100;
+  }
+
   @Override
   public List<AlluxioURI> getInAlluxioFiles() {
     List<AlluxioURI> files = new ArrayList<>();
@@ -1527,6 +1538,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     root.lockRead();
     try {
       getInAlluxioFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), files);
+    } finally {
+      root.unlockRead();
+    }
+    return files;
+  }
+
+  @Override
+  public List<AlluxioURI> getInMemoryFiles() {
+    List<AlluxioURI> files = new ArrayList<>();
+    Inode root = mInodeTree.getRoot();
+    // Root has no parent, lock directly.
+    root.lockRead();
+    try {
+      getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), files);
     } finally {
       root.unlockRead();
     }
@@ -1564,6 +1589,66 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     }
+  }
+
+  /**
+   * Adds in-memory files to the array list passed in. This method assumes the inode passed in is
+   * already read locked.
+   *
+   * @param inode the root of the subtree to search
+   * @param uri the uri of the parent of the inode
+   * @param files the list to accumulate the results in
+   */
+  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) {
+    AlluxioURI newUri = uri.join(inode.getName());
+    if (inode.isFile()) {
+      if (isFullyInMemory((InodeFile) inode)) {
+        files.add(newUri);
+      }
+    } else {
+      // This inode is a directory.
+      Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
+      for (Inode<?> child : children) {
+        try {
+          child.lockReadAndCheckParent(inode);
+        } catch (InvalidPathException e) {
+          // Inode is no longer part of this directory.
+          continue;
+        }
+        try {
+          getInMemoryFilesInternal(child, newUri, files);
+        } finally {
+          child.unlockRead();
+        }
+      }
+    }
+  }
+
+  /**
+   * Gets the in-memory percentage of an Inode. For a file that has all blocks in Alluxio, it
+   * returns 100; for a file that has no block in memory, it returns 0. Returns 0 for a directory.
+   *
+   * @param inode the inode
+   * @return the in memory percentage
+   */
+  private int getInMemoryPercentage(Inode<?> inode) {
+    if (!inode.isFile()) {
+      return 0;
+    }
+    InodeFile inodeFile = (InodeFile) inode;
+
+    long length = inodeFile.getLength();
+    if (length == 0) {
+      return 100;
+    }
+
+    long inMemoryLength = 0;
+    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+      if (isInTopStorageTier(info)) {
+        inMemoryLength += info.getLength();
+      }
+    }
+    return (int) (inMemoryLength * 100 / length);
   }
 
   /**

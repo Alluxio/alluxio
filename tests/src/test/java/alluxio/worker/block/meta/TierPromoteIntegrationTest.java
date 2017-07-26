@@ -110,7 +110,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // Not in memory but in Alluxio storage
-    Assert.assertEquals(0, mFileSystem.getStatus(path1).getInAlluxioPercentage());
+    Assert.assertEquals(0, mFileSystem.getStatus(path1).getInMemoryPercentage());
     Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
 
     // After reading with CACHE_PROMOTE, the file should be in memory
@@ -125,6 +125,6 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // In memory
-    Assert.assertEquals(100, mFileSystem.getStatus(path1).getInAlluxioPercentage());
+    Assert.assertEquals(100, mFileSystem.getStatus(path1).getInMemoryPercentage());
   }
 }

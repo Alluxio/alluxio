@@ -1350,9 +1350,9 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(ROOT_FILE_URI);
     AlluxioURI nestedMemUri = NESTED_URI.join("mem_file");
     createFileWithSingleBlock(nestedMemUri);
-    Assert.assertEquals(2, mFileSystemMaster.getInAlluxioFiles().size());
-    Assert.assertTrue(mFileSystemMaster.getInAlluxioFiles().contains(ROOT_FILE_URI));
-    Assert.assertTrue(mFileSystemMaster.getInAlluxioFiles().contains(nestedMemUri));
+    Assert.assertEquals(2, mFileSystemMaster.getInMemoryFiles().size());
+    Assert.assertTrue(mFileSystemMaster.getInMemoryFiles().contains(ROOT_FILE_URI));
+    Assert.assertTrue(mFileSystemMaster.getInMemoryFiles().contains(nestedMemUri));
   }
 
   /**

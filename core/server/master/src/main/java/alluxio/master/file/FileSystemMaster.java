@@ -264,6 +264,11 @@ public interface FileSystemMaster extends Master {
   List<AlluxioURI> getInAlluxioFiles();
 
   /**
+   * @return absolute paths of all in-memory files
+   */
+  List<AlluxioURI> getInMemoryFiles();
+
+  /**
    * Creates a directory for a given path.
    * <p>
    * This operation requires the client user to have WRITE permission on the parent of the path.

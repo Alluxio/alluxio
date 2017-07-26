@@ -69,8 +69,7 @@ You can stop Alluxio any time by running:
 
 ## Why is sudo privilege needed to start Alluxio on Linux?
 
-By default, Alluxio filesystem uses [RAMFS](https://www.kernel
-.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage. It turns out on MacOS, it is fine for Alluxio to mount a RAMFS without being a super user. However, on Linux, it requires sudo privileges to perform "mount" (and the followed "umount", "mkdir" and "chmod" operations). 
+By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage. It turns out on MacOS, it is fine for Alluxio to mount a RAMFS without being a super user. However, on Linux, it requires sudo privileges to perform "mount" (and the followed "umount", "mkdir" and "chmod" operations). 
 
 ## Can I still try Alluxio on Linux without sudo privileges?
 

@@ -103,7 +103,7 @@ struct FileInfo {
   11: bool cacheable
   12: bool persisted
   13: list<i64> blockIds
-  15: i32 inMemoryPercentage // deprecated (replaced by inAlluxioStorage)
+  15: i32 inMemoryPercentage // deprecated (replaced by inAlluxioPercentage)
   16: i64 lastModificationTimeMs
   17: i64 ttl
   18: string owner
