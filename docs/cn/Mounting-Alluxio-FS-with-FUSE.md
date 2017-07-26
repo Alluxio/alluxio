@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 使用FUSE挂载Alluxio (Beta)
-nickname: Alluxio-FUSE
+title: （实验版）使用FUSE挂载Alluxio
+nickname: （实验版）Alluxio-FUSE
 group: Features
-priority: 4
+priority: 99
 ---
 
 * 内容列表
