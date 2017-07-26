@@ -36,6 +36,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -65,61 +66,6 @@ final class BlockReadHandler extends AbstractReadHandler {
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
-   * The block read request internal representation. When this request is closed, it will clean
-   * up any temporary state it may have accumulated.
-   */
-  private final class BlockReadRequest extends AbstractReadRequest {
-    BlockReader mBlockReader;
-    Counter mCounter;
-    final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
-    final boolean mPromote;
-
-    /**
-     * Creates an instance of {@link BlockReadRequest}.
-     *
-     * @param request the block read request
-     */
-    BlockReadRequest(Protocol.ReadRequest request) throws Exception {
-      super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
-          request.getPacketSize());
-
-      if (request.hasOpenUfsBlockOptions()) {
-        mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
-      } else {
-        mOpenUfsBlockOptions = null;
-      }
-      mPromote = request.getPromote();
-      // Note that we do not need to seek to offset since the block worker is created at the offset.
-    }
-
-    /**
-     * @return true if the block is persisted in UFS
-     */
-    boolean isPersisted() {
-      return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
-    }
-
-    @Override
-    public void close() {
-      if (mBlockReader != null) {
-        try {
-          mBlockReader.close();
-        } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {} with error {}.", mId, e.getMessage());
-        }
-      }
-
-      try {
-        if (!mWorker.unlockBlock(mSessionId, mId)) {
-          mWorker.closeUfsBlock(mSessionId, mId);
-        }
-      } catch (Exception e) {
-        LOG.warn("Failed to unlock block {} with error {}.", mId, e.getMessage());
-      }
-    }
-  }
-
-  /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
    * @param executorService the executor service to run {@link PacketReader}s
@@ -134,15 +80,17 @@ final class BlockReadHandler extends AbstractReadHandler {
   }
 
   @Override
-  protected void initializeRequest(Protocol.ReadRequest request) throws Exception {
-    mRequest = new BlockReadRequest(request);
+  protected AbstractReadRequest createReadRequest(Protocol.ReadRequest request) throws Exception {
+    return new BlockReadRequest(request, mWorker);
   }
 
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
     openBlock(channel);
-    BlockReader blockReader = ((BlockReadRequest) mRequest).mBlockReader;
+    BlockReadRequest request = (BlockReadRequest) getRequest();
+    Preconditions.checkState(request != null);
 
+    BlockReader blockReader = request.getBlockReader();
     if (mTransferType == FileTransferType.TRANSFER
         && (blockReader instanceof LocalFileBlockReader)) {
       return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
@@ -167,8 +115,9 @@ final class BlockReadHandler extends AbstractReadHandler {
    * @throws Exception if it fails to open the block
    */
   private void openBlock(Channel channel) throws Exception {
-    BlockReadRequest request = (BlockReadRequest) mRequest;
-    if (request.mBlockReader != null) {
+    BlockReadRequest request = (BlockReadRequest) getRequest();
+    Preconditions.checkState(request != null);
+    if (request.getBlockReader() != null) {
       return;
     }
 
@@ -176,29 +125,31 @@ final class BlockReadHandler extends AbstractReadHandler {
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
     // TODO(calvin): Update the locking logic so this can be done better
-    if (request.mPromote) {
+    if (request.isPromote()) {
       try {
-        mWorker.moveBlock(request.mSessionId, request.mId, mStorageTierAssoc.getAlias(0));
+        mWorker.moveBlock(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0));
       } catch (BlockDoesNotExistException e) {
-        LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.mId, e.getMessage());
+        LOG.debug(
+            "Block {} to promote does not exist in Alluxio: {}", request.getId(), e.getMessage());
       } catch (Exception e) {
-        LOG.warn("Failed to promote block {}: {}", request.mId, e.getMessage());
+        LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
       }
     }
 
     do {
       long lockId;
       if (request.isPersisted()) {
-        lockId = mWorker.lockBlockNoException(request.mSessionId, request.mId);
+        lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
       } else {
-        lockId = mWorker.lockBlock(request.mSessionId, request.mId);
+        lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
       }
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
-          request.mBlockReader = mWorker.readBlockRemote(request.mSessionId, request.mId, lockId);
-          request.mCounter = MetricsSystem.workerCounter("BytesReadAlluxio");
-          mWorker.accessBlock(request.mSessionId, request.mId);
-          ((FileChannel) request.mBlockReader.getChannel()).position(request.mStart);
+          request.setBlockReader(
+              mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId));
+          request.setCounter(MetricsSystem.workerCounter("BytesReadAlluxio"));
+          mWorker.accessBlock(request.getSessionId(), request.getId());
+          ((FileChannel) request.getBlockReader().getChannel()).position(request.getStart());
           return;
         } catch (Exception e) {
           mWorker.unlockBlock(lockId);
@@ -207,19 +158,19 @@ final class BlockReadHandler extends AbstractReadHandler {
       }
 
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.mOpenUfsBlockOptions;
-      if (mWorker.openUfsBlock(request.mSessionId, request.mId, openUfsBlockOptions)) {
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
+      if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
         try {
-          request.mBlockReader = mWorker
-              .readUfsBlock(request.mSessionId, request.mId, request.mStart);
+          request.setBlockReader(mWorker
+              .readUfsBlock(request.getSessionId(), request.getId(), request.getStart()));
           AlluxioURI ufsMountPointUri =
-              ((UnderFileSystemBlockReader) request.mBlockReader).getUfsMountPointUri();
+              ((UnderFileSystemBlockReader) request.getBlockReader()).getUfsMountPointUri();
           String ufsString = MetricsSystem.escape(ufsMountPointUri);
           String metricName = String.format("BytesReadUfs-Ufs:%s", ufsString);
-          request.mCounter = MetricsSystem.workerCounter(metricName);
+          request.setCounter(MetricsSystem.workerCounter(metricName));
           return;
         } catch (Exception e) {
-          mWorker.closeUfsBlock(request.mSessionId, request.mId);
+          mWorker.closeUfsBlock(request.getSessionId(), request.getId());
           throw e;
         }
       }
@@ -232,15 +183,15 @@ final class BlockReadHandler extends AbstractReadHandler {
       channel.writeAndFlush(new RPCProtoMessage(heartbeat));
     } while (retryPolicy.attemptRetry());
     throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
-        .getMessage(request.mId, request.mOpenUfsBlockOptions.getUfsPath()));
+        .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
   }
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    Counter counter = ((BlockReadRequest) mRequest).mCounter;
-    if (counter == null) {
-      throw new IllegalStateException("metric counter is null");
-    }
+    BlockReadRequest request = (BlockReadRequest) getRequest();
+    Preconditions.checkState(request != null);
+    Counter counter = request.getCounter();
+    Preconditions.checkState(counter != null, "metric counter is null");
     counter.inc(bytesRead);
   }
 }

@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -138,7 +139,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
    * This is only created in the netty I/O thread when a read request is received, reset when
    * another request is received.
    */
-  protected volatile AbstractReadRequest mRequest;
+  private volatile AbstractReadRequest mRequest;
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
@@ -177,10 +178,10 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    initializeRequest(msg);
+    mRequest = createReadRequest(msg);
     try (LockResource lr = new LockResource(mLock)) {
-      mPosToQueue = mRequest.mStart;
-      mPosToWrite = mRequest.mStart;
+      mPosToQueue = mRequest.getStart();
+      mPosToWrite = mRequest.getStart();
 
       mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
       mPacketReaderActive = true;
@@ -189,8 +190,16 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    LOG.error("Exception caught {} in BlockReadDataServerHandler.", cause);
+    LOG.error("Exception caught {} in AbstractReadHandler.", cause);
     setError(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
+  }
+
+  /**
+   * @return the read request instance or null if no read request initialized
+   */
+  @Nullable
+  public AbstractReadRequest getRequest() {
+    return mRequest;
   }
 
   /**
@@ -198,7 +207,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
    */
   @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
-    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mRequest.mPacketSize;
+    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mRequest.getPacketSize();
   }
 
   /**
@@ -273,7 +282,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
    */
   private void reset() {
     try (LockResource lr = new LockResource(mLock)) {
-      Preconditions.checkState(mPacketReaderActive == false);
+      Preconditions.checkState(!mPacketReaderActive);
       mPosToQueue = 0;
       mPosToWrite = 0;
       mEof = false;
@@ -299,11 +308,11 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Initializes the handler for the given block read request.
-   *
    * @param request the block read request
+   * @return an instance of read request based on the request read from channel
    */
-  protected abstract void initializeRequest(Protocol.ReadRequest request) throws Exception;
+  protected abstract AbstractReadRequest createReadRequest(Protocol.ReadRequest request)
+      throws Exception;
 
   /**
    * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
@@ -346,7 +355,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
       }
 
       try (LockResource lr = new LockResource(mLock)) {
-        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= mRequest.mPacketSize,
+        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= mRequest.getPacketSize(),
             "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
         mPosToWrite = mPosToWriteUncommitted;
@@ -363,7 +372,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
      */
     @GuardedBy("mLock")
     private boolean shouldRestartPacketReader() {
-      return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.mEnd
+      return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.getEnd()
           && mError == null && !mCancel && !mEof;
     }
   }
@@ -411,7 +420,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
             break;
           }
 
-          packetSize = (int) Math.min(mRequest.mEnd - mPosToQueue, mRequest.mPacketSize);
+          packetSize = (int) Math.min(mRequest.getEnd() - mPosToQueue, mRequest.getPacketSize());
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
@@ -431,7 +440,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
           }
         }
         if (packet == null || packet.getLength() < packetSize
-            || start + packetSize == mRequest.mEnd) {
+            || start + packetSize == mRequest.getEnd()) {
           // This can happen if the requested read length is greater than the actual length of the
           // block or file starting from the given offset.
           setEof(mChannel);
