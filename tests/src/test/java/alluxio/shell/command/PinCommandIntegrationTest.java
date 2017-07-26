@@ -11,6 +11,10 @@
 
 package alluxio.shell.command;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
@@ -19,7 +23,6 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.shell.AbstractAlluxioShellTest;
 
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -43,19 +46,19 @@ public final class PinCommandIntegrationTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
 
     // Ensure that the file exists
-    Assert.assertTrue(fileExists(filePath));
+    assertTrue(fileExists(filePath));
 
     // Unpin an unpinned file
-    Assert.assertEquals(0, mFsShell.run("unpin", filePath.toString()));
-    Assert.assertFalse(mFileSystem.getStatus(filePath).isPinned());
+    assertEquals(0, mFsShell.run("unpin", filePath.toString()));
+    assertFalse(mFileSystem.getStatus(filePath).isPinned());
 
     // Pin the file
-    Assert.assertEquals(0, mFsShell.run("pin", filePath.toString()));
-    Assert.assertTrue(mFileSystem.getStatus(filePath).isPinned());
+    assertEquals(0, mFsShell.run("pin", filePath.toString()));
+    assertTrue(mFileSystem.getStatus(filePath).isPinned());
 
     // Unpin the file
-    Assert.assertEquals(0, mFsShell.run("unpin", filePath.toString()));
-    Assert.assertFalse(mFileSystem.getStatus(filePath).isPinned());
+    assertEquals(0, mFsShell.run("unpin", filePath.toString()));
+    assertFalse(mFileSystem.getStatus(filePath).isPinned());
   }
 
   /**
@@ -75,24 +78,24 @@ public final class PinCommandIntegrationTest extends AbstractAlluxioShellTest {
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WriteType.MUST_CACHE, fileSize);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(fileExists(filePathA));
-    Assert.assertEquals(0, mFsShell.run("pin", filePathA.toString()));
+    assertTrue(fileExists(filePathA));
+    assertEquals(0, mFsShell.run("pin", filePathA.toString()));
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathB, WriteType.MUST_CACHE, fileSize);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(fileExists(filePathB));
-    Assert.assertEquals(0, mFsShell.run("unpin", filePathB.toString()));
+    assertTrue(fileExists(filePathB));
+    assertEquals(0, mFsShell.run("unpin", filePathB.toString()));
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathC, WriteType.MUST_CACHE, fileSize);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(fileExists(filePathC));
+    assertTrue(fileExists(filePathC));
 
     // fileA is in memory because it is pinned, but fileB should have been evicted to hold fileC.
-    Assert.assertEquals(100, mFileSystem.getStatus(filePathA).getInMemoryPercentage());
-    Assert.assertEquals(0, mFileSystem.getStatus(filePathB).getInMemoryPercentage());
+    assertEquals(100, mFileSystem.getStatus(filePathA).getInMemoryPercentage());
+    assertEquals(0, mFileSystem.getStatus(filePathB).getInMemoryPercentage());
     // fileC should be in memory because fileB is evicted.
-    Assert.assertEquals(100, mFileSystem.getStatus(filePathC).getInMemoryPercentage());
+    assertEquals(100, mFileSystem.getStatus(filePathC).getInMemoryPercentage());
   }
 }
