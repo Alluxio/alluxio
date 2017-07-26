@@ -21,7 +21,6 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
-import alluxio.util.IdUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -32,7 +31,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
@@ -140,23 +138,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
    * This is only created in the netty I/O thread when a read request is received, reset when
    * another request is received.
    */
-  protected volatile ReadRequestInternal mRequest;
-
-  abstract class ReadRequestInternal implements Closeable {
-    final long mId;
-    final long mStart;
-    final long mEnd;
-    final long mPacketSize;
-    final long mSessionId;
-
-    ReadRequestInternal(long id, long start, long end, long packetSize) {
-      mId = id;
-      mStart = start;
-      mEnd = end;
-      mPacketSize = packetSize;
-      mSessionId = IdUtils.createSessionId();
-    }
-  }
+  protected volatile AbstractReadRequest mRequest;
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.

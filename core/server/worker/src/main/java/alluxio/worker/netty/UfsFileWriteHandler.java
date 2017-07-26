@@ -45,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 final class UfsFileWriteHandler extends AbstractWriteHandler {
   private final UfsManager mUfsManager;
 
-  private class FileWriteRequestInternal extends WriteRequestInternal {
+  private class FileWriteRequestInternal extends AbstractWriteRequest {
     private final String mUfsPath;
     private final Protocol.WriteRequest mWriteRequest;
 

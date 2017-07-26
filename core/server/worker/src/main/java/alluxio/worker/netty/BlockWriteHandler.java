@@ -48,11 +48,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler {
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private long mBytesReserved = 0;
 
-  private class BlockWriteRequestInternal extends WriteRequestInternal {
+  private class BlockWriteRequest extends AbstractWriteRequest {
     BlockWriter mBlockWriter;
     Counter mCounter;
 
-    BlockWriteRequestInternal(Protocol.WriteRequest request) throws Exception {
+    BlockWriteRequest(Protocol.WriteRequest request) throws Exception {
       super(request.getId());
       Preconditions.checkState(request.getOffset() == 0);
       mWorker.createBlockRemote(mSessionId, mId, mStorageTierAssoc.getAlias(request.getTier()),
@@ -119,7 +119,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler {
     super.initializeRequest(msg);
     if (mRequest == null) {
       Protocol.WriteRequest request = (msg.getMessage()).asWriteRequest();
-      mRequest = new BlockWriteRequestInternal(request);
+      mRequest = new BlockWriteRequest(request);
     }
   }
 
@@ -131,7 +131,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler {
       mWorker.requestSpace(mRequest.mSessionId, mRequest.mId, bytesToReserve);
       mBytesReserved += bytesToReserve;
     }
-    BlockWriteRequestInternal request = (BlockWriteRequestInternal) mRequest;
+    BlockWriteRequest request = (BlockWriteRequest) mRequest;
     if (request.mBlockWriter == null) {
       request.mBlockWriter = mWorker.getTempBlockWriterRemote(request.mSessionId, request.mId);
       request.mCounter = MetricsSystem.workerCounter("BytesWrittenAlluxio");
@@ -143,7 +143,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler {
 
   @Override
   protected void incrementMetrics(long bytesWritten) {
-    Counter counter = ((BlockWriteRequestInternal) mRequest).mCounter;
+    Counter counter = ((BlockWriteRequest) mRequest).mCounter;
     if (counter == null) {
       throw new IllegalStateException("metric counter is null");
     }

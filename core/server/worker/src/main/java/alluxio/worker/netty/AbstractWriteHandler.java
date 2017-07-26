@@ -21,7 +21,6 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
-import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.base.Preconditions;
@@ -133,36 +132,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    * from any thread (not such usage in the code now). It is destroyed when the write request is
    * done (complete or cancel) or an error is seen.
    */
-  protected volatile WriteRequestInternal mRequest;
-
-  abstract class WriteRequestInternal {
-    /** This ID can either be block ID or temp UFS file ID. */
-    final long mId;
-    /** The session id associated with all temporary resources of this request. */
-    final long mSessionId;
-
-    WriteRequestInternal(long id) {
-      mId = id;
-      mSessionId = IdUtils.createSessionId();
-    }
-
-    /**
-     * Closes the request.
-     *
-     * @param channel the channel
-     */
-    abstract void close(Channel channel) throws IOException;
-
-    /**
-     * Cancels the request.
-     */
-    abstract void cancel() throws IOException;
-
-    /**
-     * Cleans up the state.
-     */
-    abstract void cleanup() throws IOException;
-  }
+  protected volatile AbstractWriteRequest mRequest;
 
   /**
    * The next pos to queue to the buffer. This is only updated and used by the netty I/O thread.

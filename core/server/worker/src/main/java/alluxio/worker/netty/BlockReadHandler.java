@@ -68,18 +68,18 @@ final class BlockReadHandler extends AbstractReadHandler {
    * The block read request internal representation. When this request is closed, it will clean
    * up any temporary state it may have accumulated.
    */
-  private final class BlockReadRequestInternal extends ReadRequestInternal {
+  private final class BlockReadRequest extends AbstractReadRequest {
     BlockReader mBlockReader;
     Counter mCounter;
     final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     final boolean mPromote;
 
     /**
-     * Creates an instance of {@link BlockReadRequestInternal}.
+     * Creates an instance of {@link BlockReadRequest}.
      *
      * @param request the block read request
      */
-    BlockReadRequestInternal(Protocol.ReadRequest request) throws Exception {
+    BlockReadRequest(Protocol.ReadRequest request) throws Exception {
       super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
           request.getPacketSize());
 
@@ -135,13 +135,13 @@ final class BlockReadHandler extends AbstractReadHandler {
 
   @Override
   protected void initializeRequest(Protocol.ReadRequest request) throws Exception {
-    mRequest = new BlockReadRequestInternal(request);
+    mRequest = new BlockReadRequest(request);
   }
 
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
     openBlock(channel);
-    BlockReader blockReader = ((BlockReadRequestInternal) mRequest).mBlockReader;
+    BlockReader blockReader = ((BlockReadRequest) mRequest).mBlockReader;
 
     if (mTransferType == FileTransferType.TRANSFER
         && (blockReader instanceof LocalFileBlockReader)) {
@@ -167,7 +167,7 @@ final class BlockReadHandler extends AbstractReadHandler {
    * @throws Exception if it fails to open the block
    */
   private void openBlock(Channel channel) throws Exception {
-    BlockReadRequestInternal request = (BlockReadRequestInternal) mRequest;
+    BlockReadRequest request = (BlockReadRequest) mRequest;
     if (request.mBlockReader != null) {
       return;
     }
@@ -237,7 +237,7 @@ final class BlockReadHandler extends AbstractReadHandler {
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    Counter counter = ((BlockReadRequestInternal) mRequest).mCounter;
+    Counter counter = ((BlockReadRequest) mRequest).mCounter;
     if (counter == null) {
       throw new IllegalStateException("metric counter is null");
     }
