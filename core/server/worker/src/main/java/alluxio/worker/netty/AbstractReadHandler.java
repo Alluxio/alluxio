@@ -58,11 +58,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 2. The packet reader thread keeps reading from the file and writes to netty. Before reading a
  *    new packet, it checks whether there are notifications (e.g. cancel, error), if
  *    there is, handle them properly. See more information about the notifications in the javadoc
- *    of {@link DataServerReadHandler#mCancel#mEof#mError}.
+ *    of {@link AbstractReadHandler#mCancel#mEof#mError}.
  */
 @NotThreadSafe
-abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
-  private static final Logger LOG = LoggerFactory.getLogger(DataServerReadHandler.class);
+abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 
   private static final long MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
@@ -159,11 +159,11 @@ abstract class DataServerReadHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Creates an instance of {@link DataServerReadHandler}.
+   * Creates an instance of {@link AbstractReadHandler}.
    *
    * @param executorService the executor service to run {@link PacketReader}s
    */
-  DataServerReadHandler(ExecutorService executorService) {
+  AbstractReadHandler(ExecutorService executorService) {
     mPacketReaderExecutor = executorService;
   }
 

@@ -35,10 +35,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This handler handles block write request. Check more information in
- * {@link DataServerWriteHandler}.
+ * {@link AbstractWriteHandler}.
  */
 @NotThreadSafe
-public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
+public final class BlockWriteHandler extends AbstractWriteHandler {
   private static final long FILE_BUFFER_SIZE = Configuration.getBytes(
       PropertyKey.WORKER_FILE_BUFFER_SIZE);
 
@@ -91,12 +91,12 @@ public final class DataServerBlockWriteHandler extends DataServerWriteHandler {
   }
 
   /**
-   * Creates an instance of {@link DataServerBlockWriteHandler}.
+   * Creates an instance of {@link BlockWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
    * @param blockWorker the block worker
    */
-  DataServerBlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
+  BlockWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
     super(executorService);
     mWorker = blockWorker;
   }

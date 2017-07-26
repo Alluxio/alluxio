@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * Unit tests for {@link DataServerWriteHandler}.
+ * Unit tests for {@link AbstractWriteHandler}.
  */
 public abstract class DataServerWriteHandlerTest {
   protected static final int PACKET_SIZE = 1024;

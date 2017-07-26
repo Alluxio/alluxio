@@ -11,63 +11,57 @@
 
 package alluxio.worker.netty;
 
-import alluxio.AlluxioURI;
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 
-import com.google.common.base.Suppliers;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.embedded.EmbeddedChannel;
-import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.util.Random;
 
 /**
- * Unit tests for {@link DataServerUfsFileWriteHandler}.
+ * Unit tests for {@link BlockWriteHandler}.
  */
-public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHandlerTest {
+public final class BlockWriteHandlerTest extends DataServerWriteHandlerTest {
   private final Random mRandom = new Random();
 
-  private OutputStream mOutputStream;
+  private BlockWorker mBlockWorker;
+  private BlockWriter mBlockWriter;
 
   @Before
   public void before() throws Exception {
+    mBlockWorker = Mockito.mock(BlockWorker.class);
+    Mockito.doNothing().when(mBlockWorker)
+        .createBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(),
+            Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker)
+        .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
     mFile = mTestFolder.newFile().getPath();
-    mOutputStream = new FileOutputStream(mFile);
+    mBlockWriter = new LocalFileBlockWriter(mFile);
+    Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
+        .thenReturn(mBlockWriter);
     mChecksum = 0;
 
-    UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
-    UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    UfsInfo ufsInfo = new UfsInfo(Suppliers.ofInstance(mockUfs), AlluxioURI.EMPTY_URI);
-    Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
-    Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
-        .thenReturn(mOutputStream);
-
     mChannel = new EmbeddedChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
+        new BlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
     mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
-  }
-
-  @After
-  public void after() throws Exception {
-    mOutputStream.close();
+        new BlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
   }
 
   /**
@@ -76,20 +70,18 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
   @Test
   public void writeFailure() throws Exception {
     mChannelNoException.writeInbound(buildWriteRequest(0, PACKET_SIZE));
-    mOutputStream.close();
+    mBlockWriter.close();
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
-    checkWriteResponse(writeResponse, PStatus.UNKNOWN);
+    Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
+    checkWriteResponse(writeResponse, PStatus.FAILED_PRECONDITION);
   }
 
   @Override
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
-    Protocol.CreateUfsFileOptions createUfsFileOptions = Protocol.CreateUfsFileOptions.newBuilder()
-        .setUfsPath("/test").setOwner("owner").setGroup("group").setMode(0).build();
     Protocol.WriteRequest writeRequest =
         Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
-            .setCreateUfsFileOptions(createUfsFileOptions).setType(Protocol.RequestType.UFS_FILE)
-            .build();
+            .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
     DataBuffer buffer = null;
     if (len > 0) {
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len);

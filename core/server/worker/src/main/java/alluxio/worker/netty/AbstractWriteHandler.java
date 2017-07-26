@@ -66,8 +66,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    NOTE: it is guaranteed that there is only one packet writer thread active at a given time.
  */
 @NotThreadSafe
-abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
-  private static final Logger LOG = LoggerFactory.getLogger(DataServerWriteHandler.class);
+abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
 
   private static final int MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
@@ -127,7 +127,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
 
   /**
    * mRequest is initialized only once for a whole file or block in
-   * {@link DataServerReadHandler#channelRead(ChannelHandlerContext, Object)}.
+   * {@link AbstractReadHandler#channelRead(ChannelHandlerContext, Object)}.
    * After that, it should only be used by the packet writer thread.
    * It is safe to read those final primitive fields (e.g. mId, mSessionId) if mError is not set
    * from any thread (not such usage in the code now). It is destroyed when the write request is
@@ -175,11 +175,11 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   protected volatile long mPosToWrite;
 
   /**
-   * Creates an instance of {@link DataServerWriteHandler}.
+   * Creates an instance of {@link AbstractWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
    */
-  DataServerWriteHandler(ExecutorService executorService) {
+  AbstractWriteHandler(ExecutorService executorService) {
     mPacketWriterExecutor = executorService;
   }
 
@@ -316,7 +316,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
             cancel = buf == CANCEL;
             // mError is checked here so that we can override EOF and CANCEL if error happens
             // after we receive EOF or CANCEL signal.
-            // TODO(peis): Move to the pattern used in DataServerReadHandler to avoid
+            // TODO(peis): Move to the pattern used in AbstractReadHandler to avoid
             // using special packets.
             abort = mError != null;
             mPacketWriterActive = false;
@@ -442,7 +442,7 @@ abstract class DataServerWriteHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Pushes {@link DataServerWriteHandler#ABORT} to the buffer if there has been no error so far.
+   * Pushes {@link AbstractWriteHandler#ABORT} to the buffer if there has been no error so far.
    *
    * @param channel the channel
    * @param error the error

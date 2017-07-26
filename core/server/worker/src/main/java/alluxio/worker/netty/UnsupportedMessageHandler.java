@@ -29,11 +29,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ChannelHandler.Sharable
 @ThreadSafe
-public class DataServerUnsupportedMessageHandler extends ChannelInboundHandlerAdapter {
+public class UnsupportedMessageHandler extends ChannelInboundHandlerAdapter {
   /**
    * Constructs a new unsupported message handler.
    */
-  public DataServerUnsupportedMessageHandler() {}
+  public UnsupportedMessageHandler() {}
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {

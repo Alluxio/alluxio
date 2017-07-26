@@ -36,13 +36,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * the under file system. This prevents us from handling the writes at a block level.
  *
  * For more information about the implementation of read/write buffering, see
- * {@link DataServerWriteHandler}.
+ * {@link AbstractWriteHandler}.
  *
  * For more information about the implementation of the client side writer, see
  * UnderFileSystemFileOutStream.
  */
 @NotThreadSafe
-final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
+final class UfsFileWriteHandler extends AbstractWriteHandler {
   private final UfsManager mUfsManager;
 
   private class FileWriteRequestInternal extends WriteRequestInternal {
@@ -87,12 +87,12 @@ final class DataServerUfsFileWriteHandler extends DataServerWriteHandler {
   }
 
   /**
-   * Creates an instance of {@link DataServerUfsFileWriteHandler}.
+   * Creates an instance of {@link UfsFileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
    * @param ufsManager the file data manager
    */
-  DataServerUfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
+  UfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
     super(executorService);
     mUfsManager = ufsManager;
   }

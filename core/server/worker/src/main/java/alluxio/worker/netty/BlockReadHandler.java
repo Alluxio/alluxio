@@ -49,11 +49,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This handler handles block read request. Check more information in
- * {@link DataServerReadHandler}.
+ * {@link AbstractReadHandler}.
  */
 @NotThreadSafe
-final class DataServerBlockReadHandler extends DataServerReadHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(DataServerBlockReadHandler.class);
+final class BlockReadHandler extends AbstractReadHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS = Configuration.getMs(
       PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
@@ -120,13 +120,13 @@ final class DataServerBlockReadHandler extends DataServerReadHandler {
   }
 
   /**
-   * Creates an instance of {@link DataServerReadHandler}.
+   * Creates an instance of {@link AbstractReadHandler}.
    *
    * @param executorService the executor service to run {@link PacketReader}s
    * @param blockWorker the block worker
    * @param fileTransferType the file transfer type
    */
-  public DataServerBlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
+  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
       FileTransferType fileTransferType) {
     super(executorService);
     mWorker = blockWorker;
