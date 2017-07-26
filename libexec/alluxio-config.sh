@@ -25,18 +25,13 @@ script=$(basename "${this}")
 config_bin=$(cd "${config_bin}"; pwd)
 this="${config_bin}/${script}"
 
-# Allow for a script which overrides the default settings for system integration folks.
-[[ -f "${common_bin}/alluxio-layout.sh" ]] && . "${common_bin}/alluxio-layout.sh"
-
-# This will set the default installation for a tarball installation while os distributors can create
-# their own alluxio-layout.sh file to set system installation locations.
-if [[ -z "${ALLUXIO_SYSTEM_INSTALLATION}" ]]; then
-  VERSION=1.6.0-SNAPSHOT
-  ALLUXIO_HOME=$(dirname $(dirname "${this}"))
-  ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
-  ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
-  ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
-fi
+# This will set the default installation for a tarball installation while os distributors can
+# set system installation locations.
+VERSION=1.6.0-SNAPSHOT
+ALLUXIO_HOME=$(dirname $(dirname "${this}"))
+ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
+ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
+ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
 
 if [[ -z "$(which java)" ]]; then
   echo "Cannot find the 'java' command."
@@ -92,9 +87,8 @@ ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_AS
 ## Start reading site-properties to set certain variables.
 ####################################################################################################
 function getConf {
-  CLASS="alluxio.cli.GetConf"
-  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-  "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} "$1"
+  local jclass="alluxio.cli.GetConf"
+  "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console ${jclass} "$1"
 }
 
 if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
