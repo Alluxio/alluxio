@@ -23,6 +23,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
@@ -40,6 +41,7 @@ import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -132,7 +134,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    * from any thread (not such usage in the code now). It is destroyed when the write request is
    * done (complete or cancel) or an error is seen.
    */
-  protected volatile AbstractWriteRequest mRequest;
+  private volatile AbstractWriteRequest mRequest;
 
   /**
    * The next pos to queue to the buffer. This is only updated and used by the netty I/O thread.
@@ -164,7 +166,9 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
     Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
     // Only initialize (open the readers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
-      initializeRequest(msg);
+      Preconditions.checkState(mRequest == null);
+      mPosToQueue = 0;
+      mRequest = createWriteRequest(msg);
     }
 
     // Validate the write request.
@@ -219,6 +223,14 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
   public void channelUnregistered(ChannelHandlerContext ctx) {
     pushAbortPacket(ctx.channel(), new Error(new InternalException("channel unregistered"), false));
     ctx.fireChannelUnregistered();
+  }
+
+  /**
+   * @return the write request instance or null if no write request initialized
+   */
+  @Nullable
+  public AbstractWriteRequest getRequest() {
+    return mRequest;
   }
 
   /**
@@ -461,11 +473,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    *
    * @param msg the block write request
    */
-  protected void initializeRequest(RPCProtoMessage msg) throws Exception {
-    Preconditions.checkState(mRequest == null);
-    mPosToQueue = 0;
-    Preconditions.checkState(mPosToWrite == 0);
-  }
+  protected abstract AbstractWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception;
 
   /**
    * Writes the buffer.
@@ -479,5 +487,10 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
   /**
    * @param bytesWritten bytes written
    */
-  protected abstract void incrementMetrics(long bytesWritten);
+  private void incrementMetrics(long bytesWritten) {
+    Preconditions.checkState(mRequest != null);
+    Counter counter = mRequest.getCounter();
+    Preconditions.checkState(counter != null);
+    counter.inc(bytesWritten);
+  }
 }

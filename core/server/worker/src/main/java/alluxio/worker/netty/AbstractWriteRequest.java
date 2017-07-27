@@ -13,22 +13,58 @@ package alluxio.worker.netty;
 
 import alluxio.util.IdUtils;
 
+import com.codahale.metrics.Counter;
 import io.netty.channel.Channel;
 
 import java.io.IOException;
+
+import javax.annotation.Nullable;
 
 /**
  * Represents the write request received from netty channel.
  */
 abstract class AbstractWriteRequest {
   /** This ID can either be block ID or temp UFS file ID. */
-  final long mId;
+  private final long mId;
+
   /** The session id associated with all temporary resources of this request. */
-  final long mSessionId;
+  private final long mSessionId;
+  private Counter mCounter;
 
   AbstractWriteRequest(long id) {
     mId = id;
     mSessionId = IdUtils.createSessionId();
+  }
+
+  /**
+   * @return the block ID or the temp UFS file ID
+   */
+  public long getId() {
+    return mId;
+  }
+
+  /**
+   * @return the session ID
+   */
+  public long getSessionId() {
+    return mSessionId;
+  }
+
+  /**
+   * @return the counter
+   */
+  @Nullable
+  public Counter getCounter() {
+    return mCounter;
+  }
+
+  /**
+   * Sets the counter.
+   *
+   * @param counter counter to set
+   */
+  public void setCounter(Counter counter) {
+    mCounter = counter;
   }
 
   /**
