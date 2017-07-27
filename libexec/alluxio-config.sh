@@ -55,6 +55,8 @@ if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
 fi
 
+ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR}"
+
 if [[ -n "${ALLUXIO_LOGS_DIR}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
@@ -92,8 +94,8 @@ function getConf {
 }
 
 if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
-    ALLUXIO_LOGS_DIR=$(getConf "alluxio.logs.dir")
-    ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+  ALLUXIO_LOGS_DIR=$(getConf "alluxio.logs.dir")
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
 ####################################################################################################
 ## End reading site-properties
