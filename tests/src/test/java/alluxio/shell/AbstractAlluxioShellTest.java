@@ -11,16 +11,18 @@
 
 package alluxio.shell;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.AlluxioURI;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.Constants;
+import alluxio.BaseIntegrationTest;
+import alluxio.SystemOutRule;
 import alluxio.cli.AlluxioShell;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
@@ -34,19 +36,19 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  * The base class for all the {@link AlluxioShell} test classes.
  */
-public abstract class AbstractAlluxioShellTest {
-  protected static final int SIZE_BYTES = Constants.MB * 10;
+public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
+  protected static final int SIZE_BYTES = Constants.MB * 16;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
@@ -56,17 +58,17 @@ public abstract class AbstractAlluxioShellTest {
   protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected AlluxioShell mFsShell = null;
-  protected ByteArrayOutputStream mOutput = null;
-  protected PrintStream mNewOutput = null;
-  protected PrintStream mOldOutput = null;
+  protected ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
 
+  @Rule
+  public SystemOutRule mOutRule = new SystemOutRule(mOutput);
+
   @After
   public final void after() throws Exception {
     mFsShell.close();
-    System.setOut(mOldOutput);
   }
 
   @Before
@@ -75,10 +77,6 @@ public abstract class AbstractAlluxioShellTest {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
     mFsShell = new AlluxioShell();
-    mOutput = new ByteArrayOutputStream();
-    mNewOutput = new PrintStream(mOutput);
-    mOldOutput = System.out;
-    System.setOut(mNewOutput);
   }
 
   /**
@@ -86,7 +84,7 @@ public abstract class AbstractAlluxioShellTest {
    *
    * @param bytes file size
    */
-  protected void copyToLocalWithBytes(int bytes) throws IOException {
+  protected void copyToLocalWithBytes(int bytes) throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
@@ -110,9 +108,35 @@ public abstract class AbstractAlluxioShellTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, read));
   }
 
+  /**
+   * Creates file by given path and writes content to file.
+   *
+   * @param path the file path
+   * @param toWrite the file content
+   * @return the created file instance
+   * @throws FileNotFoundException if file not found
+   */
   protected File generateFileContent(String path, byte[] toWrite) throws IOException,
       FileNotFoundException {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + path);
+    testFile.createNewFile();
+    FileOutputStream fos = new FileOutputStream(testFile);
+    fos.write(toWrite);
+    fos.close();
+    return testFile;
+  }
+
+  /**
+   * Creates file by given the temporary path and writes content to file.
+   *
+   * @param path the file path
+   * @param toWrite the file content
+   * @return the created file instance
+   * @throws FileNotFoundException if file not found
+   */
+  protected File generateRelativeFileContent(String path, byte[] toWrite) throws IOException,
+      FileNotFoundException {
+    File testFile = new File(path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     fos.write(toWrite);
@@ -126,6 +150,7 @@ public abstract class AbstractAlluxioShellTest {
    * @param command a shell command
    * @return the output string
    */
+  @Nullable
   protected String getCommandOutput(String[] command) {
     String cmd = command[0];
     if (command.length == 2) {
@@ -176,14 +201,29 @@ public abstract class AbstractAlluxioShellTest {
     return null;
   }
 
+  /**
+   * Resets the singleton {@link alluxio.security.LoginUser} to null.
+   */
   protected void clearLoginUser() {
     LoginUserTestUtils.resetLoginUser();
   }
 
+  /**
+   * Clears the {@link alluxio.security.LoginUser} and logs in with new user.
+   *
+   * @param user the new user
+   */
   protected void clearAndLogin(String user) throws IOException {
     LoginUserTestUtils.resetLoginUser(user);
   }
 
+  /**
+   * Reads content from the file that the uri points to.
+   *
+   * @param uri the path of the file to read
+   * @param length the length of content to read
+   * @return the content that has been read
+   */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
     try (FileInStream tfis = mFileSystem
         .openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
@@ -193,10 +233,18 @@ public abstract class AbstractAlluxioShellTest {
     }
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file is in memory
+   */
   protected boolean isInMemoryTest(String path) throws IOException, AlluxioException {
     return (mFileSystem.getStatus(new AlluxioURI(path)).getInMemoryPercentage() == 100);
   }
 
+  /**
+   * @param path a file path
+   * @return whether the file exists
+   */
   protected boolean fileExists(AlluxioURI path) {
     try {
       return mFileSystem.exists(path);
@@ -222,5 +270,19 @@ public abstract class AbstractAlluxioShellTest {
       tfis.read(actual);
       Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
     }
+  }
+
+  /**
+   * Verifies the return value and output of executing command meet expectations.
+   *
+   * @param expectedReturnValue the expected return value
+   * @param expectedOutput the expected output string
+   * @param command command to execute
+   */
+  protected void verifyCommandReturnValueAndOutput(int expectedReturnValue, String expectedOutput,
+      String... command) {
+    int ret = mFsShell.run(command);
+    Assert.assertEquals(expectedReturnValue, ret);
+    Assert.assertTrue(mOutput.toString().contains(expectedOutput));
   }
 }

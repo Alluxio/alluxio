@@ -13,8 +13,9 @@ package alluxio.hadoop.fs;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.hadoop.ConfUtils;
+import alluxio.BaseIntegrationTest;
 import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopConfigurationUtils;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
@@ -43,6 +44,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.DataInputStream;
@@ -84,7 +86,7 @@ import java.util.StringTokenizer;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
-public class DFSIOIntegrationTest implements Tool {
+public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   // Constants for DFSIOIntegrationTest
   private static final Logger LOG = LoggerFactory.getLogger(DFSIOIntegrationTest.class);
 
@@ -115,6 +117,9 @@ public class DFSIOIntegrationTest implements Tool {
     org.apache.hadoop.conf.Configuration.addDefaultResource("mapred-site.xml");
   }
 
+  /**
+   * Represents different types of tests.
+   */
   private enum TestType {
     TEST_TYPE_READ("read"), TEST_TYPE_WRITE("write"), TEST_TYPE_CLEANUP("cleanup"),
         TEST_TYPE_APPEND("append"), TEST_TYPE_READ_RANDOM("random read"),
@@ -219,7 +224,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.getConf().set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
 
     // Store Alluxio configuration in Hadoop configuration
-    ConfUtils.storeToHadoopConfiguration(sBench.getConf());
+    HadoopConfigurationUtils.storeToHadoopConfiguration(sBench.getConf());
 
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
@@ -239,7 +244,6 @@ public class DFSIOIntegrationTest implements Tool {
 
   /**
    * Writes into files, then calculates and collects the write test statistics.
-   * @throws Exception if has error
    */
   public static void writeTest() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
@@ -677,6 +681,11 @@ public class DFSIOIntegrationTest implements Tool {
     ioer.close();
   }
 
+  /**
+   * Runs the integration test for DFS IO.
+   *
+   * @param args arguments
+   */
   public static void main(String[] args) {
     DFSIOIntegrationTest bench = new DFSIOIntegrationTest();
     int res;
@@ -922,6 +931,7 @@ public class DFSIOIntegrationTest implements Tool {
     analyzeResult(fs, testType, execTime, DEFAULT_RES_FILE_NAME);
   }
 
+  @Nullable
   private Path getReduceFilePath(TestType testType) {
     switch (testType) {
       case TEST_TYPE_WRITE:

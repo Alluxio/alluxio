@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link SetAttributeOptions}.
  */
-public class SetAttributeOptionsTest {
+public final class SetAttributeOptionsTest {
   /**
    * Tests the {@link SetAttributeOptions#defaults()} method.
    */

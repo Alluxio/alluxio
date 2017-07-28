@@ -11,18 +11,18 @@
 
 package alluxio.wire;
 
-import alluxio.underfs.UnderFileSystem;
-
 import com.google.common.base.Objects;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * The mount point information.
  */
+@NotThreadSafe
 public class MountPointInfo implements Serializable {
   private static final long serialVersionUID = -2912330427506888886L;
 
@@ -41,6 +41,21 @@ public class MountPointInfo implements Serializable {
    * Creates a new instance of {@link MountPointInfo}.
    */
   public MountPointInfo() {}
+
+  /**
+   * Creates a new instance of {@link MountPointInfo} from thrift representation.
+   *
+   * @param mountPointInfo the thrift representation of a mount point information
+   */
+  protected MountPointInfo(alluxio.thrift.MountPointInfo mountPointInfo) {
+    mUfsUri = mountPointInfo.getUfsUri();
+    mUfsType = mountPointInfo.getUfsType();
+    mUfsCapacityBytes = mountPointInfo.getUfsCapacityBytes();
+    mUfsUsedBytes = mountPointInfo.getUfsUsedBytes();
+    mReadOnly = mountPointInfo.isReadOnly();
+    mProperties = new HashMap<>(mountPointInfo.getProperties());
+    mShared = mountPointInfo.isShared();
+  }
 
   /**
    * @return the uri of the under filesystem
@@ -155,24 +170,11 @@ public class MountPointInfo implements Serializable {
   }
 
   /**
-   * Sets information related to under filesystem, including its uri, type, storage usage.
-   *
-   * @param ufsUri the under filesystem uri
+   * @return thrift representation of the file information
    */
-  public void setUfsInfo(String ufsUri) {
-    mUfsUri = ufsUri;
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsUri);
-    mUfsType = ufs.getUnderFSType();
-    try {
-      mUfsCapacityBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_TOTAL);
-    } catch (IOException e) {
-      mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
-    }
-    try {
-      mUfsUsedBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_USED);
-    } catch (IOException e) {
-      mUfsUsedBytes = UNKNOWN_USED_BYTES;
-    }
+  protected alluxio.thrift.MountPointInfo toThrift() {
+    return new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
+        mReadOnly, mProperties, mShared);
   }
 
   @Override

@@ -12,18 +12,13 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.TtlAction;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -32,9 +27,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CommandUtils {
-
-  private static final String DATE_FORMAT_PATTERN =
-      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
 
   private CommandUtils() {} // prevent instantiation
 
@@ -47,8 +39,6 @@ public final class CommandUtils {
    *        created file should be kept around before it is automatically deleted, irrespective of
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
    * @param ttlAction Action to perform on Ttl expiry
-   * @throws AlluxioException when an Alluxio exception occurs
-   * @throws IOException when a non-Alluxio exception occurs
    */
   public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs,
       TtlAction ttlAction) throws AlluxioException, IOException {
@@ -58,24 +48,11 @@ public final class CommandUtils {
   }
 
   /**
-   * Converts a millisecond number to a formatted date String.
-   *
-   * @param millis a long millisecond number
-   * @return formatted date String
-   */
-  public static String convertMsToDate(long millis) {
-    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
-    return dateFormat.format(new Date(millis));
-  }
-
-  /**
    * Sets pin state for the input path.
    *
    * @param fs The {@link FileSystem} client
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param pinned the state to be set
-   * @throws AlluxioException when an Alluxio exception occurs
-   * @throws IOException when a non-Alluxio exception occurs
    */
   public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned)
       throws AlluxioException, IOException {

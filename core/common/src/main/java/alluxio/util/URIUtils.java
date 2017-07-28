@@ -11,19 +11,24 @@
 
 package alluxio.util;
 
+import alluxio.util.io.PathUtils;
+
 import com.google.common.base.Joiner;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utility methods for working with {@link alluxio.AlluxioURI}.
+ * Utility methods for working with URIs.
  */
 @ThreadSafe
 public final class URIUtils {
@@ -33,11 +38,41 @@ public final class URIUtils {
   private URIUtils() {} // prevent instantiation
 
   /**
+   * Appends the given path to the given base URI.
+   *
+   * @param base the base URI
+   * @param path the path to append
+   * @return the URI resulting from appending the base and the path
+   * @throws URISyntaxException if URI syntax error is encountered
+   */
+  public static URI appendPath(URI base, String path) throws URISyntaxException {
+    return new URI(base.getScheme(), base.getAuthority(),
+        PathUtils.concatPath(base.getPath(), path), base.getQuery(), base.getFragment());
+  }
+
+  /**
+   * Appends the given path to the given base URI. It throws an {@link RuntimeException} if
+   * the inputs are malformed.
+   *
+   * @param base the base URI
+   * @param path the path to append
+   * @return the URI resulting from appending the base and the path
+   */
+  public static URI appendPathOrDie(URI base, String path) {
+    try {
+      return appendPath(base, path);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Generates a query string from a {@link Map <String, String>} of key/value pairs.
    *
    * @param queryMap the map of query key/value pairs
    * @return the generated query string, null if the input map is null or empty
    */
+  @Nullable
   public static String generateQueryString(Map<String, String> queryMap) {
     if (queryMap == null || queryMap.isEmpty()) {
       return null;

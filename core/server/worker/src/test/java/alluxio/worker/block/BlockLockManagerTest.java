@@ -170,6 +170,30 @@ public final class BlockLockManagerTest {
   }
 
   /**
+   * Tests that an exception is thrown when a session tries to acquire a write lock on a block that
+   * it currently has a read lock on.
+   */
+  @Test
+  public void lockAlreadyReadLockedBlock() {
+    BlockLockManager manager = new BlockLockManager();
+    manager.lockBlock(1, 1, BlockLockType.READ);
+    mThrown.expect(IllegalStateException.class);
+    manager.lockBlock(1, 1, BlockLockType.WRITE);
+  }
+
+  /**
+   * Tests that an exception is thrown when a session tries to acquire a write lock on a block that
+   * it currently has a write lock on.
+   */
+  @Test
+  public void lockAlreadyWriteLockedBlock() {
+    BlockLockManager manager = new BlockLockManager();
+    manager.lockBlock(1, 1, BlockLockType.WRITE);
+    mThrown.expect(IllegalStateException.class);
+    manager.lockBlock(1, 1, BlockLockType.WRITE);
+  }
+
+  /**
    * Tests that two sessions can both take a read lock on the same block.
    */
   @Test(timeout = 10000)
@@ -185,7 +209,7 @@ public final class BlockLockManagerTest {
   @Test(timeout = 10000)
   public void readBlocksWrite() throws Exception {
     BlockLockManager manager = new BlockLockManager();
-    manager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    manager.lockBlock(1, TEST_BLOCK_ID, BlockLockType.READ);
     lockExpectingHang(manager, TEST_BLOCK_ID);
   }
 
@@ -268,7 +292,7 @@ public final class BlockLockManagerTest {
             try {
               barrier.await();
             } catch (Exception e) {
-              throw Throwables.propagate(e);
+              throw new RuntimeException(e);
             }
             // Lock and unlock the block lockUnlocksPerThread times.
             for (int j = 0; j < lockUnlocksPerThread; j++) {

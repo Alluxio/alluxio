@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-keyvalue</artifactId>
   <packaging>pom</packaging>
@@ -25,6 +25,7 @@
   <modules>
     <module>client</module>
     <module>common</module>
+    <module>hadoop</module>
     <module>server</module>
   </modules>
 

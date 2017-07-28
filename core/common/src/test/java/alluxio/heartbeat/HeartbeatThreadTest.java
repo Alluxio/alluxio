@@ -16,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -112,15 +113,24 @@ public final class HeartbeatThreadTest {
   private class DummyHeartbeatTestCallable implements Callable<Void>  {
     private final String mThreadName;
 
+    /**
+     * Creates a new {@link DummyHeartbeatTestCallable}.
+     */
     public DummyHeartbeatTestCallable() {
       mThreadName = THREAD_NAME;
     }
 
+    /**
+     * Creates a new {@link DummyHeartbeatTestCallable}.
+     *
+     * @param id the thread id
+     */
     public DummyHeartbeatTestCallable(int id) {
       mThreadName = THREAD_NAME + "-" + id;
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {

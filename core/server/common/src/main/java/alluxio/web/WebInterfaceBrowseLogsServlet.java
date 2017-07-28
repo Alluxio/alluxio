@@ -63,7 +63,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param file the local file to display
    * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
-   * @throws IOException if an I/O error occurs
    */
   private void displayLocalFile(File file, HttpServletRequest request, long offset)
       throws IOException {
@@ -74,16 +73,16 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
       byte[] data = new byte[len];
       long skipped = is.skip(offset);
       if (skipped < 0) {
-        // nothing was skipped
+        // Nothing was skipped.
         fileData = "Unable to traverse to offset; is file empty?";
       } else if (skipped < offset) {
-        // couldn't skip all the way to offset
+        // Couldn't skip all the way to offset.
         fileData = "Unable to traverse to offset; is offset larger than the file?";
       } else {
-        // read may not read up to len, so only convert what was read
+        // Read may not read up to len, so only convert what was read.
         int read = is.read(data, 0, len);
         if (read < 0) {
-          // stream couldn't read anything, skip went to EOF?
+          // Stream couldn't read anything, skip went to EOF?
           fileData = "Unable to read file";
         } else {
           fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
@@ -101,7 +100,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -134,7 +132,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
       Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
       request.setAttribute("nTotalFile", fileInfos.size());
 
-      // URL can not determine offset and limit, let javascript in jsp determine and redirect
+      // URL can not determine offset and limit, let javascript in jsp determine and redirect.
       if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
         getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;

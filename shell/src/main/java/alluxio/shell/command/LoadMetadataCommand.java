@@ -45,10 +45,11 @@ public final class LoadMetadataCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public int run(CommandLine cl) throws IOException {
     System.out
         .println("The \"alluxio fs loadMetadata <path>\" command is deprecated since version 1.1.");
     System.out.println("Use the \"alluxio fs ls <path>\" command instead.");
+    return 0;
   }
 
   @Override

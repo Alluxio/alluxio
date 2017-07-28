@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Tests the {@link ExponentialBackoffRetry} class.
  */
-public class ExponentialBackoffRetryTest {
+public final class ExponentialBackoffRetryTest {
 
   /**
    * Ensures that a lot of retries always produce a positive time.

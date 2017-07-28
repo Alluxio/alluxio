@@ -80,7 +80,6 @@ public final class TestRunner {
    * Console program that validates the configuration.
    *
    * @param args there are no arguments needed
-   * @throws Exception if error occurs during tests
    */
   public static void main(String[] args) throws Exception {
     TestRunner runner = new TestRunner();
@@ -95,7 +94,7 @@ public final class TestRunner {
 
     FileSystem fs = FileSystem.Factory.get();
     if (fs.exists(testDir)) {
-      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true));
+      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true).setUnchecked(true));
     }
     int ret = runner.runTests();
     System.exit(ret);

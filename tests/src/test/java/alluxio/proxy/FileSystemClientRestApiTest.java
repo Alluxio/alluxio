@@ -52,6 +52,9 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link StreamsRestServiceHandler}.
  */
 public final class FileSystemClientRestApiTest extends RestApiTest {
+  private static final alluxio.master.file.options.GetStatusOptions GET_STATUS_OPTIONS =
+      alluxio.master.file.options.GetStatusOptions.defaults();
+
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final String PATHS_PREFIX = "paths/";
   private static final String STREAMS_PREFIX = "streams/";
@@ -63,8 +66,9 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getProxy().getWebLocalPort();
-    mFileSystemMaster = mResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mPort = mResource.get().getProxyProcess().getWebLocalPort();
+    mFileSystemMaster = mResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(FileSystemMaster.class);
   }
 
   @Test
@@ -87,7 +91,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.DELETE, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(DeleteOptions.defaults())).run();
     try {
-      mFileSystemMaster.getFileInfo(uri);
+      mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
@@ -168,12 +172,12 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
         PATHS_PREFIX + uri1.toString() + "/" + PathsRestServiceHandler.RENAME, params,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(RenameOptions.defaults())).run();
     try {
-      mFileSystemMaster.getFileInfo(uri1);
+      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_OPTIONS);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
     }
-    mFileSystemMaster.getFileInfo(uri2);
+    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_OPTIONS);
   }
 
   @Test
@@ -185,7 +189,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
         HttpMethod.POST, null, TestCaseOptions.defaults()
         .setBody(SetAttributeOptions.defaults().setMode(Mode.defaults())))
         .run();
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
   }
 

@@ -12,6 +12,7 @@
 package alluxio.underfs.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.S3Service;
@@ -47,8 +48,8 @@ public class S3UnderFileSystemTest {
   public void before() throws InterruptedException, ServiceException {
     mClient = Mockito.mock(S3Service.class);
 
-    mS3UnderFileSystem = new S3UnderFileSystem(new AlluxioURI(""),
-        mClient, BUCKET_NAME, BUCKET_MODE, ACCOUNT_OWNER);
+    mS3UnderFileSystem = new S3UnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
+        BUCKET_MODE, ACCOUNT_OWNER, UnderFileSystemConfiguration.defaults());
   }
 
   /**

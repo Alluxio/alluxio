@@ -31,7 +31,6 @@ public interface BlockReader extends Closeable {
    * @param offset the offset from starting of the block file in bytes
    * @param length the length of data to read in bytes, -1 for the rest of the block
    * @return {@link ByteBuffer} the data that was read
-   * @throws IOException if the operation fails
    */
   ByteBuffer read(long offset, long length) throws IOException;
 
@@ -55,7 +54,6 @@ public interface BlockReader extends Closeable {
    *
    * @param buf the byte buffer
    * @return the number of bytes transferred, -1 if the end of the block is reached
-   * @throws IOException if any I/O errors occur
    */
   int transferTo(ByteBuf buf) throws IOException;
 

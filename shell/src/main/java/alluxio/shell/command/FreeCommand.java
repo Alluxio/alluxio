@@ -17,6 +17,7 @@ import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -30,6 +31,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class FreeCommand extends WithWildCardPathCommand {
 
+  private static final Option FORCE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("force to free files even pinned")
+          .build();
+
   /**
    * Constructs a new instance to free the given file or folder from Alluxio.
    *
@@ -40,7 +48,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(FORCE_OPTION);
   }
 
@@ -65,5 +73,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Frees the space occupied by a file or a directory in Alluxio."
         + " Specify -f to force freeing pinned files in the directory.";
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
   }
 }

@@ -11,92 +11,75 @@
 
 package alluxio.master.journal;
 
-import alluxio.AlluxioURI;
+import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.util.URIUtils;
+
+import java.io.IOException;
+import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class encapsulates the journal for a master. The journal is made up of 2 components:
- * - The checkpoint: the full state of the master
- * - The entries: incremental entries to apply to the checkpoint.
- *
- * To construct the full state of the master, all the entries must be applied to the checkpoint in
- * order. The entry file most recently being written to is in the base journal folder, where the
- * completed entry files are in the "completed/" sub-directory.
+ * A journal interface.
  */
-@ThreadSafe
-public abstract class Journal {
-  /** The log number for the first completed log file. */
-  public static final long FIRST_COMPLETED_LOG_NUMBER = 1L;
-  /** The directory for completed log files, relative to the base journal directory. */
-  private static final String COMPLETED_DIRECTORY = "completed/";
-  /** The file extension for the current log file. */
-  private static final String CURRENT_LOG_EXTENSION = ".out";
-  /** The filename of the checkpoint file. */
-  private static final String CHECKPOINT_FILENAME = "checkpoint.data";
-  /** The base of the entry log filenames, without the file extension. */
-  private static final String ENTRY_LOG_FILENAME_BASE = "log";
-  /** The directory where this journal is stored. */
-  private final String mDirectory;
-  /** The formatter for this journal. */
-  private final JournalFormatter mJournalFormatter;
+public interface Journal {
 
   /**
-   * Creates a new instance of {@link Journal}.
-   *
-   * @param directory the base directory for this journal
+   * A {@link Journal} factory.
    */
-  public Journal(String directory) {
-    if (!directory.endsWith(AlluxioURI.SEPARATOR)) {
-      // Ensure directory format.
-      directory += AlluxioURI.SEPARATOR;
+  @ThreadSafe
+  final class Factory implements JournalFactory {
+    private final URI mBase;
+
+    /**
+     * Creates a journal factory with the specified base location. When journals are
+     * created, their names are appended to the base location.
+     *
+     * @param base the base location for journals created by this factory
+     */
+    public Factory(URI base) {
+      mBase = base;
     }
-    mDirectory = directory;
-    mJournalFormatter = JournalFormatter.Factory.create();
+
+    @Override
+    public Journal create(String name) {
+      return new UfsJournal(URIUtils.appendPathOrDie(mBase, name));
+    }
   }
 
   /**
-   * @return the base directory for this journal
+   * @return the journal location
    */
-  public String getDirectory() {
-    return mDirectory;
-  }
+  URI getLocation();
 
   /**
-   * @return the directory for where the completed log files are stored
+   * @param options the options to create the reader
+   * @return the {@link JournalReader} for this journal
    */
-  public String getCompletedDirectory() {
-    return mDirectory + COMPLETED_DIRECTORY;
-  }
+  JournalReader getReader(JournalReaderOptions options);
 
   /**
-   * @return the absolute path for the journal checkpoint file
+   * @param options the options to create the writer
+   * @return the {@link JournalWriter} for this journal
    */
-  public String getCheckpointFilePath() {
-    return mDirectory + CHECKPOINT_FILENAME;
-  }
+  JournalWriter getWriter(JournalWriterOptions options) throws IOException;
 
   /**
-   * @return the absolute path for the current log file
-   */
-  public String getCurrentLogFilePath() {
-    return mDirectory + ENTRY_LOG_FILENAME_BASE + CURRENT_LOG_EXTENSION;
-  }
-
-  /**
-   * Returns the completed log filename for a particular log number.
+   * Gets the log sequence number of the last journal entry written to checkpoint + 1.
    *
-   * @param logNumber the log number to get the path for
-   * @return The absolute path of the completed log for a given log number
+   * @return the next sequence number to checkpoint
    */
-  public String getCompletedLogFilePath(long logNumber) {
-    return getCompletedDirectory() + String.format("%s.%020d", ENTRY_LOG_FILENAME_BASE, logNumber);
-  }
+  long getNextSequenceNumberToCheckpoint() throws IOException;
 
   /**
-   * @return the {@link JournalFormatter} for this journal
+   * @return whether the journal has been formatted
    */
-  public JournalFormatter getJournalFormatter() {
-    return mJournalFormatter;
-  }
+  boolean isFormatted() throws IOException;
+
+  /**
+   * Formats the journal.
+   */
+  void format() throws IOException;
 }

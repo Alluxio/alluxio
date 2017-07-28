@@ -19,8 +19,11 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -31,6 +34,8 @@ import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.base.Strings;
+import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +46,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -65,9 +73,10 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
    * Constructs a new {@link LocalUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @param ufsConf UFS configuration
    */
-  public LocalUnderFileSystem(AlluxioURI uri) {
-    super(uri);
+  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
   }
 
   @Override
@@ -159,8 +168,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public Object getConf() {
-    return null;
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    String tpath = stripPath(path);
+    File file = new File(tpath);
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
+        FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
 
   @Override
@@ -177,17 +191,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
-    return file.length();
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    path = stripPath(path);
-    File file = new File(path);
-    return file.lastModified();
+  public UfsFileStatus getFileStatus(String path) throws IOException {
+    String tpath = stripPath(path);
+    File file = new File(tpath);
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+    return new UfsFileStatus(path, file.length(), file.lastModified(), attr.owner().getName(),
+        attr.group().getName(), FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
 
   @Override
@@ -202,7 +212,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       case SPACE_USED:
         return file.getTotalSpace() - file.getFreeSpace();
       default:
-        throw new IOException("Unknown getSpace parameter: " + type);
+        throw new IOException("Unknown space type: " + type);
     }
   }
 
@@ -221,15 +231,27 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     File[] files = file.listFiles();
     if (files != null) {
-      UnderFileStatus[] rtn = new UnderFileStatus[files.length];
+      UfsStatus[] rtn = new UfsStatus[files.length];
       int i = 0;
       for (File f : files) {
-        rtn[i++] = new UnderFileStatus(f.getName(), f.isDirectory());
+        // TODO(adit): do we need extra call for attributes?
+        PosixFileAttributes attr =
+            Files.readAttributes(Paths.get(f.getPath()), PosixFileAttributes.class);
+        short mode = FileUtils.translatePosixPermissionToMode(attr.permissions());
+        UfsStatus retStatus;
+        if (f.isDirectory()) {
+          retStatus = new UfsDirectoryStatus(f.getName(), attr.owner().getName(),
+              attr.group().getName(), mode);
+        } else {
+          retStatus = new UfsFileStatus(f.getName(), f.length(), f.lastModified(),
+              attr.owner().getName(), attr.group().getName(), mode);
+        }
+        rtn[i++] = retStatus;
       }
       return rtn;
     } else {
@@ -248,7 +270,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         try {
           setOwner(file.getPath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
-          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
+              e.getMessage());
         }
         return true;
       }
@@ -273,7 +296,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         try {
           setOwner(dirToMake.getAbsolutePath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
-          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
+              e.getMessage());
         }
       } else {
         return false;
@@ -287,21 +311,19 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
     FileInputStream inputStream = new FileInputStream(path);
-    if (options.getOffset() > 0) {
-      try {
-        inputStream.skip(options.getOffset());
-      } catch (IOException e) {
-        inputStream.close();
-        throw e;
-      }
+    try {
+      ByteStreams.skipFully(inputStream, options.getOffset());
+    } catch (IOException e) {
+      inputStream.close();
+      throw e;
     }
-    return new LocalUnderFileInputStream(inputStream);
+    return inputStream;
   }
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     if (!isDirectory(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a file", src, dst);
+      LOG.warn("Unable to rename {} to {} because source does not exist or is a file.", src, dst);
       return false;
     }
     return rename(src, dst);
@@ -310,36 +332,33 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
     if (!isFile(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist or is a directory",
-          src, dst);
+      LOG.warn("Unable to rename {} to {} because source does not exist or is a directory.", src,
+          dst);
       return false;
     }
     return rename(src, dst);
   }
 
   @Override
-  public void setConf(Object conf) {}
-
-  @Override
   public void setOwner(String path, String user, String group) throws IOException {
     path = stripPath(path);
     try {
-      if (user != null) {
+      if (!Strings.isNullOrEmpty(user)) {
         FileUtils.changeLocalFileUser(path, user);
       }
-      if (group != null) {
+      if (!Strings.isNullOrEmpty(group)) {
         FileUtils.changeLocalFileGroup(path, group);
       }
     } catch (IOException e) {
-      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group);
+      LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
       LOG.debug("Exception: ", e);
-      LOG.warn("In order for Alluxio to set local files with the correct user and groups, "
-          + "Alluxio should be the local file system superusers.");
+      LOG.warn("In order for Alluxio to modify ownership of local files, "
+          + "Alluxio should be the local file system superuser.");
       if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
         throw e;
       } else {
-        LOG.warn("Proceeding... but this may cause permission inconsistency between Alluxio and "
-            + "local under file system.");
+        LOG.warn("Failure is ignored, which may cause permission inconsistency between "
+            + "Alluxio and local under file system.");
       }
     }
   }
@@ -349,24 +368,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     path = stripPath(path);
     String posixPerm = new Mode(mode).toString();
     FileUtils.changeLocalFilePermission(path, posixPerm);
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    path = stripPath(path);
-    return FileUtils.getLocalFileOwner(path);
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    path = stripPath(path);
-    return FileUtils.getLocalFileGroup(path);
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    path = stripPath(path);
-    return FileUtils.getLocalFileMode(path);
   }
 
   @Override
@@ -390,7 +391,6 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
    * @param src path of source file or directory
    * @param dst path of destination file or directory
    * @return true if rename succeeds
-   * @throws IOException
    */
   private boolean rename(String src, String dst) throws IOException {
     src = stripPath(src);

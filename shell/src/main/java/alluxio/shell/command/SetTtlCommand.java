@@ -14,6 +14,7 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
@@ -57,7 +58,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(TTL_ACTION_OPTION);
   }
 
@@ -78,14 +79,15 @@ public final class SetTtlCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    long ttlMs = Long.parseLong(args[1]);
+    long ttlMs = Long.parseLong(CommonUtils.stripLeadingAndTrailingQuotes(args[1]));
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     AlluxioURI path = new AlluxioURI(args[0]);
     CommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
     System.out.println("TTL of path '" + path + "' was successfully set to " + ttlMs
         + " milliseconds, with expiry action set to " + mAction);
+    return 0;
   }
 
   @Override

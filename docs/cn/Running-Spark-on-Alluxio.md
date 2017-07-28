@@ -113,3 +113,52 @@ https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可
 
 当一个Spark作业在YARN上运行时,Spark启动executors不会考虑数据的本地化。之后Spark在决定怎样为它的executors分配任务时会正确地考虑数据的本地化。举例而言：
 如果`host1`包含了`blockA`并且使用`blockA`的作业已经在YARN集群上以`--num-executors=1`的方式启动了,Spark会将唯一的executor放置在`host2`上，本地化就比较差。但是，如果以`--num-executors=2`的方式启动并且executors开始于`host1`和`host2`上,Spark会足够智能地将作业优先放置在`host1`上。
+
+## Spark Shell中`Failed to login`问题
+为了用Alluxio客户端运行Spark Shell，Alluxio客户端的jar包必须被添加到Spark driver和Spark executors的classpath中。可是有的时候Alluxio不能判断安全用户，从而导致类似于`Failed to login: No Alluxio User is found.`的错误。以下是一些解决方案。
+
+### [建议] 为Spark 1.4.0以上版本配置`spark.sql.hive.metastore.sharedPrefixes`
+
+这是建议的解决方案。
+
+在Spark 1.4.0和之后的版本中，Spark为了访问hive元数据使用了独立的类加载器来加载java类。然而，这个独立的类加载器忽视了特定的包，并且让主类加载器去加载"共享"类（Hadoop的HDFS客户端就是一种"共享"类）。Alluxio客户端也应该由主类加载器加载，你可以将`alluxio`包加到配置参数`spark.sql.hive.metastore.sharedPrefixes`中，以通知Spark用主类加载器加载Alluxio。例如，该参数可以这样设置:
+
+```bash
+spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
+```
+
+### [规避] 为Hadoop配置指定`fs.alluxio.impl`
+
+如果以上的建议方案不可行，以下的方案可以规避掉这个问题。
+
+为Hadoop配置指定`fs.alluxio.impl`也许可以帮助你解决该错误。`fs.alluxio.impl`应该被设置为`alluxio.hadoop.FileSystem`，如果你想使用Alluxio的容错机制，`fs.alluxio-ft.impl`应该被设置为`alluxio.hadoop.FaultTolerantFileSystem`。这里有几个选项来设置这些参数。
+
+#### 更新SparkContext中的`hadoopConfiguration`
+
+你可以在SparkContext中通过以下方式来更新Hadoop配置：
+
+```scala
+sc.hadoopConfiguration.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem")
+sc.hadoopConfiguration.set("fs.alluxio-ft.impl", "alluxio.hadoop.FaultTolerantFileSystem")
+```
+
+该操作应该在 `spark-shell`阶段早期，即Alluxio操作之前运行。
+
+#### 更新Hadoop配置文件
+
+你可以在Hadoop的配置文件中增加参数，并使Spark指向Hadoop的配置文件。Hadoop的`core-site.xml`中需要添加如下内容。
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+  <property>
+    <name>fs.alluxio-ft.impl</name>
+    <value>alluxio.hadoop.FaultTolerantFileSystem</value>
+  </property>
+</configuration>
+```
+
+你可以通过在`spark-env.sh`设置`HADOOP_CONF_DIR`来使Spark指向Hadoop的配置文件。

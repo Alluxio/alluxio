@@ -11,211 +11,81 @@
 
 package alluxio.worker.file;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.RpcUtils;
-import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
+import alluxio.thrift.CancelUfsFileTResponse;
 import alluxio.thrift.CloseUfsFileTOptions;
+import alluxio.thrift.CloseUfsFileTResponse;
 import alluxio.thrift.CompleteUfsFileTOptions;
+import alluxio.thrift.CompleteUfsFileTReponse;
 import alluxio.thrift.CreateUfsFileTOptions;
+import alluxio.thrift.CreateUfsFileTResponse;
 import alluxio.thrift.FileSystemWorkerClientService;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.OpenUfsFileTOptions;
-import alluxio.thrift.ThriftIOException;
-import alluxio.worker.file.options.CompleteUfsFileOptions;
-import alluxio.worker.file.options.CreateUfsFileOptions;
+import alluxio.thrift.OpenUfsFileTResponse;
+import alluxio.thrift.SessionFileSystemHeartbeatTOptions;
+import alluxio.thrift.SessionFileSystemHeartbeatTResponse;
 
-import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Handles incoming thrift requests from a worker file system client. This is mostly a wrapper
- * around {@link FileSystemWorker} and delegates calls to it.
+ * Handles incoming thrift requests from a worker file system client. These RPCs are no longer
+ * supported as of 1.5.0.  All methods will throw {@link UnsupportedOperationException}.
  */
 @NotThreadSafe
 public final class FileSystemWorkerClientServiceHandler
     implements FileSystemWorkerClientService.Iface {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(FileSystemWorkerClientServiceHandler.class);
-
-  /** File System Worker that carries out most of the operations. */
-  private final FileSystemWorker mWorker;
+  private static final String UNSUPPORTED_MESSAGE = "Unsupported as of version 1.5.0";
 
   /**
-   * Creates a new instance of this class. This should only be called from {@link FileSystemWorker}
-   *
-   * @param worker the file system worker which will handle most of the requests
+   * Creates a new instance of this class.
    */
-  public FileSystemWorkerClientServiceHandler(FileSystemWorker worker) {
-    mWorker = Preconditions.checkNotNull(worker, "worker");
+  FileSystemWorkerClientServiceHandler() {}
+
+  @Override
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION);
   }
 
   @Override
-  public long getServiceVersion() {
-    return Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION;
+  public CancelUfsFileTResponse cancelUfsFile(final long sessionId, final long tempUfsFileId,
+      final CancelUfsFileTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Cancels the write to the file in the under file system specified by the worker file id. The
-   * temporary file will be automatically cleaned up.
-   *
-   * @param tempUfsFileId the worker id of the ufs file
-   * @param options the options for canceling the file
-   * @throws AlluxioTException if an internal Alluxio error occurs
-   * @throws ThriftIOException if an error occurs outside of Alluxio
-   */
   @Override
-  public void cancelUfsFile(final long sessionId, final long tempUfsFileId,
-      final CancelUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
-      @Override
-      public Void call() throws AlluxioException, IOException {
-        mWorker.cancelUfsFile(sessionId, tempUfsFileId);
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return String.format("CancelUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
-            sessionId, tempUfsFileId, options);
-      }
-    });
+  public CloseUfsFileTResponse closeUfsFile(final long sessionId, final long tempUfsFileId,
+      final CloseUfsFileTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Closes a file in the under file system which was opened for reading. The ufs id will be
-   * invalid after this call.
-   *
-   * @param tempUfsFileId the worker specific file id of the ufs file
-   * @param options the options for closing the file
-   * @throws AlluxioTException if an internal Alluxio error occurs
-   * @throws ThriftIOException if an error occurs outside of Alluxio
-   */
   @Override
-  public void closeUfsFile(final long sessionId, final long tempUfsFileId,
-      final CloseUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Void>() {
-      @Override
-      public Void call() throws AlluxioException, IOException {
-        mWorker.closeUfsFile(sessionId, tempUfsFileId);
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return String.format("CloseUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
-            sessionId, tempUfsFileId, options);
-      }
-    });
+  public CompleteUfsFileTReponse completeUfsFile(final long sessionId, final long tempUfsFileId,
+      final CompleteUfsFileTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Completes the write to the file in the under file system specified by the worker file id. The
-   * temporary file will be automatically promoted to the final file if possible.
-   *
-   * @param tempUfsFileId the worker id of the ufs file
-   * @param options the options for completing the file
-   * @return the length of the completed file
-   * @throws AlluxioTException if an internal Alluxio error occurs
-   * @throws ThriftIOException if an error occurs outside of Alluxio
-   */
   @Override
-  public long completeUfsFile(final long sessionId, final long tempUfsFileId,
-      final CompleteUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
-      @Override
-      public Long call() throws AlluxioException, IOException {
-        return mWorker
-            .completeUfsFile(sessionId, tempUfsFileId, new CompleteUfsFileOptions(options));
-      }
-
-      @Override
-      public String toString() {
-        return String.format("CompleteUfsFile: sessionId=%s, tempUfsFileId=%s, options=%s",
-            sessionId, tempUfsFileId, options);
-      }
-    });
+  public CreateUfsFileTResponse createUfsFile(final long sessionId, final String ufsUri,
+      final CreateUfsFileTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Creates a file in the under file system. The file will be a temporary file until {@link
-   * #completeUfsFile} is called.
-   *
-   * @param ufsUri the path of the file in the ufs
-   * @param options the options for creating the file
-   * @return the temporary worker specific file id which references the in-progress ufs file, all
-   *         future operations on the file use this id until it is canceled or completed
-   * @throws AlluxioTException if an internal Alluxio error occurs
-   * @throws ThriftIOException if an error occurs outside of Alluxio
-   */
   @Override
-  public long createUfsFile(final long sessionId, final String ufsUri,
-      final CreateUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
-      @Override
-      public Long call() throws AlluxioException, IOException {
-        return mWorker
-            .createUfsFile(sessionId, new AlluxioURI(ufsUri), new CreateUfsFileOptions(options));
-      }
-
-      @Override
-      public String toString() {
-        return String.format("CreateUfsFile: sessionId=%s, ufsUri=%s, options=%s", sessionId,
-            ufsUri, options);
-      }
-    });
+  public OpenUfsFileTResponse openUfsFile(final long sessionId, final String ufsUri,
+      final OpenUfsFileTOptions options) throws AlluxioTException {
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Opens a file in the under file system.
-   *
-   * @param ufsUri the path of the file in the ufs
-   * @param options the options for opening the file
-   * @return the temporary worker specific file id which references the opened ufs file, all
-   *         future operations from the reader should use this id until the file is closed
-   * @throws AlluxioTException if an internal Alluxio error occurs
-   * @throws ThriftIOException if an error occurs outside of Alluxio
-   */
   @Override
-  public long openUfsFile(final long sessionId, final String ufsUri,
-      final OpenUfsFileTOptions options) throws AlluxioTException, ThriftIOException {
-    return RpcUtils.callAndLog(LOG, new RpcUtils.RpcCallableThrowsIOException<Long>() {
-      @Override
-      public Long call() throws AlluxioException, IOException {
-        return mWorker.openUfsFile(sessionId, new AlluxioURI(ufsUri));
-      }
-
-      @Override
-      public String toString() {
-        return String.format("OpenUfsFile: sessionId=%s, ufsUri=%s, options=%s", sessionId, ufsUri,
-            options);
-      }
-    });
-  }
-
-  /**
-   * Session heartbeat to worker to keep its state, for example open ufs streams.
-   *
-   * @param sessionId the session id of the client sending the heartbeat
-   * @param metrics a list of the client metrics that were collected since the last heartbeat
-   * @throws AlluxioTException if an internal Alluxio error occurs
-   */
-  @Override
-  public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
+  public SessionFileSystemHeartbeatTResponse sessionFileSystemHeartbeat(final long sessionId,
+      final List<Long> metrics, final SessionFileSystemHeartbeatTOptions options)
       throws AlluxioTException {
-    RpcUtils.call(LOG, new RpcUtils.RpcCallable<Void>() {
-      @Override
-      public Void call() throws AlluxioException {
-        mWorker.sessionHeartbeat(sessionId);
-        return null;
-      }
-    });
+    throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 }

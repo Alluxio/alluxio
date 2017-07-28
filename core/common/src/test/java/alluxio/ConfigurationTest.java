@@ -11,17 +11,25 @@
 
 package alluxio;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -42,17 +50,17 @@ public class ConfigurationTest {
   @Test
   public void defaultLoggerCorrectlyLoaded() throws Exception {
     // Avoid interference from system properties. site-properties will not be loaded during tests
-    try (SetAndRestoreSystemProperty p =
-        new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null)) {
+    try (Closeable p =
+        new SystemPropertyRule(PropertyKey.LOGGER_TYPE.toString(), null).toResource()) {
       String loggerType = Configuration.get(PropertyKey.LOGGER_TYPE);
-      Assert.assertEquals("Console", loggerType);
+      assertEquals("Console", loggerType);
     }
   }
 
   @Test
   public void getInt() {
     Configuration.set(PropertyKey.WEB_THREADS, "1");
-    Assert.assertEquals(1, Configuration.getInt(PropertyKey.WEB_THREADS));
+    assertEquals(1, Configuration.getInt(PropertyKey.WEB_THREADS));
   }
 
   @Test
@@ -65,7 +73,7 @@ public class ConfigurationTest {
   @Test
   public void getLong() {
     Configuration.set(PropertyKey.WEB_THREADS, "12345678910"); // bigger than MAX_INT
-    Assert.assertEquals(12345678910L, Configuration.getLong(PropertyKey.WEB_THREADS));
+    assertEquals(12345678910L, Configuration.getLong(PropertyKey.WEB_THREADS));
   }
 
   @Test
@@ -79,7 +87,7 @@ public class ConfigurationTest {
   @Test
   public void getDouble() {
     Configuration.set(PropertyKey.WEB_THREADS, "1.1");
-    Assert.assertEquals(1.1, Configuration.getDouble(PropertyKey.WEB_THREADS),
+    assertEquals(1.1, Configuration.getDouble(PropertyKey.WEB_THREADS),
         /*tolerance=*/0.0001);
   }
 
@@ -93,7 +101,7 @@ public class ConfigurationTest {
   @Test
   public void getFloat() {
     Configuration.set(PropertyKey.WEB_THREADS, "1.1");
-    Assert.assertEquals(1.1, Configuration.getFloat(PropertyKey.WEB_THREADS), /*tolerance=*/0.0001);
+    assertEquals(1.1, Configuration.getFloat(PropertyKey.WEB_THREADS), /*tolerance=*/0.0001);
   }
 
   @Test
@@ -106,37 +114,37 @@ public class ConfigurationTest {
   @Test
   public void getTrueBoolean() {
     Configuration.set(PropertyKey.WEB_THREADS, "true");
-    Assert.assertTrue(Configuration.getBoolean(PropertyKey.WEB_THREADS));
+    assertTrue(Configuration.getBoolean(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getTrueBooleanUppercase() {
     Configuration.set(PropertyKey.WEB_THREADS, "True");
-    Assert.assertTrue(Configuration.getBoolean(PropertyKey.WEB_THREADS));
+    assertTrue(Configuration.getBoolean(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getTrueBooleanMixcase() {
     Configuration.set(PropertyKey.WEB_THREADS, "tRuE");
-    Assert.assertTrue(Configuration.getBoolean(PropertyKey.WEB_THREADS));
+    assertTrue(Configuration.getBoolean(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getFalseBoolean() {
     Configuration.set(PropertyKey.WEB_THREADS, "false");
-    Assert.assertFalse(Configuration.getBoolean(PropertyKey.WEB_THREADS));
+    assertFalse(Configuration.getBoolean(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getFalseBooleanUppercase() {
     Configuration.set(PropertyKey.WEB_THREADS, "False");
-    Assert.assertFalse(Configuration.getBoolean(PropertyKey.WEB_THREADS));
+    assertFalse(Configuration.getBoolean(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getFalseBooleanMixcase() {
     Configuration.set(PropertyKey.WEB_THREADS, "fAlSe");
-    Assert.assertFalse(Configuration.getBoolean(PropertyKey.WEB_THREADS));
+    assertFalse(Configuration.getBoolean(PropertyKey.WEB_THREADS));
   }
 
   @Test
@@ -149,7 +157,7 @@ public class ConfigurationTest {
   @Test
   public void getList() {
     Configuration.set(PropertyKey.WEB_THREADS, "a,b,c");
-    Assert.assertEquals(
+    assertEquals(
         Lists.newArrayList("a", "b", "c"), Configuration.getList(PropertyKey.WEB_THREADS, ","));
   }
 
@@ -160,7 +168,7 @@ public class ConfigurationTest {
   @Test
   public void getEnum() {
     Configuration.set(PropertyKey.WEB_THREADS, "VALUE");
-    Assert.assertEquals(
+    assertEquals(
         TestEnum.VALUE, Configuration.getEnum(PropertyKey.WEB_THREADS, TestEnum.class));
   }
 
@@ -174,43 +182,43 @@ public class ConfigurationTest {
   @Test
   public void getBytes() {
     Configuration.set(PropertyKey.WEB_THREADS, "10b");
-    Assert.assertEquals(10, Configuration.getBytes(PropertyKey.WEB_THREADS));
+    assertEquals(10, Configuration.getBytes(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getBytesKb() {
     Configuration.set(PropertyKey.WEB_THREADS, "10kb");
-    Assert.assertEquals(10 * Constants.KB, Configuration.getBytes(PropertyKey.WEB_THREADS));
+    assertEquals(10 * Constants.KB, Configuration.getBytes(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getBytesMb() {
     Configuration.set(PropertyKey.WEB_THREADS, "10mb");
-    Assert.assertEquals(10 * Constants.MB, Configuration.getBytes(PropertyKey.WEB_THREADS));
+    assertEquals(10 * Constants.MB, Configuration.getBytes(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getBytesGb() {
     Configuration.set(PropertyKey.WEB_THREADS, "10gb");
-    Assert.assertEquals(10 * (long) Constants.GB, Configuration.getBytes(PropertyKey.WEB_THREADS));
+    assertEquals(10 * (long) Constants.GB, Configuration.getBytes(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getBytesGbUppercase() {
     Configuration.set(PropertyKey.WEB_THREADS, "10GB");
-    Assert.assertEquals(10 * (long) Constants.GB, Configuration.getBytes(PropertyKey.WEB_THREADS));
+    assertEquals(10 * (long) Constants.GB, Configuration.getBytes(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getBytesTb() {
     Configuration.set(PropertyKey.WEB_THREADS, "10tb");
-    Assert.assertEquals(10 * Constants.TB, Configuration.getBytes(PropertyKey.WEB_THREADS));
+    assertEquals(10 * Constants.TB, Configuration.getBytes(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getBytespT() {
     Configuration.set(PropertyKey.WEB_THREADS, "10pb");
-    Assert.assertEquals(10 * Constants.PB, Configuration.getBytes(PropertyKey.WEB_THREADS));
+    assertEquals(10 * Constants.PB, Configuration.getBytes(PropertyKey.WEB_THREADS));
   }
 
   @Test
@@ -221,9 +229,154 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getMs() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "100");
+    assertEquals(100,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsMS() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "100ms");
+    assertEquals(100,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsMillisecond() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "100millisecond");
+    assertEquals(100,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsS() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10s");
+    assertEquals(10 * Constants.SECOND,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsSUppercase() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10S");
+    assertEquals(10 * Constants.SECOND,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsSEC() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10sec");
+    assertEquals(10 * Constants.SECOND,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsSecond() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10second");
+    assertEquals(10 * Constants.SECOND,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsM() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10m");
+    assertEquals(10 * Constants.MINUTE,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsMIN() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10min");
+    assertEquals(10 * Constants.MINUTE,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsMinute() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10minute");
+    assertEquals(10 * Constants.MINUTE,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsH() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10h");
+    assertEquals(10 * Constants.HOUR,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsHR() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10hr");
+    assertEquals(10 * Constants.HOUR,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsHour() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10hour");
+    assertEquals(10 * Constants.HOUR,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsD() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10d");
+    assertEquals(10 * Constants.DAY,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getMsDay() {
+    Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10day");
+    assertEquals(10 * Constants.DAY,
+        Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getNestedProperties() {
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            PropertyKey.WEB_THREADS.toString()), "val1");
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            "alluxio.unknown.property"), "val2");
+    Map<String, String> expected = new HashMap<>();
+    expected.put(PropertyKey.WEB_THREADS.toString(), "val1");
+    expected.put("alluxio.unknown.property", "val2");
+    assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
+        CoreMatchers.is(expected));
+  }
+
+  @Test
+  public void getNestedPropertiesEmptyTrailingProperty() {
+    Configuration.set(PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY
+        .format("foo", ""), "val");
+    Map<String, String> empty = new HashMap<>();
+    assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
+        CoreMatchers.is(empty));
+  }
+
+  @Test
+  public void getNestedPropertiesWrongPrefix() {
+    Configuration.set(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
+            PropertyKey.WEB_THREADS.toString()),
+        "val");
+    Map<String, String> empty = new HashMap<>();
+    assertThat(Configuration.getNestedProperties(PropertyKey.HOME),
+        CoreMatchers.is(empty));
+    assertThat(Configuration.getNestedProperties(
+        PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("bar")),
+        CoreMatchers.is(empty));
+  }
+
+  @Test
   public void getClassTest() { // The name getClass is already reserved.
     Configuration.set(PropertyKey.WEB_THREADS, "java.lang.String");
-    Assert.assertEquals(String.class, Configuration.getClass(PropertyKey.WEB_THREADS));
+    assertEquals(String.class, Configuration.getClass(PropertyKey.WEB_THREADS));
   }
 
   @Test
@@ -239,7 +392,7 @@ public class ConfigurationTest {
         PropertyKey.WORK_DIR, "value",
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"));
     String substitution = Configuration.get(PropertyKey.LOGS_DIR);
-    Assert.assertEquals("value/logs", substitution);
+    assertEquals("value/logs", substitution);
   }
 
   @Test
@@ -247,9 +400,9 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
-        PropertyKey.MASTER_ADDRESS, "${alluxio.master.hostname}:${alluxio.master.port}"));
-    String substitution = Configuration.get(PropertyKey.MASTER_ADDRESS);
-    Assert.assertEquals("value1:value2", substitution);
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"));
+    String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    assertEquals("value1-value2", substitution);
   }
 
   @Test
@@ -259,21 +412,21 @@ public class ConfigurationTest {
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
         PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"));
     String substitution2 = Configuration.get(PropertyKey.SITE_CONF_DIR);
-    Assert.assertEquals("value/logs/conf", substitution2);
+    assertEquals("value/logs/conf", substitution2);
   }
 
   @Test
   public void systemVariableSubstitution() throws Exception {
-    try (SetAndRestoreSystemProperty c =
-        new SetAndRestoreSystemProperty(PropertyKey.MASTER_HOSTNAME.toString(), "new_master")) {
-      Configuration.defaultInit();
-      Assert.assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    try (Closeable p =
+        new SystemPropertyRule(PropertyKey.MASTER_HOSTNAME.toString(), "new_master").toResource()) {
+      Configuration.init();
+      assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
     }
   }
 
   @Test
   public void userFileBufferBytesOverFlowException() {
-    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expect(IllegalStateException.class);
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES,
         String.valueOf(Integer.MAX_VALUE + 1) + "B");
   }
@@ -281,36 +434,36 @@ public class ConfigurationTest {
   @Test
   public void setUserFileBufferBytesMaxInteger() {
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE) + "B");
-    Assert.assertEquals(Integer.MAX_VALUE,
+    assertEquals(Integer.MAX_VALUE,
         (int) Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES));
   }
 
   @Test
   public void setUserFileBufferBytes1GB() {
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, "1GB");
-    Assert.assertEquals(1073741824,
+    assertEquals(1073741824,
         (int) Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES));
   }
 
   @Test
   public void unset() {
-    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test");
-    Assert.assertTrue(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertTrue(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
     Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
-    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
   }
 
   @Test
   public void unsetDefaultValue() {
-    Assert.assertTrue(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
+    assertTrue(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
     Configuration.unset(PropertyKey.USER_FILE_BUFFER_BYTES);
-    Assert.assertFalse(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
+    assertFalse(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
   }
 
   @Test
   public void propertyTestModeEqualsTrue() throws Exception {
-    Assert.assertTrue(Configuration.getBoolean(PropertyKey.TEST_MODE));
+    assertTrue(Configuration.getBoolean(PropertyKey.TEST_MODE));
   }
 
   @Test
@@ -321,13 +474,12 @@ public class ConfigurationTest {
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
-    try (SetAndRestoreSystemProperty p1 =
-             new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null);
-         SetAndRestoreSystemProperty p2 =
-             new SetAndRestoreSystemProperty(PropertyKey.SITE_CONF_DIR.toString(),
-                 mFolder.getRoot().getAbsolutePath())) {
-      Configuration.defaultInit();
-      Assert.assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.init();
+      assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           Configuration.get(PropertyKey.LOGGER_TYPE));
     }
   }
@@ -340,15 +492,13 @@ public class ConfigurationTest {
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
-    try (SetAndRestoreSystemProperty p1 =
-             new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null);
-         SetAndRestoreSystemProperty p2 =
-             new SetAndRestoreSystemProperty(PropertyKey.SITE_CONF_DIR.toString(),
-                 mFolder.getRoot().getAbsolutePath());
-         SetAndRestoreSystemProperty p3 =
-             new SetAndRestoreSystemProperty(PropertyKey.TEST_MODE.toString(), "false")) {
-      Configuration.defaultInit();
-      Assert.assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.init();
+      assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
     }
   }
 }

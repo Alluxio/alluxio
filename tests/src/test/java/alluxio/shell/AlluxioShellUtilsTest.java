@@ -14,12 +14,13 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.shell.command.ShellCommand;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.thrift.TException;
@@ -27,12 +28,18 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.reflections.Reflections;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nullable;
 
 /**
  * Unit tests on {@link alluxio.shell.AlluxioShellUtils}.
@@ -190,6 +197,7 @@ public final class AlluxioShellUtilsTest {
    * @param fsType the type of file system
    * @return the test directory, null if the fsType is invalid
    */
+  @Nullable
   public String resetFsHierarchy(FsType fsType) throws IOException, AlluxioException {
     if (fsType == FsType.TFS) {
       return resetFileHierarchy();
@@ -253,6 +261,27 @@ public final class AlluxioShellUtilsTest {
 
     Assert.assertEquals(AlluxioShellUtils.match("/a/b/c", "*"), true);
     Assert.assertEquals(AlluxioShellUtils.match("/", "/*"), true);
+  }
+
+  @Test
+  public void loadCommands() {
+    Map<String, ShellCommand> map = AlluxioShellUtils.loadCommands(mFileSystem);
+
+    String pkgName = ShellCommand.class.getPackage().getName();
+    Reflections reflections = new Reflections(pkgName);
+    Set<Class<? extends ShellCommand>> cmdSet = reflections.getSubTypesOf(ShellCommand.class);
+    for (Map.Entry<String, ShellCommand> entry : map.entrySet()) {
+      Assert.assertEquals(entry.getValue().getCommandName(), entry.getKey());
+      Assert.assertEquals(cmdSet.contains(entry.getValue().getClass()), true);
+    }
+
+    int expectSize = 0;
+    for (Class<? extends ShellCommand> cls : cmdSet) {
+      if (!Modifier.isAbstract(cls.getModifiers())) {
+        expectSize++;
+      }
+    }
+    Assert.assertEquals(expectSize, map.size());
   }
 }
 

@@ -15,9 +15,10 @@ import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -49,6 +50,8 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
             Mockito.anyLong());
     Mockito.doNothing().when(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.doNothing().when(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
     mFile = mTestFolder.newFile().getPath();
     mBlockWriter = new LocalFileBlockWriter(mFile);
     Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
@@ -71,13 +74,13 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
-    checkWriteResponse(writeResponse, Protocol.Status.Code.INTERNAL);
+    checkWriteResponse(writeResponse, PStatus.FAILED_PRECONDITION);
   }
 
   @Override
   protected RPCProtoMessage buildWriteRequest(long offset, int len) {
     Protocol.WriteRequest writeRequest =
-        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset).setSessionId(1L)
+        Protocol.WriteRequest.newBuilder().setId(1L).setOffset(offset)
             .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
     DataBuffer buffer = null;
     if (len > 0) {
@@ -88,6 +91,12 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
         mChecksum += BufferUtils.byteToInt(value);
       }
       buffer = new DataNettyBufferV2(buf);
+    }
+    if (len == EOF) {
+      writeRequest = writeRequest.toBuilder().setEof(true).build();
+    }
+    if (len == CANCEL) {
+      writeRequest = writeRequest.toBuilder().setCancel(true).build();
     }
     return new RPCProtoMessage(new ProtoMessage(writeRequest), buffer);
   }

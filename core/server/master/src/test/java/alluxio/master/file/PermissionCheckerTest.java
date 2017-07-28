@@ -19,7 +19,9 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
@@ -27,12 +29,15 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
@@ -44,8 +49,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +100,7 @@ public final class PermissionCheckerTest {
   private static CreateFileOptions sNestedFileOptions;
 
   private static InodeTree sTree;
+  private static MasterRegistry sRegistry;
 
   private PermissionChecker mPermissionChecker;
 
@@ -123,9 +131,16 @@ public final class PermissionCheckerTest {
     }
   }
 
+  /**
+   * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
+   */
   public static class FakeUserGroupsMapping implements GroupMappingService {
     private HashMap<String, String> mUserGroups = new HashMap<>();
 
+    /**
+     * Constructor of {@link FakeUserGroupsMapping} to put the user and groups in user-to-groups
+     * HashMap.
+     */
     public FakeUserGroupsMapping() {
       mUserGroups.put(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup());
       mUserGroups.put(TEST_USER_1.getUser(), TEST_USER_1.getGroup());
@@ -156,15 +171,17 @@ public final class PermissionCheckerTest {
             .setGroup(TEST_USER_1.getGroup()).setMode(TEST_NORMAL_MODE).setRecursive(true);
 
     // setup an InodeTree
-    JournalFactory journalFactory =
-        new JournalFactory.ReadWrite(sTestFolder.newFolder().getAbsolutePath());
+    sRegistry = new MasterRegistry();
+    JournalFactory factory =
+        new Journal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
 
-    BlockMaster blockMaster = new BlockMaster(journalFactory);
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, factory);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    MountTable mountTable = new MountTable();
+    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    MountTable mountTable = new MountTable(ufsManager);
     sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
-    blockMaster.start(true);
+    sRegistry.start(true);
 
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
@@ -182,6 +199,7 @@ public final class PermissionCheckerTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
+    sRegistry.stop();
     AuthenticatedClientUser.remove();
     ConfigurationTestUtils.resetConfiguration();
   }
@@ -192,19 +210,30 @@ public final class PermissionCheckerTest {
     mPermissionChecker = new PermissionChecker(sTree);
   }
 
-  // Helper function to create a path and set the permission to what specified in option.
+  /**
+   * Helper function to create a path and set the permission to what specified in option.
+   *
+   * @param path path to construct the {@link AlluxioURI} from
+   * @param option method options for creating a file
+   */
   private static void createAndSetPermission(String path, CreateFileOptions option)
       throws Exception {
     try (
         LockedInodePath inodePath = sTree
             .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
-      InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
+      InodeTree.CreatePathResult result =
+          sTree.createPath(inodePath, option, new NoopJournalContext());
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
           .setOwner(option.getOwner()).setGroup(option.getGroup())
           .setMode(option.getMode().toShort());
     }
   }
 
+  /**
+   * Verifies that the list of inodes are same as the expected ones.
+   * @param expectedInodes the expected inodes names
+   * @param inodes the inodes for test
+   */
   private static void verifyInodesList(String[] expectedInodes, List<Inode<?>> inodes) {
     String[] inodesName = new String[inodes.size()];
     for (int i = 0; i < inodes.size(); i++) {
@@ -343,6 +372,14 @@ public final class PermissionCheckerTest {
     }
   }
 
+  /**
+   * Helper function to check a user has permission to perform a action on the parent or ancestor of
+   * the given path.
+   *
+   * @param user a user with groups
+   * @param action action that capture the action {@link Mode.Bits} by user
+   * @param path path to construct the {@link AlluxioURI} from
+   */
   private void checkParentOrAncestorPermission(TestUser user, Mode.Bits action, String path)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());

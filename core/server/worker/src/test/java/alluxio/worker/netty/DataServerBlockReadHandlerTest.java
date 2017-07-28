@@ -13,8 +13,9 @@ package alluxio.worker.netty;
 
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
@@ -80,7 +81,7 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
     mBlockReader.close();
     mChannelNoException.writeInbound(buildReadRequest(0, fileSize));
     Object response = waitForOneResponse(mChannelNoException);
-    checkReadResponse(response, Protocol.Status.Code.INTERNAL);
+    checkReadResponse(response, PStatus.FAILED_PRECONDITION);
   }
 
   @Override
@@ -94,8 +95,8 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
   @Override
   protected RPCProtoMessage buildReadRequest(long offset, long len) {
     Protocol.ReadRequest readRequest =
-        Protocol.ReadRequest.newBuilder().setId(1L).setOffset(offset).setLength(len).setLockId(1L)
-            .setType(Protocol.RequestType.ALLUXIO_BLOCK).build();
+        Protocol.ReadRequest.newBuilder().setBlockId(1L).setOffset(offset).setLength(len)
+            .setPacketSize(PACKET_SIZE).build();
     return new RPCProtoMessage(new ProtoMessage(readRequest), null);
   }
 }

@@ -12,7 +12,9 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -20,17 +22,20 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -52,6 +57,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CpCommand extends AbstractShellCommand {
 
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("copy files in subdirectories recursively")
+          .build();
+
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -70,12 +82,12 @@ public final class CpCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION);
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
@@ -122,6 +134,7 @@ public final class CpCommand extends AbstractShellCommand {
       throw new InvalidPathException(
           "Schemes must be either file or alluxio, and at most one file scheme is allowed.");
     }
+    return 0;
   }
 
   /**
@@ -131,8 +144,6 @@ public final class CpCommand extends AbstractShellCommand {
    * @param srcPaths a list of files or directories in the Alluxio filesystem
    * @param dstPath the destination in the Alluxio filesystem
    * @param recursive indicates whether directories should be copied recursively
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath, boolean recursive)
       throws AlluxioException, IOException {
@@ -170,8 +181,6 @@ public final class CpCommand extends AbstractShellCommand {
    * @param srcPath the source {@link AlluxioURI} (could be a file or a directory)
    * @param dstPath the {@link AlluxioURI} of the destination path in the Alluxio filesystem
    * @param recursive indicates whether directories should be copied recursively
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean recursive)
       throws AlluxioException, IOException {
@@ -238,8 +247,6 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the source {@link AlluxioURI} (has to be a file)
    * @param dstPath the destination path in the Alluxio filesystem
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
@@ -259,8 +266,6 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the {@link AlluxioURI} of the source directory in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyFromLocalDir(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
@@ -306,8 +311,6 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPaths a list of files or directories in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyFromLocalWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath)
       throws AlluxioException, IOException {
@@ -343,8 +346,6 @@ public final class CpCommand extends AbstractShellCommand {
    * destination directory already exists.
    *
    * @param dstPath the {@link AlluxioURI} of the destination directory which will be created
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void createDstDir(AlluxioURI dstPath) throws AlluxioException, IOException {
     try {
@@ -365,8 +366,6 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the {@link AlluxioURI} of the source in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyFromLocal(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
@@ -385,8 +384,6 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the {@link AlluxioURI} of the source file in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyPath(AlluxioURI srcPath, AlluxioURI dstPath) throws AlluxioException,
       IOException {
@@ -400,7 +397,17 @@ public final class CpCommand extends AbstractShellCommand {
 
       FileOutStream os = null;
       try (Closer closer = Closer.create()) {
-        os = closer.register(mFileSystem.createFile(dstPath));
+        FileWriteLocationPolicy locationPolicy;
+        try {
+          locationPolicy =
+              CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY), new Class[] {},
+                  new Object[] {});
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        os = closer.register(mFileSystem.createFile(dstPath,
+            CreateFileOptions.defaults().setLocationPolicy(locationPolicy)));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
         ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
@@ -460,8 +467,6 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPaths the list of files in the Alluxio filesystem
    * @param dstPath the {@link AlluxioURI} of the destination directory in the local filesystem
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyWildcardToLocal(List<AlluxioURI> srcPaths, AlluxioURI dstPath)
       throws AlluxioException, IOException {
@@ -496,8 +501,6 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the source {@link AlluxioURI} (could be a file or a directory)
    * @param dstPath the {@link AlluxioURI} of the destination in the local filesystem
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyToLocal(AlluxioURI srcPath, AlluxioURI dstPath) throws AlluxioException,
       IOException {
@@ -546,15 +549,19 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath The source {@link AlluxioURI} (has to be a file)
    * @param dstPath The {@link AlluxioURI} of the destination in the local filesystem
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void copyFileToLocal(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
     File dstFile = new File(dstPath.getPath());
     String randomSuffix =
         String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
-    File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
+    File outputFile;
+    if (dstFile.isDirectory()) {
+      outputFile = new File(PathUtils.concatPath(dstFile.getAbsolutePath(), srcPath.getName()));
+    } else {
+      outputFile = dstFile;
+    }
+    File tmpDst = new File(outputFile.getPath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
@@ -566,11 +573,11 @@ public final class CpCommand extends AbstractShellCommand {
         out.write(buf, 0, t);
         t = is.read(buf);
       }
-      if (!tmpDst.renameTo(dstFile)) {
+      if (!tmpDst.renameTo(outputFile)) {
         throw new IOException(
-            "Failed to rename " + tmpDst.getPath() + " to destination " + dstPath);
+            "Failed to rename " + tmpDst.getPath() + " to destination " + outputFile.getPath());
       }
-      System.out.println("Copied " + srcPath + " to " + dstPath);
+      System.out.println("Copied " + srcPath + " to " + "file://" + outputFile.getPath());
     } finally {
       tmpDst.delete();
     }

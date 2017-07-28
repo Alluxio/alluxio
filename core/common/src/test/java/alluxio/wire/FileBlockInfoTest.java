@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class FileBlockInfoTest {
+public final class FileBlockInfoTest {
 
   @Test
   public void json() throws Exception {

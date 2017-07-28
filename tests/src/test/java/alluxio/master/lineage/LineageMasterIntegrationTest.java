@@ -12,16 +12,19 @@
 package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.client.lineage.LineageMasterClient;
@@ -29,7 +32,6 @@ import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LineageInfo;
@@ -37,7 +39,6 @@ import alluxio.wire.LineageInfo;
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,12 +55,13 @@ import java.util.List;
 /**
  * Integration tests for the lineage module.
  */
-public class LineageMasterIntegrationTest {
+public class LineageMasterIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE_BYTES = 128;
   private static final int BUFFER_BYTES = 100;
   private static final String OUT_FILE = "/test";
   private static final int RECOMPUTE_INTERVAL_MS = 1000;
   private static final int CHECKPOINT_INTERVAL_MS = 100;
+  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -78,20 +80,16 @@ public class LineageMasterIntegrationTest {
 
   private CommandLineJob mJob;
 
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+
   @Before
   public void before() throws Exception {
-    AuthenticatedClientUser.set("test");
     mJob = new CommandLineJob("test", new JobConf("output"));
-  }
-
-  @After
-  public void after() throws Exception {
-    AuthenticatedClientUser.remove();
   }
 
   @Test
   public void lineageCreation() throws Exception {
-
     try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
@@ -100,7 +98,7 @@ public class LineageMasterIntegrationTest {
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
       AlluxioURI uri = new AlluxioURI(infos.get(0).getOutputFiles().get(0));
-      URIStatus status = getFileSystemMasterClient().getStatus(uri);
+      URIStatus status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
       Assert.assertFalse(status.isCompleted());
     }
@@ -108,7 +106,6 @@ public class LineageMasterIntegrationTest {
 
   @Test
   public void lineageCompleteAndAsyncPersist() throws Exception {
-
     try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
@@ -123,16 +120,15 @@ public class LineageMasterIntegrationTest {
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       AlluxioURI uri = new AlluxioURI(infos.get(0).getOutputFiles().get(0));
-      URIStatus status = getFileSystemMasterClient().getStatus(uri);
+      URIStatus status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertNotEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
       Assert.assertTrue(status.isCompleted());
 
       IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, uri);
 
       // worker notifies the master
-      status = getFileSystemMasterClient().getStatus(uri);
+      status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
-
     }
   }
 
@@ -174,7 +170,7 @@ public class LineageMasterIntegrationTest {
           throw Throwables.propagate(e);
         }
       }
-    }, WaitForOptions.defaults().setTimeout(100 * Constants.SECOND_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
   }
 
   /**
@@ -218,11 +214,12 @@ public class LineageMasterIntegrationTest {
   }
 
   private LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
+    return new LineageMasterClient(
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
     return FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getMaster().getAddress());
+        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
   }
 }

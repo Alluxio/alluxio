@@ -63,6 +63,13 @@ public final class MasterInquireClient {
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
+  /**
+   * Constructor for {@link MasterInquireClient}.
+   *
+   * @param zookeeperAddress the address for Zookeeper
+   * @param electionPath the path of the master election
+   * @param leaderPath the path of the leader
+   */
   private MasterInquireClient(String zookeeperAddress, String electionPath, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
@@ -122,6 +129,8 @@ public final class MasterInquireClient {
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     } catch (Exception e) {
       LOG.error("Error getting the leader master address from zookeeper. Zookeeper address: {}",
           mZookeeperAddress, e);

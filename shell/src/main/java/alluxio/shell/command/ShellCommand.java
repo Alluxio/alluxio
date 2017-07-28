@@ -15,6 +15,7 @@ import alluxio.cli.AlluxioShell;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -31,6 +32,11 @@ public interface ShellCommand {
   String getCommandName();
 
   /**
+   * @return the supported {@link Options} of the command
+   */
+  Options getOptions();
+
+  /**
    * Parses and validates the arguments.
    *
    * @param args the arguments for the command, excluding the command name
@@ -42,10 +48,9 @@ public interface ShellCommand {
    * Runs the command.
    *
    * @param cl the parsed command line for the arguments
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
+   * @return the result of running the command
    */
-  void run(CommandLine cl) throws AlluxioException, IOException;
+  int run(CommandLine cl) throws AlluxioException, IOException;
 
   /**
    * @return the usage information of the command

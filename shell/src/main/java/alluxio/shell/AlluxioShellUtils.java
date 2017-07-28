@@ -19,16 +19,23 @@ import alluxio.cli.AlluxioShell;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.shell.command.ShellCommand;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import org.reflections.Reflections;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -47,7 +54,6 @@ public final class AlluxioShellUtils {
    *
    * @param path the path to obtain the local path from
    * @return the local path in string format
-   * @throws IOException if the given path is not valid
    */
   public static String getFilePath(String path) throws IOException {
     path = validatePath(path);
@@ -67,7 +73,6 @@ public final class AlluxioShellUtils {
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         alluxio.master.hostname and alluxio.master.port, respectively.
-   * @throws IOException if the given path is not valid
    */
   public static String validatePath(String path) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
@@ -95,8 +100,6 @@ public final class AlluxioShellUtils {
    * @param alluxioClient the client used to fetch information of Alluxio files
    * @param inputURI the input URI (could contain wildcards)
    * @return a list of {@link AlluxioURI}s that matches the inputURI
-   * @throws IOException if any filesystem errors are encountered when expanding paths with
-   *                     wildcards
    */
   public static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI)
       throws IOException {
@@ -124,8 +127,6 @@ public final class AlluxioShellUtils {
    * @param parentDir the {@link AlluxioURI} of the directory in which we are searching matched
    *                  files
    * @return a list of {@link AlluxioURI}s of the files that match the inputURI in parentDir
-   * @throws IOException if any filesystem errors are encountered when expanding paths with
-   *                     wildcards
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
       AlluxioURI parentDir) throws IOException {
@@ -212,6 +213,33 @@ public final class AlluxioShellUtils {
       }
     }
     return res;
+  }
+
+  /**
+   * Gets all supported {@link ShellCommand} classes instances and load them into a map.
+   * Provides a way to gain these commands information by their CommandName.
+   *
+   * @param fileSystem the {@link FileSystem} instance to construct the command
+   * @return a mapping from command name to command instance
+   */
+  public static Map<String, ShellCommand> loadCommands(FileSystem fileSystem) {
+    Map<String, ShellCommand> commandsMap = new HashMap<>();
+    String pkgName = ShellCommand.class.getPackage().getName();
+    Reflections reflections = new Reflections(pkgName);
+    for (Class<? extends ShellCommand> cls : reflections.getSubTypesOf(ShellCommand.class)) {
+      // Only instantiate a concrete class
+      if (!Modifier.isAbstract(cls.getModifiers())) {
+        ShellCommand cmd;
+        try {
+          cmd = CommonUtils.createNewClassInstance(cls, new Class[] {FileSystem.class},
+              new Object[] {fileSystem});
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
+        }
+        commandsMap.put(cmd.getCommandName(), cmd);
+      }
+    }
+    return commandsMap;
   }
 
   /**

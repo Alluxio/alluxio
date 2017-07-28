@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```

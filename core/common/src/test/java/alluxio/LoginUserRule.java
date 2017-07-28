@@ -11,9 +11,9 @@
 
 package alluxio;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import alluxio.security.LoginUser;
+import alluxio.security.LoginUserTestUtils;
+import alluxio.security.User;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -23,8 +23,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * of this rule.
  */
 @NotThreadSafe
-public final class LoginUserRule implements TestRule {
+public final class LoginUserRule extends AbstractResourceRule {
   private final String mUser;
+  private User mPreviousLoginUser = null;
 
   /**
    * @param user the user name to set as authenticated user
@@ -34,14 +35,21 @@ public final class LoginUserRule implements TestRule {
   }
 
   @Override
-  public Statement apply(final Statement statement, Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        try (SetAndRestoreLoginUser user = new SetAndRestoreLoginUser(mUser)) {
-          statement.evaluate();
-        }
+  public void before() throws Exception {
+    mPreviousLoginUser = LoginUser.get();
+    LoginUserTestUtils.resetLoginUser(mUser);
+  }
+
+  @Override
+  public void after() {
+    try {
+      if (mPreviousLoginUser != null) {
+        LoginUserTestUtils.resetLoginUser(mPreviousLoginUser.getName());
+      } else {
+        LoginUserTestUtils.resetLoginUser();
       }
-    };
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -11,10 +11,15 @@
 
 package alluxio.client;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.AlluxioURI;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -41,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
-public final class FreeAndDeleteIntegrationTest {
+public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
   @ClassRule
@@ -75,18 +80,19 @@ public final class FreeAndDeleteIntegrationTest {
     os.close();
 
     URIStatus status = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+    assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     final Long blockId = status.getBlockIds().get(0);
-    BlockMaster bm =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
+    BlockMaster bm = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(BlockMaster.class);
     BlockInfo blockInfo = bm.getBlockInfo(blockId);
-    Assert.assertEquals(2, blockInfo.getLength());
-    Assert.assertFalse(blockInfo.getLocations().isEmpty());
+    assertEquals(2, blockInfo.getLength());
+    assertFalse(blockInfo.getLocations().isEmpty());
 
-    final BlockWorker bw = mLocalAlluxioClusterResource.get().getWorker().getBlockWorker();
-    Assert.assertTrue(bw.hasBlockMeta(blockId));
-    Assert.assertTrue(bm.getLostBlocks().isEmpty());
+    final BlockWorker bw =
+        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
+    assertTrue(bw.hasBlockMeta(blockId));
+    assertTrue(bm.getLostBlocks().isEmpty());
 
     mFileSystem.free(filePath);
 
@@ -94,14 +100,14 @@ public final class FreeAndDeleteIntegrationTest {
 
     status = mFileSystem.getStatus(filePath);
     // Verify block metadata in master is still present after block freed.
-    Assert.assertEquals(1, status.getBlockIds().size());
+    assertEquals(1, status.getBlockIds().size());
     blockInfo = bm.getBlockInfo(status.getBlockIds().get(0));
-    Assert.assertEquals(2, blockInfo.getLength());
+    assertEquals(2, blockInfo.getLength());
     // Verify the block has been removed from all workers.
-    Assert.assertTrue(blockInfo.getLocations().isEmpty());
-    Assert.assertFalse(bw.hasBlockMeta(blockId));
+    assertTrue(blockInfo.getLocations().isEmpty());
+    assertFalse(bw.hasBlockMeta(blockId));
     // Verify the removed block is added to LostBlocks list.
-    Assert.assertTrue(bm.getLostBlocks().contains(blockInfo.getBlockId()));
+    assertTrue(bm.getLostBlocks().contains(blockInfo.getBlockId()));
 
     mFileSystem.delete(filePath);
 
@@ -117,6 +123,6 @@ public final class FreeAndDeleteIntegrationTest {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
     // Verify the blocks are not in mLostBlocks.
-    Assert.assertTrue(bm.getLostBlocks().isEmpty());
+    assertTrue(bm.getLostBlocks().isEmpty());
   }
 }

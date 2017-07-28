@@ -154,8 +154,6 @@ public abstract class WebServer {
 
   /**
    * Shuts down the web server.
-   *
-   * @throws Exception if the underlying jetty server throws an exception
    */
   public void stop() throws Exception {
     // close all connectors and release all binding ports

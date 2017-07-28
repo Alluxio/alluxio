@@ -28,7 +28,6 @@ public interface AtomicFileOutputStreamCallback extends UnderFileSystem {
    * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   OutputStream createDirect(String path, CreateOptions options) throws IOException;
 }

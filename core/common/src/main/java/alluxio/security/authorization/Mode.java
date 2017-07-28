@@ -14,6 +14,7 @@ package alluxio.security.authorization;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.annotation.PublicApi;
 import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * POSIX style file/directory access mode.
  */
+@PublicApi
 @NotThreadSafe
 public final class Mode {
   private static final Mode FILE_UMASK = new Mode(Constants.FILE_DIR_PERMISSION_DIFF);
@@ -283,6 +285,7 @@ public final class Mode {
   /**
    * Mode bits.
    */
+  @PublicApi
   @ThreadSafe
   public enum Bits {
     NONE("---"),

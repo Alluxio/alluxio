@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.ExceptionMessage;
@@ -147,8 +147,9 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void persistWithAncestorPermission() throws Exception {
-    String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
+    String ufsRoot =
+        PathUtils.concatPath(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(ufs) || UnderFileSystemUtils.isHdfs(ufs));
 
@@ -167,10 +168,11 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     // Check the permission of the created file and ancestor dir are in-sync between Alluxio and UFS
     short fileMode = (short) status.getMode();
     short parentMode = (short) mFileSystem.getStatus(testFile.getParent()).getMode();
-    Assert.assertEquals(fileMode, ufs.getMode(PathUtils.concatPath(ufsRoot, testFile)));
+    Assert.assertEquals(fileMode,
+        ufs.getFileStatus(PathUtils.concatPath(ufsRoot, testFile)).getMode());
     Assert.assertEquals(parentMode,
-        ufs.getMode(PathUtils.concatPath(ufsRoot, testFile.getParent())));
+        ufs.getDirectoryStatus(PathUtils.concatPath(ufsRoot, testFile.getParent())).getMode());
     Assert.assertEquals(grandParentMode,
-        new Mode(ufs.getMode(PathUtils.concatPath(ufsRoot, grandParent))));
+        new Mode(ufs.getDirectoryStatus(PathUtils.concatPath(ufsRoot, grandParent)).getMode()));
   }
 }

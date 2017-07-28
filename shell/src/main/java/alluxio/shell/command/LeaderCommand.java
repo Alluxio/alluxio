@@ -14,6 +14,7 @@ package alluxio.shell.command;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -43,18 +44,17 @@ public final class LeaderCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) {
-    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-    try {
-      String hostName = client.getAddress().getHostName();
+  public int run(CommandLine cl) {
+    try (CloseableResource<FileSystemMasterClient> client =
+        FileSystemContext.INSTANCE.acquireMasterClientResource()) {
+      String hostName = client.get().getAddress().getHostName();
       if (hostName != null) {
         System.out.println(hostName);
       } else {
         System.out.println("Failed to get the leader master.");
       }
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
+    return 0;
   }
 
   @Override

@@ -13,7 +13,6 @@ package alluxio.worker.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -85,7 +84,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     FileSystemCommand command;
     try {
       command = mMasterClient.heartbeat(mWorkerId.get(), persistedFiles);
-    } catch (IOException | AlluxioException e) {
+    } catch (Exception e) {
       LOG.error("Failed to heartbeat to master", e);
       return;
     }
@@ -148,7 +147,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
         LOG.info("persist file {} of blocks {}", mFileId, mBlockIds);
         try {
           mFileDataManager.persistFile(mFileId, mBlockIds);
-        } catch (AlluxioException | IOException e) {
+        } catch (Exception e) {
           LOG.error("Failed to persist file {}", mFileId, e);
         }
       }

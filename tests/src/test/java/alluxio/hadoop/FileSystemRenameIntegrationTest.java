@@ -13,6 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -33,7 +34,7 @@ import java.net.URI;
  * Integration tests for {@link FileSystem#rename(Path, Path)}.
  */
 // TODO(jiri): Test persisting rename operations to UFS.
-public final class FileSystemRenameIntegrationTest {
+public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
@@ -51,7 +52,6 @@ public final class FileSystemRenameIntegrationTest {
    * Deletes files in the given filesystem.
    *
    * @param fs given filesystem
-   * @throws IOException
    */
   public static void cleanup(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     FileStatus[] statuses = fs.listStatus(new Path("/"));
@@ -68,8 +68,8 @@ public final class FileSystemRenameIntegrationTest {
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(PropertyKey.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.Factory.get(sUfsRoot);
+    sUfsRoot = alluxio.Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   @Test

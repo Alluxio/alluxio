@@ -52,7 +52,7 @@ public final class ChecksumCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI loc = new AlluxioURI(args[0]);
     URIStatus status = mFileSystem.getStatus(loc);
@@ -61,6 +61,7 @@ public final class ChecksumCommand extends AbstractShellCommand {
     }
     String str = calculateChecksum(loc);
     System.out.println("md5sum: " + str);
+    return 0;
   }
 
   /**
@@ -68,8 +69,6 @@ public final class ChecksumCommand extends AbstractShellCommand {
    *
    * @param filePath The {@link AlluxioURI} path of the file calculate MD5 checksum on
    * @return A string representation of the file's MD5 checksum
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private String calculateChecksum(AlluxioURI filePath)
       throws AlluxioException, IOException {

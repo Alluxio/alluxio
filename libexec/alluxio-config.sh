@@ -31,11 +31,11 @@ this="${config_bin}/${script}"
 # This will set the default installation for a tarball installation while os distributors can create
 # their own alluxio-layout.sh file to set system installation locations.
 if [[ -z "${ALLUXIO_SYSTEM_INSTALLATION}" ]]; then
-  VERSION=1.5.0-SNAPSHOT
+  VERSION=1.6.0-SNAPSHOT
   ALLUXIO_HOME=$(dirname $(dirname "${this}"))
-  ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
   ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
-  ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
 fi
 
 if [[ -z "$(which java)" ]]; then
@@ -85,9 +85,33 @@ ALLUXIO_JAVA_OPTS+=" -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.proper
 ALLUXIO_JAVA_OPTS+=" -Dorg.apache.jasper.compiler.disablejsr199=true"
 ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
 
+ALLUXIO_CLIENT_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_CLIENT_JAR}"
+ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_SERVER_JAR}"
+
+####################################################################################################
+## Start reading site-properties to set certain variables.
+####################################################################################################
+function getConf {
+  CLASS="alluxio.cli.GetConf"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+  "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} "$1"
+}
+
+if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
+    ALLUXIO_LOGS_DIR=$(getConf "alluxio.logs.dir")
+    ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
+fi
+####################################################################################################
+## End reading site-properties
+####################################################################################################
+
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
+
+# Secondary master specific parameters based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_SECONDARY_MASTER_LOGGER:-SECONDARY_MASTER_LOGGER}"
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
@@ -100,10 +124,3 @@ ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKE
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logger.type=USER_LOGGER"
-
-# A developer option to prepend Alluxio jars before ALLUXIO_CLASSPATH jars
-if [[ -n "${ALLUXIO_PREPEND_ALLUXIO_CLASSES}" ]]; then
-  export CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_JARS}:${ALLUXIO_CLASSPATH}"
-else
-  export CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_JARS}"
-fi

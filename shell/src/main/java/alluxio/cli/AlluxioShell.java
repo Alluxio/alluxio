@@ -14,24 +14,20 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.shell.AlluxioShellUtils;
 import alluxio.shell.command.ShellCommand;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -54,7 +50,6 @@ public final class AlluxioShell implements Closeable {
    * Main method, starts a new AlluxioShell.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
-   * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
     int ret;
@@ -75,7 +70,7 @@ public final class AlluxioShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Map<String, ShellCommand> mCommands = new HashMap<>();
+  private final Map<String, ShellCommand> mCommands;
   private final FileSystem mFileSystem;
 
   /**
@@ -83,33 +78,11 @@ public final class AlluxioShell implements Closeable {
    */
   public AlluxioShell() {
     mFileSystem = FileSystem.Factory.get();
-    loadCommands();
+    mCommands = AlluxioShellUtils.loadCommands(mFileSystem);
   }
 
   @Override
   public void close() throws IOException {
-  }
-
-  /**
-   * Uses reflection to get all the {@link ShellCommand} classes and store them in a map.
-   */
-  private void loadCommands() {
-    String pkgName = ShellCommand.class.getPackage().getName();
-    Reflections reflections = new Reflections(pkgName);
-    for (Class<? extends ShellCommand> cls : reflections.getSubTypesOf(ShellCommand.class)) {
-      // Only instantiate a concrete class
-      if (!Modifier.isAbstract(cls.getModifiers())) {
-        ShellCommand cmd;
-        try {
-          cmd = CommonUtils.createNewClassInstance(cls,
-              new Class[] { FileSystem.class },
-              new Object[] {mFileSystem });
-        } catch (Exception e) {
-          throw Throwables.propagate(e);
-        }
-        mCommands.put(cmd.getCommandName(), cmd);
-      }
-    }
   }
 
   /**
@@ -127,14 +100,13 @@ public final class AlluxioShell implements Closeable {
   }
 
   /**
-   * Method which prints the method to use all the commands.
+   * Prints usage for all shell commands.
    */
   private void printUsage() {
-    System.out.println("Usage: java AlluxioShell");
+    System.out.println("Usage: alluxio fs [generic options]");
     SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
     for (String cmd : sortedCmds) {
-      System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
-          mCommands.get(cmd).getDescription());
+      System.out.format("%-60s%n", "       [" + mCommands.get(cmd).getUsage() + "]");
     }
   }
 
@@ -175,14 +147,13 @@ public final class AlluxioShell implements Closeable {
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
     CommandLine cmdline = command.parseAndValidateArgs(args);
     if (cmdline == null) {
-      printUsage();
+      System.out.println("Usage: " + command.getUsage());
       return -1;
     }
 
     // Handle the command
     try {
-      command.run(cmdline);
-      return 0;
+      return command.run(cmdline);
     } catch (Exception e) {
       System.out.println(e.getMessage());
       LOG.error("Error running " + StringUtils.join(argv, " "), e);

@@ -17,9 +17,12 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,6 +31,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ChownCommand extends AbstractShellCommand {
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("change owner recursively")
+          .build();
 
   /**
    * Creates a new instance of {@link ChownCommand}.
@@ -49,18 +59,24 @@ public final class ChownCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
+  public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION);
   }
 
   /**
-   * Changes the owner for the directory or file with the path specified in args.
+   * See https://paulgorman.org/technical/presentations/linux_username_conventions.pdf
+   * in which the author refers to IEEE Std 1003.1-2001 regarding the standards for
+   * valid POSIX usernames.
+   */
+  private static final Pattern USER_GROUP_PATTERN =
+      Pattern.compile("(?<user>[\\w][\\w-]*\\$?)(:(?<group>[\\w][\\w-]*\\$?))?");
+
+  /**
+   * Changes the owner for the path specified in args.
    *
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param owner The owner to be updated to the file or directory
    * @param recursive Whether change the owner recursively
-   * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
    */
   private void chown(AlluxioURI path, String owner, boolean recursive)
       throws AlluxioException, IOException {
@@ -70,17 +86,44 @@ public final class ChownCommand extends AbstractShellCommand {
     System.out.println("Changed owner of " + path + " to " + owner);
   }
 
+  /**
+   * Changes the owner and group for the path specified in args.
+   *
+   * @param path the {@link AlluxioURI} path to update
+   * @param owner the new owner
+   * @param group the new group
+   * @param recursive whether to change the owner and group recursively
+   */
+  private void chown(AlluxioURI path, String owner, String group, boolean recursive)
+      throws AlluxioException, IOException {
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setRecursive(recursive);
+    mFileSystem.setAttribute(path, options);
+    System.out.println("Changed owner:group of " + path + " to " + owner + ":" + group + ".");
+  }
+
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    String owner = args[0];
     AlluxioURI path = new AlluxioURI(args[1]);
-    chown(path, owner, cl.hasOption("R"));
+    Matcher matchUserGroup = USER_GROUP_PATTERN.matcher(args[0]);
+    if (matchUserGroup.matches()) {
+      String owner = matchUserGroup.group("user");
+      String group = matchUserGroup.group("group");
+      if (group == null) {
+        chown(path, owner, cl.hasOption("R"));
+      } else {
+        chown(path, owner, group, cl.hasOption("R"));
+      }
+      return 0;
+    }
+    System.out.println("Failed to parse " + args[0] + " as user or user:group");
+    return -1;
   }
 
   @Override
   public String getUsage() {
-    return "chown [-R] <owner> <path>";
+    return "chown [-R] <owner>[:<group>] <path>";
   }
 
   @Override

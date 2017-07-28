@@ -18,13 +18,16 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.LogInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -45,6 +48,7 @@ import java.util.TreeMap;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -67,6 +71,11 @@ public final class AlluxioMasterRestServiceHandler {
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
 
+  // log
+  public static final String LOG_LEVEL = "logLevel";
+  public static final String LOG_ARGUMENT_NAME = "logName";
+  public static final String LOG_ARGUMENT_LEVEL = "level";
+
   // the following endpoints are deprecated
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CONFIGURATION = "configuration";
@@ -85,11 +94,11 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_COUNT = "worker_count";
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private final AlluxioMasterService mMaster;
+  private final MasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
-  private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-  private final UnderFileSystem mUfs = UnderFileSystem.Factory.get(mUfsRoot);
+  private final String mUfsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  private final UnderFileSystem mUfs;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -98,10 +107,11 @@ public final class AlluxioMasterRestServiceHandler {
    */
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mMaster = (AlluxioMasterService) context
+    mMasterProcess = (MasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mBlockMaster = mMaster.getBlockMaster();
-    mFileSystemMaster = mMaster.getFileSystemMaster();
+    mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
+    mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
+    mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   /**
@@ -130,12 +140,12 @@ public final class AlluxioMasterRestServiceHandler {
                 .setLostWorkers(mBlockMaster.getLostWorkersInfoList())
                 .setMetrics(getMetricsInternal())
                 .setMountPoints(getMountPointsInternal())
-                .setRpcAddress(mMaster.getRpcAddress().toString())
-                .setStartTimeMs(mMaster.getStartTimeMs())
+                .setRpcAddress(mMasterProcess.getRpcAddress().toString())
+                .setStartTimeMs(mMasterProcess.getStartTimeMs())
                 .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
                 .setTierCapacity(getTierCapacityInternal())
                 .setUfsCapacity(getUfsCapacityInternal())
-                .setUptimeMs(mMaster.getUptimeMs())
+                .setUptimeMs(mMasterProcess.getUptimeMs())
                 .setVersion(RuntimeConstants.VERSION)
                 .setWorkers(mBlockMaster.getWorkerInfoList());
         return result;
@@ -195,7 +205,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<String>() {
       @Override
       public String call() throws Exception {
-        return mMaster.getRpcAddress().toString();
+        return mMasterProcess.getRpcAddress().toString();
       }
     });
   }
@@ -214,7 +224,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return mMaster.getStartTimeMs();
+        return mMasterProcess.getStartTimeMs();
       }
     });
   }
@@ -233,7 +243,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
-        return mMaster.getUptimeMs();
+        return mMasterProcess.getUptimeMs();
       }
     });
   }
@@ -506,7 +516,7 @@ public final class AlluxioMasterRestServiceHandler {
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(FileSystemMaster.Metrics.FILES_PINNED);
+        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
@@ -520,23 +530,11 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, MountPointInfo> getMountPointsInternal() {
-    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
-    for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable()
-        .entrySet()) {
-      MountInfo mountInfo = mountPoint.getValue();
-      MountPointInfo info = new MountPointInfo();
-      info.setUfsInfo(mountInfo.getUfsUri().toString());
-      info.setReadOnly(mountInfo.getOptions().isReadOnly());
-      info.setProperties(mountInfo.getOptions().getProperties());
-      info.setShared(mountInfo.getOptions().isShared());
-      mountPoints.put(mountPoint.getKey(), info);
-    }
-    return mountPoints;
+    return mFileSystemMaster.getMountTable();
   }
 
   private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
-    FileSystemMaster.StartupConsistencyCheck check = mFileSystemMaster
-        .getStartupConsistencyCheck();
+    StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
     alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
     List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
     List<String> uris = new ArrayList<>(inconsistentUris.size());
@@ -563,5 +561,24 @@ public final class AlluxioMasterRestServiceHandler {
   private Capacity getUfsCapacityInternal() throws IOException {
     return new Capacity().setTotal(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL))
         .setUsed(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
+  }
+
+  /**
+   * @summary set the Alluxio log information
+   * @param logName the log's name
+   * @param level the log level
+   * @return the response object
+   */
+  @POST
+  @Path(LOG_LEVEL)
+  @ReturnType("alluxio.wire.LogInfo")
+  public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
+      (LOG_ARGUMENT_LEVEL) final String level) {
+    return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
+      @Override
+      public LogInfo call() throws Exception {
+        return LogUtils.setLogLevel(logName, level);
+      }
+    });
   }
 }

@@ -18,14 +18,16 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.FileRegion;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -34,12 +36,14 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 import java.util.Random;
 
 public abstract class DataServerReadHandlerTest {
   protected static final long PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   protected String mFile;
@@ -97,7 +101,7 @@ public abstract class DataServerReadHandlerTest {
     populateInputFile(0, 0, 0);
     mChannelNoException.writeInbound(buildReadRequest(0, 0));
     Object response = waitForOneResponse(mChannelNoException);
-    checkReadResponse(response, Protocol.Status.Code.INVALID_ARGUMENT);
+    checkReadResponse(response, PStatus.INVALID_ARGUMENT);
   }
 
   /**
@@ -105,10 +109,10 @@ public abstract class DataServerReadHandlerTest {
    */
   @Test
   public void cancelRequest() throws Exception {
-    long fileSize = PACKET_SIZE * 10 + 1;
+    long fileSize = PACKET_SIZE * 100 + 1;
     populateInputFile(fileSize, 0, fileSize - 1);
     RPCProtoMessage readRequest = buildReadRequest(0, fileSize);
-    Protocol.ReadRequest request = readRequest.getMessage().getMessage();
+    Protocol.ReadRequest request = readRequest.getMessage().asReadRequest();
     RPCProtoMessage cancelRequest =
         new RPCProtoMessage(new ProtoMessage(request.toBuilder().setCancel(true).build()), null);
     mChannel.writeInbound(readRequest);
@@ -120,7 +124,10 @@ public abstract class DataServerReadHandlerTest {
     long maxIterations = 100;
     while (maxIterations > 0) {
       Object response = waitForOneResponse(mChannel);
-      DataBuffer buffer = checkReadResponse(response, Protocol.Status.Code.OK);
+      // There is small chance that we can still receive an OK response here because it is too
+      // fast to read all the data. If that ever happens, either increase the file size or allow it
+      // to be OK here.
+      DataBuffer buffer = checkReadResponse(response, PStatus.CANCELED);
       if (buffer == null) {
         eof = true;
         break;
@@ -138,7 +145,6 @@ public abstract class DataServerReadHandlerTest {
    * @param length the length of the file
    * @param start the start position to compute the checksum
    * @param end the last position to compute the checksum
-   * @throws Exception if it fails to populate the input file
    * @return the checksum
    */
   protected long populateInputFile(long length, long start, long end) throws Exception {
@@ -179,7 +185,7 @@ public abstract class DataServerReadHandlerTest {
         Assert.fail();
         break;
       }
-      DataBuffer buffer = checkReadResponse(readResponse, Protocol.Status.Code.OK);
+      DataBuffer buffer = checkReadResponse(readResponse, PStatus.OK);
       eof = buffer == null;
       if (buffer != null) {
         if (buffer instanceof DataNettyBufferV2) {
@@ -190,11 +196,31 @@ public abstract class DataServerReadHandlerTest {
           buf.release();
         } else {
           Assert.assertTrue(buffer instanceof DataFileChannel);
-          ByteBuffer buf = buffer.getReadOnlyByteBuffer();
-          byte[] array = new byte[buf.remaining()];
-          buf.get(array);
-          for (int i = 0; i < array.length; i++) {
-            checksumActual += BufferUtils.byteToInt(array[i]);
+          final ByteBuffer byteBuffer = ByteBuffer.allocate((int) buffer.getLength());
+          WritableByteChannel writableByteChannel = new WritableByteChannel() {
+            @Override
+            public boolean isOpen() {
+              return true;
+            }
+
+            @Override
+            public void close() throws IOException {}
+
+            @Override
+            public int write(ByteBuffer src) throws IOException {
+              int sz = src.remaining();
+              byteBuffer.put(src);
+              return sz;
+            }
+          };
+          try {
+            ((FileRegion) buffer.getNettyOutput()).transferTo(writableByteChannel, 0);
+          } catch (IOException e) {
+            Assert.fail();
+          }
+          byteBuffer.flip();
+          while (byteBuffer.remaining() > 0) {
+            checksumActual += BufferUtils.byteToInt(byteBuffer.get());
           }
         }
       }
@@ -207,17 +233,21 @@ public abstract class DataServerReadHandlerTest {
    * Checks the read response message given the expected error code.
    *
    * @param readResponse the read response
-   * @param codeExpected the expected error code
+   * @param statusExpected the expected error code
    * @return the data buffer extracted from the read response
    */
-  protected DataBuffer checkReadResponse(Object readResponse, Protocol.Status.Code codeExpected) {
+  protected DataBuffer checkReadResponse(Object readResponse, PStatus statusExpected) {
     Assert.assertTrue(readResponse instanceof RPCProtoMessage);
 
     ProtoMessage response = ((RPCProtoMessage) readResponse).getMessage();
-    Assert.assertTrue(response.getType() == ProtoMessage.Type.RESPONSE);
-    Assert.assertEquals(codeExpected,
-        response.<Protocol.Response>getMessage().getStatus().getCode());
-    return ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
+    Assert.assertTrue(response.isResponse());
+    DataBuffer buffer = ((RPCProtoMessage) readResponse).getPayloadDataBuffer();
+    if (buffer != null) {
+      Assert.assertEquals(PStatus.OK, response.asResponse().getStatus());
+    } else {
+      Assert.assertEquals(statusExpected, response.asResponse().getStatus());
+    }
+    return buffer;
   }
 
   /**
@@ -231,7 +261,7 @@ public abstract class DataServerReadHandlerTest {
       public Object apply(Void v) {
         return channel.readOutbound();
       }
-    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
   /**
@@ -247,7 +277,6 @@ public abstract class DataServerReadHandlerTest {
    * Mocks the reader (block reader or UFS file reader).
    *
    * @param start the start pos of the reader
-   * @throws Exception if it fails to mock the reader
    */
   protected abstract void mockReader(long start) throws Exception;
 }

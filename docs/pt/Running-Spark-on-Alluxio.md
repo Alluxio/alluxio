@@ -43,7 +43,7 @@ projeto inteiro a partir do diretório raiz do Alluxio com o comando:
 
 {% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-xml.md %}
 
-E as linhas seguintes em `spark/conf/spark-env.sh`:
+E as linhas seguintes em `spark/conf/spark-defaults.conf`:
 
 {% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-bash.md %}
 

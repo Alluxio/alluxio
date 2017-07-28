@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
@@ -34,23 +34,43 @@
   <dependencies>
     <!-- External test dependencies -->
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava-testlib</artifactId>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -64,6 +84,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <scope>test</scope>
@@ -72,7 +97,45 @@
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -85,9 +148,39 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-protobuf</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-common</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-master</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-master</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-proxy</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-worker</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -120,233 +213,47 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-oss</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-s3</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <profiles>
+    <!-- Profile to build tests module connecting to hdfs 1 -->
+    <!-- In hadoop-1, hadoop-client is a wrapper on hadoop-core but excluding a few dependencies from hadoop-core.
+         Depending on hadoop-client will lead to missing class errors in test.
+         So we need to have the direct dep on hadoop-core. -->
+    <!-- Mark hadoop-core as provided because alluxio-underfs-hdfs will come with a shaded version. -->
     <profile>
-      <id>hdfsTest</id>
+      <id>hadoop-1</id>
       <dependencies>
         <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-hdfs</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
         </dependency>
       </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.hdfs.LocalMiniDFSCluster</ufs>
-              </systemPropertyVariables>
-              <excludes>
-                <!-- Exclude RestApi related tests on hdfsTest: conflict between powermock (introduced by
-                     RestApiTest) and LocalMiniDFSCluster -->
-                <exclude>**/*RestApiTest.java</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
 
+    <!-- Profile to build tests module connecting to hdfs 2 -->
+    <!-- Mark hadoop-{common, hdfs} as provided because alluxio-underfs-hdfs will come with a shaded version. -->
     <profile>
-      <id>glusterfsTest</id>
+      <id>hadoop-2</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-glusterfs</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
-          <scope>test</scope>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
         </dependency>
       </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.glusterfs.GlusterFSCluster</ufs>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>s3Test</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-s3</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.s3.S3UnderStorageCluster</ufs>
-                <!-- Change "myAccessKey" to your access key for this test if using s3n -->
-                <fs.s3n.awsAccessKeyId>myAccessKey</fs.s3n.awsAccessKeyId>
-                <!-- Change "mySecretKey" to your secret key for this test if using s3n -->
-                <fs.s3n.awsSecretAccessKey>mySecretKey</fs.s3n.awsSecretAccessKey>
-                <!-- Change "myAccessKey" to your access key for this test if using s3a -->
-                <aws.accessKeyId>myAccessKey</aws.accessKeyId>
-                <!-- Change "mySecretKey" to your secret key for this test if using s3a -->
-                <aws.secretKey>mySecretKey</aws.secretKey>
-                <!-- Change "s3a://my-bucket/alluxio-test" to the name of your S3 bucket & dir -->
-                <s3Bucket>s3a://my-bucket/alluxio-test</s3Bucket>
-                <!-- Increase the buffer time of journal writes to speed up tests -->
-                <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>ossTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-oss</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpcore</artifactId>
-          <version>4.4</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.oss.OSSUnderStorageCluster</ufs>
-                <!-- Change "yourAccessId" to your oss access id for this test -->
-                <fs.oss.accessKeyId>yourAccessId</fs.oss.accessKeyId>
-                <!-- Change "yourSecretKey" to your oss access secret key for this test -->
-                <fs.oss.accessKeySecret>yourSecretKey</fs.oss.accessKeySecret>
-                <!-- Change this endpoint for your oss service address for this test -->
-                <fs.oss.endpoint>http://oss-cn-hangzhou.aliyuncs.com</fs.oss.endpoint>
-                <!-- Change "your-bucket" to your oss bucket for this test -->
-                <ossBucket>oss://your-bucket/alluxio-test/</ossBucket>
-                <!-- Increase the buffer time of journal writes to speed up tests -->
-                <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>swiftTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-swift</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <!--argLine>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/dump</argLine-->
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.swift.SwiftUnderStorageCluster</ufs>
-                <!-- Change "myAuthUrl" to point authentication URL -->
-                <authUrlKey>myAuthUrl</authUrlKey>
-                <!-- Change "myAuthMethod" to define authentication type -->
-                <authMethodKey>myAuthMethod</authMethodKey>
-                <!-- Change "myUserKey" to contain the user  -->
-                <userKey>myUserKey</userKey>
-                <!-- Change "myApiKey" to contain the user's key or password  -->
-                <apiKey>myApiKey</apiKey>
-                <!-- Change "myTenantKey" to contain the user's tenant or account  -->
-                <tenantKey>myTenantKey</tenantKey>
-                <!-- Change "container/folder" to contain the testing container  -->
-                <!-- Keep the structure in form container/folder -->
-                <containerKey>swift://container/folder</containerKey>
-                <!-- Increase the buffer time of journal writes to speed up tests -->
-                <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>gcsTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-underfs-gcs</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <ufs>alluxio.underfs.gcs.GCSUnderStorageCluster</ufs>
-                <!-- Change "myAccessKey" to your access key for this test -->
-                <fs.gcs.accessKeyId>myAccessKey</fs.gcs.accessKeyId>
-                <!-- Change "mySecretKey" to your secret key for this test -->
-                <fs.gcs.secretAccessKey>mySecretKey</fs.gcs.secretAccessKey>
-                <!-- Change "gs://my-bucket/alluxio-test" to the name of your
-                     gcs bucket for this test -->
-                <gcsBucket>gs://my-bucket/alluxio-test</gcsBucket>
-                <!-- Increase the buffer time of journal writes to speed up tests -->
-                <alluxio.master.journal.flush.batch.time.ms>1000</alluxio.master.journal.flush.batch.time.ms>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
 
     <profile>

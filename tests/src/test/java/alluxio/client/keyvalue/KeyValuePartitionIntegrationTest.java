@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.PathUtils;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValuePartitionWriter}.
  */
-public final class KeyValuePartitionIntegrationTest {
+public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
   private static final String BASE_VALUE = "base_value";
@@ -77,7 +78,7 @@ public final class KeyValuePartitionIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, Constants.GB)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true")
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, true)
           .build();
 
   @BeforeClass

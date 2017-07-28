@@ -27,18 +27,13 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 
 /**
  * Unit tests for {@link CheckpointLatestPlanner}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemMaster.class})
 public final class CheckpointLatestPlannerTest {
   private LineageStore mLineageStore;
   private FileSystemMaster mFileSystemMaster;

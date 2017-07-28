@@ -20,7 +20,7 @@ import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.LineageInfo;
@@ -46,25 +46,27 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link LineageMasterClientRestServiceHandler}.
  */
 public final class LineageMasterClientRestApiTest extends RestApiTest {
-  private AlluxioMasterService mMaster;
+  private MasterProcess mMasterProcess;
   private LineageFileSystem mLineageClient;
 
   @Before
   public void before() throws Exception {
     mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getMaster().getInternalMaster().getWebAddress().getPort();
+    mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = LineageMasterClientRestServiceHandler.SERVICE_PREFIX;
     mLineageClient = LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
-    mMaster = mResource.get().getMaster().getInternalMaster();
+    mMasterProcess = mResource.get().getLocalAlluxioMaster().getMasterProcess();
   }
 
   @Test
+  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void serviceName() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_NAME),
         NO_PARAMS, HttpMethod.GET, Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
+  @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void serviceVersion() throws Exception {
     new TestCase(mHostname, mPort,
         getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_VERSION), NO_PARAMS,
@@ -89,7 +91,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
   public void deleteLineage() throws Exception {
-    LineageMaster lineageMaster = mMaster.getLineageMaster();
+    LineageMaster lineageMaster = mMasterProcess.getMaster(LineageMaster.class);
     long lineageId = lineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         new ArrayList<AlluxioURI>(), new CommandLineJob("test", new JobConf("/output")));
 
@@ -106,7 +108,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   public void getLineageInfoList() throws Exception {
     AlluxioURI input = new AlluxioURI("/input");
     AlluxioURI output = new AlluxioURI("/output");
-    LineageMaster lineageMaster = mMaster.getLineageMaster();
+    LineageMaster lineageMaster = mMasterProcess.getMaster(LineageMaster.class);
     mLineageClient.createFile(new AlluxioURI("/input")).close();
     long lineageId = lineageMaster.createLineage(Lists.newArrayList(input),
         Lists.newArrayList(output), new CommandLineJob("test", new JobConf(output.getPath())));

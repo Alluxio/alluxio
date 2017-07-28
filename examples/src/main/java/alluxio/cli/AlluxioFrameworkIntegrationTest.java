@@ -19,7 +19,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -28,7 +28,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -111,15 +110,15 @@ public final class AlluxioFrameworkIntegrationTest {
                 try {
                   try {
                     return !client.getWorkerInfoList().isEmpty();
-                  } catch (ConnectionFailedException e) {
+                  } catch (UnavailableException e) {
                     // block master isn't up yet, keep waiting
                     return false;
                   }
                 } catch (Exception e) {
-                  throw Throwables.propagate(e);
+                  throw new RuntimeException(e);
                 }
               }
-            }, WaitForOptions.defaults().setTimeout(15 * Constants.MINUTE_MS));
+            }, WaitForOptions.defaults().setTimeoutMs(15 * Constants.MINUTE_MS));
       }
       LOG.info("Worker registered");
       basicAlluxioTests();
@@ -139,7 +138,7 @@ public final class AlluxioFrameworkIntegrationTest {
     } catch (Exception e) {
       LOG.info("Failed to launch Alluxio on Mesos. Note that this test requires that "
           + "Mesos is currently running.");
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -208,7 +207,6 @@ public final class AlluxioFrameworkIntegrationTest {
 
   /**
    * @param args arguments
-   * @throws Exception if an exception occurs
    */
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();

@@ -12,6 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -19,15 +21,17 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -37,127 +41,89 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
-public interface UnderFileSystem {
+public interface UnderFileSystem extends Closeable {
 
   /**
    * The factory for the {@link UnderFileSystem}.
    */
   class Factory {
-    private static final Cache UFS_CACHE = new Cache();
+    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
 
     private Factory() {} // prevent instantiation
 
     /**
-     * A class used to cache UnderFileSystems.
+     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
+     * only be used for journal operations and tests.
+     *
+     * @param path the file path storing over the ufs
+     * @return instance of the under layer file system
      */
-    @ThreadSafe
-    private static final class Cache {
-      /**
-       * Maps from {@link Key} to {@link UnderFileSystem} instances.
-       */
-      private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
-          new ConcurrentHashMap<>();
+    public static UnderFileSystem create(String path) {
+      return create(path, UnderFileSystemConfiguration.defaults());
+    }
 
-      private Cache() {}
+    /**
+     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
+     * only be used for journal operations and tests.
+     *
+     * @param path journal path in ufs
+     * @return the instance of under file system for Alluxio journal directory
+     */
+    public static UnderFileSystem create(URI path) {
+      return create(path.toString());
+    }
 
-      /**
-       * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
-       * that to the cache.
-       *
-       * @param path the ufs path
-       * @param ufsConf the ufs configuration
-       * @return the UFS instance
-       */
-      UnderFileSystem get(String path, Object ufsConf) {
-        Key key = new Key(new AlluxioURI(path));
-        UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
-        if (cachedFs != null) {
-          return cachedFs;
-        }
-        UnderFileSystem fs = UnderFileSystemRegistry.create(path, ufsConf);
-        cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-        if (cachedFs == null) {
-          return fs;
-        }
+    /**
+     * Creates a client for operations involved with the under file system. An
+     * {@link IllegalArgumentException} is thrown if there is no under file system for the given
+     * path or if no under file system could successfully be created.
+     *
+     * @param path path
+     * @param ufsConf optional configuration object for the UFS, may be null
+     * @return client for the under file system
+     */
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+      // Try to obtain the appropriate factory
+      List<UnderFileSystemFactory> factories = UnderFileSystemFactoryRegistry.findAll(path);
+      if (factories.isEmpty()) {
+        throw new IllegalArgumentException("No Under File System Factory found for: " + path);
+      }
+
+      List<Throwable> errors = new ArrayList<>();
+      for (UnderFileSystemFactory factory : factories) {
         try {
-          fs.close();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
+          // Use the factory to create the actual client for the Under File System
+          return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
+        } catch (Throwable e) {
+          // Catching Throwable rather than Exception to catch service loading errors
+          errors.add(e);
+          LOG.warn("Failed to create UnderFileSystem by factory {}: {}", factory, e.getMessage());
         }
-        return cachedFs;
       }
 
-      void clear() {
-        mUnderFileSystemMap.clear();
+      // If we reach here no factories were able to successfully create for this path likely due to
+      // missing configuration since if we reached here at least some factories claimed to support
+      // the path
+      // Need to collate the errors
+      IllegalArgumentException e = new IllegalArgumentException(
+          String.format("Unable to create an UnderFileSystem instance for path: %s", path));
+      for (Throwable t : errors) {
+        e.addSuppressed(t);
       }
+      throw e;
     }
 
     /**
-     * The key of the UFS cache.
+     * @return the instance of under file system for Alluxio root directory
      */
-    private static class Key {
-      private final String mScheme;
-      private final String mAuthority;
-
-      Key(AlluxioURI uri) {
-        mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-        mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
-      }
-
-      @Override
-      public int hashCode() {
-        return Objects.hashCode(mScheme, mAuthority);
-      }
-
-      @Override
-      public boolean equals(Object object) {
-        if (object == this) {
-          return true;
-        }
-
-        if (!(object instanceof Key)) {
-          return false;
-        }
-
-        Key that = (Key) object;
-        return Objects.equal(mScheme, that.mScheme)
-            && Objects.equal(mAuthority, that.mAuthority);
-      }
-
-      @Override
-      public String toString() {
-        return mScheme + "://" + mAuthority;
-      }
-    }
-
-    /**
-     * Clears the under file system cache.
-     */
-    public static void clearCache() {
-      UFS_CACHE.clear();
-    }
-
-    /**
-     * Gets the UnderFileSystem instance according to its schema.
-     *
-     * @param path the file path storing over the ufs
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem get(String path) {
-      return get(path, null);
-    }
-
-    /**
-     * Gets the UnderFileSystem instance according to its scheme and configuration.
-     *
-     * @param path the file path storing over the ufs
-     * @param ufsConf the configuration object for ufs only
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem get(String path, Object ufsConf) {
-      Preconditions.checkArgument(path != null, "path may not be null");
-
-      return UFS_CACHE.get(path, ufsConf);
+    public static UnderFileSystem createForRoot() {
+      String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      boolean readOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+      boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+      Map<String, String> ufsConf =
+          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      return create(ufsRoot, UnderFileSystemConfiguration.defaults().setReadOnly(readOnly)
+          .setShared(shared).setUserSpecifiedConf(ufsConf));
     }
   }
 
@@ -199,20 +165,8 @@ public interface UnderFileSystem {
 
   /**
    * Closes this under file system.
-   *
-   * @throws IOException if a non-Alluxio error occurs
    */
   void close() throws IOException;
-
-  /**
-   * Configures and updates the properties. For instance, this method can add new properties or
-   * modify existing properties specified through {@link #setProperties(Map)}.
-   *
-   * The default implementation is a no-op. This should be overridden if a subclass needs
-   * additional functionality.
-   * @throws IOException if an error occurs during configuration
-   */
-  void configureProperties() throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -222,7 +176,6 @@ public interface UnderFileSystem {
    * </p>
    *
    * @param hostname the host that wants to connect to the under file system
-   * @throws IOException if a non-Alluxio error occurs
    */
   void connectFromMaster(String hostname) throws IOException;
 
@@ -234,7 +187,6 @@ public interface UnderFileSystem {
    * </p>
    *
    * @param hostname the host that wants to connect to the under file system
-   * @throws IOException if a non-Alluxio error occurs
    */
   void connectFromWorker(String hostname) throws IOException;
 
@@ -244,7 +196,6 @@ public interface UnderFileSystem {
    *
    * @param path the file name
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   OutputStream create(String path) throws IOException;
 
@@ -256,7 +207,6 @@ public interface UnderFileSystem {
    * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   OutputStream create(String path, CreateOptions options) throws IOException;
 
@@ -266,7 +216,6 @@ public interface UnderFileSystem {
    *
    * @param path of the directory to delete
    * @return true if directory was found and deleted, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean deleteDirectory(String path) throws IOException;
 
@@ -276,7 +225,6 @@ public interface UnderFileSystem {
    * @param path of the directory to delete
    * @param options for directory delete semantics
    * @return true if directory was found and deleted, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean deleteDirectory(String path, DeleteOptions options) throws IOException;
 
@@ -285,7 +233,6 @@ public interface UnderFileSystem {
    *
    * @param path of the file to delete
    * @return true if file was found and deleted, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean deleteFile(String path) throws IOException;
 
@@ -294,7 +241,6 @@ public interface UnderFileSystem {
    *
    * @param path the absolute path
    * @return true if the path exists, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean exists(String path) throws IOException;
 
@@ -303,23 +249,22 @@ public interface UnderFileSystem {
    *
    * @param path the file name
    * @return the block size in bytes
-   * @throws IOException if a non-Alluxio error occurs
    */
   long getBlockSizeByte(String path) throws IOException;
 
   /**
-   * Gets the configuration object for UnderFileSystem.
+   * Gets the directory status.
    *
-   * @return configuration object used for concrete ufs instance
+   * @param path the file name
+   * @return the directory status
    */
-  Object getConf();
+  UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
 
   /**
    * Gets the list of locations of the indicated path.
    *
    * @param path the file name
    * @return The list of locations
-   * @throws IOException if a non-Alluxio error occurs
    */
   List<String> getFileLocations(String path) throws IOException;
 
@@ -329,60 +274,16 @@ public interface UnderFileSystem {
    * @param path the file name
    * @param options method options
    * @return The list of locations
-   * @throws IOException if a non-Alluxio error occurs
    */
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file size in bytes.
+   * Gets the file status.
    *
    * @param path the file name
-   * @return the file size in bytes
-   * @throws IOException if a non-Alluxio error occurs
+   * @return the file status
    */
-  long getFileSize(String path) throws IOException;
-
-  /**
-   * Gets the group of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the group of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  String getGroup(String path) throws IOException;
-
-  /**
-   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
-   * be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the mode of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  short getMode(String path) throws IOException;
-
-  /**
-   * Gets the UTC time of when the indicated path was modified recently in ms.
-   *
-   * @param path the file name
-   * @return modification time in milliseconds
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  long getModificationTimeMs(String path) throws IOException;
-
-  /**
-   * Gets the owner of the given path. An empty implementation should be provided if not supported.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  String getOwner(String path) throws IOException;
-
-  /**
-   * @return the property map for this {@link UnderFileSystem}
-   */
-  Map<String, String> getProperties();
+  UfsFileStatus getFileStatus(String path) throws IOException;
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
@@ -391,7 +292,6 @@ public interface UnderFileSystem {
    * @param path the path to query
    * @param type the type of queries
    * @return The space in bytes
-   * @throws IOException if a non-Alluxio error occurs
    */
   long getSpace(String path, SpaceType type) throws IOException;
 
@@ -409,7 +309,6 @@ public interface UnderFileSystem {
    *
    * @param path the absolute directory path
    * @return true if the path exists and is a directory, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean isDirectory(String path) throws IOException;
 
@@ -418,7 +317,6 @@ public interface UnderFileSystem {
    *
    * @param path the absolute file path
    * @return true if the path exists and is a file, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean isFile(String path) throws IOException;
 
@@ -440,9 +338,8 @@ public interface UnderFileSystem {
    * @return An array with the statuses of the files and directories in the directory denoted by
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
-   * @throws IOException if a non-Alluxio error occurs
    */
-  UnderFileStatus[] listStatus(String path) throws IOException;
+  UfsStatus[] listStatus(String path) throws IOException;
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
@@ -463,9 +360,8 @@ public interface UnderFileSystem {
    * @return An array of statuses naming the files and directories in the directory denoted by this
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
-   * @throws IOException if a non-Alluxio error occurs
    */
-  UnderFileStatus[] listStatus(String path, ListOptions options) throws IOException;
+  UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
@@ -473,7 +369,6 @@ public interface UnderFileSystem {
    *
    * @param path the folder to create
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean mkdirs(String path) throws IOException;
 
@@ -484,26 +379,23 @@ public interface UnderFileSystem {
    * @param path the folder to create
    * @param options the options for mkdirs
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean mkdirs(String path, MkdirsOptions options) throws IOException;
 
   /**
-   * Opens an {@link UnderFileInputStream} at the indicated path.
+   * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
    *
    * @param path the file name
    * @return The {@code InputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   InputStream open(String path) throws IOException;
 
   /**
-   * Opens an {@link UnderFileInputStream} at the indicated path.
+   * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
    *
    * @param path the file name
    * @param options to open input stream
    * @return The {@code InputStream} object
-   * @throws IOException if a non-Alluxio error occurs
    */
   InputStream open(String path, OpenOptions options) throws IOException;
 
@@ -513,7 +405,6 @@ public interface UnderFileSystem {
    * @param src the source directory path
    * @param dst the destination directory path
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean renameDirectory(String src, String dst) throws IOException;
 
@@ -523,7 +414,6 @@ public interface UnderFileSystem {
    * @param src the source file path
    * @param dst the destination file path
    * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
    */
   boolean renameFile(String src, String dst) throws IOException;
 
@@ -541,12 +431,12 @@ public interface UnderFileSystem {
   AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
 
   /**
-   * Sets the configuration object for UnderFileSystem. The conf object is understood by the
-   * concrete underfs's implementation.
+   * Changes posix file mode.
    *
-   * @param conf the configuration object accepted by ufs
+   * @param path the path of the file
+   * @param mode the mode to set in short format, e.g. 0777
    */
-  void setConf(Object conf);
+  void setMode(String path, short mode) throws IOException;
 
   /**
    * Sets the user and group of the given path. An empty implementation should be provided if
@@ -555,25 +445,8 @@ public interface UnderFileSystem {
    * @param path the path of the file
    * @param owner the new owner to set, unchanged if null
    * @param group the new group to set, unchanged if null
-   * @throws IOException if a non-Alluxio error occurs
    */
   void setOwner(String path, String owner, String group) throws IOException;
-
-  /**
-   * Sets the properties for this {@link UnderFileSystem}.
-   *
-   * @param properties a {@link Map} of property names to values
-   */
-  void setProperties(Map<String, String> properties);
-
-  /**
-   * Changes posix file mode.
-   *
-   * @param path the path of the file
-   * @param mode the mode to set in short format, e.g. 0777
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  void setMode(String path, short mode) throws IOException;
 
   /**
    * Whether this type of UFS supports flush.

@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.options.GetStatusOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.util.CommonUtils;
@@ -23,6 +24,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,7 +40,7 @@ public final class IntegrationTestUtils {
    * @param uri the file uri to wait to be persisted
    */
   public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
-      AlluxioURI uri) {
+      AlluxioURI uri) throws IOException {
     waitForPersist(localAlluxioClusterResource, uri, 15 * Constants.SECOND_MS);
   }
 
@@ -51,19 +53,20 @@ public final class IntegrationTestUtils {
    */
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
-
     try (FileSystemMasterClient client = FileSystemMasterClient.Factory
-        .create(localAlluxioClusterResource.get().getMaster().getAddress())) {
+        .create(localAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {
-            return client.getStatus(uri).isPersisted();
+            return client.getStatus(uri, GetStatusOptions.defaults()).isPersisted();
           } catch (Exception e) {
             throw Throwables.propagate(e);
           }
         }
-      }, WaitForOptions.defaults().setTimeout(timeoutMs));
+      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -89,7 +92,7 @@ public final class IntegrationTestUtils {
           List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
           return blocksToRemove.containsAll(Arrays.asList(blockIds));
         }
-      }, WaitForOptions.defaults().setTimeout(100 * Constants.SECOND_MS));
+      }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);

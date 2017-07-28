@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -30,6 +31,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class RmCommand extends WithWildCardPathCommand {
+
+  private static final Option RECURSIVE_OPTION =
+      Option.builder("R")
+          .required(false)
+          .hasArg(false)
+          .desc("delete files and subdirectories recursively")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -49,8 +57,8 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+  public Options getOptions() {
+    return new Options().addOption(RECURSIVE_OPTION).addOption(REMOVE_UNCHECKED_OPTION);
   }
 
   @Override
@@ -66,6 +74,9 @@ public final class RmCommand extends WithWildCardPathCommand {
     }
 
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
+    if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
+      options.setUnchecked(true);
+    }
     mFileSystem.delete(path, options);
     System.out.println(path + " has been removed");
   }
@@ -78,5 +89,10 @@ public final class RmCommand extends WithWildCardPathCommand {
   @Override
   public String getDescription() {
     return "Removes the specified file. Specify -R to remove file or directory recursively.";
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length >= 1;
   }
 }

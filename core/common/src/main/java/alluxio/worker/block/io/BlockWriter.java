@@ -29,7 +29,6 @@ public interface BlockWriter extends Closeable {
    *
    * @param inputBuf {@link ByteBuffer} that input data is stored in
    * @return the size of data that was appended in bytes
-   * @throws IOException if the operation fails
    */
   long append(ByteBuffer inputBuf) throws IOException;
 
@@ -45,7 +44,6 @@ public interface BlockWriter extends Closeable {
    * This is only called in the netty data server.
    *
    * @param buf the byte buffer to hold the data
-   * @throws IOException if any I/O errors occur
    */
   void transferFrom(ByteBuf buf) throws IOException;
 

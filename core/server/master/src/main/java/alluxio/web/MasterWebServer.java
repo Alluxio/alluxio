@@ -12,7 +12,9 @@
 package alluxio.web;
 
 import alluxio.Constants;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -38,33 +40,37 @@ public final class MasterWebServer extends WebServer {
    *
    * @param serviceName the service name
    * @param address the service address
-   * @param master the Alluxio master
+   * @param masterProcess the Alluxio master process
    */
   public MasterWebServer(String serviceName, InetSocketAddress address,
-      final AlluxioMasterService master) {
+      final MasterProcess masterProcess) {
     super(serviceName, address);
-    Preconditions.checkNotNull(master, "Alluxio master cannot be null");
+    Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
 
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterProcess)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
-        new WebInterfaceWorkersServlet(master.getBlockMaster())), "/workers");
+        new WebInterfaceWorkersServlet(masterProcess.getMaster(BlockMaster.class))),
+        "/workers");
     mWebAppContext.addServlet(new ServletHolder(
-        new WebInterfaceConfigurationServlet(master.getFileSystemMaster())), "/configuration");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(master)), "/browse");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(master)), "/memory");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(master)),
+            new WebInterfaceConfigurationServlet(masterProcess.getMaster(FileSystemMaster.class))),
+        "/configuration");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterProcess)), "/browse");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceMemoryServlet(masterProcess)), "/memory");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterProcess)),
         "/dependency");
     mWebAppContext.addServlet(new ServletHolder(
-        new WebInterfaceDownloadServlet(master.getFileSystemMaster())), "/download");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
-        "/downloadLocal");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(true)),
-        "/browseLogs");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()),
-        "/header");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet()),
-        "/metricsui");
-
+            new WebInterfaceDownloadServlet(masterProcess.getMaster(FileSystemMaster.class))),
+        "/download");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()), "/downloadLocal");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(true)), "/browseLogs");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
+    mWebAppContext
+        .addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet()), "/metricsui");
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
         "alluxio.master.file", "alluxio.master.lineage");
@@ -76,7 +82,7 @@ public final class MasterWebServer extends WebServer {
       @Override
       public void init() throws ServletException {
         super.init();
-        getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, master);
+        getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, masterProcess);
       }
     };
 

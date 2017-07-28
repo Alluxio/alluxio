@@ -14,13 +14,13 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.master.AlluxioMasterService;
-import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -36,8 +36,6 @@ import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -88,8 +86,9 @@ public final class FileSystemMasterClientRestServiceHandler {
    */
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mFileSystemMaster = ((AlluxioMasterService) context
-        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).getFileSystemMaster();
+    mFileSystemMaster = ((MasterProcess) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
+        .getMaster(FileSystemMaster.class);
   }
 
   /**
@@ -261,7 +260,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public FileInfo call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        return mFileSystemMaster.getFileInfo(new AlluxioURI(path));
+        return mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
       }
     });
   }
@@ -362,18 +361,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Map<String, MountPointInfo>>() {
       @Override
       public Map<String, MountPointInfo> call() throws Exception {
-        SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
-        for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable()
-            .entrySet()) {
-          MountInfo mountInfo = mountPoint.getValue();
-          MountPointInfo info = new MountPointInfo();
-          info.setUfsInfo(mountInfo.getUfsUri().toString());
-          info.setReadOnly(mountInfo.getOptions().isReadOnly());
-          info.setProperties(mountInfo.getOptions().getProperties());
-          info.setShared(mountInfo.getOptions().isShared());
-          mountPoints.put(mountPoint.getKey(), info);
-        }
-        return mountPoints;
+        return mFileSystemMaster.getMountTable();
       }
     });
   }

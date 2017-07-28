@@ -15,14 +15,14 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.wire.MountPointInfo;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -33,6 +33,33 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MountCommand extends AbstractShellCommand {
+
+  private static final Option READONLY_OPTION =
+      Option.builder()
+          .longOpt("readonly")
+          .required(false)
+          .hasArg(false)
+          .desc("mount point is readonly in Alluxio")
+          .build();
+  private static final Option SHARED_OPTION =
+      Option.builder()
+          .longOpt("shared")
+          .required(false)
+          .hasArg(false)
+          .desc("mount point is shared")
+          .build();
+  private static final Option OPTION_OPTION =
+      Option.builder()
+          .longOpt("option")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(2)
+          .argName("key=value")
+          .valueSeparator('=')
+          .desc("options associated with this mount point")
+          .build();
+  private static final String LEFT_ALIGN_FORMAT = "%-60s %-3s %-20s (%s, capacity=%d,"
+          + " used bytes=%d, %sread-only, %sshared, ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -52,57 +79,60 @@ public final class MountCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
-    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(READONLY_OPTION)
-        .addOption(MOUNT_SHARED_OPTION);
+  public Options getOptions() {
+    return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
+        .addOption(OPTION_OPTION);
   }
 
   @Override
-  public void run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
+    if (args.length == 0) {
+      Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
+      for (Map.Entry<String, MountPointInfo> entry :
+              mountTable.entrySet()) {
+        String mMountPoint = entry.getKey();
+        MountPointInfo mountPointInfo = entry.getValue();
+        System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), "on", mMountPoint,
+                mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
+                mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
+                mountPointInfo.getShared() ? "" : "not ");
+        System.out.println("properties=" + mountPointInfo.getProperties() + ")");
+      }
+      return 0;
+    }
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
     MountOptions options = MountOptions.defaults();
 
-    String propertyFile = cl.getOptionValue('P');
-    if (propertyFile != null) {
-      Properties cmdProps = new Properties();
-      try (InputStream inStream = new FileInputStream(propertyFile)) {
-        cmdProps.load(inStream);
-      } catch (IOException e) {
-        throw new IOException("Unable to load property file: " + propertyFile);
-      }
-
-      if (!cmdProps.isEmpty()) {
-        // Use the properties from the properties file for the mount options.
-        Map<String, String> properties = new HashMap<>();
-        for (Map.Entry<Object, Object> entry : cmdProps.entrySet()) {
-          properties.put(entry.getKey().toString(), entry.getValue().toString());
-        }
-        options.setProperties(properties);
-        System.out.println("Using properties from file: " + propertyFile);
-      }
-    }
-
-    if (cl.hasOption("readonly")) {
+    if (cl.hasOption(READONLY_OPTION.getLongOpt())) {
       options.setReadOnly(true);
     }
-
-    if (cl.hasOption("shared")) {
+    if (cl.hasOption(SHARED_OPTION.getLongOpt())) {
       options.setShared(true);
     }
-
+    if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
+      Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
+      options.setProperties(Maps.fromProperties(properties));
+    }
     mFileSystem.mount(alluxioPath, ufsPath, options);
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
+    return 0;
   }
 
   @Override
   public String getUsage() {
-    return "mount [-readonly] [-shared] [-P <properties file name>] <alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>\n"
+            + "mount";
   }
 
   @Override
   public String getDescription() {
     return "Mounts a UFS path onto an Alluxio path.";
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    return args.length == 2 || args.length == 0;
   }
 }
