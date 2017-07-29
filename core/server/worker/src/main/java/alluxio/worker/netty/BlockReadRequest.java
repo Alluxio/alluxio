@@ -12,33 +12,29 @@
 package alluxio.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The block read request internal representation. When this request is closed, it will clean
- * up any temporary state it may have accumulated.
+ * The internal representation of a block read request.
  */
-final class BlockReadRequest extends AbstractReadRequest {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockReadRequest.class);
-
-  private BlockReader mBlockReader;
-  private Counter mCounter;
+@ThreadSafe
+public final class BlockReadRequest extends AbstractReadHandler.ReadRequest {
   private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private final boolean mPromote;
-  /** The Block Worker. */
-  private final BlockWorker mWorker;
+  private final Context mContext = new Context();
 
   /**
    * Creates an instance of {@link BlockReadRequest}.
    *
    * @param request the block read request
    */
-  BlockReadRequest(Protocol.ReadRequest request, BlockWorker worker) throws Exception {
+  BlockReadRequest(Protocol.ReadRequest request) throws Exception {
     super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
         request.getPacketSize());
 
@@ -48,22 +44,7 @@ final class BlockReadRequest extends AbstractReadRequest {
       mOpenUfsBlockOptions = null;
     }
     mPromote = request.getPromote();
-    mWorker = worker;
     // Note that we do not need to seek to offset since the block worker is created at the offset.
-  }
-
-  /**
-   * @return block reader
-   */
-  public BlockReader getBlockReader() {
-    return mBlockReader;
-  }
-
-  /**
-   * @return counter
-   */
-  public Counter getCounter() {
-    return mCounter;
   }
 
   /**
@@ -83,45 +64,59 @@ final class BlockReadRequest extends AbstractReadRequest {
   /**
    * @return true if the block is persisted in UFS
    */
-  boolean isPersisted() {
+  public boolean isPersisted() {
     return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
   }
 
   /**
-   * Sets the block reader.
-   *
-   * @param blockReader block reader to set
+   * @return the context of this request
    */
-  public void setBlockReader(BlockReader blockReader) {
-    mBlockReader = blockReader;
+  public Context getContext() {
+    return mContext;
   }
 
   /**
-   * Sets the counter.
-   *
-   * @param counter counter to set
+   * The context of this request, including some runtime state to handle this request.
    */
-  public void setCounter(Counter counter) {
-    mCounter = counter;
-  }
+  @NotThreadSafe
+  final class Context {
+    private BlockReader mBlockReader;
+    private Counter mCounter;
 
-  @Override
-  public void close() {
-    if (mBlockReader != null) {
-      try {
-        mBlockReader.close();
-      } catch (Exception e) {
-        LOG.warn(
-            "Failed to close block reader for block {} with error {}.", getId(), e.getMessage());
-      }
+    public Context() {}
+
+    /**
+     * @return block reader
+     */
+    public BlockReader getBlockReader() {
+      Preconditions.checkState(mBlockReader != null);
+      return mBlockReader;
     }
 
-    try {
-      if (!mWorker.unlockBlock(getSessionId(), getId())) {
-        mWorker.closeUfsBlock(getSessionId(), getId());
-      }
-    } catch (Exception e) {
-      LOG.warn("Failed to unlock block {} with error {}.", getId(), e.getMessage());
+    /**
+     * @return counter
+     */
+    public Counter getCounter() {
+      Preconditions.checkState(mCounter != null);
+      return mCounter;
+    }
+
+    /**
+     * Sets the block reader.
+     *
+     * @param blockReader block reader to set
+     */
+    public void setBlockReader(BlockReader blockReader) {
+      mBlockReader = blockReader;
+    }
+
+    /**
+     * Sets the counter.
+     *
+     * @param counter counter to set
+     */
+    public void setCounter(Counter counter) {
+      mCounter = counter;
     }
   }
 }

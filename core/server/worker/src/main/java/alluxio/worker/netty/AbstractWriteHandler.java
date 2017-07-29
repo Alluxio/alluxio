@@ -35,7 +35,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
@@ -134,7 +133,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    * from any thread (not such usage in the code now). It is destroyed when the write request is
    * done (complete or cancel) or an error is seen.
    */
-  private volatile AbstractWriteRequest mRequest;
+  private volatile BaseWriteRequest mRequest;
 
   /**
    * The next pos to queue to the buffer. This is only updated and used by the netty I/O thread.
@@ -229,7 +228,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    * @return the write request instance or null if no write request initialized
    */
   @Nullable
-  public AbstractWriteRequest getRequest() {
+  public BaseWriteRequest getRequest() {
     return mRequest;
   }
 
@@ -333,7 +332,9 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
 
       if (abort) {
         try {
-          cleanup();
+          cleanupWriteRequest();
+          mRequest = null;
+          mPosToWrite = 0;
         } catch (Exception e) {
           LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
         }
@@ -341,10 +342,14 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
       } else if (cancel || eof) {
         try {
           if (cancel) {
-            cancel();
+            cancelWriteRequest();
+            mRequest = null;
+            mPosToWrite = 0;
             replyCancel();
           } else {
-            complete();
+            completeWriteRequest(mChannel);
+            mRequest = null;
+            mPosToWrite = 0;
             replySuccess();
           }
         } catch (Exception e) {
@@ -353,40 +358,6 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
               new Error(AlluxioStatusException.fromCheckedException(e), true));
         }
       }
-    }
-
-    /**
-     * Completes this write. This is called when the write completes.
-     */
-    private void complete() throws IOException {
-      if (mRequest != null) {
-        mRequest.close(mChannel);
-        mRequest = null;
-      }
-      mPosToWrite = 0;
-    }
-
-    /**
-     * Cancels this write. This is called when the client issues a cancel request.
-     */
-    private void cancel() throws IOException {
-      if (mRequest != null) {
-        mRequest.cancel();
-        mRequest = null;
-      }
-      mPosToWrite = 0;
-    }
-
-    /**
-     * Cleans up this write. This is called when the write request is aborted due to any exception
-     * or session timeout.
-     */
-    private void cleanup() throws IOException {
-      if (mRequest != null) {
-        mRequest.cleanup();
-        mRequest = null;
-      }
-      mPosToWrite = 0;
     }
 
     /**
@@ -473,7 +444,23 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    *
    * @param msg the block write request
    */
-  protected abstract AbstractWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception;
+  protected abstract BaseWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception;
+
+  /**
+   * Completes this write. This is called when the write completes.
+   */
+  protected abstract void completeWriteRequest(Channel channel) throws Exception;
+
+  /**
+   * Cancels this write. This is called when the client issues a cancel request.
+   */
+  protected abstract void cancelWriteRequest() throws Exception;
+
+  /**
+   * Cleans up this write. This is called when the write request is aborted due to any exception
+   * or session timeout.
+   */
+  protected abstract void cleanupWriteRequest() throws Exception;
 
   /**
    * Writes the buffer.

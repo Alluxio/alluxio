@@ -19,6 +19,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -27,6 +28,7 @@ import io.netty.channel.Channel;
 import java.nio.channels.GatheringByteChannel;
 import java.util.concurrent.ExecutorService;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -42,6 +44,54 @@ public final class BlockWriteHandler extends AbstractWriteHandler {
   private final BlockWorker mWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
+
+  /**
+   * The block write request internal representation. When this request is complete, we need to commit
+   * the block.
+   */
+  static final class BlockWriteRequest extends BaseWriteRequest {
+    private BlockWriter mBlockWriter;
+    private long mBytesReserved;
+
+    BlockWriteRequest(Protocol.WriteRequest request, long bytesReserved) throws Exception {
+      super(request.getId());
+      Preconditions.checkState(request.getOffset() == 0);
+      mBytesReserved = bytesReserved;
+    }
+
+    /**
+     * @return the block writer
+     */
+    @Nullable
+    public BlockWriter getBlockWriter() {
+      return mBlockWriter;
+    }
+
+    /**
+     * @return the bytes reserved
+     */
+    public long getBytesReserved() {
+      return mBytesReserved;
+    }
+
+    /**
+     * Sets the block writer.
+     *
+     * @param blockWriter block writer to set
+     */
+    public void setBlockWriter(BlockWriter blockWriter) {
+      mBlockWriter = blockWriter;
+    }
+
+    /**
+     * Sets the bytes reserved.
+     *
+     * @param bytesReserved the bytes reserved to set
+     */
+    public void setBytesReserved(long bytesReserved) {
+      mBytesReserved = bytesReserved;
+    }
+  }
 
   /**
    * Creates an instance of {@link BlockWriteHandler}.
@@ -64,9 +114,42 @@ public final class BlockWriteHandler extends AbstractWriteHandler {
   }
 
   @Override
-  protected AbstractWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception {
-    Protocol.WriteRequest request = (msg.getMessage()).asWriteRequest();
-    return new BlockWriteRequest(this, request, FILE_BUFFER_SIZE, mWorker);
+  protected BaseWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception {
+    Protocol.WriteRequest requestProto = (msg.getMessage()).asWriteRequest();
+    BlockWriteRequest request = new BlockWriteRequest(requestProto, FILE_BUFFER_SIZE);
+    mWorker.createBlockRemote(request.getSessionId(), request.getId(),
+        mStorageTierAssoc.getAlias(requestProto.getTier()), FILE_BUFFER_SIZE);
+    return request;
+  }
+
+  @Override
+  protected void completeWriteRequest(Channel channel) throws Exception {
+    BlockWriteRequest request = (BlockWriteRequest) getRequest();
+    Preconditions.checkState(request != null);
+
+    if (request.getBlockWriter() != null) {
+      request.getBlockWriter().close();
+    }
+    mWorker.commitBlock(request.getSessionId(), request.getId());
+  }
+
+  @Override
+  protected void cancelWriteRequest() throws Exception {
+    BlockWriteRequest request = (BlockWriteRequest) getRequest();
+    Preconditions.checkState(request != null);
+
+    if (request.getBlockWriter() != null) {
+      request.getBlockWriter().close();
+    }
+    mWorker.abortBlock(request.getSessionId(), request.getId());
+  }
+
+  @Override
+  protected void cleanupWriteRequest() throws Exception {
+    BlockWriteRequest request = (BlockWriteRequest) getRequest();
+    Preconditions.checkState(request != null);
+
+    mWorker.cleanupSession(request.getSessionId());
   }
 
   @Override
@@ -89,12 +172,5 @@ public final class BlockWriteHandler extends AbstractWriteHandler {
     GatheringByteChannel outputChannel = request.getBlockWriter().getChannel();
     int sz = buf.readableBytes();
     Preconditions.checkState(buf.readBytes(outputChannel, sz) == sz);
-  }
-
-  /**
-   * @return the tier storage mapping
-   */
-  public StorageTierAssoc getStorageTierAssoc() {
-    return mStorageTierAssoc;
   }
 }

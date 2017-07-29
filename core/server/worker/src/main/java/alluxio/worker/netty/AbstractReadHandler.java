@@ -21,6 +21,7 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.util.IdUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -35,7 +36,6 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -58,9 +58,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    new packet, it checks whether there are notifications (e.g. cancel, error), if
  *    there is, handle them properly. See more information about the notifications in the javadoc
  *    of {@link AbstractReadHandler#mCancel#mEof#mError}.
+ *
+ * @param <T> type of read request
  */
 @NotThreadSafe
-abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
+abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
+    extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 
   private static final long MAX_PACKETS_IN_FLIGHT =
@@ -139,7 +142,65 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
    * This is only created in the netty I/O thread when a read request is received, reset when
    * another request is received.
    */
-  private volatile AbstractReadRequest mRequest;
+  static class ReadRequest {
+    private final long mId;
+    private final long mStart;
+    private final long mEnd;
+    private final long mPacketSize;
+    private final long mSessionId;
+
+    ReadRequest(long id, long start, long end, long packetSize) {
+      mId = id;
+      mStart = start;
+      mEnd = end;
+      mPacketSize = packetSize;
+      mSessionId = IdUtils.createSessionId();
+    }
+
+    /**
+     * @return session Id
+     */
+    public long getSessionId() {
+      return mSessionId;
+    }
+
+    /**
+     * @return block id of the read request
+     */
+    public long getId() {
+      return mId;
+    }
+
+    /**
+     * @return the start offset in bytes of this read request
+     */
+    public long getStart() {
+      return mStart;
+    }
+
+    /**
+     * @return the end offset in bytes of this read request
+     */
+    public long getEnd() {
+      return mEnd;
+    }
+
+    /**
+     * @return the packet size in bytes of this read request
+     */
+    public long getPacketSize() {
+      return mPacketSize;
+    }
+  }
+
+  private T mRequest;
+
+  /**
+   * @return the read request instance or null if no read request initialized
+   */
+  public T getRequest() {
+    return mRequest;
+  }
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
@@ -170,15 +231,10 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
       return;
     }
 
+    validateReadRequest(msg);
     reset();
-    try {
-      validateReadRequest(msg);
-    } catch (InvalidArgumentException e) {
-      setError(ctx.channel(), new Error(e, true));
-      return;
-    }
 
-    mRequest = createReadRequest(msg);
+    mRequest = createRequest(msg);
     try (LockResource lr = new LockResource(mLock)) {
       mPosToQueue = mRequest.getStart();
       mPosToWrite = mRequest.getStart();
@@ -195,19 +251,11 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * @return the read request instance or null if no read request initialized
-   */
-  @Nullable
-  public AbstractReadRequest getRequest() {
-    return mRequest;
-  }
-
-  /**
    * @return true if there are too many packets in-flight
    */
   @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
-    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mRequest.getPacketSize();
+    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * getRequest().getPacketSize();
   }
 
   /**
@@ -288,7 +336,6 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
       mEof = false;
       mCancel = false;
       mError = null;
-      mRequest = null;
       mDone = false;
     }
   }
@@ -311,8 +358,14 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
    * @param request the block read request
    * @return an instance of read request based on the request read from channel
    */
-  protected abstract AbstractReadRequest createReadRequest(Protocol.ReadRequest request)
+  protected abstract T createRequest(Protocol.ReadRequest request)
       throws Exception;
+
+  /**
+   * Completes the read request. When the request is closed, we should clean up any temporary state
+   * it may have accumulated.
+   */
+  protected abstract void completeRequest() throws Exception;
 
   /**
    * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
@@ -355,7 +408,8 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
       }
 
       try (LockResource lr = new LockResource(mLock)) {
-        Preconditions.checkState(mPosToWriteUncommitted - mPosToWrite <= mRequest.getPacketSize(),
+        Preconditions.checkState(
+            mPosToWriteUncommitted - mPosToWrite <= getRequest().getPacketSize(),
             "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
         mPosToWrite = mPosToWriteUncommitted;
@@ -372,7 +426,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
      */
     @GuardedBy("mLock")
     private boolean shouldRestartPacketReader() {
-      return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.getEnd()
+      return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < getRequest().getEnd()
           && mError == null && !mCancel && !mEof;
     }
   }
@@ -409,6 +463,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
       while (true) {
         final long start;
         final int packetSize;
+        final ReadRequest request;
         try (LockResource lr = new LockResource(mLock)) {
           start = mPosToQueue;
           eof = mEof;
@@ -419,8 +474,8 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
             mPacketReaderActive = false;
             break;
           }
-
-          packetSize = (int) Math.min(mRequest.getEnd() - mPosToQueue, mRequest.getPacketSize());
+          request = getRequest();
+          packetSize = (int) Math.min(request.getEnd() - mPosToQueue, request.getPacketSize());
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
@@ -440,7 +495,7 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
           }
         }
         if (packet == null || packet.getLength() < packetSize
-            || start + packetSize == mRequest.getEnd()) {
+            || start + packetSize == request.getEnd()) {
           // This can happen if the requested read length is greater than the actual length of the
           // block or file starting from the given offset.
           setEof(mChannel);
@@ -454,11 +509,8 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
 
       if (error != null) {
         try {
-          // mRequest is null if an exception is thrown when initializing mRequest.
-          if (mRequest != null) {
-            mRequest.close();
-          }
-        } catch (IOException e) {
+          completeRequest();
+        } catch (Exception e) {
           LOG.error("Failed to close the request.", e);
         }
         if (error.mNotifyClient) {
@@ -466,14 +518,15 @@ abstract class AbstractReadHandler extends ChannelInboundHandlerAdapter {
         }
       } else if (eof || cancel) {
         try {
-          Preconditions.checkNotNull(mRequest);
-          mRequest.close();
+          completeRequest();
         } catch (IOException e) {
           setError(mChannel, new Error(AlluxioStatusException.fromIOException(e), true));
+        } catch (Exception e) {
+          setError(mChannel, new Error(AlluxioStatusException.fromThrowable(e), true));
         }
         if (eof) {
           replyEof();
-        } else if (cancel) {
+        } else {
           replyCancel();
         }
       }

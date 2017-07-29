@@ -14,16 +14,13 @@ package alluxio.worker.netty;
 import alluxio.util.IdUtils;
 
 import com.codahale.metrics.Counter;
-import io.netty.channel.Channel;
-
-import java.io.IOException;
 
 import javax.annotation.Nullable;
 
 /**
  * Represents the write request received from netty channel.
  */
-abstract class AbstractWriteRequest {
+class BaseWriteRequest {
   /** This ID can either be block ID or temp UFS file ID. */
   private final long mId;
 
@@ -31,7 +28,7 @@ abstract class AbstractWriteRequest {
   private final long mSessionId;
   private Counter mCounter;
 
-  AbstractWriteRequest(long id) {
+  BaseWriteRequest(long id) {
     mId = id;
     mSessionId = IdUtils.createSessionId();
   }
@@ -66,21 +63,4 @@ abstract class AbstractWriteRequest {
   public void setCounter(Counter counter) {
     mCounter = counter;
   }
-
-  /**
-   * Closes the request.
-   *
-   * @param channel the channel
-   */
-  abstract void close(Channel channel) throws IOException;
-
-  /**
-   * Cancels the request.
-   */
-  abstract void cancel() throws IOException;
-
-  /**
-   * Cleans up the state.
-   */
-  abstract void cleanup() throws IOException;
 }

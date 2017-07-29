@@ -17,6 +17,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.base.Preconditions;
@@ -24,8 +25,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.ExecutorService;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -42,6 +45,71 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 final class UfsFileWriteHandler extends AbstractWriteHandler {
   private final UfsManager mUfsManager;
+
+  /**
+   * The UFS File write request internal representation.
+   */
+  @NotThreadSafe
+  static final class UfsFileWriteRequest extends BaseWriteRequest {
+    private UnderFileSystem mUnderFileSystem;
+    private OutputStream mOutputStream;
+    private final String mUfsPath;
+    private final Protocol.CreateUfsFileOptions mCreateUfsFileOptions;
+
+    UfsFileWriteRequest(Protocol.WriteRequest request)
+        throws Exception {
+      super(request.getId());
+      mUfsPath = request.getCreateUfsFileOptions().getUfsPath();
+      mCreateUfsFileOptions = request.getCreateUfsFileOptions();
+    }
+
+    /**
+     * @return the output stream
+     */
+    public OutputStream getOutputStream() {
+      return mOutputStream;
+    }
+
+    /**
+     * @return the UFS path
+     */
+    public String getUfsPath() {
+      return mUfsPath;
+    }
+
+    /**
+     * @return the handler of the UFS
+     */
+    @Nullable
+    public UnderFileSystem getUnderFileSystem() {
+      return mUnderFileSystem;
+    }
+
+    /**
+     * @return the options to create UFS file
+     */
+    public Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
+      return mCreateUfsFileOptions;
+    }
+
+    /**
+     * Sets the output stream.
+     *
+     * @param outputStream output stream to set
+     */
+    public void setOutputStream(OutputStream outputStream) {
+      mOutputStream = outputStream;
+    }
+
+    /**
+     * Sets the handler of the UFS.
+     *
+     * @param underFileSystem UFS to set
+     */
+    public void setUnderFileSystem(UnderFileSystem underFileSystem) {
+      mUnderFileSystem = underFileSystem;
+    }
+  }
 
   /**
    * Creates an instance of {@link UfsFileWriteHandler}.
@@ -64,8 +132,40 @@ final class UfsFileWriteHandler extends AbstractWriteHandler {
   }
 
   @Override
-  protected AbstractWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception {
-    return new UfsFileWriteRequest(this, msg.getMessage().asWriteRequest());
+  protected BaseWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception {
+    return new UfsFileWriteRequest(msg.getMessage().asWriteRequest());
+  }
+
+  @Override
+  protected void completeWriteRequest(Channel channel) throws Exception {
+    UfsFileWriteRequest request = (UfsFileWriteRequest) getRequest();
+    Preconditions.checkState(request != null);
+
+    if (request.getOutputStream() == null) {
+      createUfsFile(channel);
+    }
+    if (request.getOutputStream() != null) {
+      request.getOutputStream().close();
+      request.setOutputStream(null);
+    }
+  }
+
+  @Override
+  protected void cancelWriteRequest() throws Exception {
+    UfsFileWriteRequest request = (UfsFileWriteRequest) getRequest();
+    Preconditions.checkState(request != null);
+
+    // TODO(calvin): Consider adding cancel to the ufs stream api.
+    if (request.getOutputStream() != null && request.getUnderFileSystem() != null) {
+      request.getOutputStream().close();
+      request.getUnderFileSystem().deleteFile(request.getUfsPath());
+      request.setOutputStream(null);
+    }
+  }
+
+  @Override
+  protected void cleanupWriteRequest() throws Exception {
+    cancelWriteRequest();
   }
 
   @Override
@@ -79,13 +179,14 @@ final class UfsFileWriteHandler extends AbstractWriteHandler {
     buf.readBytes(((UfsFileWriteRequest) getRequest()).getOutputStream(), buf.readableBytes());
   }
 
-  void createUfsFile(Channel channel) throws IOException {
+  private void createUfsFile(Channel channel) throws IOException {
     UfsFileWriteRequest request = (UfsFileWriteRequest) getRequest();
     Preconditions.checkState(request != null);
     Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
     UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
-    request.setUnderFileSystem(ufsInfo.getUfs());
-    request.setOutputStream(request.getUnderFileSystem().create(request.getUfsPath(),
+    UnderFileSystem ufs = ufsInfo.getUfs();
+    request.setUnderFileSystem(ufs);
+    request.setOutputStream(ufs.create(request.getUfsPath(),
         CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
             .setGroup(createUfsFileOptions.getGroup())
             .setMode(new Mode((short) createUfsFileOptions.getMode()))));
