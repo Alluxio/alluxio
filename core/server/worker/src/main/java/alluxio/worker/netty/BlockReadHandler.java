@@ -190,6 +190,6 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest> {
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    getRequest().getContext().getCounter();
+    getRequest().getContext().getCounter().inc(bytesRead);
   }
 }

@@ -38,6 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class handles {@link alluxio.proto.dataserver.Protocol.ReadRequest}s.
@@ -128,6 +129,7 @@ abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
    * A wrapper on an error used to pass error information from the netty I/O thread to the packet
    * reader thread.
    */
+  @ThreadSafe
   private class Error {
     final AlluxioStatusException mCause;
     final boolean mNotifyClient;
@@ -135,6 +137,20 @@ abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
     Error(AlluxioStatusException cause, boolean notifyClient) {
       mCause = cause;
       mNotifyClient = notifyClient;
+    }
+
+    /**
+     * @return the cause of this error
+     */
+    public AlluxioStatusException getCause() {
+      return mCause;
+    }
+
+    /**
+     * @return whether to notify client
+     */
+    public boolean isNotifyClient() {
+      return mNotifyClient;
     }
   }
 
@@ -336,6 +352,7 @@ abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
       mEof = false;
       mCancel = false;
       mError = null;
+      mRequest = null;
       mDone = false;
     }
   }
@@ -358,8 +375,7 @@ abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
    * @param request the block read request
    * @return an instance of read request based on the request read from channel
    */
-  protected abstract T createRequest(Protocol.ReadRequest request)
-      throws Exception;
+  protected abstract T createRequest(Protocol.ReadRequest request) throws Exception;
 
   /**
    * Completes the read request. When the request is closed, we should clean up any temporary state
@@ -509,12 +525,15 @@ abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
 
       if (error != null) {
         try {
-          completeRequest();
+          // mRequest is null if an exception is thrown when initializing mRequest.
+          if (getRequest() != null) {
+            completeRequest();
+          }
         } catch (Exception e) {
           LOG.error("Failed to close the request.", e);
         }
-        if (error.mNotifyClient) {
-          replyError(error.mCause);
+        if (error.isNotifyClient()) {
+          replyError(error.getCause());
         }
       } else if (eof || cancel) {
         try {
