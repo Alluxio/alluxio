@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -122,7 +124,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
   private Error mError;
 
   /** This is set when the SUCCESS or CANCEL response is sent. This is only for sanity check. */
-  private volatile boolean mDone;
+  private AtomicBoolean mDone = new AtomicBoolean(false);
 
   /**
    * A wrapper on an error used to pass error information from the netty I/O thread to the packet
@@ -153,13 +155,13 @@ abstract class AbstractReadHandler<T extends ReadRequest>
     }
   }
 
-  private T mRequest;
+  private AtomicReference<T> mRequest = new AtomicReference<>();
 
   /**
    * @return the read request instance or null if no read request initialized
    */
   public T getRequest() {
-    return mRequest;
+    return mRequest.get();
   }
 
   /**
@@ -194,10 +196,10 @@ abstract class AbstractReadHandler<T extends ReadRequest>
     validateReadRequest(msg);
     reset();
 
-    mRequest = createRequest(msg);
+    mRequest.set(createRequest(msg));
     try (LockResource lr = new LockResource(mLock)) {
-      mPosToQueue = mRequest.getStart();
-      mPosToWrite = mRequest.getStart();
+      mPosToQueue = getRequest().getStart();
+      mPosToWrite = getRequest().getStart();
 
       mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
       mPacketReaderActive = true;
@@ -296,8 +298,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       mEof = false;
       mCancel = false;
       mError = null;
-      mRequest = null;
-      mDone = false;
+      mRequest.set(null);
+      mDone.set(false);
     }
   }
 
@@ -507,8 +509,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      * Writes a success response.
      */
     private void replyEof() {
-      Preconditions.checkState(!mDone);
-      mDone = true;
+      Preconditions.checkState(!mDone.get());
+      mDone.set(true);
       mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
@@ -517,8 +519,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      * Writes a cancel response.
      */
     private void replyCancel() {
-      Preconditions.checkState(!mDone);
-      mDone = true;
+      Preconditions.checkState(!mDone.get());
+      mDone.set(true);
       mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
