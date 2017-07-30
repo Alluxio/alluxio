@@ -201,7 +201,6 @@ public final class PropertyKeyTest {
   @Test
   public void isDeprecated() throws Exception {
     assertFalse(PropertyKey.isDeprecated("VERSION"));
-    assertTrue(PropertyKey.isDeprecated("MASTER_ADDRESS"));
   }
 
   @Test

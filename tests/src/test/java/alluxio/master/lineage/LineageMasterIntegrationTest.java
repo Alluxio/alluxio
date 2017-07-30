@@ -85,13 +85,11 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
 
   @Test
   public void lineageCreation() throws Exception {
-
     try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
@@ -108,7 +106,6 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void lineageCompleteAndAsyncPersist() throws Exception {
-
     try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
@@ -132,7 +129,6 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
       // worker notifies the master
       status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
-
     }
   }
 

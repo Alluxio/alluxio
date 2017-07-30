@@ -11,6 +11,10 @@
 
 package alluxio.shell.command;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.AlluxioURI;
 import alluxio.IntegrationTestUtils;
 import alluxio.client.WriteType;
@@ -22,7 +26,6 @@ import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.worker.block.BlockWorker;
 
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -41,10 +44,10 @@ public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
     String fileName = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
     // freeing non persisted files is expected to fail
-    Assert.assertEquals(-1, mFsShell.run("free", fileName));
+    assertEquals(-1, mFsShell.run("free", fileName));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class));
-    Assert.assertTrue(isInMemoryTest(fileName));
+    assertTrue(isInMemoryTest(fileName));
   }
 
   @Test
@@ -53,10 +56,10 @@ public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.CACHE_THROUGH, 10);
     mFsShell.run("pin", fileName);
     // freeing non persisted files is expected to fail
-    Assert.assertEquals(-1, mFsShell.run("free", fileName));
+    assertEquals(-1, mFsShell.run("free", fileName));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class));
-    Assert.assertTrue(isInMemoryTest(fileName));
+    assertTrue(isInMemoryTest(fileName));
   }
 
   @Test
@@ -65,10 +68,10 @@ public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.CACHE_THROUGH, 10);
     long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
     mFsShell.run("pin", fileName);
-    Assert.assertEquals(0, mFsShell.run("free", "-f", fileName));
+    assertEquals(0, mFsShell.run("free", "-f", fileName));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class), blockId);
-    Assert.assertFalse(isInMemoryTest(fileName));
+    assertFalse(isInMemoryTest(fileName));
   }
 
   @Test
@@ -76,35 +79,35 @@ public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
     String fileName = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.CACHE_THROUGH, 10);
     long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
-    Assert.assertEquals(0, mFsShell.run("free", fileName));
+    assertEquals(0, mFsShell.run("free", fileName));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class), blockId);
-    Assert.assertFalse(isInMemoryTest(fileName));
+    assertFalse(isInMemoryTest(fileName));
   }
 
   @Test
   public void freeWildCardNonPersistedFile() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem, WriteType.MUST_CACHE);
-    Assert.assertEquals(-1, mFsShell.run("free", testDir + "/foo/*"));
+    assertEquals(-1, mFsShell.run("free", testDir + "/foo/*"));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class));
     // freeing non persisted files is expected to fail
-    Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar2"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/foobar4"));
+    assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));
+    assertTrue(isInMemoryTest(testDir + "/foo/foobar2"));
+    assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
+    assertTrue(isInMemoryTest(testDir + "/foobar4"));
   }
 
   @Test
   public void freeWildCardPinnedFile() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem, WriteType.CACHE_THROUGH);
     mFsShell.run("pin", testDir + "/foo/*");
-    Assert.assertEquals(-1, mFsShell.run("free", testDir + "/foo/*"));
+    assertEquals(-1, mFsShell.run("free", testDir + "/foo/*"));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class));
     // freeing non pinned files is expected to fail without "-f"
-    Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/foo/foobar2"));
+    assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));
+    assertTrue(isInMemoryTest(testDir + "/foo/foobar2"));
   }
 
   @Test
@@ -115,13 +118,13 @@ public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
     long blockId2 =
         mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar2")).getBlockIds().get(0);
     mFsShell.run("pin", testDir + "/foo/foobar1");
-    Assert.assertEquals(0, mFsShell.run("free", "-f", testDir + "/foo/*"));
+    assertEquals(0, mFsShell.run("free", "-f", testDir + "/foo/*"));
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class), blockId1, blockId2);
-    Assert.assertFalse(isInMemoryTest(testDir + "/foo/foobar1"));
-    Assert.assertFalse(isInMemoryTest(testDir + "/foo/foobar2"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/foobar4"));
+    assertFalse(isInMemoryTest(testDir + "/foo/foobar1"));
+    assertFalse(isInMemoryTest(testDir + "/foo/foobar2"));
+    assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
+    assertTrue(isInMemoryTest(testDir + "/foobar4"));
   }
 
   @Test
@@ -136,11 +139,11 @@ public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
 
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class), blockId1, blockId2);
-    Assert.assertEquals(0, ret);
-    Assert.assertFalse(isInMemoryTest(testDir + "/foo/foobar1"));
-    Assert.assertFalse(isInMemoryTest(testDir + "/foo/foobar2"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
-    Assert.assertTrue(isInMemoryTest(testDir + "/foobar4"));
+    assertEquals(0, ret);
+    assertFalse(isInMemoryTest(testDir + "/foo/foobar1"));
+    assertFalse(isInMemoryTest(testDir + "/foo/foobar2"));
+    assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
+    assertTrue(isInMemoryTest(testDir + "/foobar4"));
 
     blockId1 = mFileSystem.getStatus(new AlluxioURI(testDir + "/bar/foobar3")).getBlockIds().get(0);
     blockId2 = mFileSystem.getStatus(new AlluxioURI(testDir + "/foobar4")).getBlockIds().get(0);
@@ -148,8 +151,8 @@ public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
     ret = mFsShell.run("free", testDir + "/*/");
     IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorkerProcess().getWorker(BlockWorker.class), blockId1, blockId2);
-    Assert.assertEquals(0, ret);
-    Assert.assertFalse(isInMemoryTest(testDir + "/bar/foobar3"));
-    Assert.assertFalse(isInMemoryTest(testDir + "/foobar4"));
+    assertEquals(0, ret);
+    assertFalse(isInMemoryTest(testDir + "/bar/foobar3"));
+    assertFalse(isInMemoryTest(testDir + "/foobar4"));
   }
 }

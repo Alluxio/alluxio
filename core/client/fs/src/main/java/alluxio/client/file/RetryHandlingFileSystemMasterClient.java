@@ -28,10 +28,12 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
+import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.RenameTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -39,7 +41,9 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -186,6 +190,26 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       public Long call() throws TException {
         return mClient.getNewBlockIdForFile(path.getPath(), new GetNewBlockIdForFileTOptions())
             .getId();
+      }
+    });
+  }
+
+  @Override
+  public synchronized Map<String, alluxio.wire.MountPointInfo> getMountTable() throws IOException {
+    return retryRPC(new RpcCallable<Map<String, MountPointInfo>>() {
+      @Override
+      public Map<String, MountPointInfo> call() throws TException {
+        GetMountTableTResponse result = mClient.getMountTable();
+        Map<String, alluxio.thrift.MountPointInfo> mountTableThrift = result.getMountTable();
+        Map<String, alluxio.wire.MountPointInfo>  mountTableWire = new HashMap<>();
+        for (Map.Entry<String, alluxio.thrift.MountPointInfo> entry :
+            mountTableThrift.entrySet()) {
+          alluxio.thrift.MountPointInfo mMountPointInfoThrift = entry.getValue();
+          alluxio.wire.MountPointInfo mMountPointInfoWire =
+              ThriftUtils.fromThrift(mMountPointInfoThrift);
+          mountTableWire.put(entry.getKey(), mMountPointInfoWire);
+        }
+        return mountTableWire;
       }
     });
   }

@@ -20,6 +20,7 @@ function printUsage {
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
+  echo -e "  logLevel      \t Set or get log level of Alluxio servers."
   echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runKVTest     \t Run a test of key-value store operations."
@@ -37,6 +38,7 @@ function printUsage {
   echo -e "  protoGen      \t Generate all protocol buffer code."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
+  echo -e "  validateEnv   \t Validate Alluxio environment."
   echo
   echo "GENERIC_COMMAND_OPTIONS supports:"
   echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
@@ -258,6 +260,11 @@ function main {
     echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead." >&2
     exit 1
   ;;
+  "logLevel")
+    CLASS="alluxio.cli.LogLevel"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "runClass")
     CLASS=$1
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case
@@ -346,6 +353,11 @@ function main {
     CLASS="alluxio.cli.ValidateConf"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "validateEnv")
+    CLASS="alluxio.cli.ValidateEnv"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   *)

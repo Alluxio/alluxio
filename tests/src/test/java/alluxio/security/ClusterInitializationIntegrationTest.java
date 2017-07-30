@@ -11,6 +11,8 @@
 
 package alluxio.security;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -25,7 +27,6 @@ import alluxio.master.file.options.GetStatusOptions;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -57,10 +58,10 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
   public void startCluster() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
-    Assert.assertEquals(SUPER_USER, status.getOwner());
-    Assert.assertEquals(0755, status.getMode());
+    assertEquals(SUPER_USER, status.getOwner());
+    assertEquals(0755, status.getMode());
 
-    Assert.assertEquals(0, fs.listStatus(new AlluxioURI("/")).size());
+    assertEquals(0, fs.listStatus(new AlluxioURI("/")).size());
   }
 
   /**
@@ -82,7 +83,7 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
 
     AuthenticatedClientUser.set(SUPER_USER);
-    Assert.assertEquals(SUPER_USER,
+    assertEquals(SUPER_USER,
         fileSystemMaster.getFileInfo(new AlluxioURI("/testFile"), GetStatusOptions.defaults())
             .getOwner());
     registry.stop();

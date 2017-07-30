@@ -53,7 +53,7 @@ final class UfsJournalGarbageCollector implements Closeable {
    * @param journal the UFS journal handle
    */
   UfsJournalGarbageCollector(UfsJournal journal) {
-    mJournal = Preconditions.checkNotNull(journal);
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mGc = mExecutor.scheduleAtFixedRate(new Runnable() {
           @Override

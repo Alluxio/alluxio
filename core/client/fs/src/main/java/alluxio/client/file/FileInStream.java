@@ -165,6 +165,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   @Override
+  public long getPos() {
+    return mPos;
+  }
+
+  @Override
   public int read() throws IOException {
     return readInternal();
   }
@@ -281,7 +286,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       long blockId = getBlockId(pos);
       long blockPos = pos % mBlockSize;
       try (BlockInStream bin = getBlockInStream(blockId)) {
-        int bytesRead = bin.positionedRead(blockPos, b, off, len);
+        int bytesRead =
+            bin.positionedRead(blockPos, b, off, (int) Math.min(mBlockSize - blockPos, len));
         Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
         pos += bytesRead;
         off += bytesRead;
