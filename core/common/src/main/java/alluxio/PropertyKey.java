@@ -1979,8 +1979,8 @@ public class PropertyKey {
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval.ms";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
-    public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO
-        = "alluxio.worker.tieredstore.free.space.ratio";
+    public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO =
+        "alluxio.worker.tieredstore.free.space.ratio";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
