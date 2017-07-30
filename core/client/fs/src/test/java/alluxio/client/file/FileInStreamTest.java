@@ -511,6 +511,22 @@ public class FileInStreamTest {
     Assert.assertEquals(0, mTestStream.skip(-10));
   }
 
+  @Test
+  public void positionedRead() throws IOException {
+    byte[] b = new byte[(int) BLOCK_LENGTH];
+    mTestStream.positionedRead(BLOCK_LENGTH, b, 0, b.length);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int)
+        BLOCK_LENGTH), b);
+  }
+
+  @Test
+  public void multiBlockPositionedRead() throws IOException {
+    byte[] b = new byte[(int) BLOCK_LENGTH * 2];
+    mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
+        BLOCK_LENGTH * 2), b);
+  }
+
   /**
    * Tests that the correct exception message is produced when the location policy is not specified.
    */

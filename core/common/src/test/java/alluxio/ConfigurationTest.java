@@ -400,9 +400,9 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
-        PropertyKey.MASTER_ADDRESS, "${alluxio.master.hostname}:${alluxio.master.port}"));
-    String substitution = Configuration.get(PropertyKey.MASTER_ADDRESS);
-    assertEquals("value1:value2", substitution);
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"));
+    String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    assertEquals("value1-value2", substitution);
   }
 
   @Test
