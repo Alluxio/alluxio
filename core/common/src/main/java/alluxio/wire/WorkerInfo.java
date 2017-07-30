@@ -116,7 +116,7 @@ public final class WorkerInfo implements Serializable {
    * @return the worker information
    */
   public WorkerInfo setAddress(WorkerNetAddress address) {
-    Preconditions.checkNotNull(address);
+    Preconditions.checkNotNull(address, "address");
     mAddress = address;
     return this;
   }
@@ -135,7 +135,7 @@ public final class WorkerInfo implements Serializable {
    * @return the worker information
    */
   public WorkerInfo setState(String state) {
-    Preconditions.checkNotNull(state);
+    Preconditions.checkNotNull(state, "state");
     mState = state;
     return this;
   }
