@@ -93,9 +93,9 @@ public final class PinCommandIntegrationTest extends AbstractAlluxioShellTest {
     assertTrue(fileExists(filePathC));
 
     // fileA is in memory because it is pinned, but fileB should have been evicted to hold fileC.
-    Assert.assertEquals(100, mFileSystem.getStatus(filePathA).getInAlluxioPercentage());
-    Assert.assertEquals(0, mFileSystem.getStatus(filePathB).getInAlluxioPercentage());
+    assertEquals(100, mFileSystem.getStatus(filePathA).getInAlluxioPercentage());
+    assertEquals(0, mFileSystem.getStatus(filePathB).getInAlluxioPercentage());
     // fileC should be in memory because fileB is evicted.
-    Assert.assertEquals(100, mFileSystem.getStatus(filePathC).getInAlluxioPercentage());
+    assertEquals(100, mFileSystem.getStatus(filePathC).getInAlluxioPercentage());
   }
 }
