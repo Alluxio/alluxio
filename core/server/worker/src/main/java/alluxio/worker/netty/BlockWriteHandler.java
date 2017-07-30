@@ -36,6 +36,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This handler handles block write request. Check more information in
  * {@link AbstractWriteHandler}.
  */
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+    value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+    justification = "false positive with superclass generics, "
+        + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
 public final class BlockWriteHandler
     extends AbstractWriteHandler<BlockWriteHandler.BlockWriteRequest> {
@@ -48,8 +52,8 @@ public final class BlockWriteHandler
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
-   * The block write request internal representation. When this request is complete, we need to commit
-   * the block.
+   * The block write request internal representation. When this request is complete, we need to
+   * commit the block.
    */
   @NotThreadSafe
   static final class BlockWriteRequest extends WriteRequest {

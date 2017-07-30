@@ -43,6 +43,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * For more information about the implementation of the client side writer, see
  * UnderFileSystemFileOutStream.
  */
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+    value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+    justification = "false positive with superclass generics, "
+        + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
 final class UfsFileWriteHandler
     extends AbstractWriteHandler<UfsFileWriteHandler.UfsFileWriteRequest> {
@@ -102,7 +106,6 @@ final class UfsFileWriteHandler
       public OutputStream getOutputStream() {
         return mOutputStream;
       }
-
 
       /**
        * @return the handler of the UFS
