@@ -35,6 +35,8 @@ import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -45,13 +47,14 @@ import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This handler handles block read request. Check more information in
  * {@link AbstractReadHandler}.
  */
 @NotThreadSafe
-final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest> {
+final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS = Configuration.getMs(
       PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
@@ -62,6 +65,107 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest> {
   private final FileTransferType mTransferType;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
+
+  /**
+   * The internal representation of a block read request.
+   */
+  @ThreadSafe
+  public static final class BlockReadRequest extends ReadRequest {
+    private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
+    private final boolean mPromote;
+    private final Context mContext = new Context();
+
+    /**
+     * Creates an instance of {@link BlockReadRequest}.
+     *
+     * @param request the block read request
+     */
+    BlockReadRequest(Protocol.ReadRequest request) throws Exception {
+      super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
+          request.getPacketSize());
+
+      if (request.hasOpenUfsBlockOptions()) {
+        mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
+      } else {
+        mOpenUfsBlockOptions = null;
+      }
+      mPromote = request.getPromote();
+      // Note that we do not need to seek to offset since the block worker is created at the offset.
+    }
+
+    /**
+     * @return if the block read type indicate promote in tier storage
+     */
+    public boolean isPromote() {
+      return mPromote;
+    }
+
+    /**
+     * @return the option to open UFS block
+     */
+    public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions() {
+      return mOpenUfsBlockOptions;
+    }
+
+    /**
+     * @return true if the block is persisted in UFS
+     */
+    public boolean isPersisted() {
+      return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
+    }
+
+    /**
+     * @return the context of this request
+     */
+    public Context getContext() {
+      return mContext;
+    }
+
+    /**
+     * The context of this request, including some runtime state to handle this request.
+     */
+    @NotThreadSafe
+    final class Context {
+      private BlockReader mBlockReader;
+      private Counter mCounter;
+
+      public Context() {}
+
+      /**
+       * @return block reader
+       */
+      public BlockReader getBlockReader() {
+        Preconditions.checkState(mBlockReader != null);
+        return mBlockReader;
+      }
+
+      /**
+       * @return counter
+       */
+      public Counter getCounter() {
+        Preconditions.checkState(mCounter != null);
+        return mCounter;
+      }
+
+      /**
+       * Sets the block reader.
+       *
+       * @param blockReader block reader to set
+       */
+      public void setBlockReader(BlockReader blockReader) {
+        mBlockReader = blockReader;
+      }
+
+      /**
+       * Sets the counter.
+       *
+       * @param counter counter to set
+       */
+      public void setCounter(Counter counter) {
+        mCounter = counter;
+      }
+    }
+  }
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
@@ -192,4 +296,5 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest> {
   protected void incrementMetrics(long bytesRead) {
     getRequest().getContext().getCounter().inc(bytesRead);
   }
+
 }

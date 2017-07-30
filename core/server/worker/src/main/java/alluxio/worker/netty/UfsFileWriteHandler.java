@@ -20,6 +20,7 @@ import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -43,31 +44,23 @@ import javax.annotation.concurrent.NotThreadSafe;
  * UnderFileSystemFileOutStream.
  */
 @NotThreadSafe
-final class UfsFileWriteHandler extends AbstractWriteHandler {
+final class UfsFileWriteHandler
+    extends AbstractWriteHandler<UfsFileWriteHandler.UfsFileWriteRequest> {
   private final UfsManager mUfsManager;
 
   /**
    * The UFS File write request internal representation.
    */
   @NotThreadSafe
-  static final class UfsFileWriteRequest extends BaseWriteRequest {
-    private UnderFileSystem mUnderFileSystem;
-    private OutputStream mOutputStream;
+  static final class UfsFileWriteRequest extends WriteRequest {
     private final String mUfsPath;
     private final Protocol.CreateUfsFileOptions mCreateUfsFileOptions;
+    private final Context mContext = new Context();
 
-    UfsFileWriteRequest(Protocol.WriteRequest request)
-        throws Exception {
+    UfsFileWriteRequest(Protocol.WriteRequest request) {
       super(request.getId());
       mUfsPath = request.getCreateUfsFileOptions().getUfsPath();
       mCreateUfsFileOptions = request.getCreateUfsFileOptions();
-    }
-
-    /**
-     * @return the output stream
-     */
-    public OutputStream getOutputStream() {
-      return mOutputStream;
     }
 
     /**
@@ -78,14 +71,6 @@ final class UfsFileWriteHandler extends AbstractWriteHandler {
     }
 
     /**
-     * @return the handler of the UFS
-     */
-    @Nullable
-    public UnderFileSystem getUnderFileSystem() {
-      return mUnderFileSystem;
-    }
-
-    /**
      * @return the options to create UFS file
      */
     public Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
@@ -93,21 +78,74 @@ final class UfsFileWriteHandler extends AbstractWriteHandler {
     }
 
     /**
-     * Sets the output stream.
-     *
-     * @param outputStream output stream to set
+     * @return the context of this request
      */
-    public void setOutputStream(OutputStream outputStream) {
-      mOutputStream = outputStream;
+    public Context getContext() {
+      return mContext;
     }
 
     /**
-     * Sets the handler of the UFS.
-     *
-     * @param underFileSystem UFS to set
+     * The context of this request, including some runtime state to handle this request.
      */
-    public void setUnderFileSystem(UnderFileSystem underFileSystem) {
-      mUnderFileSystem = underFileSystem;
+    @NotThreadSafe
+    final class Context {
+      private UnderFileSystem mUnderFileSystem;
+      private OutputStream mOutputStream;
+      private Counter mCounter;
+
+      Context() {}
+
+      /**
+       * @return the output stream
+       */
+      @Nullable
+      public OutputStream getOutputStream() {
+        return mOutputStream;
+      }
+
+
+      /**
+       * @return the handler of the UFS
+       */
+      @Nullable
+      public UnderFileSystem getUnderFileSystem() {
+        return mUnderFileSystem;
+      }
+
+      /**
+       * @return the counter
+       */
+      @Nullable
+      public Counter getCounter() {
+        return mCounter;
+      }
+
+      /**
+       * Sets the output stream.
+       *
+       * @param outputStream output stream to set
+       */
+      public void setOutputStream(OutputStream outputStream) {
+        mOutputStream = outputStream;
+      }
+
+      /**
+       * Sets the handler of the UFS.
+       *
+       * @param underFileSystem UFS to set
+       */
+      public void setUnderFileSystem(UnderFileSystem underFileSystem) {
+        mUnderFileSystem = underFileSystem;
+      }
+
+      /**
+       * Sets the counter.
+       *
+       * @param counter counter to set
+       */
+      public void setCounter(Counter counter) {
+        mCounter = counter;
+      }
     }
   }
 
@@ -132,66 +170,76 @@ final class UfsFileWriteHandler extends AbstractWriteHandler {
   }
 
   @Override
-  protected BaseWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception {
+  protected UfsFileWriteRequest createRequest(RPCProtoMessage msg) throws Exception {
     return new UfsFileWriteRequest(msg.getMessage().asWriteRequest());
   }
 
   @Override
-  protected void completeWriteRequest(Channel channel) throws Exception {
-    UfsFileWriteRequest request = (UfsFileWriteRequest) getRequest();
+  protected void completeRequest(Channel channel) throws Exception {
+    UfsFileWriteRequest request = getRequest();
     Preconditions.checkState(request != null);
 
-    if (request.getOutputStream() == null) {
+    if (request.getContext().getOutputStream() == null) {
       createUfsFile(channel);
     }
-    if (request.getOutputStream() != null) {
-      request.getOutputStream().close();
-      request.setOutputStream(null);
+    if (request.getContext().getOutputStream() != null) {
+      request.getContext().getOutputStream().close();
+      request.getContext().setOutputStream(null);
     }
   }
 
   @Override
-  protected void cancelWriteRequest() throws Exception {
-    UfsFileWriteRequest request = (UfsFileWriteRequest) getRequest();
+  protected void cancelRequest() throws Exception {
+    UfsFileWriteRequest request = getRequest();
     Preconditions.checkState(request != null);
 
     // TODO(calvin): Consider adding cancel to the ufs stream api.
-    if (request.getOutputStream() != null && request.getUnderFileSystem() != null) {
-      request.getOutputStream().close();
-      request.getUnderFileSystem().deleteFile(request.getUfsPath());
-      request.setOutputStream(null);
+    if (request.getContext().getOutputStream() != null
+        && request.getContext().getUnderFileSystem() != null) {
+      request.getContext().getOutputStream().close();
+      request.getContext().getUnderFileSystem().deleteFile(request.getUfsPath());
+      request.getContext().setOutputStream(null);
     }
   }
 
   @Override
-  protected void cleanupWriteRequest() throws Exception {
-    cancelWriteRequest();
+  protected void cleanupRequest() throws Exception {
+    cancelRequest();
   }
 
   @Override
   protected void writeBuf(Channel channel, ByteBuf buf, long pos) throws Exception {
-    UfsFileWriteRequest request = (UfsFileWriteRequest) getRequest();
+    UfsFileWriteRequest request = getRequest();
     Preconditions.checkState(request != null);
-    if (request.getOutputStream() == null) {
+    if (request.getContext().getOutputStream() == null) {
       createUfsFile(channel);
     }
 
-    buf.readBytes(((UfsFileWriteRequest) getRequest()).getOutputStream(), buf.readableBytes());
+    buf.readBytes(getRequest().getContext().getOutputStream(), buf.readableBytes());
   }
 
   private void createUfsFile(Channel channel) throws IOException {
-    UfsFileWriteRequest request = (UfsFileWriteRequest) getRequest();
+    UfsFileWriteRequest request = getRequest();
     Preconditions.checkState(request != null);
     Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
     UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
     UnderFileSystem ufs = ufsInfo.getUfs();
-    request.setUnderFileSystem(ufs);
-    request.setOutputStream(ufs.create(request.getUfsPath(),
+    request.getContext().setUnderFileSystem(ufs);
+    request.getContext().setOutputStream(ufs.create(request.getUfsPath(),
         CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
             .setGroup(createUfsFileOptions.getGroup())
             .setMode(new Mode((short) createUfsFileOptions.getMode()))));
     String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
     String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
-    request.setCounter(MetricsSystem.workerCounter(metricName));
+    request.getContext().setCounter(MetricsSystem.workerCounter(metricName));
+  }
+
+  @Override
+  protected void incrementMetrics(long bytesWritten) {
+    UfsFileWriteRequest request = getRequest();
+    Preconditions.checkState(request != null);
+    Counter counter = request.getContext().getCounter();
+    Preconditions.checkState(counter != null);
+    counter.inc(bytesWritten);
   }
 }

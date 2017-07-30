@@ -23,7 +23,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
 
-import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
@@ -66,7 +65,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    NOTE: it is guaranteed that there is only one packet writer thread active at a given time.
  */
 @NotThreadSafe
-abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
+abstract class AbstractWriteHandler<T extends WriteRequest>
+    extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
 
   private static final int MAX_PACKETS_IN_FLIGHT =
@@ -123,6 +123,20 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
       mCause = cause;
       mNotifyClient = notifyClient;
     }
+
+    /**
+     * @return the cause of this error
+     */
+    public AlluxioStatusException getCause() {
+      return mCause;
+    }
+
+    /**
+     * @return whether to notify client
+     */
+    public boolean isNotifyClient() {
+      return mNotifyClient;
+    }
   }
 
   /**
@@ -133,7 +147,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    * from any thread (not such usage in the code now). It is destroyed when the write request is
    * done (complete or cancel) or an error is seen.
    */
-  private volatile BaseWriteRequest mRequest;
+  private volatile T mRequest;
 
   /**
    * The next pos to queue to the buffer. This is only updated and used by the netty I/O thread.
@@ -167,7 +181,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
     if (writeRequest.getOffset() == 0) {
       Preconditions.checkState(mRequest == null);
       mPosToQueue = 0;
-      mRequest = createWriteRequest(msg);
+      mRequest = createRequest(msg);
     }
 
     // Validate the write request.
@@ -228,7 +242,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    * @return the write request instance or null if no write request initialized
    */
   @Nullable
-  public BaseWriteRequest getRequest() {
+  public T getRequest() {
     return mRequest;
   }
 
@@ -332,7 +346,7 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
 
       if (abort) {
         try {
-          cleanupWriteRequest();
+          cleanupRequest();
           mRequest = null;
           mPosToWrite = 0;
         } catch (Exception e) {
@@ -342,12 +356,12 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
       } else if (cancel || eof) {
         try {
           if (cancel) {
-            cancelWriteRequest();
+            cancelRequest();
             mRequest = null;
             mPosToWrite = 0;
             replyCancel();
           } else {
-            completeWriteRequest(mChannel);
+            completeRequest(mChannel);
             mRequest = null;
             mPosToWrite = 0;
             replySuccess();
@@ -387,8 +401,8 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
         error = Preconditions.checkNotNull(mError);
       }
 
-      if (error.mNotifyClient) {
-        mChannel.writeAndFlush(RPCProtoMessage.createResponse(error.mCause))
+      if (error.isNotifyClient()) {
+        mChannel.writeAndFlush(RPCProtoMessage.createResponse(error.getCause()))
             .addListener(ChannelFutureListener.CLOSE);
       }
     }
@@ -444,23 +458,23 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
    *
    * @param msg the block write request
    */
-  protected abstract BaseWriteRequest createWriteRequest(RPCProtoMessage msg) throws Exception;
+  protected abstract T createRequest(RPCProtoMessage msg) throws Exception;
 
   /**
    * Completes this write. This is called when the write completes.
    */
-  protected abstract void completeWriteRequest(Channel channel) throws Exception;
+  protected abstract void completeRequest(Channel channel) throws Exception;
 
   /**
    * Cancels this write. This is called when the client issues a cancel request.
    */
-  protected abstract void cancelWriteRequest() throws Exception;
+  protected abstract void cancelRequest() throws Exception;
 
   /**
    * Cleans up this write. This is called when the write request is aborted due to any exception
    * or session timeout.
    */
-  protected abstract void cleanupWriteRequest() throws Exception;
+  protected abstract void cleanupRequest() throws Exception;
 
   /**
    * Writes the buffer.
@@ -474,10 +488,5 @@ abstract class AbstractWriteHandler extends ChannelInboundHandlerAdapter {
   /**
    * @param bytesWritten bytes written
    */
-  private void incrementMetrics(long bytesWritten) {
-    Preconditions.checkState(mRequest != null);
-    Counter counter = mRequest.getCounter();
-    Preconditions.checkState(counter != null);
-    counter.inc(bytesWritten);
-  }
+  protected abstract void incrementMetrics(long bytesWritten);
 }

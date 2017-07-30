@@ -21,7 +21,6 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
-import alluxio.util.IdUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
@@ -63,7 +62,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> type of read request
  */
 @NotThreadSafe
-abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
+abstract class AbstractReadHandler<T extends ReadRequest>
     extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 
@@ -151,61 +150,6 @@ abstract class AbstractReadHandler<T extends AbstractReadHandler.ReadRequest>
      */
     public boolean isNotifyClient() {
       return mNotifyClient;
-    }
-  }
-
-  /**
-   * This is only created in the netty I/O thread when a read request is received, reset when
-   * another request is received.
-   */
-  static class ReadRequest {
-    private final long mId;
-    private final long mStart;
-    private final long mEnd;
-    private final long mPacketSize;
-    private final long mSessionId;
-
-    ReadRequest(long id, long start, long end, long packetSize) {
-      mId = id;
-      mStart = start;
-      mEnd = end;
-      mPacketSize = packetSize;
-      mSessionId = IdUtils.createSessionId();
-    }
-
-    /**
-     * @return session Id
-     */
-    public long getSessionId() {
-      return mSessionId;
-    }
-
-    /**
-     * @return block id of the read request
-     */
-    public long getId() {
-      return mId;
-    }
-
-    /**
-     * @return the start offset in bytes of this read request
-     */
-    public long getStart() {
-      return mStart;
-    }
-
-    /**
-     * @return the end offset in bytes of this read request
-     */
-    public long getEnd() {
-      return mEnd;
-    }
-
-    /**
-     * @return the packet size in bytes of this read request
-     */
-    public long getPacketSize() {
-      return mPacketSize;
     }
   }
 
