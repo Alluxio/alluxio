@@ -400,9 +400,9 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
-        PropertyKey.MASTER_ADDRESS, "${alluxio.master.hostname}:${alluxio.master.port}"));
-    String substitution = Configuration.get(PropertyKey.MASTER_ADDRESS);
-    assertEquals("value1:value2", substitution);
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"));
+    String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    assertEquals("value1-value2", substitution);
   }
 
   @Test
@@ -470,7 +470,7 @@ public class ConfigurationTest {
   public void sitePropertiesNotLoadedInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
-    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
@@ -488,7 +488,7 @@ public class ConfigurationTest {
   public void sitePropertiesLoadedNotInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
-    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file

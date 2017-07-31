@@ -37,7 +37,7 @@ public class S3AUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
-    Preconditions.checkNotNull(path);
+    Preconditions.checkNotNull(path, "path");
 
     try {
       return S3AUnderFileSystem.createInstance(new AlluxioURI(path), conf);

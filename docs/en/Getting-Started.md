@@ -144,7 +144,7 @@ $ ./bin/alluxio fs ls /
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
-size of the file, the date it was created, and the in-memory status of the file.
+size of the file, the date it was created, and the in-Alluxio status of the file.
 
 You can also view the contents of the file through the Alluxio shell. The `cat` command will print
 the contents of the file.

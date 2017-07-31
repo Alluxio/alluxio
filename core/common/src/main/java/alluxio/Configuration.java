@@ -71,9 +71,6 @@ public final class Configuration {
   /** Map of properties. */
   private static final ConcurrentHashMapV8<String, String> PROPERTIES = new ConcurrentHashMapV8<>();
 
-  /** File to set customized properties for Alluxio server (both master and worker) and client. */
-  public static final String SITE_PROPERTIES = "alluxio-site.properties";
-
   static {
     init();
   }
@@ -103,22 +100,13 @@ public final class Configuration {
     if (!getBoolean(PropertyKey.TEST_MODE)) {
       String confPaths = get(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
-      Properties siteProps = ConfigurationUtils.searchPropertiesFile(SITE_PROPERTIES, confPathList);
+      Properties siteProps =
+          ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       // Update site properties and system properties in order
       if (siteProps != null) {
         merge(siteProps);
         merge(systemProps);
       }
-    }
-
-    // TODO(andrew): get rid of the MASTER_ADDRESS property key
-    if (containsKey(PropertyKey.MASTER_HOSTNAME)) {
-      String masterHostname = get(PropertyKey.MASTER_HOSTNAME);
-      String masterPort = get(PropertyKey.MASTER_RPC_PORT);
-      boolean useZk = Boolean.parseBoolean(get(PropertyKey.ZOOKEEPER_ENABLED));
-      String masterAddress =
-          (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-      set(PropertyKey.MASTER_ADDRESS, masterAddress);
     }
 
     validate();

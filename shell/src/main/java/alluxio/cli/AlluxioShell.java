@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.shell.AlluxioShellUtils;
@@ -59,7 +59,7 @@ public final class AlluxioShell implements Closeable {
           "Cannot run alluxio shell; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
               + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Configuration.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
+          Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
           PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
       System.exit(1);
     }

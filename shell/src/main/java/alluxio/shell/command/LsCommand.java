@@ -118,7 +118,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(),
         status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
         status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-        100 == status.getInMemoryPercentage(), status.getPath()));
+        100 == status.getInAlluxioPercentage(), status.getPath()));
   }
 
   /**

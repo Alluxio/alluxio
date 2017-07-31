@@ -57,7 +57,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
         CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy(new RoundRobinPolicy()));
     URIStatus status = fs.getStatus(file);
-    assertEquals(100, status.getInMemoryPercentage());
+    assertEquals(100, status.getInAlluxioPercentage());
     try (FileInStream inStream = fs.openFile(file)) {
       assertEquals(fileSize, IOUtils.toByteArray(inStream).length);
     }

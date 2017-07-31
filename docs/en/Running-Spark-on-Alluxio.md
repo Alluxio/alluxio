@@ -91,7 +91,7 @@ should be an output file `LICENSE2` which doubles each line in the file `LICENSE
 `LICENSE` file now appears in the Alluxio file system space.
 
 > NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
-> it is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
+> it is possible that the `LICENSE` file is not in Alluxio storage. This is
 > because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
 > have each executor read a partial block. To avoid this behavior, you can specify the partition
 > count in Spark. For this example, we would set it to 1 as there is only 1 block.
