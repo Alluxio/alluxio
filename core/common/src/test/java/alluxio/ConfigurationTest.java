@@ -470,7 +470,7 @@ public class ConfigurationTest {
   public void sitePropertiesNotLoadedInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
-    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
@@ -488,7 +488,7 @@ public class ConfigurationTest {
   public void sitePropertiesLoadedNotInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
-    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
