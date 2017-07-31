@@ -394,7 +394,7 @@ public class PropertyKey {
               + "multipart uploads. These operations can be fairly expensive, so multiple "
               + "threads are encouraged. However, this also splits the bandwidth between "
               + "threads, meaning the overall latency for completing an upload will be higher "
-              + "for more threads. The default value is 20.")
+              + "for more threads.")
           .build();
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
@@ -1254,7 +1254,7 @@ public class PropertyKey {
               + "loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. "
               + "`Always` will always access UFS to see if the path exists in the UFS. "
               + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
-              + "time (according to a cache), but not after that. The default value is `Once`.")
+              + "time (according to a cache), but not after that.")
           .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       new Builder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
