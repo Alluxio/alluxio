@@ -46,6 +46,7 @@ import java.io.File;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -138,16 +139,16 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
       /**
        * @return block reader
        */
+      @Nullable
       public BlockReader getBlockReader() {
-        Preconditions.checkState(mBlockReader != null);
         return mBlockReader;
       }
 
       /**
        * @return counter
        */
+      @Nullable
       public Counter getCounter() {
-        Preconditions.checkState(mCounter != null);
         return mCounter;
       }
 
@@ -193,7 +194,15 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
   @Override
   protected void completeRequest() throws Exception {
     BlockReadRequest request = getRequest();
-    request.getContext().getBlockReader().close();
+    BlockReader reader = request.getContext().getBlockReader();
+    if (reader != null) {
+      try {
+        reader.close();
+      } catch (Exception e) {
+        LOG.warn("Failed to close block reader for block {} with error {}.",
+            request.getId(), e.getMessage());
+      }
+    }
     if (!mWorker.unlockBlock(request.getSessionId(), request.getId())) {
       mWorker.closeUfsBlock(request.getSessionId(), request.getId());
     }
@@ -203,6 +212,7 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
     openBlock(channel);
     BlockReader blockReader = getRequest().getContext().getBlockReader();
+    Preconditions.checkState(blockReader != null);
     if (mTransferType == FileTransferType.TRANSFER
         && (blockReader instanceof LocalFileBlockReader)) {
       return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
@@ -228,6 +238,9 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
    */
   private void openBlock(Channel channel) throws Exception {
     BlockReadRequest request = getRequest();
+    if (request.getContext().getBlockReader() != null) {
+      return;
+    }
     int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
@@ -253,11 +266,12 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
           BlockReadRequest.Context context = request.getContext();
-          context.setBlockReader(
-              mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId));
+          BlockReader reader =
+              mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+          context.setBlockReader(reader);
           context.setCounter(MetricsSystem.workerCounter("BytesReadAlluxio"));
           mWorker.accessBlock(request.getSessionId(), request.getId());
-          ((FileChannel) context.getBlockReader().getChannel()).position(request.getStart());
+          ((FileChannel) reader.getChannel()).position(request.getStart());
           return;
         } catch (Exception e) {
           mWorker.unlockBlock(lockId);
@@ -298,7 +312,8 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    getRequest().getContext().getCounter().inc(bytesRead);
+    Counter counter = getRequest().getContext().getCounter();
+    Preconditions.checkState(counter != null);
+    counter.inc(bytesRead);
   }
-
 }
