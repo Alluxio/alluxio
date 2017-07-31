@@ -19,7 +19,7 @@ priority: 1
 共有配置项包含了不同组件共享的常量。
 
 <table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+<tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.common-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -34,7 +34,7 @@ priority: 1
 Master配置项指定master节点的信息，例如地址和端口号。
 
 <table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+<tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.master-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -49,7 +49,7 @@ Master配置项指定master节点的信息，例如地址和端口号。
 Worker配置项指定worker节点的信息，例如地址和端口号。
 
 <table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+<tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.worker-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -64,7 +64,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 用户配置项指定了文件系统访问的相关信息。
 
 <table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+<tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.user-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -79,7 +79,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 如果使用诸如Mesos和YARN的集群管理器运行Alluxio，还有额外的配置项。
 
 <table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+<tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.cluster-management %}
   <tr>
     <td>{{ item.propertyName }}</td>
@@ -97,7 +97,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 更多安全性相关的信息详见[安全性](Security.html)页面。
 
 <table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+<tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.security-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
