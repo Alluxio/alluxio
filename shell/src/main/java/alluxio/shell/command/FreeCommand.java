@@ -25,7 +25,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Frees the given file or folder from Alluxio in-memory (recursively freeing all children if a
+ * Frees the given file or folder from Alluxio storage (recursively freeing all children if a
  * folder).
  */
 @ThreadSafe

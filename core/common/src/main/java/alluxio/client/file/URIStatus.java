@@ -86,6 +86,13 @@ public class URIStatus {
   }
 
   /**
+   * @return the percentage of blocks in Alluxio tier storage, mutable
+   */
+  public int getInAlluxioPercentage() {
+    return mInfo.getInAlluxioPercentage();
+  }
+
+  /**
    * @return the epoch time the entity referenced by this uri was last modified, mutable
    */
   public long getLastModificationTimeMs() {

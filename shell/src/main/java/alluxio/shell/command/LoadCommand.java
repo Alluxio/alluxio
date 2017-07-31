@@ -67,7 +67,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
         load(newPath);
       }
     } else {
-      if (status.getInMemoryPercentage() == 100) {
+      if (status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio memory.
         return;
       }

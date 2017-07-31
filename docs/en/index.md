@@ -68,7 +68,7 @@ memory-mapped I/O. We recommend using this API to get the best performance from 
 Alternatively, Alluxio provides a Hadoop compatible FileSystem interface, allowing Hadoop MapReduce
 and Spark to use Alluxio in place of HDFS.
 
-* **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints in-memory data to the
+* **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints data to the
 underlying storage system. It has a generic interface to make plugging different underlayer storage
 systems easy. We currently support Amazon S3, Google Cloud Storage, OpenStack Swift, GlusterFS,
 HDFS, MaprFS, Ceph, NFS, Alibaba OSS, and single-node local file systems, and support for many other
