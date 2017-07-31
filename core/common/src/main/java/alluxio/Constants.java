@@ -121,6 +121,8 @@ public final class Constants {
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
+  public static final String SITE_PROPERTIES = "alluxio-site.properties";
+
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
   public static final String SWIFT_AUTH_KEYSTONE_V3 = "keystonev3";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
