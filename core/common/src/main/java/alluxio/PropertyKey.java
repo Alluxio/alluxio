@@ -132,7 +132,7 @@ public class PropertyKey {
           .setDefaultValue("512MB")
           .setDescription("Maximum allowable size (in bytes) of a single key-value partition "
               + "in a store. This value should be no larger than the block size "
-              + "(alluxio.user.block.size.bytes.default)")
+              + "(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)")
           .build();
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
@@ -312,7 +312,7 @@ public class PropertyKey {
           .setDefaultValue(false)
           .setDescription("Whether or not to share object storage under storage system "
               + "mounted point with all Alluxio users. Note that this configuration has no "
-              + "effect on HDFS nor local UFS. The default value is false.")
+              + "effect on HDFS nor local UFS.")
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
@@ -335,13 +335,12 @@ public class PropertyKey {
           .setDefaultValue(20)
           .setDescription("The maximum number of threads to use for metadata operations when "
               + "communicating with S3. These operations may be fairly concurrent and "
-              + "frequent but should not take much time to process. The default is 20.")
+              + "frequent but should not take much time to process.")
           .build();
   public static final PropertyKey UNDERFS_S3_DISABLE_DNS_BUCKETS =
       new Builder(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS)
           .setDefaultValue(false)
-          .setDescription("Optionally, specify to make all S3 requests path style. The "
-              + "default value is false.")
+          .setDescription("Optionally, specify to make all S3 requests path style.")
           .build();
   public static final PropertyKey UNDERFS_S3_ENDPOINT =
       new Builder(Name.UNDERFS_S3_ENDPOINT)
@@ -386,8 +385,7 @@ public class PropertyKey {
           .setDescription("The maximum number of threads to use for communicating with S3 and "
               + "the maximum number of concurrent connections to S3. Includes both threads "
               + "for data upload and metadata operations. This number should be at least as "
-              + "large as the max admin threads plus max upload threads. The default is 40 "
-              + "which is the sum of the default admin and upload thread pool sizes.")
+              + "large as the max admin threads plus max upload threads.")
           .build();
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
@@ -403,26 +401,24 @@ public class PropertyKey {
           .setDefaultValue("1min")
           .setDescription("The duration to wait for metadata consistency from the under "
               + "storage. This is only used by internal Alluxio operations which should be "
-              + "successful, but may appear unsuccessful due to eventual consistency. The "
-              + "default value is 60000 milliseconds (1 minute).")
+              + "successful, but may appear unsuccessful due to eventual consistency.")
           .build();
   public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
           .setDescription("Directories are represented in S3 as zero-byte objects named with "
-              + "the specified suffix. The default value is \"/\".")
+              + "the specified suffix.")
           .build();
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       new Builder(Name.UNDERFS_S3A_INHERIT_ACL)
           .setDefaultValue(true)
           .setDescription("Optionally disable this to disable inheriting bucket ACLs on "
-              + "objects. The default value is true.")
+              + "objects.")
           .build();
   public static final PropertyKey UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
       new Builder(Name.UNDERFS_S3A_LIST_OBJECTS_VERSION_1)
           .setDefaultValue(false)
-          .setDescription("Whether to use version 1 of GET Bucket (List Objects) API. The "
-              + "default value is \"false\".")
+          .setDescription("Whether to use version 1 of GET Bucket (List Objects) API.")
           .build();
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS)
@@ -430,20 +426,17 @@ public class PropertyKey {
           .setDescription("The timeout for a single request to S3. Infinity if set to 0. "
               + "Setting this property to a non-zero value can improve performance by "
               + "avoiding the long tail of requests to S3. For very slow connections to S3, "
-              + "consider increasing this value or setting it to 0. The default value is "
-              + "60000 milliseconds (1 minute).")
+              + "consider increasing this value or setting it to 0.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
       new Builder(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether or not to use HTTPS protocol when communicating with s3. "
-              + "The default value is false.")
+          .setDescription("Whether or not to use HTTPS protocol when communicating with s3.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
       new Builder(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether or not to encrypt data stored in s3. The default value is "
-              + "false.")
+          .setDescription("Whether or not to encrypt data stored in s3.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
       new Builder(Name.UNDERFS_S3A_SIGNER_ALGORITHM)
@@ -455,8 +448,7 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
           .setDefaultValue("50sec")
-          .setDescription("Length of the socket timeout when communicating with s3. The "
-              + "default value is 50000.")
+          .setDescription("Length of the socket timeout when communicating with s3.")
           .build();
 
   //
@@ -522,8 +514,7 @@ public class PropertyKey {
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setDefaultValue("0ms")
-          .setDescription("Timeout (in milliseconds) between master and client，the default "
-              + "value is 0, that time is unlimited")
+          .setDescription("Timeout (in milliseconds) between master and client.")
           .build();
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       new Builder(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER)
@@ -647,8 +638,7 @@ public class PropertyKey {
       new Builder(Name.MASTER_RETRY)
           .setDefaultValue(String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY))
           .setDescription("The number of retries that the client connects to master. (NOTE: "
-              + "this property is deprecated, use `alluxio.user.rpc.retry.max.num.retry` "
-              + "instead)")
+              + "this property is deprecated, use `Name.USER_RPC_RETRY_MAX_NUM_RETRY` instead)")
           .build();
   public static final PropertyKey MASTER_RPC_PORT =
       new Builder(Name.MASTER_RPC_PORT)
@@ -1317,8 +1307,7 @@ public class PropertyKey {
       new Builder(Name.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES)
           .setDefaultValue("0MB")
           .setDescription("The portion of space reserved in worker when user use the "
-              + "LocalFirstAvoidEvictionPolicy class as file write location policy, default 0 "
-              + "MB.")
+              + "LocalFirstAvoidEvictionPolicy class as file write location policy.")
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TYPE_DEFAULT)
