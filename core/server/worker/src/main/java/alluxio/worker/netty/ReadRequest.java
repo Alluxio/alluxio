@@ -13,10 +13,12 @@ package alluxio.worker.netty;
 
 import alluxio.util.IdUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * This is only created in the netty I/O thread when a read request is received, reset when
- * another request is received.
+ * Represents a read request received from netty channel.
  */
+@ThreadSafe
 class ReadRequest {
   private final long mId;
   private final long mStart;

@@ -13,9 +13,12 @@ package alluxio.worker.netty;
 
 import alluxio.util.IdUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Represents the write request received from netty channel.
+ * Represents a write request received from netty channel.
  */
+@ThreadSafe
 class WriteRequest {
   /** This ID can either be block ID or temp UFS file ID. */
   private final long mId;

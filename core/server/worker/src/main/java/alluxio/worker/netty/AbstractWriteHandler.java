@@ -37,8 +37,6 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
@@ -150,8 +148,11 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
    * It is safe to read those final primitive fields (e.g. mId, mSessionId) if mError is not set
    * from any thread (not such usage in the code now). It is destroyed when the write request is
    * done (complete or cancel) or an error is seen.
+   *
+   * Using "volatile" because we want any value change of this variable to be
+   * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
    */
-  private AtomicReference<T> mRequest = new AtomicReference<>();
+  private volatile T mRequest;
 
   /**
    * The next pos to queue to the buffer. This is only updated and used by the netty I/O thread.
@@ -160,8 +161,12 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
   /**
    * The next pos to write to the block worker. This is only updated by the packet writer
    * thread. The netty I/O reads this only for sanity check during initialization.
+   *
+   * Using "volatile" because we want any value change of this variable to be
+   * visible across both netty and I/O threads, meanwhile only one updater means atomicity of
+   * operations is unnecessary;
    */
-  protected AtomicLong mPosToWrite = new AtomicLong();
+  protected volatile long mPosToWrite;
 
   /**
    * Creates an instance of {@link AbstractWriteHandler}.
@@ -183,9 +188,9 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
     Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
     // Only initialize (open the readers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
-      Preconditions.checkState(mRequest.get() == null);
+      Preconditions.checkState(mRequest == null);
       mPosToQueue = 0;
-      mRequest.set(createRequest(msg));
+      mRequest = createRequest(msg);
     }
 
     // Validate the write request.
@@ -247,7 +252,7 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
    */
   @Nullable
   public T getRequest() {
-    return mRequest.get();
+    return mRequest;
   }
 
   /**
@@ -335,8 +340,8 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
 
         try {
           int readableBytes = buf.readableBytes();
-          mPosToWrite.addAndGet(readableBytes);
-          writeBuf(mChannel, buf, mPosToWrite.get());
+          mPosToWrite += readableBytes;
+          writeBuf(mChannel, buf, mPosToWrite);
           incrementMetrics(readableBytes);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
@@ -351,8 +356,8 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
       if (abort) {
         try {
           cleanupRequest();
-          mRequest.set(null);
-          mPosToWrite.set(0);
+          mRequest = null;
+          mPosToWrite = 0;
         } catch (Exception e) {
           LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
         }
@@ -361,13 +366,13 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
         try {
           if (cancel) {
             cancelRequest();
-            mRequest.set(null);
-            mPosToWrite.set(0);
+            mRequest = null;
+            mPosToWrite = 0;
             replyCancel();
           } else {
             completeRequest(mChannel);
-            mRequest.set(null);
-            mPosToWrite.set(0);
+            mRequest = null;
+            mPosToWrite = 0;
             replySuccess();
           }
         } catch (Exception e) {

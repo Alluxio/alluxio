@@ -157,7 +157,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    * This is only created in the netty I/O thread when a read request is received, reset when
    * another request is received.
    * Using "volatile" because we want any value change of this variable to be
-   * visible across both netty and I/O threads, meanwhile no atomicity is assumed;
+   * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
    */
   private volatile T mRequest;
 
