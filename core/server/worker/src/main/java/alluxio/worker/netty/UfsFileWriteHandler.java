@@ -180,8 +180,9 @@ final class UfsFileWriteHandler
   @Override
   protected void completeRequest(Channel channel) throws Exception {
     UfsFileWriteRequest request = getRequest();
-    Preconditions.checkState(request != null);
-
+    if (request == null) {
+      return;
+    }
     if (request.getContext().getOutputStream() == null) {
       createUfsFile(channel);
     }
@@ -194,8 +195,9 @@ final class UfsFileWriteHandler
   @Override
   protected void cancelRequest() throws Exception {
     UfsFileWriteRequest request = getRequest();
-    Preconditions.checkState(request != null);
-
+    if (request == null) {
+      return;
+    }
     // TODO(calvin): Consider adding cancel to the ufs stream api.
     if (request.getContext().getOutputStream() != null
         && request.getContext().getUnderFileSystem() != null) {

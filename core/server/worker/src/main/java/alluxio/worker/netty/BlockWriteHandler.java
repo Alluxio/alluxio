@@ -167,8 +167,9 @@ public final class BlockWriteHandler
   @Override
   protected void completeRequest(Channel channel) throws Exception {
     BlockWriteRequest request = getRequest();
-    Preconditions.checkState(request != null);
-
+    if (request == null) {
+      return;
+    }
     if (request.getContext().getBlockWriter() != null) {
       request.getContext().getBlockWriter().close();
     }
@@ -178,8 +179,9 @@ public final class BlockWriteHandler
   @Override
   protected void cancelRequest() throws Exception {
     BlockWriteRequest request = getRequest();
-    Preconditions.checkState(request != null);
-
+    if (request == null) {
+      return;
+    }
     if (request.getContext().getBlockWriter() != null) {
       request.getContext().getBlockWriter().close();
     }
@@ -189,7 +191,9 @@ public final class BlockWriteHandler
   @Override
   protected void cleanupRequest() throws Exception {
     BlockWriteRequest request = getRequest();
-    Preconditions.checkState(request != null);
+    if (request == null) {
+      return;
+    }
     mWorker.cleanupSession(request.getSessionId());
   }
 

@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -124,7 +123,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
   private Error mError;
 
   /** This is set when the SUCCESS or CANCEL response is sent. This is only for sanity check. */
-  private AtomicBoolean mDone = new AtomicBoolean(false);
+  private volatile boolean mDone;
 
   /**
    * A wrapper on an error used to pass error information from the netty I/O thread to the packet
@@ -299,7 +298,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       mCancel = false;
       mError = null;
       mRequest.set(null);
-      mDone.set(false);
+      mDone = false;
     }
   }
 
@@ -509,8 +508,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      * Writes a success response.
      */
     private void replyEof() {
-      Preconditions.checkState(!mDone.get());
-      mDone.set(true);
+      Preconditions.checkState(!mDone);
+      mDone = true;
       mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
@@ -519,8 +518,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      * Writes a cancel response.
      */
     private void replyCancel() {
-      Preconditions.checkState(!mDone.get());
-      mDone.set(true);
+      Preconditions.checkState(!mDone);
+      mDone = true;
       mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
