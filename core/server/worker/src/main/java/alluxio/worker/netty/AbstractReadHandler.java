@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -154,13 +153,19 @@ abstract class AbstractReadHandler<T extends ReadRequest>
     }
   }
 
-  private AtomicReference<T> mRequest = new AtomicReference<>();
+  /**
+   * This is only created in the netty I/O thread when a read request is received, reset when
+   * another request is received.
+   * Using "volatile" because we want any value change of this variable to be
+   * visible across both netty and I/O threads, meanwhile no atomicity is assumed;
+   */
+  private volatile T mRequest;
 
   /**
    * @return the read request instance or null if no read request initialized
    */
   public T getRequest() {
-    return mRequest.get();
+    return mRequest;
   }
 
   /**
@@ -195,7 +200,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
     validateReadRequest(msg);
     reset();
 
-    mRequest.set(createRequest(msg));
+    mRequest = createRequest(msg);
     try (LockResource lr = new LockResource(mLock)) {
       mPosToQueue = getRequest().getStart();
       mPosToWrite = getRequest().getStart();
@@ -297,7 +302,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       mEof = false;
       mCancel = false;
       mError = null;
-      mRequest.set(null);
+      mRequest = null;
       mDone = false;
     }
   }
