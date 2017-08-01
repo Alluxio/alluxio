@@ -78,7 +78,8 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
   public static final class BlockReadRequest extends ReadRequest {
     private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     private final boolean mPromote;
-    private final Context mContext = new Context();
+    private BlockReader mBlockReader;
+    private Counter mCounter;
 
     /**
      * Creates an instance of {@link BlockReadRequest}.
@@ -120,55 +121,33 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
     }
 
     /**
-     * @return the context of this request
+     * @return block reader
      */
-    public Context getContext() {
-      return mContext;
+    @Nullable
+    public BlockReader getBlockReader() {
+      return mBlockReader;
     }
 
     /**
-     * The context of this request, including some runtime state to handle this request.
+     * @return counter
      */
-    @NotThreadSafe
-    final class Context {
-      private BlockReader mBlockReader;
-      private Counter mCounter;
+    @Nullable
+    public Counter getCounter() {
+      return mCounter;
+    }
 
-      public Context() {}
+    /**
+     * @param blockReader block reader to set
+     */
+    public void setBlockReader(BlockReader blockReader) {
+      mBlockReader = blockReader;
+    }
 
-      /**
-       * @return block reader
-       */
-      @Nullable
-      public BlockReader getBlockReader() {
-        return mBlockReader;
-      }
-
-      /**
-       * @return counter
-       */
-      @Nullable
-      public Counter getCounter() {
-        return mCounter;
-      }
-
-      /**
-       * Sets the block reader.
-       *
-       * @param blockReader block reader to set
-       */
-      public void setBlockReader(BlockReader blockReader) {
-        mBlockReader = blockReader;
-      }
-
-      /**
-       * Sets the counter.
-       *
-       * @param counter counter to set
-       */
-      public void setCounter(Counter counter) {
-        mCounter = counter;
-      }
+    /**
+     * @param counter counter to set
+     */
+    public void setCounter(Counter counter) {
+      mCounter = counter;
     }
   }
 
@@ -194,7 +173,7 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
   @Override
   protected void completeRequest() throws Exception {
     BlockReadRequest request = getRequest();
-    BlockReader reader = request.getContext().getBlockReader();
+    BlockReader reader = request.getBlockReader();
     if (reader != null) {
       try {
         reader.close();
@@ -211,7 +190,7 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
   @Override
   protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
     openBlock(channel);
-    BlockReader blockReader = getRequest().getContext().getBlockReader();
+    BlockReader blockReader = getRequest().getBlockReader();
     Preconditions.checkState(blockReader != null);
     if (mTransferType == FileTransferType.TRANSFER
         && (blockReader instanceof LocalFileBlockReader)) {
@@ -238,7 +217,7 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
    */
   private void openBlock(Channel channel) throws Exception {
     BlockReadRequest request = getRequest();
-    if (request.getContext().getBlockReader() != null) {
+    if (request.getBlockReader() != null) {
       return;
     }
     int retryInterval = Constants.SECOND_MS;
@@ -265,11 +244,10 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
       }
       if (lockId != BlockLockManager.INVALID_LOCK_ID) {
         try {
-          BlockReadRequest.Context context = request.getContext();
           BlockReader reader =
               mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
-          context.setBlockReader(reader);
-          context.setCounter(MetricsSystem.workerCounter("BytesReadAlluxio"));
+          request.setBlockReader(reader);
+          request.setCounter(MetricsSystem.workerCounter("BytesReadAlluxio"));
           mWorker.accessBlock(request.getSessionId(), request.getId());
           ((FileChannel) reader.getChannel()).position(request.getStart());
           return;
@@ -289,9 +267,8 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
               ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
           String ufsString = MetricsSystem.escape(ufsMountPointUri);
           String metricName = String.format("BytesReadUfs-Ufs:%s", ufsString);
-          BlockReadRequest.Context context = request.getContext();
-          context.setBlockReader(reader);
-          context.setCounter(MetricsSystem.workerCounter(metricName));
+          request.setBlockReader(reader);
+          request.setCounter(MetricsSystem.workerCounter(metricName));
           return;
         } catch (Exception e) {
           mWorker.closeUfsBlock(request.getSessionId(), request.getId());
@@ -312,7 +289,7 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
 
   @Override
   protected void incrementMetrics(long bytesRead) {
-    Counter counter = getRequest().getContext().getCounter();
+    Counter counter = getRequest().getCounter();
     Preconditions.checkState(counter != null);
     counter.inc(bytesRead);
   }
