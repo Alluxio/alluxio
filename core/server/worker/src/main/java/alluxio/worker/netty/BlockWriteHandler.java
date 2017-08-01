@@ -57,81 +57,64 @@ public final class BlockWriteHandler
    */
   @NotThreadSafe
   static final class BlockWriteRequest extends WriteRequest {
-    private final Context mContext = new Context();
+    private BlockWriter mBlockWriter;
+    private Counter mCounter;
+    private long mBytesReserved;
 
     BlockWriteRequest(Protocol.WriteRequest request, long bytesReserved) throws Exception {
       super(request.getId());
       Preconditions.checkState(request.getOffset() == 0);
-      mContext.setBytesReserved(bytesReserved);
+      mBytesReserved = bytesReserved;
     }
 
     /**
-     * @return the context of this request
+     * @return the block writer
      */
-    public Context getContext() {
-      return mContext;
+    @Nullable
+    public BlockWriter getBlockWriter() {
+      return mBlockWriter;
     }
 
     /**
-     * The context of this request, including some runtime state to handle this request.
+     * @return the bytes reserved
      */
-    @NotThreadSafe
-    final class Context {
-      private BlockWriter mBlockWriter;
-      private Counter mCounter;
-      private long mBytesReserved;
+    public long getBytesReserved() {
+      return mBytesReserved;
+    }
 
-      Context() {}
+    /**
+     * @return the counter
+     */
+    @Nullable
+    public Counter getCounter() {
+      return mCounter;
+    }
 
-      /**
-       * @return the block writer
-       */
-      @Nullable
-      public BlockWriter getBlockWriter() {
-        return mBlockWriter;
-      }
+    /**
+     * Sets the block writer.
+     *
+     * @param blockWriter block writer to set
+     */
+    public void setBlockWriter(BlockWriter blockWriter) {
+      mBlockWriter = blockWriter;
+    }
 
-      /**
-       * @return the bytes reserved
-       */
-      public long getBytesReserved() {
-        return mBytesReserved;
-      }
+    /**
+     * Sets the bytes reserved.
+     *
+     * @param bytesReserved the bytes reserved to set
+     */
+    public void setBytesReserved(long bytesReserved) {
+      mBytesReserved = bytesReserved;
+    }
 
-      /**
-       * @return the counter
-       */
-      @Nullable
-      public Counter getCounter() {
-        return mCounter;
-      }
-
-      /**
-       * Sets the block writer.
-       *
-       * @param blockWriter block writer to set
-       */
-      public void setBlockWriter(BlockWriter blockWriter) {
-        mBlockWriter = blockWriter;
-      }
-
-      /**
-       * Sets the bytes reserved.
-       *
-       * @param bytesReserved the bytes reserved to set
-       */
-      public void setBytesReserved(long bytesReserved) {
-        mBytesReserved = bytesReserved;
-      }
-
-      /**
-       * Sets the counter.
-       *
-       * @param counter counter to set
-       */
-      public void setCounter(Counter counter) {
-        mCounter = counter;
-      }
+    /**
+     * Sets the counter.
+     *
+     * @param counter counter to set
+     */
+    public void setCounter(Counter counter) {
+      mCounter = counter;
     }
   }
 
@@ -170,8 +153,8 @@ public final class BlockWriteHandler
     if (request == null) {
       return;
     }
-    if (request.getContext().getBlockWriter() != null) {
-      request.getContext().getBlockWriter().close();
+    if (request.getBlockWriter() != null) {
+      request.getBlockWriter().close();
     }
     mWorker.commitBlock(request.getSessionId(), request.getId());
   }
@@ -182,8 +165,8 @@ public final class BlockWriteHandler
     if (request == null) {
       return;
     }
-    if (request.getContext().getBlockWriter() != null) {
-      request.getContext().getBlockWriter().close();
+    if (request.getBlockWriter() != null) {
+      request.getBlockWriter().close();
     }
     mWorker.abortBlock(request.getSessionId(), request.getId());
   }
@@ -201,20 +184,20 @@ public final class BlockWriteHandler
   protected void writeBuf(Channel channel, ByteBuf buf, long pos) throws Exception {
     BlockWriteRequest request = getRequest();
     Preconditions.checkState(request != null);
-    long bytesReserved = request.getContext().getBytesReserved();
+    long bytesReserved = request.getBytesReserved();
     if (bytesReserved < pos) {
       long bytesToReserve = Math.max(FILE_BUFFER_SIZE, pos - bytesReserved);
       // Allocate enough space in the existing temporary block for the write.
       mWorker.requestSpace(request.getSessionId(), request.getId(), bytesToReserve);
-      request.getContext().setBytesReserved(bytesReserved + bytesToReserve);
+      request.setBytesReserved(bytesReserved + bytesToReserve);
     }
-    if (request.getContext().getBlockWriter() == null) {
-      request.getContext().setBlockWriter(mWorker.getTempBlockWriterRemote(
+    if (request.getBlockWriter() == null) {
+      request.setBlockWriter(mWorker.getTempBlockWriterRemote(
           request.getSessionId(), request.getId()));
-      request.getContext().setCounter(MetricsSystem.workerCounter("BytesWrittenAlluxio"));
+      request.setCounter(MetricsSystem.workerCounter("BytesWrittenAlluxio"));
     }
-    Preconditions.checkState(request.getContext().getBlockWriter() != null);
-    GatheringByteChannel outputChannel = request.getContext().getBlockWriter().getChannel();
+    Preconditions.checkState(request.getBlockWriter() != null);
+    GatheringByteChannel outputChannel = request.getBlockWriter().getChannel();
     int sz = buf.readableBytes();
     Preconditions.checkState(buf.readBytes(outputChannel, sz) == sz);
   }
@@ -223,7 +206,7 @@ public final class BlockWriteHandler
   protected void incrementMetrics(long bytesWritten) {
     BlockWriteRequest request = getRequest();
     Preconditions.checkState(request != null);
-    Counter counter = request.getContext().getCounter();
+    Counter counter = request.getCounter();
     Preconditions.checkState(counter != null);
     counter.inc(bytesWritten);
   }
