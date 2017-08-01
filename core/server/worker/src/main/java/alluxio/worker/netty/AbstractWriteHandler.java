@@ -189,7 +189,7 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
     // Only initialize (open the readers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
       Preconditions.checkState(mRequest == null);
-      mPosToQueue = 0;
+      reset();
       mRequest = createRequest(msg);
     }
 
@@ -356,8 +356,7 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
       if (abort) {
         try {
           cleanupRequest();
-          mRequest = null;
-          mPosToWrite = 0;
+          reset();
         } catch (Exception e) {
           LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
         }
@@ -366,13 +365,11 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
         try {
           if (cancel) {
             cancelRequest();
-            mRequest = null;
-            mPosToWrite = 0;
+            reset();
             replyCancel();
           } else {
             completeRequest(mChannel);
-            mRequest = null;
-            mPosToWrite = 0;
+            reset();
             replySuccess();
           }
         } catch (Exception e) {
@@ -446,6 +443,14 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
     if (buf != null && buf != EOF && buf != CANCEL && buf != ABORT) {
       buf.release();
     }
+  }
+
+  /**
+   * Resets the states.
+   */
+  private void reset() {
+    mRequest = null;
+    mPosToWrite = 0;
   }
 
   /**

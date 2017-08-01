@@ -91,8 +91,6 @@ public final class BlockWriteHandler
     }
 
     /**
-     * Sets the block writer.
-     *
      * @param blockWriter block writer to set
      */
     public void setBlockWriter(BlockWriter blockWriter) {
@@ -100,8 +98,6 @@ public final class BlockWriteHandler
     }
 
     /**
-     * Sets the bytes reserved.
-     *
      * @param bytesReserved the bytes reserved to set
      */
     public void setBytesReserved(long bytesReserved) {
@@ -109,8 +105,6 @@ public final class BlockWriteHandler
     }
 
     /**
-     * Sets the counter.
-     *
      * @param counter counter to set
      */
     public void setCounter(Counter counter) {

@@ -108,8 +108,6 @@ final class UfsFileWriteHandler
     }
 
     /**
-     * Sets the output stream.
-     *
      * @param outputStream output stream to set
      */
     public void setOutputStream(OutputStream outputStream) {
@@ -117,8 +115,6 @@ final class UfsFileWriteHandler
     }
 
     /**
-     * Sets the handler of the UFS.
-     *
      * @param underFileSystem UFS to set
      */
     public void setUnderFileSystem(UnderFileSystem underFileSystem) {
@@ -126,8 +122,6 @@ final class UfsFileWriteHandler
     }
 
     /**
-     * Sets the counter.
-     *
      * @param counter counter to set
      */
     public void setCounter(Counter counter) {

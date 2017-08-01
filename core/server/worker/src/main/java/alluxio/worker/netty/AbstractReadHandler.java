@@ -202,8 +202,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
 
     mRequest = createRequest(msg);
     try (LockResource lr = new LockResource(mLock)) {
-      mPosToQueue = getRequest().getStart();
-      mPosToWrite = getRequest().getStart();
+      mPosToQueue = mRequest.getStart();
+      mPosToWrite = mRequest.getStart();
 
       mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
       mPacketReaderActive = true;
@@ -221,7 +221,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    */
   @GuardedBy("mLock")
   private boolean tooManyPendingPackets() {
-    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * getRequest().getPacketSize();
+    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mRequest.getPacketSize();
   }
 
   /**
@@ -375,7 +375,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
 
       try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(
-            mPosToWriteUncommitted - mPosToWrite <= getRequest().getPacketSize(),
+            mPosToWriteUncommitted - mPosToWrite <= mRequest.getPacketSize(),
             "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
         mPosToWrite = mPosToWriteUncommitted;
@@ -392,7 +392,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      */
     @GuardedBy("mLock")
     private boolean shouldRestartPacketReader() {
-      return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < getRequest().getEnd()
+      return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.getEnd()
           && mError == null && !mCancel && !mEof;
     }
   }
@@ -429,7 +429,6 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       while (true) {
         final long start;
         final int packetSize;
-        final ReadRequest request;
         try (LockResource lr = new LockResource(mLock)) {
           start = mPosToQueue;
           eof = mEof;
@@ -440,8 +439,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
             mPacketReaderActive = false;
             break;
           }
-          request = getRequest();
-          packetSize = (int) Math.min(request.getEnd() - mPosToQueue, request.getPacketSize());
+          packetSize = (int) Math.min(mRequest.getEnd() - mPosToQueue, mRequest.getPacketSize());
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
@@ -461,7 +459,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
           }
         }
         if (packet == null || packet.getLength() < packetSize
-            || start + packetSize == request.getEnd()) {
+            || start + packetSize == mRequest.getEnd()) {
           // This can happen if the requested read length is greater than the actual length of the
           // block or file starting from the given offset.
           setEof(mChannel);
@@ -476,7 +474,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       if (error != null) {
         try {
           // mRequest is null if an exception is thrown when initializing mRequest.
-          if (getRequest() != null) {
+          if (mRequest != null) {
             completeRequest();
           }
         } catch (Exception e) {
