@@ -241,6 +241,7 @@ function main {
     CLASS="alluxio.cli.Format"
     CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     PARAMETER="worker"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "fs")
