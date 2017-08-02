@@ -189,7 +189,7 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
     // Only initialize (open the readers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
       Preconditions.checkState(mRequest == null);
-      reset();
+      mPosToQueue = 0;
       mRequest = createRequest(msg);
     }
 
