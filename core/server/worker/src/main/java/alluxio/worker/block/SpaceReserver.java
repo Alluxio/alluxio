@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * if there is no enough free space on some tier, free space from it.
  */
 @NotThreadSafe
-public class SpaceReserver implements HeartbeatExecutor  {
+public class SpaceReserver implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(SpaceReserver.class);
   private final BlockWorker mBlockWorker;
 
@@ -63,27 +63,23 @@ public class SpaceReserver implements HeartbeatExecutor  {
       long capOnTier = capOnTiers.get(tierAlias);
       long reservedBytes;
       PropertyKey tierReservedSpaceProp =
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
       if (Configuration.containsKey(tierReservedSpaceProp)) {
-        LOG.warn("The property reserved.ratio is deprecated and high/low water mark "
-                + "should be used instead.");
-        reservedBytes =
-                (long) (capOnTier * Configuration.getDouble(tierReservedSpaceProp));
+        LOG.warn("The property reserved.ratio is deprecated use high/low watermark instead.");
+        reservedBytes = (long) (capOnTier * Configuration.getDouble(tierReservedSpaceProp));
       } else {
-        // HighWatemark defines when to start the space reserving process
+        // High watermark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
-                PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO
-                        .format(ordinal);
+            PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
         long highWatermarkInBytes =
-                (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
-
-        // LowWatemark defines when to stop the space reserving process if started
-        PropertyKey tierLowWatermarkProp =
-                PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO
-                        .format(ordinal);
-        reservedBytes =
-                (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
+            (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
         mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
+
+        // Low watermark defines when to stop the space reserving process if started
+        PropertyKey tierLowWatermarkProp =
+            PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
+        reservedBytes =
+            (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
       }
       mReservedBytesOnTiers.put(tierAlias, reservedBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedBytes;
@@ -103,8 +99,8 @@ public class SpaceReserver implements HeartbeatExecutor  {
             mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedBytes, tierAlias);
           } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
               | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
-            LOG.warn("SpaceReserver failed to free tier {} to {} bytes used",
-                tierAlias, reservedBytes, e.getMessage());
+            LOG.warn("SpaceReserver failed to free tier {} to {} bytes used", tierAlias,
+                reservedBytes, e.getMessage());
           }
         }
       } else {
