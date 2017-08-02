@@ -51,14 +51,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <li>Java system properties;</li>
  * <li>Environment variables via {@code alluxio-env.sh} or from OS settings;</li>
  * <li>Site specific properties via {@code alluxio-site.properties} file;</li>
- * <li>Default properties via {@code alluxio-default.properties} file.</li>
+ * <li>Default properties defined in the codebase, see {@link PropertyKey};</li>
  * </ol>
  *
  * <p>
- * The default properties are defined in a property file {@code alluxio-default.properties}
- * distributed with Alluxio jar. Alluxio users can override values of these default properties by
- * creating {@code alluxio-site.properties} and putting it under java {@code CLASSPATH} when running
- * Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
+ * The default properties are defined in the {@link PropertyKey} class in the codebase. Alluxio
+ * users can override values of these default properties by creating {@code alluxio-site.properties}
+ * and putting it under java {@code CLASSPATH} when running Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
  */
 @NotThreadSafe
 public final class Configuration {
