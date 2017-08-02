@@ -154,7 +154,7 @@ public class PropertyKey {
           .setDefaultValue("5sec")
           .setDescription("During startup of the Master and Worker processes Alluxio needs to "
               + "ensure that they are listening on externally resolvable and reachable host "
-              + "names.  To do this, Alluxio will automatically attempt to select an "
+              + "names. To do this, Alluxio will automatically attempt to select an "
               + "appropriate host name if one was not explicitly specified. This represents "
               + "the maximum amount of time spent waiting to determine if a candidate host "
               + "name is resolvable over the network.")
@@ -200,6 +200,9 @@ public class PropertyKey {
   public static final PropertyKey WORK_DIR =
       new Builder(Name.WORK_DIR)
           .setDefaultValue(String.format("${%s}", Name.HOME))
+          .setDescription("The directory to use for Alluxio's working directory. By default, "
+              + "the journal, logs, and under file system data (if using local filesystem) "
+              + "are written here.")
           .build();
   public static final PropertyKey ZOOKEEPER_ADDRESS =
       new Builder(Name.ZOOKEEPER_ADDRESS)
@@ -1012,14 +1015,22 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
           .setDefaultValue("MEM")
+          .setDescription("The alias of the highest storage tier on this worker. It must "
+              + "match one of the global storage tiers from the master configuration. We "
+              + "disable placing an alias lower in the global hierarchy before an alias with "
+              + "a higher postion on the worker hierarchy. So by default, SSD cannot come "
+              + "before MEM on any worker.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
           .setDefaultValue("/mnt/ramdisk")
+          .setDescription("The path of storage directory path for the top storage layer. Note "
+              + "for MacOS the value should be `/Volumes/`")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
           .setDefaultValue("${alluxio.worker.memory.size}")
+          .setDescription("The capacity of the top storage layer.")
           .build();
   /**
    * @deprecated It will be removed in 2.0.0.
@@ -1032,10 +1043,14 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0)
           .setDefaultValue(1.0)
+          .setDescription("The high watermark of the space in the top storage layer (a value "
+              + "between 0 and 1).")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0)
           .setDefaultValue(0.7)
+          .setDescription("The low watermark of the space in the top storage layer (a value "
+              + "between 0 and 1).")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 1).build();
