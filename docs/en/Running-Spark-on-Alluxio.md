@@ -177,9 +177,9 @@ spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.micros
 
 If the recommended solution described above is infeasible, this is a workaround which can also solve this issue.
 
-Specifying the Hadoop configuration `fs.alluxio.impl` may also help in resolving this error. `fs.alluxio.impl` should
-be set to `alluxio.hadoop.FileSystem` and if you are using Alluxio in fault tolerant mode, `fs.alluxio-ft.impl` should
-be set to `alluxio.hadoop.FaultTolerantFileSystem`. There are a few alternatives to set these parameters.
+Specifying the Hadoop configuration `fs.alluxio.impl` may also help in resolving this error.
+`fs.alluxio.impl` should be set to `alluxio.hadoop.FileSystem`. There are a few alternatives to set
+these parameters.
 
 #### Update `hadoopConfiguration` in SparkContext
 
@@ -187,7 +187,6 @@ You can update the Hadoop configuration in the SparkContext by:
 
 ```scala
 sc.hadoopConfiguration.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem")
-sc.hadoopConfiguration.set("fs.alluxio-ft.impl", "alluxio.hadoop.FaultTolerantFileSystem")
 ```
 
 This should be done early in your `spark-shell` session, before any Alluxio operations.
@@ -203,11 +202,16 @@ The following should be added to Hadoop's `core-site.xml`.
     <name>fs.alluxio.impl</name>
     <value>alluxio.hadoop.FileSystem</value>
   </property>
-  <property>
-    <name>fs.alluxio-ft.impl</name>
-    <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-  </property>
 </configuration>
+```
+
+To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
+`alluxio-site.properties` file which is on the classpath (for example by placing it in the same
+folder as `core-site.xml`).
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
 ```
 
 You can point Spark to the Hadoop configuration files by setting `HADOOP_CONF_DIR` in `spark-env.sh`.
