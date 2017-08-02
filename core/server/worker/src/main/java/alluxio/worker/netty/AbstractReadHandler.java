@@ -22,6 +22,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -162,13 +163,6 @@ abstract class AbstractReadHandler<T extends ReadRequest>
   private volatile T mRequest;
 
   /**
-   * @return the read request instance or null if no read request initialized
-   */
-  public T getRequest() {
-    return mRequest;
-  }
-
-  /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
    * @param executorService the executor service to run {@link PacketReader}s
@@ -205,7 +199,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       mPosToQueue = mRequest.getStart();
       mPosToWrite = mRequest.getStart();
 
-      mPacketReaderExecutor.submit(new PacketReader(ctx.channel()));
+      mPacketReaderExecutor.submit(createPacketReader(mRequest, ctx.channel()));
       mPacketReaderActive = true;
     }
   }
@@ -254,7 +248,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       mError = error;
       if (!mPacketReaderActive) {
         mPacketReaderActive = true;
-        mPacketReaderExecutor.submit(new PacketReader(channel));
+        mPacketReaderExecutor.submit(createPacketReader(mRequest, channel));
       }
     }
   }
@@ -270,7 +264,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       mEof = true;
       if (!mPacketReaderActive) {
         mPacketReaderActive = true;
-        mPacketReaderExecutor.submit(new PacketReader(channel));
+        mPacketReaderExecutor.submit(createPacketReader(mRequest, channel));
       }
     }
   }
@@ -286,7 +280,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
       mCancel = true;
       if (!mPacketReaderActive) {
         mPacketReaderActive = true;
-        mPacketReaderExecutor.submit(new PacketReader(channel));
+        mPacketReaderExecutor.submit(createPacketReader(mRequest, channel));
       }
     }
   }
@@ -330,24 +324,20 @@ abstract class AbstractReadHandler<T extends ReadRequest>
   /**
    * Completes the read request. When the request is closed, we should clean up any temporary state
    * it may have accumulated.
+   * @param request read request
+   * @param channel channel
+   * @return the packet reader for this handler
    */
-  protected abstract void completeRequest() throws Exception;
-
-  /**
-   * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
-   * configurable transfer type.
-   *
-   * @param channel the netty channel
-   * @param len The length, in bytes, of the data to read from the block
-   * @return a {@link DataBuffer} representing the data
-   */
-  protected abstract DataBuffer getDataBuffer(Channel channel, long offset, int len)
-      throws Exception;
+  protected abstract PacketReader createPacketReader(T request, Channel channel);
 
   /**
    * @param bytesRead bytes read
    */
-  protected abstract void incrementMetrics(long bytesRead);
+  private void incrementMetrics(long bytesRead) {
+    Counter counter = mRequest.getCounter();
+    Preconditions.checkState(counter != null);
+    counter.inc(bytesRead);
+  }
 
   /**
    * The channel handler listener that runs after a packet write is flushed.
@@ -381,7 +371,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         mPosToWrite = mPosToWriteUncommitted;
 
         if (shouldRestartPacketReader()) {
-          mPacketReaderExecutor.submit(new PacketReader(future.channel()));
+          mPacketReaderExecutor.submit(createPacketReader(mRequest, future.channel()));
           mPacketReaderActive = true;
         }
       }
@@ -400,15 +390,18 @@ abstract class AbstractReadHandler<T extends ReadRequest>
   /**
    * A runnable that reads packets and writes them to the channel.
    */
-  private class PacketReader implements Runnable {
-    private Channel mChannel;
+  protected abstract class PacketReader implements Runnable {
+    private final Channel mChannel;
+    private final T mRequest;
 
     /**
      * Creates an instance of the {@link PacketReader}.
      *
+     * @param request request to complete
      * @param channel the channel
      */
-    PacketReader(Channel channel) {
+    PacketReader(T request, Channel channel) {
+      mRequest = request;
       mChannel = channel;
     }
 
@@ -447,7 +440,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
 
         DataBuffer packet;
         try {
-          packet = getDataBuffer(mChannel, start, packetSize);
+          packet = getDataBuffer(mRequest, mChannel, start, packetSize);
         } catch (Exception e) {
           LOG.error("Failed to read data.", e);
           setError(mChannel, new Error(AlluxioStatusException.fromThrowable(e), true));
@@ -475,7 +468,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         try {
           // mRequest is null if an exception is thrown when initializing mRequest.
           if (mRequest != null) {
-            completeRequest();
+            completeRequest(mRequest);
           }
         } catch (Exception e) {
           LOG.error("Failed to close the request.", e);
@@ -485,7 +478,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         }
       } else if (eof || cancel) {
         try {
-          completeRequest();
+          completeRequest(mRequest);
         } catch (IOException e) {
           setError(mChannel, new Error(AlluxioStatusException.fromIOException(e), true));
         } catch (Exception e) {
@@ -498,6 +491,26 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         }
       }
     }
+
+    /**
+     * Completes the read request. When the request is closed, we should clean up any temporary state
+     * it may have accumulated.
+     *
+     * @param request request to complete
+     */
+    protected abstract void completeRequest(T request) throws Exception;
+
+    /**
+     * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
+     * configurable transfer type.
+     *
+     * @param request request to complete
+     * @param channel the netty channel
+     * @param len The length, in bytes, of the data to read from the block
+     * @return a {@link DataBuffer} representing the data
+     */
+    protected abstract DataBuffer getDataBuffer(T request, Channel channel, long offset, int len)
+        throws Exception;
 
     /**
      * Writes an error read response to the channel and closes the channel after that.

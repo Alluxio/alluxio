@@ -35,7 +35,6 @@ import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
-import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -48,38 +47,32 @@ import java.util.concurrent.ExecutorService;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This handler handles block read request. Check more information in
- * {@link AbstractReadHandler}.
+ * This handler handles block read request. Check more information in {@link AbstractReadHandler}.
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-    value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
 final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
-  private static final long UFS_BLOCK_OPEN_TIMEOUT_MS = Configuration.getMs(
-      PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+  private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
+      Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
   /** The Block Worker. */
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
    * The internal representation of a block read request.
    */
-  @ThreadSafe
+  @NotThreadSafe
   public static final class BlockReadRequest extends ReadRequest {
     private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     private final boolean mPromote;
     private BlockReader mBlockReader;
-    private Counter mCounter;
 
     /**
      * Creates an instance of {@link BlockReadRequest}.
@@ -129,25 +122,138 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
     }
 
     /**
-     * @return counter
-     */
-    @Nullable
-    public Counter getCounter() {
-      return mCounter;
-    }
-
-    /**
      * @param blockReader block reader to set
      */
     public void setBlockReader(BlockReader blockReader) {
       mBlockReader = blockReader;
     }
+  }
+
+  @NotThreadSafe
+  public final class BlockPacketReader extends PacketReader {
+    /** The Block Worker. */
+    private final BlockWorker mWorker;
+    /** An object storing the mapping of tier aliases to ordinals. */
+    private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
+
+    BlockPacketReader(BlockReadRequest request, Channel channel, BlockWorker blockWorker) {
+      super(request, channel);
+      mWorker = blockWorker;
+    }
+
+    @Override
+    protected void completeRequest(BlockReadRequest request) throws Exception {
+      BlockReader reader = request.getBlockReader();
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (Exception e) {
+          LOG.warn("Failed to close block reader for block {} with error {}.", request.getId(),
+              e.getMessage());
+        }
+      }
+      if (!mWorker.unlockBlock(request.getSessionId(), request.getId())) {
+        mWorker.closeUfsBlock(request.getSessionId(), request.getId());
+      }
+    }
+
+    @Override
+    protected DataBuffer getDataBuffer(BlockReadRequest request, Channel channel, long offset,
+        int len) throws Exception {
+      openBlock(request, channel);
+      BlockReader blockReader = request.getBlockReader();
+      Preconditions.checkState(blockReader != null);
+      if (mTransferType == FileTransferType.TRANSFER
+          && (blockReader instanceof LocalFileBlockReader)) {
+        return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
+            offset, len);
+      } else {
+        ByteBuf buf = channel.alloc().buffer(len, len);
+        try {
+          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+          }
+          return new DataNettyBufferV2(buf);
+        } catch (Throwable e) {
+          buf.release();
+          throw e;
+        }
+      }
+    }
 
     /**
-     * @param counter counter to set
+     * Opens the block if it is not open.
+     *
+     * @param channel the netty channel
+     * @throws Exception if it fails to open the block
      */
-    public void setCounter(Counter counter) {
-      mCounter = counter;
+    private void openBlock(BlockReadRequest request, Channel channel) throws Exception {
+      if (request.getBlockReader() != null) {
+        return;
+      }
+      int retryInterval = Constants.SECOND_MS;
+      RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
+
+      // TODO(calvin): Update the locking logic so this can be done better
+      if (request.isPromote()) {
+        try {
+          mWorker.moveBlock(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0));
+        } catch (BlockDoesNotExistException e) {
+          LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
+              e.getMessage());
+        } catch (Exception e) {
+          LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
+        }
+      }
+
+      do {
+        long lockId;
+        if (request.isPersisted()) {
+          lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
+        } else {
+          lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
+        }
+        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+          try {
+            BlockReader reader =
+                mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+            request.setBlockReader(reader);
+            request.setCounter(MetricsSystem.workerCounter("BytesReadAlluxio"));
+            mWorker.accessBlock(request.getSessionId(), request.getId());
+            ((FileChannel) reader.getChannel()).position(request.getStart());
+            return;
+          } catch (Exception e) {
+            mWorker.unlockBlock(lockId);
+            throw e;
+          }
+        }
+
+        // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
+        Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
+        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
+          try {
+            BlockReader reader =
+                mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
+            AlluxioURI ufsMountPointUri =
+                ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
+            String ufsString = MetricsSystem.escape(ufsMountPointUri);
+            String metricName = String.format("BytesReadUfs-Ufs:%s", ufsString);
+            request.setBlockReader(reader);
+            request.setCounter(MetricsSystem.workerCounter(metricName));
+            return;
+          } catch (Exception e) {
+            mWorker.closeUfsBlock(request.getSessionId(), request.getId());
+            throw e;
+          }
+        }
+
+        ProtoMessage heartbeat = new ProtoMessage(Protocol.ReadResponse.newBuilder()
+            .setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT).build());
+        // Sends an empty buffer to the client to make sure that the client does not timeout when
+        // the server is waiting for the UFS block access.
+        channel.writeAndFlush(new RPCProtoMessage(heartbeat));
+      } while (retryPolicy.attemptRetry());
+      throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
+          .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
     }
   }
 
@@ -171,126 +277,7 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
   }
 
   @Override
-  protected void completeRequest() throws Exception {
-    BlockReadRequest request = getRequest();
-    BlockReader reader = request.getBlockReader();
-    if (reader != null) {
-      try {
-        reader.close();
-      } catch (Exception e) {
-        LOG.warn("Failed to close block reader for block {} with error {}.",
-            request.getId(), e.getMessage());
-      }
-    }
-    if (!mWorker.unlockBlock(request.getSessionId(), request.getId())) {
-      mWorker.closeUfsBlock(request.getSessionId(), request.getId());
-    }
-  }
-
-  @Override
-  protected DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
-    openBlock(channel);
-    BlockReader blockReader = getRequest().getBlockReader();
-    Preconditions.checkState(blockReader != null);
-    if (mTransferType == FileTransferType.TRANSFER
-        && (blockReader instanceof LocalFileBlockReader)) {
-      return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
-          offset, len);
-    } else {
-      ByteBuf buf = channel.alloc().buffer(len, len);
-      try {
-        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-        }
-        return new DataNettyBufferV2(buf);
-      } catch (Throwable e) {
-        buf.release();
-        throw e;
-      }
-    }
-  }
-
-  /**
-   * Opens the block if it is not open.
-   *
-   * @param channel the netty channel
-   * @throws Exception if it fails to open the block
-   */
-  private void openBlock(Channel channel) throws Exception {
-    BlockReadRequest request = getRequest();
-    if (request.getBlockReader() != null) {
-      return;
-    }
-    int retryInterval = Constants.SECOND_MS;
-    RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
-
-    // TODO(calvin): Update the locking logic so this can be done better
-    if (request.isPromote()) {
-      try {
-        mWorker.moveBlock(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0));
-      } catch (BlockDoesNotExistException e) {
-        LOG.debug(
-            "Block {} to promote does not exist in Alluxio: {}", request.getId(), e.getMessage());
-      } catch (Exception e) {
-        LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
-      }
-    }
-
-    do {
-      long lockId;
-      if (request.isPersisted()) {
-        lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
-      } else {
-        lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
-      }
-      if (lockId != BlockLockManager.INVALID_LOCK_ID) {
-        try {
-          BlockReader reader =
-              mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
-          request.setBlockReader(reader);
-          request.setCounter(MetricsSystem.workerCounter("BytesReadAlluxio"));
-          mWorker.accessBlock(request.getSessionId(), request.getId());
-          ((FileChannel) reader.getChannel()).position(request.getStart());
-          return;
-        } catch (Exception e) {
-          mWorker.unlockBlock(lockId);
-          throw e;
-        }
-      }
-
-      // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-      if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
-        try {
-          BlockReader reader = mWorker
-              .readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
-          AlluxioURI ufsMountPointUri =
-              ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
-          String ufsString = MetricsSystem.escape(ufsMountPointUri);
-          String metricName = String.format("BytesReadUfs-Ufs:%s", ufsString);
-          request.setBlockReader(reader);
-          request.setCounter(MetricsSystem.workerCounter(metricName));
-          return;
-        } catch (Exception e) {
-          mWorker.closeUfsBlock(request.getSessionId(), request.getId());
-          throw e;
-        }
-      }
-
-      ProtoMessage heartbeat = new ProtoMessage(
-          Protocol.ReadResponse.newBuilder().setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT)
-              .build());
-      // Sends an empty buffer to the client to make sure that the client does not timeout when
-      // the server is waiting for the UFS block access.
-      channel.writeAndFlush(new RPCProtoMessage(heartbeat));
-    } while (retryPolicy.attemptRetry());
-    throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
-        .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
-  }
-
-  @Override
-  protected void incrementMetrics(long bytesRead) {
-    Counter counter = getRequest().getCounter();
-    Preconditions.checkState(counter != null);
-    counter.inc(bytesRead);
+  protected PacketReader createPacketReader(BlockReadRequest request, Channel channel) {
+    return new BlockPacketReader(request, channel, mWorker);
   }
 }

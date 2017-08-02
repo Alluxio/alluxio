@@ -13,6 +13,9 @@ package alluxio.worker.netty;
 
 import alluxio.util.IdUtils;
 
+import com.codahale.metrics.Counter;
+
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -25,6 +28,7 @@ class ReadRequest {
   private final long mEnd;
   private final long mPacketSize;
   private final long mSessionId;
+  private Counter mCounter;
 
   ReadRequest(long id, long start, long end, long packetSize) {
     mId = id;
@@ -67,5 +71,20 @@ class ReadRequest {
    */
   public long getPacketSize() {
     return mPacketSize;
+  }
+
+  /**
+   * @return counter
+   */
+  @Nullable
+  public Counter getCounter() {
+    return mCounter;
+  }
+
+  /**
+   * @param counter counter to set
+   */
+  public void setCounter(Counter counter) {
+    mCounter = counter;
   }
 }
