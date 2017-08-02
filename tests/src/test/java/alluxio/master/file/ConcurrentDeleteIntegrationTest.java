@@ -98,11 +98,13 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
 
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, files.size());
   }
@@ -121,11 +123,13 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
       paths[i] = dir.join("/file" + i);
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(dir);
     Assert.assertEquals(0, files.size());
   }
@@ -154,11 +158,12 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
       }
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
-
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
     List<URIStatus> files = mFileSystem.listStatus(dir1);
     // Should only contain a single directory
     Assert.assertEquals(1, files.size());
@@ -184,12 +189,12 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
     // Create the single file
     mFileSystem.createFile(paths[0], sCreatePersistedFileOptions).close();
 
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
     // We should get an error for all but 1 delete
-    Assert.assertEquals(numThreads - 1, errors);
+    Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, files.size());
@@ -208,12 +213,12 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
     // Create the single directory
     mFileSystem.createDirectory(paths[0], sCreatePersistedDirOptions);
 
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
     // We should get an error for all but 1 delete
-    Assert.assertEquals(numThreads - 1, errors);
+    Assert.assertEquals(numThreads - 1, errors.size());
     List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, dirs.size());
   }
