@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,13 +49,18 @@ public final class Format {
     WORKER,
   }
 
-  private static void formatFolder(String name, String folder) throws IOException {
+  private static void formatWorkerDataFolder(String name, String folder) throws IOException {
     LOG.info("Formatting {}:{}", name, folder);
     Path path = Paths.get(folder);
     if (Files.isDirectory(path)) {
-      FileUtils.deletePathRecursively(folder);
+      // Note, clean child files/subdirectories rather than deleting and then recreating folder
+      // directly which requires unnecessary write permission to the parent of folder.
+      try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
+        for (Path child : directoryStream) {
+          FileUtils.deletePathRecursively(child.toAbsolutePath().toString());
+        }
+      }
     }
-    Files.createDirectory(path);
   }
 
   /**
@@ -94,7 +100,7 @@ public final class Format {
     switch (mode) {
       case MASTER:
         String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-        LOG.info("MASTER JOURNAL: {}", masterJournal);
+        LOG.info("Formatting master journal: {}", masterJournal);
         Journal.Factory factory;
         try {
           factory = new Journal.Factory(new URI(masterJournal));
@@ -107,21 +113,22 @@ public final class Format {
         break;
       case WORKER:
         String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
+        LOG.info("Formatting worker data folder: {}", workerDataFolder);
         int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
         for (int level = 0; level < storageLevels; level++) {
           PropertyKey tierLevelDirPath =
               PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
           String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
-          String name = "TIER_" + level + "_DIR_PATH";
+          String name = "Data path for tier " + level;
           for (String dirPath : dirPaths) {
             String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
             if (Files.isDirectory(Paths.get(dirWorkerDataFolder))) {
               try {
-                formatFolder(name, dirWorkerDataFolder);
+                formatWorkerDataFolder(name, dirWorkerDataFolder);
               } catch (IOException e) {
-                throw new RuntimeException(String
-                    .format("Failed to format worker data folder %s due to %s", dirWorkerDataFolder,
-                        e.getMessage()));
+                throw new IOException(
+                    String.format("Failed to format worker data folder %s due to %s",
+                        dirWorkerDataFolder, e.getMessage()), e);
               }
             }
           }
