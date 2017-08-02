@@ -109,22 +109,30 @@ public class PropertyKey {
   public static final PropertyKey CONF_DIR =
       new Builder(Name.CONF_DIR)
           .setDefaultValue(String.format("${%s}/conf", Name.HOME))
+          .setDescription("The directory containing files used to configure Alluxio.")
           .build();
   public static final PropertyKey DEBUG =
       new Builder(Name.DEBUG)
           .setDefaultValue(false)
+          .setDescription("Set to true to enable debug mode which has additional logging and "
+              + "info in the Web UI.")
           .build();
   public static final PropertyKey HOME =
       new Builder(Name.HOME)
           .setDefaultValue("/opt/alluxio")
+          .setDescription("Alluxio installation directory.")
           .build();
   public static final PropertyKey KEY_VALUE_ENABLED =
       new Builder(Name.KEY_VALUE_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Whether the key-value service is enabled.")
           .build();
   public static final PropertyKey KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       new Builder(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX)
           .setDefaultValue("512MB")
+          .setDescription("Maximum allowable size (in bytes) of a single key-value partition "
+              + "in a store. This value should be no larger than the block size "
+              + "(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)")
           .build();
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
@@ -133,30 +141,47 @@ public class PropertyKey {
   public static final PropertyKey LOGS_DIR =
       new Builder(Name.LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
+          .setDescription("The path to store log files.")
           .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
           .setDefaultValue(String.format("${%s}/metrics.properties", Name.CONF_DIR))
+          .setDescription("The file path of the metrics system configuration file. By default "
+              + "it is `metrics.properties` in the `conf` directory.")
           .build();
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
           .setDefaultValue("5sec")
+          .setDescription("During startup of the Master and Worker processes Alluxio needs to "
+              + "ensure that they are listening on externally resolvable and reachable host "
+              + "names.  To do this, Alluxio will automatically attempt to select an "
+              + "appropriate host name if one was not explicitly specified. This represents "
+              + "the maximum amount of time spent waiting to determine if a candidate host "
+              + "name is resolvable over the network.")
           .build();
   public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS)
           .setDefaultValue("30sec")
+          .setDescription("The amount of time the server will wait before closing a netty "
+              + "connection if there has not been any incoming traffic. The client will "
+              + "periodically heartbeat when there is no activity on a connection. This value "
+              + "should be the same on the clients and server.")
           .build();
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       new Builder(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX)
           .setDefaultValue("16MB")
+          .setDescription("(Experimental) The largest allowable frame size used for Thrift "
+              + "RPC communication.")
           .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultValue("${user.home}/.alluxio/,/etc/alluxio/")
+          .setDescription("Default search path for configuration files to read")
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
           .setDefaultValue(false)
+          .setDescription("Flag used only during tests to allow special behavior.")
           .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
@@ -165,10 +190,12 @@ public class PropertyKey {
   public static final PropertyKey WEB_RESOURCES =
       new Builder(Name.WEB_RESOURCES)
           .setDefaultValue(String.format("${%s}/core/server/common/src/main/webapp", Name.HOME))
+          .setDescription("Path to the web application resources.")
           .build();
   public static final PropertyKey WEB_THREADS =
       new Builder(Name.WEB_THREADS)
           .setDefaultValue(1)
+          .setDescription("How many threads to use for the web server.")
           .build();
   public static final PropertyKey WORK_DIR =
       new Builder(Name.WORK_DIR)
@@ -176,22 +203,27 @@ public class PropertyKey {
           .build();
   public static final PropertyKey ZOOKEEPER_ADDRESS =
       new Builder(Name.ZOOKEEPER_ADDRESS)
+          .setDescription("Address of ZooKeeper")
           .build();
   public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
       new Builder(Name.ZOOKEEPER_ELECTION_PATH)
           .setDefaultValue("/election")
+          .setDescription("Election directory in ZooKeeper.")
           .build();
   public static final PropertyKey ZOOKEEPER_ENABLED =
       new Builder(Name.ZOOKEEPER_ENABLED)
           .setDefaultValue(false)
+          .setDescription("If true, setup master fault tolerant mode using ZooKeeper.")
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       new Builder(Name.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT)
           .setDefaultValue(10)
+          .setDescription("The number of retries to inquire leader from ZooKeeper.")
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_PATH =
       new Builder(Name.ZOOKEEPER_LEADER_PATH)
           .setDefaultValue("/leader")
+          .setDescription("Leader directory in ZooKeeper.")
           .build();
 
   /**
@@ -203,6 +235,7 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_ADDRESS =
       new Builder(Name.UNDERFS_ADDRESS)
           .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
+          .setDescription("Alluxio directory in the under file system.")
           .build();
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       new Builder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
@@ -211,14 +244,23 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_LISTING_LENGTH =
       new Builder(Name.UNDERFS_LISTING_LENGTH)
           .setDefaultValue(1000)
+          .setDescription("The maximum number of directory entries to list in a single query "
+              + "to under file system. If the total number of entries is greater than the "
+              + "specified length, multiple queries will be issued.")
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
           .setDefaultValue("")
+          .setDescription("Optionally, specify a preset gcs owner id to Alluxio username "
+              + "static mapping in the format \"id1=user1;id2=user2\". The Google Cloud "
+              + "Storage IDs can be found at the console address "
+              + "https://console.cloud.google.com/storage/settings . Please use the "
+              + "\"Owners\" one.")
           .build();
   public static final PropertyKey UNDERFS_GLUSTERFS_IMPL =
       new Builder(Name.UNDERFS_GLUSTERFS_IMPL)
           .setDefaultValue("org.apache.hadoop.fs.glusterfs.GlusterFileSystem")
+          .setDescription("Glusterfs hook with hadoop.")
           .build();
   public static final PropertyKey UNDERFS_GLUSTERFS_MOUNTS =
       new Builder(Name.UNDERFS_GLUSTERFS_MOUNTS)
@@ -226,6 +268,8 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_GLUSTERFS_MR_DIR =
       new Builder(Name.UNDERFS_GLUSTERFS_MR_DIR)
           .setDefaultValue("glusterfs:///mapred/system")
+          .setDescription("Optionally, specify subdirectory under GlusterFS for intermediary "
+              + "MapReduce data.")
           .build();
   public static final PropertyKey UNDERFS_GLUSTERFS_VOLUMES =
       new Builder(Name.UNDERFS_GLUSTERFS_VOLUMES)
@@ -234,26 +278,41 @@ public class PropertyKey {
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
           .setDefaultValue(String.format(
               "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
+          .setDescription("Location of the hdfs configuration file.")
           .build();
   public static final PropertyKey UNDERFS_HDFS_IMPL =
       new Builder(Name.UNDERFS_HDFS_IMPL)
           .setDefaultValue("org.apache.hadoop.hdfs.DistributedFileSystem")
+          .setDescription("The implementation class of the HDFS as the under storage system.")
           .build();
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
       new Builder(Name.UNDERFS_HDFS_PREFIXES)
           .setDefaultValue("hdfs://,glusterfs:///,maprfs:///")
+          .setDescription("Optionally, specify which prefixes should run through the Apache "
+              + "Hadoop implementation of UnderFileSystem. The delimiter is any whitespace "
+              + "and/or ','.")
           .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
       new Builder(Name.UNDERFS_HDFS_REMOTE)
           .setDefaultValue(false)
+          .setDescription("Boolean indicating whether or not the under storage worker nodes "
+              + "are remote with respect to Alluxio worker nodes. If set to true, Alluxio "
+              + "will not attempt to discover locality information from the under storage "
+              + "because locality is impossible. This will improve performance. The default "
+              + "value is false.")
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_SERVICE_THREADS =
       new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setDefaultValue(20)
+          .setDescription("The number of threads in executor pool for parallel object store "
+              + "UFS operations.")
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
       new Builder(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)
           .setDefaultValue(false)
+          .setDescription("Whether or not to share object storage under storage system "
+              + "mounted point with all Alluxio users. Note that this configuration has no "
+              + "effect on HDFS nor local UFS.")
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
@@ -274,13 +333,22 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)
           .setDefaultValue(20)
+          .setDescription("The maximum number of threads to use for metadata operations when "
+              + "communicating with S3. These operations may be fairly concurrent and "
+              + "frequent but should not take much time to process.")
           .build();
   public static final PropertyKey UNDERFS_S3_DISABLE_DNS_BUCKETS =
       new Builder(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS)
           .setDefaultValue(false)
+          .setDescription("Optionally, specify to make all S3 requests path style.")
           .build();
   public static final PropertyKey UNDERFS_S3_ENDPOINT =
       new Builder(Name.UNDERFS_S3_ENDPOINT)
+          .setDescription("Optinally, to reduce data latency or visit resources which are "
+              + "sepreted in defferent AWS regions, specify a regional endpoint to make aws "
+              + "requests. An endpoint is a URL that is the entry point for a web service. "
+              + "For example, s3.cn-north-1.amazonaws.com.cn is an entry point for the Amazon "
+              + "S3 service in beijing region.")
           .build();
   public static final PropertyKey UNDERFS_S3_ENDPOINT_HTTP_PORT =
       new Builder(Name.UNDERFS_S3_ENDPOINT_HTTP_PORT)
@@ -291,59 +359,96 @@ public class PropertyKey {
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
           .setDefaultValue("")
+          .setDescription("Optionally, specify a preset s3 canonical id to Alluxio username "
+              + "static mapping, in the format \"id1=user1;id2=user2\". The AWS S3 canonical "
+              + "ID can be found at the console address "
+              + "https://console.aws.amazon.com/iam/home?#security_credential . Please expand "
+              + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\".")
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_HOST =
       new Builder(Name.UNDERFS_S3_PROXY_HOST)
+          .setDescription("Optionally, specify a proxy host for communicating with S3.")
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_HTTPS_ONLY =
       new Builder(Name.UNDERFS_S3_PROXY_HTTPS_ONLY)
           .setDefaultValue(true)
+          .setDescription("If using a proxy to communicate with S3, determine whether to talk "
+              + "to the proxy using https.")
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_PORT =
       new Builder(Name.UNDERFS_S3_PROXY_PORT)
+          .setDescription("Optionally, specify a proxy port for communicating with S3.")
           .build();
   public static final PropertyKey UNDERFS_S3_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_THREADS_MAX)
           .setDefaultValue(40)
+          .setDescription("The maximum number of threads to use for communicating with S3 and "
+              + "the maximum number of concurrent connections to S3. Includes both threads "
+              + "for data upload and metadata operations. This number should be at least as "
+              + "large as the max admin threads plus max upload threads.")
           .build();
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
           .setDefaultValue(20)
+          .setDescription("The maximum number of threads to use for uploading data to S3 for "
+              + "multipart uploads. These operations can be fairly expensive, so multiple "
+              + "threads are encouraged. However, this also splits the bandwidth between "
+              + "threads, meaning the overall latency for completing an upload will be higher "
+              + "for more threads.")
           .build();
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
           .setDefaultValue("1min")
+          .setDescription("The duration to wait for metadata consistency from the under "
+              + "storage. This is only used by internal Alluxio operations which should be "
+              + "successful, but may appear unsuccessful due to eventual consistency.")
           .build();
   public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
+          .setDescription("Directories are represented in S3 as zero-byte objects named with "
+              + "the specified suffix.")
           .build();
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       new Builder(Name.UNDERFS_S3A_INHERIT_ACL)
           .setDefaultValue(true)
+          .setDescription("Optionally disable this to disable inheriting bucket ACLs on "
+              + "objects.")
           .build();
   public static final PropertyKey UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
       new Builder(Name.UNDERFS_S3A_LIST_OBJECTS_VERSION_1)
           .setDefaultValue(false)
+          .setDescription("Whether to use version 1 of GET Bucket (List Objects) API.")
           .build();
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS)
           .setDefaultValue("1min")
+          .setDescription("The timeout for a single request to S3. Infinity if set to 0. "
+              + "Setting this property to a non-zero value can improve performance by "
+              + "avoiding the long tail of requests to S3. For very slow connections to S3, "
+              + "consider increasing this value or setting it to 0.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
       new Builder(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Whether or not to use HTTPS protocol when communicating with s3.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
       new Builder(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Whether or not to encrypt data stored in s3.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
       new Builder(Name.UNDERFS_S3A_SIGNER_ALGORITHM)
+          .setDescription("The signature algorithm which should be used to sign requests to "
+              + "the s3 service. This is optional, and if not set, the client will "
+              + "automatically determine it. For interacting with an s3 endpoint which only "
+              + "supports v2 signatures, set this to \"S3SignerType\".")
           .build();
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
           .setDefaultValue("50sec")
+          .setDescription("Length of the socket timeout when communicating with s3.")
           .build();
 
   //
@@ -403,35 +508,49 @@ public class PropertyKey {
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname that Alluxio master binds to. See <a "
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
           .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setDefaultValue("0ms")
+          .setDescription("Timeout (in milliseconds) between master and client.")
           .build();
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       new Builder(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER)
           .setDefaultValue("alluxio.master.file.async.DefaultAsyncPersistHandler")
+          .setDescription("The handler for processing the async persistence requests.")
           .build();
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
       new Builder(Name.MASTER_FORMAT_FILE_PREFIX)
           .setDefaultValue("_format_")
+          .setDescription("The file prefix of the file generated in the journal directory "
+              + "when the journal is formatted. The master will search for a file with this "
+              + "prefix when determining of the journal was once formatted.")
           .build();
   public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
           .setDefaultValue("1sec")
+          .setDescription("The interval (in milliseconds) between Alluxio master's heartbeats")
           .build();
-  public static final PropertyKey MASTER_HOSTNAME = new Builder(Name.MASTER_HOSTNAME).build();
+  public static final PropertyKey MASTER_HOSTNAME = new Builder(Name.MASTER_HOSTNAME)
+      .setDescription("The hostname of Alluxio master.")
+      .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
           .setDefaultValue("5ms")
+          .setDescription("Time (in milliseconds) to wait for batching journal writes.")
           .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS)
           .setDefaultValue("5min")
+          .setDescription("The amount of time (in milliseconds) to keep retrying journal "
+              + "writes before giving up and shutting down the master.")
           .build();
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
+          .setDescription("The path to store master journal logs.")
           .build();
   /**
    * @deprecated since 1.5.0 and will be removed in 2.0.
@@ -440,18 +559,26 @@ public class PropertyKey {
   public static final PropertyKey MASTER_JOURNAL_FORMATTER_CLASS =
       new Builder(Name.MASTER_JOURNAL_FORMATTER_CLASS)
           .setDefaultValue("alluxio.master.journalv0.ProtoBufJournalFormatter")
+          .setDescription("The class to serialize the journal in a specified format.")
           .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       new Builder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
           .setDefaultValue("10MB")
+          .setDescription("If a log file is bigger than this value, it will rotate to next "
+              + "file")
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS)
           .setDefaultValue("5sec")
+          .setDescription("Before the standby master shuts down its tailer thread, there "
+              + "should be no update to the leader master's journal in this specified time "
+              + "period (in milliseconds).")
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS)
           .setDefaultValue("1sec")
+          .setDescription("Time (in milliseconds) the standby master sleeps for when it "
+              + "cannot find anything new in leader master's journal.")
           .build();
   public static final PropertyKey MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
       new Builder(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
@@ -470,24 +597,38 @@ public class PropertyKey {
           .setDefaultValue("30min")
           .build();
   public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
-      new Builder(Name.MASTER_KEYTAB_KEY_FILE).build();
+      new Builder(Name.MASTER_KEYTAB_KEY_FILE)
+          .setDescription("Kerberos keytab file for Alluxio master.")
+          .build();
   public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_CLASS =
       new Builder(Name.MASTER_LINEAGE_CHECKPOINT_CLASS)
           .setDefaultValue("alluxio.master.lineage.checkpoint.CheckpointLatestPlanner")
+          .setDescription("The class name of the checkpoint strategy for lineage output "
+              + "files. The default strategy is to checkpoint the latest completed lineage, "
+              + "i.e. the lineage whose output files are completed.")
           .build();
   public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
       new Builder(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)
           .setDefaultValue("5min")
+          .setDescription("The interval (in milliseconds) between Alluxio's checkpoint "
+              + "scheduling.")
           .build();
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
       new Builder(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)
           .setDefaultValue("5min")
+          .setDescription("The interval (in milliseconds) between Alluxio's recompute "
+              + "execution. The executor scans the all the lost files tracked by lineage, and "
+              + "re-executes the corresponding jobs. every 10 minutes.")
           .build();
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       new Builder(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH)
           .setDefaultValue(String.format("${%s}/recompute.log", Name.LOGS_DIR))
+          .setDescription("The path to the log that the recompute executor redirects the "
+              + "job's stdout into.")
           .build();
-  public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL).build();
+  public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
+      .setDescription("Kerberos principal for Alluxio master.")
+      .build();
   /**
    * @deprecated since version 1.4 and will be removed in version 2.0,
    * use USER_RPC_RETRY_MAX_NUM_RETRY instead.
@@ -496,68 +637,105 @@ public class PropertyKey {
   public static final PropertyKey MASTER_RETRY =
       new Builder(Name.MASTER_RETRY)
           .setDefaultValue(String.format("${%s}", Name.USER_RPC_RETRY_MAX_NUM_RETRY))
+          .setDescription("The number of retries that the client connects to master. (NOTE: "
+              + "this property is deprecated, use `Name.USER_RPC_RETRY_MAX_NUM_RETRY` instead)")
           .build();
   public static final PropertyKey MASTER_RPC_PORT =
       new Builder(Name.MASTER_RPC_PORT)
           .setDefaultValue(19998)
+          .setDescription("The port that Alluxio master node runs on.")
           .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
           .setDefaultValue(true)
+          .setDescription("Whether the system should be checked for consistency with the "
+              + "underlying storage on startup. During the time the check is running, Alluxio "
+              + "will be in read only mode. Enabled by default.")
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue("MEM")
+          .setDescription("The name of the highest storage tier in the entire system")
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
           .setDefaultValue("SSD")
+          .setDescription("The name of the second highest storage tier in the entire system")
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
           .setDefaultValue("HDD")
+          .setDescription("The name of the third highest storage tier in the entire system")
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVELS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS)
           .setDefaultValue(3)
+          .setDescription("The total number of storage tiers in the system")
           .build();
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
           .setDefaultValue("1hour")
+          .setDescription("Time interval (in milliseconds) to periodically delete the files "
+              + "with expired ttl value.")
           .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
+          .setDescription("The capacity of the UFS path cache. This cache is used to "
+              + "approximate the `Once` metadata load behavior (see "
+              + "`alluxio.user.file.metadata.load.type`). Larger caches will consume more "
+              + "memory, but will better approximate the `Once` behavior.")
           .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_THREADS =
       new Builder(Name.MASTER_UFS_PATH_CACHE_THREADS)
           .setDefaultValue(64)
+          .setDescription("The maximum size of the thread pool for asynchronously processing "
+              + "paths for the UFS path cache. Greater number of threads will decrease the "
+              + "amount of staleness in the async cache, but may impact performance. If this "
+              + "is set to 0, the cache will be disabled, and "
+              + "`alluxio.user.file.metadata.load.type=Once` will behave like `Always`.")
           .build();
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       new Builder(Name.MASTER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname Alluxio master web UI binds to. See <a "
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
           .build();
   public static final PropertyKey MASTER_WEB_HOSTNAME =
-      new Builder(Name.MASTER_WEB_HOSTNAME).build();
+      new Builder(Name.MASTER_WEB_HOSTNAME)
+          .setDescription("The hostname of Alluxio Master web UI.")
+          .build();
   public static final PropertyKey MASTER_WEB_PORT =
       new Builder(Name.MASTER_WEB_PORT)
           .setDefaultValue(19999)
+          .setDescription("The port Alluxio web UI runs on.")
           .build();
   public static final PropertyKey MASTER_WHITELIST =
       new Builder(Name.MASTER_WHITELIST)
           .setDefaultValue("/")
+          .setDescription("A comma-separated list of prefixes of the paths which are "
+              + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
+              + "file when it is read for the first time.")
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
       new Builder(Name.MASTER_WORKER_THREADS_MAX)
           .setDefaultValue(2048)
+          .setDescription("The maximum number of incoming RPC requests to master that can be "
+              + "handled. This value is used to configure maximum number of threads in Thrift "
+              + "thread pool with master.")
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MIN =
       new Builder(Name.MASTER_WORKER_THREADS_MIN)
           .setDefaultValue(512)
+          .setDescription("The minimum number of threads used to handle incoming RPC requests "
+              + "to master. This value is used to configure minimum number of threads in "
+              + "Thrift thread pool with master.")
           .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setDefaultValue("5min")
+          .setDescription("Timeout (in milliseconds) between master and worker indicating a "
+              + "lost worker.")
           .build();
 
   //
@@ -566,80 +744,127 @@ public class PropertyKey {
   public static final PropertyKey WORKER_ALLOCATOR_CLASS =
       new Builder(Name.WORKER_ALLOCATOR_CLASS)
           .setDefaultValue("alluxio.worker.block.allocator.MaxFreeAllocator")
+          .setDescription("The strategy that a worker uses to allocate space among storage "
+              + "directories in certain storage layer. Valid options include: "
+              + "`alluxio.worker.block.allocator.MaxFreeAllocator`, "
+              + "`alluxio.worker.block.allocator.GreedyAllocator`, "
+              + "`alluxio.worker.block.allocator.RoundRobinAllocator`.")
           .build();
   public static final PropertyKey WORKER_BIND_HOST =
       new Builder(Name.WORKER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname Alluxio's worker node binds to. See <a "
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setDefaultValue("1sec")
+          .setDescription("The interval (in milliseconds) between block worker's heartbeats")
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)
           .setDefaultValue("5min")
+          .setDescription("The timeout value (in milliseconds) of block worker's heartbeat")
           .build();
   public static final PropertyKey WORKER_BLOCK_THREADS_MAX =
       new Builder(Name.WORKER_BLOCK_THREADS_MAX)
           .setDefaultValue(2048)
+          .setDescription("The maximum number of incoming RPC requests to block worker that "
+              + "can be handled. This value is used to configure maximum number of threads in "
+              + "Thrift thread pool with block worker. This value should be greater than the "
+              + "sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio "
+              + "clients. Otherwise, the worker connection pool can be drained, preventing "
+              + "new connections from being established.")
           .build();
   public static final PropertyKey WORKER_BLOCK_THREADS_MIN =
       new Builder(Name.WORKER_BLOCK_THREADS_MIN)
           .setDefaultValue(256)
+          .setDescription("The minimum number of threads used to handle incoming RPC requests "
+              + "to block worker. This value is used to configure minimum number of threads "
+              + "in Thrift thread pool with block worker.")
           .build();
   public static final PropertyKey WORKER_DATA_BIND_HOST =
       new Builder(Name.WORKER_DATA_BIND_HOST)
           .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname that the Alluxio worker's data server runs on. See <a "
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
           .build();
   public static final PropertyKey WORKER_DATA_FOLDER =
       new Builder(Name.WORKER_DATA_FOLDER)
           .setDefaultValue("/alluxioworker/")
+          .setDescription("A relative path within each storage directory used as the data "
+              + "folder for Alluxio worker to put data for tiered store.")
           .build();
   public static final PropertyKey WORKER_DATA_HOSTNAME =
       new Builder(Name.WORKER_DATA_HOSTNAME).build();
   public static final PropertyKey WORKER_DATA_PORT =
       new Builder(Name.WORKER_DATA_PORT)
           .setDefaultValue(29999)
+          .setDescription("The port Alluxio's worker's data server runs on.")
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
       new Builder(Name.WORKER_DATA_SERVER_CLASS)
           .setDefaultValue("alluxio.worker.netty.NettyDataServer")
+          .setDescription("Selects the networking stack to run the worker with. Valid options "
+              + "are: `alluxio.worker.netty.NettyDataServer`.")
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
       new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
           .setDefaultValue("")
+          .setDescription("The path to the domain socket. Short-circuit reads make use of a "
+              + "UNIX domain socket when this is set (non-empty). This is a special path in "
+              + "the file system that allows the client and the AlluxioWorker to communicate. "
+              + "You will need to set a path to this socket. The AlluxioWorker needs to be "
+              + "able to create this path.")
           .build();
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
       new Builder(Name.WORKER_DATA_TMP_FOLDER)
           .setDefaultValue(".tmp_blocks")
+          .setDescription("A relative path in alluxio.worker.data.folder used to store the "
+              + "temporary data for uncommitted files.")
           .build();
   public static final PropertyKey WORKER_DATA_TMP_SUBDIR_MAX =
       new Builder(Name.WORKER_DATA_TMP_SUBDIR_MAX)
           .setDefaultValue(1024)
+          .setDescription("The maximum number of sub-directories allowed to be created in "
+              + "alluxio.worker.data.tmp.folder.")
           .build();
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
           .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
+          .setDescription("The strategy that a worker uses to evict block files when a "
+              + "storage layer runs out of space. Valid options include "
+              + "`alluxio.worker.block.evictor.LRFUEvictor`, "
+              + "`alluxio.worker.block.evictor.GreedyEvictor`, "
+              + "`alluxio.worker.block.evictor.LRUEvictor`.")
           .build();
   public static final PropertyKey WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
       new Builder(Name.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR)
           .setDefaultValue(2.0)
+          .setDescription("A attenuation factor in [2, INF) to control the behavior of LRFU.")
           .build();
   public static final PropertyKey WORKER_EVICTOR_LRFU_STEP_FACTOR =
       new Builder(Name.WORKER_EVICTOR_LRFU_STEP_FACTOR)
           .setDefaultValue(0.25)
+          .setDescription("A factor in [0, 1] to control the behavior of LRFU: smaller value "
+              + "makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.")
           .build();
   public static final PropertyKey WORKER_FILE_PERSIST_POOL_SIZE =
       new Builder(Name.WORKER_FILE_PERSIST_POOL_SIZE)
           .setDefaultValue(64)
+          .setDescription("The size of the thread pool per worker, in which the thread "
+              + "persists an ASYNC_THROUGH file to under storage.")
           .build();
   public static final PropertyKey WORKER_FILE_PERSIST_RATE_LIMIT =
       new Builder(Name.WORKER_FILE_PERSIST_RATE_LIMIT)
           .setDefaultValue("2GB")
+          .setDescription("The rate limit of asynchronous persistence per second.")
           .build();
   public static final PropertyKey WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
       new Builder(Name.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Whether to enable rate limiting when performing asynchronous "
+              + "persistence.")
           .build();
   public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
       new Builder(Name.WORKER_FILE_BUFFER_SIZE)
@@ -648,18 +873,26 @@ public class PropertyKey {
   public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)
           .setDefaultValue("1sec")
+          .setDescription("The heartbeat interval (in milliseconds) between the worker and "
+              + "file system master.")
           .build();
-  public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME).build();
-  public static final PropertyKey WORKER_KEYTAB_FILE = new Builder(Name.WORKER_KEYTAB_FILE).build();
+  public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME)
+      .setDescription("The hostname of Alluxio worker.")
+      .build();
+  public static final PropertyKey WORKER_KEYTAB_FILE = new Builder(Name.WORKER_KEYTAB_FILE)
+      .setDescription("Kerberos keytab file for Alluxio worker.")
+      .build();
   public static final PropertyKey WORKER_MEMORY_SIZE =
       new Builder(Name.WORKER_MEMORY_SIZE)
           .setDefaultValue("1GB")
+          .setDescription("Memory capacity of each worker node.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
       new Builder(Name.WORKER_NETWORK_NETTY_BACKLOG).build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BOSS_THREADS =
       new Builder(Name.WORKER_NETWORK_NETTY_BOSS_THREADS)
           .setDefaultValue(1)
+          .setDescription("How many threads to use for accepting new requests.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
       new Builder(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE).build();
@@ -670,26 +903,41 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       new Builder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE)
           .setDefaultValue("MAPPED")
+          .setDescription("When returning files to the user, select how the data is "
+              + "transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and "
+              + "`TRANSFER` (uses Java FileChannel.transferTo).")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
       new Builder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD)
           .setDefaultValue(2)
+          .setDescription("The quiet period (in seconds). When the netty server is shutting "
+              + "down, it will ensure that no RPCs occur during the quiet period. If an RPC "
+              + "occurs, then the quiet period will restart before shutting down the netty "
+              + "server.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
       new Builder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT)
           .setDefaultValue(15)
+          .setDescription("Maximum amount of time to wait (in seconds) until the netty server "
+              + "is shutdown (regardless of the quiet period).")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_HIGH =
       new Builder(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH)
           .setDefaultValue("32KB")
+          .setDescription("Determines how many bytes can be in the write queue before "
+              + "switching to non-writable.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_LOW =
       new Builder(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW)
           .setDefaultValue("8KB")
+          .setDescription("Once the high watermark limit is reached, the queue must be "
+              + "flushed down to the low watermark before switching back to writable.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_WORKER_THREADS =
       new Builder(Name.WORKER_NETWORK_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
+          .setDescription("How many threads to use for processing requests. Zero defaults to "
+              + "#cpuCores * 2.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       new Builder(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
@@ -702,10 +950,14 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX)
           .setDefaultValue(2048)
+          .setDescription("The maximum number of threads used to read blocks in the netty "
+              + "data server.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
+          .setDescription("The maximum number of threads used to write blocks in the netty "
+              + "data server.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX)
@@ -714,10 +966,14 @@ public class PropertyKey {
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
+          .setDescription("The maximum number of threads used to write files to UFS in the "
+              + "netty data server.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX)
           .setDefaultValue(2048)
+          .setDescription("The maximum number of threads used to handle worker side RPCs in "
+              + "the netty data server.")
           .build();
   // The default is set to 11. One client is reserved for some light weight operations such as
   // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
@@ -725,24 +981,33 @@ public class PropertyKey {
   public static final PropertyKey WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
       new Builder(Name.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE)
           .setDefaultValue(11)
+          .setDescription("The block master client pool size on the Alluxio workers.")
           .build();
 
-  public static final PropertyKey WORKER_PRINCIPAL = new Builder(Name.WORKER_PRINCIPAL).build();
+  public static final PropertyKey WORKER_PRINCIPAL = new Builder(Name.WORKER_PRINCIPAL)
+      .setDescription("Kerberos principal for Alluxio worker.")
+      .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
           .setDefaultValue(29998)
+          .setDescription("The port Alluxio's worker node runs on.")
           .build();
   public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
       new Builder(Name.WORKER_SESSION_TIMEOUT_MS)
           .setDefaultValue("1min")
+          .setDescription("Timeout (in milliseconds) between worker and client connection "
+              + "indicating a lost session connection.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
       new Builder(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS)
           .setDefaultValue(1000)
+          .setDescription("The max number of concurrent readers for a block lock.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCKS =
       new Builder(Name.WORKER_TIERED_STORE_BLOCK_LOCKS)
           .setDefaultValue(1000)
+          .setDescription("Total number of block locks for an Alluxio block worker. Larger "
+              + "value leads to finer locking granularity, but uses more space.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
@@ -819,18 +1084,23 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
       new Builder(Name.WORKER_TIERED_STORE_LEVELS)
           .setDefaultValue(1)
+          .setDescription("The number of storage tiers on the worker")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Whether to enable tiered store reserver service or not.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)
           .setDefaultValue("1sec")
+          .setDescription("The time period (in milliseconds) of space reserver service, which "
+              + "keeps certain portion of available space on each layer.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RETRY =
       new Builder(Name.WORKER_TIERED_STORE_RETRY)
           .setDefaultValue(3)
+          .setDescription("The number of retries that the worker uses to process blocks.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_FREE_SPACE_RATIO =
       new Builder(Name.WORKER_TIERED_STORE_FREE_SPACE_RATIO)
@@ -839,12 +1109,17 @@ public class PropertyKey {
   public static final PropertyKey WORKER_WEB_BIND_HOST =
       new Builder(Name.WORKER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname Alluxio worker's web server binds to. See <a "
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
           .build();
   public static final PropertyKey WORKER_WEB_HOSTNAME =
-      new Builder(Name.WORKER_WEB_HOSTNAME).build();
+      new Builder(Name.WORKER_WEB_HOSTNAME)
+          .setDescription("The hostname Alluxio worker's web UI binds to.")
+          .build();
   public static final PropertyKey WORKER_WEB_PORT =
       new Builder(Name.WORKER_WEB_PORT)
           .setDefaultValue(30000)
+          .setDescription("The port Alluxio worker's web UI runs on.")
           .build();
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
@@ -875,10 +1150,14 @@ public class PropertyKey {
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_THREADS)
           .setDefaultValue(10)
+          .setDescription("The number of threads used by a block master client pool to talk "
+              + "to the block master.")
           .build();
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
+          .setDescription("The size of the file buffer to read data from remote Alluxio "
+              + "worker.")
           .build();
   /**
    * @deprecated It will be removed in 2.0.0.
@@ -887,6 +1166,9 @@ public class PropertyKey {
   public static final PropertyKey USER_BLOCK_REMOTE_READER_CLASS =
       new Builder(Name.USER_BLOCK_REMOTE_READER_CLASS)
           .setDefaultValue("alluxio.client.netty.NettyRemoteBlockReader")
+          .setDescription("Selects networking stack to run the client with. Currently only "
+              + "`alluxio.client.netty.NettyRemoteBlockReader` (read remote data using netty) "
+              + "is valid. This is deprecated and will be removed in 2.0.0.")
           .build();
   /**
    * @deprecated It will be removed in 2.0.0.
@@ -895,54 +1177,84 @@ public class PropertyKey {
   public static final PropertyKey USER_BLOCK_REMOTE_WRITER_CLASS =
       new Builder(Name.USER_BLOCK_REMOTE_WRITER_CLASS)
           .setDefaultValue("alluxio.client.netty.NettyRemoteBlockWriter")
+          .setDescription("Selects networking stack to run the client with for block writes. "
+              + "This is deprecated and will be removed in 2.0.0.")
           .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("512MB")
+          .setDescription("Default block size for Alluxio files.")
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_THREADS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_THREADS)
           .setDefaultValue(10)
+          .setDescription("The number of threads used by a block worker client pool for "
+              + "heartbeating to a worker. Increase this value if worker failures affect "
+              + "client connections to healthy workers.")
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX)
           .setDefaultValue(128)
+          .setDescription("The maximum number of block worker clients cached in the block "
+              + "worker client pool.")
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
           .setDefaultValue(300 * Constants.SECOND_MS)
+          .setDescription("A block worker client is closed if it has been idle for more than "
+              + "this threshold.")
           .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
       new Builder(Name.USER_DATE_FORMAT_PATTERN)
           .setDefaultValue("MM-dd-yyyy HH:mm:ss:SSS")
+          .setDescription("Display formatted date in cli command and web UI by given date "
+              + "format pattern.")
           .build();
   public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
       new Builder(Name.USER_FAILED_SPACE_REQUEST_LIMITS)
           .setDefaultValue(3)
+          .setDescription("The number of times to request space from the file system before "
+              + "aborting.")
           .build();
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
       new Builder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
+          .setDescription("The size of the file buffer to use for file system reads/writes.")
           .build();
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       new Builder(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK)
           .setDefaultValue(true)
+          .setDescription("When read type is CACHE_PROMOTE or CACHE and this property is set "
+              + "to true, the entire block will be cached by Alluxio space even if the client "
+              + "only reads a part of this block.")
           .build();
   public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.RoundRobinPolicy")
+          .setDescription("The default location policy for choosing workers for writing a "
+              + "file's blocks using copyFromLocal command")
           .build();
   public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
       new Builder(Name.USER_FILE_DELETE_UNCHECKED)
           .setDefaultValue(false)
+          .setDescription("Whether to check if the UFS contents are in sync with Alluxio "
+              + "before attempting to delete persisted directories recursively.")
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_THREADS)
           .setDefaultValue(10)
+          .setDescription("The number of threads used by a file master client to talk to the "
+              + "file master.")
           .build();
   public static final PropertyKey USER_FILE_METADATA_LOAD_TYPE =
       new Builder(Name.USER_FILE_METADATA_LOAD_TYPE)
           .setDefaultValue("Once")
+          .setDescription("The behavior of loading metadata from UFS. When information about "
+              + "a path is requested and the path does not exist in Alluxio, metadata can be "
+              + "loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. "
+              + "`Always` will always access UFS to see if the path exists in the UFS. "
+              + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
+              + "time (according to a cache), but not after that.")
           .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       new Builder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
@@ -951,18 +1263,31 @@ public class PropertyKey {
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_READ_TYPE_DEFAULT)
           .setDefaultValue("CACHE_PROMOTE")
+          .setDescription("Default read type when creating Alluxio files. Valid options are "
+              + "`CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, "
+              + "write data into highest tier of local Alluxio if data needs to be read from "
+              + "under storage), `CACHE` (write data into highest tier of local Alluxio if "
+              + "data needs to be read from under storage), `NO_CACHE` (no data interaction "
+              + "with Alluxio, if the read is from Alluxio data migration or eviction will "
+              + "not occur).")
           .build();
   public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
           .setDefaultValue("1MB")
+          .setDescription("The file seek buffer size. This is only used when "
+              + "alluxio.user.file.cache.partially.read.block is enabled.")
           .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
           .setDefaultValue("1sec")
+          .setDescription("The time interval to poll a file for its completion status when "
+              + "using waitCompleted.")
           .build();
   public static final PropertyKey USER_FILE_WORKER_CLIENT_THREADS =
       new Builder(Name.USER_FILE_WORKER_CLIENT_THREADS)
           .setDefaultValue(10)
+          .setDescription("How many threads to use for file worker clients to read from "
+              + "workers.")
           .build();
   public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX)
@@ -975,31 +1300,53 @@ public class PropertyKey {
   public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_FILE_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+          .setDescription("The default location policy for choosing workers for writing a "
+              + "file's blocks")
           .build();
   public static final PropertyKey USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
       new Builder(Name.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES)
           .setDefaultValue("0MB")
+          .setDescription("The portion of space reserved in worker when user use the "
+              + "LocalFirstAvoidEvictionPolicy class as file write location policy.")
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TYPE_DEFAULT)
           .setDefaultValue("MUST_CACHE")
+          .setDescription("Default write type when creating Alluxio files. Valid options are "
+              + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
+              + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` "
+              + "(no cache, write to UnderFS synchronously).")
           .build();
   public static final PropertyKey USER_FILE_WRITE_TIER_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TIER_DEFAULT)
           .setDefaultValue(Constants.FIRST_TIER)
+          .setDescription("The default tier for choosing a where to write a block. Valid "
+              + "option is any integer. Non-negative values identify tiers starting from top "
+              + "going down (0 identifies the first tier, 1 identifies the second tier, and "
+              + "so on). If the provided value is greater than the number of tiers, it "
+              + "identifies the last tier. Negative values identify tiers starting from the "
+              + "bottom going up (-1 identifies the last tier, -2 identifies the second to "
+              + "last tier, and so on). If the absolute value of the provided value is "
+              + "greater than the number of tiers, it identifies the first tier.")
           .build();
   public static final PropertyKey USER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_HEARTBEAT_INTERVAL_MS)
           .setDefaultValue("1sec")
+          .setDescription("The interval (in milliseconds) between Alluxio worker's heartbeats")
           .build();
-  public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME).build();
+  public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
+      .setDescription("The hostname to use for the client.")
+      .build();
   public static final PropertyKey USER_LINEAGE_ENABLED =
       new Builder(Name.USER_LINEAGE_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Flag to enable lineage feature.")
           .build();
   public static final PropertyKey USER_LINEAGE_MASTER_CLIENT_THREADS =
       new Builder(Name.USER_LINEAGE_MASTER_CLIENT_THREADS)
           .setDefaultValue(10)
+          .setDescription("The number of threads used by a lineage master client to talk to "
+              + "the lineage master.")
           .build();
   public static final PropertyKey USER_LOCAL_READER_PACKET_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES)
@@ -1014,22 +1361,32 @@ public class PropertyKey {
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
           .setDefaultValue(30000)
+          .setDescription("The maximum number of milliseconds for a netty client (for block "
+              + "reads and block writes) to wait for a response from the data server.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
       new Builder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
+          .setDescription("How many threads to use for remote block worker client to read "
+              + "from remote block workers.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX)
           .setDefaultValue(1024)
+          .setDescription("The maximum number of netty channels cached in the netty channel "
+              + "pool.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS)
           .setDefaultValue(300 * Constants.SECOND_MS)
+          .setDescription("A netty channel is closed if it has been idle for more than this "
+              + "threshold.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED)
           .setDefaultValue(false)
+          .setDescription("Disable netty channel pool. This should be turned on if the client "
+              + "version is >= 1.3.0 but server version is <= 1.2.x.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
@@ -1042,6 +1399,7 @@ public class PropertyKey {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
           .setDefaultValue(300000)
+          .setDescription("The maximum number of milliseconds to close a netty writer client.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       new Builder(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
@@ -1058,14 +1416,23 @@ public class PropertyKey {
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_BASE_SLEEP_MS)
           .setDefaultValue(50)
+          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
+              + "an exponential backoff. This property detemines the base time in "
+              + "milliseconds in the exponential backoff.")
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
           .setDefaultValue(20)
+          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
+              + "an exponential backoff. This property detemines the maximum number of "
+              + "retries.")
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setDefaultValue("30sec")
+          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
+              + "an exponential backoff. This property detemines the maximum wait time in "
+              + "milliseconds in the backoff.")
           .build();
   /**
    * @deprecated It will be removed in 2.0.0.
@@ -1082,10 +1449,16 @@ public class PropertyKey {
   public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
+          .setDescription("Size of the read buffer when reading from the ufs through the "
+              + "Alluxio worker. Each read request will fetch at least this many bytes, "
+              + "unless the read reaches the end of the file.")
           .build();
   public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES)
           .setDefaultValue("2MB")
+          .setDescription("Size of the write buffer when writing to the ufs through the "
+              + "Alluxio worker. Each write request will write at least this many bytes, "
+              + "unless the write is at the end of the file.")
           .build();
   /**
    * @deprecated It will be removed in 2.0.0.
@@ -1094,6 +1467,10 @@ public class PropertyKey {
   public static final PropertyKey USER_UFS_FILE_READER_CLASS =
       new Builder(Name.USER_UFS_FILE_READER_CLASS)
           .setDefaultValue("alluxio.client.netty.NettyUnderFileSystemFileReader")
+          .setDescription("Selects networking stack to run the client with for reading from "
+              + "under file system through a worker's data server. Currently only "
+              + "`alluxio.client.netty.NettyUnderFileSystemFileReader` (remote read using "
+              + "netty) is valid.")
           .build();
   /**
    * @deprecated It will be removed in 2.0.0.
@@ -1102,6 +1479,10 @@ public class PropertyKey {
   public static final PropertyKey USER_UFS_FILE_WRITER_CLASS =
       new Builder(Name.USER_UFS_FILE_WRITER_CLASS)
           .setDefaultValue("alluxio.client.netty.NettyUnderFileSystemFileWriter")
+          .setDescription("Selects networking stack to run the client with for writing to "
+              + "under file system through a worker's data server. Currently only "
+              + "`alluxio.client.netty.NettyUnderFileSystemFileWriter` (remote write using "
+              + "netty) is valid.")
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
@@ -1122,6 +1503,9 @@ public class PropertyKey {
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       new Builder(Name.USER_SHORT_CIRCUIT_ENABLED)
           .setDefaultValue(true)
+          .setDescription("The short circuit read/write which allows the clients to "
+              + "read/write data without going through Alluxio workers if the data is local "
+              + "is enabled if set to true.")
           .build();
 
   //
@@ -1164,26 +1548,43 @@ public class PropertyKey {
   // Security related properties
   //
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
-      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS).build();
+      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS)
+          .setDescription("The class to provide customized authentication implementation, "
+              + "when alluxio.security.authentication.type is set to CUSTOM. It must "
+              + "implement the interface "
+              + "'alluxio.security.authentication.AuthenticationProvider'.")
+          .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
       new Builder(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS)
           .setDefaultValue("10min")
+          .setDescription("The maximum amount of time (in milliseconds) for a user to create "
+              + "a Thrift socket which will connect to the master.")
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_TYPE =
       new Builder(Name.SECURITY_AUTHENTICATION_TYPE)
           .setDefaultValue("SIMPLE")
+          .setDescription("The authentication mode. Currently three modes are supported: "
+              + "NOSASL, SIMPLE, CUSTOM. The default value SIMPLE indicates that a simple "
+              + "authentication is enabled. Server trusts whoever the client claims to be.")
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
           .setDefaultValue(true)
+          .setDescription("Whether to enable access control based on file permission.")
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP)
           .setDefaultValue("supergroup")
+          .setDescription("The super group of Alluxio file system. All users in this group "
+              + "have super permission.")
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_UMASK =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK)
           .setDefaultValue("022")
+          .setDescription("The umask of creating file and directory. The initial creation "
+              + "permission is 777, and the difference between directory and file is 111. So "
+              + "for default umask value 022, the created directory has permission 755 and "
+              + "file has permission 644.")
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS)
@@ -1192,9 +1593,18 @@ public class PropertyKey {
   public static final PropertyKey SECURITY_GROUP_MAPPING_CLASS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CLASS)
           .setDefaultValue("alluxio.security.group.provider.ShellBasedUnixGroupsMapping")
+          .setDescription("The class to provide user-to-groups mapping service. Master could "
+              + "get the various group memberships of a given user.  It must implement the "
+              + "interface 'alluxio.security.group.GroupMappingService'. The default "
+              + "implementation execute the 'groups' shell command to fetch the group "
+              + "memberships of a given user.")
           .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
-      new Builder(Name.SECURITY_LOGIN_USERNAME).build();
+      new Builder(Name.SECURITY_LOGIN_USERNAME)
+          .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
+              + "CUSTOM, user application uses this property to indicate the user requesting "
+              + "Alluxio service. If it is not set explicitly, the OS login user will be used.")
+          .build();
 
   //
   // Mesos and Yarn related properties
@@ -1558,8 +1968,8 @@ public class PropertyKey {
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval.ms";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
-    public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO
-        = "alluxio.worker.tieredstore.free.space.ratio";
+    public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO =
+        "alluxio.worker.tieredstore.free.space.ratio";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
@@ -1601,7 +2011,7 @@ public class PropertyKey {
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
     public static final String USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
-            "alluxio.user.file.copyfromlocal.write.location.policy.class";
+        "alluxio.user.file.copyfromlocal.write.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
