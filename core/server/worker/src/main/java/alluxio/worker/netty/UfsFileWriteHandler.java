@@ -163,10 +163,9 @@ final class UfsFileWriteHandler
     if (request.getOutputStream() == null) {
       createUfsFile(channel);
     }
-    if (request.getOutputStream() != null) {
-      request.getOutputStream().close();
-      request.setOutputStream(null);
-    }
+    Preconditions.checkState(request.getOutputStream() != null);
+    request.getOutputStream().close();
+    request.setOutputStream(null);
   }
 
   @Override
