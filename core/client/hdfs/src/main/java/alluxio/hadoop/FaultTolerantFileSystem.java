@@ -16,7 +16,7 @@ import alluxio.Constants;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Deprecated as of 1.6.0. Use {@link AlluxioFileSystem} instead and configure the fault tolerant
+ * @deprecated as of 1.6.0. Use {@link AlluxioFileSystem} instead and configure the fault tolerant
  * options appropriately (alluxio.zookeeper.*).
  *
  * An Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
