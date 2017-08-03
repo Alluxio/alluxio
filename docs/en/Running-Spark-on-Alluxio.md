@@ -196,6 +196,8 @@ This should be done early in your `spark-shell` session, before any Alluxio oper
 You can also add the properties to Hadoop's configuration files, and point Spark to the Hadoop configuration files.
 The following should be added to Hadoop's `core-site.xml`.
 
+You can point Spark to the Hadoop configuration files by setting `HADOOP_CONF_DIR` in `spark-env.sh`.
+
 ```xml
 <configuration>
   <property>
@@ -206,12 +208,25 @@ The following should be added to Hadoop's `core-site.xml`.
 ```
 
 To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
-`alluxio-site.properties` file which is on the classpath (for example by placing it in the same
-folder as `core-site.xml`).
+`alluxio-site.properties` file which is on the classpath.
 
 ```properties
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=[zookeeper_hostname]:2181
 ```
 
-You can point Spark to the Hadoop configuration files by setting `HADOOP_CONF_DIR` in `spark-env.sh`.
+Alternatively you can add the properties the Hadoop `core-site.xml` configuration which is then
+propagated to Alluxio.
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
+```
