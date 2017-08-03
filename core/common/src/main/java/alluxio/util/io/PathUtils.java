@@ -265,7 +265,7 @@ public final class PathUtils {
   }
 
   /**
-   * @param storageDir the root of a storage directory in tiered storage.
+   * @param storageDir the root of a storage directory in tiered storage
    *
    * @return the worker data folder path after each storage directory, the final path will be like
    * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
