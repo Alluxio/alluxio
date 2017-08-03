@@ -26,6 +26,7 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.CollectLogFilesTOptions;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetMountTableTResponse;
@@ -295,6 +296,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       @Override
       public Void call() throws TException {
         mClient.unmount(alluxioPath.toString(), new UnmountTOptions());
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public void collectLogFiles() throws IOException {
+    retryRPC(new RpcCallable<Void>() {
+      public Void call() throws TException {
+        mClient.collectLogFiles(new CollectLogFilesTOptions());
         return null;
       }
     });

@@ -78,6 +78,12 @@ struct LoadMetadataTResponse {
   1: i64 id
 }
 
+struct CollectLogFilesTOptions {
+  1: bool needCompression
+}
+
+struct CollectLogFilesTResponse {}
+
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 * offset in the file, and the under file system locations of the block replicas.
@@ -340,6 +346,11 @@ service FileSystemMasterClientService extends common.AlluxioService {
   UnmountTResponse unmount(
     /** the path of the alluxio mount point */ 1: string alluxioPath,
     /** the method options */ 2: UnmountTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  CollectLogFilesTResponse collectLogFiles(
+    /** the method options */ 1: CollectLogFilesTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 }
