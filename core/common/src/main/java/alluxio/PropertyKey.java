@@ -93,7 +93,7 @@ public class PropertyKey {
      * @return the created property key instance
      */
     public PropertyKey build() {
-      return PropertyKey.create(mName, mDefaultValue, mAlias);
+      return PropertyKey.create(mName, mDefaultValue, mAlias, mDescription);
     }
 
     @Override
@@ -2268,6 +2268,9 @@ public class PropertyKey {
   /** Property name. */
   private final String mName;
 
+  /** Property Key description. */
+  private String mDescription;
+
   /**
    * @param name String of this property
    */
@@ -2282,8 +2285,9 @@ public class PropertyKey {
    * @param name String of this property
    * @param defaultValue Default value of this property in compile time if not null
    * @param aliases String list of aliases of this property
+   * @param description String description of this property key
    */
-  static PropertyKey create(String name, Object defaultValue, String[] aliases) {
+  static PropertyKey create(String name, Object defaultValue, String[] aliases, String description) {
     PropertyKey key = new PropertyKey(name);
     DEFAULT_KEYS_MAP.put(name, key);
     DEFAULT_VALUES.put(key, defaultValue);
@@ -2292,6 +2296,7 @@ public class PropertyKey {
         DEFAULT_KEYS_MAP.put(alias, key);
       }
     }
+    key.mDescription = description;
     return key;
   }
 
@@ -2338,6 +2343,14 @@ public class PropertyKey {
   public String getDefaultValue() {
     Object value = DEFAULT_VALUES.get(this);
     return value != null ? value.toString() : null;
+  }
+
+  /**
+   * @return the description of a property
+   */
+  public String getDescription() {
+
+    return mDescription != null ? mDescription : "N/A";
   }
 
   /**

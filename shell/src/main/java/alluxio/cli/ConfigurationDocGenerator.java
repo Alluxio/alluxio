@@ -34,7 +34,7 @@ import java.util.Comparator;
  */
 @ThreadSafe
 public final class ConfigurationDocGenerator {
-  public static final String FILE_HEADER = "propertyName,defaultValue";
+  public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationDocGenerator.class);
 
   private ConfigurationDocGenerator() {
@@ -70,7 +70,7 @@ public final class ConfigurationDocGenerator {
       for (Map.Entry<String, String> entry : fileNames.entrySet()) {
         fileWriter = new FileWriter(entry.getValue());
         //Write the CSV file header
-        fileWriter.append(FILE_HEADER);
+        fileWriter.append(CSV_FILE_HEADER);
         //Add a new line separator after the header
         fileWriter.append("\n");
         //put fileWriter
@@ -125,6 +125,82 @@ public final class ConfigurationDocGenerator {
   }
 
   /**
+   * Writes description of property key to yml files.
+   *
+   * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
+   * @param filePath    path for csv files
+   */
+  public static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+      throws IOException {
+    if (defaultKeys.size() == 0) {
+      return;
+    }
+
+    FileWriter fileWriter;
+
+    //HashMap for yml file names
+    Map<String, String> fileNames = new HashMap<>();
+    fileNames.put("user", PathUtils.concatPath(filePath, "user-configuration.yml"));
+    fileNames.put("master", PathUtils.concatPath(filePath, "master-configuration.yml"));
+    fileNames.put("worker", PathUtils.concatPath(filePath, "worker-configuration.yml"));
+    fileNames.put("security", PathUtils.concatPath(filePath, "security-configuration.yml"));
+    fileNames.put("keyvalue", PathUtils.concatPath(filePath, "key-value-configuration.yml"));
+    fileNames.put("common", PathUtils.concatPath(filePath, "common-configuration.yml"));
+
+    //HashMap for FileWriter per each category
+    Map<String, FileWriter> fileWriterMap = new HashMap<>();
+    Closer closer = Closer.create();
+    try {
+      for (Map.Entry<String, String> entry : fileNames.entrySet()) {
+        fileWriter = new FileWriter(entry.getValue());
+        //put fileWriter
+        fileWriterMap.put(entry.getKey(), fileWriter);
+        //register file writer
+        closer.register(fileWriter);
+      }
+
+      //Sort defaultKeys
+      Comparator<PropertyKey> pC = new PropertyKeyComparator();
+      List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
+      Collections.sort(dfkeys, pC);
+
+      for (PropertyKey iteratorPK : dfkeys) {
+        String pKey = iteratorPK.toString();
+        PropertyKey pk = PropertyKey.fromString(pKey);
+
+        String description = pk.getDescription();
+
+        //Persist property key and default value to yml files
+        String keyValueStr = pKey + ":\n  " + description + "\n";
+        if (pKey.startsWith("alluxio.user.")) {
+          fileWriter = fileWriterMap.get("user");
+        } else if (pKey.startsWith("alluxio.master.")) {
+          fileWriter = fileWriterMap.get("master");
+        } else if (pKey.startsWith("alluxio.worker.")) {
+          fileWriter = fileWriterMap.get("worker");
+        } else if (pKey.startsWith("alluxio.security.")) {
+          fileWriter = fileWriterMap.get("security");
+        } else if (pKey.startsWith("alluxio.keyvalue.")) {
+          fileWriter = fileWriterMap.get("keyvalue");
+        } else {
+          fileWriter = fileWriterMap.get("common");
+        }
+        fileWriter.append(keyValueStr);
+      }
+
+      LOG.info("YML files for description of Property Keys were created successfully.");
+    } catch (Exception e) {
+      throw closer.rethrow(e);
+    } finally {
+      try {
+        closer.close();
+      } catch (IOException e) {
+        LOG.error("Error while flushing/closing YML files for description of Property Keys FileWriter", e);
+      }
+    }
+  }
+
+  /**
    * Function for main entry.
    *
    * @param args arguments for command line
@@ -134,7 +210,11 @@ public final class ConfigurationDocGenerator {
     String userDir = System.getProperty("user.dir");
     String location = userDir.substring(0, userDir.indexOf("alluxio") + 7);
     String filePath = PathUtils.concatPath(location, "/docs/_data/table/");
+    //generate CSV files
     writeCSVFile(defaultKeys, filePath);
+    //generate YML files
+    filePath = PathUtils.concatPath(filePath, "/en/");
+    writeYMLFile(defaultKeys, filePath);
   }
 
   /**
