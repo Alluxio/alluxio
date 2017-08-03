@@ -25,10 +25,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -52,14 +53,16 @@ public final class Format {
   private static void formatWorkerDataFolder(String name, String folder) throws IOException {
     LOG.info("Formatting {}:{}", name, folder);
     Path path = Paths.get(folder);
-    if (Files.isDirectory(path)) {
-      // Note, clean child files/subdirectories rather than deleting and then recreating folder
-      // directly which requires unnecessary write permission to the parent of folder.
-      try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
-        for (Path child : directoryStream) {
-          FileUtils.deletePathRecursively(child.toAbsolutePath().toString());
-        }
-      }
+    if (Files.exists(path)) {
+      FileUtils.deletePathRecursively(folder);
+    }
+    Files.createDirectory(path);
+    // For short-circuit read/write to work, others needs to be able to access this directory.
+    // This may not be granted when umask bit of others is set to 7 in the system.
+    Set<PosixFilePermission> perm = Files.getPosixFilePermissions(path);
+    if (!perm.contains(PosixFilePermission.OTHERS_EXECUTE)) {
+      perm.add(PosixFilePermission.OTHERS_EXECUTE);
+      Files.setPosixFilePermissions(path, perm);
     }
   }
 
@@ -121,16 +124,8 @@ public final class Format {
           String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
           String name = "Data path for tier " + level;
           for (String dirPath : dirPaths) {
-            String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-            if (Files.isDirectory(Paths.get(dirWorkerDataFolder))) {
-              try {
-                formatWorkerDataFolder(name, dirWorkerDataFolder);
-              } catch (IOException e) {
-                throw new IOException(
-                    String.format("Failed to format worker data folder %s due to %s",
-                        dirWorkerDataFolder, e.getMessage()), e);
-              }
-            }
+            String dirWorkerDataFolder = PathUtils.getWorkerDataDirectory(dirPath);
+            formatWorkerDataFolder(name, dirWorkerDataFolder);
           }
         }
         break;
