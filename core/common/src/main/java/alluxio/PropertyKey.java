@@ -2287,7 +2287,8 @@ public class PropertyKey {
    * @param aliases String list of aliases of this property
    * @param description String description of this property key
    */
-  static PropertyKey create(String name, Object defaultValue, String[] aliases, String description) {
+  static PropertyKey create(String name, Object defaultValue, String[] aliases,
+                            String description) {
     PropertyKey key = new PropertyKey(name);
     DEFAULT_KEYS_MAP.put(name, key);
     DEFAULT_VALUES.put(key, defaultValue);
