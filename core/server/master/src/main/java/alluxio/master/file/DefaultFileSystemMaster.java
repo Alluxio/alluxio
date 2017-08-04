@@ -2797,11 +2797,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
-  @Override
-  public void collectLogFiles() throws AlluxioException, IOException {
-    LOG.info("y7jin master received command to collect log files");
-  }
-
   /**
    * Schedules a file for async persistence.
    * <p>

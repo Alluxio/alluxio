@@ -203,6 +203,4 @@ public interface FileSystemMasterClient extends MasterClient {
    * @param alluxioPath the Alluxio path
    */
   void unmount(AlluxioURI alluxioPath) throws IOException;
-
-  void collectLogFiles() throws IOException;
 }

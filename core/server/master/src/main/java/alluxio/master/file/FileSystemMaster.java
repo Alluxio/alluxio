@@ -464,8 +464,6 @@ public interface FileSystemMaster extends Master {
    */
   void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
 
-  void collectLogFiles() throws AlluxioException, IOException;
-
   /**
    * Instructs a worker to persist the files.
    * <p>

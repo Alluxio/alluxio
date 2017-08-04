@@ -12,10 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.AlluxioException;
-import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -46,10 +43,6 @@ public class CollectLogFilesCommand extends AbstractShellCommand {
     System.out.println("y7jin: collect log files");
     for (String s : args) {
       System.out.println(s);
-    }
-    try(CloseableResource<FileSystemMasterClient> client =
-            FileSystemContext.INSTANCE.acquireMasterClientResource()) {
-      client.get().collectLogFiles();
     }
     return 0;
   }
