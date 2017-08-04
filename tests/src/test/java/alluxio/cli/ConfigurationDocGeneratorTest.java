@@ -128,7 +128,9 @@ public class ConfigurationDocGeneratorTest {
 
   @Test
   public void checkYMLFile() throws Exception {
-    if (mFileType != "YML") return;
+    if (mFileType != "YML") {
+      return;
+    }
     Collection<PropertyKey> defaultKeys = new ArrayList<>();
     PropertyKey pKey = mTestConf.getFirst();
     String description = pKey.getDescription();
