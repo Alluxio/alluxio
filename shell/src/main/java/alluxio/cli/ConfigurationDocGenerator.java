@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.File;
+//import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,12 +57,18 @@ public final class ConfigurationDocGenerator {
 
     // HashMap for FileWriter per each category
     Map<String, FileWriter> fileWriterMap = new HashMap<>();
-    fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath, "user-configuration.csv")));
-    fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath, "master-configuration.csv")));
-    fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath, "worker-configuration.csv")));
-    fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath, "security-configuration.csv")));
-    fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath, "key-value-configuration.csv")));
-    fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath, "common-configuration.csv")));
+    fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
+        "user-configuration.csv")));
+    fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
+        "master-configuration.csv")));
+    fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
+        "worker-configuration.csv")));
+    fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
+        "security-configuration.csv")));
+    fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
+        "key-value-configuration.csv")));
+    fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
+        "common-configuration.csv")));
 
     Closer closer = Closer.create();
     try {
@@ -136,12 +142,18 @@ public final class ConfigurationDocGenerator {
 
     // HashMap for FileWriter per each category
     Map<String, FileWriter> fileWriterMap = new HashMap<>();
-    fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath, "user-configuration.yml")));
-    fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath, "master-configuration.yml")));
-    fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath, "worker-configuration.yml")));
-    fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath, "security-configuration.yml")));
-    fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath, "key-value-configuration.yml")));
-    fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath, "common-configuration.yml")));
+    fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
+        "user-configuration.yml")));
+    fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
+        "master-configuration.yml")));
+    fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
+        "worker-configuration.yml")));
+    fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
+        "security-configuration.yml")));
+    fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
+        "key-value-configuration.yml")));
+    fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
+        "common-configuration.yml")));
 
     Closer closer = Closer.create();
     try {
