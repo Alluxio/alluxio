@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.Constants;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
