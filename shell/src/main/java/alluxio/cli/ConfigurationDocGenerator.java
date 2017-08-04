@@ -62,7 +62,7 @@ public final class ConfigurationDocGenerator {
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      for(int i = 0; i < fileNames.length; i++){
+      for (int i = 0; i < fileNames.length; i++) {
         fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNames[i]));
         // Write the CSV file header and line separator after the header
         fileWriter.append(CSV_FILE_HEADER + "\n");
@@ -139,7 +139,7 @@ public final class ConfigurationDocGenerator {
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      for(int i = 0; i < fileNames.length; i++){
+      for (int i = 0; i < fileNames.length; i++) {
         fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNames[i]));
         //put fileWriter
         String key = fileNames[i].substring(0, fileNames[i].indexOf("configuration") - 1);
