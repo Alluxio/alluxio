@@ -41,6 +41,8 @@ import java.util.List;
  */
 @RunWith(Parameterized.class)
 public class ConfigurationDocGeneratorTest {
+  private static final String TYPE_CSV = "CSV";
+  private static final String TYPE_YML = "YML";
   /**
    * Rule to create a new temporary folder during each test.
    */
@@ -52,34 +54,32 @@ public class ConfigurationDocGeneratorTest {
   public Pair<PropertyKey, String> mTestConf;
   private String mLocation;
 
-//  private Type type;
-
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {"CSV", new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+        {TYPE_CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.csv")},
-        {"CSV", new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+        {TYPE_CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
             "master-configuration.csv")},
-        {"CSV", new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
+        {TYPE_CSV, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
             "worker-configuration.csv")},
-        {"CSV", new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+        {TYPE_CSV, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.csv")},
-        {"CSV", new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        {TYPE_CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.csv")},
-        {"CSV", new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
+        {TYPE_CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "common-configuration.csv")},
-        {"YML", new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+        {TYPE_YML, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.yml")},
-        {"YML", new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+        {TYPE_YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
             "master-configuration.yml")},
-        {"YML", new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
+        {TYPE_YML, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
             "worker-configuration.yml")},
-        {"YML", new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+        {TYPE_YML, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.yml")},
-        {"YML", new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        {TYPE_YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.yml")},
-        {"YML", new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
+        {TYPE_YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "common-configuration.yml")}
     });
   }
@@ -94,13 +94,13 @@ public class ConfigurationDocGeneratorTest {
 
   private void checkFileContents(String source, List<String> target, String fType)
       throws Exception {
-    Assert.assertTrue(fType.equals("CSV") || fType.equals("YML"));
+    Assert.assertTrue(fType.equals(TYPE_CSV) || fType.equals(TYPE_YML));
     //assert file contents
-    if (fType == "CSV") {
+    if (fType == TYPE_CSV) {
       assertEquals(2, target.size());
       assertEquals(ConfigurationDocGenerator.CSV_FILE_HEADER, target.get(0));
       assertEquals(source, target.get(1));
-    } else if (fType == "YML") {
+    } else if (fType == TYPE_YML) {
       assertEquals(2, target.size());
       assertEquals(source, target.get(0) + "\n" + target.get(1));
     }
@@ -108,7 +108,7 @@ public class ConfigurationDocGeneratorTest {
 
   @Test
   public void checkCSVFile() throws Exception {
-    if (mFileType != "CSV") {
+    if (mFileType != TYPE_CSV) {
       return;
     }
     Collection<PropertyKey> defaultKeys = new ArrayList<>();
@@ -128,7 +128,7 @@ public class ConfigurationDocGeneratorTest {
 
   @Test
   public void checkYMLFile() throws Exception {
-    if (mFileType != "YML") {
+    if (mFileType != TYPE_YML) {
       return;
     }
     Collection<PropertyKey> defaultKeys = new ArrayList<>();

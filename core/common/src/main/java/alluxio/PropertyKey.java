@@ -2350,7 +2350,6 @@ public class PropertyKey {
    * @return the description of a property
    */
   public String getDescription() {
-
     return mDescription != null ? mDescription : "N/A";
   }
 
