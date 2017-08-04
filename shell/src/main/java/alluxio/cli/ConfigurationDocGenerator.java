@@ -195,7 +195,8 @@ public final class ConfigurationDocGenerator {
       try {
         closer.close();
       } catch (IOException e) {
-        LOG.error("Error while flushing/closing YML files for description of Property Keys FileWriter", e);
+        LOG.error("Error while flushing/closing YML files for description of Property Keys " +
+            "FileWriter", e);
       }
     }
   }
