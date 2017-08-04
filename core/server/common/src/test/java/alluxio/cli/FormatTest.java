@@ -54,12 +54,14 @@ public final class FormatTest {
       FileUtils.createDir(PathUtils.concatPath(workerDataFolder, "subdir"));
       FileUtils.createFile(PathUtils.concatPath(workerDataFolder, "file"));
     }
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {{
-      put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
-      put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
-      put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
-      put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
-    }}).toResource()) {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
+        put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
+        put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
+        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+      }
+    }).toResource()) {
       Format.format(Format.Mode.WORKER);
       for (File dir : dirs) {
         workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
@@ -91,12 +93,14 @@ public final class FormatTest {
       workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
       FileUtils.createFile(workerDataFolder);
     }
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {{
-      put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
-      put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
-      put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
-      put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
-    }}).toResource()) {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
+        put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
+        put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
+        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+      }
+    }).toResource()) {
       Format.format(Format.Mode.WORKER);
       for (File dir : dirs) {
         workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
