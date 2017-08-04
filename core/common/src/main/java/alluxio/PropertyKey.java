@@ -151,7 +151,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.network.host.resolution.timeout.ms"})
+          .setAlias(new String[]{"alluxio.network.host.resolution.timeout.ms"})
           .setDefaultValue("5sec")
           .setDescription("During startup of the Master and Worker processes Alluxio needs to "
               + "ensure that they are listening on externally resolvable and reachable host "
@@ -162,7 +162,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS)
-              .setAlias(new String[] {"alluxio.network.netty.heartbeat.timeout.ms"})
+          .setAlias(new String[] {"alluxio.network.netty.heartbeat.timeout.ms"})
           .setDefaultValue("30sec")
           .setDescription("The amount of time the server will wait before closing a netty "
               + "connection if there has not been any incoming traffic. The client will "
@@ -325,7 +325,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_CONNECT_TIMEOUT)
-              .setAlias(new String[]{"alluxio.underfs.oss.connection.timeout.ms"})
+          .setAlias(new String[]{"alluxio.underfs.oss.connection.timeout.ms"})
           .setDefaultValue("50sec")
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_TTL =
@@ -334,7 +334,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_SOCKET_TIMEOUT)
-              .setAlias(new String[]{"alluxio.underfs.oss.socket.timeout.ms"})
+          .setAlias(new String[]{"alluxio.underfs.oss.socket.timeout.ms"})
           .setDefaultValue("50sec")
           .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
@@ -405,7 +405,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.underfs.s3a.consistency.timeout.ms"})
+          .setAlias(new String[]{"alluxio.underfs.s3a.consistency.timeout.ms"})
           .setDefaultValue("1min")
           .setDescription("The duration to wait for metadata consistency from the under "
               + "storage. This is only used by internal Alluxio operations which should be "
@@ -430,7 +430,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.underfs.s3a.request.timeout.ms"})
+          .setAlias(new String[]{"alluxio.underfs.s3a.request.timeout.ms"})
           .setDefaultValue("1min")
           .setDescription("The timeout for a single request to S3. Infinity if set to 0. "
               + "Setting this property to a non-zero value can improve performance by "
@@ -456,7 +456,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms"})
+          .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms"})
           .setDefaultValue("50sec")
           .setDescription("Length of the socket timeout when communicating with s3.")
           .build();
@@ -523,7 +523,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
+          .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
           .setDefaultValue("0ms")
           .setDescription("Timeout (in milliseconds) between master and client.")
           .build();
@@ -541,7 +541,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms"})
+          .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The interval (in milliseconds) between Alluxio master's heartbeats")
           .build();
@@ -550,13 +550,13 @@ public class PropertyKey {
       .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
-              .setAlias(new String[]{"alluxio.master.journal.flush.batch.time.ms"})
+          .setAlias(new String[]{"alluxio.master.journal.flush.batch.time.ms"})
           .setDefaultValue("5ms")
           .setDescription("Time (in milliseconds) to wait for batching journal writes.")
           .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.master.journal.flush.timeout.ms"})
+          .setAlias(new String[]{"alluxio.master.journal.flush.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("The amount of time (in milliseconds) to keep retrying journal "
               + "writes before giving up and shutting down the master.")
@@ -583,7 +583,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS)
-              .setAlias(new String[]{"alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"})
+          .setAlias(new String[]{"alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"})
           .setDefaultValue("5sec")
           .setDescription("Before the standby master shuts down its tailer thread, there "
               + "should be no update to the leader master's journal in this specified time "
@@ -591,7 +591,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS)
-              .setAlias(new String[]{"alluxio.master.journal.tailer.sleep.time.ms"})
+          .setAlias(new String[]{"alluxio.master.journal.tailer.sleep.time.ms"})
           .setDefaultValue("1sec")
           .setDescription("Time (in milliseconds) the standby master sleeps for when it "
               + "cannot find anything new in leader master's journal.")
@@ -602,17 +602,17 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_JOURNAL_GC_PERIOD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_PERIOD_MS)
-              .setAlias(new String[] {"alluxio.master.journal.gc.period.ms"})
+          .setAlias(new String[] {"alluxio.master.journal.gc.period.ms"})
           .setDefaultValue("2min")
           .build();
   public static final PropertyKey MASTER_JOURNAL_GC_THRESHOLD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_THRESHOLD_MS)
-              .setAlias(new String[]{"alluxio.master.journal.gc.threshold.ms"})
+          .setAlias(new String[]{"alluxio.master.journal.gc.threshold.ms"})
           .setDefaultValue("5min")
           .build();
   public static final PropertyKey MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
       new Builder(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
-              .setAlias(new String[]{"alluxio.master.journal.temporary.file.gc.threshold.ms"})
+          .setAlias(new String[]{"alluxio.master.journal.temporary.file.gc.threshold.ms"})
           .setDefaultValue("30min")
           .build();
   public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
@@ -628,14 +628,14 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
       new Builder(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.master.lineage.checkpoint.interval.ms"})
+          .setAlias(new String[]{"alluxio.master.lineage.checkpoint.interval.ms"})
           .setDefaultValue("5min")
           .setDescription("The interval (in milliseconds) between Alluxio's checkpoint "
               + "scheduling.")
           .build();
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
       new Builder(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.master.lineage.recompute.interval.ms"})
+          .setAlias(new String[]{"alluxio.master.lineage.recompute.interval.ms"})
           .setDefaultValue("5min")
           .setDescription("The interval (in milliseconds) between Alluxio's recompute "
               + "execution. The executor scans the all the lost files tracked by lineage, and "
@@ -695,7 +695,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.master.ttl.checker.interval.ms"})
+          .setAlias(new String[]{"alluxio.master.ttl.checker.interval.ms"})
           .setDefaultValue("1hour")
           .setDescription("Time interval (in milliseconds) to periodically delete the files "
               + "with expired ttl value.")
@@ -755,7 +755,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.master.worker.timeout.ms"})
+          .setAlias(new String[]{"alluxio.master.worker.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("Timeout (in milliseconds) between master and worker indicating a "
               + "lost worker.")
@@ -781,13 +781,13 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.worker.block.heartbeat.interval.ms"})
+          .setAlias(new String[]{"alluxio.worker.block.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The interval (in milliseconds) between block worker's heartbeats")
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.worker.block.heartbeat.timeout.ms"})
+          .setAlias(new String[]{"alluxio.worker.block.heartbeat.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("The timeout value (in milliseconds) of block worker's heartbeat")
           .build();
@@ -897,7 +897,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.worker.filesystem.heartbeat.interval.ms"})
+          .setAlias(new String[]{"alluxio.worker.filesystem.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The heartbeat interval (in milliseconds) between the worker and "
               + "file system master.")
@@ -1020,7 +1020,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
       new Builder(Name.WORKER_SESSION_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.worker.session.timeout.ms"})
+          .setAlias(new String[]{"alluxio.worker.session.timeout.ms"})
           .setDefaultValue("1min")
           .setDescription("Timeout (in milliseconds) between worker and client connection "
               + "indicating a lost session connection.")
@@ -1132,7 +1132,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.worker.tieredstore.reserver.interval.ms"})
+          .setAlias(new String[]{"alluxio.worker.tieredstore.reserver.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The time period (in milliseconds) of space reserver service, which "
               + "keeps certain portion of available space on each layer.")
@@ -1163,7 +1163,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.worker.ufs.block.open.timeout.ms"})
+          .setAlias(new String[]{"alluxio.worker.ufs.block.open.timeout.ms"})
           .setDefaultValue("5min")
           .build();
 
@@ -1172,7 +1172,7 @@ public class PropertyKey {
   //
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
+          .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
           .setDefaultValue("1hour")
           .build();
   public static final PropertyKey PROXY_WEB_BIND_HOST =
@@ -1242,7 +1242,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
-              .setAlias(new String[]{"alluxio.user.block.worker.client.pool.gc.threshold.ms"})
+          .setAlias(new String[]{"alluxio.user.block.worker.client.pool.gc.threshold.ms"})
           .setDefaultValue(300 * Constants.SECOND_MS)
           .setDescription("A block worker client is closed if it has been idle for more than "
               + "this threshold.")
@@ -1322,7 +1322,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
-              .setAlias(new String[]{"alluxio.user.file.waitcompleted.poll.ms"})
+          .setAlias(new String[]{"alluxio.user.file.waitcompleted.poll.ms"})
           .setDefaultValue("1sec")
           .setDescription("The time interval to poll a file for its completion status when "
               + "using waitCompleted.")
@@ -1339,7 +1339,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
-              .setAlias(new String[]{"alluxio.user.file.worker.client.pool.gc.threshold.ms"})
+          .setAlias(new String[]{"alluxio.user.file.worker.client.pool.gc.threshold.ms"})
           .setDefaultValue(300 * Constants.SECOND_MS)
           .build();
   public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
@@ -1376,7 +1376,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_HEARTBEAT_INTERVAL_MS)
-              .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
+          .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The interval (in milliseconds) between Alluxio worker's heartbeats")
           .build();
@@ -1406,7 +1406,7 @@ public class PropertyKey {
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL).build();
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.user.network.netty.timeout.ms"})
+          .setAlias(new String[]{"alluxio.user.network.netty.timeout.ms"})
           .setDefaultValue(30000)
           .setDescription("The maximum number of milliseconds for a netty client (for block "
               + "reads and block writes) to wait for a response from the data server.")
@@ -1425,7 +1425,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS)
-              .setAlias(new String[]{"alluxio.user.network.netty.channel.pool.gc.threshold.ms"})
+          .setAlias(new String[]{"alluxio.user.network.netty.channel.pool.gc.threshold.ms"})
           .setDefaultValue(300 * Constants.SECOND_MS)
           .setDescription("A netty channel is closed if it has been idle for more than this "
               + "threshold.")
@@ -1446,7 +1446,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
+          .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
           .setDefaultValue(300000)
           .setDescription("The maximum number of milliseconds to close a netty writer client.")
           .build();
@@ -1464,7 +1464,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_BASE_SLEEP_MS)
-              .setAlias(new String[]{"alluxio.user.rpc.retry.base.sleep.ms"})
+          .setAlias(new String[]{"alluxio.user.rpc.retry.base.sleep.ms"})
           .setDefaultValue(50)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property detemines the base time in "
@@ -1479,7 +1479,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
-              .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
+          .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
           .setDefaultValue("30sec")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property detemines the maximum wait time in "
@@ -1549,7 +1549,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.user.ufs.block.open.timeout.ms"})
+          .setAlias(new String[]{"alluxio.user.ufs.block.open.timeout.ms"})
           .setDefaultValue(300000)
           .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
@@ -1608,7 +1608,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
       new Builder(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.security.authentication.socket.timeout.ms"})
+          .setAlias(new String[]{"alluxio.security.authentication.socket.timeout.ms"})
           .setDefaultValue("10min")
           .setDescription("The maximum amount of time (in milliseconds) for a user to create "
               + "a Thrift socket which will connect to the master.")
@@ -1641,7 +1641,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS)
-              .setAlias(new String[]{"alluxio.security.group.mapping.cache.timeout.ms"})
+          .setAlias(new String[]{"alluxio.security.group.mapping.cache.timeout.ms"})
           .setDefaultValue("1min")
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CLASS =
