@@ -182,8 +182,8 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
-`alluxio-site.properties` file which is on the classpath.
+To use fault tolerant mode, set the Alluxio cluster properties appropriately (see example below) in
+an `alluxio-site.properties` file which is on the classpath.
 
 ```properties
 alluxio.zookeeper.enabled=true

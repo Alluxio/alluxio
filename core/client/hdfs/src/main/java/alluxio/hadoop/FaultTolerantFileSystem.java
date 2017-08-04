@@ -12,6 +12,8 @@
 package alluxio.hadoop;
 
 import alluxio.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -32,6 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @Deprecated
 public final class FaultTolerantFileSystem extends AbstractFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(FaultTolerantFileSystem.class);
 
   /**
    * Constructs a new {@link FaultTolerantFileSystem}.
@@ -48,6 +51,8 @@ public final class FaultTolerantFileSystem extends AbstractFileSystem {
    */
   public FaultTolerantFileSystem(alluxio.client.file.FileSystem fileSystem) {
     super(fileSystem);
+    LOG.warn("The alluxio-ft:// scheme is deprecated, use the alluxio:// scheme and configure the "
+        + "Zookeeper properties (alluxio.zookeeper.*) instead.");
   }
 
   @Override
