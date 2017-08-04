@@ -336,15 +336,15 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       }
     } catch (BlockAlreadyExistsException e) {
       // This can happen when there are concurrent UFS readers who are all trying to cache to block.
-      LOG.warn(
+      LOG.debug(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]."
               + "Concurrent UFS readers may be caching the same block.",
-          mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e.getMessage());
+          mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e);
       mBlockWriter = null;
     } catch (IOException | AlluxioException e) {
-      LOG.debug(
-          "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]",
-          mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e);
+      LOG.warn(
+          "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]: {}",
+          mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e.getMessage());
       mBlockWriter = null;
     }
   }
