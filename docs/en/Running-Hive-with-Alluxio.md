@@ -190,7 +190,7 @@ alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=[zookeeper_hostname]:2181
 ```
 
-Alternatively you can add the properties the Hive `hive-site.xml` configuration which is then
+Alternatively you can add the properties to the Hive `hive-site.xml` configuration which is then
 propagated to Alluxio.
 
 ```xml

@@ -178,8 +178,8 @@ spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.micros
 If the recommended solution described above is infeasible, this is a workaround which can also solve this issue.
 
 Specifying the Hadoop configuration `fs.alluxio.impl` may also help in resolving this error.
-`fs.alluxio.impl` should be set to `alluxio.hadoop.FileSystem`. There are a few alternatives to set
-these parameters.
+`fs.alluxio.impl` should be set to `alluxio.hadoop.FileSystem`. There are a few ways to set these
+parameters.
 
 #### Update `hadoopConfiguration` in SparkContext
 
@@ -215,7 +215,7 @@ alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=[zookeeper_hostname]:2181
 ```
 
-Alternatively you can add the properties the Hadoop `core-site.xml` configuration which is then
+Alternatively you can add the properties to the Hadoop `core-site.xml` configuration which is then
 propagated to Alluxio.
 
 ```xml
