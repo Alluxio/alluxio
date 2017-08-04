@@ -28,6 +28,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,13 +50,24 @@ public final class Format {
     WORKER,
   }
 
-  private static void formatFolder(String name, String folder) throws IOException {
-    LOG.info("Formatting {}:{}", name, folder);
+  /**
+   * Formats the worker data folder.
+   *
+   * @param folder folder path
+   */
+  private static void formatWorkerDataFolder(String folder) throws IOException {
     Path path = Paths.get(folder);
-    if (Files.isDirectory(path)) {
+    if (Files.exists(path)) {
       FileUtils.deletePathRecursively(folder);
     }
     Files.createDirectory(path);
+    // For short-circuit read/write to work, others needs to be able to access this directory.
+    // This may not be granted when umask bit of others is set to 7 in the system.
+    Set<PosixFilePermission> perm = Files.getPosixFilePermissions(path);
+    if (!perm.contains(PosixFilePermission.OTHERS_EXECUTE)) {
+      perm.add(PosixFilePermission.OTHERS_EXECUTE);
+      Files.setPosixFilePermissions(path, perm);
+    }
   }
 
   /**
@@ -94,7 +107,7 @@ public final class Format {
     switch (mode) {
       case MASTER:
         String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-        LOG.info("MASTER JOURNAL: {}", masterJournal);
+        LOG.info("Formatting master journal: {}", masterJournal);
         Journal.Factory factory;
         try {
           factory = new Journal.Factory(new URI(masterJournal));
@@ -107,23 +120,17 @@ public final class Format {
         break;
       case WORKER:
         String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
+        LOG.info("Formatting worker data folder: {}", workerDataFolder);
         int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
         for (int level = 0; level < storageLevels; level++) {
           PropertyKey tierLevelDirPath =
               PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
           String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
-          String name = "TIER_" + level + "_DIR_PATH";
+          String name = "Data path for tier " + level;
           for (String dirPath : dirPaths) {
-            String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-            if (Files.isDirectory(Paths.get(dirWorkerDataFolder))) {
-              try {
-                formatFolder(name, dirWorkerDataFolder);
-              } catch (IOException e) {
-                throw new RuntimeException(String
-                    .format("Failed to format worker data folder %s due to %s", dirWorkerDataFolder,
-                        e.getMessage()));
-              }
-            }
+            String dirWorkerDataFolder = PathUtils.getWorkerDataDirectory(dirPath);
+            LOG.info("Formatting {}:{}", name, dirWorkerDataFolder);
+            formatWorkerDataFolder(dirWorkerDataFolder);
           }
         }
         break;
