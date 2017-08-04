@@ -12,6 +12,8 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
@@ -260,6 +262,18 @@ public final class PathUtils {
    */
   public static String normalizePath(String path, String separator) {
     return path.endsWith(separator) ? path : path + separator;
+  }
+
+  /**
+   * @param storageDir the root of a storage directory in tiered storage
+   *
+   * @return the worker data folder path after each storage directory, the final path will be like
+   * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
+   * {@link PropertyKey#WORKER_DATA_FOLDER).
+   */
+  public static String getWorkerDataDirectory(String storageDir) {
+    return concatPath(
+        storageDir.trim(), Configuration.get(PropertyKey.WORKER_DATA_FOLDER));
   }
 
   private PathUtils() {} // prevent instantiation
