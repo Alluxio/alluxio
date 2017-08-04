@@ -55,30 +55,22 @@ public final class ConfigurationDocGenerator {
 
     FileWriter fileWriter;
     Closer closer = Closer.create();
+    String[] fileNames = {"user-configuration.csv", "master-configuration.csv",
+        "worker-configuration.csv", "security-configuration.csv",
+        "key-value-configuration.csv", "common-configuration.csv"};
 
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
-          "user-configuration.csv")));
-      fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
-          "master-configuration.csv")));
-      fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
-          "worker-configuration.csv")));
-      fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
-          "security-configuration.csv")));
-      fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
-          "key-value-configuration.csv")));
-      fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
-          "common-configuration.csv")));
-
-      for (Map.Entry<String, FileWriter> entry : fileWriterMap.entrySet()) {
-        // Write the CSV file header
-        entry.getValue().append(CSV_FILE_HEADER);
-        // Add a new line separator after the header
-        entry.getValue().append("\n");
-        // register file writer
-        closer.register(entry.getValue());
+      for(int i = 0; i < fileNames.length; i++){
+        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNames[i]));
+        // Write the CSV file header and line separator after the header
+        fileWriter.append(CSV_FILE_HEADER + "\n");
+        //put fileWriter
+        String key = fileNames[i].substring(0, fileNames[i].indexOf("configuration") - 1);
+        fileWriterMap.put(key, fileWriter);
+        //register file writer
+        closer.register(fileWriter);
       }
 
       // Sort defaultKeys
@@ -107,7 +99,7 @@ public final class ConfigurationDocGenerator {
         } else if (pKey.startsWith("alluxio.security.")) {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.keyvalue.")) {
-          fileWriter = fileWriterMap.get("keyvalue");
+          fileWriter = fileWriterMap.get("key-value");
         } else {
           fileWriter = fileWriterMap.get("common");
         }
@@ -140,26 +132,20 @@ public final class ConfigurationDocGenerator {
 
     FileWriter fileWriter;
     Closer closer = Closer.create();
+    String[] fileNames = {"user-configuration.yml", "master-configuration.yml",
+        "worker-configuration.yml", "security-configuration.yml",
+        "key-value-configuration.yml", "common-configuration.yml"};
 
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
-          "user-configuration.yml")));
-      fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
-          "master-configuration.yml")));
-      fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
-          "worker-configuration.yml")));
-      fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
-          "security-configuration.yml")));
-      fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
-          "key-value-configuration.yml")));
-      fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
-          "common-configuration.yml")));
-
-      for (Map.Entry<String, FileWriter> entry : fileWriterMap.entrySet()) {
-        // register file writer
-        closer.register(entry.getValue());
+      for(int i = 0; i < fileNames.length; i++){
+        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNames[i]));
+        //put fileWriter
+        String key = fileNames[i].substring(0, fileNames[i].indexOf("configuration") - 1);
+        fileWriterMap.put(key, fileWriter);
+        //register file writer
+        closer.register(fileWriter);
       }
 
       // Sort defaultKeys
@@ -182,7 +168,7 @@ public final class ConfigurationDocGenerator {
         } else if (pKey.startsWith("alluxio.security.")) {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.keyvalue.")) {
-          fileWriter = fileWriterMap.get("keyvalue");
+          fileWriter = fileWriterMap.get("key-value");
         } else {
           fileWriter = fileWriterMap.get("common");
         }
