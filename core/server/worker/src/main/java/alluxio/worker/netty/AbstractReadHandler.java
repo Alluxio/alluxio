@@ -38,7 +38,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class handles {@link alluxio.proto.dataserver.Protocol.ReadRequest}s.
@@ -58,12 +57,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * 2. The packet reader thread keeps reading from the file and writes to netty. Before reading a
  *    new packet, it checks whether there are notifications (e.g. cancel, error), if
  *    there is, handle them properly. See more information about the notifications in the javadoc
- *    of {@link AbstractReadHandler#mCancel#mEof#mError}.
+ *    of {@link ReadRequestContext#mCancel#mEof#mError}.
  *
  * @param <T> type of read request
  */
 @NotThreadSafe
-abstract class AbstractReadHandler<T extends ReadRequest>
+abstract class AbstractReadHandler<T extends ReadRequestContext>
     extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 
@@ -74,85 +73,6 @@ abstract class AbstractReadHandler<T extends ReadRequest>
   private final ExecutorService mPacketReaderExecutor;
 
   private final ReentrantLock mLock = new ReentrantLock();
-  /**
-   * Set to true if the packet reader is active. The following invariants must be maintained:
-   * 1. If true, there will be at least one more packet (data, eof or error) to be sent to netty.
-   * 2. If false, there will be no more packets sent to netty until it is set to true again.
-   */
-  @GuardedBy("mLock")
-  private boolean mPacketReaderActive;
-  /**
-   * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the bytes that are
-   * in netty buffer.
-   */
-  @GuardedBy("mLock")
-  private long mPosToQueue;
-  /** The next pos to write to the channel. */
-  @GuardedBy("mLock")
-  private long mPosToWrite;
-
-  /**
-   * mEof, mCancel and mError are the notifications processed by the packet reader thread. They can
-   * be set by either the netty I/O thread or the packet reader thread. mError overrides mCancel
-   * and mEof, mEof overrides mCancel.
-   *
-   * These notifications determine 3 ways to complete a read request.
-   * 1. mEof: The read request is fulfilled. All the data requested by the client or all the data in
-   *    the block/file has been read. The packet reader replies a SUCCESS response when processing
-   *    mEof.
-   * 2. mCancel: The read request is cancelled by the client. A cancel request is ignored if mEof
-   *    is set. The packet reader replies a CANCEL response when processing mCancel.
-   *    Note: The client can send a cancel request after the server has sent a SUCCESS response. But
-   *    it is not possible for the client to send a CANCEL request after the channel has been
-   *    released. So it is impossible for a CANCEL request from one read request to cancel
-   *    another read request.
-   * 3. mError: mError is set whenever an error occurs. It can be from an exception when reading
-   *    packet, or writing packet to netty or the client closes the channel etc. An ERROR response
-   *    is optionally sent to the client when packet reader thread process mError. The channel
-   *    is closed after this error response is sent.
-   *
-   * Note: it is guaranteed that only one of SUCCESS and CANCEL responses is sent at most once
-   * because the packet reader thread won't be restarted as long as mCancel or mEof is set except
-   * when error happens (mError overrides mCancel and mEof).
-   */
-  @GuardedBy("mLock")
-  private boolean mEof;
-  @GuardedBy("mLock")
-  private boolean mCancel;
-  @GuardedBy("mLock")
-  private Error mError;
-
-  /** This is set when the SUCCESS or CANCEL response is sent. This is only for sanity check. */
-  private volatile boolean mDone;
-
-  /**
-   * A wrapper on an error used to pass error information from the netty I/O thread to the packet
-   * reader thread.
-   */
-  @ThreadSafe
-  private class Error {
-    final AlluxioStatusException mCause;
-    final boolean mNotifyClient;
-
-    Error(AlluxioStatusException cause, boolean notifyClient) {
-      mCause = cause;
-      mNotifyClient = notifyClient;
-    }
-
-    /**
-     * @return the cause of this error
-     */
-    public AlluxioStatusException getCause() {
-      return mCause;
-    }
-
-    /**
-     * @return whether to notify client
-     */
-    public boolean isNotifyClient() {
-      return mNotifyClient;
-    }
-  }
 
   /**
    * This is only created in the netty I/O thread when a read request is received, reset when
@@ -160,7 +80,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    * Using "volatile" because we want any value change of this variable to be
    * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
    */
-  private volatile T mRequest;
+  private volatile T mContext;
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
@@ -194,13 +114,13 @@ abstract class AbstractReadHandler<T extends ReadRequest>
     validateReadRequest(msg);
     reset();
 
-    mRequest = createRequest(msg);
+    T newContext = createRequestContext(msg);
     try (LockResource lr = new LockResource(mLock)) {
-      mPosToQueue = mRequest.getStart();
-      mPosToWrite = mRequest.getStart();
-
-      mPacketReaderExecutor.submit(createPacketReader(mRequest, ctx.channel()));
-      mPacketReaderActive = true;
+      mContext = newContext;
+      mContext.setPosToQueue(mContext.getRequest().getStart());
+      mContext.setPosToWrite(mContext.getRequest().getStart());
+      mPacketReaderExecutor.submit(createPacketReader(mContext, ctx.channel()));
+      mContext.setPacketReaderActive(true);
     }
   }
 
@@ -214,8 +134,9 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    * @return true if there are too many packets in-flight
    */
   @GuardedBy("mLock")
-  private boolean tooManyPendingPackets() {
-    return mPosToQueue - mPosToWrite >= MAX_PACKETS_IN_FLIGHT * mRequest.getPacketSize();
+  public boolean tooManyPendingPackets() {
+    return mContext.getPosToQueue() - mContext.getPosToWrite()
+        >= MAX_PACKETS_IN_FLIGHT * mContext.getRequest().getPacketSize();
   }
 
   /**
@@ -242,13 +163,13 @@ abstract class AbstractReadHandler<T extends ReadRequest>
   private void setError(Channel channel, Error error) {
     Preconditions.checkNotNull(error);
     try (LockResource lr = new LockResource(mLock)) {
-      if (mError != null) {
+      if (mContext.getError() != null) {
         return;
       }
-      mError = error;
-      if (!mPacketReaderActive) {
-        mPacketReaderActive = true;
-        mPacketReaderExecutor.submit(createPacketReader(mRequest, channel));
+      mContext.setError(error);
+      if (!mContext.isPacketReaderActive()) {
+        mContext.setPacketReaderActive(true);
+        mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
       }
     }
   }
@@ -258,13 +179,13 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    */
   private void setEof(Channel channel) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mError != null || mCancel || mEof) {
+      if (mContext.getError() != null || mContext.isCancel() || mContext.isEof()) {
         return;
       }
-      mEof = true;
-      if (!mPacketReaderActive) {
-        mPacketReaderActive = true;
-        mPacketReaderExecutor.submit(createPacketReader(mRequest, channel));
+      mContext.setEof(true);
+      if (!mContext.isPacketReaderActive()) {
+        mContext.setPacketReaderActive(true);
+        mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
       }
     }
   }
@@ -274,13 +195,13 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    */
   private void setCancel(Channel channel) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mError != null || mEof || mCancel) {
+      if (mContext.getError() != null || mContext.isEof() || mContext.isCancel()) {
         return;
       }
-      mCancel = true;
-      if (!mPacketReaderActive) {
-        mPacketReaderActive = true;
-        mPacketReaderExecutor.submit(createPacketReader(mRequest, channel));
+      mContext.setCancel(true);
+      if (!mContext.isPacketReaderActive()) {
+        mContext.setPacketReaderActive(true);
+        mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
       }
     }
   }
@@ -290,14 +211,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    */
   private void reset() {
     try (LockResource lr = new LockResource(mLock)) {
-      Preconditions.checkState(!mPacketReaderActive);
-      mPosToQueue = 0;
-      mPosToWrite = 0;
-      mEof = false;
-      mCancel = false;
-      mError = null;
-      mRequest = null;
-      mDone = false;
+      Preconditions.checkState(!mContext.isPacketReaderActive());
+      mContext = null;
     }
   }
 
@@ -319,7 +234,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    * @param request the block read request
    * @return an instance of read request based on the request read from channel
    */
-  protected abstract T createRequest(Protocol.ReadRequest request) throws Exception;
+  protected abstract T createRequestContext(Protocol.ReadRequest request) throws Exception;
 
   /**
    * Completes the read request. When the request is closed, we should clean up any temporary state
@@ -334,7 +249,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    * @param bytesRead bytes read
    */
   private void incrementMetrics(long bytesRead) {
-    Counter counter = mRequest.getCounter();
+    Counter counter = mContext.getCounter();
     Preconditions.checkState(counter != null);
     counter.inc(bytesRead);
   }
@@ -365,14 +280,15 @@ abstract class AbstractReadHandler<T extends ReadRequest>
 
       try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(
-            mPosToWriteUncommitted - mPosToWrite <= mRequest.getPacketSize(),
+            mPosToWriteUncommitted - mContext.getPosToWrite()
+                <= mContext.getRequest().getPacketSize(),
             "Some packet is not acked.");
-        incrementMetrics(mPosToWriteUncommitted - mPosToWrite);
-        mPosToWrite = mPosToWriteUncommitted;
+        incrementMetrics(mPosToWriteUncommitted - mContext.getPosToWrite());
+        mContext.setPosToWrite(mPosToWriteUncommitted);
 
         if (shouldRestartPacketReader()) {
-          mPacketReaderExecutor.submit(createPacketReader(mRequest, future.channel()));
-          mPacketReaderActive = true;
+          mPacketReaderExecutor.submit(createPacketReader(mContext, future.channel()));
+          mContext.setPacketReaderActive(true);
         }
       }
     }
@@ -382,8 +298,9 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      */
     @GuardedBy("mLock")
     private boolean shouldRestartPacketReader() {
-      return !mPacketReaderActive && !tooManyPendingPackets() && mPosToQueue < mRequest.getEnd()
-          && mError == null && !mCancel && !mEof;
+      return !mContext.isPacketReaderActive() && !tooManyPendingPackets()
+          && mContext.getPosToQueue() < mContext.getRequest().getEnd()
+          && mContext.getError() == null && !mContext.isCancel() && !mContext.isEof();
     }
   }
 
@@ -392,16 +309,18 @@ abstract class AbstractReadHandler<T extends ReadRequest>
    */
   protected abstract class PacketReader implements Runnable {
     private final Channel mChannel;
-    private final T mRequest;
+    private final T mContext;
+    private final ReadRequest mRequest;
 
     /**
      * Creates an instance of the {@link PacketReader}.
      *
-     * @param request request to complete
+     * @param context request to complete
      * @param channel the channel
      */
-    PacketReader(T request, Channel channel) {
-      mRequest = request;
+    PacketReader(T context, Channel channel) {
+      mContext = context;
+      mRequest = context.getRequest();
       mChannel = channel;
     }
 
@@ -423,16 +342,17 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         final long start;
         final int packetSize;
         try (LockResource lr = new LockResource(mLock)) {
-          start = mPosToQueue;
-          eof = mEof;
-          cancel = mCancel;
-          error = mError;
+          start = mContext.getPosToQueue();
+          eof = mContext.isEof();
+          cancel = mContext.isCancel();
+          error = mContext.getError();
 
           if (eof || cancel || error != null || tooManyPendingPackets()) {
-            mPacketReaderActive = false;
+            mContext.setPacketReaderActive(false);
             break;
           }
-          packetSize = (int) Math.min(mRequest.getEnd() - mPosToQueue, mRequest.getPacketSize());
+          packetSize = (int) Math.min(mRequest.getEnd() - mContext.getPosToQueue(),
+              mRequest.getPacketSize());
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
@@ -440,7 +360,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
 
         DataBuffer packet;
         try {
-          packet = getDataBuffer(mRequest, mChannel, start, packetSize);
+          packet = getDataBuffer(mContext, mChannel, start, packetSize);
         } catch (Exception e) {
           LOG.error("Failed to read data.", e);
           setError(mChannel, new Error(AlluxioStatusException.fromThrowable(e), true));
@@ -448,7 +368,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         }
         if (packet != null) {
           try (LockResource lr = new LockResource(mLock)) {
-            mPosToQueue += packet.getLength();
+            mContext.setPosToQueue(mContext.getPosToQueue() + packet.getLength());
           }
         }
         if (packet == null || packet.getLength() < packetSize
@@ -468,7 +388,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         try {
           // mRequest is null if an exception is thrown when initializing mRequest.
           if (mRequest != null) {
-            completeRequest(mRequest);
+            completeRequest(mContext);
           }
         } catch (Exception e) {
           LOG.error("Failed to close the request.", e);
@@ -478,7 +398,7 @@ abstract class AbstractReadHandler<T extends ReadRequest>
         }
       } else if (eof || cancel) {
         try {
-          completeRequest(mRequest);
+          completeRequest(mContext);
         } catch (IOException e) {
           setError(mChannel, new Error(AlluxioStatusException.fromIOException(e), true));
         } catch (Exception e) {
@@ -524,8 +444,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      * Writes a success response.
      */
     private void replyEof() {
-      Preconditions.checkState(!mDone);
-      mDone = true;
+      Preconditions.checkState(!mContext.isDone());
+      mContext.setDone(true);
       mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
@@ -534,8 +454,8 @@ abstract class AbstractReadHandler<T extends ReadRequest>
      * Writes a cancel response.
      */
     private void replyCancel() {
-      Preconditions.checkState(!mDone);
-      mDone = true;
+      Preconditions.checkState(!mContext.isDone());
+      mContext.setDone(true);
       mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }

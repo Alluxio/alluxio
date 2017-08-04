@@ -272,7 +272,7 @@ final class BlockReadHandler extends AbstractReadHandler<BlockReadHandler.BlockR
   }
 
   @Override
-  protected BlockReadRequest createRequest(Protocol.ReadRequest request) throws Exception {
+  protected BlockReadRequest createRequestContext(Protocol.ReadRequest request) throws Exception {
     return new BlockReadRequest(request);
   }
 
