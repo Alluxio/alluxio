@@ -334,7 +334,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         mBlockWriter = mLocalBlockStore.getBlockWriter(
             mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }
-    } catch(BlockAlreadyExistsException e) {
+    } catch (BlockAlreadyExistsException e) {
       // This can happen when there are concurrent UFS readers who are all trying to cache to block.
       LOG.warn(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]."
