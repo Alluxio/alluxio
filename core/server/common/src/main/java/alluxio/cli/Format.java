@@ -50,8 +50,12 @@ public final class Format {
     WORKER,
   }
 
-  private static void formatWorkerDataFolder(String name, String folder) throws IOException {
-    LOG.info("Formatting {}:{}", name, folder);
+  /**
+   * Formats the worker data folder.
+   *
+   * @param folder folder path
+   */
+  private static void formatWorkerDataFolder(String folder) throws IOException {
     Path path = Paths.get(folder);
     if (Files.exists(path)) {
       FileUtils.deletePathRecursively(folder);
@@ -125,7 +129,8 @@ public final class Format {
           String name = "Data path for tier " + level;
           for (String dirPath : dirPaths) {
             String dirWorkerDataFolder = PathUtils.getWorkerDataDirectory(dirPath);
-            formatWorkerDataFolder(name, dirWorkerDataFolder);
+            LOG.info("Formatting {}:{}", name, dirWorkerDataFolder);
+            formatWorkerDataFolder(dirWorkerDataFolder);
           }
         }
         break;
