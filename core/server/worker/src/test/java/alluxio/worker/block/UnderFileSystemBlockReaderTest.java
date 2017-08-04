@@ -66,9 +66,10 @@ public final class UnderFileSystemBlockReaderTest {
               .createTemporaryDirectory("UnderFileSystemBlockReaderTest-RootUfs")
               .getAbsolutePath());
           // ensure tiered storage uses different tmp dir for each test case
-          put(PropertyKey.WORKER_DATA_FOLDER, AlluxioTestDirectory
+          put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("UnderFileSystemBlockReaderTest-WorkerDataFolder")
               .getAbsolutePath());
+          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1");
         }
       });
 
