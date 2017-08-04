@@ -54,24 +54,24 @@ public final class ConfigurationDocGenerator {
     }
 
     FileWriter fileWriter;
-
-    // HashMap for FileWriter per each category
-    Map<String, FileWriter> fileWriterMap = new HashMap<>();
-    fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
-        "user-configuration.csv")));
-    fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
-        "master-configuration.csv")));
-    fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
-        "worker-configuration.csv")));
-    fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
-        "security-configuration.csv")));
-    fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
-        "key-value-configuration.csv")));
-    fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
-        "common-configuration.csv")));
-
     Closer closer = Closer.create();
+
     try {
+      // HashMap for FileWriter per each category
+      Map<String, FileWriter> fileWriterMap = new HashMap<>();
+      fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
+          "user-configuration.csv")));
+      fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
+          "master-configuration.csv")));
+      fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
+          "worker-configuration.csv")));
+      fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
+          "security-configuration.csv")));
+      fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
+          "key-value-configuration.csv")));
+      fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
+          "common-configuration.csv")));
+
       for (Map.Entry<String, FileWriter> entry : fileWriterMap.entrySet()) {
         // Write the CSV file header
         entry.getValue().append(CSV_FILE_HEADER);
@@ -139,24 +139,24 @@ public final class ConfigurationDocGenerator {
     }
 
     FileWriter fileWriter;
-
-    // HashMap for FileWriter per each category
-    Map<String, FileWriter> fileWriterMap = new HashMap<>();
-    fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
-        "user-configuration.yml")));
-    fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
-        "master-configuration.yml")));
-    fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
-        "worker-configuration.yml")));
-    fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
-        "security-configuration.yml")));
-    fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
-        "key-value-configuration.yml")));
-    fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
-        "common-configuration.yml")));
-
     Closer closer = Closer.create();
+
     try {
+      // HashMap for FileWriter per each category
+      Map<String, FileWriter> fileWriterMap = new HashMap<>();
+      fileWriterMap.put("user", new FileWriter(PathUtils.concatPath(filePath,
+          "user-configuration.yml")));
+      fileWriterMap.put("master", new FileWriter(PathUtils.concatPath(filePath,
+          "master-configuration.yml")));
+      fileWriterMap.put("worker", new FileWriter(PathUtils.concatPath(filePath,
+          "worker-configuration.yml")));
+      fileWriterMap.put("security", new FileWriter(PathUtils.concatPath(filePath,
+          "security-configuration.yml")));
+      fileWriterMap.put("keyvalue", new FileWriter(PathUtils.concatPath(filePath,
+          "key-value-configuration.yml")));
+      fileWriterMap.put("common", new FileWriter(PathUtils.concatPath(filePath,
+          "common-configuration.yml")));
+
       for (Map.Entry<String, FileWriter> entry : fileWriterMap.entrySet()) {
         // register file writer
         closer.register(entry.getValue());
