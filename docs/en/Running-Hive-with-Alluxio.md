@@ -182,13 +182,28 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-To use fault tolerant mode, set Alluxio scheme to be `alluxio-ft`:
+To use fault tolerant mode, set the Alluxio cluster properties appropriately (see example below) in
+an `alluxio-site.properties` file which is on the classpath.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
+
+Alternatively you can add the properties to the Hive `hive-site.xml` configuration which is then
+propagated to Alluxio.
 
 ```xml
-<property>
-   <name>fs.defaultFS</name>
-   <value>alluxio-ft:///</value>
-</property>
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
 ```
 
 

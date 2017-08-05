@@ -48,14 +48,31 @@ You need to add the following configuration items to the `core-site.xml` configu
   <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
 </property>
 ```
-If your Alluxio is HA, another configuration need to added:
-```xml
-<property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-  <description>The Alluxio FileSystem (Hadoop 1.x and 2.x) with fault tolerant support</description>
-</property>
+
+To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
+`alluxio-site.properties` file which is on the classpath.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
 ```
+
+Alternatively you can add the properties to the Hadoop `core-site.xml` configuration which is then
+propagated to Alluxio.
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
+```
+
 #### Configure additional Alluxio properties
 
 Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop configuration in Hadoop directory on each node.
