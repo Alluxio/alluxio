@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
+import alluxio.cli.validation.RamDiskSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
 import alluxio.cli.validation.Utils;
@@ -92,6 +93,11 @@ public final class ValidateEnv {
   private static final ValidationTask WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK = registerTask(
       "worker.ramdisk.mount.privilege", new RamDiskMountPrivilegeValidationTask());
 
+  // space validations
+  private static final ValidationTask WORKER_RAMDISK_SPACE_VALIDATION_TASK = registerTask(
+      "worker.ramdisk.space",
+      new RamDiskSpaceValidationTask());
+
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
       initializeTargetTasks();
 
@@ -113,6 +119,7 @@ public final class ValidateEnv {
         PROXY_WEB_VALIDATION_TASK,
         MASTERS_SSH_VALIDATION_TASK,
         WORKERS_SSH_VALIDATION_TASK,
+        WORKER_RAMDISK_SPACE_VALIDATION_TASK,
         UFS_ROOT_VALIDATION_TASK
     ));
     targetMap.put("local", TASKS.keySet());
