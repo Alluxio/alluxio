@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.SshValidationTask;
+import alluxio.cli.validation.UfsDirectoryValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -81,6 +82,11 @@ public final class ValidateEnv {
       "workers.ssh.reachable",
       new SshValidationTask("workers"));
 
+  // UFS validations
+  private static final ValidationTask UFS_ROOT_VALIDATION_TASK = registerTask(
+      "ufs.root.accessible",
+      new UfsDirectoryValidationTask());
+
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
       initializeTargetTasks();
 
@@ -91,7 +97,8 @@ public final class ValidateEnv {
         MASTER_WEB_VALIDATION_TASK,
         PROXY_WEB_VALIDATION_TASK,
         MASTERS_SSH_VALIDATION_TASK,
-        WORKERS_SSH_VALIDATION_TASK
+        WORKERS_SSH_VALIDATION_TASK,
+        UFS_ROOT_VALIDATION_TASK
     ));
     targetMap.put("worker", Arrays.asList(
         WORKER_DATA_VALIDATION_TASK,
@@ -99,7 +106,8 @@ public final class ValidateEnv {
         WORKER_WEB_VALIDATION_TASK,
         PROXY_WEB_VALIDATION_TASK,
         MASTERS_SSH_VALIDATION_TASK,
-        WORKERS_SSH_VALIDATION_TASK
+        WORKERS_SSH_VALIDATION_TASK,
+        UFS_ROOT_VALIDATION_TASK
     ));
     targetMap.put("local", TASKS.keySet());
     return targetMap;
