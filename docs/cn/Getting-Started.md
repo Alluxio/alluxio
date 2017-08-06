@@ -112,7 +112,7 @@ Copied LICENSE to /LICENSE
 $ ./bin/alluxio fs ls /
 26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
 ```
-输出显示`LICENSE`文件在Alluxio中，也包含一些其他的有用信息，比如文件的大小，创建的日期，文件的in-memory状态。
+输出显示`LICENSE`文件在Alluxio中，也包含一些其他的有用信息，比如文件的大小，创建的日期，文件的in-Alluxio状态。
 
 你也可以通过Alluxio shell来查看文件的内容。`cat`命令可以打印文件的内容。
 

@@ -25,7 +25,7 @@
           <li id="browse-li"><a href="./browse?path=/">Browse</a></li>
           <li id="configuration-li"><a href="./configuration">Configuration</a></li>
           <li id="workers-li"><a href="./workers">Workers</a></li>
-          <li id="memory-li"><a href="./memory">In-Memory Data</a></li>
+          <li id="memory-li"><a href="./memory">In-Alluxio Data</a></li>
         <% } else {%>
           <li id="blockInfo-li"><a href="./blockInfo">BlockInfo</a></li>
         <% } %>

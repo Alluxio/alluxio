@@ -74,7 +74,7 @@ Alluxio支持在给出具体的路径时，透明的从底层文件系统中取�
 打开浏览器，查看[http://localhost:19999/browse](http://localhost:19999/browse)。可以发现多出一个输出文件`LICENSE2`,
 每一行是由文件`LICENSE`的对应行复制2次得到。并且，现在`LICENSE`文件出现在Alluxio文件系统空间。
 
-注意：部分读取的块缓存默认是开启的，但如果已经将这个选项关闭的话，`LICENSE`文件很可能不在Alluxio存储（非In-Memory)中。这是因为Alluxio只存储完整读入块，如果文件太小，Spark作业中，每个executor读入部分块。为了避免这种情况，你可以在Spark中定制分块数目。对于这个例子，由于只有一个块，我们将设置分块数为1。
+注意：部分读取的块缓存默认是开启的，但如果已经将这个选项关闭的话，`LICENSE`文件很可能不在Alluxio存储（非In-Alluxio)中。这是因为Alluxio只存储完整读入块，如果文件太小，Spark作业中，每个executor读入部分块。为了避免这种情况，你可以在Spark中定制分块数目。对于这个例子，由于只有一个块，我们将设置分块数为1。
 
   {% include Running-Spark-on-Alluxio/alluxio-one-partition.md %}
 

@@ -275,7 +275,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<>();
         ArrayList<String> hosts = new ArrayList<>();
-        // add the existing in-memory block locations
+        // add the existing in-Alluxio block locations
         for (alluxio.wire.BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
           HostAndPort address = HostAndPort.fromParts(location.getWorkerAddress().getHost(),
               location.getWorkerAddress().getDataPort());
@@ -540,12 +540,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
+   * @deprecated in 1.6.0, directly infer the value from {@link PropertyKey#ZOOKEEPER_ENABLED}
+   * configuration value.
+   *
    * Determines if zookeeper should be used for the {@link org.apache.hadoop.fs.FileSystem}. This
    * method should only be used for
    * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
    *
    * @return true if zookeeper should be used
    */
+  @Deprecated
   protected abstract boolean isZookeeperMode();
 
   @Override

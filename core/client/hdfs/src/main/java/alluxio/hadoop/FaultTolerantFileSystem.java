@@ -13,9 +13,15 @@ package alluxio.hadoop;
 
 import alluxio.Constants;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
+ * @deprecated as of 1.6.0. Use {@link AlluxioFileSystem} instead and configure the fault tolerant
+ * options appropriately (alluxio.zookeeper.*).
+ *
  * An Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
  * interface. Any program working with Hadoop HDFS can work with Alluxio transparently. Note that
  * the performance of using this fault tolerant API may not be as efficient as the performance of
@@ -27,7 +33,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </p>
  */
 @NotThreadSafe
+@Deprecated
 public final class FaultTolerantFileSystem extends AbstractFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(FaultTolerantFileSystem.class);
 
   /**
    * Constructs a new {@link FaultTolerantFileSystem}.
@@ -44,6 +52,8 @@ public final class FaultTolerantFileSystem extends AbstractFileSystem {
    */
   public FaultTolerantFileSystem(alluxio.client.file.FileSystem fileSystem) {
     super(fileSystem);
+    LOG.warn("The alluxio-ft:// scheme is deprecated, use the alluxio:// scheme and configure the "
+        + "Zookeeper properties (alluxio.zookeeper.*) instead.");
   }
 
   @Override

@@ -405,7 +405,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     createUfsInStream(ReadType.CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertEquals(100, statusUfsOnlyFile.getInMemoryPercentage());
+    Assert.assertEquals(100, statusUfsOnlyFile.getInAlluxioPercentage());
   }
 
   @Test
@@ -413,7 +413,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     createUfsInStreamNoPartialcache(ReadType.CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN - 1]);
     URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertEquals(0, statusUfsOnlyFile.getInMemoryPercentage());
+    Assert.assertEquals(0, statusUfsOnlyFile.getInAlluxioPercentage());
   }
 
   @Test
@@ -421,7 +421,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     createUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertEquals(0, statusUfsOnlyFIle.getInMemoryPercentage());
+    Assert.assertEquals(0, statusUfsOnlyFIle.getInAlluxioPercentage());
   }
 
   @Test
@@ -429,6 +429,6 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     createUfsInStreamNoPartialcache(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertEquals(0, statusUfsOnlyFIle.getInMemoryPercentage());
+    Assert.assertEquals(0, statusUfsOnlyFIle.getInAlluxioPercentage());
   }
 }

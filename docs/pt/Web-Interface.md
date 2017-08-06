@@ -74,9 +74,9 @@ Os arquivos no diretório atual estão listados com o nome do arquivo, tamanho d
 cada bloco, percentual do dado em memória, tempo de criação e tempo de modificação. Para visualizar o
 conteúdo de um arquivo, clique neste arquivo.
 
-### Browse In-Memory Files Page
+### Browse In-Alluxio Files Page
 
-Para navegar em todos os arquivos em memória, clique na aba "In-Memory Files" dentro da barra de navegação.
+Para navegar em todos os arquivos em memória, clique na aba "In-Alluxio Files" dentro da barra de navegação.
 
 ![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
 

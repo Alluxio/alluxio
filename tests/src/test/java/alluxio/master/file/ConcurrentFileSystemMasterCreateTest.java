@@ -13,10 +13,10 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -95,10 +95,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
             limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
   }
 
   /**
@@ -120,10 +122,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
             limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
   }
 
   /**
@@ -145,10 +149,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
             limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
   }
 
   @Test
@@ -292,7 +298,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
       }
     }
 
-    int errors = 0;
+    List<Throwable> errors;
     if (listParentDir) {
       errors = ConcurrentFileSystemMasterUtils
           .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
@@ -302,7 +308,9 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.GET_FILE_INFO,
               paths, limitMs);
     }
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
 
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
         LoadMetadataType.Never);

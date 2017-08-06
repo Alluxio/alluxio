@@ -703,6 +703,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
+    fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode instanceof InodeFile) {
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
@@ -930,11 +931,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // Iterate over all file blocks committed to Alluxio, computing the length and verify that all
     // the blocks (except the last one) is the same size as the file block size.
-    long inMemoryLength = 0;
+    long inAlluxioLength = 0;
     long fileBlockSize = fileInode.getBlockSizeBytes();
     for (int i = 0; i < blockInfoList.size(); i++) {
       BlockInfo blockInfo = blockInfoList.get(i);
-      inMemoryLength += blockInfo.getLength();
+      inAlluxioLength += blockInfo.getLength();
       if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
         throw new BlockInfoException(
             "Block index " + i + " has a block size smaller than the file block size (" + fileInode
@@ -943,8 +944,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // If the file is persisted, its length is determined by UFS. Otherwise, its length is
-    // determined by its memory footprint.
-    long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
+    // determined by its size in Alluxio.
+    long length = fileInode.isPersisted() ? options.getUfsLength() : inAlluxioLength;
 
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
         false);
@@ -1510,13 +1511,37 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * Returns whether the inodeFile is fully in memory or not. The file is fully in memory only if
-   * all the blocks of the file are in memory, in other words, the in memory percentage is 100.
+   * Returns whether the inodeFile is fully in Alluxio or not. The file is fully in Alluxio only if
+   * all the blocks of the file are in Alluxio, in other words, the in-Alluxio percentage is 100.
    *
-   * @return true if the file is fully in memory, false otherwise
+   * @return true if the file is fully in Alluxio, false otherwise
+   */
+  private boolean isFullyInAlluxio(InodeFile inode) {
+    return getInAlluxioPercentage(inode) == 100;
+  }
+
+  /**
+   * Returns whether the inodeFile is fully in memory or not. The file is fully in memory only if
+   * all the blocks of the file are in memory, in other words, the in-memory percentage is 100.
+   *
+   * @return true if the file is fully in Alluxio, false otherwise
    */
   private boolean isFullyInMemory(InodeFile inode) {
     return getInMemoryPercentage(inode) == 100;
+  }
+
+  @Override
+  public List<AlluxioURI> getInAlluxioFiles() {
+    List<AlluxioURI> files = new ArrayList<>();
+    Inode root = mInodeTree.getRoot();
+    // Root has no parent, lock directly.
+    root.lockRead();
+    try {
+      getInAlluxioFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), files);
+    } finally {
+      root.unlockRead();
+    }
+    return files;
   }
 
   @Override
@@ -1534,7 +1559,40 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * Adds in memory files to the array list passed in. This method assumes the inode passed in is
+   * Adds in-Alluxio files to the array list passed in. This method assumes the inode passed in is
+   * already read locked.
+   *
+   * @param inode the root of the subtree to search
+   * @param uri the uri of the parent of the inode
+   * @param files the list to accumulate the results in
+   */
+  private void getInAlluxioFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) {
+    AlluxioURI newUri = uri.join(inode.getName());
+    if (inode.isFile()) {
+      if (isFullyInAlluxio((InodeFile) inode)) {
+        files.add(newUri);
+      }
+    } else {
+      // This inode is a directory.
+      Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
+      for (Inode<?> child : children) {
+        try {
+          child.lockReadAndCheckParent(inode);
+        } catch (InvalidPathException e) {
+          // Inode is no longer part of this directory.
+          continue;
+        }
+        try {
+          getInAlluxioFilesInternal(child, newUri, files);
+        } finally {
+          child.unlockRead();
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds in-memory files to the array list passed in. This method assumes the inode passed in is
    * already read locked.
    *
    * @param inode the root of the subtree to search
@@ -1567,8 +1625,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * Gets the in-memory percentage of an Inode. For a file that has all blocks in memory, it returns
-   * 100; for a file that has no block in memory, it returns 0. Returns 0 for a directory.
+   * Gets the in-memory percentage of an Inode. For a file that has all blocks in Alluxio, it
+   * returns 100; for a file that has no block in memory, it returns 0. Returns 0 for a directory.
    *
    * @param inode the inode
    * @return the in memory percentage
@@ -1591,6 +1649,33 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     return (int) (inMemoryLength * 100 / length);
+  }
+
+  /**
+   * Gets the in-Alluxio percentage of an Inode. For a file that has all blocks in Alluxio, it
+   * returns 100; for a file that has no block in Alluxio, it returns 0. Returns 0 for a directory.
+   *
+   * @param inode the inode
+   * @return the in alluxio percentage
+   */
+  private int getInAlluxioPercentage(Inode<?> inode) {
+    if (!inode.isFile()) {
+      return 0;
+    }
+    InodeFile inodeFile = (InodeFile) inode;
+
+    long length = inodeFile.getLength();
+    if (length == 0) {
+      return 100;
+    }
+
+    long inAlluxioLength = 0;
+    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+      if (!info.getLocations().isEmpty()) {
+        inAlluxioLength += info.getLength();
+      }
+    }
+    return (int) (inAlluxioLength * 100 / length);
   }
 
   /**
