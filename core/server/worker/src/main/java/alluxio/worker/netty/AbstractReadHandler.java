@@ -234,7 +234,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
    * @param request the block read request
    * @return an instance of read request based on the request read from channel
    */
-  protected abstract T createRequestContext(Protocol.ReadRequest request) throws Exception;
+  protected abstract T createRequestContext(Protocol.ReadRequest request);
 
   /**
    * Completes the read request. When the request is closed, we should clean up any temporary state

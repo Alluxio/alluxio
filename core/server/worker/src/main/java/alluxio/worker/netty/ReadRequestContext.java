@@ -19,26 +19,26 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Represents a read request received from netty channel.
+ * @param <T> type of read request
  */
 @ThreadSafe
-class ReadRequestContext {
-  private final ReadRequest mRequest;
+class ReadRequestContext<T extends ReadRequest> {
+
+  /** The requests of this context. */
+  private final T mRequest;
 
   /**
    * Set to true if the packet reader is active. The following invariants must be maintained:
    * 1. If true, there will be at least one more packet (data, eof or error) to be sent to netty.
    * 2. If false, there will be no more packets sent to netty until it is set to true again.
    */
-  @GuardedBy("mLock")
   private boolean mPacketReaderActive;
   /**
    * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the bytes that are
    * in netty buffer.
    */
-  @GuardedBy("mLock")
   private long mPosToQueue;
   /** The next pos to write to the channel. */
-  @GuardedBy("mLock")
   private long mPosToWrite;
 
   /**
@@ -65,19 +65,16 @@ class ReadRequestContext {
    * because the packet reader thread won't be restarted as long as mCancel or mEof is set except
    * when error happens (mError overrides mCancel and mEof).
    */
-  @GuardedBy("mLock")
   private boolean mEof;
-  @GuardedBy("mLock")
   private boolean mCancel;
-  @GuardedBy("mLock")
   private Error mError;
+
+  private Counter mCounter;
 
   /** This is set when the SUCCESS or CANCEL response is sent. This is only for sanity check. */
   private volatile boolean mDone;
 
-  private Counter mCounter;
-
-  ReadRequestContext(ReadRequest request) {
+  ReadRequestContext(T request) {
     mRequest = request;
     mPosToQueue = 0;
     mPosToWrite = 0;
@@ -89,74 +86,127 @@ class ReadRequestContext {
   }
 
   /**
-   * @return request
+   * @return request received from channel
    */
-  public ReadRequest getRequest() {
+  public T getRequest() {
     return mRequest;
   }
 
+  /**
+   * @return whether the packet reader is active
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public boolean isPacketReaderActive() {
     return mPacketReaderActive;
   }
 
+  /**
+   * @return the next position to queue to the netty buffer
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public long getPosToQueue() {
     return mPosToQueue;
   }
 
+  /**
+   * @return the next position to write to the channel
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public long getPosToWrite() {
     return mPosToWrite;
   }
 
+  /**
+   * @return true when the packet reader replies a SUCCESS response, false otherwise
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public boolean isEof() {
     return mEof;
   }
 
+  /**
+   * @return true when a CANCEL request is received by the client, false otherwise
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public boolean isCancel() {
     return mCancel;
   }
 
+  /**
+   * @return the error during this read request
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   @Nullable
   public Error getError() {
     return mError;
   }
 
+  /**
+   * @return true when the SUCCESS or CANCEL response is sent, false otherwise
+   */
   public boolean isDone() {
     return mDone;
   }
 
   /**
-   * @return counter
+   * @return metrics counter associated with this request
    */
   @Nullable
   public Counter getCounter() {
     return mCounter;
   }
 
+  /**
+   * @param packetReaderActive packet reader state to set
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public void setPacketReaderActive(boolean packetReaderActive) {
     mPacketReaderActive = packetReaderActive;
   }
 
+  /**
+   * @param posToQueue the next position to queue to the netty buffer to set
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public void setPosToQueue(long posToQueue) {
     mPosToQueue = posToQueue;
   }
 
+  /**
+   * @param posToWrite the next pos to write to the channel to set
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public void setPosToWrite(long posToWrite) {
     mPosToWrite = posToWrite;
   }
 
-
+  /**
+   * @param eof whether SUCCESS response is replied
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public void setEof(boolean eof) {
     mEof = eof;
   }
 
+  /**
+   * @param cancel whether the CANCEL request is received
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public void setCancel(boolean cancel) {
     mCancel = cancel;
   }
 
+  /**
+   * @param error the error
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
   public void setError(Error error) {
     mError = error;
   }
 
+  /**
+   * @param done whether the SUCCESS or CANCEL response is sent
+   */
   public void setDone(boolean done) {
     mDone = done;
   }
