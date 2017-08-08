@@ -41,7 +41,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link UfsFileWriteHandler}.
  */
-public final class UfsFileWriteHandlerTest extends DataServerWriteHandlerTest {
+public final class UfsFileWriteHandlerTest extends WriteHandlerTest {
   private final Random mRandom = new Random();
 
   private OutputStream mOutputStream;

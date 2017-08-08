@@ -33,7 +33,7 @@ import org.junit.Test;
 /**
  * Test for {@link UnsupportedMessageHandler}.
  */
-public class DataServerUnsupportedMessageHandlerTest {
+public class UnsupportedMessageHandlerTest {
   private EmbeddedChannel mChannel;
 
   @Before

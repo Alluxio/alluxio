@@ -32,7 +32,7 @@ import java.io.RandomAccessFile;
 /**
  * Unit tests for {@link AbstractWriteHandler}.
  */
-public abstract class DataServerWriteHandlerTest {
+public abstract class WriteHandlerTest {
   protected static final int PACKET_SIZE = 1024;
   protected static final int EOF = 0;
   protected static final int CANCEL = -1;

@@ -41,7 +41,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Random;
 
-public abstract class DataServerReadHandlerTest {
+public abstract class ReadHandlerTest {
   protected static final long PACKET_SIZE =
       Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
   private final Random mRandom = new Random();

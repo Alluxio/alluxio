@@ -20,6 +20,7 @@ import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -154,7 +155,8 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
               .setMode(new Mode((short) createUfsFileOptions.getMode()))));
       String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
-      context.setCounter(MetricsSystem.workerCounter(metricName));
+      Counter counter = MetricsSystem.workerCounter(metricName);
+      context.setCounter(counter);
     }
   }
 }

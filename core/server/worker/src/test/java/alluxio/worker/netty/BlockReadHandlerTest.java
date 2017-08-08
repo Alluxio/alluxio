@@ -31,7 +31,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LocalFileBlockReader.class})
-public final class BlockReadHandlerTest extends DataServerReadHandlerTest {
+public final class BlockReadHandlerTest extends ReadHandlerTest {
   private BlockWorker mBlockWorker;
   private BlockReader mBlockReader;
 

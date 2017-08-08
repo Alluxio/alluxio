@@ -36,7 +36,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link BlockWriteHandler}.
  */
-public final class BlockWriteHandlerTest extends DataServerWriteHandlerTest {
+public final class BlockWriteHandlerTest extends WriteHandlerTest {
   private final Random mRandom = new Random();
 
   private BlockWorker mBlockWorker;

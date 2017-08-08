@@ -14,8 +14,6 @@ package alluxio.worker.netty;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UnderFileSystem;
 
-import com.codahale.metrics.Counter;
-
 import java.io.OutputStream;
 
 import javax.annotation.Nullable;
@@ -28,7 +26,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFileWriteRequest> {
   private UnderFileSystem mUnderFileSystem;
   private OutputStream mOutputStream;
-  private Counter mCounter;
 
   UfsFileWriteRequestContext(Protocol.WriteRequest request) {
     super(new UfsFileWriteRequest(request));
@@ -48,14 +45,6 @@ public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFil
   @Nullable
   public UnderFileSystem getUnderFileSystem() {
     return mUnderFileSystem;
-  }
-
-  /**
-   * @return the counter
-   */
-  @Nullable
-  public Counter getCounter() {
-    return mCounter;
   }
 
   /**

@@ -211,7 +211,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   private void reset() {
     try (LockResource lr = new LockResource(mLock)) {
-      Preconditions.checkState(!mContext.isPacketReaderActive());
       mContext = null;
     }
   }
