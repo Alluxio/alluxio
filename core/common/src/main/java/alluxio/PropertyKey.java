@@ -2211,7 +2211,7 @@ public class PropertyKey {
      * @return corresponding property
      */
     public PropertyKey format(Object... params) {
-      return new PropertyKey(String.format(mFormat, params));
+      return new PropertyKey(String.format(mFormat, params), "");
     }
   }
 
@@ -2251,7 +2251,7 @@ public class PropertyKey {
     for (Template template : Template.values()) {
       Matcher matcher = template.mPattern.matcher(input);
       if (matcher.matches()) {
-        return new PropertyKey(input);
+        return new PropertyKey(input, "");
       }
     }
     throw new IllegalArgumentException(
@@ -2269,13 +2269,15 @@ public class PropertyKey {
   private final String mName;
 
   /** Property Key description. */
-  private String mDescription;
+  private final String mDescription;
 
   /**
    * @param name String of this property
+   * @param description String description of this property key*
    */
-  PropertyKey(String name) {
+  PropertyKey(String name, String description) {
     mName = Preconditions.checkNotNull(name, "name");
+    mDescription = description;
   }
 
   /**
@@ -2289,7 +2291,7 @@ public class PropertyKey {
    */
   static PropertyKey create(String name, Object defaultValue, String[] aliases,
                             String description) {
-    PropertyKey key = new PropertyKey(name);
+    PropertyKey key = new PropertyKey(name, description);
     DEFAULT_KEYS_MAP.put(name, key);
     DEFAULT_VALUES.put(key, defaultValue);
     if (aliases != null) {
@@ -2297,7 +2299,6 @@ public class PropertyKey {
         DEFAULT_KEYS_MAP.put(alias, key);
       }
     }
-    key.mDescription = description;
     return key;
   }
 
@@ -2359,7 +2360,7 @@ public class PropertyKey {
    */
   public static boolean isDeprecated(String name) {
     try {
-      PropertyKey key = new PropertyKey(name);
+      PropertyKey key = new PropertyKey(name, "");
       Class c = key.getClass();
       Field field = c.getDeclaredField(name);
       Annotation[] annotations = field.getDeclaredAnnotations();

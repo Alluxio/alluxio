@@ -80,11 +80,10 @@ public final class ConfigurationDocGenerator {
       for (PropertyKey iteratorPK : dfkeys) {
         String pKey = iteratorPK.toString();
         String value;
-        PropertyKey pk = PropertyKey.fromString(pKey);
-        if (pk.getDefaultValue() == null) {
+        if (iteratorPK.getDefaultValue() == null) {
           value = "";
         } else {
-          value = pk.getDefaultValue();
+          value = iteratorPK.getDefaultValue();
         }
 
         // Write property key and default value to CSV
