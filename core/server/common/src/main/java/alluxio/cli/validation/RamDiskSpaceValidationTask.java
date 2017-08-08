@@ -13,8 +13,8 @@ package alluxio.cli.validation;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.util.FormatUtils;
 
 import java.io.File;
 
@@ -43,17 +43,23 @@ public final class RamDiskSpaceValidationTask implements ValidationTask {
     try {
       path = new AlluxioURI(path).getPath();
       File file = new File(path);
-      if (!file.exists() || !file.isDirectory()) {
+      if (!file.exists()) {
         System.out.format("RAM disk is not mounted at %s, skip validation.%n", path);
         return true;
+      }
+
+      if (!file.isDirectory()) {
+        System.err.format("Path %s is not a directory.%n", path);
+        return false;
       }
 
       long availableSpace = file.getTotalSpace();
       if (availableSpace < requiredSpace) {
         System.err.format(
             "Not enough space in RAM disk at location %s.%n"
-            + "Required: %dMB; Available: %dMB.%n", path,
-            requiredSpace / Constants.MB, availableSpace / Constants.MB);
+            + "Required: %s; Available: %s.%n", path,
+            FormatUtils.getSizeFromBytes(requiredSpace),
+            FormatUtils.getSizeFromBytes(availableSpace));
         return false;
       }
 
