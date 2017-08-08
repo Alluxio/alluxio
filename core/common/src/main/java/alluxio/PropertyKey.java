@@ -151,6 +151,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.network.host.resolution.timeout.ms"})
           .setDefaultValue("5sec")
           .setDescription("During startup of the Master and Worker processes Alluxio needs to "
               + "ensure that they are listening on externally resolvable and reachable host "
@@ -161,6 +162,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS)
+          .setAlias(new String[] {"alluxio.network.netty.heartbeat.timeout.ms"})
           .setDefaultValue("30sec")
           .setDescription("The amount of time the server will wait before closing a netty "
               + "connection if there has not been any incoming traffic. The client will "
@@ -323,6 +325,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_CONNECT_TIMEOUT)
+          .setAlias(new String[]{"alluxio.underfs.oss.connection.timeout.ms"})
           .setDefaultValue("50sec")
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_TTL =
@@ -331,6 +334,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_SOCKET_TIMEOUT)
+          .setAlias(new String[]{"alluxio.underfs.oss.socket.timeout.ms"})
           .setDefaultValue("50sec")
           .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
@@ -401,6 +405,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.underfs.s3a.consistency.timeout.ms"})
           .setDefaultValue("1min")
           .setDescription("The duration to wait for metadata consistency from the under "
               + "storage. This is only used by internal Alluxio operations which should be "
@@ -425,6 +430,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.underfs.s3a.request.timeout.ms"})
           .setDefaultValue("1min")
           .setDescription("The timeout for a single request to S3. Infinity if set to 0. "
               + "Setting this property to a non-zero value can improve performance by "
@@ -450,6 +456,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms"})
           .setDefaultValue("50sec")
           .setDescription("Length of the socket timeout when communicating with s3.")
           .build();
@@ -516,6 +523,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
           .setDefaultValue("0ms")
           .setDescription("Timeout (in milliseconds) between master and client.")
           .build();
@@ -533,6 +541,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The interval (in milliseconds) between Alluxio master's heartbeats")
           .build();
@@ -541,11 +550,13 @@ public class PropertyKey {
       .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
+          .setAlias(new String[]{"alluxio.master.journal.flush.batch.time.ms"})
           .setDefaultValue("5ms")
           .setDescription("Time (in milliseconds) to wait for batching journal writes.")
           .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.master.journal.flush.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("The amount of time (in milliseconds) to keep retrying journal "
               + "writes before giving up and shutting down the master.")
@@ -572,6 +583,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS)
+          .setAlias(new String[]{"alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"})
           .setDefaultValue("5sec")
           .setDescription("Before the standby master shuts down its tailer thread, there "
               + "should be no update to the leader master's journal in this specified time "
@@ -579,6 +591,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS)
+          .setAlias(new String[]{"alluxio.master.journal.tailer.sleep.time.ms"})
           .setDefaultValue("1sec")
           .setDescription("Time (in milliseconds) the standby master sleeps for when it "
               + "cannot find anything new in leader master's journal.")
@@ -589,14 +602,17 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_JOURNAL_GC_PERIOD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_PERIOD_MS)
+          .setAlias(new String[] {"alluxio.master.journal.gc.period.ms"})
           .setDefaultValue("2min")
           .build();
   public static final PropertyKey MASTER_JOURNAL_GC_THRESHOLD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_THRESHOLD_MS)
+          .setAlias(new String[]{"alluxio.master.journal.gc.threshold.ms"})
           .setDefaultValue("5min")
           .build();
   public static final PropertyKey MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
       new Builder(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
+          .setAlias(new String[]{"alluxio.master.journal.temporary.file.gc.threshold.ms"})
           .setDefaultValue("30min")
           .build();
   public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
@@ -612,12 +628,14 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
       new Builder(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.master.lineage.checkpoint.interval.ms"})
           .setDefaultValue("5min")
           .setDescription("The interval (in milliseconds) between Alluxio's checkpoint "
               + "scheduling.")
           .build();
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
       new Builder(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.master.lineage.recompute.interval.ms"})
           .setDefaultValue("5min")
           .setDescription("The interval (in milliseconds) between Alluxio's recompute "
               + "execution. The executor scans the all the lost files tracked by lineage, and "
@@ -677,6 +695,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.master.ttl.checker.interval.ms"})
           .setDefaultValue("1hour")
           .setDescription("Time interval (in milliseconds) to periodically delete the files "
               + "with expired ttl value.")
@@ -736,6 +755,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.master.worker.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("Timeout (in milliseconds) between master and worker indicating a "
               + "lost worker.")
@@ -761,11 +781,13 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.worker.block.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The interval (in milliseconds) between block worker's heartbeats")
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.worker.block.heartbeat.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("The timeout value (in milliseconds) of block worker's heartbeat")
           .build();
@@ -875,6 +897,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.worker.filesystem.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The heartbeat interval (in milliseconds) between the worker and "
               + "file system master.")
@@ -997,6 +1020,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
       new Builder(Name.WORKER_SESSION_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.worker.session.timeout.ms"})
           .setDefaultValue("1min")
           .setDescription("Timeout (in milliseconds) between worker and client connection "
               + "indicating a lost session connection.")
@@ -1108,6 +1132,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.worker.tieredstore.reserver.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The time period (in milliseconds) of space reserver service, which "
               + "keeps certain portion of available space on each layer.")
@@ -1138,6 +1163,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.worker.ufs.block.open.timeout.ms"})
           .setDefaultValue("5min")
           .build();
 
@@ -1146,6 +1172,7 @@ public class PropertyKey {
   //
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
           .setDefaultValue("1hour")
           .build();
   public static final PropertyKey PROXY_WEB_BIND_HOST =
@@ -1215,6 +1242,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setAlias(new String[]{"alluxio.user.block.worker.client.pool.gc.threshold.ms"})
           .setDefaultValue(300 * Constants.SECOND_MS)
           .setDescription("A block worker client is closed if it has been idle for more than "
               + "this threshold.")
@@ -1294,6 +1322,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
+          .setAlias(new String[]{"alluxio.user.file.waitcompleted.poll.ms"})
           .setDefaultValue("1sec")
           .setDescription("The time interval to poll a file for its completion status when "
               + "using waitCompleted.")
@@ -1310,6 +1339,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setAlias(new String[]{"alluxio.user.file.worker.client.pool.gc.threshold.ms"})
           .setDefaultValue(300 * Constants.SECOND_MS)
           .build();
   public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
@@ -1346,6 +1376,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_HEARTBEAT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The interval (in milliseconds) between Alluxio worker's heartbeats")
           .build();
@@ -1375,6 +1406,7 @@ public class PropertyKey {
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL).build();
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.network.netty.timeout.ms"})
           .setDefaultValue(30000)
           .setDescription("The maximum number of milliseconds for a netty client (for block "
               + "reads and block writes) to wait for a response from the data server.")
@@ -1393,6 +1425,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS)
+          .setAlias(new String[]{"alluxio.user.network.netty.channel.pool.gc.threshold.ms"})
           .setDefaultValue(300 * Constants.SECOND_MS)
           .setDescription("A netty channel is closed if it has been idle for more than this "
               + "threshold.")
@@ -1413,6 +1446,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
           .setDefaultValue(300000)
           .setDescription("The maximum number of milliseconds to close a netty writer client.")
           .build();
@@ -1430,6 +1464,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_BASE_SLEEP_MS)
+          .setAlias(new String[]{"alluxio.user.rpc.retry.base.sleep.ms"})
           .setDefaultValue(50)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property detemines the base time in "
@@ -1444,6 +1479,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
+          .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
           .setDefaultValue("30sec")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property detemines the maximum wait time in "
@@ -1513,6 +1549,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.ufs.block.open.timeout.ms"})
           .setDefaultValue(300000)
           .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
@@ -1571,6 +1608,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
       new Builder(Name.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.security.authentication.socket.timeout.ms"})
           .setDefaultValue("10min")
           .setDescription("The maximum amount of time (in milliseconds) for a user to create "
               + "a Thrift socket which will connect to the master.")
@@ -1603,6 +1641,7 @@ public class PropertyKey {
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.security.group.mapping.cache.timeout.ms"})
           .setDefaultValue("1min")
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CLASS =
@@ -1725,9 +1764,9 @@ public class PropertyKey {
     public static final String LOGS_DIR = "alluxio.logs.dir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
-        "alluxio.network.host.resolution.timeout.ms";
+        "alluxio.network.host.resolution.timeout";
     public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
-        "alluxio.network.netty.heartbeat.timeout.ms";
+        "alluxio.network.netty.heartbeat.timeout";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
@@ -1767,18 +1806,18 @@ public class PropertyKey {
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
     public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
-        "alluxio.underfs.oss.connection.timeout.ms";
+        "alluxio.underfs.oss.connection.timeout";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
-    public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout.ms";
+    public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-        "alluxio.underfs.s3a.consistency.timeout.ms";
+        "alluxio.underfs.s3a.consistency.timeout";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
         "alluxio.underfs.s3a.list.objects.v1";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
-        "alluxio.underfs.s3a.request.timeout.ms";
+        "alluxio.underfs.s3a.request.timeout";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
         "alluxio.underfs.s3a.secure.http.enabled";
     public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
@@ -1786,7 +1825,7 @@ public class PropertyKey {
     public static final String UNDERFS_S3A_SIGNER_ALGORITHM =
         "alluxio.underfs.s3a.signer.algorithm";
     public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
-        "alluxio.underfs.s3a.socket.timeout.ms";
+        "alluxio.underfs.s3a.socket.timeout";
     public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
         "alluxio.underfs.s3.admin.threads.max";
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
@@ -1832,33 +1871,33 @@ public class PropertyKey {
     //
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
-        "alluxio.master.connection.timeout.ms";
+        "alluxio.master.connection.timeout";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
     public static final String MASTER_HEARTBEAT_INTERVAL_MS =
-        "alluxio.master.heartbeat.interval.ms";
+        "alluxio.master.heartbeat.interval";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
-        "alluxio.master.journal.flush.batch.time.ms";
+        "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
-        "alluxio.master.journal.flush.timeout.ms";
+        "alluxio.master.journal.flush.timeout";
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
         "alluxio.master.journal.formatter.class";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
         "alluxio.master.journal.log.size.bytes.max";
     public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
-        "alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms";
+        "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
-        "alluxio.master.journal.tailer.sleep.time.ms";
+        "alluxio.master.journal.tailer.sleep.time";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_LINEAGE_CHECKPOINT_CLASS =
         "alluxio.master.lineage.checkpoint.class";
     public static final String MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
-        "alluxio.master.lineage.checkpoint.interval.ms";
+        "alluxio.master.lineage.checkpoint.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
-        "alluxio.master.lineage.recompute.interval.ms";
+        "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
@@ -1875,7 +1914,7 @@ public class PropertyKey {
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
-        "alluxio.master.ttl.checker.interval.ms";
+        "alluxio.master.ttl.checker.interval";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
@@ -1886,14 +1925,14 @@ public class PropertyKey {
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
-    public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
+    public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
-    public static final String MASTER_JOURNAL_GC_PERIOD_MS = "alluxio.master.journal.gc.period.ms";
+    public static final String MASTER_JOURNAL_GC_PERIOD_MS = "alluxio.master.journal.gc.period";
     public static final String MASTER_JOURNAL_GC_THRESHOLD_MS =
-        "alluxio.master.journal.gc.threshold.ms";
+        "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
-        "alluxio.master.journal.temporary.file.gc.threshold.ms";
+        "alluxio.master.journal.temporary.file.gc.threshold";
 
     //
     // Worker related properties
@@ -1901,9 +1940,9 @@ public class PropertyKey {
     public static final String WORKER_ALLOCATOR_CLASS = "alluxio.worker.allocator.class";
     public static final String WORKER_BIND_HOST = "alluxio.worker.bind.host";
     public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
-        "alluxio.worker.block.heartbeat.interval.ms";
+        "alluxio.worker.block.heartbeat.interval";
     public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
-        "alluxio.worker.block.heartbeat.timeout.ms";
+        "alluxio.worker.block.heartbeat.timeout";
     public static final String WORKER_BLOCK_THREADS_MAX = "alluxio.worker.block.threads.max";
     public static final String WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
@@ -1921,7 +1960,7 @@ public class PropertyKey {
     public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
         "alluxio.worker.evictor.lrfu.step.factor";
     public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
-        "alluxio.worker.filesystem.heartbeat.interval.ms";
+        "alluxio.worker.filesystem.heartbeat.interval";
     public static final String WORKER_FILE_PERSIST_POOL_SIZE =
         "alluxio.worker.file.persist.pool.size";
     public static final String WORKER_FILE_PERSIST_RATE_LIMIT =
@@ -1972,7 +2011,7 @@ public class PropertyKey {
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
-    public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout.ms";
+    public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
@@ -1981,7 +2020,7 @@ public class PropertyKey {
     public static final String WORKER_TIERED_STORE_RESERVER_ENABLED =
         "alluxio.worker.tieredstore.reserver.enabled";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
-        "alluxio.worker.tieredstore.reserver.interval.ms";
+        "alluxio.worker.tieredstore.reserver.interval";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
     public static final String WORKER_TIERED_STORE_FREE_SPACE_RATIO =
         "alluxio.worker.tieredstore.free.space.ratio";
@@ -1989,13 +2028,13 @@ public class PropertyKey {
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-        "alluxio.worker.ufs.block.open.timeout.ms";
+        "alluxio.worker.ufs.block.open.timeout";
 
     //
     // Proxy related properties
     //
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
-        "alluxio.proxy.stream.cache.timeout.ms";
+        "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
@@ -2018,7 +2057,7 @@ public class PropertyKey {
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
         "alluxio.user.block.worker.client.pool.size.max";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.block.worker.client.pool.gc.threshold.ms";
+        "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
@@ -2039,13 +2078,13 @@ public class PropertyKey {
     public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
         "alluxio.user.file.seek.buffer.size.bytes";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
-        "alluxio.user.file.waitcompleted.poll.ms";
+        "alluxio.user.file.waitcompleted.poll";
     public static final String USER_FILE_WORKER_CLIENT_THREADS =
         "alluxio.user.file.worker.client.threads";
     public static final String USER_FILE_WORKER_CLIENT_POOL_SIZE_MAX =
         "alluxio.user.file.worker.client.pool.size.max";
     public static final String USER_FILE_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.file.worker.client.pool.gc.threshold.ms";
+        "alluxio.user.file.worker.client.pool.gc.threshold";
     public static final String USER_FILE_WRITE_LOCATION_POLICY =
         "alluxio.user.file.write.location.policy.class";
     public static final String USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
@@ -2053,7 +2092,7 @@ public class PropertyKey {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
-    public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval.ms";
+    public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
     public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
@@ -2064,15 +2103,15 @@ public class PropertyKey {
         "alluxio.user.local.writer.packet.size.bytes";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
-        "alluxio.user.network.netty.timeout.ms";
+        "alluxio.user.network.netty.timeout";
     public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
-        "alluxio.user.network.netty.writer.close.timeout.ms";
+        "alluxio.user.network.netty.writer.close.timeout";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
         "alluxio.user.network.netty.channel.pool.size.max";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.network.netty.channel.pool.gc.threshold.ms";
+        "alluxio.user.network.netty.channel.pool.gc.threshold";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
     public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
@@ -2086,10 +2125,10 @@ public class PropertyKey {
     public static final String USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
         "alluxio.user.network.netty.reader.packet.size.bytes";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
-        "alluxio.user.rpc.retry.base.sleep.ms";
+        "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
         "alluxio.user.rpc.retry.max.num.retry";
-    public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep.ms";
+    public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
     public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
@@ -2104,7 +2143,7 @@ public class PropertyKey {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-        "alluxio.user.ufs.block.open.timeout.ms";
+        "alluxio.user.ufs.block.open.timeout";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
 
     //
@@ -2123,7 +2162,7 @@ public class PropertyKey {
     public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
         "alluxio.security.authentication.custom.provider.class";
     public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
-        "alluxio.security.authentication.socket.timeout.ms";
+        "alluxio.security.authentication.socket.timeout";
     public static final String SECURITY_AUTHENTICATION_TYPE =
         "alluxio.security.authentication.type";
     public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
@@ -2133,7 +2172,7 @@ public class PropertyKey {
     public static final String SECURITY_AUTHORIZATION_PERMISSION_UMASK =
         "alluxio.security.authorization.permission.umask";
     public static final String SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
-        "alluxio.security.group.mapping.cache.timeout.ms";
+        "alluxio.security.group.mapping.cache.timeout";
     public static final String SECURITY_GROUP_MAPPING_CLASS =
         "alluxio.security.group.mapping.class";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";

@@ -540,12 +540,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
+   * @deprecated in 1.6.0, directly infer the value from {@link PropertyKey#ZOOKEEPER_ENABLED}
+   * configuration value.
+   *
    * Determines if zookeeper should be used for the {@link org.apache.hadoop.fs.FileSystem}. This
    * method should only be used for
    * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
    *
    * @return true if zookeeper should be used
    */
+  @Deprecated
   protected abstract boolean isZookeeperMode();
 
   @Override
