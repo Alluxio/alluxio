@@ -2273,11 +2273,11 @@ public class PropertyKey {
 
   /**
    * @param name String of this property
-   * @param description String description of this property key*
+   * @param description String description of this property key
    */
   PropertyKey(String name, String description) {
     mName = Preconditions.checkNotNull(name, "name");
-    mDescription = description;
+    mDescription = description != null ? description : "N/A";
   }
 
   /**
@@ -2351,7 +2351,7 @@ public class PropertyKey {
    * @return the description of a property
    */
   public String getDescription() {
-    return mDescription != null ? mDescription : "N/A";
+    return mDescription;
   }
 
   /**
