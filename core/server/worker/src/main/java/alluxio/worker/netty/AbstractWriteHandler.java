@@ -23,6 +23,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.util.network.NettyUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
@@ -34,12 +35,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -67,7 +65,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> type of write request
  */
 @NotThreadSafe
-abstract class AbstractWriteHandler<T extends WriteRequest>
+abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
 
@@ -89,60 +87,9 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
   private static final ByteBuf ABORT = Unpooled.buffer(0);
 
   private ReentrantLock mLock = new ReentrantLock();
-  /** The buffer for packets read from the channel. */
-  @GuardedBy("mLock")
-  private Queue<ByteBuf> mPackets = new LinkedList<>();
 
   /**
-   * Set to true if the packet writer is active.
-   *
-   * The following invariants (happens-before orders) must be maintained:
-   * 1. When mPacketWriterActive is true, it is guaranteed that mPackets is polled at least
-   *    once after the lock is released. This is guaranteed even when there is an exception
-   *    thrown when writing the packet.
-   * 2. When mPacketWriterActive is false, it is guaranteed that mPackets won't be polled before
-   *    before someone sets it to true again.
-   *
-   * The above are achieved by protecting it with "mLock". It is set to true when a new packet
-   * is read when it is false. It set to false when one of the these is true: 1) The mPackets queue
-   * is empty; 2) The write request is fulfilled (eof or cancel is received); 3) A failure occurs.
-   */
-  @GuardedBy("mLock")
-  private boolean mPacketWriterActive;
-
-  /**
-   * The error seen in either the netty I/O thread (e.g. failed to read from the network) or the
-   * packet writer thread (e.g. failed to write the packet).
-   */
-  @GuardedBy("mLock")
-  private Error mError;
-
-  private class Error {
-    final AlluxioStatusException mCause;
-    final boolean mNotifyClient;
-
-    Error(AlluxioStatusException cause, boolean notifyClient) {
-      mCause = cause;
-      mNotifyClient = notifyClient;
-    }
-
-    /**
-     * @return the cause of this error
-     */
-    public AlluxioStatusException getCause() {
-      return mCause;
-    }
-
-    /**
-     * @return whether to notify client
-     */
-    public boolean isNotifyClient() {
-      return mNotifyClient;
-    }
-  }
-
-  /**
-   * mRequest is initialized only once for a whole file or block in
+   * This is initialized only once for a whole file or block in
    * {@link AbstractReadHandler#channelRead(ChannelHandlerContext, Object)}.
    * After that, it should only be used by the packet writer thread.
    * It is safe to read those final primitive fields (e.g. mId, mSessionId) if mError is not set
@@ -152,21 +99,7 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
    * Using "volatile" because we want any value change of this variable to be
    * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
    */
-  private volatile T mRequest;
-
-  /**
-   * The next pos to queue to the buffer. This is only updated and used by the netty I/O thread.
-   */
-  private long mPosToQueue;
-  /**
-   * The next pos to write to the block worker. This is only updated by the packet writer
-   * thread. The netty I/O reads this only for sanity check during initialization.
-   *
-   * Using "volatile" because we want any value change of this variable to be
-   * visible across both netty and I/O threads, meanwhile only one updater means atomicity of
-   * operations is unnecessary;
-   */
-  protected volatile long mPosToWrite;
+  private volatile T mContext;
 
   /**
    * Creates an instance of {@link AbstractWriteHandler}.
@@ -186,26 +119,22 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
 
     RPCProtoMessage msg = (RPCProtoMessage) object;
     Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
-    // Only initialize (open the readers) if this is the first packet in the block/file.
+    // Only initialize (open the writers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
-      Preconditions.checkState(mRequest == null);
-      mPosToQueue = 0;
-      mRequest = createRequest(msg);
+      try (LockResource lr = new LockResource(mLock)) {
+        Preconditions.checkState(mContext == null);
+        mContext = createRequestContext(writeRequest);
+      }
     }
 
     // Validate the write request.
-    try {
-      validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
-    } catch (InvalidArgumentException e) {
-      pushAbortPacket(ctx.channel(), new Error(e, true));
-      return;
-    }
+    validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
 
     try (LockResource lr = new LockResource(mLock)) {
       // If we have seen an error, return early and release the data. This can only
       // happen for those mis-behaving clients who first sends some invalid requests, then
       // then some random data. It can leak memory if we do not release buffers here.
-      if (mError != null) {
+      if (mContext.getError() != null) {
         if (msg.getPayloadDataBuffer() != null) {
           msg.getPayloadDataBuffer().release();
         }
@@ -220,15 +149,15 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
       } else {
         DataBuffer dataBuffer = msg.getPayloadDataBuffer();
         Preconditions.checkState(dataBuffer != null && dataBuffer.getLength() > 0);
-        assert dataBuffer.getNettyOutput() instanceof ByteBuf;
+        Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf);
         buf = (ByteBuf) dataBuffer.getNettyOutput();
-        mPosToQueue += buf.readableBytes();
+        mContext.setPosToQueue(mContext.getPosToQueue() + buf.readableBytes());
       }
-      if (!mPacketWriterActive) {
-        mPacketWriterActive = true;
-        mPacketWriterExecutor.submit(new PacketWriter(ctx.channel()));
+      if (!mContext.isPacketWriterActive()) {
+        mContext.setPacketWriterActive(true);
+        mPacketWriterExecutor.submit(createPacketWriter(mContext, ctx.channel()));
       }
-      mPackets.offer(buf);
+      mContext.getPackets().offer(buf);
       if (tooManyPacketsInFlight()) {
         NettyUtils.disableAutoRead(ctx.channel());
       }
@@ -237,7 +166,7 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    LOG.error("Failed to write block.", cause);
+    LOG.error("Exception caught {} in AbstractWriteHandler.", cause);
     pushAbortPacket(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
   }
 
@@ -248,19 +177,11 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
   }
 
   /**
-   * @return the write request instance or null if no write request initialized
-   */
-  @Nullable
-  public T getRequest() {
-    return mRequest;
-  }
-
-  /**
    * @return true if there are too many packets in flight
    */
   @GuardedBy("mLock")
   private boolean tooManyPacketsInFlight() {
-    return mPackets.size() >= MAX_PACKETS_IN_FLIGHT;
+    return mContext.getPackets().size() >= MAX_PACKETS_IN_FLIGHT;
   }
 
   /**
@@ -269,11 +190,13 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
    * @param request the block write request
    * @throws InvalidArgumentException if the write request is invalid
    */
+  @GuardedBy("mLock")
   private void validateWriteRequest(Protocol.WriteRequest request, DataBuffer payload)
       throws InvalidArgumentException {
-    if (request.getOffset() != mPosToQueue) {
+    if (request.getOffset() != mContext.getPosToQueue()) {
       throw new InvalidArgumentException(String.format(
-          "Offsets do not match [received: %d, expected: %d].", request.getOffset(), mPosToQueue));
+          "Offsets do not match [received: %d, expected: %d].",
+          request.getOffset(), mContext.getPosToQueue()));
     }
     if (payload != null && payload.getLength() > 0 && (request.getCancel() || request.getEof())) {
       throw new InvalidArgumentException("Found data in a cancel/eof message.");
@@ -281,17 +204,20 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
   }
 
   /**
-   * A runnable that polls from the packets queue and writes to the block worker.
+   * A runnable that polls from the packets queue and writes to the block worker or UFS.
    */
-  private final class PacketWriter implements Runnable {
-    private Channel mChannel;
+  protected abstract class PacketWriter implements Runnable {
+    private final Channel mChannel;
+    private final T mContext;
 
     /**
      * Creates an instance of {@link PacketWriter}.
      *
+     * @param context context of the request to complete
      * @param channel the netty channel
      */
-    PacketWriter(Channel channel) {
+    PacketWriter(T context, Channel channel) {
+      mContext = context;
       mChannel = channel;
     }
 
@@ -314,7 +240,7 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
       while (true) {
         ByteBuf buf;
         try (LockResource lr = new LockResource(mLock)) {
-          buf = mPackets.poll();
+          buf = mContext.getPackets().poll();
           if (buf == null || buf == EOF || buf == CANCEL || buf == ABORT) {
             eof = buf == EOF;
             cancel = buf == CANCEL;
@@ -322,14 +248,14 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
             // after we receive EOF or CANCEL signal.
             // TODO(peis): Move to the pattern used in AbstractReadHandler to avoid
             // using special packets.
-            abort = mError != null;
-            mPacketWriterActive = false;
+            abort = mContext.getError() != null;
+            mContext.setPacketWriterActive(false);
             break;
           }
           // Release all the packets if we have encountered an error. We guarantee that no more
           // packets should be queued after we have received one of the done signals (EOF, CANCEL
           // or ABORT).
-          if (mError != null) {
+          if (mContext.getError() != null) {
             release(buf);
             continue;
           }
@@ -340,8 +266,8 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
 
         try {
           int readableBytes = buf.readableBytes();
-          mPosToWrite += readableBytes;
-          writeBuf(mChannel, buf, mPosToWrite);
+          mContext.setPosToWrite(mContext.getPosToWrite() + readableBytes);
+          writeBuf(mContext, mChannel, buf, mContext.getPosToWrite());
           incrementMetrics(readableBytes);
         } catch (Exception e) {
           LOG.warn("Failed to write packet {}", e.getMessage());
@@ -355,30 +281,65 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
 
       if (abort) {
         try {
-          cleanupRequest();
-          reset();
+          cleanupRequest(mContext);
+          replyError();
         } catch (Exception e) {
           LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
+        } finally {
+          reset();
         }
-        replyError();
       } else if (cancel || eof) {
         try {
           if (cancel) {
-            cancelRequest();
-            reset();
+            cancelRequest(mContext);
             replyCancel();
           } else {
-            completeRequest(mChannel);
-            reset();
+            completeRequest(mContext, mChannel);
             replySuccess();
           }
         } catch (Exception e) {
           Throwables.propagateIfPossible(e);
           pushAbortPacket(mChannel,
               new Error(AlluxioStatusException.fromCheckedException(e), true));
+        } finally {
+          reset();
         }
       }
     }
+
+    /**
+     * Completes this write. This is called when the write completes.
+     *
+     * @param context context of the request to complete
+     * @param channel netty channel
+     */
+    protected abstract void completeRequest(T context, Channel channel) throws Exception;
+
+    /**
+     * Cancels this write. This is called when the client issues a cancel request.
+     *
+     * @param context context of the request to complete
+     */
+    protected abstract void cancelRequest(T context) throws Exception;
+
+    /**
+     * Cleans up this write. This is called when the write request is aborted due to any exception
+     * or session timeout.
+     *
+     * @param context context of the request to complete
+     */
+    protected abstract void cleanupRequest(T context) throws Exception;
+
+    /**
+     * Writes the buffer.
+     *
+     * @param context context of the request to complete
+     * @param channel the netty channel
+     * @param buf the buffer
+     * @param pos the pos
+     */
+    protected abstract void writeBuf(
+        T context, Channel channel, ByteBuf buf, long pos) throws Exception;
 
     /**
      * Writes a response to signify the success of the write request.
@@ -404,13 +365,22 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
     private void replyError() {
       Error error;
       try (LockResource lr = new LockResource(mLock)) {
-        error = Preconditions.checkNotNull(mError);
+        error = Preconditions.checkNotNull(mContext.getError());
       }
 
       if (error.isNotifyClient()) {
         mChannel.writeAndFlush(RPCProtoMessage.createResponse(error.getCause()))
             .addListener(ChannelFutureListener.CLOSE);
       }
+    }
+  }
+
+  /**
+   * Resets all the states.
+   */
+  private void reset() {
+    try (LockResource lr = new LockResource(mLock)) {
+      mContext = null;
     }
   }
 
@@ -422,14 +392,14 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
    */
   private void pushAbortPacket(Channel channel, Error error) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mError != null) {
+      if (mContext.getError() != null) {
         return;
       }
-      mError = error;
-      mPackets.offer(ABORT);
-      if (!mPacketWriterActive) {
-        mPacketWriterActive = true;
-        mPacketWriterExecutor.submit(new PacketWriter(channel));
+      mContext.setError(error);
+      mContext.getPackets().offer(ABORT);
+      if (!mContext.isPacketWriterActive()) {
+        mContext.setPacketWriterActive(true);
+        mPacketWriterExecutor.submit(createPacketWriter(mContext, channel));
       }
     }
   }
@@ -443,14 +413,6 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
     if (buf != null && buf != EOF && buf != CANCEL && buf != ABORT) {
       buf.release();
     }
-  }
-
-  /**
-   * Resets the states.
-   */
-  private void reset() {
-    mRequest = null;
-    mPosToWrite = 0;
   }
 
   /**
@@ -472,35 +434,23 @@ abstract class AbstractWriteHandler<T extends WriteRequest>
    *
    * @param msg the block write request
    */
-  protected abstract T createRequest(RPCProtoMessage msg) throws Exception;
+  protected abstract T createRequestContext(Protocol.WriteRequest msg) throws Exception;
 
   /**
-   * Completes this write. This is called when the write completes.
-   */
-  protected abstract void completeRequest(Channel channel) throws Exception;
-
-  /**
-   * Cancels this write. This is called when the client issues a cancel request.
-   */
-  protected abstract void cancelRequest() throws Exception;
-
-  /**
-   * Cleans up this write. This is called when the write request is aborted due to any exception
-   * or session timeout.
-   */
-  protected abstract void cleanupRequest() throws Exception;
-
-  /**
-   * Writes the buffer.
+   * Creates a read writer.
    *
-   * @param channel the netty channel
-   * @param buf the buffer
-   * @param pos the pos
+   * @param context read request context
+   * @param channel channel
+   * @return the packet reader for this handler
    */
-  protected abstract void writeBuf(Channel channel, ByteBuf buf, long pos) throws Exception;
+  protected abstract PacketWriter createPacketWriter(T context, Channel channel);
 
   /**
    * @param bytesWritten bytes written
    */
-  protected abstract void incrementMetrics(long bytesWritten);
+  private void incrementMetrics(long bytesWritten) {
+    Counter counter = mContext.getCounter();
+    Preconditions.checkState(counter != null);
+    counter.inc(bytesWritten);
+  }
 }

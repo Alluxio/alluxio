@@ -54,7 +54,7 @@ import javax.annotation.concurrent.NotThreadSafe;
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
-final class BlockReadHandler extends AbstractReadHandler<BlockReadRequestContext> {
+public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);

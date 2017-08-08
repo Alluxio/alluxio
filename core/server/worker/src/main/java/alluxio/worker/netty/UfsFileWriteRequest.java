@@ -12,37 +12,34 @@
 package alluxio.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.IdUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents a write request received from netty channel.
+ * The UFS File write request internal representation.
  */
 @ThreadSafe
-class WriteRequest {
-  /** This ID can either be block ID or temp UFS file ID. */
-  private final long mId;
+public final class UfsFileWriteRequest extends WriteRequest {
+  private final String mUfsPath;
+  private final Protocol.CreateUfsFileOptions mCreateUfsFileOptions;
 
-  /** The session id associated with all temporary resources of this request. */
-  private final long mSessionId;
-
-  WriteRequest(Protocol.WriteRequest request) {
-    mId = request.getId();
-    mSessionId = IdUtils.createSessionId();
+  UfsFileWriteRequest(Protocol.WriteRequest request) {
+    super(request);
+    mUfsPath = request.getCreateUfsFileOptions().getUfsPath();
+    mCreateUfsFileOptions = request.getCreateUfsFileOptions();
   }
 
   /**
-   * @return the block ID or the temp UFS file ID
+   * @return the UFS path
    */
-  public long getId() {
-    return mId;
+  public String getUfsPath() {
+    return mUfsPath;
   }
 
   /**
-   * @return the session ID
+   * @return the options to create UFS file
    */
-  public long getSessionId() {
-    return mSessionId;
+  public Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
+    return mCreateUfsFileOptions;
   }
 }

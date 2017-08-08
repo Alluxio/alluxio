@@ -62,7 +62,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> type of read request
  */
 @NotThreadSafe
-abstract class AbstractReadHandler<T extends ReadRequestContext>
+abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 
@@ -135,8 +135,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
    */
   @GuardedBy("mLock")
   public boolean tooManyPendingPackets() {
-    return mContext.getPosToQueue() - mContext.getPosToWrite()
-        >= MAX_PACKETS_IN_FLIGHT * mContext.getRequest().getPacketSize();
+    return mContext.getPosToQueue() - mContext.getPosToWrite() >= MAX_PACKETS_IN_FLIGHT * mContext
+        .getRequest().getPacketSize();
   }
 
   /**
@@ -237,13 +237,13 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
   protected abstract T createRequestContext(Protocol.ReadRequest request);
 
   /**
-   * Completes the read request. When the request is closed, we should clean up any temporary state
-   * it may have accumulated.
-   * @param request read request
+   * Creates a read reader.
+   *
+   * @param context read request context
    * @param channel channel
    * @return the packet reader for this handler
    */
-  protected abstract PacketReader createPacketReader(T request, Channel channel);
+  protected abstract PacketReader createPacketReader(T context, Channel channel);
 
   /**
    * @param bytesRead bytes read
@@ -280,9 +280,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
 
       try (LockResource lr = new LockResource(mLock)) {
         Preconditions.checkState(
-            mPosToWriteUncommitted - mContext.getPosToWrite()
-                <= mContext.getRequest().getPacketSize(),
-            "Some packet is not acked.");
+            mPosToWriteUncommitted - mContext.getPosToWrite() <= mContext.getRequest()
+                .getPacketSize(), "Some packet is not acked.");
         incrementMetrics(mPosToWriteUncommitted - mContext.getPosToWrite());
         mContext.setPosToWrite(mPosToWriteUncommitted);
 
@@ -315,7 +314,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
     /**
      * Creates an instance of the {@link PacketReader}.
      *
-     * @param context request to complete
+     * @param context context of the request to complete
      * @param channel the channel
      */
     PacketReader(T context, Channel channel) {
@@ -351,8 +350,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
             mContext.setPacketReaderActive(false);
             break;
           }
-          packetSize = (int) Math.min(mRequest.getEnd() - mContext.getPosToQueue(),
-              mRequest.getPacketSize());
+          packetSize = (int) Math
+              .min(mRequest.getEnd() - mContext.getPosToQueue(), mRequest.getPacketSize());
 
           // packetSize should always be > 0 here when reaches here.
           Preconditions.checkState(packetSize > 0);
@@ -371,8 +370,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
             mContext.setPosToQueue(mContext.getPosToQueue() + packet.getLength());
           }
         }
-        if (packet == null || packet.getLength() < packetSize
-            || start + packetSize == mRequest.getEnd()) {
+        if (packet == null || packet.getLength() < packetSize || start + packetSize == mRequest
+            .getEnd()) {
           // This can happen if the requested read length is greater than the actual length of the
           // block or file starting from the given offset.
           setEof(mChannel);
@@ -413,23 +412,23 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
     }
 
     /**
-     * Completes the read request. When the request is closed, we should clean up any temporary state
-     * it may have accumulated.
+     * Completes the read request. When the request is closed, we should clean up any temporary
+     * state it may have accumulated.
      *
-     * @param request request to complete
+     * @param context context of the request to complete
      */
-    protected abstract void completeRequest(T request) throws Exception;
+    protected abstract void completeRequest(T context) throws Exception;
 
     /**
      * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
      * configurable transfer type.
      *
-     * @param request request to complete
+     * @param context context of the request to complete
      * @param channel the netty channel
      * @param len The length, in bytes, of the data to read from the block
      * @return a {@link DataBuffer} representing the data
      */
-    protected abstract DataBuffer getDataBuffer(T request, Channel channel, long offset, int len)
+    protected abstract DataBuffer getDataBuffer(T context, Channel channel, long offset, int len)
         throws Exception;
 
     /**
@@ -444,8 +443,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
      * Writes a success response.
      */
     private void replyEof() {
-      Preconditions.checkState(!mContext.isDone());
-      mContext.setDone(true);
+      Preconditions.checkState(!mContext.isDoneUnsafe());
+      mContext.setDoneUnsafe(true);
       mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
@@ -454,8 +453,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext>
      * Writes a cancel response.
      */
     private void replyCancel() {
-      Preconditions.checkState(!mContext.isDone());
-      mContext.setDone(true);
+      Preconditions.checkState(!mContext.isDoneUnsafe());
+      mContext.setDoneUnsafe(true);
       mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }

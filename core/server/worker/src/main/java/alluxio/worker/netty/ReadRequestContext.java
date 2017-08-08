@@ -18,11 +18,13 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents a read request received from netty channel.
+ * Represents the context of a read request received from netty channel. This class serves the
+ * shared states of the request and can be accessed concurrently by the netty thread and I/O thread.
+ *
  * @param <T> type of read request
  */
 @ThreadSafe
-class ReadRequestContext<T extends ReadRequest> {
+public class ReadRequestContext<T extends ReadRequest> {
 
   /** The requests of this context. */
   private final T mRequest;
@@ -74,7 +76,10 @@ class ReadRequestContext<T extends ReadRequest> {
   /** This is set when the SUCCESS or CANCEL response is sent. This is only for sanity check. */
   private volatile boolean mDone;
 
-  ReadRequestContext(T request) {
+  /**
+   * @param request the read request
+   */
+  public ReadRequestContext(T request) {
     mRequest = request;
     mPosToQueue = 0;
     mPosToWrite = 0;
@@ -144,7 +149,7 @@ class ReadRequestContext<T extends ReadRequest> {
   /**
    * @return true when the SUCCESS or CANCEL response is sent, false otherwise
    */
-  public boolean isDone() {
+  public boolean isDoneUnsafe() {
     return mDone;
   }
 
@@ -207,7 +212,7 @@ class ReadRequestContext<T extends ReadRequest> {
   /**
    * @param done whether the SUCCESS or CANCEL response is sent
    */
-  public void setDone(boolean done) {
+  public void setDoneUnsafe(boolean done) {
     mDone = done;
   }
 
