@@ -152,13 +152,26 @@ Apache Hive也可以使用Alluxio，只需通过一个一般的文件系统接�
 </property>
 ```
 
-若要启用容错模式，将Alluxio模式设置为`alluxio-ft`：
+若要启用容错模式，请在类路径中的`alluxio-site.properties`文件中适当地设置Alluxio群集属性（请参见下面的示例）。
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
+
+或者，您可以将属性添加到Hive`hive-site.xml`配置中，然后将其传播到Alluxio。
 
 ```xml
-<property>
-   <name>fs.defaultFS</name>
-   <value>alluxio-ft:///</value>
-</property>
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
 ```
 
 ### 添加额外Alluxio配置到Hive中
