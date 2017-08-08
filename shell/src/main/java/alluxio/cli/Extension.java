@@ -11,8 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.ConfigurationUtils;
 
@@ -40,14 +38,13 @@ public final class Extension {
    */
   public static void main(String[] args) {
     if (!ConfigurationUtils.masterHostConfigured()) {
-      System.out.println(String.format(
-          "Cannot run extension manager; master hostname is not "
-              + "configured. Please modify %s to either set %s or configure zookeeper with "
-              + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+      System.out.println(
+          String.format("Cannot run extension manager; master hostname is not configured."));
       System.exit(1);
     }
+
+    Extension extension = new Extension();
+    System.exit(extension.run(args));
   }
 
   private final Map<String, ShellCommand> mCommands;
