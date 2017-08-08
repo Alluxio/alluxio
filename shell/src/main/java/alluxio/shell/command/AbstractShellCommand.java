@@ -11,6 +11,7 @@
 
 package alluxio.shell.command;
 
+import alluxio.cli.command.AbstractCommand;
 import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;
@@ -27,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * validation method and a place to hold the {@link FileSystem} client.
  */
 @ThreadSafe
-public abstract class AbstractShellCommand implements ShellCommand {
+public abstract class AbstractShellCommand extends AbstractCommand implements ShellCommand {
 
   protected FileSystem mFileSystem;
 
@@ -41,51 +42,5 @@ public abstract class AbstractShellCommand implements ShellCommand {
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
-  }
-
-  /**
-   * Checks if the arguments are valid.
-   *
-   * @param args the arguments for the command, excluding the command name and options
-   * @return whether the args are valid
-   */
-  protected boolean validateArgs(String... args) {
-    boolean valid = args.length == getNumOfArgs();
-    if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
-          + args.length + "\n");
-    }
-    return valid;
-  }
-
-  /**
-   * Gets the expected number of arguments of the command.
-   *
-   * @return the number of arguments
-   */
-  protected abstract int getNumOfArgs();
-
-  @Override
-  public Options getOptions() {
-    return new Options();
-  }
-
-  @Override
-  public CommandLine parseAndValidateArgs(String... args) {
-    Options opts = getOptions();
-    CommandLineParser parser = new DefaultParser();
-    CommandLine cmd;
-
-    try {
-      cmd = parser.parse(opts, args);
-    } catch (ParseException e) {
-      System.err.println(String.format("%s: %s", getCommandName(), e.getMessage()));
-      return null;
-    }
-
-    if (!validateArgs(cmd.getArgs())) {
-      return null;
-    }
-    return cmd;
   }
 }

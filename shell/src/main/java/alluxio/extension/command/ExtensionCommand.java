@@ -9,12 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.shell.command;
+package alluxio.extension.command;
 
-import alluxio.cli.AlluxioShell;
 import alluxio.cli.command.Command;
 
 /**
- * An interface for all the commands that can be run from {@link AlluxioShell}.
+ * An interface for all the commands that can be run for extension management.
  */
-public interface ShellCommand extends Command {}
+public interface ExtensionCommand extends Command {}

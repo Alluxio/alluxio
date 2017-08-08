@@ -11,7 +11,8 @@
 
 package alluxio.cli;
 
-import alluxio.shell.command.ShellCommand;
+import alluxio.extension.ExtensionUtils;
+import alluxio.extension.command.ExtensionCommand;
 import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -20,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -47,16 +47,13 @@ public final class Extension {
     System.exit(extension.run(args));
   }
 
-  private final Map<String, ShellCommand> mCommands;
+  private final Map<String, ExtensionCommand> mCommands;
 
   /**
    * Creates a new instance of {@link Extension}.
    */
   public Extension() {
-    mCommands = new HashMap<>();
-
-    // TODO(adit): Add supported commands
-
+    mCommands = ExtensionUtils.loadCommands();
   }
 
   /**
@@ -73,7 +70,7 @@ public final class Extension {
 
     // Sanity check on the number of arguments
     String cmd = argv[0];
-    ShellCommand command = mCommands.get(cmd);
+    ExtensionCommand command = mCommands.get(cmd);
     if (command == null) { // Unknown command (we didn't find the cmd in our dict)
         System.out.println(cmd + " is an unknown command.\n");
         printUsage();
