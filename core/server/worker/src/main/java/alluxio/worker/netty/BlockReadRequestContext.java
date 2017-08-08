@@ -24,6 +24,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockReadRequestContext extends ReadRequestContext<BlockReadRequest> {
   private BlockReader mBlockReader;
 
+  /**
+   * @param request read request in proto
+   */
   public BlockReadRequestContext(Protocol.ReadRequest request) {
     super(new BlockReadRequest(request));
   }

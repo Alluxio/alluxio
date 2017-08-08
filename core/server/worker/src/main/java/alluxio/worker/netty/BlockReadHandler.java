@@ -64,6 +64,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
 
+  /**
+   * The packet reader to read from a local block worker.
+   */
   @NotThreadSafe
   public final class BlockPacketReader extends PacketReader {
     /** The Block Worker. */
@@ -93,8 +96,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel, long offset,
-        int len) throws Exception {
+    protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
+        long offset, int len) throws Exception {
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);

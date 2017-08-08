@@ -19,7 +19,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class WriteRequestContext<T extends WriteRequest> {
 
-
   /** The requests of this context. */
   private final T mRequest;
 
@@ -84,7 +83,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   }
 
   /**
-   * @return the buffer for packets read from the channel.
+   * @return the buffer for packets read from the channel
    */
   public Queue<ByteBuf> getPackets() {
     return mPackets;
