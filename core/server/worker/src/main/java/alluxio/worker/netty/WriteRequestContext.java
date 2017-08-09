@@ -34,7 +34,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   private final T mRequest;
 
   /** The buffer for packets read from the channel. */
-  @GuardedBy("mLock")
+  @GuardedBy("AbstractWriteHandler#mLock")
   private Queue<ByteBuf> mPackets = new LinkedList<>();
 
   /**
@@ -51,14 +51,14 @@ public class WriteRequestContext<T extends WriteRequest> {
    * is read when it is false. It set to false when one of the these is true: 1) The mPackets queue
    * is empty; 2) The write request is fulfilled (eof or cancel is received); 3) A failure occurs.
    */
-  @GuardedBy("mLock")
+  @GuardedBy("AbstractWriteHandler#mLock")
   private boolean mPacketWriterActive;
 
   /**
    * The error seen in either the netty I/O thread (e.g. failed to read from the network) or the
    * packet writer thread (e.g. failed to write the packet).
    */
-  @GuardedBy("mLock")
+  @GuardedBy("AbstractWriteHandler#mLock")
   private Error mError;
 
   /**
@@ -96,6 +96,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @return the buffer for packets read from the channel
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public Queue<ByteBuf> getPackets() {
     return mPackets;
   }
@@ -103,6 +104,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @return whether this packet writer is still active
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public boolean isPacketWriterActive() {
     return mPacketWriterActive;
   }
@@ -119,6 +121,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @return the next position to queue to the buffer
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public long getPosToQueue() {
     return mPosToQueue;
   }
@@ -126,6 +129,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @return the next position to write to the block worker
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public long getPosToWrite() {
     return mPosToWrite;
   }
@@ -141,6 +145,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @param packetWriterActive whether the packet writer is active
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public void setPacketWriterActive(boolean packetWriterActive) {
     mPacketWriterActive = packetWriterActive;
   }
@@ -148,6 +153,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @param error the error
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public void setError(Error error) {
     mError = error;
   }
@@ -155,6 +161,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @param posToQueue the next position to queue to the buffer
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public void setPosToQueue(long posToQueue) {
     mPosToQueue = posToQueue;
   }
@@ -162,6 +169,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   /**
    * @param posToWrite the next position to write to the block worker
    */
+  @GuardedBy("AbstractWriteHandler#mLock")
   public void setPosToWrite(long posToWrite) {
     mPosToWrite = posToWrite;
   }

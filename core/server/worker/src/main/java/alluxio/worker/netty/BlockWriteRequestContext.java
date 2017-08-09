@@ -20,8 +20,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The block write request internal representation. When this request is complete, we need to
- * commit the block.
+ * The block write request internal representation.
  */
 @NotThreadSafe
 public final class BlockWriteRequestContext extends WriteRequestContext<WriteRequest> {
