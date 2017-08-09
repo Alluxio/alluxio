@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -40,25 +41,47 @@ import java.util.List;
  */
 @RunWith(Parameterized.class)
 public class ConfigurationDocGeneratorTest {
+  private static final String TYPE_CSV = "CSV";
+  private static final String TYPE_YML = "YML";
   /**
    * Rule to create a new temporary folder during each test.
    */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
   @Parameterized.Parameter
+  public String mFileType;
+  @Parameterized.Parameter(1)
   public Pair<PropertyKey, String> mTestConf;
   private String mLocation;
 
   @Parameters
-  public static Object[] data() {
-    return new Object[]{
-        new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES, "user-configuration.csv"),
-        new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS, "master-configuration.csv"),
-        new Pair<>(PropertyKey.WORKER_DATA_FOLDER, "worker-configuration.csv"),
-        new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE, "security-configuration.csv"),
-        new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "key-value-configuration.csv"),
-        new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "common-configuration.csv")
-    };
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][]{
+        {TYPE_CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+            "user-configuration.csv")},
+        {TYPE_CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+            "master-configuration.csv")},
+        {TYPE_CSV, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
+            "worker-configuration.csv")},
+        {TYPE_CSV, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+            "security-configuration.csv")},
+        {TYPE_CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+            "key-value-configuration.csv")},
+        {TYPE_CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
+            "common-configuration.csv")},
+        {TYPE_YML, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+            "user-configuration.yml")},
+        {TYPE_YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+            "master-configuration.yml")},
+        {TYPE_YML, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
+            "worker-configuration.yml")},
+        {TYPE_YML, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+            "security-configuration.yml")},
+        {TYPE_YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+            "key-value-configuration.yml")},
+        {TYPE_YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
+            "common-configuration.yml")}
+    });
   }
 
   /**
@@ -69,15 +92,25 @@ public class ConfigurationDocGeneratorTest {
     mLocation = mFolder.newFolder().toString();
   }
 
-  private void checkFileContents(String source, List<String> target) throws Exception {
+  private void checkFileContents(String source, List<String> target, String fType)
+      throws Exception {
+    Assert.assertTrue(fType.equals(TYPE_CSV) || fType.equals(TYPE_YML));
     //assert file contents
-    assertEquals(2, target.size());
-    assertEquals(ConfigurationDocGenerator.FILE_HEADER, target.get(0));
-    assertEquals(source, target.get(1));
+    if (fType == TYPE_CSV) {
+      assertEquals(2, target.size());
+      assertEquals(ConfigurationDocGenerator.CSV_FILE_HEADER, target.get(0));
+      assertEquals(source, target.get(1));
+    } else if (fType == TYPE_YML) {
+      assertEquals(2, target.size());
+      assertEquals(source, target.get(0) + "\n" + target.get(1));
+    }
   }
 
   @Test
   public void checkCSVFile() throws Exception {
+    if (mFileType != TYPE_CSV) {
+      return;
+    }
     Collection<PropertyKey> defaultKeys = new ArrayList<>();
     PropertyKey pKey = mTestConf.getFirst();
     defaultKeys.add(pKey);
@@ -90,6 +123,26 @@ public class ConfigurationDocGeneratorTest {
     //assert file contents
     List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
     String defaultValue = Configuration.get(pKey);
-    checkFileContents(pKey + "," + defaultValue, userFile);
+    checkFileContents(pKey + "," + defaultValue, userFile, mFileType);
+  }
+
+  @Test
+  public void checkYMLFile() throws Exception {
+    if (mFileType != TYPE_YML) {
+      return;
+    }
+    Collection<PropertyKey> defaultKeys = new ArrayList<>();
+    PropertyKey pKey = mTestConf.getFirst();
+    String description = pKey.getDescription();
+    defaultKeys.add(pKey);
+
+    ConfigurationDocGenerator.writeYMLFile(defaultKeys, mLocation);
+    String filePath = PathUtils.concatPath(mLocation, mTestConf.getSecond());
+    Path p = Paths.get(filePath);
+    Assert.assertTrue(Files.exists(p));
+
+    //assert file contents
+    List<String> keyDescription = Files.readAllLines(p, StandardCharsets.UTF_8);
+    checkFileContents(pKey + ":\n  " + description, keyDescription, mFileType);
   }
 }

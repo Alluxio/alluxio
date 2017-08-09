@@ -1,5 +1,4 @@
 propertyName,defaultValue
-alluxio.master.address,
 alluxio.master.bind.host,0.0.0.0
 alluxio.master.connection.timeout.ms,0ms
 alluxio.master.file.async.persist.handler,alluxio.master.file.async.DefaultAsyncPersistHandler
