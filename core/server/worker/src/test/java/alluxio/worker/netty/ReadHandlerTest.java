@@ -251,7 +251,7 @@ public abstract class ReadHandlerTest {
   }
 
   /**
-   * Waits for one read response messsage.
+   * Waits for one read response message.
    *
    * @return the read response
    */

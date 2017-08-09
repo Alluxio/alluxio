@@ -111,12 +111,14 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       return;
     }
 
-    validateReadRequest(msg);
-    reset();
-
-    T newContext = createRequestContext(msg);
+    // reset the context before validate as validate may update error
     try (LockResource lr = new LockResource(mLock)) {
-      mContext = newContext;
+      mContext = createRequestContext(msg);
+    }
+
+    validateReadRequest(msg);
+
+    try (LockResource lr = new LockResource(mLock)) {
       mContext.setPosToQueue(mContext.getRequest().getStart());
       mContext.setPosToWrite(mContext.getRequest().getStart());
       mPacketReaderExecutor.submit(createPacketReader(mContext, ctx.channel()));
@@ -203,15 +205,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
         mContext.setPacketReaderActive(true);
         mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
       }
-    }
-  }
-
-  /**
-   * Resets all the states.
-   */
-  private void reset() {
-    try (LockResource lr = new LockResource(mLock)) {
-      mContext = null;
     }
   }
 
