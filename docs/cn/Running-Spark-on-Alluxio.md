@@ -131,7 +131,7 @@ spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.micros
 
 如果以上的建议方案不可行，以下的方案可以规避掉这个问题。
 
-为Hadoop配置指定`fs.alluxio.impl`也许可以帮助你解决该错误。`fs.alluxio.impl`应该被设置为`alluxio.hadoop.FileSystem`，如果你想使用Alluxio的容错机制，`fs.alluxio-ft.impl`应该被设置为`alluxio.hadoop.FaultTolerantFileSystem`。这里有几个选项来设置这些参数。
+为Hadoop配置指定`fs.alluxio.impl`也许可以帮助你解决该错误。`fs.alluxio.impl`应该被设置为`alluxio.hadoop.FileSystem`。这里有几个选项来设置这些参数。
 
 #### 更新SparkContext中的`hadoopConfiguration`
 
@@ -139,7 +139,6 @@ spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.micros
 
 ```scala
 sc.hadoopConfiguration.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem")
-sc.hadoopConfiguration.set("fs.alluxio-ft.impl", "alluxio.hadoop.FaultTolerantFileSystem")
 ```
 
 该操作应该在 `spark-shell`阶段早期，即Alluxio操作之前运行。
@@ -148,17 +147,37 @@ sc.hadoopConfiguration.set("fs.alluxio-ft.impl", "alluxio.hadoop.FaultTolerantFi
 
 你可以在Hadoop的配置文件中增加参数，并使Spark指向Hadoop的配置文件。Hadoop的`core-site.xml`中需要添加如下内容。
 
+你可以通过在`spark-env.sh`设置`HADOOP_CONF_DIR`来使Spark指向Hadoop的配置文件。
+
 ```xml
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
     <value>alluxio.hadoop.FileSystem</value>
   </property>
+</configuration>
+```
+
+要使用容错机制，可以适当地设置classpath中`alluxio-site.properties`文件里的Alluxio集群属性。
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
+
+或者你可以增加属性到Hadoop的`core-site.xml`配置文件中，然后其会被传输到Alluxio中。
+
+```xml
+<configuration>
   <property>
-    <name>fs.alluxio-ft.impl</name>
-    <value>alluxio.hadoop.FaultTolerantFileSystem</value>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
   </property>
 </configuration>
 ```
 
-你可以通过在`spark-env.sh`设置`HADOOP_CONF_DIR`来使Spark指向Hadoop的配置文件。
+
