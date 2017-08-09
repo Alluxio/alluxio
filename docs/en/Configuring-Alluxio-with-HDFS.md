@@ -52,15 +52,17 @@ Master and Worker.
 
 ## Configuring Alluxio
 
-### Basic Configuration
-
-First create the configuration file from the template.
+You need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
 
 ```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Then edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode
+### Basic Configuration
+
+Edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode
 address and the HDFS directory you want to mount to Alluxio. For example, the under storage address
 can be `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port and
 mapping HDFS root directory to Alluxio, or `hdfs://localhost:9000/alluxio/data` if only the HDFS

@@ -67,6 +67,8 @@ available on all cluster nodes as well). For example like this:
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+
 ### Translate additional Alluxio site properties to Flink
 
 In addition, if there are any properties specified in `conf/alluxio-site.properties`,

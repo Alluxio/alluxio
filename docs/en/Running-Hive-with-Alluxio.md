@@ -33,6 +33,8 @@ First of all, set `HIVE_AUX_JARS_PATH` either in shell or `conf/hive-env.sh`:
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+
 ## Create Hive Tables on Alluxio
 
 There are different ways to integrate Hive with Alluxio, as storage for

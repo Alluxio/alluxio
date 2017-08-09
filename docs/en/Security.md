@@ -12,8 +12,7 @@ priority: 1
 Secure Alluxio has two features currently. This document describes the concepts and usage of them.
 
 1. [Authentication](#authentication): If enabled, Alluxio file system can recognize and verify
-the user accessing it. It is the basis for other security features such as authorization and
-encryption.
+the user accessing it. It is the basis for other security features such as authorization.
 2. [Authorization](#authorization): If enabled, Alluxio file system can control the user's access.
 POSIX permission model is used in Alluxio to assign permissions and
 control access rights.
@@ -54,10 +53,10 @@ It is passed to master through RPC connection for authentication.
 
 ### NOSASL
 
-Authentication is disabled. Alluxio file system behaviors as before.
-SASL (Simple Authentication and Security Layer) is a framework to define the authentication
-between client and server applications, which used in Alluxio to implement authentication feature
-. So NOSASL is used to represent disabled case.
+Authentication is disabled. SASL (Simple Authentication and Security Layer) is a framework to 
+define the authentication between client and server applications, which is used in Alluxio to 
+implement authentication feature. So NOSASL is used to represent disabled case and Alluxio 
+file system behavior is as before.
 
 ### SIMPLE
 
