@@ -43,14 +43,29 @@ Presto 通过连接Hive metastore来获取数据库和表的信息，同时通�
   <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
 </property>
 ```
-HA模式的Alluxio需要加入如下配置
-```xml
-<property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-  <description>The Alluxio FileSystem (Hadoop 1.x and 2.x) with fault tolerant support</description>
-</property>
+
+要使用容错模式，需要在classpath的`alluxio-site.properties`文件中正确的配置Alluxio集群的属性：
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
 ```
+
+或者，你可以将属性添加到Hadoop`core-site.xml`配置中，然后将其传播到Alluxio
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
+```
+
 #### 配置额外的Alluxio配置
 
 类似于上面的配置方法，额外的Alluxio设置可以添加到每个节点上Hadoop目录下的`core-site.xml`文件里。比如可以如此来将`alluxio.user.file.writetype.default`从默认值`MUST_CACHE`改为`CACHE_THROUGH`:
