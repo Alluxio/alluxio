@@ -121,8 +121,13 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
     // Only initialize (open the writers) if this is the first packet in the block/file.
     if (writeRequest.getOffset() == 0) {
+
+      // Expected state: context equals null as this handler is new for request, or the previous
+      // context is not active (done / cancel / abort). Otherwise, notify the client an illegal
+      // state. Note that, we reset the context before validation msg as validation may require to
+      // update error in context.
       try (LockResource lr = new LockResource(mLock)) {
-        Preconditions.checkState(mContext == null);
+        Preconditions.checkState(mContext == null || !mContext.isPacketWriterActive());
         mContext = createRequestContext(writeRequest);
       }
     }

@@ -111,8 +111,12 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       return;
     }
 
-    // reset the context before validate as validate may update error
+    // Expected state: context equals null as this handler is new for request, or the previous
+    // context is not active (done / cancel / abort). Otherwise, notify the client an illegal state.
+    // Note that, we reset the context before validation msg as validation may require to update
+    // error in context.
     try (LockResource lr = new LockResource(mLock)) {
+      Preconditions.checkState(mContext == null || !mContext.isPacketReaderActive());
       mContext = createRequestContext(msg);
     }
 
