@@ -216,6 +216,7 @@ function main {
           # if ufs is local filesystem and already exists
           exit 0
         else
+          # TODO(adit): fix me for pluggable connectors
           declare -a schemes=(hdfs s3 s3a s3n glusterfs swift oss gcs)
           for scheme in ${schemes[@]}; do
             if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then

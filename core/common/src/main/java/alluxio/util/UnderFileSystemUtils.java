@@ -115,6 +115,7 @@ public final class UnderFileSystemUtils {
    * @return true if the under file system is a object storage; false otherwise
    */
   public static boolean isObjectStorage(String ufsAddress) {
+    // TODO(adit): Fix me for plugins
     return ufsAddress.startsWith(Constants.HEADER_S3)
         || ufsAddress.startsWith(Constants.HEADER_S3N)
         || ufsAddress.startsWith(Constants.HEADER_S3A)
@@ -128,6 +129,7 @@ public final class UnderFileSystemUtils {
    * @return true if the implementation is an object storage implementation
    */
   public static boolean isObjectStorage(UnderFileSystem ufs) {
+    // TODO(adit): Fix me for plugins
     return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
   }
 
@@ -144,6 +146,7 @@ public final class UnderFileSystemUtils {
    * @return true if the implementation is an S3 implementation
    */
   public static boolean isS3(UnderFileSystem ufs) {
+    // TODO(adit): Fix me for plugins
     return "s3".equals(ufs.getUnderFSType()) || "s3a".equals(ufs.getUnderFSType());
   }
 
