@@ -34,9 +34,9 @@ import org.mockito.Mockito;
 import java.util.Random;
 
 /**
- * Unit tests for {@link DataServerBlockWriteHandler}.
+ * Unit tests for {@link BlockWriteHandler}.
  */
-public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandlerTest {
+public final class BlockWriteHandlerTest extends WriteHandlerTest {
   private final Random mRandom = new Random();
 
   private BlockWorker mBlockWorker;
@@ -59,9 +59,9 @@ public final class DataServerBlockWriteHandlerTest extends DataServerWriteHandle
     mChecksum = 0;
 
     mChannel = new EmbeddedChannel(
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
+        new BlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
     mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerBlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
+        new BlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
   }
 
   /**

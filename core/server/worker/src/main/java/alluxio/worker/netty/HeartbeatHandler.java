@@ -19,11 +19,11 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 /**
  * A handler for heartbeat events.
  */
-public class DataServerHeartbeatHandler extends ChannelInboundHandlerAdapter {
+public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
   /**
    * Constructs a new heartbeat handler.
    */
-  public DataServerHeartbeatHandler() {}
+  public HeartbeatHandler() {}
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {

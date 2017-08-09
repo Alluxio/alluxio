@@ -31,7 +31,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LocalFileBlockReader.class})
-public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerTest {
+public final class BlockReadHandlerTest extends ReadHandlerTest {
   private BlockWorker mBlockWorker;
   private BlockReader mBlockReader;
 
@@ -41,10 +41,10 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
     mBlockWorker = Mockito.mock(BlockWorker.class);
     Mockito.doNothing().when(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
     mChannel = new EmbeddedChannel(
-        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+        new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
             FileTransferType.MAPPED));
     mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+        new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
             FileTransferType.MAPPED));
   }
 
@@ -54,7 +54,7 @@ public final class DataServerBlockReadHandlerTest extends DataServerReadHandlerT
   @Test
   public void transferType() throws Exception {
     mChannel = new EmbeddedChannel(
-        new DataServerBlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+        new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
             FileTransferType.TRANSFER));
 
     long fileSize = PACKET_SIZE * 2;

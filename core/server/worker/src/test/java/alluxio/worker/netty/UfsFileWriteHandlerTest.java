@@ -39,9 +39,9 @@ import java.io.OutputStream;
 import java.util.Random;
 
 /**
- * Unit tests for {@link DataServerUfsFileWriteHandler}.
+ * Unit tests for {@link UfsFileWriteHandler}.
  */
-public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHandlerTest {
+public final class UfsFileWriteHandlerTest extends WriteHandlerTest {
   private final Random mRandom = new Random();
 
   private OutputStream mOutputStream;
@@ -60,9 +60,9 @@ public final class DataServerUfsFileWriteHandlerTest extends DataServerWriteHand
         .thenReturn(mOutputStream);
 
     mChannel = new EmbeddedChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
+        new UfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
     mChannelNoException = new EmbeddedNoExceptionChannel(
-        new DataServerUfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
+        new UfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
   }
 
   @After

@@ -38,9 +38,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Netty handler that handles short circuit read requests.
  */
 @NotThreadSafe
-class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
+class ShortCircuitBlockReadHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG =
-      LoggerFactory.getLogger(DataServerShortCircuitReadHandler.class);
+      LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
   /** Executor service for execute the RPCs. */
   private final ExecutorService mRpcExecutor;
@@ -52,12 +52,12 @@ class DataServerShortCircuitReadHandler extends ChannelInboundHandlerAdapter {
   private long mSessionId;
 
   /**
-   * Creates an instance of {@link DataServerShortCircuitReadHandler}.
+   * Creates an instance of {@link ShortCircuitBlockReadHandler}.
    *
    * @param service the executor to execute the RPCs
    * @param blockWorker the block worker
    */
-  DataServerShortCircuitReadHandler(ExecutorService service, BlockWorker blockWorker) {
+  ShortCircuitBlockReadHandler(ExecutorService service, BlockWorker blockWorker) {
     mRpcExecutor = service;
     mWorker = blockWorker;
     mLockId = BlockLockManager.INVALID_LOCK_ID;
