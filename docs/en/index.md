@@ -10,15 +10,15 @@ group: Home
 Alluxio, formerly known as Tachyon, is the world’s first memory speed virtual distributed storage
 system. It unifies data access and bridges computation frameworks and underlying storage systems.
 Applications only need to connect with Alluxio to access data stored in any underlying storage
-systems. Additionally, Alluxio’s memory-centric architecture enables data access orders of magnitude
-faster than existing solutions.
+systems. Additionally, Alluxio’s memory-centric architecture enables data access at speeds that is
+orders of magnitude faster than existing solutions.
 
 In the big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache
 Spark, Apache MapReduce, Apache HBase, Apache Hive, or Apache Flink, and various kinds of storage
 systems, such as Amazon S3, Google Cloud Storage, OpenStack Swift, GlusterFS, HDFS, MaprFS, Ceph,
 NFS, and Alibaba OSS. Alluxio brings significant performance improvement to the ecosystem; for
 example, [Baidu](https://www.baidu.com)
-uses Alluxio to improve speedup the throughput of their data analytics pipeline
+uses Alluxio to speedup the throughput of their data analytics pipeline
 [30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf). Barclays makes the
 impossible possible with Alluxio to accelerate jobs from
 [hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
@@ -70,9 +70,9 @@ and Spark to use Alluxio in place of HDFS.
 
 * **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints data to the
 underlying storage system. It has a generic interface to make plugging different underlayer storage
-systems easy. We currently support Amazon S3, Google Cloud Storage, OpenStack Swift, GlusterFS,
-HDFS, MaprFS, Ceph, NFS, Alibaba OSS, and single-node local file systems, and support for many other
-file systems is coming.
+systems easy. We currently support Microsoft Azure Blob Store, Amazon S3, Google Cloud Storage, 
+OpenStack Swift, GlusterFS, HDFS, MaprFS, Ceph, NFS, Alibaba OSS, Minio, and single-node local file
+systems, and support for many other file systems is coming.
 
 * **[Tiered Storage](Tiered-Storage-on-Alluxio.html)** With Tiered Storage, Alluxio can manage SSDs
 and HDDs in addition to memory, allowing for larger datasets to be stored in Alluxio. Data will
