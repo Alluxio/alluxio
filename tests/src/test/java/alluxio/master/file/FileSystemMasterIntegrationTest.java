@@ -52,6 +52,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -759,6 +760,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
      * @return null
      */
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -837,6 +839,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -910,6 +913,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -990,6 +994,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -1070,6 +1075,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       mStartBarrier.await();
