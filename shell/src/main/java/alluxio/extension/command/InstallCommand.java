@@ -11,7 +11,16 @@
 
 package alluxio.extension.command;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -20,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class InstallCommand extends AbstractExtensionCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(InstallCommand.class);
 
   public InstallCommand() {}
 
@@ -44,6 +54,16 @@ public final class InstallCommand extends AbstractExtensionCommand {
 
   @Override
   public int run(CommandLine cl) {
+    try {
+      String arg = cl.getArgs()[0];
+      String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+      System.out.println("Copying extension from " + arg + " into " + extensionDir);
+      FileUtils.copyFileToDirectory(new File(arg), new File(extensionDir));
+    } catch (IOException e) {
+      LOG.error("Error installing extension.", e);
+      return -1;
+    }
+    System.out.println("Extension installed successfully.");
     return 0;
   }
 
