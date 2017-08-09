@@ -32,7 +32,7 @@ ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
-ALLUXIO_EXT_DIR="${ALLUXIO_EXT_DIR:-${ALLUXIO_HOME}/extensions}"
+ALLUXIO_EXT_DIR="${ALLUXIO_EXT_DIR:-${ALLUXIO_HOME}/extensions/*}"
 
 if [[ -z "$(which java)" ]]; then
   echo "Cannot find the 'java' command."
