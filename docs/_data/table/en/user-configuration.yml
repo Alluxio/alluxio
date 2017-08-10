@@ -86,7 +86,7 @@ alluxio.user.network.netty.channel.pool.gc.threshold.ms:
 alluxio.user.network.netty.channel.pool.disabled:
   Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.
 alluxio.user.ufs.block.read.location.policy:
-  The policy for block workers to read the UFS blocks.
+  The policy block workers follow for reading UFS blocks.
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   When alluxio.user.ufs.block.read.location.policy is set to
   alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.
