@@ -25,6 +25,9 @@ alluxio.user.lineage.master.client.threads,10
 alluxio.user.network.netty.timeout.ms,30000
 alluxio.user.network.netty.writer.close.timeout.ms,300000
 alluxio.user.network.netty.worker.threads,0
+alluxio.user.ufs.block.read.location.policy,alluxio.client.file.policy.LocalFirstPolicy
+alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards,1
+alluxio.user.ufs.block.read.concurrency.max,2147483647
 alluxio.user.ufs.delegation.read.buffer.size.bytes,8MB
 alluxio.user.ufs.delegation.write.buffer.size.bytes,2MB
 alluxio.user.ufs.file.reader.class,alluxio.client.netty.&#8203;NettyUnderFileSystemFileReader
