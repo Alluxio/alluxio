@@ -15,16 +15,13 @@ priority: 1
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有配置文件，可以使用`bootstrapConf`命令来创建自己的配置文件。
-举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`。
-
-{% include Configuring-Alluxio-with-Swift/bootstrapConf.md %}
-
-另外你也可以由template文件创建配置文件，并且手动修改它的内容：
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
 ## 配置Alluxio
+
+要使用底层存储系统，你需要编辑`conf/alluxio-site.properties`来配置Alluxio。如果该文件不存在，那就从模板创建一个配置文件。
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
 
 如果你需要将Swift用作Alluxio的底层存储系统，你需要修改`conf/alluxio-site.properties`，在其中添加：
 
