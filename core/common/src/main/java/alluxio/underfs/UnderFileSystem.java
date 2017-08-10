@@ -85,6 +85,8 @@ public interface UnderFileSystem extends Closeable {
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories = UnderFileSystemFactoryRegistry.findAll(path);
+      // Discover extensions at run time
+      factories.addAll(UnderFileSystemFactoryRegistry.findAllExtensions(path));
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }

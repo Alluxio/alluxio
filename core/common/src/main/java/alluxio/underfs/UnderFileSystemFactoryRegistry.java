@@ -11,12 +11,22 @@
 
 package alluxio.underfs;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.extension.ExtensionClassLoader;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -132,6 +142,37 @@ public final class UnderFileSystemFactoryRegistry {
 
     if (eligibleFactories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}", path);
+    }
+    return eligibleFactories;
+  }
+
+  public static List<UnderFileSystemFactory> findAllExtensions(String path) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+    
+    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
+    String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+    File[] extensions = new File(extensionDir).listFiles(new FileFilter() {
+      public boolean accept(File file) {
+        return file.getPath().toLowerCase().endsWith(".jar");
+      }
+    });
+    for (File extension : extensions) {
+      try {
+        URL[] extensionUrls = new URL[] {extension.toURI().toURL()} ;
+        ClassLoader pluginClassLoader =
+            new ExtensionClassLoader(extensionUrls, ClassLoader.getSystemClassLoader());
+        ServiceLoader<UnderFileSystemFactory> pluginFactories =
+            ServiceLoader.load(UnderFileSystemFactory.class, pluginClassLoader);
+        for (UnderFileSystemFactory factory : pluginFactories) {
+          if (factory.supportsPath(path)) {
+            LOG.debug("Discovered an Under File System Factory implementation in extensions {} - {}",
+                factory.getClass(), factory.toString());
+            eligibleFactories.add(factory);
+          }
+        }
+      } catch (MalformedURLException e) {
+        LOG.debug("Plugin URL is malformed: {}", e.getMessage());
+      }
     }
     return eligibleFactories;
   }

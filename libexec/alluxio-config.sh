@@ -32,7 +32,6 @@ ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
-ALLUXIO_EXT_DIR="${ALLUXIO_EXT_DIR:-${ALLUXIO_HOME}/extensions/*}"
 
 if [[ -z "$(which java)" ]]; then
   echo "Cannot find the 'java' command."
@@ -83,8 +82,8 @@ ALLUXIO_JAVA_OPTS+=" -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.proper
 ALLUXIO_JAVA_OPTS+=" -Dorg.apache.jasper.compiler.disablejsr199=true"
 ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
 
-ALLUXIO_CLIENT_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_CLIENT_JAR}:${ALLUXIO_EXT_DIR}"
-ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_SERVER_JAR}:${ALLUXIO_EXT_DIR}"
+ALLUXIO_CLIENT_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_CLIENT_JAR}"
+ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_SERVER_JAR}"
 
 ####################################################################################################
 ## Start reading site-properties to set certain variables.
