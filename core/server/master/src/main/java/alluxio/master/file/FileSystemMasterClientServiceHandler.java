@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
+import alluxio.RpcUtils.RpcThrowsIOExceptionWithAuditFunction;
 import alluxio.exception.AlluxioException;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -88,6 +89,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private static final Logger LOG =
+      LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
+  private static final Logger AUDIT_LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
   private final FileSystemMaster mFileSystemMaster;
 
@@ -166,10 +169,10 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public CreateFileTResponse createFile(final String path, final CreateFileTOptions options)
       throws AlluxioTException {
-    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<CreateFileTResponse>() {
+    return RpcUtils.callAndLog(new RpcThrowsIOExceptionWithAuditFunction<CreateFileTResponse>(path, null) {
       @Override
       public CreateFileTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options));
+        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options), this);
         return new CreateFileTResponse();
       }
 
@@ -177,7 +180,7 @@ public final class FileSystemMasterClientServiceHandler implements
       public String toString() {
         return String.format("CreateFile: path=%s, options=%s", path, options);
       }
-    });
+    }, LOG, AUDIT_LOG);
   }
 
   @Override

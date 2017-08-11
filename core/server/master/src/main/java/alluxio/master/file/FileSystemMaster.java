@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.RpcUtils;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -37,6 +38,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.thrift.CreateFileTResponse;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileBlockInfo;
@@ -179,6 +181,10 @@ public interface FileSystemMaster extends Master {
    *         option is false
    */
   long createFile(AlluxioURI path, CreateFileOptions options)
+      throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
+      BlockInfoException, IOException, FileDoesNotExistException;
+
+  long createFile(AlluxioURI path, CreateFileOptions options, RpcUtils.RpcThrowsIOExceptionWithAuditFunction<CreateFileTResponse> func)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.RpcUtils;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
@@ -89,6 +90,7 @@ import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
+import alluxio.thrift.CreateFileTResponse;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
 import alluxio.thrift.FileSystemMasterClientService;
@@ -1020,6 +1022,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
+      return inodePath.getInode().getId();
+    }
+  }
+
+  @Override
+  public long createFile(AlluxioURI path, CreateFileOptions options, RpcUtils.RpcThrowsIOExceptionWithAuditFunction<CreateFileTResponse> func)
+      throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
+      BlockInfoException, IOException, FileDoesNotExistException {
+    Metrics.CREATE_FILES_OPS.inc();
+    try (JournalContext journalContext = createJournalContext();
+         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
+      mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+      mMountTable.checkUnderWritableMountPoint(path);
+      createFileAndJournal(inodePath, options, journalContext);
+      Inode srcInode = inodePath.getInode();
+      func.setSrcPathOwner(srcInode.getOwner());
+      func.setSrcPathGroup(srcInode.getGroup());
+      func.setmSrcPathMode(srcInode.getMode());
       return inodePath.getInode().getId();
     }
   }

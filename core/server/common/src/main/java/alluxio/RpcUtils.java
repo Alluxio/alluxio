@@ -71,6 +71,26 @@ public final class RpcUtils {
     }
   }
 
+  public static <T> T call(RpcThrowsIOExceptionWithAuditFunction<T> func, Logger logger, Logger auditLogger) throws AlluxioTException {
+    try {
+      T ret = func.call();
+      return ret;
+    } catch (alluxio.exception.AccessControlException e) {
+      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
+    } catch (AlluxioException e) {
+      logger.warn("{}, Error={}", func, e.getMessage());
+      logger.debug("{}", func, e);
+      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
+    } catch (IOException e) {
+      logger.warn("{}, Error={}", func, e.getMessage());
+      logger.debug("{}", func, e);
+      throw AlluxioStatusException.fromIOException(e).toThrift();
+    } catch (RuntimeException e) {
+      logger.error("{}", func, e);
+      throw new InternalException(e).toThrift();
+    }
+  }
+
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown. The callable should
    * implement a toString with the following format: "CallName: arg1=value1, arg2=value2,...".
@@ -187,6 +207,39 @@ public final class RpcUtils {
       callable.exceptionCaught(e);
     }
     return null;
+  }
+
+  public static abstract class RpcThrowsIOExceptionWithAuditFunction <T> implements RpcCallableThrowsIOException<T> {
+    final String mSrcPath;
+    final String mDstPath;
+    String mSrcPathOwner;
+    String mSrcPathGroup;
+    Short mSrcPathMode;
+
+    public RpcThrowsIOExceptionWithAuditFunction(String src, String dst) { mSrcPath = src; mDstPath = dst; }
+    String getSrcPath() { return mSrcPath; }
+    String getSrcPathOwner() { return mSrcPathOwner; }
+    String getSrcPathGroup() { return mSrcPathGroup; }
+    Short getSrcPathMode() { return mSrcPathMode; }
+
+    public void setSrcPathOwner(String owner) { mSrcPathOwner = owner; }
+    public void setSrcPathGroup(String group) { mSrcPathGroup = group; }
+    public void setmSrcPathMode(short mode) { mSrcPathMode = mode; }
+
+    String getDstPath() { return mDstPath; }
+    public abstract T call() throws AlluxioException, IOException;
+  }
+
+  public static <T> T callAndLog(RpcThrowsIOExceptionWithAuditFunction<T> func, Logger logger, Logger auditLogger) throws AlluxioTException {
+    logger.debug("Enter: {}", func);
+    try {
+      T ret = call(func, logger, auditLogger);
+      logger.debug("Exit (OK): {}", func);
+      return ret;
+    } catch (AlluxioTException e) {
+      logger.debug("Exit (Error): {}, Error={}", func, e.getMessage());
+      throw e;
+    }
   }
 
   private RpcUtils() {} // prevent instantiation
