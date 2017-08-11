@@ -31,14 +31,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test for {@link DataServerUnsupportedMessageHandler}.
+ * Test for {@link UnsupportedMessageHandler}.
  */
-public class DataServerUnsupportedMessageHandlerTest {
+public class UnsupportedMessageHandlerTest {
   private EmbeddedChannel mChannel;
 
   @Before
   public void before() throws Exception {
-    mChannel = new EmbeddedChannel(new DataServerUnsupportedMessageHandler());
+    mChannel = new EmbeddedChannel(new UnsupportedMessageHandler());
   }
 
   /**

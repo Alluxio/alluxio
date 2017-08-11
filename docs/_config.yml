@@ -38,6 +38,16 @@ defaults:
       languageName: Português
       languagePriority: 2
 
+# These are the ordered category names
+categoryList:
+  - User Guide
+  - Deploying Alluxio
+  - Features
+  - Clients
+  - Frameworks
+  - Under Store
+  - Resources
+
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
 # Instead, just add the group name of that language below

@@ -93,7 +93,7 @@ public class PropertyKey {
      * @return the created property key instance
      */
     public PropertyKey build() {
-      return PropertyKey.create(mName, mDefaultValue, mAlias);
+      return PropertyKey.create(mName, mDefaultValue, mAlias, mDescription);
     }
 
     @Override
@@ -2250,7 +2250,7 @@ public class PropertyKey {
      * @return corresponding property
      */
     public PropertyKey format(Object... params) {
-      return new PropertyKey(String.format(mFormat, params));
+      return new PropertyKey(String.format(mFormat, params), "");
     }
   }
 
@@ -2290,7 +2290,7 @@ public class PropertyKey {
     for (Template template : Template.values()) {
       Matcher matcher = template.mPattern.matcher(input);
       if (matcher.matches()) {
-        return new PropertyKey(input);
+        return new PropertyKey(input, "");
       }
     }
     throw new IllegalArgumentException(
@@ -2307,11 +2307,16 @@ public class PropertyKey {
   /** Property name. */
   private final String mName;
 
+  /** Property Key description. */
+  private final String mDescription;
+
   /**
    * @param name String of this property
+   * @param description String description of this property key
    */
-  PropertyKey(String name) {
+  PropertyKey(String name, String description) {
     mName = Preconditions.checkNotNull(name, "name");
+    mDescription = description != null ? description : "N/A";
   }
 
   /**
@@ -2321,9 +2326,11 @@ public class PropertyKey {
    * @param name String of this property
    * @param defaultValue Default value of this property in compile time if not null
    * @param aliases String list of aliases of this property
+   * @param description String description of this property key
    */
-  static PropertyKey create(String name, Object defaultValue, String[] aliases) {
-    PropertyKey key = new PropertyKey(name);
+  static PropertyKey create(String name, Object defaultValue, String[] aliases,
+                            String description) {
+    PropertyKey key = new PropertyKey(name, description);
     DEFAULT_KEYS_MAP.put(name, key);
     DEFAULT_VALUES.put(key, defaultValue);
     if (aliases != null) {
@@ -2380,12 +2387,19 @@ public class PropertyKey {
   }
 
   /**
+   * @return the description of a property
+   */
+  public String getDescription() {
+    return mDescription;
+  }
+
+  /**
    * @param name the name of a property key
    * @return if this property key is deprecated
    */
   public static boolean isDeprecated(String name) {
     try {
-      PropertyKey key = new PropertyKey(name);
+      PropertyKey key = new PropertyKey(name, "");
       Class c = key.getClass();
       Field field = c.getDeclaredField(name);
       Annotation[] annotations = field.getDeclaredAnnotations();

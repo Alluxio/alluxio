@@ -26,7 +26,7 @@ import org.junit.Test;
 public final class PropertyKeyTest {
 
   private PropertyKey mTestProperty = PropertyKey.create("alluxio.test.property", false,
-       new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"});
+       new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"}, "test");
 
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.

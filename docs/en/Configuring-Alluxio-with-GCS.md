@@ -17,18 +17,6 @@ First, the Alluxio binaries must be on your machine. You can either
 [compile Alluxio](Building-Alluxio-Master-Branch.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
-Then, if you haven't already done so, create your configuration file with `bootstrapConf` command.
-For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be
-set to `localhost`
-
-{% include Configuring-Alluxio-with-GCS/bootstrapConf.md %}
-
-Alternatively, you can also create the configuration file from the template and set the contents
-manually.
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
-
 Also, in preparation for using GCS with Alluxio, create a bucket (or use an existing bucket). You
 should also note the directory you want to use in that bucket, either by creating a new directory in
 the bucket, or using an existing one. For the purposes of this guide, the GCS bucket name is called
@@ -38,6 +26,14 @@ If you are new to GCS, please read its
 [documentations](https://cloud.google.com/storage/docs/overview).
 
 ## Configuring Alluxio
+
+You need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
 
 You need to configure Alluxio to use GCS as its under storage system. The first modification is to
 specify an **existing** GCS bucket and directory as the under storage system by modifying

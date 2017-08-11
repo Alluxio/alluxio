@@ -34,6 +34,9 @@ from the top level `alluxio` directory with the following command:
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
 
+* Advanced users can choose to compile this client jar from the source code, follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at 
+`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+
 ### Additional Setup for HDFS
 
 * If Alluxio is run on top of a Hadoop 1.x cluster, create a new file `spark/conf/core-site.xml`

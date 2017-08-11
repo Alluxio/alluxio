@@ -15,24 +15,26 @@ This guide describes how to configure Alluxio with [Azure Blob Store](https://az
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines. You can either [compile the binaries from Alluxio source code](Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](Running-Alluxio-Locally.html).
 
-Then, if you haven't already done so, create your configuration file with `bootstrapConf` command.
-For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+Also, in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
+storage account or use an existing container. You should also note that the directory you want to
+use in that container, either by creating a new directory in the container, or using an existing
+one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the
+container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is
+called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see
+[here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)
 
-```
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
-```
-
-Alternatively, you can also create the configuration file from the template and set the contents manually.
-
-```
-$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
-```
-
-Also, in preparation for using Azure blob store with Alluxio, create a new container in your Azure storage account or use an existing container. You should also note that the directory you want to use in that container, either by creating a new directory in the container, or using an existing one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)
 
 ## Configuring Alluxio
 
-Alluxio can support the Azure blob store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store over [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
+You need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Alluxio can support the Azure Blob Store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
 Download azure storage java library(version 2.2.0) from [here](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) and hadoop azure libraries corresponding to your Hadoop version from [here](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure). Please make sure to use `azure-storage-2.2.0.jar` and not any other higher version due to version conflicts with hadoop-azure libraries.
 
 You need to add the above mentioned libraries in the `ALLUXIO_CLASSPATH`. You can do this by adding following line in the `conf/alluxio-env.sh`:
