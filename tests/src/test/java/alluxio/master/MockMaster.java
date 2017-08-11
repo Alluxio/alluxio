@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * A fake master implementation.
@@ -34,6 +35,7 @@ public final class MockMaster implements Master {
   }
 
   @Override
+  @Nullable
   public Map<String, TProcessor> getServices() {
     return null;
   }
@@ -44,6 +46,7 @@ public final class MockMaster implements Master {
   }
 
   @Override
+  @Nullable
   public Set<Class<? extends Server>> getDependencies() {
     return null;
   }
