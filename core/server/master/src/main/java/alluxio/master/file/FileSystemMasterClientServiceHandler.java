@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.RpcUtils.RpcThrowsIOExceptionWithAuditFunction;
+import alluxio.RpcUtils.RpcThrowsIOExceptionWithAuditContext;
 import alluxio.exception.AlluxioException;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -169,10 +169,10 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public CreateFileTResponse createFile(final String path, final CreateFileTOptions options)
       throws AlluxioTException {
-    return RpcUtils.callAndLog(new RpcThrowsIOExceptionWithAuditFunction<CreateFileTResponse>(path, null) {
+    return RpcUtils.callAndLog(new RpcThrowsIOExceptionWithAuditContext<CreateFileTResponse>("createfile", path, null) {
       @Override
       public CreateFileTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options), this);
+        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options), this.getAuditLogEntry());
         return new CreateFileTResponse();
       }
 

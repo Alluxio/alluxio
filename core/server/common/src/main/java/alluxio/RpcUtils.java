@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
+import alluxio.master.audit.UserAccessAuditLog;
 import alluxio.thrift.AlluxioTException;
 
 import org.slf4j.Logger;
@@ -71,23 +72,33 @@ public final class RpcUtils {
     }
   }
 
-  public static <T> T call(RpcThrowsIOExceptionWithAuditFunction<T> func, Logger logger, Logger auditLogger) throws AlluxioTException {
+  public static <T> T call(RpcThrowsIOExceptionWithAuditContext<T> context, Logger logger, Logger auditLogger) throws AlluxioTException {
+    UserAccessAuditLog.AuditLogEntry entry = context.getAuditLogEntry();
     try {
-      T ret = func.call();
+      T ret = context.call();
+      entry.setAuthorized(true);
       return ret;
     } catch (alluxio.exception.AccessControlException e) {
+      entry.setAuthorized(false);
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (AlluxioException e) {
-      logger.warn("{}, Error={}", func, e.getMessage());
-      logger.debug("{}", func, e);
+      logger.warn("{}, Error={}", context, e.getMessage());
+      logger.debug("{}", context, e);
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
-      logger.warn("{}, Error={}", func, e.getMessage());
-      logger.debug("{}", func, e);
+      logger.warn("{}, Error={}", context, e.getMessage());
+      logger.debug("{}", context, e);
       throw AlluxioStatusException.fromIOException(e).toThrift();
     } catch (RuntimeException e) {
-      logger.error("{}", func, e);
+      logger.error("{}", context, e);
       throw new InternalException(e).toThrift();
+    } finally {
+      UserAccessAuditLog.AuditLogEntry head = UserAccessAuditLog.getNextLogEntry();
+      if (head != null) {
+        auditLogger.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm={}:{}:{}",
+            head.isAuthorized(), head.getUser(), head.getIp(), head.getCommand(), head.getSrcPath(), head.getDstPath(),
+            head.getSrcPathOwner(), head.getSrcPathGroup(), head.getSrcPathMode());
+      }
     }
   }
 
@@ -209,35 +220,24 @@ public final class RpcUtils {
     return null;
   }
 
-  public static abstract class RpcThrowsIOExceptionWithAuditFunction <T> implements RpcCallableThrowsIOException<T> {
-    final String mSrcPath;
-    final String mDstPath;
-    String mSrcPathOwner;
-    String mSrcPathGroup;
-    Short mSrcPathMode;
+  public static abstract class RpcThrowsIOExceptionWithAuditContext <T> implements RpcCallableThrowsIOException<T> {
+    private UserAccessAuditLog.AuditLogEntry mAuditLogEntry;
 
-    public RpcThrowsIOExceptionWithAuditFunction(String src, String dst) { mSrcPath = src; mDstPath = dst; }
-    String getSrcPath() { return mSrcPath; }
-    String getSrcPathOwner() { return mSrcPathOwner; }
-    String getSrcPathGroup() { return mSrcPathGroup; }
-    Short getSrcPathMode() { return mSrcPathMode; }
-
-    public void setSrcPathOwner(String owner) { mSrcPathOwner = owner; }
-    public void setSrcPathGroup(String group) { mSrcPathGroup = group; }
-    public void setmSrcPathMode(short mode) { mSrcPathMode = mode; }
-
-    String getDstPath() { return mDstPath; }
+    public RpcThrowsIOExceptionWithAuditContext(String cmd, String src, String dst) {
+      mAuditLogEntry = new UserAccessAuditLog.AuditLogEntry(cmd, src, dst);
+    }
+    public UserAccessAuditLog.AuditLogEntry getAuditLogEntry() { return mAuditLogEntry; }
     public abstract T call() throws AlluxioException, IOException;
   }
 
-  public static <T> T callAndLog(RpcThrowsIOExceptionWithAuditFunction<T> func, Logger logger, Logger auditLogger) throws AlluxioTException {
-    logger.debug("Enter: {}", func);
+  public static <T> T callAndLog(RpcThrowsIOExceptionWithAuditContext<T> context, Logger logger, Logger auditLogger) throws AlluxioTException {
+    logger.debug("Enter: {}", context);
     try {
-      T ret = call(func, logger, auditLogger);
-      logger.debug("Exit (OK): {}", func);
+      T ret = call(context, logger, auditLogger);
+      logger.debug("Exit (OK): {}", context);
       return ret;
     } catch (AlluxioTException e) {
-      logger.debug("Exit (Error): {}, Error={}", func, e.getMessage());
+      logger.debug("Exit (Error): {}, Error={}", context, e.getMessage());
       throw e;
     }
   }

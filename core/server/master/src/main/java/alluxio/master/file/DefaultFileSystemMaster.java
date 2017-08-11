@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.RpcUtils;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
@@ -39,6 +38,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.ProtobufUtils;
+import alluxio.master.audit.UserAccessAuditLog;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.async.AsyncPersistHandler;
@@ -88,6 +88,7 @@ import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.CreateFileTResponse;
@@ -347,7 +348,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
     services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-        new FileSystemMasterClientService.Processor<>(
+        new FileSystemMasterClientServiceProcessor(
             new FileSystemMasterClientServiceHandler(this)));
     services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
         new FileSystemMasterWorkerService.Processor<>(
@@ -1027,7 +1028,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public long createFile(AlluxioURI path, CreateFileOptions options, RpcUtils.RpcThrowsIOExceptionWithAuditFunction<CreateFileTResponse> func)
+  public long createFile(AlluxioURI path, CreateFileOptions options, UserAccessAuditLog.AuditLogEntry entry)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
@@ -1037,9 +1038,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
       Inode srcInode = inodePath.getInode();
-      func.setSrcPathOwner(srcInode.getOwner());
-      func.setSrcPathGroup(srcInode.getGroup());
-      func.setmSrcPathMode(srcInode.getMode());
+      appendAuditLogEntry(entry, srcInode);
       return inodePath.getInode().getId();
     }
   }
@@ -2998,6 +2997,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<WorkerInfo> getWorkerInfoList() {
     return mBlockMaster.getWorkerInfoList();
+  }
+
+  private void appendAuditLogEntry(UserAccessAuditLog.AuditLogEntry entry, Inode inode) throws AccessControlException {
+    entry.setUser(AuthenticatedClientUser.getClientUser());
+    entry.setIp(FileSystemMasterClientServiceProcessor.getClientIpThreadLocal());
+    entry.setSrcPathOwner(inode.getOwner());
+    entry.setSrcPathGroup(inode.getGroup());
+    entry.setSrcPathMode(inode.getMode());
+    UserAccessAuditLog.append(entry);
   }
 
   /**

@@ -24,6 +24,7 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.master.Master;
+import alluxio.master.audit.UserAccessAuditLog;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CheckConsistencyOptions;
@@ -184,7 +185,7 @@ public interface FileSystemMaster extends Master {
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 
-  long createFile(AlluxioURI path, CreateFileOptions options, RpcUtils.RpcThrowsIOExceptionWithAuditFunction<CreateFileTResponse> func)
+  long createFile(AlluxioURI path, CreateFileOptions options, UserAccessAuditLog.AuditLogEntry entry)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 
