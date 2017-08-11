@@ -11,6 +11,12 @@
 
 package alluxio.extension;
 
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -18,6 +24,7 @@ import java.net.URLClassLoader;
  * Interface for a client in the Alluxio system.
  */
 public class ExtensionClassLoader extends URLClassLoader {
+  private static final Logger LOG = LoggerFactory.getLogger(ExtensionClassLoader.class);
 
   public ExtensionClassLoader(URL[] urls, ClassLoader parent) {
     super(urls, parent);
@@ -25,15 +32,23 @@ public class ExtensionClassLoader extends URLClassLoader {
 
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
-    if (!loadFromExtension(name)) {
-      return super.findClass(name);
+    URL resource = findResource(name.replace('.', '/') + ".class");
+    if (resource != null) {
+      try (InputStream is = resource.openStream()) {
+        byte[] bytecode = IOUtils.toByteArray(is);
+        String packageName = getPackageName(name);
+        if (packageName != null && getPackage(packageName) == null) {
+          // Define package if not already defined
+          // TODO (adit): version package from manifest?
+          definePackage(packageName, null, null, null, null, null, null, null);
+        }
+        return defineClass(name, bytecode, 0, bytecode.length);
+      } catch (IOException e) {
+        LOG.warn("Failed to read class definition for class {}", name, e);
+      }
     }
-    throw new ClassCastException("Unable to find class " + name + " in extension URL.");
-  }
-
-  protected boolean loadFromExtension(String name) {
-    // TODO(adit): implement me
-    return false;
+    // Delegate to parent if class not found in extension URL
+    return super.findClass(name);
   }
 
   protected String getPackageName(String className) {
