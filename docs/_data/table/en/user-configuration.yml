@@ -85,6 +85,13 @@ alluxio.user.network.netty.channel.pool.gc.threshold.ms:
   A netty channel is closed if it has been idle for more than this threshold.
 alluxio.user.network.netty.channel.pool.disabled:
   Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.
+alluxio.user.ufs.block.read.location.policy:
+  The policy block workers follow for reading UFS blocks.
+alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
+  When alluxio.user.ufs.block.read.location.policy is set to
+  alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.
+alluxio.user.ufs.block.read.concurrency.max:
+  The maximum concurrent readers for one UFS block on one Block Worker.
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
   Size of the read buffer when reading from the ufs through the Alluxio worker. Each read request
   will fetch at least this many bytes, unless the read reaches the end of the file.
