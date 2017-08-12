@@ -25,7 +25,6 @@ import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Before;
@@ -76,12 +75,6 @@ public final class BlockWriteHandlerTest extends WriteHandlerTest {
     Object writeResponse = waitForResponse(mChannelNoException);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
     checkWriteResponse(writeResponse, PStatus.FAILED_PRECONDITION);
-  }
-
-  @Test
-  public void UnregisteredChannelFired() throws Exception {
-    ChannelPipeline p = mChannel.pipeline();
-    p.fireChannelUnregistered();
   }
 
   @Override
