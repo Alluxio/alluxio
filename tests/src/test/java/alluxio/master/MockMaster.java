@@ -54,6 +54,9 @@ public final class MockMaster implements Master {
   }
 
   @Override
+  public void resetState() {}
+
+  @Override
   public void start(Boolean isPrimary) throws IOException {}
 
   @Override

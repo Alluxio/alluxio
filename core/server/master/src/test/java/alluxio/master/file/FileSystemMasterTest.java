@@ -45,8 +45,9 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalSystem.Mode;
+import alluxio.master.journal.JournalTestUtils;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
@@ -73,10 +74,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -94,6 +96,8 @@ import java.util.concurrent.Executors;
  * Unit tests for {@link FileSystemMaster}.
  */
 public final class FileSystemMasterTest {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterTest.class);
+
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
@@ -113,7 +117,7 @@ public final class FileSystemMasterTest {
 
   private CreateFileOptions mNestedFileOptions;
   private MasterRegistry mRegistry;
-  private JournalFactory mJournalFactory;
+  private JournalSystem mJournalSystem;
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
@@ -139,6 +143,8 @@ public final class FileSystemMasterTest {
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
     {
       put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
+      put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
+      put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0");
       put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
           .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
     }
@@ -1883,13 +1889,15 @@ public final class FileSystemMasterTest {
 
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    mJournalFactory = new Journal.Factory(new URI(mJournalFolder));
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalFactory);
+    mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem);
     mExecutorService = Executors
         .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, mJournalFactory,
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, mJournalSystem,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
+    mJournalSystem.start();
+    mJournalSystem.setMode(Mode.PRIMARY);
     mRegistry.start(true);
 
     // set up workers
@@ -1909,5 +1917,6 @@ public final class FileSystemMasterTest {
 
   private void stopServices() throws Exception {
     mRegistry.stop();
+    mJournalSystem.stop();
   }
 }

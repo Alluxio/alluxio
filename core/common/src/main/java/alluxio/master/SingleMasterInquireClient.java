@@ -9,18 +9,32 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.master;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * Interface for a master client in the Alluxio system.
+ * A {@link MasterInquireClient} which always returns a fixed master address.
  */
-public interface MasterClient extends Client {
+public class SingleMasterInquireClient implements MasterInquireClient {
+  private final InetSocketAddress mAddress;
 
   /**
-   * @return the list containing all master addresses
+   * @param address the master address
    */
-  List<InetSocketAddress> getMasterAddresses();
+  public SingleMasterInquireClient(InetSocketAddress address) {
+    mAddress = address;
+  }
+
+  @Override
+  public InetSocketAddress getPrimaryRpcAddress() {
+    return mAddress;
+  }
+
+  @Override
+  public List<InetSocketAddress> getMasterRpcAddresses() {
+    return Arrays.asList(mAddress);
+  }
 }

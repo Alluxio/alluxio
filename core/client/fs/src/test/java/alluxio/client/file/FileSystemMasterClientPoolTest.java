@@ -11,6 +11,8 @@
 
 package alluxio.client.file;
 
+import alluxio.master.MasterInquireClient;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,8 +20,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.net.InetSocketAddress;
 
 import javax.security.auth.Subject;
 
@@ -31,7 +31,7 @@ public class FileSystemMasterClientPoolTest {
     FileSystemMasterClient expectedClient = Mockito.mock(FileSystemMasterClient.class);
     PowerMockito.mockStatic(FileSystemMasterClient.Factory.class);
     Mockito.when(FileSystemMasterClient.Factory
-        .create(Mockito.any(Subject.class), Mockito.any(InetSocketAddress.class)))
+        .create(Mockito.any(Subject.class), Mockito.any(MasterInquireClient.class)))
         .thenReturn(expectedClient);
     FileSystemMasterClient client;
     try (FileSystemMasterClientPool pool = new FileSystemMasterClientPool(null, null)) {

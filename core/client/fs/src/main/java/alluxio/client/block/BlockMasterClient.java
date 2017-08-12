@@ -12,11 +12,11 @@
 package alluxio.client.block;
 
 import alluxio.Client;
+import alluxio.master.MasterInquireClient;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,22 +38,22 @@ public interface BlockMasterClient extends Client {
     /**
      * Factory method for {@link BlockMasterClient}.
      *
-     * @param masterAddress the master address
      * @return a new {@link BlockMasterClient} instance
      */
-    public static BlockMasterClient create(InetSocketAddress masterAddress) {
-      return create(null, masterAddress);
+    public static BlockMasterClient create() {
+      return create(null, MasterInquireClient.Factory.create());
     }
 
     /**
      * Factory method for {@link BlockMasterClient}.
      *
      * @param subject the parent subject
-     * @param masterAddress the master address
+     * @param masterInquireClient a client for determining the master address
      * @return a new {@link BlockMasterClient} instance
      */
-    public static BlockMasterClient create(Subject subject, InetSocketAddress masterAddress) {
-      return RetryHandlingBlockMasterClient.create(subject, masterAddress);
+    public static BlockMasterClient create(Subject subject,
+        MasterInquireClient masterInquireClient) {
+      return new RetryHandlingBlockMasterClient(subject, masterInquireClient);
     }
   }
 

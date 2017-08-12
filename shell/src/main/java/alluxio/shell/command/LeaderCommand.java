@@ -18,6 +18,8 @@ import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 
+import java.net.InetSocketAddress;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -47,9 +49,9 @@ public final class LeaderCommand extends AbstractShellCommand {
   public int run(CommandLine cl) {
     try (CloseableResource<FileSystemMasterClient> client =
         FileSystemContext.INSTANCE.acquireMasterClientResource()) {
-      String hostName = client.get().getAddress().getHostName();
-      if (hostName != null) {
-        System.out.println(hostName);
+      InetSocketAddress address = client.get().getAddress();
+      if (address != null) {
+        System.out.println(address.getHostName());
       } else {
         System.out.println("Failed to get the leader master.");
       }

@@ -9,17 +9,24 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.network;
+
+import java.io.IOException;
+import java.net.ServerSocket;
 
 /**
- * Factory for creating named journals.
+ * Utility methods for working with ports.
  */
-public interface JournalFactory {
+public class PortUtils {
+
   /**
-   * Creates a new journal using the given name.
-   *
-   * @param name the journal name
-   * @return a new instance of {@link Journal}
+   * @return a port that is currently free. Note that this port is not reserved and may be taken at
+   *         any time
    */
-  Journal create(String name);
+  public static int getFreePort() throws IOException {
+    try (ServerSocket s = new ServerSocket(0)) {
+      s.setReuseAddress(true);
+      return s.getLocalPort();
+    }
+  }
 }

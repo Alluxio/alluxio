@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.BaseIntegrationTest;
+import alluxio.master.NoopMaster;
 import alluxio.util.URIUtils;
 
 import org.junit.Assert;
@@ -33,8 +34,9 @@ public final class UfsJournalTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mJournal = new UfsJournal(URIUtils
-        .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster"));
+    mJournal =
+        new UfsJournal(URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()),
+            "FileSystemMaster"), new NoopMaster(), 0);
   }
 
   /**

@@ -25,6 +25,7 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.master.MasterInquireClient;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
@@ -39,7 +40,6 @@ import alluxio.wire.ThriftUtils;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,15 +63,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
    * Creates a new {@link RetryHandlingFileSystemMasterClient} instance.
    *
    * @param subject the subject
-   * @param masterAddress the master address
+   * @param masterInquireClient a client for determining the master address
    */
-  protected static RetryHandlingFileSystemMasterClient create(Subject subject,
-      InetSocketAddress masterAddress) {
-    return new RetryHandlingFileSystemMasterClient(subject, masterAddress);
-  }
-
-  private RetryHandlingFileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
-    super(subject, masterAddress);
+  public RetryHandlingFileSystemMasterClient(Subject subject,
+      MasterInquireClient masterInquireClient) {
+    super(subject, masterInquireClient);
   }
 
   @Override

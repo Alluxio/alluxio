@@ -14,8 +14,11 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.PropertyKey;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
 
 import java.net.InetSocketAddress;
+import java.net.URI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -32,10 +35,19 @@ public interface MasterProcess extends Process {
      * @return a new instance of {@link MasterProcess}
      */
     public static MasterProcess create() {
+      URI journalLocation = JournalUtils.getJournalLocation();
+      JournalSystem journalSystem =
+          new JournalSystem.Builder().setLocation(journalLocation).build();
+      PrimarySelector leaderSelector = null;
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return new FaultTolerantAlluxioMasterProcess();
+        leaderSelector = PrimarySelector.Factory.createZkPrimarySelector();
       }
-      return new AlluxioMasterProcess();
+
+      if (leaderSelector == null) {
+        return new AlluxioMasterProcess(journalSystem);
+      } else {
+        return new FaultTolerantAlluxioMasterProcess(journalSystem, leaderSelector);
+      }
     }
 
     private Factory() {} // prevent instantiation

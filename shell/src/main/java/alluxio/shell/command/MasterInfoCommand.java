@@ -11,14 +11,13 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.resource.CloseableResource;
+import alluxio.master.MasterInquireClient;
 
 import org.apache.commons.cli.CommandLine;
+
+import java.net.InetSocketAddress;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -47,37 +46,18 @@ public final class MasterInfoCommand extends AbstractShellCommand {
 
   @Override
   public int run(CommandLine cl) {
-    try (CloseableResource<FileSystemMasterClient> client =
-        FileSystemContext.INSTANCE.acquireMasterClientResource()) {
-      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        runWithFaultTolerance(client.get());
-      } else {
-        runWithoutFaultTolerance(client.get());
-      }
+    MasterInquireClient inquireClient = MasterInquireClient.Factory.create();
+    InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
+    if (leaderAddress != null) {
+      System.out.println("Current leader master: " + leaderAddress.toString());
+    } else {
+      System.out.println("Failed to find leader master");
+    }
+    List<InetSocketAddress> masterAddresses = inquireClient.getMasterRpcAddresses();
+    if (masterAddresses != null) {
+      System.out.println(String.format("All masters: %s", masterAddresses));
     }
     return 0;
-  }
-
-  private void runWithoutFaultTolerance(FileSystemMasterClient client) {
-    System.out.println("Alluxio cluster without fault tolerance now");
-    printLeader(client);
-  }
-
-  private void runWithFaultTolerance(FileSystemMasterClient client) {
-    System.out.println("Alluxio cluster with fault tolerance now");
-    printLeader(client);
-    System.out.println(String.format("All masters: %s", client.getMasterAddresses()));
-    System.out.println(String.format("Zookeeper address: %s",
-        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS)));
-  }
-
-  private void printLeader(FileSystemMasterClient client) {
-    String hostName = client.getAddress().getHostName();
-    if (hostName != null) {
-      System.out.println(String.format("Current leader master: %s", hostName));
-    } else {
-      System.out.println("Failed to get the current leader master.");
-    }
   }
 
   @Override

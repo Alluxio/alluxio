@@ -89,8 +89,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
-    try (FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress())) {
+    try (FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create()) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");
@@ -103,8 +102,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationIsolatedClassLoader() throws Exception {
-    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create();
     Assert.assertFalse(masterClient.isConnected());
 
     // Get the current context class loader to retrieve the classpath URLs.
@@ -130,8 +128,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
    * @param filename the name of the file
    */
   private void authenticationOperationTest(String filename) throws Exception {
-    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create();
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

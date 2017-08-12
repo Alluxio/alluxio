@@ -13,12 +13,12 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,7 +32,7 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
-  private final InetSocketAddress mMasterAddress;
+  private final MasterInquireClient mMasterInquireClient;
   private final Queue<BlockMasterClient> mClientList;
   private final Subject mSubject;
 
@@ -40,27 +40,12 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    * Creates a new block master client pool.
    *
    * @param subject the parent subject
-   * @param masterAddress the master address
+   * @param masterInquireClient a client for determining the master address
    */
-  public BlockMasterClientPool(Subject subject, InetSocketAddress masterAddress) {
+  public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
     super(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
     mSubject = subject;
-    mMasterAddress = masterAddress;
-    mClientList = new ConcurrentLinkedQueue<>();
-  }
-
-  /**
-   * Creates a new block master client pool.
-   *
-   * @param subject the parent subject
-   * @param masterAddress the master address
-   * @param clientThreads the number of client threads to use
-   */
-  public BlockMasterClientPool(Subject subject, InetSocketAddress masterAddress,
-      int clientThreads) {
-    super(clientThreads);
-    mSubject = subject;
-    mMasterAddress = masterAddress;
+    mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
   }
 
@@ -76,7 +61,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = BlockMasterClient.Factory.create(mSubject, mMasterAddress);
+    BlockMasterClient client = BlockMasterClient.Factory.create(mSubject, mMasterInquireClient);
     mClientList.add(client);
     return client;
   }

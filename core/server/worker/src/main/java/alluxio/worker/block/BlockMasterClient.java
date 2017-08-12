@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.master.MasterInquireClient;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterWorkerService;
@@ -26,7 +27,6 @@ import alluxio.wire.WorkerNetAddress;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -44,11 +44,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
-   *
-   * @param masterAddress the master address
    */
-  public BlockMasterClient(InetSocketAddress masterAddress) {
-    super(null, masterAddress);
+  public BlockMasterClient() {
+    super(null, MasterInquireClient.Factory.create());
   }
 
   @Override

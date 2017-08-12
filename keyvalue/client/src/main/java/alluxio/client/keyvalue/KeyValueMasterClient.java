@@ -14,6 +14,7 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.master.MasterInquireClient;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.CompletePartitionTOptions;
 import alluxio.thrift.CompleteStoreTOptions;
@@ -28,7 +29,6 @@ import alluxio.thrift.RenameStoreTOptions;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -43,11 +43,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
 
   /**
    * Creates a new key-value master client.
-   *
-   * @param masterAddress the master address
    */
-  public KeyValueMasterClient(InetSocketAddress masterAddress) {
-    super(null, masterAddress);
+  public KeyValueMasterClient() {
+    super(null, MasterInquireClient.Factory.create());
   }
 
   @Override

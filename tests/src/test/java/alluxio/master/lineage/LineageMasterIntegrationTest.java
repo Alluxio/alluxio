@@ -214,12 +214,10 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   private LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient(
-        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    return new LineageMasterClient();
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
-    return FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    return FileSystemMasterClient.Factory.create();
   }
 }

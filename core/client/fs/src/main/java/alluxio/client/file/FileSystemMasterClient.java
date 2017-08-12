@@ -12,7 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.MasterClient;
+import alluxio.Client;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -27,9 +27,9 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.wire.MountPointInfo;
+import alluxio.master.MasterInquireClient;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +38,7 @@ import javax.security.auth.Subject;
 /**
  * A client to use for interacting with a file system master.
  */
-public interface FileSystemMasterClient extends MasterClient {
+public interface FileSystemMasterClient extends Client {
 
   /**
    * Factory for {@link FileSystemMasterClient}.
@@ -50,22 +50,22 @@ public interface FileSystemMasterClient extends MasterClient {
     /**
      * Factory method for {@link FileSystemMasterClient}.
      *
-     * @param masterAddress the master address
      * @return a new {@link FileSystemMasterClient} instance
      */
-    public static FileSystemMasterClient create(InetSocketAddress masterAddress) {
-      return create(null, masterAddress);
+    public static FileSystemMasterClient create() {
+      return create(null, MasterInquireClient.Factory.create());
     }
 
     /**
      * Factory method for {@link FileSystemMasterClient}.
      *
      * @param subject the parent subject
-     * @param masterAddress the master address
+     * @param masterInquireClient a client for determining the master address
      * @return a new {@link FileSystemMasterClient} instance
      */
-    public static FileSystemMasterClient create(Subject subject, InetSocketAddress masterAddress) {
-      return RetryHandlingFileSystemMasterClient.create(subject, masterAddress);
+    public static FileSystemMasterClient create(Subject subject,
+        MasterInquireClient masterInquireClient) {
+      return new RetryHandlingFileSystemMasterClient(subject, masterInquireClient);
     }
   }
 

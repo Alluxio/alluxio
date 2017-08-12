@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.master.MasterInquireClient;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.GetBlockInfoTOptions;
@@ -26,7 +27,6 @@ import alluxio.wire.WorkerInfo;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,15 +48,10 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * Creates a new block master client.
    *
    * @param subject the parent subject, set to null if not present
-   * @param masterAddress the master address
+   * @param masterInquireClient a client for determining the master address
    */
-  protected static RetryHandlingBlockMasterClient create(Subject subject,
-      InetSocketAddress masterAddress) {
-    return new RetryHandlingBlockMasterClient(subject, masterAddress);
-  }
-
-  private RetryHandlingBlockMasterClient(Subject subject, InetSocketAddress masterAddress) {
-    super(subject, masterAddress);
+  public RetryHandlingBlockMasterClient(Subject subject, MasterInquireClient masterInquireClient) {
+    super(subject, masterInquireClient);
   }
 
   @Override

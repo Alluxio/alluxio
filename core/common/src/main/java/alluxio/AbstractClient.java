@@ -91,7 +91,7 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
-    mAddress = Preconditions.checkNotNull(address, "address");
+    mAddress = address;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
     mParentSubject = subject;
@@ -168,8 +168,17 @@ public abstract class AbstractClient implements Client {
 
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (!mClosed) {
+    while (true) {
+      if (mClosed) {
+        throw new FailedPreconditionException("Failed to connect: client has been closed");
+      }
       mAddress = getAddress();
+      if (mAddress == null) {
+        if (retryPolicy.attemptRetry()) {
+          continue;
+        }
+        throw new UnavailableException("Failed to determine remote address");
+      }
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
@@ -256,6 +265,9 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
+   * Returns the address of the remote. This method may be overridden to change the address in case
+   * of remote failover.
+   *
    * @return the {@link InetSocketAddress} of the remote
    */
   public synchronized InetSocketAddress getAddress() {

@@ -23,7 +23,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -35,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -99,10 +97,7 @@ public final class AlluxioFrameworkIntegrationTest {
     try {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
-      String masterHostName = NetworkAddressUtils.getLocalHostName();
-      int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-      InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
-      try (final BlockMasterClient client = BlockMasterClient.Factory.create(masterAddress)) {
+      try (final BlockMasterClient client = BlockMasterClient.Factory.create()) {
         CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override

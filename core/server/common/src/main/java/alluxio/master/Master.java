@@ -12,20 +12,9 @@
 package alluxio.master;
 
 import alluxio.Server;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.proto.journal.Journal.JournalEntry;
-
-import java.io.IOException;
+import alluxio.master.journal.JournalEntryStateMachine;
 
 /**
  * This interface contains common operations for all masters.
  */
-public interface Master extends JournalEntryIterable, Server<Boolean> {
-  /**
-   * Processes a journal entry and applies it to the master. These entries follow the checkpoint
-   * entries.
-   *
-   * @param entry the entry to process to update the state of the master
-   */
-  void processJournalEntry(JournalEntry entry) throws IOException;
-}
+public interface Master extends JournalEntryStateMachine, Server<Boolean> {}
