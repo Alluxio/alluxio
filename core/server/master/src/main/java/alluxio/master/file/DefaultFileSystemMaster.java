@@ -1032,14 +1032,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
+    Inode srcInode = null;
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
-      Inode srcInode = inodePath.getInode();
-      appendAuditLogEntry(entry, srcInode);
+      srcInode = inodePath.getInode();
       return inodePath.getInode().getId();
+    } finally {
+      appendAuditLogEntry(entry, srcInode);
     }
   }
 
@@ -3002,9 +3004,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void appendAuditLogEntry(UserAccessAuditLog.AuditLogEntry entry, Inode inode) throws AccessControlException {
     entry.setUser(AuthenticatedClientUser.getClientUser());
     entry.setIp(FileSystemMasterClientServiceProcessor.getClientIpThreadLocal());
-    entry.setSrcPathOwner(inode.getOwner());
-    entry.setSrcPathGroup(inode.getGroup());
-    entry.setSrcPathMode(inode.getMode());
+    if (inode != null) {
+      entry.setSrcPathOwner(inode.getOwner());
+      entry.setSrcPathGroup(inode.getGroup());
+      entry.setSrcPathMode(inode.getMode());
+    }
     UserAccessAuditLog.append(entry);
   }
 
