@@ -397,7 +397,9 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    */
   private void pushAbortPacket(Channel channel, Error error) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mContext.getError() != null) {
+      if (mContext == null || mContext.getError() != null) {
+        // Note, network errors may be bubbling up through channelUnregistered to reach here before
+        // mContext is initialized.
         return;
       }
       mContext.setError(error);

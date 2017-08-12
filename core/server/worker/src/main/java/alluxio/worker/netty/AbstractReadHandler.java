@@ -169,7 +169,9 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   private void setError(Channel channel, Error error) {
     Preconditions.checkNotNull(error);
     try (LockResource lr = new LockResource(mLock)) {
-      if (mContext.getError() != null) {
+      // Note, network errors may be bubbling up through channelUnregistered to reach here before
+      // mContext is initialized.
+      if (mContext == null || mContext.getError() != null) {
         return;
       }
       mContext.setError(error);

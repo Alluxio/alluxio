@@ -20,6 +20,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.Before;
@@ -79,9 +80,15 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(0, 0, fileSize - 1);
     mBlockReader.close();
-    mChannelNoException.writeInbound(buildReadRequest(0, fileSize));
-    Object response = waitForOneResponse(mChannelNoException);
+    mChannel.writeInbound(buildReadRequest(0, fileSize));
+    Object response = waitForOneResponse(mChannel);
     checkReadResponse(response, PStatus.FAILED_PRECONDITION);
+  }
+
+  @Test
+  public void UnregisteredChannelFired() throws Exception {
+    ChannelPipeline p = mChannel.pipeline();
+    p.fireChannelUnregistered();
   }
 
   @Override

@@ -28,6 +28,7 @@ import alluxio.util.proto.ProtoMessage;
 import com.google.common.base.Suppliers;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Before;
@@ -80,6 +81,12 @@ public final class UfsFileWriteHandlerTest extends WriteHandlerTest {
     mChannelNoException.writeInbound(buildWriteRequest(PACKET_SIZE, PACKET_SIZE));
     Object writeResponse = waitForResponse(mChannelNoException);
     checkWriteResponse(writeResponse, PStatus.UNKNOWN);
+  }
+
+  @Test
+  public void UnregisteredChannelFired() throws Exception {
+    ChannelPipeline p = mChannel.pipeline();
+    p.fireChannelUnregistered();
   }
 
   @Override
