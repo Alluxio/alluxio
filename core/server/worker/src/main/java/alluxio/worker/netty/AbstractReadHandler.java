@@ -187,7 +187,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   private void setEof(Channel channel) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mContext.getError() != null || mContext.isCancel() || mContext.isEof()) {
+      if (mContext == null || mContext.getError() != null || mContext.isCancel()
+          || mContext.isEof()) {
         return;
       }
       mContext.setEof(true);
@@ -203,7 +204,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   private void setCancel(Channel channel) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mContext.getError() != null || mContext.isEof() || mContext.isCancel()) {
+      if (mContext == null || mContext.getError() != null || mContext.isEof()
+          || mContext.isCancel()) {
         return;
       }
       mContext.setCancel(true);

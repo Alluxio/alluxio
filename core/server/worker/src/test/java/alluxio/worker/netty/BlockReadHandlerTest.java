@@ -79,8 +79,8 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     long fileSize = PACKET_SIZE * 10 + 1;
     populateInputFile(0, 0, fileSize - 1);
     mBlockReader.close();
-    mChannel.writeInbound(buildReadRequest(0, fileSize));
-    Object response = waitForOneResponse(mChannel);
+    mChannelNoException.writeInbound(buildReadRequest(0, fileSize));
+    Object response = waitForOneResponse(mChannelNoException);
     checkReadResponse(response, PStatus.FAILED_PRECONDITION);
   }
 
