@@ -90,6 +90,7 @@ ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_AS
 ####################################################################################################
 function getConf {
   "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console \
+      -Dalluxio.remote.logger.type=Null \
       alluxio.cli.GetConf "$1"
 }
 
@@ -104,19 +105,24 @@ fi
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
+ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=${ALLUXIO_REMOTE_MASTER_LOGGER:-REMOTE_MASTER_LOGGER}"
 
 # Secondary master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_SECONDARY_MASTER_LOGGER:-SECONDARY_MASTER_LOGGER}"
+ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"
+ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
 
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKER_LOGGER}"
+ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=${ALLUXIO_REMOTE_WORKER_LOGGER:-REMOTE_WORKER_LOGGER}"
 
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logger.type=USER_LOGGER"
+ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
