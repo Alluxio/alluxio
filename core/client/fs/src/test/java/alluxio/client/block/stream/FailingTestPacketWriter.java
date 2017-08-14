@@ -19,8 +19,8 @@ import java.nio.ByteBuffer;
 /**
  * A packet writer implementation which always throws an exception on writes.
  */
-public class TestFailingPacketWriter extends TestPacketWriter {
-  public TestFailingPacketWriter(ByteBuffer buffer) {
+public class FailingTestPacketWriter extends TestPacketWriter {
+  public FailingTestPacketWriter(ByteBuffer buffer) {
     super(buffer);
   }
 

@@ -25,7 +25,7 @@ public class BlockOutStreamTest {
 
   @Test
   public void packetWriteException() throws Exception {
-    PacketWriter writer = new TestFailingPacketWriter(ByteBuffer.allocate(PACKET_SIZE));
+    PacketWriter writer = new FailingTestPacketWriter(ByteBuffer.allocate(PACKET_SIZE));
     BlockOutStream bos = new BlockOutStream(writer, PACKET_SIZE);
     try {
       bos.write(new byte[PACKET_SIZE]);
