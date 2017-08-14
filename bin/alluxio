@@ -14,6 +14,7 @@ function printUsage {
   echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
   echo "COMMAND is one of:"
+  echo -e "  extension     \t Manage extensions to core Alluxio"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
@@ -203,6 +204,11 @@ function main {
   PARAMETER=""
 
   case ${COMMAND} in
+  "extension")
+    CLASS="alluxio.cli.Extension"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "format")
     if [[ $# -eq 1 ]]; then
       if [[ $1 == "-s" ]]; then
@@ -210,6 +216,7 @@ function main {
           # if ufs is local filesystem and already exists
           exit 0
         else
+          # TODO(adit): fix me for pluggable connectors
           declare -a schemes=(hdfs s3 s3a s3n glusterfs swift oss gcs)
           for scheme in ${schemes[@]}; do
             if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then

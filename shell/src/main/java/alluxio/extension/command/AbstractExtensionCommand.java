@@ -9,12 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.shell.command;
+package alluxio.extension.command;
 
-import alluxio.cli.AlluxioShell;
-import alluxio.cli.command.Command;
+import alluxio.cli.command.AbstractCommand;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * An interface for all the commands that can be run from {@link AlluxioShell}.
+ * The base class for all the {@link ExtensionCommand} classes.
  */
-public interface ShellCommand extends Command {}
+@ThreadSafe
+public abstract class AbstractExtensionCommand extends AbstractCommand implements ExtensionCommand {
+
+  protected AbstractExtensionCommand() {}
+}
