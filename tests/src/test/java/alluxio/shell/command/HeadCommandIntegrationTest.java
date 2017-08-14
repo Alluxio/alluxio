@@ -79,4 +79,12 @@ public final class HeadCommandIntegrationTest extends AbstractAlluxioShellTest {
     byte[] expect = BufferUtils.getIncreasingByteArray(0, 10000);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
+
+  @Test
+  public void headFileWithUserSpecifiedBytesWithUnit() throws Exception {
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10000);
+    mFsShell.run("head", "-c", "2KB", "/testFile");
+    byte[] expect = BufferUtils.getIncreasingByteArray(0, 2048);
+    Assert.assertArrayEquals(expect, mOutput.toByteArray());
+  }
 }

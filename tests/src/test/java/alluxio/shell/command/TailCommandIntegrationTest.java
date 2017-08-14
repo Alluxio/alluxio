@@ -80,4 +80,12 @@ public final class TailCommandIntegrationTest extends AbstractAlluxioShellTest {
     byte[] expect = BufferUtils.getIncreasingByteArray(48, 2000);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
+
+  @Test
+  public void tailFileWithUserSpecifiedBytesWithUnit() throws Exception {
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10000);
+    mFsShell.run("tail", "-c", "2KB", "/testFile");
+    byte[] expect = BufferUtils.getIncreasingByteArray(10000 - 2048, 2048);
+    Assert.assertArrayEquals(expect, mOutput.toByteArray());
+  }
 }
