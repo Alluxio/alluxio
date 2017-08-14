@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
-import alluxio.cli.validation.RamDiskSpaceValidationTask;
+import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
 import alluxio.cli.validation.Utils;
@@ -79,11 +79,11 @@ public final class ValidateEnv {
       new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS));
 
   // ssh validations
-  private static final ValidationTask MASTERS_SSH_VALIDATION_TASK = registerTask(
-      "masters.ssh.reachable",
+  private static final ValidationTask SSH_TO_MASTERS_VALIDATION_TASK = registerTask(
+      "ssh.masters.reachable",
       new SshValidationTask("masters"));
-  private static final ValidationTask WORKERS_SSH_VALIDATION_TASK = registerTask(
-      "workers.ssh.reachable",
+  private static final ValidationTask SSH_TO_WORKERS_VALIDATION_TASK = registerTask(
+      "ssh.workers.reachable",
       new SshValidationTask("workers"));
 
   // UFS validations
@@ -96,9 +96,9 @@ public final class ValidateEnv {
       "worker.ramdisk.mount.privilege", new RamDiskMountPrivilegeValidationTask());
 
   // space validations
-  private static final ValidationTask WORKER_RAMDISK_SPACE_VALIDATION_TASK = registerTask(
-      "worker.ramdisk.space",
-      new RamDiskSpaceValidationTask());
+  private static final ValidationTask WORKER_STORAGE_SPACE_VALIDATION_TASK = registerTask(
+      "worker.storage.space",
+      new StorageSpaceValidationTask());
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
       initializeTargetTasks();
@@ -106,9 +106,9 @@ public final class ValidateEnv {
   private static Map<String, Collection<ValidationTask>> initializeTargetTasks() {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
     ValidationTask[] commonTasks = {
-        MASTERS_SSH_VALIDATION_TASK,
         PROXY_WEB_VALIDATION_TASK,
-        WORKERS_SSH_VALIDATION_TASK,
+        SSH_TO_MASTERS_VALIDATION_TASK,
+        SSH_TO_WORKERS_VALIDATION_TASK,
         UFS_ROOT_VALIDATION_TASK
     };
     ValidationTask[] masterTasks = {
@@ -118,8 +118,8 @@ public final class ValidateEnv {
     ValidationTask[] workerTasks = {
         WORKER_DATA_VALIDATION_TASK,
         WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK,
-        WORKER_RAMDISK_SPACE_VALIDATION_TASK,
         WORKER_RPC_VALIDATION_TASK,
+        WORKER_STORAGE_SPACE_VALIDATION_TASK,
         WORKER_WEB_VALIDATION_TASK
     };
 
