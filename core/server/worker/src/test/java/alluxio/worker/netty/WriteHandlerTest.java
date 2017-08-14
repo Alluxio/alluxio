@@ -20,6 +20,7 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -106,6 +107,12 @@ public abstract class WriteHandlerTest {
     Object writeResponse = waitForResponse(mChannelNoException);
     Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
     checkWriteResponse(writeResponse, PStatus.INVALID_ARGUMENT);
+  }
+
+  @Test
+  public void UnregisteredChannelFired() throws Exception {
+    ChannelPipeline p = mChannel.pipeline();
+    p.fireChannelUnregistered();
   }
 
   /**

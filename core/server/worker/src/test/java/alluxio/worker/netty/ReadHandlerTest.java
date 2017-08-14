@@ -27,6 +27,7 @@ import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.base.Function;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.FileRegion;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
@@ -137,6 +138,12 @@ public abstract class ReadHandlerTest {
       Assert.assertTrue(mChannel.isOpen());
     }
     Assert.assertTrue(eof);
+  }
+
+  @Test
+  public void UnregisteredChannelFired() throws Exception {
+    ChannelPipeline p = mChannel.pipeline();
+    p.fireChannelUnregistered();
   }
 
   /**

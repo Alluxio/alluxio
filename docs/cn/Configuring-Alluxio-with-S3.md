@@ -15,17 +15,17 @@ priority: 0
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有进行这项配置，那么用`bootstrapConf`命令创建你的配置文件
-
-例如，如果你在本地机器上运行Alluxio，`ALLUXIO_MASTER_HOSTNAME`应该设置为`localhost`。
-
-{% include Configuring-Alluxio-with-S3/bootstrapConf.md %}
-
-或者，你也可以由template文件创建配置文件并手动设置配置内容：
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
 另外，为了在S3上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该向导中，S3 bucket的名称为`S3_BUCKET`，在该bucket里的目录名称为`S3_DIRECTORY`。
+
+## 挂载S3
+
+### 根挂载
+
+要使用底层存储系统，你需要编辑`conf/alluxio-site.properties`来配置Alluxio。如果该文件不存在，那就从模板创建一个配置文件。
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
 
 ## 配置Alluxio
 
