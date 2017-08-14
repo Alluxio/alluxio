@@ -88,12 +88,6 @@
             <th>Pin</th>
             <th>Creation Time</th>
             <th>Modification Time</th>
-          <!--
-            <c:if test = "${debug}">
-              <th>[D]Inode Number</th>
-              <th>[D]Checkpoint Path</th>
-            </c:if>
-          -->
             <% if ((Boolean) request.getAttribute("debug")) { %>
               <th>[D]DepID</th>
               <th>[D]INumber</th>
@@ -102,41 +96,6 @@
             <% } %>
           </thead>
           <tbody>
-            <!--
-            <c:forEach var="fileInfo" items="${fileInfos}">
-              <tr>
-                <th>
-                  <c:if test = "${fileInfo.isDirectory}">
-                    <i class="icon-folder-close"></i>
-                  </c:if>
-                  <c:if test = "${not fileInfo.isDirectory}">
-                    <i class="icon-file"></i>
-                  </c:if>
-                  <a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a>
-                </th>
-                <th>${fileInfo.size} Bytes</th>
-                <th>${fileInfo.blockSizeBytes}</th>
-                <th>
-                  <c:if test = "${fileInfo.inMemory}">
-                    <i class="icon-hdd"></i>
-                  </c:if>
-                  <c:if test = "${not fileInfo.inMemory}">
-                    <i class="icon-hdd icon-white"></i>
-                  </c:if>
-                </th>
-                <th>${fileInfo.creationTime}</th>
-                <c:if test = "${debug}">
-                  <th>${fileInfo.id}</th>
-                  <th>${fileInfo.checkpointPath}</th>
-                  <th>
-                  <c:forEach var="location" items="${fileInfo.fileLocations}">
-                    ${location}<br/>
-                  </c:forEach>
-                  </th>
-                </c:if>
-              </tr>
-            </c:forEach>
-          -->
             <% if (request.getAttribute("fileInfos") != null) { %>
               <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
                 <tr>
