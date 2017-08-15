@@ -1538,14 +1538,19 @@ public class PropertyKey {
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+          .setDescription("The policy block workers follow for reading UFS blocks.")
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS)
           .setDefaultValue(1)
+          .setDescription("When alluxio.user.ufs.block.read.location.policy is set to "
+              + "alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of "
+              + "hash shards.")
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       new Builder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
+          .setDescription("The maximum concurrent readers for one UFS block on one Block Worker.")
           .build();
   public static final PropertyKey USER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.USER_UFS_BLOCK_OPEN_TIMEOUT_MS)
