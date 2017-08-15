@@ -12,6 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.client.file.FileSystem;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 
 import org.apache.commons.cli.CommandLine;
@@ -47,15 +48,18 @@ public final class MasterInfoCommand extends AbstractShellCommand {
   @Override
   public int run(CommandLine cl) {
     MasterInquireClient inquireClient = MasterInquireClient.Factory.create();
-    InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
-    if (leaderAddress != null) {
+    try {
+      InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
       System.out.println("Current leader master: " + leaderAddress.toString());
-    } else {
+    } catch (UnavailableException e) {
       System.out.println("Failed to find leader master");
     }
-    List<InetSocketAddress> masterAddresses = inquireClient.getMasterRpcAddresses();
-    if (masterAddresses != null) {
+
+    try {
+      List<InetSocketAddress> masterAddresses = inquireClient.getMasterRpcAddresses();
       System.out.println(String.format("All masters: %s", masterAddresses));
+    } catch (UnavailableException e) {
+      System.out.println("Failed to find all master addresses");
     }
     return 0;
   }

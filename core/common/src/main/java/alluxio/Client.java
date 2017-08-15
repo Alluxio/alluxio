@@ -11,11 +11,11 @@
 
 package alluxio;
 
+import alluxio.exception.status.UnavailableException;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
-import javax.annotation.Nullable;
 
 /**
  * Interface for a client in the Alluxio system.
@@ -34,12 +34,10 @@ public interface Client extends Closeable {
   void disconnect();
 
   /**
-   * @return the {@link InetSocketAddress} of the remote, or null if the remote address cannot be
-   *         determined, e.g. when trying to connect to the primary master when leader election is
-   *         in progress
+   * @return the {@link InetSocketAddress} of the remote,
+   * @throws UnavailableException if the primary address cannot be determined
    */
-  @Nullable
-  InetSocketAddress getAddress();
+  InetSocketAddress getAddress() throws UnavailableException;
 
   /**
    * Returns the connected status of the client.
@@ -47,9 +45,4 @@ public interface Client extends Closeable {
    * @return true if this client is connected to the remote
    */
   boolean isConnected();
-
-  /**
-   * Closes the connection, then queries and sets current remote address.
-   */
-  void resetConnection();
 }

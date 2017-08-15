@@ -51,7 +51,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public UfsJournal create(JournalEntryStateMachine master) {
+  public UfsJournal createJournal(JournalEntryStateMachine master) {
     UfsJournal journal =
         new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs);
     mJournals.put(master.getName(), journal);

@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A journal system for storing and applying journal entries.
  *
  * To use the journal system, first create per-state-machine journals with the
- * {@link #create(JournalEntryStateMachine)} method. Once all state machines are added,
+ * {@link #createJournal(JournalEntryStateMachine)} method. Once all state machines are added,
  * {@link #start()} the journal system. The journal system starts in secondary mode, meaning it will
  * not accept writes, but will apply journal entries to keep state machine states up to date with
  * previously written journal entries.
@@ -46,22 +46,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  * if (!journalSystem.isFormatted()) {
  *   journalSystem.format();
  * }
- * Journal blockMasterJournal = journalSystem.create(blockMaster);
- * Journal fileSystemMasterJournal = journalSystem.create(fileSystemMaster);
- * JournalWriter blockJournalWriter = blockMasterJournal.getWriter();
- * JournalWriter fileSystemJournalWriter = fileSystemMasterJournal.getWriter();
+ * Journal blockMasterJournal = journalSystem.createJournal(blockMaster);
+ * Journal fileSystemMasterJournal = journalSystem.createJournal(fileSystemMaster);
  *
  * // The journal system always starts in secondary mode. It must be transitioned to primary mode
  * // before it can serve RPC requests.
  * journalSystem.start();
  * journalSystem.setPrimary(true);
  *
- * blockJournalWriter.write(exampleBlockJournalEntry);
- * blockJournalWriter.flush();
+ * blockMasterJournal.write(exampleBlockJournalEntry);
+ * blockMasterJournal.flush();
  * // At this point, the journal entry is persistently committed to the journal and will be applied
  * // asynchronously to the in-memory state of all secondary masters.
- * fileSystemJournalWriter.write(exampleFileSystemJournalEntry);
- * fileSystemJournalWriter.flush();
+ * fileSystemMasterJournal.write(exampleFileSystemJournalEntry);
+ * fileSystemMasterJournal.flush();
  *
  * // Transition to a secondary journal. In this mode, the journal will apply entries to the masters
  * // as they are committed to the log.
@@ -106,7 +104,7 @@ public interface JournalSystem {
    * @param stateMachine the state machine to create the journal for
    * @return a new instance of {@link Journal}
    */
-  Journal create(JournalEntryStateMachine stateMachine);
+  Journal createJournal(JournalEntryStateMachine stateMachine);
 
   /**
    * Starts the journal system.

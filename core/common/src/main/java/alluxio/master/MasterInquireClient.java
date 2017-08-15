@@ -13,13 +13,13 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import java.net.InetSocketAddress;
 import java.util.List;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -28,15 +28,17 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface MasterInquireClient extends AutoCloseable {
   /**
-   * @return the rpc address of the primary master, or null if none can be determined
+   * @return the rpc address of the primary master. The implementation should perform retries if
+   *         appropriate
+   * @throws UnavailableException if the primary rpc address cannot be determined
    */
-  @Nullable
-  InetSocketAddress getPrimaryRpcAddress();
+  InetSocketAddress getPrimaryRpcAddress() throws UnavailableException;
 
   /**
    * @return a list of all masters' RPC addresses
+   * @throws UnavailableException if the master rpc addresses cannot be determined
    */
-  List<InetSocketAddress> getMasterRpcAddresses();
+  List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException;
 
   /**
    * Factory for getting a master inquire client.

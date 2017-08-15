@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 
 import java.net.InetSocketAddress;
@@ -33,12 +34,12 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param masterInquireClient the client to use for determining the master rpc address
    */
   public AbstractMasterClient(Subject subject, MasterInquireClient masterInquireClient) {
-    super(subject, masterInquireClient.getPrimaryRpcAddress());
+    super(subject, null);
     mMasterInquireClient = masterInquireClient;
   }
 
   @Override
-  public synchronized InetSocketAddress getAddress() {
+  public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
   }
 }

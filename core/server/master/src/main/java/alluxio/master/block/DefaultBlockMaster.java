@@ -183,7 +183,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    *        maintenance threads
    */
   DefaultBlockMaster(JournalSystem journalSystem, Clock clock,
-                     ExecutorServiceFactory executorServiceFactory) {
+      ExecutorServiceFactory executorServiceFactory) {
     super(journalSystem, clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }

@@ -129,7 +129,7 @@ public final class JournalTool {
 
   private static void readFromJournal() {
     UfsJournal journal =
-        new UfsJournalSystem(getJournalLocation(), 0).create(new NoopMaster(sMaster));
+        new UfsJournalSystem(getJournalLocation(), 0).createJournal(new NoopMaster(sMaster));
     try (JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {

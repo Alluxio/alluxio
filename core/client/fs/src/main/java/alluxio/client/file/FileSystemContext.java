@@ -123,7 +123,7 @@ public final class FileSystemContext implements Closeable {
   /**
    * Initializes the context. Only called in the factory methods and reset.
    */
-  private void init() {
+  private synchronized void init() {
     mMasterInquireClient = MasterInquireClient.Factory.create();
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
@@ -172,8 +172,9 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @return the master address
+   * @throws UnavailableException if the master address cannot be determined
    */
-  public synchronized InetSocketAddress getMasterAddress() {
+  public synchronized InetSocketAddress getMasterAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
   }
 

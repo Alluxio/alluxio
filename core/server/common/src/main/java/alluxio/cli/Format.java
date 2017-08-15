@@ -112,7 +112,7 @@ public final class Format {
         JournalSystem journalSystem =
             new JournalSystem.Builder().setLocation(journalLocation).build();
         for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
-          journalSystem.create(new NoopMaster(masterServiceName));
+          journalSystem.createJournal(new NoopMaster(masterServiceName));
         }
         journalSystem.format();
         break;

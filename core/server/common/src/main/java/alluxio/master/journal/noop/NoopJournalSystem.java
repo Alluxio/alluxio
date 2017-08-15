@@ -27,7 +27,7 @@ public final class NoopJournalSystem implements JournalSystem {
   public NoopJournalSystem() {}
 
   @Override
-  public Journal create(JournalEntryStateMachine master) {
+  public Journal createJournal(JournalEntryStateMachine master) {
     return new NoopJournal();
   }
 

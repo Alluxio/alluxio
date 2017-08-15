@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -90,11 +91,8 @@ public final class ZkMasterInquireClient implements MasterInquireClient {
     mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
-  /**
-   * @return the address of the current leader master
-   */
   @Override
-  public synchronized InetSocketAddress getPrimaryRpcAddress() {
+  public synchronized InetSocketAddress getPrimaryRpcAddress() throws UnavailableException {
     long startTime = System.currentTimeMillis();
     int tried = 0;
     try {
@@ -145,11 +143,11 @@ public final class ZkMasterInquireClient implements MasterInquireClient {
       LOG.debug("Finished getPrimaryRpcAddress() in {}ms", System.currentTimeMillis() - startTime);
     }
 
-    return null;
+    throw new UnavailableException("Failed to determine primary master rpc address");
   }
 
   @Override
-  public synchronized List<InetSocketAddress> getMasterRpcAddresses() {
+  public synchronized List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException {
     int tried = 0;
     try {
       while (tried < mMaxTry) {
@@ -174,7 +172,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient {
           mZookeeperAddress, e);
     }
 
-    return null;
+    throw new UnavailableException("Failed to query zookeeper for master RPC addresses");
   }
 
   @Override

@@ -38,16 +38,11 @@ public interface MasterProcess extends Process {
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem =
           new JournalSystem.Builder().setLocation(journalLocation).build();
-      PrimarySelector leaderSelector = null;
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        leaderSelector = PrimarySelector.Factory.createZkPrimarySelector();
+        PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
+        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
       }
-
-      if (leaderSelector == null) {
-        return new AlluxioMasterProcess(journalSystem);
-      } else {
-        return new FaultTolerantAlluxioMasterProcess(journalSystem, leaderSelector);
-      }
+      return new AlluxioMasterProcess(journalSystem);
     }
 
     private Factory() {} // prevent instantiation
