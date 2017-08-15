@@ -86,11 +86,12 @@ public final class StorageSpaceValidationTask implements ValidationTask {
                 "Tier %d: Not enough space on %s. %n"
                     + "Desired quota: %s%n"
                     + "Used in tiered storage: %s%n"
-                    + "Available: %s%n",
+                    + "Available: %s (Additional %s free space required)%n",
                 level, storageEntry.getKey(),
                 FormatUtils.getSizeFromBytes(quota),
                 FormatUtils.getSizeFromBytes(used),
-                FormatUtils.getSizeFromBytes(available));
+                FormatUtils.getSizeFromBytes(available),
+                FormatUtils.getSizeFromBytes(quota - used - available));
             success = false;
           }
         }
