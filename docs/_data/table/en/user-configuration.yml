@@ -99,11 +99,12 @@ alluxio.user.short.circuit.enabled:
 alluxio.user.ufs.block.open.timeout.ms:
   N/A
 alluxio.user.ufs.block.read.concurrency.max:
-  N/A
+  The maximum concurrent readers for one UFS block on one Block Worker.
 alluxio.user.ufs.block.read.location.policy:
-  N/A
+  The policy block workers follow for reading UFS blocks.
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
-  N/A
+  When alluxio.user.ufs.block.read.location.policy is set to
+  alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.
 alluxio.user.ufs.delegation.enabled:
   N/A
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
