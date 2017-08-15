@@ -98,6 +98,8 @@ if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
   ALLUXIO_LOGS_DIR=$(getConf "alluxio.logs.dir")
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
+
+alluxio_log_server_enabled=$(getConf "alluxio.logs.server.enabled")
 ####################################################################################################
 ## End reading site-properties
 ####################################################################################################
@@ -105,7 +107,11 @@ fi
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
-ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=${ALLUXIO_REMOTE_MASTER_LOGGER:-REMOTE_MASTER_LOGGER}"
+if [[ ${alluxio_log_server_enabled} == "true" ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_MASTER_LOGGER"
+else
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
+fi
 
 # Secondary master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
@@ -120,7 +126,11 @@ ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKER_LOGGER}"
-ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=${ALLUXIO_REMOTE_WORKER_LOGGER:-REMOTE_WORKER_LOGGER}"
+if [[ ${alluxio_log_server_enabled} == "true" ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_WORKER_LOGGER"
+else
+    ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
+fi
 
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
