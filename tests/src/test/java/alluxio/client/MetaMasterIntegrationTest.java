@@ -13,8 +13,9 @@ package alluxio.client;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.BaseIntegrationTest;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.master.MasterClientConfig;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
@@ -33,7 +34,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void getInfoAllFields() throws Exception {
-    try (MetaMasterClient client = new RetryHandlingMetaMasterClient(null)) {
+    try (MetaMasterClient client =
+        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       int webPort =
           mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
       MasterInfo info = client.getInfo(null);
@@ -43,7 +45,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void getInfoWebPort() throws Exception {
-    try (MetaMasterClient client = new RetryHandlingMetaMasterClient(null)) {
+    try (MetaMasterClient client =
+        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       int webPort =
           mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
       MasterInfo info = client.getInfo(new HashSet<>(Arrays.asList(MasterInfoField.WEB_PORT)));
