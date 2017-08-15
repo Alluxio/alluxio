@@ -246,8 +246,8 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
         // writer. So we need to release here. If the packet has no bytes to read, then it has
         // to be the last packet. It needs to be released as well.
         mCurrentPacket.release();
+        mCurrentPacket = null;
       }
-      mCurrentPacket = null;
     }
     if (!lastPacket) {
       mCurrentPacket = allocateBuffer();
